@@ -10,6 +10,6 @@ export function UpdateExecutable(arg1) {
   return window['go']['main']['Config']['UpdateExecutable'](arg1);
 }
 
-export function UpdateModFolder(arg1) {
-  return window['go']['main']['Config']['UpdateModFolder'](arg1);
+export function UpdateMetroMakerDataFolder(arg1) {
+  return window['go']['main']['Config']['UpdateMetroMakerDataFolder'](arg1);
 }

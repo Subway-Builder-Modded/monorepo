@@ -1,7 +1,7 @@
 export namespace main {
 	
 	export class AppConfig {
-	    modFolderPath?: string;
+	    metroMakerDataPath?: string;
 	    executablePath?: string;
 	
 	    static createFrom(source: any = {}) {
@@ -10,7 +10,7 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.modFolderPath = source["modFolderPath"];
+	        this.metroMakerDataPath = source["metroMakerDataPath"];
 	        this.executablePath = source["executablePath"];
 	    }
 	}
@@ -63,7 +63,7 @@ export namespace main {
 	}
 	export class ConfigPathValidation {
 	    isConfigured: boolean;
-	    modFolderPathValid: boolean;
+	    metroMakerDataPathValid: boolean;
 	    executablePathValid: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -73,17 +73,17 @@ export namespace main {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.isConfigured = source["isConfigured"];
-	        this.modFolderPathValid = source["modFolderPathValid"];
+	        this.metroMakerDataPathValid = source["metroMakerDataPathValid"];
 	        this.executablePathValid = source["executablePathValid"];
 	    }
 	}
-	export class InstallMapResponse {
+	export class HandleInstallResponse {
 	    status: string;
 	    message?: string;
 	    data?: ConfigData;
 	
 	    static createFrom(source: any = {}) {
-	        return new InstallMapResponse(source);
+	        return new HandleInstallResponse(source);
 	    }
 	
 	    constructor(source: any = {}) {
@@ -110,20 +110,6 @@ export namespace main {
 		    }
 		    return a;
 		}
-	}
-	export class InstallModResponse {
-	    status: string;
-	    message?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new InstallModResponse(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.status = source["status"];
-	        this.message = source["message"];
-	    }
 	}
 	export class UpdateConfig {
 	    type: string;

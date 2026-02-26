@@ -6,4 +6,4 @@ export function ResolveConfig():Promise<main.ResolveConfigResult>;
 
 export function UpdateExecutable(arg1:string):Promise<main.AppConfig>;
 
-export function UpdateModFolder(arg1:string):Promise<main.AppConfig>;
+export function UpdateMetroMakerDataFolder(arg1:string):Promise<main.AppConfig>;

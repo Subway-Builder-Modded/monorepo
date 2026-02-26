@@ -27,12 +27,12 @@ func writeTestConfigFile(t *testing.T, content string) {
 
 func TestAreConfigPathsConfigured(t *testing.T) {
 	cfg := AppConfig{
-		ModFolderPath:  "directory/mods",
-		ExecutablePath: "other_directory/executable.exe",
+		MetroMakerDataPath: "directory/mods",
+		ExecutablePath:     "other_directory/executable.exe",
 	}
 	require.True(t, cfg.areConfigPathsConfigured())
 
-	cfg.ModFolderPath = "   "
+	cfg.MetroMakerDataPath = "   "
 	require.False(t, cfg.areConfigPathsConfigured())
 }
 
@@ -47,13 +47,13 @@ func TestValidateConfigPaths(t *testing.T) {
 
 	// Paths are configured but do not exist on disk
 	cfg = AppConfig{
-		ModFolderPath:  "blah/blah/mods",
-		ExecutablePath: "blah.exe",
+		MetroMakerDataPath: "blah/blah/mods",
+		ExecutablePath:     "blah.exe",
 	}
 	valid, result = cfg.ValidateConfigPaths()
 	require.False(t, valid)
 	require.True(t, result.IsConfigured)
-	require.False(t, result.ModFolderPathValid)
+	require.False(t, result.MetroMakerDataPathValid)
 	require.False(t, result.ExecutablePathValid)
 
 	modDir := t.TempDir()
@@ -62,13 +62,13 @@ func TestValidateConfigPaths(t *testing.T) {
 
 	// Paths are configured and exist on disk
 	cfg = AppConfig{
-		ModFolderPath:  modDir,
-		ExecutablePath: exeFile,
+		MetroMakerDataPath: modDir,
+		ExecutablePath:     exeFile,
 	}
 	valid, result = cfg.ValidateConfigPaths()
 	require.True(t, valid)
 	require.True(t, result.IsConfigured)
-	require.True(t, result.ModFolderPathValid)
+	require.True(t, result.MetroMakerDataPathValid)
 	require.True(t, result.ExecutablePathValid)
 }
 
@@ -80,10 +80,10 @@ func TestUpdateConfigPersistsMutations(t *testing.T) {
 
 	svc := NewConfig()
 	updated, err := svc.updateConfig(func(cfg *AppConfig) {
-		cfg.ModFolderPath = "~/Library/Application Support/metro-maker4/mods/"
+		cfg.MetroMakerDataPath = "~/Library/Application Support/metro-maker4/mods/"
 	})
 	require.NoError(t, err)
-	require.Equal(t, "~/Library/Application Support/metro-maker4/mods/", updated.ModFolderPath)
+	require.Equal(t, "~/Library/Application Support/metro-maker4/mods/", updated.MetroMakerDataPath)
 	require.Equal(t, "/Applications/Subway Builder.app/Contents/MacOS/Subway Builder", updated.ExecutablePath)
 
 	persisted, err := readAppConfig()

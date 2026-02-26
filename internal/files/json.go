@@ -41,6 +41,21 @@ func ReadJSON[T any](path string, label string, opts JSONReadOptions) (T, error)
 	return decoded, nil
 }
 
+// ParseJSON parses JSON data into defined struct type T.
+// The label is used for annotating error messages.
+func ParseJSON[T any](data []byte, label string) (T, error) {
+	var zero T
+	if len(bytes.TrimSpace(data)) == 0 {
+		return zero, fmt.Errorf("failed to parse %s: data is empty", label)
+	}
+
+	var decoded T
+	if err := json.Unmarshal(data, &decoded); err != nil {
+		return zero, fmt.Errorf("failed to parse %s: %w", label, err)
+	}
+	return decoded, nil
+}
+
 // WriteJSON formats the value to JSON and writes it to path.
 // The label is used for annotating error messages.
 func WriteJSON[T any](path string, label string, value T) error {

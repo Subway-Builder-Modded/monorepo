@@ -68,7 +68,7 @@ export function ProjectPage() {
 
       <Separator />
 
-      <VersionsTable update={item.update} />
+      <VersionsTable type={type} update={item.update} />
     </div>
   );
 }

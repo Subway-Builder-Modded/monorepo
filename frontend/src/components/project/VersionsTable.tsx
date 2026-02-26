@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorBanner } from "@/components/shared/ErrorBanner";
 
 interface VersionsTableProps {
+  type: string
   update: main.UpdateConfig;
 }
 
