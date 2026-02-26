@@ -13,6 +13,8 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"go.yaml.in/yaml/v4"
 )
 
 // App struct
@@ -70,6 +72,24 @@ type InstallMapResponse struct {
 type InstallModResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message,omitempty"`
+}
+
+// CityInfo represents information about a single city
+type CityInfo struct {
+	Code         string    `yaml:"code" json:"code"`
+	Name         string    `yaml:"name" json:"name"`
+	Version      string    `yaml:"version" json:"version"`
+	Hash         string    `yaml:"hash" json:"hash"`
+	Size         int64     `yaml:"size" json:"size"`
+	LastModified time.Time `yaml:"lastModified" json:"lastModified"`
+	FileName     string    `yaml:"fileName" json:"fileName"`
+}
+
+// CitiesData represents the root structure of the cities YAML file
+type CitiesData struct {
+	Version     string              `yaml:"version" json:"version"`
+	LastUpdated time.Time           `yaml:"lastUpdated" json:"lastUpdated"`
+	Cities      map[string]CityInfo `yaml:"cities" json:"cities"`
 }
 
 // NewApp creates a new App application struct
@@ -181,7 +201,7 @@ func (a *App) InstallMap(zipFilePath string, subwayBuilderDataPath string) Insta
 	}
 
 	installedMaps := a.Registry.GetInstalledMapCodes()
-	vanillaMaps := a.GetVanillaMapCodes()
+	vanillaMaps := a.GetVanillaMapCodes(subwayBuilderDataPath)
 
 	if slices.Contains(installedMaps, configData.Code) || slices.Contains(vanillaMaps, configData.Code) {
 		return InstallMapResponse{
@@ -468,8 +488,25 @@ func (a *App) InstallMod(zipFilePath string, subwayBuilderDataPath string, modId
 	}
 }
 
-// GetVanillaMapCodes returns the city codes of maps included with the app.
-// Currently stubbed to return an empty slice.
-func (a *App) GetVanillaMapCodes() []string {
-	return []string{}
+// GetVanillaMapCodes returns the city codes of maps included with the game.
+func (a *App) GetVanillaMapCodes(subwayBuilderDataPath string) []string {
+	reader, err := os.Open(path.Join(subwayBuilderDataPath, "cities", "latest-cities.yml"))
+	if err != nil {
+		log.Printf("Warning: failed to open latest-cities.yml: %v", err)
+		return []string{}
+	}
+	defer reader.Close()
+
+	var citiesData CitiesData
+	decoder := yaml.NewDecoder(reader)
+	err = decoder.Decode(&citiesData)
+	if err != nil {
+		log.Printf("Warning: failed to parse latest-cities.yml: %v", err)
+		return []string{}
+	}
+	citieCodes := make([]string, 0, len(citiesData.Cities))
+	for code := range citiesData.Cities {
+		citieCodes = append(citieCodes, code)
+	}
+	return citieCodes
 }
