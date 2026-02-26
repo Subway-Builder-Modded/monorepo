@@ -1,0 +1,340 @@
+package main
+
+import (
+	"bufio"
+	"bytes"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
+)
+
+const registryRepoURL = "https://github.com/Subway-Builder-Modded/The-Railyard"
+
+// UpdateConfig describes how a mod or map receives updates.
+type UpdateConfig struct {
+	Type string `json:"type"`
+	Repo string `json:"repo,omitempty"`
+	URL  string `json:"url,omitempty"`
+}
+
+// ModManifest is the manifest schema for a mod entry in the registry.
+type ModManifest struct {
+	SchemaVersion int          `json:"schema_version"`
+	ID            string       `json:"id"`
+	Name          string       `json:"name"`
+	Author        string       `json:"author"`
+	GithubID      int          `json:"github_id"`
+	Description   string       `json:"description"`
+	Tags          []string     `json:"tags"`
+	Gallery       []string     `json:"gallery"`
+	Source        string       `json:"source"`
+	Update        UpdateConfig `json:"update"`
+}
+
+// MapManifest is the manifest schema for a map entry in the registry.
+type MapManifest struct {
+	SchemaVersion int          `json:"schema_version"`
+	ID            string       `json:"id"`
+	Name          string       `json:"name"`
+	Author        string       `json:"author"`
+	GithubID      int          `json:"github_id"`
+	CityCode      string       `json:"city_code"`
+	Country       string       `json:"country"`
+	Population    int          `json:"population"`
+	Description   string       `json:"description"`
+	Tags          []string     `json:"tags"`
+	Gallery       []string     `json:"gallery"`
+	Source        string       `json:"source"`
+	Update        UpdateConfig `json:"update"`
+}
+
+// IndexFile represents the top-level index.json in the mods/ or maps/ directory.
+type IndexFile struct {
+	SchemaVersion int      `json:"schema_version"`
+	Mods          []string `json:"mods,omitempty"`
+	Maps          []string `json:"maps,omitempty"`
+}
+
+// Registry manages the local clone of The Railyard registry repository.
+type Registry struct {
+	repoPath string
+}
+
+// NewRegistry creates a new Registry instance with the platform-appropriate
+// storage path.
+func NewRegistry() *Registry {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		// Fallback to home directory if UserConfigDir fails
+		home, _ := os.UserHomeDir()
+		configDir = home
+	}
+	return &Registry{
+		repoPath: filepath.Join(configDir, "railyard", "registry"),
+	}
+}
+
+// Initialize clones the registry repo if it doesn't exist locally, or
+// fetches and hard-resets to origin/main if it does. This should be called
+// on app startup.
+func (r *Registry) Initialize() error {
+	return r.cloneOrUpdate()
+}
+
+// Refresh forces a pull of the latest registry changes.
+func (r *Registry) Refresh() error {
+	return r.cloneOrUpdate()
+}
+
+// cloneOrUpdate handles clone-if-missing and fetch+reset-if-exists logic.
+func (r *Registry) cloneOrUpdate() error {
+	// Try to open the existing repo
+	repo, err := git.PlainOpen(r.repoPath)
+	if err != nil {
+		// Directory doesn't exist or isn't a valid git repo -- (re)clone
+		return r.forceClone()
+	}
+
+	// Repo exists, try to fetch + hard reset
+	err = r.fetchAndReset(repo)
+	if err != nil {
+		// If fetch/reset fails the repo may be corrupted -- delete and re-clone
+		return r.forceClone()
+	}
+	return nil
+}
+
+// getCredentials uses the system's git credential helper to resolve
+// credentials for the registry repo URL. Returns nil auth if no
+// credentials are found (for public repos).
+func (r *Registry) getCredentials() *http.BasicAuth {
+	parsed, err := url.Parse(registryRepoURL)
+	if err != nil {
+		return nil
+	}
+
+	input := fmt.Sprintf("protocol=%s\nhost=%s\npath=%s\n\n", parsed.Scheme, parsed.Host, strings.TrimPrefix(parsed.Path, "/"))
+
+	cmd := exec.Command("git", "credential", "fill")
+	cmd.Stdin = strings.NewReader(input)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return nil
+	}
+
+	var username, password string
+	scanner := bufio.NewScanner(&out)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if k, v, ok := strings.Cut(line, "="); ok {
+			switch k {
+			case "username":
+				username = v
+			case "password":
+				password = v
+			}
+		}
+	}
+
+	if username != "" && password != "" {
+		return &http.BasicAuth{
+			Username: username,
+			Password: password,
+		}
+	}
+	return nil
+}
+
+// forceClone removes any existing directory and performs a fresh clone.
+func (r *Registry) forceClone() error {
+	// Remove existing directory if present
+	if err := os.RemoveAll(r.repoPath); err != nil {
+		return fmt.Errorf("failed to remove existing registry directory: %w", err)
+	}
+
+	// Ensure parent directory exists
+	parent := filepath.Dir(r.repoPath)
+	if err := os.MkdirAll(parent, 0755); err != nil {
+		return fmt.Errorf("failed to create registry parent directory: %w", err)
+	}
+
+	cloneOpts := &git.CloneOptions{
+		URL:           registryRepoURL,
+		ReferenceName: plumbing.NewBranchReferenceName("main"),
+		SingleBranch:  true,
+		Depth:         1,
+	}
+	if auth := r.getCredentials(); auth != nil {
+		cloneOpts.Auth = auth
+	}
+
+	_, err := git.PlainClone(r.repoPath, false, cloneOpts)
+	if err != nil {
+		return fmt.Errorf("failed to clone registry repo: %w", err)
+	}
+
+	return nil
+}
+
+// fetchAndReset fetches from origin and hard-resets the working tree to
+// origin/main.
+func (r *Registry) fetchAndReset(repo *git.Repository) error {
+	// Fetch with force
+	fetchOpts := &git.FetchOptions{
+		RemoteName: "origin",
+		RefSpecs: []config.RefSpec{
+			"+refs/heads/main:refs/remotes/origin/main",
+		},
+		Force: true,
+	}
+	if auth := r.getCredentials(); auth != nil {
+		fetchOpts.Auth = auth
+	}
+	err := repo.Fetch(fetchOpts)
+	if err != nil && err != git.NoErrAlreadyUpToDate {
+		return fmt.Errorf("failed to fetch registry: %w", err)
+	}
+
+	// Resolve origin/main
+	ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+	if err != nil {
+		return fmt.Errorf("failed to resolve origin/main: %w", err)
+	}
+
+	// Get the worktree and hard reset
+	wt, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	err = wt.Reset(&git.ResetOptions{
+		Commit: ref.Hash(),
+		Mode:   git.HardReset,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to reset to origin/main: %w", err)
+	}
+
+	return nil
+}
+
+// GetMods reads the mods index and returns all mod manifests.
+func (r *Registry) GetMods() ([]ModManifest, error) {
+	indexPath := filepath.Join(r.repoPath, "mods", "index.json")
+	indexData, err := os.ReadFile(indexPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read mods index: %w", err)
+	}
+
+	var index IndexFile
+	if err := json.Unmarshal(indexData, &index); err != nil {
+		return nil, fmt.Errorf("failed to parse mods index: %w", err)
+	}
+
+	mods := make([]ModManifest, 0, len(index.Mods))
+	for _, modID := range index.Mods {
+		manifestPath := filepath.Join(r.repoPath, "mods", modID, "manifest.json")
+		data, err := os.ReadFile(manifestPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read manifest for mod %q: %w", modID, err)
+		}
+
+		var manifest ModManifest
+		if err := json.Unmarshal(data, &manifest); err != nil {
+			return nil, fmt.Errorf("failed to parse manifest for mod %q: %w", modID, err)
+		}
+		mods = append(mods, manifest)
+	}
+
+	return mods, nil
+}
+
+// GetMaps reads the maps index and returns all map manifests.
+func (r *Registry) GetMaps() ([]MapManifest, error) {
+	indexPath := filepath.Join(r.repoPath, "maps", "index.json")
+	indexData, err := os.ReadFile(indexPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read maps index: %w", err)
+	}
+
+	var index IndexFile
+	if err := json.Unmarshal(indexData, &index); err != nil {
+		return nil, fmt.Errorf("failed to parse maps index: %w", err)
+	}
+
+	maps := make([]MapManifest, 0, len(index.Maps))
+	for _, mapID := range index.Maps {
+		manifestPath := filepath.Join(r.repoPath, "maps", mapID, "manifest.json")
+		data, err := os.ReadFile(manifestPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read manifest for map %q: %w", mapID, err)
+		}
+
+		var manifest MapManifest
+		if err := json.Unmarshal(data, &manifest); err != nil {
+			return nil, fmt.Errorf("failed to parse manifest for map %q: %w", mapID, err)
+		}
+		maps = append(maps, manifest)
+	}
+
+	return maps, nil
+}
+
+// GetGalleryImage reads an image file from the cloned registry repo and
+// returns it as a base64 data URL suitable for use in an <img> src attribute.
+//
+// itemType should be "mods" or "maps".
+// itemID is the mod/map identifier.
+// imagePath is the relative image path as listed in the manifest's gallery field.
+func (r *Registry) GetGalleryImage(itemType string, itemID string, imagePath string) (string, error) {
+	// Sanitize inputs to prevent path traversal
+	if strings.Contains(itemType, "..") || strings.Contains(itemID, "..") || strings.Contains(imagePath, "..") {
+		return "", fmt.Errorf("invalid path component: path traversal not allowed")
+	}
+
+	fullPath := filepath.Join(r.repoPath, itemType, itemID, imagePath)
+
+	data, err := os.ReadFile(fullPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read gallery image %q: %w", fullPath, err)
+	}
+
+	// Detect MIME type from file extension
+	mimeType := mimeFromExtension(filepath.Ext(fullPath))
+
+	encoded := base64.StdEncoding.EncodeToString(data)
+	return fmt.Sprintf("data:%s;base64,%s", mimeType, encoded), nil
+}
+
+// mimeFromExtension returns the MIME type for common image file extensions.
+func mimeFromExtension(ext string) string {
+	switch strings.ToLower(ext) {
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".gif":
+		return "image/gif"
+	case ".webp":
+		return "image/webp"
+	case ".svg":
+		return "image/svg+xml"
+	case ".bmp":
+		return "image/bmp"
+	case ".ico":
+		return "image/x-icon"
+	default:
+		return "application/octet-stream"
+	}
+}
