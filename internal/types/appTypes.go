@@ -5,12 +5,14 @@ import (
 	"time"
 )
 
+// FileFoundStruct is a struct used to represent the result of searching for a file within a zip archive, including whether it was found, the file object if found, and whether the file is required.
 type FileFoundStruct struct {
 	Found      bool
 	FileObject *zip.File
 	Required   bool
 }
 
+// ConfigData represents the structure of the config.json file found within a map zip file, containing metadata about the map and its initial view state.
 type ConfigData struct {
 	Name             string      `json:"name"`
 	Code             string      `json:"code"`
@@ -29,6 +31,7 @@ type ConfigData struct {
 	} `json:"initial_view_state"`
 }
 
+// CityInfo represents the metadata information about a city as defined in the cities.yaml file, including its code, name, version, hash, size, last modified time, and the file name of the map zip.
 type CityInfo struct {
 	Code         string    `yaml:"code" json:"code"`
 	Name         string    `yaml:"name" json:"name"`

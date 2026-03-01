@@ -29,6 +29,7 @@ func main() {
 			app,
 			app.Registry,
 			app.Config,
+			app.Downloader,
 		},
 		OnShutdown: app.shutdown,
 	})

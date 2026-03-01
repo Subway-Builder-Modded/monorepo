@@ -23,6 +23,7 @@ type Downloader struct {
 	config      *Config
 }
 
+// NewDownloader creates a new Downloader instance with necessary paths and references.
 func NewDownloader(config *Config, registry *Registry) *Downloader {
 	return &Downloader{
 		mapTilePath: path.Join(AppDataRoot(), "tiles"),
@@ -32,22 +33,27 @@ func NewDownloader(config *Config, registry *Registry) *Downloader {
 	}
 }
 
+// getModPath returns the filesystem path for installed mods.
 func (d *Downloader) getModPath() string {
 	return path.Join(d.config.cfg.MetroMakerDataPath, "mods")
 }
 
+// getMapDataPath returns the filesystem path for installed map data.
 func (d *Downloader) getMapDataPath() string {
 	return path.Join(d.config.cfg.MetroMakerDataPath, "cities", "data")
 }
 
+// getMapTilePath returns the filesystem path for installed map tiles.
 func (d *Downloader) getMapTilePath() string {
 	return path.Join(AppDataRoot(), "tiles")
 }
 
+// getMapThumbnailPath returns the filesystem path for installed map thumbnails.
 func (d *Downloader) getMapThumbnailPath() string {
 	return path.Join(d.config.cfg.MetroMakerDataPath, "public", "data", "city-maps")
 }
 
+// InstallMod handles the installation of a mod given its ID and version, including downloading, extracting, and updating the registry.
 func (d *Downloader) InstallMod(modId string, version string) types.GenericResponse {
 	if !d.config.GetConfig().Validation.IsValid() {
 		return types.GenericResponse{
@@ -111,6 +117,7 @@ func (d *Downloader) InstallMod(modId string, version string) types.GenericRespo
 	}
 }
 
+// InstallMap handles the installation of a map given its ID and version, including downloading, extracting, validating files, and updating the registry.
 func (d *Downloader) InstallMap(mapId string, version string) types.MapExtractResponse {
 	if !d.config.GetConfig().Validation.IsValid() {
 		return types.MapExtractResponse{
@@ -182,6 +189,7 @@ func (d *Downloader) InstallMap(mapId string, version string) types.MapExtractRe
 	return extractResp
 }
 
+// downloadTempZip downloads a zip file from the given URL and saves it to a temporary location, returning the path or an error message.
 func (d *Downloader) downloadTempZip(url string) types.DownloadTempResponse {
 	if err := os.MkdirAll(d.tempPath, os.ModePerm); err != nil {
 		return types.DownloadTempResponse{
@@ -232,6 +240,7 @@ func (d *Downloader) downloadTempZip(url string) types.DownloadTempResponse {
 	}
 }
 
+// handleMapExtract processes the downloaded map zip file, validates required files, extracts them to the appropriate locations, and returns the map config or an error message.
 func (d *Downloader) handleMapExtract(filePath string) types.MapExtractResponse {
 	reader, err := zip.OpenReader(filePath)
 	if err != nil {
@@ -457,6 +466,7 @@ func (d *Downloader) handleMapExtract(filePath string) types.MapExtractResponse 
 	}
 }
 
+// handleModExtract processes the downloaded mod zip file, extracts it to the appropriate location, and returns a success or error message.
 func (d *Downloader) handleModExtract(filePath string, modId string) types.GenericResponse {
 	reader, err := zip.OpenReader(filePath)
 	if err != nil {

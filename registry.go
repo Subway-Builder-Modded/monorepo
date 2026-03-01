@@ -69,6 +69,7 @@ func (r *Registry) WriteInstalledToDisk() error {
 	return nil
 }
 
+// fetchFromDisk loads all registry data (mods, maps, installed mods, installed maps) from disk into memory.
 func (r *Registry) fetchFromDisk() error {
 	var err error
 	r.mods, err = r.getModsFromDisk()
@@ -153,6 +154,7 @@ func (r *Registry) getCredentials() *githttp.BasicAuth {
 	return nil
 }
 
+// AddInstalledMod adds a mod to the in-memory list of installed mods. Remember to call WriteInstalledToDisk() to persist changes.
 func (r *Registry) AddInstalledMod(modID string, version string) {
 	r.installedMods = append(r.installedMods, types.InstalledModInfo{
 		ID:      modID,
@@ -160,6 +162,7 @@ func (r *Registry) AddInstalledMod(modID string, version string) {
 	})
 }
 
+// AddInstalledMap adds a map to the in-memory list of installed maps. Remember to call WriteInstalledToDisk() to persist changes.
 func (r *Registry) AddInstalledMap(mapID string, version string, config types.ConfigData) {
 	r.installedMaps = append(r.installedMaps, types.InstalledMapInfo{
 		ID:        mapID,
@@ -244,7 +247,7 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 	return nil
 }
 
-// GetMods reads the mods index and returns all mod manifests.
+// getModsFromDisk reads the mods index and returns all mod manifests.
 func (r *Registry) getModsFromDisk() ([]types.ModManifest, error) {
 	indexPath := filepath.Join(r.repoPath, "mods", "index.json")
 	index, err := files.ReadJSON[types.IndexFile](indexPath, "mods index", files.JSONReadOptions{})
@@ -281,14 +284,17 @@ func (r *Registry) getInstalledMapsFromDisk() ([]types.InstalledMapInfo, error) 
 	return files.ReadJSON[[]types.InstalledMapInfo](InstalledMapsPath(), "installed maps file", files.JSONReadOptions{})
 }
 
+// GetMods reads the mods index and returns all mod manifests.
 func (r *Registry) GetMods() []types.ModManifest {
 	return r.mods
 }
 
+// GetMaps reads the maps index and returns all map manifests.
 func (r *Registry) GetMaps() []types.MapManifest {
 	return r.maps
 }
 
+// GetMod looks up a mod manifest by ID from the loaded registry data.
 func (r *Registry) GetMod(modID string) (*types.ModManifest, error) {
 	for _, m := range r.GetMods() {
 		if m.ID == modID {
@@ -299,7 +305,7 @@ func (r *Registry) GetMod(modID string) (*types.ModManifest, error) {
 	return nil, fmt.Errorf("mod with ID %q not found in registry", modID)
 }
 
-// GetMaps reads the maps index and returns all map manifests.
+// getMapsFromDisk reads the maps index and returns all map manifests.
 func (r *Registry) getMapsFromDisk() ([]types.MapManifest, error) {
 	indexPath := filepath.Join(r.repoPath, "maps", "index.json")
 	index, indexErr := files.ReadJSON[types.IndexFile](indexPath, "maps index", files.JSONReadOptions{})
@@ -320,6 +326,7 @@ func (r *Registry) getMapsFromDisk() ([]types.MapManifest, error) {
 	return maps, nil
 }
 
+// GetMap looks up a map manifest by ID from the loaded registry data.
 func (r *Registry) GetMap(mapID string) (*types.MapManifest, error) {
 	for _, m := range r.GetMaps() {
 		if m.ID == mapID {

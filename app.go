@@ -77,6 +77,8 @@ func (a *App) startup(ctx context.Context) {
 	}
 }
 
+// shutdown is called when the app is shutting down
+// We use this to save config and registry state to disk
 func (a *App) shutdown(ctx context.Context) {
 	a.Config.SaveConfig()
 	a.Registry.WriteInstalledToDisk()

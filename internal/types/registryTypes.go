@@ -21,19 +21,23 @@ type ModManifest struct {
 	Update        UpdateConfig `json:"update"`
 }
 
+// InstalledModInfo represents the information stored about an installed mod in the registry's installed_mods.json file.
 type InstalledModInfo struct {
 	ID      string `json:"id"`
 	Version string `json:"version"`
 }
 
+// InstalledMapInfo represents the information stored about an installed map in the registry's installed_maps.json file.
 type InstalledMapInfo struct {
 	ID        string     `json:"id"`
 	Version   string     `json:"version"`
 	MapConfig ConfigData `json:"config"`
 }
 
+// InstalledModFile represents the structure of the installed_mods.json file, which is a list of installed mods.
 type InstalledModFile []InstalledModInfo
 
+// InstalledMapFile represents the structure of the installed_maps.json file, which is a list of installed maps.
 type InstalledMapFile []InstalledMapInfo
 
 // MapManifest is the manifest schema for a map entry in the registry.
