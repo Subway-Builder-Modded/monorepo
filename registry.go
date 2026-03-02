@@ -305,6 +305,25 @@ func (r *Registry) GetMod(modID string) (*types.ModManifest, error) {
 	return nil, fmt.Errorf("mod with ID %q not found in registry", modID)
 }
 
+func (d *Registry) RemoveInstalledMod(modID string) {
+	updated := make([]types.InstalledModInfo, 0, len(d.installedMods))
+	for _, mod := range d.installedMods {
+		if mod.ID != modID {
+			updated = append(updated, mod)
+		}
+	}
+	d.installedMods = updated
+}
+
+func (d *Registry) RemoveInstalledMap(mapID string) {
+	updated := make([]types.InstalledMapInfo, 0, len(d.installedMaps))
+	for _, m := range d.installedMaps {
+		if m.ID != mapID {
+			updated = append(updated, m)
+		}
+	}
+}
+
 // getMapsFromDisk reads the maps index and returns all map manifests.
 func (r *Registry) getMapsFromDisk() ([]types.MapManifest, error) {
 	indexPath := filepath.Join(r.repoPath, "maps", "index.json")

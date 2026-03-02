@@ -112,6 +112,64 @@ func requiredFilesPresent(filesFound map[string]types.FileFoundStruct) bool {
 	return true
 }
 
+func (d *Downloader) UninstallMod(modId string) types.GenericResponse {
+	installedMods := d.registry.GetInstalledMods()
+	foundMod := false
+	for _, mod := range installedMods {
+		if mod.ID == modId {
+			foundMod = true
+			break
+		}
+	}
+	if !foundMod {
+		return types.GenericResponse{
+			Status:  types.ResponseWarn,
+			Message: "Mod with ID " + modId + " is not currently installed. No action taken.",
+		}
+	}
+	modPath := path.Join(d.getModPath(), modId)
+	if err := os.RemoveAll(modPath); err != nil {
+		return throwError("Failed to remove mod files", err)
+	}
+	d.registry.RemoveInstalledMod(modId)
+	return types.GenericResponse{
+		Status:  types.ResponseSuccess,
+		Message: "Mod uninstalled successfully",
+	}
+}
+
+func (d *Downloader) UninstallMap(mapId string) types.GenericResponse {
+	installedMaps := d.registry.GetInstalledMaps()
+	var mapConfig *types.ConfigData = nil
+	for _, m := range installedMaps {
+		if m.ID == mapId {
+			mapConfig = &m.MapConfig
+			break
+		}
+	}
+	if mapConfig == nil {
+		return types.GenericResponse{
+			Status:  types.ResponseWarn,
+			Message: "Map with ID " + mapId + " is not currently installed. No action taken.",
+		}
+	}
+
+	mapDataPath := path.Join(d.getMapDataPath(), mapConfig.Code)
+	if err := os.RemoveAll(mapDataPath); err != nil {
+		return throwError("Failed to remove map data files", err)
+	}
+	tilePath := path.Join(d.getMapTilePath(), mapConfig.Code+".pmtiles")
+	if err := os.Remove(tilePath); err != nil {
+		return throwError("Failed to remove map tile files", err)
+	}
+	os.Remove(path.Join(d.getMapThumbnailPath(), mapConfig.Code+".svg")) // Doesn't matter if this fails, thumbnail is optional and may not exist
+	d.registry.RemoveInstalledMap(mapId)
+	return types.GenericResponse{
+		Status:  types.ResponseSuccess,
+		Message: "Map uninstalled successfully",
+	}
+}
+
 // InstallMod handles the installation of a mod given its ID and version, including downloading, extracting, and updating the registry.
 func (d *Downloader) InstallMod(modId string, version string) types.GenericResponse {
 	if !d.config.GetConfig().Validation.IsValid() {
