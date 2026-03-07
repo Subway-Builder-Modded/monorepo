@@ -289,10 +289,10 @@ func (d *Downloader) InstallMap(mapId string, version string) types.MapExtractRe
 
 // progressReader wraps an io.Reader to report download progress via a callback.
 type progressReader struct {
-	reader   io.Reader
-	total    int64
-	received int64
-	itemId   string
+	reader     io.Reader
+	total      int64
+	received   int64
+	itemId     string
 	onProgress ProgressFunc
 }
 

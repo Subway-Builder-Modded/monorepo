@@ -49,11 +49,12 @@ func NewApp() *App {
 	cfg := config.NewConfig()
 	reg := registry.NewRegistry()
 	l := logger.NewAppLogger()
+	dl := downloader.NewDownloader(cfg, reg, l)
 	return &App{
 		Registry:   reg,
 		Config:     cfg,
-		Downloader: downloader.NewDownloader(cfg, reg, l),
-		Profiles:   profiles.NewUserProfiles(l),
+		Downloader: dl,
+		Profiles:   profiles.NewUserProfiles(reg, dl, l),
 		Logger:     l,
 	}
 }
@@ -154,26 +155,12 @@ func runStartupRoutines(a *App) {
 			a.Logger.Warn("Failed to refresh registry on startup", "error", err)
 		}
 	}
-}
 
-func (a *App) syncSubscriptions(profileID string, operations []types.SubscriptionOperation) error {
-	a.Logger.Info("TODO: implement subscription sync", "profile", profileID, "operations", len(operations))
-	return nil
-}
-
-func (a *App) UpdateSubscriptions(req types.UpdateSubscriptionsRequest) (types.UpdateSubscriptionsResult, error) {
-	result, err := a.Profiles.UpdateSubscriptions(req)
-	if err != nil {
-		return types.UpdateSubscriptionsResult{}, err
+	// Sync subscriptions for active profile on startup
+	// TODO: Make this configurable within the profile itself
+	if err := a.Profiles.SyncSubscriptions(activeProfile.ID); err != nil {
+		a.Logger.Warn("Failed to sync profile subscriptions on startup", "error", err, "profile_id", activeProfile.ID)
 	}
-
-	if req.ForceSync && len(result.Operations) > 0 {
-		if err := a.syncSubscriptions(result.Profile.ID, result.Operations); err != nil {
-			return result, err
-		}
-	}
-
-	return result, nil
 }
 
 func (a *App) LaunchGame() error {

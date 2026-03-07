@@ -13,7 +13,3 @@ export function LaunchGame() {
 export function StopGame() {
   return window['go']['main']['App']['StopGame']();
 }
-
-export function UpdateSubscriptions(arg1) {
-  return window['go']['main']['App']['UpdateSubscriptions'](arg1);
-}

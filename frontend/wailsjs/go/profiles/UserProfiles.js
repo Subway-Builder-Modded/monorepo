@@ -18,6 +18,10 @@ export function ResetUserProfiles() {
   return window['go']['profiles']['UserProfiles']['ResetUserProfiles']();
 }
 
+export function SyncSubscriptions(arg1) {
+  return window['go']['profiles']['UserProfiles']['SyncSubscriptions'](arg1);
+}
+
 export function UpdateSubscriptions(arg1) {
   return window['go']['profiles']['UserProfiles']['UpdateSubscriptions'](arg1);
 }
