@@ -270,7 +270,7 @@ func (d *Downloader) InstallMap(mapId string, version string) types.MapExtractRe
 	}
 
 	extractResp := d.handleMapExtract(downloadResp.Path)
-	if extractResp.Status != types.ResponseSuccess {
+	if extractResp.Status == types.ResponseError {
 		os.Remove(downloadResp.Path)
 		return d.throwMapExtractErrorSimple("Failed to extract map zip: "+extractResp.Message, "map_id", mapId, "version", version)
 	}
@@ -363,4 +363,3 @@ func requiredFilesPresent(filesFound map[string]types.FileFoundStruct) bool {
 	}
 	return true
 }
-
