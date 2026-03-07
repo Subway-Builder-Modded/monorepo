@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { useInstalledStore } from "@/stores/installed-store";
 import { useProfileStore } from "@/stores/profile-store";
 import { UninstallDialog } from "@/components/dialogs/UninstallDialog";
+import { InstallErrorDialog } from "@/components/dialogs/InstallErrorDialog";
 import { toast } from "sonner";
 import { ExternalLink, MapPin, Users, Globe, Bell, BellOff, Loader2, Trash2, CheckCircle, Download } from "lucide-react";
 import { BrowserOpenURL } from "../../../wailsjs/runtime/runtime";
@@ -25,6 +26,7 @@ function isMapManifest(
 
 export function ProjectInfo({ type, item, latestVersion, versionsLoading }: ProjectInfoProps) {
   const [uninstallOpen, setUninstallOpen] = useState(false);
+  const [installError, setInstallError] = useState<{ version: string; message: string } | null>(null);
   const { installMod, installMap, getInstalledVersion, isOperating } = useInstalledStore();
   const { isSubscribed, updateSubscription } = useProfileStore();
 
@@ -41,8 +43,8 @@ export function ProjectInfo({ type, item, latestVersion, versionsLoading }: Proj
         await installMap(item.id, version);
       }
       toast.success(`${item.name} ${version} installed successfully.`);
-    } catch {
-      toast.error(`Failed to install ${item.name}.`);
+    } catch (err) {
+      setInstallError({ version, message: err instanceof Error ? err.message : String(err) });
     }
   };
 
@@ -154,6 +156,16 @@ export function ProjectInfo({ type, item, latestVersion, versionsLoading }: Proj
         id={item.id}
         name={item.name}
       />
+
+      {installError && (
+        <InstallErrorDialog
+          open={!!installError}
+          onOpenChange={(open) => { if (!open) setInstallError(null); }}
+          itemName={item.name}
+          version={installError.version}
+          error={installError.message}
+        />
+      )}
     </div>
   );
 }

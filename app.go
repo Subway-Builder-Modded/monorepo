@@ -24,6 +24,7 @@ import (
 	"railyard/internal/profiles"
 	"railyard/internal/registry"
 	"railyard/internal/types"
+	"railyard/internal/utils"
 
 	"github.com/protomaps/go-pmtiles/pmtiles"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -194,6 +195,11 @@ func (a *App) LaunchGame() error {
 		return err
 	}
 
+	wailsruntime.EventsEmit(a.ctx, "server:port", port)
+	a.Logger.Info(fmt.Sprintf("Debug thumbnails: http://127.0.0.1:%d/debug/thumbnails", port))
+
+	a.generateMissingThumbnails(port)
+
 	if err := a.generateMod(port); err != nil {
 		a.Logger.Warn("Failed to generate mod", "error", err)
 		return err
@@ -313,17 +319,53 @@ func (a *App) startPMTilesServer() (int, error) {
 
 	go func(l *logger.AppLogger, port int, errorChan chan error) {
 		pmtilesServer, err := pmtiles.NewServerWithBucket(pmtiles.NewFileBucket(path.Join(paths.AppDataRoot(), "tiles")), "", log.New(l.Writer, "pmtiles: ", log.Default().Flags()), 128, "")
-		mux := http.NewServeMux()
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			statusCode := pmtilesServer.ServeHTTP(w, r)
-			l.Info("Handled PMTiles request", "path", r.URL.Path, "status", statusCode)
-		})
-		pmtilesServer.Start()
 		if err != nil {
 			l.Error("Failed to create PMTiles server", err)
 			errorChan <- err
 			return
 		}
+		pmtilesServer.Start()
+
+		thumbnailDir := a.Config.Cfg.MetroMakerDataPath
+		if thumbnailDir != "" {
+			thumbnailDir = path.Join(thumbnailDir, "public", "data", "city-maps")
+		}
+
+		mux := http.NewServeMux()
+		mux.HandleFunc("/thumbnails/", func(w http.ResponseWriter, r *http.Request) {
+			filePath := path.Join(thumbnailDir, path.Base(r.URL.Path))
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			http.ServeFile(w, r, filePath)
+		})
+		mux.HandleFunc("/debug/thumbnails", func(w http.ResponseWriter, r *http.Request) {
+			entries, err := os.ReadDir(thumbnailDir)
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			if err != nil {
+				fmt.Fprintf(w, "<html><body><h1>Error</h1><pre>%s</pre></body></html>", err.Error())
+				return
+			}
+			fmt.Fprint(w, `<html><head><style>
+				body { font-family: monospace; background: #1a1a2e; color: #e0e0e0; padding: 2rem; }
+				h1 { color: #fff; }
+				a { color: #7c9bff; display: block; margin: 0.5rem 0; }
+				img { max-width: 200px; max-height: 200px; border: 1px solid #333; margin: 0.5rem; }
+				.entry { display: inline-block; text-align: center; margin: 1rem; }
+			</style></head><body>`)
+			fmt.Fprintf(w, "<h1>Thumbnails (%d)</h1>", len(entries))
+			for _, e := range entries {
+				if e.IsDir() {
+					continue
+				}
+				url := fmt.Sprintf("http://127.0.0.1:%d/thumbnails/%s", port, e.Name())
+				fmt.Fprintf(w, `<div class="entry"><a href="%s"><img src="%s" /><br/>%s</a></div>`, url, url, e.Name())
+			}
+			fmt.Fprint(w, "</body></html>")
+		})
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			statusCode := pmtilesServer.ServeHTTP(w, r)
+			l.Info("Handled PMTiles request", "path", r.URL.Path, "status", statusCode)
+		})
 		errorChan <- nil
 		a.pmtilesServer = &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
@@ -332,6 +374,30 @@ func (a *App) startPMTilesServer() (int, error) {
 		l.Error("PMTiles error: ", a.pmtilesServer.ListenAndServe())
 	}(a.Logger, port, channel)
 	return port, <-channel
+}
+
+func (a *App) generateMissingThumbnails(port int) {
+	thumbnailDir := path.Join(a.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps")
+	os.MkdirAll(thumbnailDir, os.ModePerm)
+
+	for _, m := range a.Registry.GetInstalledMaps() {
+		svgPath := path.Join(thumbnailDir, m.MapConfig.Code+".svg")
+		if _, err := os.Stat(svgPath); err == nil {
+			continue
+		}
+		if m.MapConfig.ThumbnailBbox == nil && m.MapConfig.Bbox == nil && m.MapConfig.InitialViewState.Latitude == 0 && m.MapConfig.InitialViewState.Longitude == 0 {
+			continue
+		}
+		a.Logger.Info("Generating missing thumbnail", "map", m.MapConfig.Code)
+		data, err := utils.GenerateThumbnail(m.MapConfig.Code, m.MapConfig, port)
+		if err != nil {
+			a.Logger.Warn("Failed to generate thumbnail", "map", m.MapConfig.Code, "error", err)
+			continue
+		}
+		if err := os.WriteFile(svgPath, []byte(data), 0644); err != nil {
+			a.Logger.Warn("Failed to save thumbnail", "map", m.MapConfig.Code, "error", err)
+		}
+	}
 }
 
 func (a *App) generateMod(port int) error {

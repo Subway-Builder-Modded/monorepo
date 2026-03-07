@@ -89,7 +89,18 @@ func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (
 		bboxToUse = cityConfig.Bbox
 	}
 	if bboxToUse == nil {
-		return "", fmt.Errorf("no bounding box found for city %s", cityCode)
+		// Derive bbox from initialViewState
+		lat := cityConfig.InitialViewState.Latitude
+		lng := cityConfig.InitialViewState.Longitude
+		zoom := cityConfig.InitialViewState.Zoom
+		if lat == 0 && lng == 0 {
+			return "", fmt.Errorf("no bounding box or initial view state found for city %s", cityCode)
+		}
+		// Approximate span based on zoom level
+		latSpan := 360.0 / math.Pow(2, zoom)
+		lngSpan := 360.0 / math.Pow(2, zoom)
+		derived := [4]float64{lng - lngSpan, lat - latSpan, lng + lngSpan, lat + latSpan}
+		bboxToUse = &derived
 	}
 
 	minXTile := lon2tile(bboxToUse[0], 12)

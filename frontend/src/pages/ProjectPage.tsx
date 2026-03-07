@@ -107,7 +107,7 @@ export function ProjectPage() {
 
       <Separator />
 
-      <VersionsTable type={type} itemId={item.id} update={item.update} versions={versions} loading={versionsLoading} error={versionsError} />
+      <VersionsTable type={type} itemId={item.id} itemName={item.name} update={item.update} versions={versions} loading={versionsLoading} error={versionsError} />
     </div>
   );
 }

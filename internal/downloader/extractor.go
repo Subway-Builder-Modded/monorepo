@@ -211,7 +211,7 @@ func extractMap(d *Downloader, filePath string) types.MapExtractResponse {
 		return d.throwMapExtractError("Failed to extract file", err, "file_path", filePath)
 	}
 
-	if !filesFound["thumbnail"].Found && configData.ThumbnailBbox != nil {
+	if !filesFound["thumbnail"].Found {
 		srv, port, srvErr := utils.StartTempPMTilesServer()
 		if srvErr != nil {
 			return d.warnMapExtractResponse("Failed to start PMTiles server for thumbnail generation, but map was extracted successfully.", configData, "file_path", filePath, "map_code", configData.Code)

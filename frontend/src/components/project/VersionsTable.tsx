@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -14,20 +15,23 @@ import { useInstalledStore } from "@/stores/installed-store";
 import { types } from "../../../wailsjs/go/models";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorBanner } from "@/components/shared/ErrorBanner";
+import { InstallErrorDialog } from "@/components/dialogs/InstallErrorDialog";
 import { toast } from "sonner";
 
 interface VersionsTableProps {
   type: "mods" | "maps";
   itemId: string;
+  itemName: string;
   update: types.UpdateConfig;
   versions: types.VersionInfo[];
   loading: boolean;
   error: string | null;
 }
 
-export function VersionsTable({ type, itemId, update, versions, loading, error }: VersionsTableProps) {
+export function VersionsTable({ type, itemId, itemName, update, versions, loading, error }: VersionsTableProps) {
   const { getInstalledVersion, installMod, installMap, isOperating } = useInstalledStore();
   const installedVersion = getInstalledVersion(itemId);
+  const [installError, setInstallError] = useState<{ version: string; message: string } | null>(null);
 
   const handleInstall = async (version: string) => {
     try {
@@ -37,8 +41,8 @@ export function VersionsTable({ type, itemId, update, versions, loading, error }
         await installMap(itemId, version);
       }
       toast.success(`Installed ${version} successfully.`);
-    } catch {
-      toast.error(`Failed to install ${version}.`);
+    } catch (err) {
+      setInstallError({ version, message: err instanceof Error ? err.message : String(err) });
     }
   };
 
@@ -147,6 +151,16 @@ export function VersionsTable({ type, itemId, update, versions, loading, error }
           </TableBody>
         </Table>
       </div>
+
+      {installError && (
+        <InstallErrorDialog
+          open={!!installError}
+          onOpenChange={(open) => { if (!open) setInstallError(null); }}
+          itemName={itemName}
+          version={installError.version}
+          error={installError.message}
+        />
+      )}
     </div>
   );
 }

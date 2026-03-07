@@ -25,14 +25,12 @@ function generateTabs(places) {
 }
 
 config.places.forEach(async place => {
-    let publicDir = await window.electron.getModsFolder();
-    publicDir = publicDir.replaceAll('\\', '/').replace("/mods", '/public/data/city-maps/');
     let newPlace = {
         code: place.code,
         name: place.name,
         population: place.population,
         description: place.description,
-        mapImageUrl: "file://" + publicDir + place.code + ".svg" // Tries to pull this from the app.asar instead of public/
+        mapImageUrl: "http://127.0.0.1:" + config.port + "/thumbnails/" + place.code + ".svg"
     };
     if (place.initialViewState) {
         newPlace.initialViewState = place.initialViewState;

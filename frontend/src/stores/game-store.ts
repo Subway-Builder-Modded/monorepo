@@ -12,6 +12,7 @@ interface GameState {
   running: boolean;
   logs: LogEntry[];
   maxLogs: number;
+  serverPort: number | null;
 
   initialize: () => void;
   launch: () => Promise<void>;
@@ -23,6 +24,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   running: false,
   logs: [],
   maxLogs: 5000,
+  serverPort: null,
 
   initialize: () => {
     // Check initial state
@@ -31,6 +33,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Listen for events from backend
     EventsOn("game:status", (status: string) => {
       set({ running: status === "running" });
+      if (status === "stopped") {
+        set({ serverPort: null });
+      }
+    });
+
+    EventsOn("server:port", (port: number) => {
+      set({ serverPort: port });
     });
 
     EventsOn("game:log", (data: { stream: "stdout" | "stderr"; line: string }) => {

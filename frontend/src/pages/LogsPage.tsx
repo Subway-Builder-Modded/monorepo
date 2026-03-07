@@ -3,7 +3,8 @@ import { useGameStore, LogEntry } from "@/stores/game-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Trash2, ArrowDownToLine, Terminal } from "lucide-react";
+import { Trash2, ArrowDownToLine, Terminal, ExternalLink } from "lucide-react";
+import { BrowserOpenURL } from "../../wailsjs/runtime/runtime";
 import { cn } from "@/lib/utils";
 
 function LogLine({ entry }: { entry: LogEntry }) {
@@ -20,7 +21,7 @@ function LogLine({ entry }: { entry: LogEntry }) {
 }
 
 export function LogsPage() {
-  const { logs, running, clearLogs } = useGameStore();
+  const { logs, running, clearLogs, serverPort } = useGameStore();
   const bottomRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +47,16 @@ export function LogsPage() {
         <div className="flex items-center gap-2">
           {logs.length > 0 && (
             <span className="text-xs text-muted-foreground mr-2">{logs.length} lines</span>
+          )}
+          {serverPort && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => BrowserOpenURL(`http://127.0.0.1:${serverPort}/debug/thumbnails`)}
+            >
+              <ExternalLink className="h-4 w-4 mr-1.5" />
+              Debug Thumbnails
+            </Button>
           )}
           <Button variant="outline" size="sm" onClick={clearLogs} disabled={logs.length === 0}>
             <Trash2 className="h-4 w-4 mr-1.5" />
