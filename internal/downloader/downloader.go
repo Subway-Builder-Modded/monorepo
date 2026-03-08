@@ -11,6 +11,7 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"sync"
 
 	"railyard/internal/config"
 	"railyard/internal/logger"
@@ -34,17 +35,103 @@ type Downloader struct {
 	Logger            logger.Logger
 	OnProgress        ProgressFunc
 	OnExtractProgress ExtractProgressFunc
+
+	queueMu     sync.Mutex
+	queueCond   *sync.Cond
+	queue       []*downloadOperation
+	queuedByKey map[string]*downloadOperation
+}
+
+type downloadOperation struct {
+	key     string
+	run     func() operationResult
+	waiters []chan operationResult
+}
+
+type operationResult struct {
+	genericResponse    types.GenericResponse
+	mapExtractResponse types.MapExtractResponse
 }
 
 // NewDownloader creates a new Downloader instance with necessary paths and references.
 func NewDownloader(cfg *config.Config, reg *registry.Registry, l logger.Logger) *Downloader {
-	return &Downloader{
+	d := &Downloader{
 		mapTilePath: path.Join(paths.AppDataRoot(), "tiles"),
 		tempPath:    path.Join(paths.AppDataRoot(), "temp"),
 		Registry:    reg,
 		Config:      cfg,
 		Logger:      l,
 	}
+	d.ensureQueue()
+	return d
+}
+
+func (d *Downloader) ensureQueue() {
+	d.queueMu.Lock()
+	defer d.queueMu.Unlock()
+	if d.queueCond != nil {
+		return
+	}
+	d.queueCond = sync.NewCond(&d.queueMu)
+	d.queuedByKey = make(map[string]*downloadOperation)
+	go d.runQueueWorker()
+}
+
+func (d *Downloader) runQueueWorker() {
+	for {
+		d.queueMu.Lock()
+		for len(d.queue) == 0 {
+			d.queueCond.Wait()
+		}
+		op := d.queue[0]
+		d.queue = d.queue[1:]
+		d.queueMu.Unlock()
+
+		result := op.run()
+
+		d.queueMu.Lock()
+		delete(d.queuedByKey, op.key)
+		waiters := op.waiters
+		d.queueMu.Unlock()
+
+		for _, waiter := range waiters {
+			waiter <- result
+			close(waiter)
+		}
+	}
+}
+
+func (d *Downloader) enqueueOperation(key string, run func() operationResult) operationResult {
+	d.ensureQueue()
+	resultCh := make(chan operationResult, 1)
+
+	d.queueMu.Lock()
+	if existing, ok := d.queuedByKey[key]; ok {
+		existing.waiters = append(existing.waiters, resultCh)
+		d.queueMu.Unlock()
+		return <-resultCh
+	}
+
+	op := &downloadOperation{
+		key:     key,
+		run:     run,
+		waiters: []chan operationResult{resultCh},
+	}
+	d.queue = append(d.queue, op)
+	d.queuedByKey[key] = op
+	d.queueCond.Signal()
+	d.queueMu.Unlock()
+
+	return <-resultCh
+}
+
+func (d *Downloader) operationKey(action string, assetType types.AssetType, assetID string, version string) string {
+	return strings.Join([]string{
+		strings.TrimSpace(action),
+		string(assetType),
+		strings.TrimSpace(assetID),
+		strings.TrimSpace(version),
+	}, "|")
 }
 
 // getModPath returns the filesystem path for installed mods.
@@ -143,6 +230,14 @@ func (d *Downloader) getMapThumbnailPath() string {
 }
 
 func (d *Downloader) UninstallMod(modId string) types.GenericResponse {
+	key := d.operationKey("uninstall", types.AssetTypeMod, modId, "")
+	result := d.enqueueOperation(key, func() operationResult {
+		return operationResult{genericResponse: d.uninstallModNow(modId)}
+	})
+	return result.genericResponse
+}
+
+func (d *Downloader) uninstallModNow(modId string) types.GenericResponse {
 	installedMods := d.Registry.GetInstalledMods()
 	foundMod := false
 	for _, mod := range installedMods {
@@ -166,6 +261,14 @@ func (d *Downloader) UninstallMod(modId string) types.GenericResponse {
 }
 
 func (d *Downloader) UninstallMap(mapId string) types.GenericResponse {
+	key := d.operationKey("uninstall", types.AssetTypeMap, mapId, "")
+	result := d.enqueueOperation(key, func() operationResult {
+		return operationResult{genericResponse: d.uninstallMapNow(mapId)}
+	})
+	return result.genericResponse
+}
+
+func (d *Downloader) uninstallMapNow(mapId string) types.GenericResponse {
 	installedMaps := d.Registry.GetInstalledMaps()
 	var mapConfig *types.ConfigData = nil
 	for _, m := range installedMaps {
@@ -196,6 +299,15 @@ func (d *Downloader) UninstallMap(mapId string) types.GenericResponse {
 
 // InstallMod handles the installation of a mod given its ID and version, including downloading, extracting, and updating the registry.
 func (d *Downloader) InstallMod(modId string, version string) types.GenericResponse {
+	key := d.operationKey("install", types.AssetTypeMod, modId, version)
+	result := d.enqueueOperation(key, func() operationResult {
+		return operationResult{genericResponse: d.installModNow(modId, version)}
+	})
+	return result.genericResponse
+}
+
+// installModNow handles the installation of a mod given its ID and version, including downloading, extracting, and updating the registry.
+func (d *Downloader) installModNow(modId string, version string) types.GenericResponse {
 	d.Logger.Info("InstallMod started", "mod_id", modId, "version", version)
 	if !d.Config.GetConfig().Validation.IsValid() {
 		return d.throwErrorSimple("Cannot install mod because app config paths are not properly configured. " +
@@ -262,6 +374,15 @@ func (d *Downloader) InstallMod(modId string, version string) types.GenericRespo
 
 // InstallMap handles the installation of a map given its ID and version, including downloading, extracting, validating files, and updating the registry.
 func (d *Downloader) InstallMap(mapId string, version string) types.MapExtractResponse {
+	key := d.operationKey("install", types.AssetTypeMap, mapId, version)
+	result := d.enqueueOperation(key, func() operationResult {
+		return operationResult{mapExtractResponse: d.installMapNow(mapId, version)}
+	})
+	return result.mapExtractResponse
+}
+
+// installMapNow handles the installation of a map given its ID and version, including downloading, extracting, validating files, and updating the registry.
+func (d *Downloader) installMapNow(mapId string, version string) types.MapExtractResponse {
 	d.Logger.Info("InstallMap started", "map_id", mapId, "version", version)
 	if !d.Config.GetConfig().Validation.IsValid() {
 		return d.throwMapExtractErrorSimple("Invalid configuration", "map_id", mapId, "version", version)
