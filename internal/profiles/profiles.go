@@ -656,29 +656,53 @@ func (s *UserProfiles) SyncSubscriptions(profileID string) error {
 
 	syncErrors := make([]error, 0)
 	// Run sync for each asset type in sequence
-	syncErrors = append(syncErrors, syncAssetSubscriptions(mapArgs)...)
-	syncErrors = append(syncErrors, syncAssetSubscriptions(modArgs)...)
+	s.Logger.Info("Syncing map subscriptions", "profile_id", profileID, "subscription_count", len(profile.Subscriptions.Maps))
+	syncErrors = append(syncErrors, syncAssetSubscriptions(s.Logger, mapArgs)...)
+	s.Logger.Info("Syncing mod subscriptions", "profile_id", profileID, "subscription_count", len(profile.Subscriptions.Mods))
+	syncErrors = append(syncErrors, syncAssetSubscriptions(s.Logger, modArgs)...)
+	if len(syncErrors) > 0 {
+		s.Logger.Warn("Subscription sync completed with errors", "error_count", len(syncErrors))
+	}
 	return errors.Join(syncErrors...)
 }
 
-func syncAssetSubscriptions[T any, U any](args assetSyncArgs[T, U]) []error {
+func syncAssetSubscriptions[T any, U any](log logger.Logger, args assetSyncArgs[T, U]) []error {
 	errs := make([]error, 0)
 	installedVersion := buildVersionIndexFromItems(args.installedArgs)
 	availableVersions := buildAvailableVersionIndex(args.availableArgs, args.subscriptions, args.assetType, &errs)
+
+	log.Info("Built version indices for sync",
+		"asset_type", args.assetType,
+		"installed_count", len(installedVersion),
+		"available_count", len(availableVersions),
+	)
 
 	for assetID, version := range args.subscriptions {
 		versionText := strings.TrimSpace(version)
 		// If the desired version is already installed, skip to the next asset
 		if current, ok := installedVersion[assetID]; ok && current == versionText {
+			log.Info("Asset already at desired version, skipping", "asset_type", args.assetType, "asset_id", assetID, "version", versionText)
 			continue
 		}
 		// Check if desired version is available according to the registry before attempting installation
 		if !isVersionAvailable(availableVersions, assetID, versionText) {
+			availableForAsset := availableVersions[assetID]
+			availableKeys := make([]string, 0, len(availableForAsset))
+			for k := range availableForAsset {
+				availableKeys = append(availableKeys, k)
+			}
+			log.Warn("Desired version not available",
+				"asset_type", args.assetType,
+				"asset_id", assetID,
+				"desired_version", versionText,
+				"available_versions", availableKeys,
+			)
 			errs = append(errs, fmt.Errorf("%s %s %q failed: version %q is not available", types.SubscriptionActionSubscribe, args.assetType, assetID, versionText))
 			continue
 		}
 		// If a different version is installed for this asset ID, uninstall it first
 		if current, ok := installedVersion[assetID]; ok && current != versionText {
+			log.Info("Uninstalling previous version before update", "asset_type", args.assetType, "asset_id", assetID, "current_version", current, "target_version", versionText)
 			uninstallResp := args.uninstall(assetID)
 			if err := syncActionError(types.SubscriptionActionUnsubscribe, args.assetType, assetID, uninstallResp); err != nil {
 				errs = append(errs, err)
@@ -686,12 +710,15 @@ func syncAssetSubscriptions[T any, U any](args assetSyncArgs[T, U]) []error {
 			}
 			delete(installedVersion, assetID)
 		}
+		log.Info("Installing asset", "asset_type", args.assetType, "asset_id", assetID, "version", versionText)
 		response := args.install(assetID, versionText)
 		// If installation fails, record the error but continue
 		if err := syncActionError(types.SubscriptionActionSubscribe, args.assetType, assetID, response); err != nil {
+			log.Error("Install failed during sync", err, "asset_type", args.assetType, "asset_id", assetID, "version", versionText)
 			errs = append(errs, err)
 			continue
 		}
+		log.Info("Successfully installed asset", "asset_type", args.assetType, "asset_id", assetID, "version", versionText)
 		installedVersion[assetID] = versionText
 	}
 
@@ -700,6 +727,7 @@ func syncAssetSubscriptions[T any, U any](args assetSyncArgs[T, U]) []error {
 		if _, ok := args.subscriptions[assetID]; ok {
 			continue
 		}
+		log.Info("Uninstalling asset no longer subscribed", "asset_type", args.assetType, "asset_id", assetID)
 		response := args.uninstall(assetID)
 		// If uninstallation fails, record the error but continue
 		if err := syncActionError(types.SubscriptionActionUnsubscribe, args.assetType, assetID, response); err != nil {
