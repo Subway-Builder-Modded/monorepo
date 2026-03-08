@@ -45,7 +45,7 @@ type Downloader struct {
 type downloadOperation struct {
 	key  string
 	run  func() operationResult
-	done chan operationResult
+	completed chan operationResult
 }
 
 type operationResult struct {
@@ -99,22 +99,26 @@ func (d *Downloader) startQueue() {
 // runQueue processes download operations sequentially, ensuring that only one operation is present in the queue at a time.
 func (d *Downloader) runQueue() {
 	for {
+		// Lock the queue and wait for an operation to be added if the queue is empty
 		d.downloadMu.Lock()
 		for len(d.queue) == 0 {
 			d.downloadCond.Wait()
 		}
 		op := d.queue[0]
 		d.queue = d.queue[1:]
+		// Unlock to allow other operations to be enqueued during runs
 		d.downloadMu.Unlock()
 
 		result := op.run()
 
+		// Lock the queue again to perform state mutation
 		d.downloadMu.Lock()
+		// Remove the completed operation from the queue
 		delete(d.queuedOperations, op.key)
 		d.downloadMu.Unlock()
 
-		op.done <- result
-		close(op.done)
+		op.completed <- result
+		close(op.completed)
 	}
 }
 
@@ -132,19 +136,20 @@ func (d *Downloader) enqueueOperation(key string, run func() operationResult) (o
 	op := &downloadOperation{
 		key:  key,
 		run:  run,
-		done: make(chan operationResult, 1),
+		completed: make(chan operationResult, 1),
 	}
 	d.queue = append(d.queue, op)
 	d.queuedOperations[key] = op
 	d.downloadCond.Signal()
 	d.downloadMu.Unlock()
 
-	return <-op.done, false
+	return <-op.completed, false
 }
 
 // operationKey generates a unique key for a given operation based on its action, asset type, asset ID, and version.
 func (d *Downloader) operationKey(action operationAction, assetType types.AssetType, assetID string, version string) string {
 	if !isValidOperationAction(action) {
+		// Hard panic here as this is an issue with implementation
 		panic(fmt.Sprintf("invalid downloader operation action: %q", action))
 	}
 
@@ -252,6 +257,7 @@ func (d *Downloader) getMapThumbnailPath() string {
 }
 
 func (d *Downloader) UninstallMod(modId string) types.GenericResponse {
+	// No version is specified for uninstall operations since mod version is irrelevant
 	key := d.operationKey(operationActionUninstall, types.AssetTypeMod, modId, "")
 	result, deduped := d.enqueueOperation(key, func() operationResult {
 		return operationResult{genericResponse: d.uninstallModNow(modId)}
@@ -286,6 +292,7 @@ func (d *Downloader) uninstallModNow(modId string) types.GenericResponse {
 }
 
 func (d *Downloader) UninstallMap(mapId string) types.GenericResponse {
+	// No version is specified for uninstall operations since map version is irrelevant
 	key := d.operationKey(operationActionUninstall, types.AssetTypeMap, mapId, "")
 	result, deduped := d.enqueueOperation(key, func() operationResult {
 		return operationResult{genericResponse: d.uninstallMapNow(mapId)}
