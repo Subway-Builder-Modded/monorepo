@@ -24,9 +24,6 @@ func extractMod(d *Downloader, filePath string, modId string) types.GenericRespo
 	defer reader.Close()
 
 	destFolder := path.Join(d.getModPath(), modId)
-	if err := os.MkdirAll(destFolder, os.ModePerm); err != nil {
-		return d.throwError("Failed to create destination folder", err, "destination", destFolder, "mod_id", modId)
-	}
 
 	requiredFiles := map[string]types.FileFoundStruct{
 		"manifest":        {Found: false, FileObject: nil, Required: true},
@@ -40,14 +37,7 @@ func extractMod(d *Downloader, filePath string, modId string) types.GenericRespo
 		}
 	}
 
-	// First pass: create all directories
 	for _, file := range reader.File {
-		if file.FileInfo().IsDir() {
-			destPath := path.Join(destFolder, file.Name)
-			if err := os.MkdirAll(destPath, os.ModePerm); err != nil {
-				return d.throwError("Failed to create directory", err, "destination", destPath, "mod_id", modId)
-			}
-		}
 		if file.Name == constants.MANIFEST_FILE_NAME {
 			requiredFiles["manifest"] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		}
@@ -77,6 +67,20 @@ func extractMod(d *Downloader, filePath string, modId string) types.GenericRespo
 
 	if !requiredFilesPresent(requiredFiles) {
 		return d.throwErrorSimple("Zip file is missing one or more required files", "file_path", filePath, "mod_id", modId)
+	}
+
+	if err := os.MkdirAll(destFolder, os.ModePerm); err != nil {
+		return d.throwError("Failed to create destination folder", err, "destination", destFolder, "mod_id", modId)
+	}
+
+	// First pass: create directories to avoid extract errors
+	for _, file := range reader.File {
+		if file.FileInfo().IsDir() {
+			destPath := path.Join(destFolder, file.Name)
+			if err := os.MkdirAll(destPath, os.ModePerm); err != nil {
+				return d.throwError("Failed to create directory during extraction", err, "directory_path", destPath, "mod_id", modId)
+			}
+		}
 	}
 
 	// Second pass: extract files in parallel
