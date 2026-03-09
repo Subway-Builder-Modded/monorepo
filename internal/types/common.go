@@ -1,6 +1,7 @@
 package types
 
 import (
+	"io"
 	"strings"
 
 	"golang.org/x/mod/semver"
@@ -120,4 +121,26 @@ func joinStrings(s []string, sep string) string {
 		result += v
 	}
 	return result
+}
+
+// ProgressFunc is a callback for reporting download progress.
+// itemId identifies what is being downloaded, received is bytes downloaded so far, total is the total size (-1 if unknown).
+type ProgressFunc func(itemId string, received int64, total int64)
+
+// progressReader wraps an io.Reader to report download progress via a callback.
+type ProgressReader struct {
+	Reader     io.Reader
+	Total      int64
+	Received   int64
+	ItemId     string
+	OnProgress ProgressFunc
+}
+
+func (pr *ProgressReader) Read(p []byte) (int, error) {
+	n, err := pr.Reader.Read(p)
+	pr.Received += int64(n)
+	if pr.OnProgress != nil {
+		pr.OnProgress(pr.ItemId, pr.Received, pr.Total)
+	}
+	return n, err
 }

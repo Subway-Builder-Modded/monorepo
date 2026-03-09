@@ -12,11 +12,105 @@ import (
 	"railyard/internal/types"
 	"runtime"
 	"strings"
+	"syscall"
+	"unsafe"
 
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-func DownloadAndRunInstaller(downloadURL string, ctx context.Context) error {
+var (
+	shell32           = syscall.NewLazyDLL("shell32.dll")
+	procShellExecuteW = shell32.NewProc("ShellExecuteW")
+)
+
+func utf16Ptr(s string) *uint16 {
+	p, _ := syscall.UTF16PtrFromString(s)
+	return p
+}
+
+// launchElevated starts exePath with UAC elevation prompt.
+func launchElevated(exePath string, args string, workingDir string) error {
+	verb := utf16Ptr("runas") // request elevation
+	file := utf16Ptr(exePath)
+
+	var params *uint16
+	if args != "" {
+		params = utf16Ptr(args)
+	}
+
+	var dir *uint16
+	if workingDir != "" {
+		dir = utf16Ptr(workingDir)
+	}
+
+	// HINSTANCE > 32 means success. <= 32 is an error code.
+	ret, _, _ := procShellExecuteW.Call(
+		0,
+		uintptr(unsafe.Pointer(verb)),
+		uintptr(unsafe.Pointer(file)),
+		uintptr(unsafe.Pointer(params)),
+		uintptr(unsafe.Pointer(dir)),
+		1, // SW_SHOWNORMAL
+	)
+
+	if ret <= 32 {
+		return fmt.Errorf("ShellExecuteW failed with code %d", ret)
+	}
+	return nil
+}
+
+func CheckForUpdates(ctx context.Context, progressFunc types.ProgressFunc) error {
+	versions, err := PullReleases()
+	if err != nil {
+		fmt.Printf("Error checking for updates: %v\n", err)
+		return err
+	}
+
+	for _, v := range versions {
+		if VersionIsNewerThanInstalled(v.Version) {
+			fmt.Printf("New version available: %s\n", v.Version)
+			result, err := wailsruntime.MessageDialog(ctx, wailsruntime.MessageDialogOptions{
+				Type:    wailsruntime.QuestionDialog,
+				Title:   "Update Available",
+				Message: fmt.Sprintf("Version %s of Railyard is available. Would you like to download and install it?", v.Version),
+				Buttons: []string{"Yes", "No"},
+			})
+			if err != nil {
+				fmt.Printf("Error showing update dialog: %v\n", err)
+				return err
+			}
+			if result == "Yes" {
+				var downloadURL string
+				switch runtime.GOOS {
+				case "windows":
+					if runtime.GOARCH == "amd64" && v.WindowsX64DownloadURL != "" {
+						downloadURL = v.WindowsX64DownloadURL
+					}
+					if runtime.GOARCH == "arm64" && v.WindowsARMDownloadURL != "" {
+						downloadURL = v.WindowsARMDownloadURL
+					}
+				case "darwin":
+					downloadURL = v.MacOSDownloadURL
+				case "linux":
+					downloadURL = v.LinuxDownloadURL
+				}
+				if downloadURL == "" {
+					fmt.Printf("No suitable installer found for this platform in version %s\n", v.Version)
+					return fmt.Errorf("no suitable installer found for this platform in version %s", v.Version)
+				}
+				err = DownloadAndRunInstaller(downloadURL, ctx, progressFunc)
+				if err != nil {
+					fmt.Printf("Error downloading or running installer: %v\n", err)
+					return err
+				}
+			}
+			break
+		}
+	}
+	return nil
+}
+
+func DownloadAndRunInstaller(downloadURL string, ctx context.Context, downloadProgress types.ProgressFunc) error {
 	resp, err := http.Get(downloadURL)
 	if err != nil {
 		return fmt.Errorf("failed to download installer from %q: %w", downloadURL, err)
@@ -32,9 +126,16 @@ func DownloadAndRunInstaller(downloadURL string, ctx context.Context) error {
 		return fmt.Errorf("failed to create temp file for installer: %w", err)
 	}
 
-	_, err = io.Copy(tempFile, resp.Body)
+	// Wrap the response body in a progress reader to report download progress
+	progressReader := &types.ProgressReader{
+		Reader:     resp.Body,
+		Total:      resp.ContentLength,
+		OnProgress: downloadProgress,
+		ItemId:     "installer",
+	}
+
+	_, err = io.Copy(tempFile, progressReader)
 	if err != nil {
-		tempFile.Close()
 		os.Remove(tempFile.Name())
 		return fmt.Errorf("failed to save installer to temp file: %w", err)
 	}
@@ -45,7 +146,7 @@ func DownloadAndRunInstaller(downloadURL string, ctx context.Context) error {
 		return fmt.Errorf("failed to close temp file: %w", err)
 	}
 
-	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
+	if runtime.GOOS == "linux" {
 		err = os.Chmod(tempFile.Name(), 0755)
 		if err != nil {
 			os.Remove(tempFile.Name())
@@ -53,6 +154,7 @@ func DownloadAndRunInstaller(downloadURL string, ctx context.Context) error {
 		}
 		proc, err := os.StartProcess(tempFile.Name(), []string{tempFile.Name()}, &os.ProcAttr{
 			Files: []*os.File{os.Stdin, os.Stdout, os.Stderr},
+			Sys:   &syscall.SysProcAttr{},
 		})
 		if err != nil {
 			os.Remove(tempFile.Name())
@@ -60,6 +162,13 @@ func DownloadAndRunInstaller(downloadURL string, ctx context.Context) error {
 		}
 		proc.Release()
 
+	}
+	if runtime.GOOS == "windows" {
+		err = launchElevated(tempFile.Name(), "", "")
+		if err != nil {
+			os.Remove(tempFile.Name())
+			return fmt.Errorf("failed to launch installer with elevation: %w", err)
+		}
 	}
 	if runtime.GOOS == "darwin" {
 		// For DMG files, we can use the "open" command to launch it, which will handle mounting and running the installer inside.
@@ -93,7 +202,7 @@ func VersionIsNewerThanInstalled(version string) bool {
 	return false
 }
 
-func CheckForUpdates() ([]types.RailyardVersionInfo, error) {
+func PullReleases() ([]types.RailyardVersionInfo, error) {
 	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/releases", constants.RAILYARD_REPO)
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {

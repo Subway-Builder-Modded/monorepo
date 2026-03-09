@@ -24,6 +24,7 @@ import (
 	"railyard/internal/profiles"
 	"railyard/internal/registry"
 	"railyard/internal/types"
+	"railyard/internal/updater"
 	"railyard/internal/utils"
 
 	"github.com/protomaps/go-pmtiles/pmtiles"
@@ -167,6 +168,10 @@ func runStartupRoutines(a *App) {
 	// TODO: Make this configurable within the profile itself
 	if err := a.Profiles.SyncSubscriptions(activeProfile.ID); err != nil {
 		a.Logger.Warn("Failed to sync profile subscriptions on startup", "error", err, "profile_id", activeProfile.ID)
+	}
+
+	if a.Config.Cfg.CheckForUpdatesOnLaunch {
+		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress)
 	}
 }
 

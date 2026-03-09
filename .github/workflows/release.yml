@@ -45,6 +45,7 @@ jobs:
 
       - name: Build macOS (universal)
         run: |
+          echo $VERSION > internal/constants/version.txt
           wails build -platform darwin/universal
           cd build/bin
           ditto -c -k --sequesterRsrc --keepParent railyard.app railyard-${VERSION}-macos-universal.zip
@@ -97,7 +98,9 @@ jobs:
         run: cd frontend && pnpm install
 
       - name: Build Linux (amd64)
-        run: wails build -platform linux/amd64
+        run: |
+          echo $VERSION > internal/constants/version.txt
+          wails build -platform linux/amd64
 
       - name: Create AppImage
         run: |
@@ -165,7 +168,9 @@ jobs:
         run: cd frontend && pnpm install
 
       - name: Build Windows (${{ matrix.arch }}) with NSIS installer
-        run: wails build -platform windows/${{ matrix.arch }} -nsis
+        run: |
+          echo $VERSION > internal/constants/version.txt
+          wails build -platform windows/${{ matrix.arch }} -nsis
 
       - name: Rename artifacts
         run: |

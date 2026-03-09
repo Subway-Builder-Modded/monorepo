@@ -1,5 +1,10 @@
 package constants
 
-const RAILYARD_VERSION = "v0.1.2"
+import (
+	_ "embed"
+)
+
+//go:embed version.txt
+var RAILYARD_VERSION string
 
 const RAILYARD_REPO = "Subway-Builder-Modded/Railyard"
