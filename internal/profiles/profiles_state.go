@@ -152,4 +152,69 @@ func (s *UserProfiles) ResetUserProfiles() types.UserProfileResult {
 	}
 }
 
+// UpdateUIPreferences updates the active profile UI preferences and persists the profile state.
+func (s *UserProfiles) UpdateUIPreferences(theme types.ThemeMode, defaultPerPage types.PageSize) types.UserProfileResult {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.logRequest("UpdateUIPreferences", "theme", theme, "default_per_page", defaultPerPage)
+
+	if !s.loaded {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Profiles state not loaded"),
+			Errors: []types.UserProfilesError{
+				userProfilesError("", "", "", types.ErrorProfilesNotLoaded, "Profiles state not loaded"),
+			},
+		}
+	}
+
+	profile, ok := s.state.Profiles[s.state.ActiveProfileID]
+	if !ok {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Active profile missing from loaded state"),
+			Errors: []types.UserProfilesError{
+				userProfilesError(s.state.ActiveProfileID, "", "", types.ErrorProfileNotFound, `Active profile missing from loaded state: "`+s.state.ActiveProfileID+`"`),
+			},
+		}
+	}
+
+	profile.UIPreferences.Theme = theme
+	profile.UIPreferences.DefaultPerPage = defaultPerPage
+
+	nextState := s.state
+	nextState.Profiles = make(map[string]types.UserProfile, len(s.state.Profiles))
+	for id, existingProfile := range s.state.Profiles {
+		nextState.Profiles[id] = existingProfile
+	}
+	nextState.Profiles[profile.ID] = profile
+
+	validatedState, err := types.ValidateState(nextState)
+	if err != nil {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Invalid UI preferences"),
+			Profile:         s.state.Profiles[s.state.ActiveProfileID],
+			Errors: []types.UserProfilesError{
+				userProfilesError(profile.ID, "", "", types.ErrorUnknown, "Invalid UI preferences: "+err.Error()),
+			},
+		}
+	}
+
+	s.state.Profiles[profile.ID] = validatedState.Profiles[profile.ID]
+
+	if err := WriteUserProfilesState(s.state); err != nil {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Failed to persist UI preferences"),
+			Profile:         profile,
+			Errors: []types.UserProfilesError{
+				userProfilesError(profile.ID, "", "", types.ErrorPersistFailed, "Failed to persist UI preferences: "+err.Error()),
+			},
+		}
+	}
+
+	return types.UserProfileResult{
+		GenericResponse: types.SuccessResponse("UI preferences updated"),
+		Profile:         s.state.Profiles[profile.ID],
+		Errors:          []types.UserProfilesError{},
+	}
+}
+
 // TODO: Add functions to Create/Delete/Swap profiles
