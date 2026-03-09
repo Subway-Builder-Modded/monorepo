@@ -44,7 +44,7 @@ func extractMod(d *Downloader, filePath string, modId string) types.GenericRespo
 	}
 
 	if !requiredFiles["manifest"].Found {
-		return d.throwErrorSimple("Zip file is missing manifest.json", "file_path", filePath, "mod_id", modId)
+		return d.throwError("Zip file is missing manifest.json", nil, "file_path", filePath, "mod_id", modId)
 	}
 
 	rawManifestReader, err := requiredFiles["manifest"].FileObject.Open()
@@ -66,7 +66,7 @@ func extractMod(d *Downloader, filePath string, modId string) types.GenericRespo
 	}
 
 	if !requiredFilesPresent(requiredFiles) {
-		return d.throwErrorSimple("Zip file is missing one or more required files", "file_path", filePath, "mod_id", modId)
+		return d.throwError("Zip file is missing one or more required files", nil, "file_path", filePath, "mod_id", modId)
 	}
 
 	if err := os.MkdirAll(destFolder, os.ModePerm); err != nil {
@@ -186,7 +186,7 @@ func extractMap(d *Downloader, filePath string) types.MapExtractResponse {
 	}
 
 	if !requiredFilesPresent(filesFound) {
-		return d.throwMapExtractErrorSimple("Zip file is missing one or more required files", "file_path", filePath)
+		return d.throwMapExtractError("Zip file is missing one or more required files", nil, "file_path", filePath)
 	}
 
 	filesCount := 0
@@ -218,7 +218,7 @@ func extractMap(d *Downloader, filePath string) types.MapExtractResponse {
 	}
 
 	if d.isMapCodeTaken(configData.Code) {
-		return d.throwMapExtractErrorSimple("Cannot install map because its code matches a vanilla map included with the game or an already installed map.", "map_code", configData.Code)
+		return d.throwMapExtractError("Cannot install map because its code matches a vanilla map included with the game or an already installed map.", nil, "map_code", configData.Code)
 	}
 
 	// Create necessary directories first
@@ -295,18 +295,18 @@ func extractMap(d *Downloader, filePath string) types.MapExtractResponse {
 	if !filesFound["thumbnail"].Found {
 		srv, port, srvErr := utils.StartTempPMTilesServer()
 		if srvErr != nil {
-			return d.warnMapExtractResponse("Failed to start PMTiles server for thumbnail generation, but map was extracted successfully.", configData, "file_path", filePath, "map_code", configData.Code)
+			return d.toMapExtractResponse(d.warnResponse("Failed to start PMTiles server for thumbnail generation, but map was extracted successfully.", "file_path", filePath, "map_code", configData.Code), configData)
 		}
 		defer srv.Close()
 
 		thumbnailData, err := utils.GenerateThumbnail(configData.Code, configData, port)
 		if err != nil {
-			return d.warnMapExtractResponse("Failed to generate thumbnail, but map was extracted successfully. You can try generating the thumbnail later from the map details page.", configData, "file_path", filePath, "map_code", configData.Code)
+			return d.toMapExtractResponse(d.warnResponse("Failed to generate thumbnail, but map was extracted successfully. You can try generating the thumbnail later from the map details page.", "file_path", filePath, "map_code", configData.Code), configData)
 		}
 
 		thumbnailPath := path.Join(d.getMapThumbnailPath(), configData.Code+".svg")
 		if err := os.WriteFile(thumbnailPath, []byte(thumbnailData), os.ModePerm); err != nil {
-			return d.warnMapExtractResponse("Failed to save generated thumbnail, but map was extracted successfully. You can try generating the thumbnail later from the map details page.", configData, "file_path", filePath, "map_code", configData.Code, "thumbnail_path", thumbnailPath)
+			return d.toMapExtractResponse(d.warnResponse("Failed to save generated thumbnail, but map was extracted successfully. You can try generating the thumbnail later from the map details page.", "file_path", filePath, "map_code", configData.Code, "thumbnail_path", thumbnailPath), configData)
 		}
 		extractCount++
 		if d.OnExtractProgress != nil {
@@ -314,7 +314,7 @@ func extractMap(d *Downloader, filePath string) types.MapExtractResponse {
 		}
 	}
 
-	return d.successMapExtractResponse("Map extracted successfully", configData, "file_path", filePath, "map_code", configData.Code)
+	return d.toMapExtractResponse(d.successResponse("Map extracted successfully", "file_path", filePath, "map_code", configData.Code), configData)
 }
 
 func extractFileMap(path string, srcFile io.ReadCloser, errChan chan<- error, useGzip bool) {

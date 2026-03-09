@@ -107,7 +107,7 @@ func syncActionError(action types.SubscriptionAction, assetType types.AssetType,
 	if response.Status == types.ResponseSuccess {
 		return nil
 	}
-	if response.Status == types.ResponseWarn && strings.HasPrefix(response.Message, "Duplicate request skipped:") {
+	if response.Status == types.ResponseWarn {
 		return nil
 	}
 	return fmt.Errorf("%s %s %q failed with status=%s: %s", action, assetType, assetID, response.Status, response.Message)

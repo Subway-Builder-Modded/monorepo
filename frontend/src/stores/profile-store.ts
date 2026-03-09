@@ -70,7 +70,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     });
 
     const result = await UpdateSubscriptions(request);
-    if (result.status !== "success") throw new Error(result.message);
+    if (result.status === "error") throw new Error(result.message);
     set({ profile: result.profile });
   },
 
