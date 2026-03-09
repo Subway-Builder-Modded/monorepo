@@ -22,9 +22,6 @@ import (
 	"go.yaml.in/yaml/v4"
 )
 
-// ProgressFunc is a callback for reporting download progress.
-// itemId identifies what is being downloaded, received is bytes downloaded so far, total is the total size (-1 if unknown).
-type ProgressFunc func(itemId string, received int64, total int64)
 type ExtractProgressFunc func(itemId string, extracted int64, total int64)
 
 type Downloader struct {
@@ -33,7 +30,7 @@ type Downloader struct {
 	Registry          *registry.Registry
 	Config            *config.Config
 	Logger            logger.Logger
-	OnProgress        ProgressFunc
+	OnProgress        types.ProgressFunc
 	OnExtractProgress ExtractProgressFunc
 
 	downloadMu       sync.Mutex
@@ -487,24 +484,6 @@ func (d *Downloader) installMapNow(mapId string, version string) types.MapExtrac
 	return extractResp
 }
 
-// progressReader wraps an io.Reader to report download progress via a callback.
-type progressReader struct {
-	reader     io.Reader
-	total      int64
-	received   int64
-	itemId     string
-	onProgress ProgressFunc
-}
-
-func (pr *progressReader) Read(p []byte) (int, error) {
-	n, err := pr.reader.Read(p)
-	pr.received += int64(n)
-	if pr.onProgress != nil {
-		pr.onProgress(pr.itemId, pr.received, pr.total)
-	}
-	return n, err
-}
-
 // downloadTempZip downloads a zip file from the given URL and saves it to a temporary location, returning the path or an error message.
 func (d *Downloader) downloadTempZip(url string, itemId string) types.DownloadTempResponse {
 	if err := os.MkdirAll(d.tempPath, os.ModePerm); err != nil {
@@ -529,11 +508,11 @@ func (d *Downloader) downloadTempZip(url string, itemId string) types.DownloadTe
 
 	var reader io.Reader = zip.Body
 	if d.OnProgress != nil {
-		reader = &progressReader{
-			reader:     zip.Body,
-			total:      zip.ContentLength,
-			itemId:     itemId,
-			onProgress: d.OnProgress,
+		reader = &types.ProgressReader{
+			Reader:     zip.Body,
+			Total:      zip.ContentLength,
+			ItemId:     itemId,
+			OnProgress: d.OnProgress,
 		}
 	}
 

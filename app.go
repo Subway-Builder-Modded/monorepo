@@ -24,6 +24,7 @@ import (
 	"railyard/internal/profiles"
 	"railyard/internal/registry"
 	"railyard/internal/types"
+	"railyard/internal/updater"
 	"railyard/internal/utils"
 
 	"github.com/protomaps/go-pmtiles/pmtiles"
@@ -146,7 +147,10 @@ func (a *App) recoverProfiles(cause types.UserProfileResult) types.UserProfile {
 }
 
 func runStartupRoutines(a *App) {
-	// TODO: Handle auto-update of application version...
+	// TODO: Handle auto-update of application version...'
+	if a.Config.Cfg.CheckForUpdatesOnLaunch {
+		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger)
+	}
 
 	activeProfile := resolveStartupProfile(a)
 
