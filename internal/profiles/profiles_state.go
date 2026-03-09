@@ -153,39 +153,26 @@ func (s *UserProfiles) ResetUserProfiles() types.UserProfileResult {
 }
 
 // UpdateUIPreferences updates the active profile UI preferences and persists the profile state.
-func (s *UserProfiles) UpdateUIPreferences(theme types.ThemeMode, defaultPerPage types.PageSize) types.UserProfileResult {
+func (s *UserProfiles) UpdateUIPreferences(uiPrefs types.UIPreferences) types.UserProfileResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.logRequest("UpdateUIPreferences", "theme", theme, "default_per_page", defaultPerPage)
+	s.logRequest("UpdateUIPreferences", "theme", uiPrefs.Theme, "default_per_page", uiPrefs.DefaultPerPage)
 
-	if !s.loaded {
-		return types.UserProfileResult{
-			GenericResponse: types.ErrorResponse("Profiles state not loaded"),
-			Errors: []types.UserProfilesError{
-				userProfilesError("", "", "", types.ErrorProfilesNotLoaded, "Profiles state not loaded"),
-			},
-		}
+	profile := s.state.Profiles[s.state.ActiveProfileID]
+
+	// Create a deep copy of the current state
+	nextState := types.UserProfilesState{
+		ActiveProfileID: s.state.ActiveProfileID,
+		Profiles:        make(map[string]types.UserProfile, len(s.state.Profiles)),
+	}
+	for id, p := range s.state.Profiles {
+		nextState.Profiles[id] = p
 	}
 
-	profile, ok := s.state.Profiles[s.state.ActiveProfileID]
-	if !ok {
-		return types.UserProfileResult{
-			GenericResponse: types.ErrorResponse("Active profile missing from loaded state"),
-			Errors: []types.UserProfilesError{
-				userProfilesError(s.state.ActiveProfileID, "", "", types.ErrorProfileNotFound, `Active profile missing from loaded state: "`+s.state.ActiveProfileID+`"`),
-			},
-		}
-	}
-
-	profile.UIPreferences.Theme = theme
-	profile.UIPreferences.DefaultPerPage = defaultPerPage
-
-	nextState := s.state
-	nextState.Profiles = make(map[string]types.UserProfile, len(s.state.Profiles))
-	for id, existingProfile := range s.state.Profiles {
-		nextState.Profiles[id] = existingProfile
-	}
-	nextState.Profiles[profile.ID] = profile
+	// Update the profile with new preferences
+	updatedProfile := nextState.Profiles[profile.ID]
+	updatedProfile.UIPreferences = uiPrefs
+	nextState.Profiles[profile.ID] = updatedProfile
 
 	validatedState, err := types.ValidateState(nextState)
 	if err != nil {
