@@ -2,11 +2,15 @@ package downloader
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"railyard/internal/config"
+	"railyard/internal/logger"
+	"railyard/internal/registry"
 	"railyard/internal/types"
 
 	"github.com/stretchr/testify/require"
@@ -28,7 +32,7 @@ func runInParallel(total int, fn func(index int)) {
 	wg.Wait()
 }
 
-func successfulOperation(message string, delay time.Duration, onRun func()) func() operationResult {
+func operationSuccess(message string, delay time.Duration, onRun func()) func() operationResult {
 	return func() operationResult {
 		if onRun != nil {
 			onRun()
@@ -45,6 +49,42 @@ func successfulOperation(message string, delay time.Duration, onRun func()) func
 	}
 }
 
+func supersededSuccess(message string) operationResult {
+	return operationResult{
+		genericResponse: types.GenericResponse{
+			Status:  types.ResponseSuccess,
+			Message: message,
+		},
+	}
+}
+
+func enqueueOperation(d *Downloader, action operationAction, assetType types.AssetType, assetID string, version string, run func() operationResult) operationResult {
+	return d.enqueueOperation(
+		downloadQueueKey{assetType: assetType, assetID: assetID},
+		d.operationKey(action, assetType, assetID, version),
+		run,
+		supersededSuccess("Operation superseded by newer queued request. No action taken."),
+	)
+}
+
+// waitForPendingOperation is a helper function that waits until the specified asset key is present in the downloader's pending map, or fails the test if it times out.
+func waitForPendingOperation(t *testing.T, d *Downloader, assetKey downloadQueueKey) {
+	t.Helper()
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		d.downloadMu.Lock()
+		_, ok := d.pending[assetKey]
+		d.downloadMu.Unlock()
+		if ok {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+
+	t.Fatalf("timed out waiting for pending operation: %s", assetKey)
+}
+
 func updateAtomicMax(max *int32, current int32) {
 	for {
 		existing := atomic.LoadInt32(max)
@@ -57,39 +97,165 @@ func updateAtomicMax(max *int32, current int32) {
 	}
 }
 
-func TestEnqueueOperationDeduplicatesByKey(t *testing.T) {
+func TestEnqueueOperationSupersedesForSameAsset(t *testing.T) {
 	d := newTestDownloader()
-	requestKey := d.operationKey(operationActionInstall, types.AssetTypeMap, "map-a", "1.0.0")
-	const callers = 6
 
-	var runCount int32
-	var dedupedCount int32
-	results := make([]operationResult, callers)
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	go func() {
+		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{
+				genericResponse: types.GenericResponse{
+					Status:  types.ResponseSuccess,
+					Message: "blocker complete",
+				},
+			}
+		})
+	}()
+	<-blockerStarted
 
-	// Simulate multiple concurrent calls with the same operation key
-	runInParallel(callers, func(index int) {
-		result, deduped := d.enqueueOperation(requestKey, successfulOperation("ok", 30*time.Millisecond, func() {
-			atomic.AddInt32(&runCount, 1)
+	var firstRunCount int32
+	firstResultCh := make(chan operationResult, 1)
+	go func() {
+		firstResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "map-a", "1.0.0", operationSuccess("first install ran", 0, func() {
+			atomic.AddInt32(&firstRunCount, 1)
 		}))
-		if deduped {
-			atomic.AddInt32(&dedupedCount, 1)
-			return
-		}
-		results[index] = result
-	})
+	}()
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
 
-	// Only one caller should have executed the operation, while the others should have been deduped
-	require.Equal(t, int32(1), atomic.LoadInt32(&runCount))
-	require.Equal(t, int32(callers-1), atomic.LoadInt32(&dedupedCount))
+	var secondRunCount int32
+	secondResultCh := make(chan operationResult, 1)
+	go func() {
+		secondResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "map-a", "2.0.0", operationSuccess("second install ran", 0, func() {
+			atomic.AddInt32(&secondRunCount, 1)
+		}))
+	}()
 
-	successCount := 0
-	for _, result := range results {
-		if result.genericResponse.Status == types.ResponseSuccess {
-			successCount++
-			require.Equal(t, "ok", result.genericResponse.Message)
-		}
-	}
-	require.Equal(t, 1, successCount)
+	firstResult := <-firstResultCh
+	require.Equal(t, types.ResponseSuccess, firstResult.genericResponse.Status)
+	require.True(t, strings.Contains(firstResult.genericResponse.Message, "superseded"))
+	require.Equal(t, int32(0), atomic.LoadInt32(&firstRunCount))
+
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
+	close(releaseBlocker)
+
+	secondResult := <-secondResultCh
+	require.Equal(t, types.ResponseSuccess, secondResult.genericResponse.Status)
+	require.Equal(t, "second install ran", secondResult.genericResponse.Message)
+	require.Equal(t, int32(1), atomic.LoadInt32(&secondRunCount))
+}
+
+func TestEnqueueOperationPreservesPendingQueuePosition(t *testing.T) {
+	d := newTestDownloader()
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	go func() {
+		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{
+				genericResponse: types.GenericResponse{
+					Status:  types.ResponseSuccess,
+					Message: "blocker complete",
+				},
+			}
+		})
+	}()
+	<-blockerStarted
+
+	// Firsat install for map-a that will be superseded
+	firstResultCh := make(chan operationResult, 1)
+	go func() {
+		firstResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "map-a", "1.0.0", operationSuccess("first install", 0, nil))
+	}()
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
+
+	runOrder := make(chan string, 2)
+	// Install for unrelated mod-b
+	otherResultCh := make(chan operationResult, 1)
+	go func() {
+		otherResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "mod-b", "1.0.0", operationSuccess("other install", 0, func() {
+			runOrder <- "mod-b"
+		}))
+	}()
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMod, assetID: "mod-b"})
+
+	// Second install for map-a that should superseded the first install
+	supersedingResultCh := make(chan operationResult, 1)
+	go func() {
+		supersedingResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "map-a", "2.0.0", operationSuccess("second install", 0, func() {
+			runOrder <- "map-a-2.0.0"
+		}))
+	}()
+
+	firstResult := <-firstResultCh
+	require.Equal(t, types.ResponseSuccess, firstResult.genericResponse.Status)
+	require.True(t, strings.Contains(firstResult.genericResponse.Message, "superseded"))
+
+	close(releaseBlocker)
+
+	// Validate that the second install for map-a runs before the install for mod-b, as the initial install for map-a should have its position preserved during superseding
+	firstRun := <-runOrder
+	secondRun := <-runOrder
+	require.Equal(t, "map-a-2.0.0", firstRun)
+	require.Equal(t, "mod-b", secondRun)
+
+	// Validate that the superseding result and other asset result are successful
+	supersedingResult := <-supersedingResultCh
+	require.Equal(t, types.ResponseSuccess, supersedingResult.genericResponse.Status)
+	require.Equal(t, "second install", supersedingResult.genericResponse.Message)
+	otherResult := <-otherResultCh
+	require.Equal(t, types.ResponseSuccess, otherResult.genericResponse.Status)
+	require.Equal(t, "other install", otherResult.genericResponse.Message)
+}
+
+func TestEnqueueOperationUsesLatestRequestForPendingAsset(t *testing.T) {
+	d := newTestDownloader()
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+
+	go func() {
+		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+		})
+	}()
+	<-blockerStarted
+
+	var installRunCount int32
+	installResultCh := make(chan operationResult, 1)
+	go func() {
+		installResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "map-a", "1.0.0", operationSuccess("install ran", 0, func() {
+			atomic.AddInt32(&installRunCount, 1)
+		}))
+	}()
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
+
+	var uninstallRunCount int32
+	uninstallResultCh := make(chan operationResult, 1)
+	go func() {
+		uninstallResultCh <- enqueueOperation(d, operationActionUninstall, types.AssetTypeMap, "map-a", "", operationSuccess("uninstall ran", 0, func() {
+			atomic.AddInt32(&uninstallRunCount, 1)
+		}))
+	}()
+
+	installResult := <-installResultCh
+	require.Equal(t, types.ResponseSuccess, installResult.genericResponse.Status)
+	require.True(t, strings.Contains(installResult.genericResponse.Message, "superseded"))
+	require.Equal(t, int32(0), atomic.LoadInt32(&installRunCount))
+
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
+	close(releaseBlocker)
+
+	uninstallResult := <-uninstallResultCh
+	require.Equal(t, types.ResponseSuccess, uninstallResult.genericResponse.Status)
+	require.Equal(t, "uninstall ran", uninstallResult.genericResponse.Message)
+	require.Equal(t, int32(1), atomic.LoadInt32(&uninstallRunCount))
 }
 
 func TestEnqueueOperationRunsSequentially(t *testing.T) {
@@ -100,20 +266,86 @@ func TestEnqueueOperationRunsSequentially(t *testing.T) {
 	var activeCount int32
 	var maxConcurrent int32
 
-	// Enqueue multiple operations with the same key to test sequential execution
 	runInParallel(jobs, func(i int) {
-		key := d.operationKey(operationActionInstall, types.AssetTypeMod, fmt.Sprintf("mod-%d", i), "1.0.0")
-		_, _ = d.enqueueOperation(key, successfulOperation("done", 20*time.Millisecond, func() {
-			atomic.AddInt32(&runCount, 1)
-			current := atomic.AddInt32(&activeCount, 1)
-			updateAtomicMax(&maxConcurrent, current)
-			defer atomic.AddInt32(&activeCount, -1)
-		}))
+		result := enqueueOperation(
+			d,
+			operationActionInstall,
+			types.AssetTypeMod,
+			fmt.Sprintf("mod-%d", i),
+			"1.0.0",
+			operationSuccess("done", 20*time.Millisecond, func() {
+				atomic.AddInt32(&runCount, 1)
+				current := atomic.AddInt32(&activeCount, 1)
+				updateAtomicMax(&maxConcurrent, current)
+				defer atomic.AddInt32(&activeCount, -1)
+			}),
+		)
+		require.Equal(t, types.ResponseSuccess, result.genericResponse.Status)
 	})
 
-	// All operations should have run, but never more than one at a time
 	require.Equal(t, int32(jobs), atomic.LoadInt32(&runCount))
 	require.Equal(t, int32(1), atomic.LoadInt32(&maxConcurrent))
+}
+
+func TestInstallMapForExistingIsNoOp(t *testing.T) {
+	reg := registry.NewRegistry()
+	expectedConfig := types.ConfigData{
+		Code:        "ABC",
+		Name:        "Map A",
+		Description: "desc",
+		Creator:     "tester",
+		Version:     "1.0.0",
+	}
+	reg.AddInstalledMap("map-a", "1.0.0", expectedConfig)
+
+	d := &Downloader{
+		Registry: reg,
+		Logger:   logger.LoggerAtPath(""),
+	}
+
+	// Validate that no-op response is returned at invocation time
+	response := d.InstallMap("map-a", "1.0.0")
+	require.Equal(t, types.ResponseWarn, response.Status)
+	require.Contains(t, response.Message, "already installed at requested version")
+	require.Equal(t, expectedConfig, response.Config)
+}
+
+func TestInstallModPreservesNoOpThroughStateMutation(t *testing.T) {
+	reg := registry.NewRegistry()
+	d := &Downloader{
+		Registry: reg,
+		Config:   config.NewConfig(),
+		Logger:   logger.LoggerAtPath(""),
+	}
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+
+	// Enqueue an install operation for map-a that will block until released
+	go func() {
+		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "blocker-map", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+		})
+	}()
+	<-blockerStarted
+
+	responseCh := make(chan types.GenericResponse, 1)
+	// Enqueue an install operation for mod-a
+	go func() {
+		responseCh <- d.InstallMod("mod-a", "1.0.0")
+	}()
+
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMod, assetID: "mod-a"})
+	// Mutate registry state to make it appear as though mod-a is already installed while the install operation is still pending
+	reg.AddInstalledMod("mod-a", "1.0.0")
+	close(releaseBlocker)
+
+	// Validate that no-op response is returned at execution time
+	response := <-responseCh
+	require.Equal(t, types.ResponseWarn, response.Status)
+	require.Contains(t, response.Message, "already installed at requested version")
 }
 
 func TestIsValidOperationAction(t *testing.T) {

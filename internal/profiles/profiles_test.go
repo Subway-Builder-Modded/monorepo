@@ -146,8 +146,18 @@ func mockZip(t *testing.T, files map[string][]byte) []byte {
 
 func mockMod(t *testing.T) []byte {
 	t.Helper()
+	manifest, err := json.Marshal(types.MetroMakerModManifest{
+		Id:          "fixture-mod",
+		Name:        "Fixture Mod",
+		Description: "Fixture mod for tests",
+		Version:     "1.0.0",
+		Main:        "index.js",
+	})
+	require.NoError(t, err)
+
 	return mockZip(t, map[string][]byte{
-		"README.txt": []byte("mod fixture"),
+		"manifest.json": manifest,
+		"index.js":      []byte("export default {};"),
 	})
 }
 
@@ -928,8 +938,8 @@ func TestUpdateAllSubscriptionsToLatest(t *testing.T) {
 	}
 }
 
-func TestSyncActionErrorIgnoresDuplicateQueuedWarnings(t *testing.T) {
-	t.Run("Duplicate install warning is ignored", func(t *testing.T) {
+func TestSyncActionErrorIgnoresWarnings(t *testing.T) {
+	t.Run("Duplicate install warning returns no error", func(t *testing.T) {
 		err := syncActionError(
 			types.SubscriptionActionSubscribe,
 			types.AssetTypeMap,
@@ -939,7 +949,7 @@ func TestSyncActionErrorIgnoresDuplicateQueuedWarnings(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Duplicate uninstall warning is ignored", func(t *testing.T) {
+	t.Run("Duplicate uninstall warning returns no error", func(t *testing.T) {
 		err := syncActionError(
 			types.SubscriptionActionUnsubscribe,
 			types.AssetTypeMod,
@@ -956,7 +966,7 @@ func TestSyncActionErrorIgnoresDuplicateQueuedWarnings(t *testing.T) {
 			"map-a",
 			types.GenericResponse{Status: types.ResponseWarn, Message: "Map with ID map-a is not currently installed. No action taken."},
 		)
-		require.Error(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -1334,6 +1344,44 @@ func TestSyncAssetSubscriptionsInstallDecisionsMaps(t *testing.T) {
 	}
 }
 
+func TestSyncAssetSubscriptionsPropagatesInstallErrors(t *testing.T) {
+	fixture := assetSyncTestFixture{
+		subscriptions: map[string]string{
+			"map-a": "1.0.1",
+		},
+		installedVersion: map[string]string{
+			"map-a": "1.0.0",
+		},
+		availableVersions: map[string]map[string]struct{}{
+			"map-a": {
+				"1.0.1": {},
+			},
+		},
+	}
+
+	installCalls := 0
+	uninstallCalls := 0
+	_, errs := syncAssetSubscriptions(testUserProfilesLogger(t), types.DefaultProfileID, mockMapAssetSyncArgs(
+		fixture,
+		func(assetID string, version string) types.GenericResponse {
+			installCalls++
+			return types.GenericResponse{
+				Status:  types.ResponseError,
+				Message: "Failed to extract map zip: Cannot install map because its code matches a vanilla map included with the game or an already installed map.",
+			}
+		},
+		func(assetID string) types.GenericResponse {
+			uninstallCalls++
+			return types.GenericResponse{Status: types.ResponseSuccess, Message: "ok"}
+		},
+	))
+
+	require.Len(t, errs, 1)
+	require.Contains(t, errs[0].Error(), "Failed to extract map zip")
+	require.Equal(t, 1, installCalls)
+	require.Equal(t, 1, uninstallCalls)
+}
+
 // This test is intentionally concise given the Maps behavior is nearly identical
 func TestSyncAssetSubscriptionsInstallDecisionsMods(t *testing.T) {
 	installCalls := 0
@@ -1367,7 +1415,10 @@ func TestUpdateUIPreferences(t *testing.T) {
 	setEnv(t)
 
 	svc := loadedUserProfilesService(t, types.InitialProfilesState())
-	result := svc.UpdateUIPreferences(types.ThemeLight, types.PageSize24)
+	result := svc.UpdateUIPreferences(types.UIPreferences{
+		Theme:          types.ThemeLight,
+		DefaultPerPage: types.PageSize24,
+	})
 
 	require.Equal(t, types.ResponseSuccess, result.Status)
 	require.Equal(t, types.ThemeLight, result.Profile.UIPreferences.Theme)
@@ -1383,7 +1434,10 @@ func TestUpdateUIPreferencesRejectsInvalid(t *testing.T) {
 	setEnv(t)
 
 	svc := loadedUserProfilesService(t, types.InitialProfilesState())
-	result := svc.UpdateUIPreferences(types.ThemeMode("retro"), types.PageSize(30))
+	result := svc.UpdateUIPreferences(types.UIPreferences{
+		Theme:          types.ThemeMode("retro"),
+		DefaultPerPage: types.PageSize(30),
+	})
 
 	require.Equal(t, types.ResponseError, result.Status)
 	requireProfileErrorType(t, result.Errors, types.ErrorUnknown)

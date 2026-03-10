@@ -10,6 +10,10 @@ export function IsGameRunning() {
   return window['go']['main']['App']['IsGameRunning']();
 }
 
+export function IsStartupReady() {
+  return window['go']['main']['App']['IsStartupReady']();
+}
+
 export function LaunchGame() {
   return window['go']['main']['App']['LaunchGame']();
 }

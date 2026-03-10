@@ -5,6 +5,8 @@ export function GetGameVersion():Promise<string>;
 
 export function IsGameRunning():Promise<boolean>;
 
+export function IsStartupReady():Promise<boolean>;
+
 export function LaunchGame():Promise<void>;
 
 export function StopGame():Promise<void>;

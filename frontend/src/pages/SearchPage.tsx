@@ -38,8 +38,6 @@ export function SearchPage() {
     setPerPage,
   } = useFilteredItems({ mods, maps });
 
-  if (error) return <ErrorBanner message={error} />;
-
   const modCount = mods.length;
   const mapCount = maps.length;
 
@@ -52,6 +50,8 @@ export function SearchPage() {
           Discover and install maps and mods for Subway Builder.
         </p>
       </div>
+
+      {error && <ErrorBanner message={error} />}
 
       {/* Search bar — full width at top */}
       <SearchBar query={query} onQueryChange={setQuery} />

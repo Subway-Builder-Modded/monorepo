@@ -10,23 +10,32 @@ import (
 
 // fetchFromDisk loads all registry data (mods, maps, installed mods, installed maps) from disk into memory.
 func (r *Registry) fetchFromDisk() error {
-	var err error
-	r.mods, err = r.getModsFromDisk()
+	mods, err := r.getModsFromDisk()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load mods from disk: %w", err)
 	}
-	r.maps, err = r.getMapsFromDisk()
+
+	maps, err := r.getMapsFromDisk()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load maps from disk: %w", err)
 	}
-	r.installedMods, err = r.getInstalledModsFromDisk()
+
+	installedMods, err := r.getInstalledModsFromDisk()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load installed mods from disk: %w", err)
 	}
-	r.installedMaps, err = r.getInstalledMapsFromDisk()
+
+	installedMaps, err := r.getInstalledMapsFromDisk()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load installed maps from disk: %w", err)
 	}
+
+	// Make updates only when all reads are successful to avoid partial registry updates
+	r.mods = mods
+	r.maps = maps
+	r.installedMods = installedMods
+	r.installedMaps = installedMaps
+
 	return nil
 }
 

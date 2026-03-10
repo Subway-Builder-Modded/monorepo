@@ -50,7 +50,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   defaultPerPage: () => get().profile?.uiPreferences?.defaultPerPage ?? 12,
 
   updateUIPreferences: async (theme, defaultPerPage) => {
-    const result = await UpdateUIPreferences(theme, defaultPerPage);
+    const result = await UpdateUIPreferences(new types.UIPreferences({ theme, defaultPerPage }));
     if (result.status !== "success") {
       throw new Error(result.message || "Failed to update UI preferences");
     }
@@ -70,7 +70,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     });
 
     const result = await UpdateSubscriptions(request);
-    if (result.status !== "success") throw new Error(result.message);
+    if (result.status === "error") throw new Error(result.message);
     set({ profile: result.profile });
   },
 

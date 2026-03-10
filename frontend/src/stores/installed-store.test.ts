@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useInstalledStore } from "./installed-store";
-import { activeProfileResultSuccess, updateSubscriptionsError, updateSubscriptionsSuccess } from "@/test/helpers/profileMutationFixtures";
+import { activeProfileResultSuccess, updateSubscriptionsError, updateSubscriptionsSuccess, updateSubscriptionsWarn } from "@/test/helpers/profileMutationFixtures";
 
 const {
   mockGetInstalledMods,
@@ -128,6 +128,25 @@ describe("useInstalledStore", () => {
     });
     validateInstallationRefreshes(0);
     validateFinalState("installing", "mod-2", "Install failed");
+  });
+
+  it("installMap does not throw when profile mutation returns warn", async () => {
+    mockGetActiveProfile.mockResolvedValue(activeProfileResultSuccess("profile-a"));
+    mockUpdateSubscriptions.mockResolvedValue(updateSubscriptionsWarn("sync completed with warnings"));
+    mockGetInstalledMods.mockResolvedValue([{ id: "mod-1", version: "1.0.0" }]);
+    mockGetInstalledMaps.mockResolvedValue([{ id: "map-1", version: "2.0.0", config: { code: "AAA" } }]);
+
+    await expect(useInstalledStore.getState().installMap("map-1", "2.0.0")).resolves.toBeDefined();
+
+    validateProfilesRequest({
+      profileId: "profile-a",
+      action: "subscribe",
+      assetId: "map-1",
+      assetType: "map",
+      version: "2.0.0",
+    });
+    validateInstallationRefreshes(1);
+    validateFinalState("installing", "map-1", null);
   });
 
   it("uninstallMod errors when profile mutation fails", async () => {

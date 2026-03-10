@@ -60,3 +60,14 @@ export function updateSubscriptionsError(message: string): types.UpdateSubscript
     errors: [],
   });
 }
+
+export function updateSubscriptionsWarn(message: string): types.UpdateSubscriptionsResult {
+  return new types.UpdateSubscriptionsResult({
+    status: "warn",
+    message,
+    profile: activeProfileFixture(),
+    persisted: true,
+    operations: [],
+    errors: [],
+  });
+}

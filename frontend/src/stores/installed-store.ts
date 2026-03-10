@@ -45,7 +45,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       forceSync: true,
     });
     const result = await UpdateSubscriptions(request);
-    if (result.status !== "success") {
+    if (result.status === "error") {
       throw new Error(result.message || "Subscription update failed");
     }
     return result;

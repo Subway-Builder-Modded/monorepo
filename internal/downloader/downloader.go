@@ -33,16 +33,27 @@ type Downloader struct {
 	OnProgress        types.ProgressFunc
 	OnExtractProgress ExtractProgressFunc
 
-	downloadMu       sync.Mutex
-	downloadCond     *sync.Cond
-	queue            []*downloadOperation
-	queuedOperations map[string]*downloadOperation
+	downloadMu   sync.Mutex
+	downloadCond *sync.Cond
+	queue        []*downloadOperation
+	// Track pending operations so that they may be superseded by a newer request for the same asset
+	pending map[downloadQueueKey]*downloadOperation
+	// Track running operations to prevent concurrent operations for the same asset
+	running map[downloadQueueKey]*downloadOperation
+}
+
+// downloadQueueKey is used to coalesce download operations for a specific asset (mod/map) ensuring that only one operation is in process or queued at a given time
+type downloadQueueKey struct {
+	assetType types.AssetType
+	assetID   string
 }
 
 type downloadOperation struct {
-	key       string
-	run       func() operationResult
-	completed chan operationResult
+	key              string
+	assetKey         downloadQueueKey
+	run              func() operationResult
+	supersededResult operationResult
+	completed        chan operationResult
 }
 
 type operationResult struct {
@@ -89,7 +100,8 @@ func (d *Downloader) startQueue() {
 		return
 	}
 	d.downloadCond = sync.NewCond(&d.downloadMu)
-	d.queuedOperations = make(map[string]*downloadOperation)
+	d.pending = make(map[downloadQueueKey]*downloadOperation)
+	d.running = make(map[downloadQueueKey]*downloadOperation)
 	go d.runQueue()
 }
 
@@ -103,6 +115,10 @@ func (d *Downloader) runQueue() {
 		}
 		op := d.queue[0]
 		d.queue = d.queue[1:]
+		if pending, ok := d.pending[op.assetKey]; ok && pending == op {
+			delete(d.pending, op.assetKey)
+		}
+		d.running[op.assetKey] = op
 		// Unlock to allow other operations to be enqueued during runs
 		d.downloadMu.Unlock()
 
@@ -110,8 +126,9 @@ func (d *Downloader) runQueue() {
 
 		// Lock the queue again to perform state mutation
 		d.downloadMu.Lock()
-		// Remove the completed operation from the queue
-		delete(d.queuedOperations, op.key)
+		if running, ok := d.running[op.assetKey]; ok && running == op {
+			delete(d.running, op.assetKey)
+		}
 		d.downloadMu.Unlock()
 
 		op.completed <- result
@@ -119,28 +136,53 @@ func (d *Downloader) runQueue() {
 	}
 }
 
-// enqueueOperation adds a new operation to the queue.
-// If another operation with the same key is already queued or running, the duplicate is dropped.
-func (d *Downloader) enqueueOperation(key string, run func() operationResult) (operationResult, bool) {
+// replaceQueuedOperation replaces an existing queued operation for the same asset with a new operation, returning a boolean to indicate success
+func (d *Downloader) replaceQueuedOperation(target *downloadOperation, replacement *downloadOperation) bool {
+	for i, queued := range d.queue {
+		if queued == target {
+			d.queue[i] = replacement
+			return true
+		}
+	}
+	return false
+}
+
+// enqueueOperation adds a new operation to the queue using asset-level coalescing.
+// Only one queued operation per asset is retained; later requests supersede older pending requests.
+func (d *Downloader) enqueueOperation(assetKey downloadQueueKey, key string, run func() operationResult, supersededResult operationResult) operationResult {
 	d.startQueue()
 
-	d.downloadMu.Lock()
-	if _, ok := d.queuedOperations[key]; ok {
-		d.downloadMu.Unlock()
-		return operationResult{}, true
+	op := &downloadOperation{
+		key:              key,
+		assetKey:         assetKey,
+		run:              run,
+		supersededResult: supersededResult,
+		completed:        make(chan operationResult, 1),
 	}
 
-	op := &downloadOperation{
-		key:       key,
-		run:       run,
-		completed: make(chan operationResult, 1),
+	d.downloadMu.Lock()
+	// If there's an existing pending operation for the same asset, replace it in-place in the queue and mark it as superseded.
+	// Prefer in-place replacement so that any other callers waiting on the initial result no longer have to wait until all other pending requests are completed
+	if existingPending, ok := d.pending[assetKey]; ok {
+		replaced := d.replaceQueuedOperation(existingPending, op)
+		if !replaced {
+			// Fallback guard: if pending bookkeeping is ever out of sync, keep progress by appending.
+			d.queue = append(d.queue, op)
+		}
+		existingPending.completed <- existingPending.supersededResult
+		close(existingPending.completed)
+		d.pending[assetKey] = op
+		d.downloadCond.Signal()
+		d.downloadMu.Unlock()
+		return <-op.completed
 	}
+
 	d.queue = append(d.queue, op)
-	d.queuedOperations[key] = op
+	d.pending[assetKey] = op
 	d.downloadCond.Signal()
 	d.downloadMu.Unlock()
 
-	return <-op.completed, false
+	return <-op.completed
 }
 
 // operationKey generates a unique key for a given operation based on its action, asset type, asset ID, and version.
@@ -151,10 +193,10 @@ func (d *Downloader) operationKey(action operationAction, assetType types.AssetT
 	}
 
 	return strings.Join([]string{
-		strings.TrimSpace(string(action)),
+		string(action),
 		string(assetType),
-		strings.TrimSpace(assetID),
-		strings.TrimSpace(version),
+		assetID,
+		version,
 	}, "|")
 }
 
@@ -163,14 +205,7 @@ func (d *Downloader) getModPath() string {
 	return path.Join(d.Config.Cfg.MetroMakerDataPath, "mods")
 }
 
-func (d *Downloader) withError(message string, err error) string {
-	if err == nil {
-		return message
-	}
-	return message + ": " + err.Error()
-}
-
-func (d *Downloader) newGenericResponse(status types.Status, message string, attrs ...any) types.GenericResponse {
+func (d *Downloader) logStatus(status types.Status, message string, attrs ...any) types.GenericResponse {
 	response := types.GenericResponse{Status: status, Message: message}
 	if d.Logger != nil {
 		d.Logger.LogResponse("Downloader response", response, attrs...)
@@ -178,64 +213,45 @@ func (d *Downloader) newGenericResponse(status types.Status, message string, att
 	return response
 }
 
-func (d *Downloader) newDownloadResponse(status types.Status, message string, path string, attrs ...any) types.DownloadTempResponse {
-	response := types.DownloadTempResponse{
-		GenericResponse: d.newGenericResponse(status, message, attrs...),
-		Path:            path,
-	}
-	return response
-}
-
-func (d *Downloader) newMapExtractResponse(status types.Status, message string, config types.ConfigData, attrs ...any) types.MapExtractResponse {
-	response := types.MapExtractResponse{
-		GenericResponse: d.newGenericResponse(status, message, attrs...),
-		Config:          config,
-	}
-	return response
-}
-
-func (d *Downloader) throwError(message string, err error, attrs ...any) types.GenericResponse {
-	return d.newGenericResponse(types.ResponseError, d.withError(message, err), attrs...)
-}
-
-func (d *Downloader) throwErrorSimple(message string, attrs ...any) types.GenericResponse {
-	return d.newGenericResponse(types.ResponseError, message, attrs...)
-}
-
-func (d *Downloader) throwDownloadError(message string, err error, attrs ...any) types.DownloadTempResponse {
-	return d.newDownloadResponse(types.ResponseError, d.withError(message, err), "", attrs...)
-}
-
-func (d *Downloader) throwDownloadErrorSimple(message string, attrs ...any) types.DownloadTempResponse {
-	return d.newDownloadResponse(types.ResponseError, message, "", attrs...)
-}
-
-func (d *Downloader) throwMapExtractError(message string, err error, attrs ...any) types.MapExtractResponse {
-	return d.newMapExtractResponse(types.ResponseError, d.withError(message, err), types.ConfigData{}, attrs...)
-}
-
-func (d *Downloader) throwMapExtractErrorSimple(message string, attrs ...any) types.MapExtractResponse {
-	return d.newMapExtractResponse(types.ResponseError, message, types.ConfigData{}, attrs...)
-}
-
 func (d *Downloader) successResponse(message string, attrs ...any) types.GenericResponse {
-	return d.newGenericResponse(types.ResponseSuccess, message, attrs...)
+	return d.logStatus(types.ResponseSuccess, message, attrs...)
 }
 
 func (d *Downloader) warnResponse(message string, attrs ...any) types.GenericResponse {
-	return d.newGenericResponse(types.ResponseWarn, message, attrs...)
+	return d.logStatus(types.ResponseWarn, message, attrs...)
 }
 
-func (d *Downloader) successDownloadResponse(message string, path string, attrs ...any) types.DownloadTempResponse {
-	return d.newDownloadResponse(types.ResponseSuccess, message, path, attrs...)
+func withError(message string, err error) string {
+	if err == nil {
+		return message
+	}
+	return message + ": " + err.Error()
 }
 
-func (d *Downloader) successMapExtractResponse(message string, config types.ConfigData, attrs ...any) types.MapExtractResponse {
-	return d.newMapExtractResponse(types.ResponseSuccess, message, config, attrs...)
+func (d *Downloader) throwError(message string, err error, attrs ...any) types.GenericResponse {
+	return d.logStatus(types.ResponseError, withError(message, err), attrs...)
 }
 
-func (d *Downloader) warnMapExtractResponse(message string, config types.ConfigData, attrs ...any) types.MapExtractResponse {
-	return d.newMapExtractResponse(types.ResponseWarn, message, config, attrs...)
+func (d *Downloader) throwDownloadError(message string, err error, attrs ...any) types.DownloadTempResponse {
+	return d.toDownloadResponse(d.throwError(message, err, attrs...), "")
+}
+
+func (d *Downloader) throwMapExtractError(message string, err error, attrs ...any) types.MapExtractResponse {
+	return d.toMapExtractResponse(d.throwError(message, err, attrs...), types.ConfigData{})
+}
+
+func (d *Downloader) toDownloadResponse(base types.GenericResponse, path string) types.DownloadTempResponse {
+	return types.DownloadTempResponse{
+		GenericResponse: base,
+		Path:            path,
+	}
+}
+
+func (d *Downloader) toMapExtractResponse(base types.GenericResponse, config types.ConfigData) types.MapExtractResponse {
+	return types.MapExtractResponse{
+		GenericResponse: base,
+		Config:          config,
+	}
 }
 
 // getMapDataPath returns the filesystem path for installed map data.
@@ -253,29 +269,65 @@ func (d *Downloader) getMapThumbnailPath() string {
 	return path.Join(d.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps")
 }
 
+type installedState struct {
+	version   string
+	mapConfig types.ConfigData
+}
+
+var assetTypeLabels = map[types.AssetType]string{
+	types.AssetTypeMap: "Map",
+	types.AssetTypeMod: "Mod",
+}
+
+func (d *Downloader) getInstalledState(assetType types.AssetType, assetID string) (installedState, bool) {
+	switch assetType {
+	case types.AssetTypeMod:
+		for _, mod := range d.Registry.GetInstalledMods() {
+			if mod.ID == assetID {
+				return installedState{version: mod.Version}, true
+			}
+		}
+	case types.AssetTypeMap:
+		for _, installedMap := range d.Registry.GetInstalledMaps() {
+			if installedMap.ID == assetID {
+				return installedState{version: installedMap.Version, mapConfig: installedMap.MapConfig}, true
+			}
+		}
+	}
+	return installedState{}, false
+}
+
+func (d *Downloader) supersededOperationResult(action operationAction, assetType types.AssetType, assetID string, version string) operationResult {
+	message := "Operation superseded by newer queued request. No action taken."
+	base := d.successResponse(message, "asset_type", assetType, "asset_id", assetID, "action", action, "version", version)
+
+	if assetType == types.AssetTypeMap && action == operationActionInstall {
+		return operationResult{
+			mapExtractResponse: d.toMapExtractResponse(base, types.ConfigData{}),
+		}
+	}
+	return operationResult{
+		genericResponse: base,
+	}
+}
+
 func (d *Downloader) UninstallMod(modId string) types.GenericResponse {
 	// No version is specified for uninstall operations since mod version is irrelevant
 	key := d.operationKey(operationActionUninstall, types.AssetTypeMod, modId, "")
-	result, deduped := d.enqueueOperation(key, func() operationResult {
+	assetKey := downloadQueueKey{assetType: types.AssetTypeMod, assetID: modId}
+	result := d.enqueueOperation(assetKey, key, func() operationResult {
 		return operationResult{genericResponse: d.uninstallModNow(modId)}
-	})
-	if deduped {
-		return d.warnResponse("Duplicate request skipped: uninstall already queued", "asset_type", types.AssetTypeMod, "asset_id", modId)
-	}
+	}, d.supersededOperationResult(operationActionUninstall, types.AssetTypeMod, modId, ""))
 	return result.genericResponse
 }
 
 func (d *Downloader) uninstallModNow(modId string) types.GenericResponse {
-	installedMods := d.Registry.GetInstalledMods()
-	foundMod := false
-	for _, mod := range installedMods {
-		if mod.ID == modId {
-			foundMod = true
-			break
-		}
-	}
-	if !foundMod {
-		return d.warnResponse("Mod with ID "+modId+" is not currently installed. No action taken.", "mod_id", modId)
+	if _, ok := d.getInstalledState(types.AssetTypeMod, modId); !ok {
+		return d.warnResponse(
+			fmt.Sprintf("%s with ID %s is not currently installed. No action taken.", assetTypeLabels[types.AssetTypeMod], modId),
+			"asset_type", types.AssetTypeMod,
+			"asset_id", modId,
+		)
 	}
 	modPath := path.Join(d.getModPath(), modId)
 	if err := os.RemoveAll(modPath); err != nil {
@@ -291,27 +343,23 @@ func (d *Downloader) uninstallModNow(modId string) types.GenericResponse {
 func (d *Downloader) UninstallMap(mapId string) types.GenericResponse {
 	// No version is specified for uninstall operations since map version is irrelevant
 	key := d.operationKey(operationActionUninstall, types.AssetTypeMap, mapId, "")
-	result, deduped := d.enqueueOperation(key, func() operationResult {
+	assetKey := downloadQueueKey{assetType: types.AssetTypeMap, assetID: mapId}
+	result := d.enqueueOperation(assetKey, key, func() operationResult {
 		return operationResult{genericResponse: d.uninstallMapNow(mapId)}
-	})
-	if deduped {
-		return d.warnResponse("Duplicate request skipped: uninstall already queued", "asset_type", types.AssetTypeMap, "asset_id", mapId)
-	}
+	}, d.supersededOperationResult(operationActionUninstall, types.AssetTypeMap, mapId, ""))
 	return result.genericResponse
 }
 
 func (d *Downloader) uninstallMapNow(mapId string) types.GenericResponse {
-	installedMaps := d.Registry.GetInstalledMaps()
-	var mapConfig *types.ConfigData = nil
-	for _, m := range installedMaps {
-		if m.ID == mapId {
-			mapConfig = &m.MapConfig
-			break
-		}
+	installedMap, ok := d.getInstalledState(types.AssetTypeMap, mapId)
+	if !ok {
+		return d.warnResponse(
+			fmt.Sprintf("%s with ID %s is not currently installed. No action taken.", assetTypeLabels[types.AssetTypeMap], mapId),
+			"asset_type", types.AssetTypeMap,
+			"asset_id", mapId,
+		)
 	}
-	if mapConfig == nil {
-		return d.warnResponse("Map with ID "+mapId+" is not currently installed. No action taken.", "map_id", mapId)
-	}
+	mapConfig := installedMap.mapConfig
 
 	mapDataPath := path.Join(d.getMapDataPath(), mapConfig.Code)
 	if err := os.RemoveAll(mapDataPath); err != nil {
@@ -332,21 +380,27 @@ func (d *Downloader) uninstallMapNow(mapId string) types.GenericResponse {
 // InstallMod handles the installation of a mod given its ID and version, including downloading, extracting, and updating the registry.
 func (d *Downloader) InstallMod(modId string, version string) types.GenericResponse {
 	key := d.operationKey(operationActionInstall, types.AssetTypeMod, modId, version)
-	result, deduped := d.enqueueOperation(key, func() operationResult {
+	assetKey := downloadQueueKey{assetType: types.AssetTypeMod, assetID: modId}
+	result := d.enqueueOperation(assetKey, key, func() operationResult {
 		return operationResult{genericResponse: d.installModNow(modId, version)}
-	})
-	if deduped {
-		return d.warnResponse("Duplicate request skipped: install already queued", "asset_type", types.AssetTypeMod, "asset_id", modId, "version", version)
-	}
+	}, d.supersededOperationResult(operationActionInstall, types.AssetTypeMod, modId, version))
 	return result.genericResponse
 }
 
 // installModNow handles the installation of a mod given its ID and version, including downloading, extracting, and updating the registry.
 func (d *Downloader) installModNow(modId string, version string) types.GenericResponse {
 	d.Logger.Info("InstallMod started", "mod_id", modId, "version", version)
+	if state, installed := d.getInstalledState(types.AssetTypeMod, modId); installed && state.version == version {
+		return d.warnResponse(
+			fmt.Sprintf("%s already installed at requested version. No action taken.", assetTypeLabels[types.AssetTypeMod]),
+			"asset_type", types.AssetTypeMod,
+			"asset_id", modId,
+			"version", version,
+		)
+	}
 	if !d.Config.GetConfig().Validation.IsValid() {
-		return d.throwErrorSimple("Cannot install mod because app config paths are not properly configured. " +
-			"Please set valid paths in the config before installing mods.")
+		return d.throwError("Cannot install mod because app config paths are not properly configured. "+
+			"Please set valid paths in the config before installing mods.", nil)
 	}
 	modInfo, err := d.Registry.GetMod(modId)
 	if err != nil {
@@ -377,14 +431,14 @@ func (d *Downloader) installModNow(modId string, version string) types.GenericRe
 		}
 	}
 	if versionInfo == nil {
-		return d.throwErrorSimple("Specified version not found for mod", "mod_id", modId, "version", version, "available_versions", availableVersions)
+		return d.throwError("Specified version not found for mod", nil, "mod_id", modId, "version", version, "available_versions", availableVersions)
 	}
 
 	d.Logger.Info("Downloading mod", "mod_id", modId, "version", version, "download_url", versionInfo.DownloadURL)
 	downloadResp := d.downloadTempZip(versionInfo.DownloadURL, modId)
 	if downloadResp.Status != types.ResponseSuccess {
 		os.Remove(downloadResp.Path)
-		return d.throwErrorSimple("Failed to download mod zip: "+downloadResp.Message, "mod_id", modId, "version", version)
+		return d.throwError("Failed to download mod zip: "+downloadResp.Message, nil, "mod_id", modId, "version", version)
 	}
 
 	if err := d.verifySHA256(downloadResp.Path, versionInfo.SHA256); err != nil {
@@ -396,7 +450,7 @@ func (d *Downloader) installModNow(modId string, version string) types.GenericRe
 	extractResp := d.handleModExtract(downloadResp.Path, modId)
 	if extractResp.Status != types.ResponseSuccess {
 		os.Remove(downloadResp.Path)
-		return d.throwErrorSimple("Failed to extract mod zip: "+extractResp.Message, "mod_id", modId, "version", version)
+		return d.throwError("Failed to extract mod zip: "+extractResp.Message, nil, "mod_id", modId, "version", version)
 	}
 	os.Remove(downloadResp.Path)
 	d.Registry.AddInstalledMod(modId, version)
@@ -410,20 +464,29 @@ func (d *Downloader) installModNow(modId string, version string) types.GenericRe
 // InstallMap handles the installation of a map given its ID and version, including downloading, extracting, validating files, and updating the registry.
 func (d *Downloader) InstallMap(mapId string, version string) types.MapExtractResponse {
 	key := d.operationKey(operationActionInstall, types.AssetTypeMap, mapId, version)
-	result, deduped := d.enqueueOperation(key, func() operationResult {
+	assetKey := downloadQueueKey{assetType: types.AssetTypeMap, assetID: mapId}
+	result := d.enqueueOperation(assetKey, key, func() operationResult {
 		return operationResult{mapExtractResponse: d.installMapNow(mapId, version)}
-	})
-	if deduped {
-		return d.warnMapExtractResponse("Duplicate request skipped: install already queued", types.ConfigData{}, "asset_type", types.AssetTypeMap, "asset_id", mapId, "version", version)
-	}
+	}, d.supersededOperationResult(operationActionInstall, types.AssetTypeMap, mapId, version))
 	return result.mapExtractResponse
 }
 
 // installMapNow handles the installation of a map given its ID and version, including downloading, extracting, validating files, and updating the registry.
 func (d *Downloader) installMapNow(mapId string, version string) types.MapExtractResponse {
 	d.Logger.Info("InstallMap started", "map_id", mapId, "version", version)
+	if state, installed := d.getInstalledState(types.AssetTypeMap, mapId); installed && state.version == version {
+		return d.toMapExtractResponse(
+			d.warnResponse(
+				fmt.Sprintf("%s already installed at requested version. No action taken.", assetTypeLabels[types.AssetTypeMap]),
+				"asset_type", types.AssetTypeMap,
+				"asset_id", mapId,
+				"version", version,
+			),
+			state.mapConfig,
+		)
+	}
 	if !d.Config.GetConfig().Validation.IsValid() {
-		return d.throwMapExtractErrorSimple("Invalid configuration", "map_id", mapId, "version", version)
+		return d.throwMapExtractError("Invalid configuration", nil, "map_id", mapId, "version", version)
 	}
 	mapInfo, err := d.Registry.GetMap(mapId)
 	if err != nil {
@@ -454,14 +517,14 @@ func (d *Downloader) installMapNow(mapId string, version string) types.MapExtrac
 		}
 	}
 	if versionInfo == nil {
-		return d.throwMapExtractErrorSimple("Specified version not found for map", "map_id", mapId, "version", version, "available_versions", availableVersions)
+		return d.throwMapExtractError("Specified version not found for map", nil, "map_id", mapId, "version", version, "available_versions", availableVersions)
 	}
 
 	d.Logger.Info("Downloading map", "map_id", mapId, "version", version, "download_url", versionInfo.DownloadURL)
 	downloadResp := d.downloadTempZip(versionInfo.DownloadURL, mapId)
 	if downloadResp.Status != types.ResponseSuccess {
 		os.Remove(downloadResp.Path)
-		return d.throwMapExtractErrorSimple("Failed to download map zip: "+downloadResp.Message, "map_id", mapId, "version", version)
+		return d.throwMapExtractError("Failed to download map zip: "+downloadResp.Message, nil, "map_id", mapId, "version", version)
 	}
 
 	if err := d.verifySHA256(downloadResp.Path, versionInfo.SHA256); err != nil {
@@ -473,7 +536,7 @@ func (d *Downloader) installMapNow(mapId string, version string) types.MapExtrac
 	extractResp := d.handleMapExtract(downloadResp.Path)
 	if extractResp.Status == types.ResponseError {
 		os.Remove(downloadResp.Path)
-		return d.throwMapExtractErrorSimple("Failed to extract map zip: "+extractResp.Message, "map_id", mapId, "version", version)
+		return d.throwMapExtractError("Failed to extract map zip: "+extractResp.Message, nil, "map_id", mapId, "version", version)
 	}
 	os.Remove(downloadResp.Path)
 	d.Registry.AddInstalledMap(mapId, version, extractResp.Config)
@@ -503,7 +566,7 @@ func (d *Downloader) downloadTempZip(url string, itemId string) types.DownloadTe
 	defer zip.Body.Close()
 
 	if zip.StatusCode != http.StatusOK {
-		return d.throwDownloadErrorSimple("Failed to download file: unexpected status code", "url", url, "status_code", zip.StatusCode)
+		return d.throwDownloadError("Failed to download file: unexpected status code", nil, "url", url, "status_code", zip.StatusCode)
 	}
 
 	var reader io.Reader = zip.Body
@@ -521,7 +584,7 @@ func (d *Downloader) downloadTempZip(url string, itemId string) types.DownloadTe
 		return d.throwDownloadError("Failed to save file", err, "url", url)
 	}
 
-	return d.successDownloadResponse("File downloaded successfully", file.Name(), "url", url)
+	return d.toDownloadResponse(d.successResponse("File downloaded successfully", "url", url), file.Name())
 }
 
 // verifySHA256 checks the SHA-256 hash of a downloaded file against an expected hash.
