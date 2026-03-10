@@ -163,6 +163,36 @@ func (a *App) recoverProfiles(cause types.UserProfileResult) types.UserProfile {
 	return resetResult.Profile
 }
 
+func runStartupRoutines(a *App) {
+	// TODO: Handle auto-update of application version...'
+	if a.Config.Cfg.CheckForUpdatesOnLaunch {
+		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger)
+	}
+
+	activeProfile := resolveStartupProfile(a)
+
+	// TODO: Backend should control registry state; frontend should not force initialization of the registry on startup.
+	if err := a.Registry.Initialize(); err != nil {
+		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
+	}
+
+	if activeProfile.SystemPreferences.RefreshRegistryOnStartup {
+		if err := a.Registry.Refresh(); err != nil {
+			a.Logger.Warn("Failed to refresh registry on startup", "error", err)
+		}
+	}
+
+	// Sync subscriptions for active profile on startup
+	// TODO: Make this configurable within the profile itself
+	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID)
+	switch syncResult.Status {
+	case types.ResponseError:
+		a.Logger.MultipleError("Failed to sync profile subscriptions on startup", logger.AsErrors(syncResult.Errors), "profile_id", activeProfile.ID)
+	case types.ResponseWarn:
+		a.Logger.Warn("Profile subscriptions synced with warnings on startup", "message", syncResult.Message, "profile_id", activeProfile.ID, "error_count", len(syncResult.Errors))
+	}
+}
+
 // GetGameVersion attempts to detect the installed Subway Builder version.
 // Returns empty string if detection fails.
 func (a *App) GetGameVersion() string {
