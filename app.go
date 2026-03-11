@@ -488,7 +488,7 @@ func (a *App) generateMod(port int) error {
 		Id:          "com.railyard.maploader",
 		Name:        "Railyard Map Loader",
 		Description: "Loads any custom maps installed by Railyard.",
-		Version:     constants.MOD_VERSION,
+		Version:     strings.Replace(constants.MOD_VERSION, "v", "", 1),
 		Author: struct {
 			Name string `json:"name"`
 		}{
