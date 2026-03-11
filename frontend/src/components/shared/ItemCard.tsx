@@ -125,7 +125,7 @@ export function ItemCard({
                 {isMap && item.population > 0 && (
                   <div className="flex items-center gap-1">
                     <Users className="h-3 w-3" aria-hidden="true" />
-                    <span>Pop. {item.population.toLocaleString()}</span>
+                    <span>{item.population.toLocaleString()}</span>
                   </div>
                 )}
                 {showDownloads && (
