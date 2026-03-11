@@ -72,7 +72,14 @@ func CheckForUpdates(ctx context.Context, progressFunc types.ProgressFunc, log l
 				case "darwin":
 					downloadURL = v.MacOSDownloadURL
 				case "linux":
-					downloadURL = v.LinuxDownloadURL
+					if constants.LINUX_TYPE == "current" && v.LinuxCurrentDownloadURL != "" {
+						downloadURL = v.LinuxCurrentDownloadURL
+					}
+					if constants.LINUX_TYPE == "legacy" && v.LinuxLegacyDownloadURL != "" {
+						downloadURL = v.LinuxLegacyDownloadURL
+					} else {
+						return fmt.Errorf("unknown linux type %q and no suitable installer found for version %s", constants.LINUX_TYPE, v.Version)
+					}
 				}
 				if downloadURL == "" {
 					fmt.Printf("No suitable installer found for this platform in version %s\n", v.Version)
@@ -232,8 +239,11 @@ func pullReleases(log logger.Logger) ([]types.RailyardVersionInfo, error) {
 			Prerelease: rel.Prerelease,
 		}
 		for _, asset := range rel.Assets {
-			if strings.Contains(asset.Name, "amd64.AppImage") {
-				v.LinuxDownloadURL = asset.BrowserDownloadURL
+			if strings.Contains(asset.Name, "current-linux") {
+				v.LinuxCurrentDownloadURL = asset.BrowserDownloadURL
+			}
+			if strings.Contains(asset.Name, "legacy-linux") {
+				v.LinuxLegacyDownloadURL = asset.BrowserDownloadURL
 			}
 			if strings.Contains(asset.Name, "macos-universal.dmg") {
 				v.MacOSDownloadURL = asset.BrowserDownloadURL
@@ -255,8 +265,13 @@ func pullReleases(log logger.Logger) ([]types.RailyardVersionInfo, error) {
 
 func returnMissingDownloads(version types.RailyardVersionInfo) []string {
 	missing := []string{}
-	if version.LinuxDownloadURL == "" {
+
+	if version.LinuxCurrentDownloadURL == "" {
 		missing = append(missing, "linux")
+	}
+
+	if version.LinuxLegacyDownloadURL == "" {
+		missing = append(missing, "linux-legacy")
 	}
 
 	if version.MacOSDownloadURL == "" {

@@ -111,12 +111,14 @@ jobs:
       - name: Build Linux (amd64 current)
         if: ${{matrix.type == 'current'}}
         run: |
+          echo $TYPE > internal/constants/linux_type.txt
           echo $VERSION > internal/constants/version.txt
           wails build -platform linux/amd64 -tags webkit2_41
           
       - name: Build Linux (amd64 legacy)
         if: ${{matrix.type == 'legacy'}}
         run: |
+          echo $TYPE > internal/constants/linux_type.txt
           echo $VERSION > internal/constants/version.txt
           wails build -platform linux/amd64
 
