@@ -105,6 +105,7 @@ function App() {
   const loadingStates = [
     { text: "Starting backend services" },
     { text: "Loading configuration" },
+    { text: "Applying theme preferences" },
     { text: "Loading user profile" },
     ...(showRegistrySteps
       ? [
@@ -117,11 +118,13 @@ function App() {
   let currentStep = 0;
   if (startupReady) currentStep = 1;
   if (startupReady && configInitialized) currentStep = 2;
+  if (startupReady && configInitialized) currentStep = 3;
   if (startupReady && configInitialized && profileInitialized) {
     currentStep = 3;
     if (showRegistrySteps) {
-      if (registryInitialized) currentStep = 4;
-      if (registryInitialized && installedInitialized) currentStep = 5;
+      currentStep = 4;
+      if (registryInitialized) currentStep = 5;
+      if (registryInitialized && installedInitialized) currentStep = 6;
     }
   }
 

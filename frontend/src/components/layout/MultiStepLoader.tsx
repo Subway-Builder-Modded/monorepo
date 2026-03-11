@@ -15,8 +15,8 @@ export function MultiStepLoader({
   currentStep,
 }: MultiStepLoaderProps) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background select-none">
-      <div className="flex flex-col items-center gap-8">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background text-foreground select-none">
+      <div className="flex flex-col items-center gap-8 px-6">
         {/* Branding */}
         <div className="flex flex-col items-center gap-1.5">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -28,7 +28,7 @@ export function MultiStepLoader({
         </div>
 
         {/* Steps */}
-        <div className="flex flex-col gap-0.5 min-w-[280px]">
+        <div className="flex flex-col gap-1 min-w-[300px] rounded-xl border border-border/60 bg-card/60 p-2 backdrop-blur-sm">
           {loadingStates.map((state, index) => {
             const isComplete = index < currentStep;
             const isActive = index === currentStep;
@@ -37,17 +37,17 @@ export function MultiStepLoader({
               <div
                 key={state.text}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2.5 transition-all duration-500 ease-out",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-500 ease-out",
                   isActive && "bg-muted/60",
-                  isComplete && "opacity-50",
-                  !isActive && !isComplete && "opacity-[0.2]",
+                  isComplete && "opacity-75",
+                  !isActive && !isComplete && "opacity-40",
                 )}
               >
                 {/* Status icon */}
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                   {isComplete ? (
-                    <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-primary/15 transition-all duration-300">
-                      <Check className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                    <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-chart-2/15 transition-all duration-300">
+                      <Check className="h-3 w-3 text-chart-2" strokeWidth={2.5} />
                     </div>
                   ) : isActive ? (
                     <Loader2 className="h-4 w-4 animate-spin text-foreground" />
@@ -62,7 +62,7 @@ export function MultiStepLoader({
                     "text-sm leading-none transition-colors duration-300",
                     isActive && "font-medium text-foreground",
                     isComplete && "text-muted-foreground",
-                    !isActive && !isComplete && "text-muted-foreground/40",
+                    !isActive && !isComplete && "text-muted-foreground/70",
                   )}
                 >
                   {state.text}
