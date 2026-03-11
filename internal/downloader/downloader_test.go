@@ -16,6 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type testRegistryLogSink struct{}
+
+func (testRegistryLogSink) Info(string, ...any)         {}
+func (testRegistryLogSink) Warn(string, ...any)         {}
+func (testRegistryLogSink) Error(string, error, ...any) {}
+
 func newTestDownloader() *Downloader {
 	return &Downloader{}
 }
@@ -288,7 +294,7 @@ func TestEnqueueOperationRunsSequentially(t *testing.T) {
 }
 
 func TestInstallMapForExistingIsNoOp(t *testing.T) {
-	reg := registry.NewRegistry(nil)
+	reg := registry.NewRegistry(testRegistryLogSink{})
 	expectedConfig := types.ConfigData{
 		Code:        "ABC",
 		Name:        "Map A",
@@ -311,7 +317,7 @@ func TestInstallMapForExistingIsNoOp(t *testing.T) {
 }
 
 func TestInstallModPreservesNoOpThroughStateMutation(t *testing.T) {
-	reg := registry.NewRegistry(nil)
+	reg := registry.NewRegistry(testRegistryLogSink{})
 	d := &Downloader{
 		Registry: reg,
 		Config:   config.NewConfig(),

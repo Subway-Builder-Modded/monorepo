@@ -12,8 +12,8 @@ import { useProfileStore } from "@/stores/profile-store";
 import { type SearchFilterState, useSearchStore } from "@/stores/search-store";
 
 export type TaggedItem =
-  | { type: "mods"; item: types.ModManifest }
-  | { type: "maps"; item: types.MapManifest };
+  | { type: "mod"; item: types.ModManifest }
+  | { type: "map"; item: types.MapManifest };
 
 export type { TypeFilter, SearchFilterState } from "@/stores/search-store";
 
@@ -33,7 +33,7 @@ function buildSearchText(item: TaggedItem): string {
   const base = item.item;
   const values: string[] = [base.name ?? "", base.author ?? "", base.description ?? ""];
 
-  if (item.type === "mods") {
+  if (item.type === "mod") {
     values.push(...(base.tags ?? []));
   } else {
     const map = base as types.MapManifest;
@@ -63,7 +63,7 @@ function matchesZeroOrManyValuesFilter(values: string[] | undefined, selected: s
 }
 
 function matchesMapAttributeFilters(item: TaggedItem, filters: SearchFilterState["map"]): boolean {
-  if (item.type !== "maps") return true;
+  if (item.type !== "map") return true;
 
   const map = item.item as types.MapManifest;
   return (
@@ -83,9 +83,16 @@ function getTotalDownloads(
   modDownloadTotals: Record<string, number>,
   mapDownloadTotals: Record<string, number>
 ): number {
-  return item.type === "mods"
+  return item.type === "mod"
     ? modDownloadTotals[item.item.id] ?? 0
     : mapDownloadTotals[item.item.id] ?? 0;
+}
+
+function getLastUpdated(item: TaggedItem): number {
+  const timestamp = item.item.last_updated;
+  return typeof timestamp === "number" && Number.isFinite(timestamp)
+    ? timestamp
+    : 0;
 }
 
 // Helper to determine comparation logic based on sort field and direction
@@ -106,14 +113,19 @@ function compareItems(
       case "author":
         return compareText(a.item.author ?? "", b.item.author ?? "", sort.direction);
       case "population": {
-        const popA = a.type === "maps" ? (a.item as types.MapManifest).population ?? 0 : 0;
-        const popB = b.type === "maps" ? (b.item as types.MapManifest).population ?? 0 : 0;
+        const popA = a.type === "map" ? (a.item as types.MapManifest).population ?? 0 : 0;
+        const popB = b.type === "map" ? (b.item as types.MapManifest).population ?? 0 : 0;
         return compareByDirection(popA, popB, sort.direction);
       }
       case "downloads": {
         const downloadsA = getTotalDownloads(a, modDownloadTotals, mapDownloadTotals);
         const downloadsB = getTotalDownloads(b, modDownloadTotals, mapDownloadTotals);
         return compareByDirection(downloadsA, downloadsB, sort.direction);
+      }
+      case "last_updated": {
+        const updatedA = getLastUpdated(a);
+        const updatedB = getLastUpdated(b);
+        return compareByDirection(updatedA, updatedB, sort.direction);
       }
       default:
         return 0;
@@ -180,8 +192,8 @@ export function useFilteredItems({
   }, [filters, setPage]);
 
   const allItems = useMemo<TaggedItem[]>(() => {
-    const modItems: TaggedItem[] = (mods || []).map((m) => ({ type: "mods" as const, item: m }));
-    const mapItems: TaggedItem[] = (maps || []).map((m) => ({ type: "maps" as const, item: m }));
+    const modItems: TaggedItem[] = (mods || []).map((m) => ({ type: "mod" as const, item: m }));
+    const mapItems: TaggedItem[] = (maps || []).map((m) => ({ type: "map" as const, item: m }));
     return [...modItems, ...mapItems];
   }, [mods, maps]);
 
@@ -190,7 +202,7 @@ export function useFilteredItems({
 
     if (filters.mod.tags.length > 0) {
       result = result.filter((i) =>
-        i.type === "mods" ? matchesZeroOrManyValuesFilter(i.item.tags, filters.mod.tags) : true
+        i.type === "mod" ? matchesZeroOrManyValuesFilter(i.item.tags, filters.mod.tags) : true
       );
     }
 
@@ -212,7 +224,13 @@ export function useFilteredItems({
     }
 
     return [...result].sort((a, b) =>
-      compareItems(a, b, filters.sort, modDownloadTotals, mapDownloadTotals)
+      compareItems(
+        a,
+        b,
+        filters.sort,
+        modDownloadTotals,
+        mapDownloadTotals
+      )
     );
   }, [allItems, filters, mapDownloadTotals, modDownloadTotals]);
 

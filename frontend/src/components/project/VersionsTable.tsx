@@ -26,9 +26,10 @@ import { PrereleaseConfirmDialog } from "@/components/dialogs/PrereleaseConfirmD
 import { isCompatible } from "@/lib/semver";
 import { toast } from "sonner";
 import { useDownloadQueueStore } from "@/stores/download-queue-store";
+import type { AssetType } from "@/lib/asset-types";
 
 interface VersionsTableProps {
-  type: "mods" | "maps";
+  type: AssetType;
   itemId: string;
   itemName: string;
   update: types.UpdateConfig;
@@ -46,7 +47,7 @@ export function VersionsTable({ type, itemId, itemName, versions, loading, error
 
   const doInstall = async (version: string) => {
     try {
-      if (type === "mods") {
+      if (type === "mod") {
         await installMod(itemId, version);
       } else {
         await installMap(itemId, version);

@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useConfigStore } from "@/stores/config-store";
 import { useProfileStore } from "@/stores/profile-store";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +46,9 @@ export function SettingsPage() {
   const resetProfile = useProfileStore((s) => s.resetProfile);
   const updateUIPreferences = useProfileStore((s) => s.updateUIPreferences);
 
-  const [confirmAction, setConfirmAction] = useState<"config" | "profile" | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    "config" | "profile" | null
+  >(null);
 
   const handleUpdatesCheck = async () => {
     try {
@@ -49,23 +57,32 @@ export function SettingsPage() {
     } catch (error: any) {
       toast.error("Failed to check for updates.");
     }
-  }
+  };
 
   const handleChangeUpdatesOnLaunch = async () => {
     try {
       const newValue = !config?.checkForUpdatesOnLaunch;
       await updateCheckForUpdatesOnLaunch(newValue);
-      toast.success(`Check for updates on launch ${newValue ? "enabled" : "disabled"}.`);
+      toast.success(
+        `Check for updates on launch ${newValue ? "enabled" : "disabled"}.`,
+      );
     } catch {
       toast.error("Failed to update check for updates on launch setting.");
     }
   };
 
   const handleThemeChange = async (theme: string) => {
-    if (!profile || !THEME_OPTIONS.includes(theme as (typeof THEME_OPTIONS)[number])) return;
+    if (
+      !profile ||
+      !THEME_OPTIONS.includes(theme as (typeof THEME_OPTIONS)[number])
+    )
+      return;
 
     try {
-      await updateUIPreferences(theme, profile.uiPreferences?.defaultPerPage ?? 12);
+      await updateUIPreferences(
+        theme,
+        profile.uiPreferences?.defaultPerPage ?? 12,
+      );
       toast.success("Theme updated.");
     } catch {
       toast.error("Failed to update theme.");
@@ -76,7 +93,10 @@ export function SettingsPage() {
     if (!profile) return;
     const parsed = Number.parseInt(value, 10);
 
-    if (!PAGE_SIZE_OPTIONS.includes(parsed as (typeof PAGE_SIZE_OPTIONS)[number])) return;
+    if (
+      !PAGE_SIZE_OPTIONS.includes(parsed as (typeof PAGE_SIZE_OPTIONS)[number])
+    )
+      return;
 
     try {
       await updateUIPreferences(profile.uiPreferences?.theme ?? "dark", parsed);
@@ -131,7 +151,9 @@ export function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Game Paths</CardTitle>
-          <CardDescription>Configure paths to your Metro Maker data and game executable.</CardDescription>
+          <CardDescription>
+            Configure paths to your Metro Maker data and game executable.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4">
@@ -145,10 +167,26 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Badge variant={validation?.metroMakerDataPathValid ? "default" : config?.metroMakerDataPath ? "destructive" : "outline"}>
-                {validation?.metroMakerDataPathValid ? "Valid" : config?.metroMakerDataPath ? "Invalid" : "Not Set"}
+              <Badge
+                variant={
+                  validation?.metroMakerDataPathValid
+                    ? "default"
+                    : config?.metroMakerDataPath
+                      ? "destructive"
+                      : "outline"
+                }
+              >
+                {validation?.metroMakerDataPathValid
+                  ? "Valid"
+                  : config?.metroMakerDataPath
+                    ? "Invalid"
+                    : "Not Set"}
               </Badge>
-              <Button variant="outline" size="sm" onClick={handleChangeDataFolder}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleChangeDataFolder}
+              >
                 Change
               </Button>
             </div>
@@ -165,10 +203,26 @@ export function SettingsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Badge variant={validation?.executablePathValid ? "default" : config?.executablePath ? "destructive" : "outline"}>
-                {validation?.executablePathValid ? "Valid" : config?.executablePath ? "Invalid" : "Not Set"}
+              <Badge
+                variant={
+                  validation?.executablePathValid
+                    ? "default"
+                    : config?.executablePath
+                      ? "destructive"
+                      : "outline"
+                }
+              >
+                {validation?.executablePathValid
+                  ? "Valid"
+                  : config?.executablePath
+                    ? "Invalid"
+                    : "Not Set"}
               </Badge>
-              <Button variant="outline" size="sm" onClick={handleChangeExecutable}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleChangeExecutable}
+              >
                 Change
               </Button>
             </div>
@@ -179,13 +233,18 @@ export function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Preferences</CardTitle>
-          <CardDescription>Display and behavior preferences from your profile.</CardDescription>
+          <CardDescription>
+            Display and behavior preferences from your profile.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Theme</label>
-            <Select value={profile?.uiPreferences?.theme ?? "system"} onValueChange={handleThemeChange}>
-              <SelectTrigger className="w-[140px]">
+            <Select
+              value={profile?.uiPreferences?.theme ?? "system"}
+              onValueChange={handleThemeChange}
+            >
+              <SelectTrigger className="w-35">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -198,8 +257,11 @@ export function SettingsPage() {
 
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Default Per Page</label>
-            <Select value={String(profile?.uiPreferences?.defaultPerPage ?? 12)} onValueChange={handleDefaultPerPageChange}>
-              <SelectTrigger className="w-[140px]">
+            <Select
+              value={String(profile?.uiPreferences?.defaultPerPage ?? 12)}
+              onValueChange={handleDefaultPerPageChange}
+            >
+              <SelectTrigger className="w-35">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -211,10 +273,21 @@ export function SettingsPage() {
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Check For Updates On Launch</label>
+            <label className="text-sm font-medium">
+              Check For Updates On Launch
+            </label>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleChangeUpdatesOnLaunch}>{config?.checkForUpdatesOnLaunch ? "Disable" : "Enable"}</Button>
-              <Button variant="outline" size="sm" onClick={handleUpdatesCheck}><RefreshCw/>Check For Updates</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleChangeUpdatesOnLaunch}
+              >
+                {config?.checkForUpdatesOnLaunch ? "Disable" : "Enable"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleUpdatesCheck}>
+                <RefreshCw />
+                Check For Updates
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -223,31 +296,48 @@ export function SettingsPage() {
       <Card className="border-destructive/50">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>Irreversible actions that reset your data.</CardDescription>
+          <CardDescription>
+            Irreversible actions that reset your data.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Reset Configuration</p>
-              <p className="text-xs text-muted-foreground">Clear all saved paths and settings.</p>
+              <p className="text-xs text-muted-foreground">
+                Clear all saved paths and settings.
+              </p>
             </div>
-            <Button variant="destructive" size="sm" onClick={() => setConfirmAction("config")}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setConfirmAction("config")}
+            >
               Reset Config
             </Button>
           </div>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Reset Profile</p>
-              <p className="text-xs text-muted-foreground">Clear your profile and preferences.</p>
+              <p className="text-xs text-muted-foreground">
+                Clear your profile and preferences.
+              </p>
             </div>
-            <Button variant="destructive" size="sm" onClick={() => setConfirmAction("profile")}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setConfirmAction("profile")}
+            >
               Reset Profile
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Dialog open={confirmAction !== null} onOpenChange={(open) => !open && setConfirmAction(null)}>
+      <Dialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">

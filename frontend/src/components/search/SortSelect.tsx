@@ -6,18 +6,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DEFAULT_SORT_STATE,
   getSortOptionsForType,
+  SortKey,
   sortKeyToState,
   sortStateToOptionKey,
   type SortState,
-  type ListingType,
 } from "@/lib/constants";
 import { useEffect } from "react";
+import type { AssetType } from "@/lib/asset-types";
 
 interface SortSelectProps {
   value: SortState;
   onChange: (value: SortState) => void;
-  tab: ListingType;
+  tab: AssetType;
 }
 
 export function SortSelect({ value, onChange, tab }: SortSelectProps) {
@@ -27,7 +29,13 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
   // Reset to default if current value is not available in filtered options
   useEffect(() => {
     if (!sortOptions.some((opt) => opt.value === selectedOptionKey)) {
-      onChange(sortOptions[0].sort);
+      const defaultKey = SortKey.fromState(DEFAULT_SORT_STATE);
+      const defaultOption =
+        sortOptions.find((opt) => SortKey.equals(opt.value, defaultKey)) ??
+        sortOptions[0];
+      if (defaultOption) {
+        onChange(defaultOption.sort);
+      }
     }
   }, [onChange, selectedOptionKey, sortOptions]);
 
@@ -46,6 +54,7 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
         position="popper"
         align="end"
         avoidCollisions={false}
+        className="max-h-72 overflow-y-auto"
       >
         {sortOptions.map((opt) => (
           <SelectItem key={opt.value} value={opt.value}>

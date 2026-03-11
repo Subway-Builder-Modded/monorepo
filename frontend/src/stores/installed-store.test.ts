@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useInstalledStore } from "./installed-store";
 import { activeProfileResultSuccess, updateSubscriptionsError, updateSubscriptionsSuccess, updateSubscriptionsWarn } from "@/test/helpers/profileMutationFixtures";
+import type { AssetType } from "@/lib/asset-types";
 
 const {
   mockGetInstalledMods,
@@ -28,7 +29,7 @@ type ProfilesRequest = {
   profileId: string;
   action: "subscribe" | "unsubscribe";
   assetId: string;
-  assetType: "map" | "mod";
+  assetType: AssetType;
   version: string;
 };
 

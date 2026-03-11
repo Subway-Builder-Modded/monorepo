@@ -3,6 +3,7 @@ import { types } from '../../wailsjs/go/models';
 import { GetInstalledMods, GetInstalledMaps } from '../../wailsjs/go/registry/Registry';
 import { GetActiveProfile, UpdateSubscriptions } from '../../wailsjs/go/profiles/UserProfiles';
 import { useDownloadQueueStore } from './download-queue-store';
+import type { AssetType } from "@/lib/asset-types";
 
 interface InstalledState {
   installedMods: types.InstalledModInfo[];
@@ -28,7 +29,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
   const applySubscriptionMutation = async (
     id: string,
     version: string,
-    assetType: "map" | "mod",
+    assetType: AssetType,
     action: "subscribe" | "unsubscribe",
   ) => {
     const activeProfileResult = await GetActiveProfile();
