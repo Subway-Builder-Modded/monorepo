@@ -4,9 +4,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GetGalleryImage } from "../../../wailsjs/go/registry/Registry";
+import { assetTypeToListingPath, type AssetType } from "@/lib/asset-types";
 
 interface ProjectHeroProps {
-  type: "mods" | "maps";
+  type: AssetType;
   id: string;
   gallery: string[];
 }
@@ -24,7 +25,7 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
 
     Promise.all(
       gallery.map((path) =>
-        GetGalleryImage(type, id, path).catch(() => null)
+        GetGalleryImage(assetTypeToListingPath(type), id, path).catch(() => null)
       )
     ).then((urls) => {
       setImages(urls);

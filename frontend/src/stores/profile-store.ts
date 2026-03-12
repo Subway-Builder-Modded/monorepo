@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { types } from '../../wailsjs/go/models';
 import { GetActiveProfile, UpdateSubscriptions, ResetUserProfiles, UpdateUIPreferences } from '../../wailsjs/go/profiles/UserProfiles';
+import type { AssetType } from "@/lib/asset-types";
 
 interface ProfileState {
   profile: types.UserProfile | null;
@@ -9,12 +10,12 @@ interface ProfileState {
   initialized: boolean;
 
   initialize: () => Promise<void>;
-  isSubscribed: (type: "mods" | "maps", id: string) => boolean;
+  isSubscribed: (type: AssetType, id: string) => boolean;
   theme: () => string;
   defaultPerPage: () => number;
   updateUIPreferences: (theme: string, defaultPerPage: number) => Promise<void>;
   updateSubscription: (
-    type: "mods" | "maps",
+    type: AssetType,
     id: string,
     action: "subscribe" | "unsubscribe",
     version: string,
@@ -39,10 +40,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  isSubscribed: (type: "mods" | "maps", id: string) => {
+  isSubscribed: (type: AssetType, id: string) => {
     const profile = get().profile;
     if (!profile?.subscriptions) return false;
-    const subs = type === "mods" ? profile.subscriptions.mods : profile.subscriptions.maps;
+    const subs = type === "mod" ? profile.subscriptions.mods : profile.subscriptions.maps;
     return subs ? id in subs : false;
   },
 
@@ -65,10 +66,9 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
     const freshProfile = activeResult.profile;
 
-    const assetType = type === "mods" ? "mod" : "map";
     const request = new types.UpdateSubscriptionsRequest({
       profileId: freshProfile.id,
-      assets: { [id]: new types.SubscriptionUpdateItem({ version, type: assetType }) },
+      assets: { [id]: new types.SubscriptionUpdateItem({ version, type }) },
       action,
       forceSync: true,
     });

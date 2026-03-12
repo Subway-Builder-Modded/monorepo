@@ -1,10 +1,15 @@
+import type { AssetType } from "@/lib/asset-types";
+
 export const PER_PAGE_OPTIONS = [12, 24, 48] as const;
 export type PerPage = typeof PER_PAGE_OPTIONS[number];
 
-export type ListingType = "mods" | "maps";
-
-// Union type of valid sort dimensions (TODO: Include "updated" once the corresponding BE endpoint is added)
-export type SortField = "name" | "author" | "population" | "downloads" | "random";
+export type SortField =
+  | "name"
+  | "author"
+  | "population"
+  | "downloads"
+  | "last_updated"
+  | "random";
 // Union type of valid sort directions
 export type SortDirection = "asc" | "desc";
 export type SortKey = `${SortField}:${SortDirection}`; // Template literal type to help encapsulate logic of converting between SortState and string keys
@@ -21,8 +26,15 @@ export interface SortOption {
   mapOnly?: boolean;
 }
 
-const SORT_FIELDS = ["name", "author", "population", "downloads", "random"] as const;
-const SORT_DIRECTIONS = ["asc", "desc"] as const;
+const SORT_FIELDS = [
+  "last_updated",
+  "downloads",
+  "population",
+  "name",
+  "author",
+  "random",
+] as const;
+const SORT_DIRECTIONS = ["desc", "asc"] as const;
 
 function directionsForField(field: SortField): readonly SortDirection[] {
   return field === "random" ? (["asc"] as const) : SORT_DIRECTIONS;
@@ -31,13 +43,15 @@ function directionsForField(field: SortField): readonly SortDirection[] {
 function sortOptionLabel(field: SortField, direction: SortDirection): string {
   switch (field) {
     case "name":
-      return direction === "asc" ? "Name A-Z" : "Name Z-A";
+      return direction === "asc" ? "Name (A-Z)" : "Name (Z-A)";
     case "author":
-      return direction === "asc" ? "Author A-Z" : "Author Z-A";
+      return direction === "asc" ? "Author (A-Z)" : "Author (Z-A)";
     case "population":
-      return direction === "asc" ? "Population Low-High" : "Population High-Low";
+      return direction === "asc" ? "Population \u2191" : "Population \u2193";
     case "downloads":
       return direction === "asc" ? "Total Downloads \u2191" : "Total Downloads \u2193";
+    case "last_updated":
+      return direction === "asc" ? "Last Updated \u2191" : "Last Updated \u2193";
     case "random":
       return "Random";
     default: // Default case to ensure all fields are handled. Programmer error if this is ever reached
@@ -54,10 +68,13 @@ export const SORT_OPTIONS = SORT_FIELDS.flatMap((field) =>
   }))
 ) satisfies SortOption[];
 
-export const DEFAULT_SORT_STATE: SortState = { field: "name", direction: "asc" };
+export const DEFAULT_SORT_STATE: SortState = {
+  field: "last_updated",
+  direction: "desc",
+};
 
-export function getSortOptionsForType(type: ListingType): SortOption[] {
-  return SORT_OPTIONS.filter((opt) => !opt.mapOnly || type === "maps");
+export function getSortOptionsForType(type: AssetType): SortOption[] {
+  return SORT_OPTIONS.filter((opt) => !opt.mapOnly || type === "map");
 }
 
 const SORT_STATE_BY_KEY = Object.fromEntries(
@@ -80,14 +97,18 @@ export function sortKeyToState(value: string): SortState {
   return SortKey.toState(value) ?? DEFAULT_SORT_STATE;
 }
 
-export function sortStateToOptionKey(state: SortState, type: ListingType): SortKey {
+export function sortStateToOptionKey(state: SortState, type: AssetType): SortKey {
   const options = getSortOptionsForType(type);
   const requestedKey = SortKey.fromState(state);
+  const defaultKey = SortKey.fromState(DEFAULT_SORT_STATE);
+  const defaultOption =
+    options.find((opt) => SortKey.equals(opt.value, defaultKey)) ??
+    options[0] ??
+    SORT_OPTIONS[0];
   const option =
     options.find((opt) => SortKey.equals(opt.value, requestedKey)) ??
     options.find((opt) => opt.sort.field === state.field) ??
-    options[0] ??
-    SORT_OPTIONS[0];
+    defaultOption;
 
   return option.value;
 }

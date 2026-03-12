@@ -12,6 +12,7 @@ import { SortSelect } from "@/components/search/SortSelect";
 import { SearchX } from "lucide-react";
 import { useInstalledStore } from "@/stores/installed-store";
 import { createRandomSeed } from "@/stores/search-store";
+import type { AssetType } from "@/lib/asset-types";
 
 export function SearchPage() {
   const {
@@ -26,7 +27,7 @@ export function SearchPage() {
   const { installedMaps, installedMods } = useInstalledStore();
   const installedItems = useMemo(() => {
     const items: Array<{
-      type: "mods" | "maps";
+      type: AssetType;
       item: (typeof mods)[number] | (typeof maps)[number];
       installedVersion: string;
     }> = [];
@@ -34,7 +35,7 @@ export function SearchPage() {
       const manifest = mods.find((m) => m.id === installed.id);
       if (manifest)
         items.push({
-          type: "mods",
+          type: "mod",
           item: manifest,
           installedVersion: installed.version,
         });
@@ -43,7 +44,7 @@ export function SearchPage() {
       const manifest = maps.find((m) => m.id === installed.id);
       if (manifest)
         items.push({
-          type: "maps",
+          type: "map",
           item: manifest,
           installedVersion: installed.version,
         });
@@ -180,7 +181,7 @@ export function SearchPage() {
                         ?.installedVersion
                     }
                     totalDownloads={
-                      itemType === "mods"
+                      itemType === "mod"
                         ? (modDownloadTotals[item.id] ?? 0)
                         : (mapDownloadTotals[item.id] ?? 0)
                     }

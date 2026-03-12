@@ -33,7 +33,7 @@ func loadedRegistryWithDownloads(t *testing.T) *Registry {
 		},
 	})
 
-	reg := NewRegistry(nil)
+	reg := NewRegistry(testLogSink{})
 	require.NoError(t, reg.fetchFromDisk())
 	return reg
 }

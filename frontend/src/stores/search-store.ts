@@ -1,7 +1,8 @@
 import { create } from "zustand";
+import type { AssetType } from "@/lib/asset-types";
 import { DEFAULT_SORT_STATE, type PerPage, type SortState } from "@/lib/constants";
 
-export type TypeFilter = "mods" | "maps";
+export type TypeFilter = AssetType;
 
 export interface SearchFilterState {
   query: string;
@@ -35,7 +36,7 @@ export function createRandomSeed(): number {
 
 const defaultSearchFilters: SearchFilterState = {
   query: "",
-  type: "maps",
+  type: "map",
   sort: DEFAULT_SORT_STATE,
   randomSeed: createRandomSeed(),
   perPage: 12,

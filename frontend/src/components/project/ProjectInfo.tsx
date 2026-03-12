@@ -29,9 +29,10 @@ import { BrowserOpenURL } from "../../../wailsjs/runtime/runtime";
 import { types } from "../../../wailsjs/go/models";
 import { formatSourceQuality } from "@/lib/map-filter-values";
 import { useDownloadQueueStore } from "@/stores/download-queue-store";
+import type { AssetType } from "@/lib/asset-types";
 
 interface ProjectInfoProps {
-  type: "mods" | "maps";
+  type: AssetType;
   item: types.ModManifest | types.MapManifest;
   latestVersion?: types.VersionInfo;
   latestCompatibleVersion?: types.VersionInfo;
@@ -84,7 +85,7 @@ export function ProjectInfo({
 
   const handleInstall = async (version: string) => {
     try {
-      if (type === "mods") {
+      if (type === "mod") {
         await installMod(item.id, version);
       } else {
         await installMap(item.id, version);
@@ -162,7 +163,7 @@ export function ProjectInfo({
           <p className="text-muted-foreground mt-1">by {item.author}</p>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {versionsLoading ? (
             <Button size="sm" disabled>
               <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />

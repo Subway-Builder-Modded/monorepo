@@ -7,9 +7,10 @@ import { formatSourceQuality } from "@/lib/map-filter-values";
 import { MAX_CARD_BADGES } from "@/lib/search";
 import { getCountryFlagIcon } from "@/lib/flags";
 import { types } from "../../../wailsjs/go/models";
+import { assetTypeToListingPath, type AssetType } from "@/lib/asset-types";
 
 interface ItemCardProps {
-  type: "mods" | "maps";
+  type: AssetType;
   item: types.ModManifest | types.MapManifest;
   installedVersion?: string;
   totalDownloads?: number;
@@ -44,7 +45,7 @@ export function ItemCard({
   const showDownloads = typeof totalDownloads === "number";
 
   return (
-    <Link href={`/project/${type}/${item.id}`}>
+    <Link href={`/project/${assetTypeToListingPath(type)}/${item.id}`}>
       <article
         className={cn(
           "group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col",

@@ -8,20 +8,21 @@ import { CardSkeletonGrid } from "@/components/shared/CardSkeletonGrid";
 import { ErrorBanner } from "@/components/shared/ErrorBanner";
 import { Button } from "@/components/ui/button";
 import { Download, Compass, ArrowRight } from "lucide-react";
+import type { AssetType } from "@/lib/asset-types";
 
 export function HomePage() {
   const { mods, maps, loading, error } = useRegistryStore();
   const { installedMods, installedMaps } = useInstalledStore();
 
   const installedItems = useMemo(() => {
-    const items: Array<{ type: "mods" | "maps"; item: typeof mods[number] | typeof maps[number]; installedVersion: string }> = [];
+    const items: Array<{ type: AssetType; item: typeof mods[number] | typeof maps[number]; installedVersion: string }> = [];
     for (const installed of installedMods) {
       const manifest = mods.find((m) => m.id === installed.id);
-      if (manifest) items.push({ type: "mods", item: manifest, installedVersion: installed.version });
+      if (manifest) items.push({ type: "mod", item: manifest, installedVersion: installed.version });
     }
     for (const installed of installedMaps) {
       const manifest = maps.find((m) => m.id === installed.id);
-      if (manifest) items.push({ type: "maps", item: manifest, installedVersion: installed.version });
+      if (manifest) items.push({ type: "map", item: manifest, installedVersion: installed.version });
     }
     return items;
   }, [mods, maps, installedMods, installedMaps]);
@@ -34,12 +35,12 @@ export function HomePage() {
   }, [installedMods, installedMaps]);
 
   const discoverItems = useMemo(() => {
-    const items: Array<{ type: "mods" | "maps"; item: typeof mods[number] | typeof maps[number] }> = [];
+    const items: Array<{ type: AssetType; item: typeof mods[number] | typeof maps[number] }> = [];
     // Interleave mods and maps for variety, excluding already-installed items
     const maxLen = Math.max(mods.length, maps.length);
     for (let i = 0; i < maxLen && items.length < 8; i++) {
-      if (i < mods.length && items.length < 8 && !installedIds.has(mods[i].id)) items.push({ type: "mods", item: mods[i] });
-      if (i < maps.length && items.length < 8 && !installedIds.has(maps[i].id)) items.push({ type: "maps", item: maps[i] });
+      if (i < mods.length && items.length < 8 && !installedIds.has(mods[i].id)) items.push({ type: "mod", item: mods[i] });
+      if (i < maps.length && items.length < 8 && !installedIds.has(maps[i].id)) items.push({ type: "map", item: maps[i] });
     }
     return items;
   }, [mods, maps, installedIds]);
