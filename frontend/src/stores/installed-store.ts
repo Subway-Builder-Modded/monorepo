@@ -2,6 +2,12 @@ import { create } from 'zustand';
 import { types } from '../../wailsjs/go/models';
 import { GetInstalledMods, GetInstalledMaps } from '../../wailsjs/go/registry/Registry';
 import { GetActiveProfile, UpdateSubscriptions } from '../../wailsjs/go/profiles/UserProfiles';
+import {
+  InstallMap as InstallMapFiles,
+  InstallMod as InstallModFiles,
+  UninstallMap as UninstallMapFiles,
+  UninstallMod as UninstallModFiles,
+} from '../../wailsjs/go/downloader/Downloader';
 import { useDownloadQueueStore } from './download-queue-store';
 
 interface InstalledState {
@@ -30,6 +36,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     version: string,
     assetType: "map" | "mod",
     action: "subscribe" | "unsubscribe",
+    forceSync: boolean = true,
   ) => {
     const activeProfileResult = await GetActiveProfile();
     if (activeProfileResult.status !== "success") {
@@ -44,7 +51,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
         }),
       },
       action,
-      forceSync: true,
+      forceSync,
     });
     const result = await UpdateSubscriptions(request);
     if (result.status === "error") {
@@ -87,7 +94,16 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     useDownloadQueueStore.getState().enqueue();
     set({ installing: new Set([...get().installing, id]), error: null });
     try {
-      const response = await applySubscriptionMutation(id, version, "mod", "subscribe");
+      const response = await applySubscriptionMutation(id, version, "mod", "subscribe", false);
+      const directResponse = await InstallModFiles(id, version);
+      if (directResponse.status === "error") {
+        try {
+          await applySubscriptionMutation(id, "", "mod", "unsubscribe", false);
+        } catch {
+          // Best-effort rollback only.
+        }
+        throw new Error(directResponse.message || "Install failed");
+      }
       const [mods, maps] = await Promise.all([GetInstalledMods(), GetInstalledMaps()]);
       const next = new Set(get().installing);
       next.delete(id);
@@ -107,7 +123,16 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     useDownloadQueueStore.getState().enqueue();
     set({ installing: new Set([...get().installing, id]), error: null });
     try {
-      const response = await applySubscriptionMutation(id, version, "map", "subscribe");
+      const response = await applySubscriptionMutation(id, version, "map", "subscribe", false);
+      const directResponse = await InstallMapFiles(id, version);
+      if (directResponse.status === "error") {
+        try {
+          await applySubscriptionMutation(id, "", "map", "unsubscribe", false);
+        } catch {
+          // Best-effort rollback only.
+        }
+        throw new Error(directResponse.message || "Install failed");
+      }
       const [mods, maps] = await Promise.all([GetInstalledMods(), GetInstalledMaps()]);
       const next = new Set(get().installing);
       next.delete(id);
@@ -126,7 +151,11 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
   uninstallMod: async (id: string) => {
     set({ uninstalling: new Set([...get().uninstalling, id]), error: null });
     try {
-      const response = await applySubscriptionMutation(id, "", "mod", "unsubscribe");
+      const directResponse = await UninstallModFiles(id);
+      if (directResponse.status === "error") {
+        throw new Error(directResponse.message || "Uninstall failed");
+      }
+      const response = await applySubscriptionMutation(id, "", "mod", "unsubscribe", false);
       const [mods, maps] = await Promise.all([GetInstalledMods(), GetInstalledMaps()]);
       const next = new Set(get().uninstalling);
       next.delete(id);
@@ -143,7 +172,11 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
   uninstallMap: async (id: string) => {
     set({ uninstalling: new Set([...get().uninstalling, id]), error: null });
     try {
-      const response = await applySubscriptionMutation(id, "", "map", "unsubscribe");
+      const directResponse = await UninstallMapFiles(id);
+      if (directResponse.status === "error") {
+        throw new Error(directResponse.message || "Uninstall failed");
+      }
+      const response = await applySubscriptionMutation(id, "", "map", "unsubscribe", false);
       const [mods, maps] = await Promise.all([GetInstalledMods(), GetInstalledMaps()]);
       const next = new Set(get().uninstalling);
       next.delete(id);
