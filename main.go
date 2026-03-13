@@ -2,6 +2,10 @@ package main
 
 import (
 	"embed"
+	"fmt"
+	"os"
+
+	"railyard/internal/lock"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -12,11 +16,23 @@ import (
 var assets embed.FS
 
 func main() {
+	lockHandle, alreadyRunning, err := lock.ObtainLock()
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Error: failed to acquire startup lock: %v\n", err)
+		return
+	}
+	if alreadyRunning {
+		return
+	}
+	defer func() {
+		_ = lockHandle.Release()
+	}()
+
 	// Create an instance of the app structure
 	app := NewApp()
 
 	// Create application with options
-	err := wails.Run(&options.App{
+	err = wails.Run(&options.App{
 		Title:  "Railyard",
 		Width:  1024,
 		Height: 768,

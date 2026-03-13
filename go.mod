@@ -10,6 +10,7 @@ require (
 	github.com/protomaps/go-pmtiles v1.30.1
 	github.com/stretchr/testify v1.11.1
 	github.com/wailsapp/wails/v2 v2.11.0
+	github.com/gofrs/flock v0.13.0
 	golang.org/x/mod v0.33.0
 )
 
