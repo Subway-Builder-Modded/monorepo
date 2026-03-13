@@ -27,6 +27,8 @@ const (
 	LogFileName = "railyard.log"
 	// PrevLogFileName is the previous log file name.
 	PrevLogFileName = "railyard.old.log"
+	// LockFile is the name of the temporary file created to check if the app is already running.
+	LockFile = "railyard.lock"
 )
 
 // UserConfigRoot resolves the base user config directory with a home-directory fallback.
@@ -84,6 +86,10 @@ func LogFilePath() string {
 
 func PrevLogFilePath() string {
 	return filepath.Join(AppDataRoot(), PrevLogFileName)
+}
+
+func LockFilePath() string {
+	return filepath.Join(AppDataRoot(), LockFile)
 }
 
 // GetQuarantinePath returns the "quarantined" path for a target file using the current unix timestamp.
