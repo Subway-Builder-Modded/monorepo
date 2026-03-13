@@ -1,10 +1,9 @@
-import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useRegistryStore } from "@/stores/registry-store";
 import { useInstalledStore } from "@/stores/installed-store";
 import {
   useFilteredInstalledItems,
-  type InstalledTaggedItem,
 } from "@/hooks/use-filtered-installed-items";
 import { SearchBar } from "@/components/search/SearchBar";
 import { LibrarySidebar } from "@/components/library/LibrarySidebar";
@@ -12,25 +11,35 @@ import { LibraryTable } from "@/components/library/LibraryTable";
 import { LibraryActionBar } from "@/components/library/LibraryActionBar";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Pagination } from "@/components/shared/Pagination";
+import { ErrorBanner } from "@/components/shared/ErrorBanner";
+import { SortSelect } from "@/components/search/SortSelect";
 import { Button } from "@/components/ui/button";
 import {
   Inbox,
   Plus,
-  RefreshCw,
   Download,
 } from "lucide-react";
-import { GetVersions } from "../../wailsjs/go/registry/Registry";
 import {
   GetActiveProfile,
   UpdateAllSubscriptionsToLatest,
 } from "../../wailsjs/go/profiles/UserProfiles";
-import { types } from "../../wailsjs/go/models";
 import { toast } from "sonner";
+import { createRandomSeed } from "@/stores/search-store";
 
 export function LibraryPage() {
-  const { mods, maps } = useRegistryStore();
+  const {
+    mods,
+    maps,
+    modDownloadTotals,
+    mapDownloadTotals,
+    ensureDownloadTotals,
+  } = useRegistryStore();
   const { installedMods, installedMaps, updateInstalledLists } =
     useInstalledStore();
+
+  useEffect(() => {
+    ensureDownloadTotals();
+  }, [ensureDownloadTotals]);
 
   const modManifestById = useMemo(
     () => new Map(mods.map((manifest) => [manifest.id, manifest])),
@@ -41,53 +50,32 @@ export function LibraryPage() {
     [maps],
   );
 
-  const installedItems = useMemo<InstalledTaggedItem[]>(() => {
-    const items: InstalledTaggedItem[] = [];
-    for (const installed of installedMods) {
+  const missingInstalledItems = useMemo(() => {
+    const missingMods = installedMods
+      .filter((installed) => !modManifestById.has(installed.id))
+      .map((installed) => `mod:${installed.id}`);
+    const missingMaps = installedMaps
+      .filter((installed) => !mapManifestById.has(installed.id))
+      .map((installed) => `map:${installed.id}`);
+
+    return [...missingMods, ...missingMaps];
+  }, [installedMaps, installedMods, mapManifestById, modManifestById]);
+
+  const installedItems = useMemo(() => {
+    const modItems = installedMods.flatMap((installed) => {
       const manifest = modManifestById.get(installed.id);
-      items.push({
-        type: "mod",
-        item: manifest ?? new types.ModManifest({
-          id: installed.id,
-          name: installed.id,
-          author: "Unknown author",
-          description: "Installed on disk but missing from the registry.",
-          tags: [],
-          gallery: [],
-          source: "local",
-          update: { type: "" },
-        }),
-        installedVersion: installed.version,
-        inRegistry: Boolean(manifest),
-      });
-    }
-    for (const installed of installedMaps) {
+      return manifest
+        ? [{ type: "mod" as const, item: manifest, installedVersion: installed.version }]
+        : [];
+    });
+    const mapItems = installedMaps.flatMap((installed) => {
       const manifest = mapManifestById.get(installed.id);
-      items.push({
-        type: "map",
-        item: manifest ?? new types.MapManifest({
-          id: installed.id,
-          name: installed.config?.name || installed.id,
-          author: installed.config?.creator || "Unknown author",
-          city_code: installed.config?.code || "",
-          country: installed.config?.country || "",
-          location: "",
-          population: installed.config?.population || 0,
-          description: installed.config?.description || "Installed on disk but missing from the registry.",
-          data_source: "",
-          source_quality: "",
-          level_of_detail: "",
-          special_demand: [],
-          tags: [],
-          gallery: [],
-          source: "local",
-          update: { type: "" },
-        }),
-        installedVersion: installed.version,
-        inRegistry: Boolean(manifest),
-      });
-    }
-    return items;
+      return manifest
+        ? [{ type: "map" as const, item: manifest, installedVersion: installed.version }]
+        : [];
+    });
+
+    return [...modItems, ...mapItems];
   }, [installedMods, installedMaps, modManifestById, mapManifestById]);
 
   const {
@@ -99,56 +87,13 @@ export function LibraryPage() {
     filters,
     setFilters,
     setPage,
-  } = useFilteredInstalledItems({ items: installedItems });
+  } = useFilteredInstalledItems({
+    items: installedItems,
+    modDownloadTotals,
+    mapDownloadTotals,
+  });
 
-  const [updatesAvailable, setUpdatesAvailable] = useState<
-    Map<string, types.VersionInfo>
-  >(new Map());
-  const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [updatingAll, setUpdatingAll] = useState(false);
-
-  const checkForUpdates = useCallback(async () => {
-    if (installedItems.length === 0) return;
-    setCheckingUpdates(true);
-    const updates = new Map<string, types.VersionInfo>();
-
-    try {
-      for (const entry of installedItems) {
-        try {
-          if (!entry.inRegistry || !entry.item.update?.type) continue;
-          const source =
-            entry.item.update.type === "github"
-              ? entry.item.update.repo
-              : entry.item.update.url;
-          if (!source) continue;
-
-          const versions = await GetVersions(
-            entry.item.update.type,
-            source,
-          );
-          if (versions && versions.length > 0) {
-            const latest = versions[0];
-            if (latest.version !== entry.installedVersion) {
-              updates.set(entry.item.id, latest);
-            }
-          }
-        } catch {}
-      }
-    } finally {
-      setUpdatesAvailable(updates);
-      setCheckingUpdates(false);
-    }
-  }, [installedItems]);
-
-  const didCheckUpdates = useRef(false);
-  useEffect(() => {
-    if (!didCheckUpdates.current) {
-      didCheckUpdates.current = true;
-      void checkForUpdates();
-    }
-  }, [checkForUpdates]);
-
-  const updatesCount = updatesAvailable.size;
 
   const handleUpdateAll = async () => {
     setUpdatingAll(true);
@@ -166,8 +111,7 @@ export function LibraryPage() {
         throw new Error(result.message || "Update all failed");
       }
       await updateInstalledLists();
-      setUpdatesAvailable(new Map());
-      toast.success("All content updated to latest versions.");
+      toast.success("Library updated.");
     } catch (err) {
       toast.error(
         `Update all failed: ${err instanceof Error ? err.message : String(err)}`,
@@ -190,33 +134,7 @@ export function LibraryPage() {
     return Array.from(tags).sort();
   }, [maps]);
 
-  const [showingUpdatesOnly, setShowingUpdatesOnly] = useState(false);
-
-  const displayedItems = showingUpdatesOnly
-    ? paginatedItems.filter((item) => updatesAvailable.has(item.item.id))
-    : paginatedItems;
-
   const totalProjects = installedItems.length;
-
-  useEffect(() => {
-    if (filters.type === "mod" && (filters.sort === "country-asc" || filters.sort === "country-desc")) {
-      setFilters((prev) => ({ ...prev, sort: "name-asc" }));
-    }
-  }, [filters.type, filters.sort, setFilters]);
-
-  const handleToggleNameSort = () => {
-    setFilters((prev) => ({
-      ...prev,
-      sort: prev.sort === "name-asc" ? "name-desc" : "name-asc",
-    }));
-  };
-
-  const handleToggleCountrySort = () => {
-    setFilters((prev) => ({
-      ...prev,
-      sort: prev.sort === "country-asc" ? "country-desc" : "country-asc",
-    }));
-  };
 
   return (
     <div className="space-y-5">
@@ -230,6 +148,16 @@ export function LibraryPage() {
           </p>
         </div>
       </div>
+
+      {missingInstalledItems.length > 0 && (
+        <ErrorBanner
+          message={
+            missingInstalledItems.length === 1
+              ? `Installed content is missing from the registry: ${missingInstalledItems[0]}`
+              : `${missingInstalledItems.length} installed items are missing from the registry.`
+          }
+        />
+      )}
 
       <div className="flex items-center gap-3">
         <div className="flex-1">
@@ -271,39 +199,31 @@ export function LibraryPage() {
                 </span>{" "}
                 Projects
               </span>
-              {updatesCount > 0 && (
-                <span className="text-primary">
-                  · {updatesCount} update
-                  {updatesCount !== 1 ? "s" : ""} available
-                </span>
-              )}
             </div>
 
             <div className="flex items-center gap-2">
+              <SortSelect
+                value={filters.sort}
+                onChange={(value) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    sort: value,
+                    randomSeed:
+                      value.field === "random" ? createRandomSeed() : prev.randomSeed,
+                  }))
+                }
+                tab={filters.type}
+              />
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={checkForUpdates}
-                disabled={checkingUpdates}
+                onClick={handleUpdateAll}
+                disabled={updatingAll}
                 className="gap-1.5"
               >
-                <RefreshCw
-                  className={`h-3.5 w-3.5 ${checkingUpdates ? "animate-spin" : ""}`}
-                />
-                Refresh
+                <Download className="h-3.5 w-3.5" />
+                Update all
               </Button>
-              {updatesCount > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleUpdateAll}
-                  disabled={updatingAll}
-                  className="gap-1.5"
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  Update all
-                </Button>
-              )}
             </div>
           </div>
 
@@ -314,37 +234,28 @@ export function LibraryPage() {
                 onFiltersChange={setFilters}
                 modCount={modCount}
                 mapCount={mapCount}
-                updatesCount={updatesCount}
-                onShowUpdatesOnly={() => setShowingUpdatesOnly((prev) => !prev)}
-                showingUpdatesOnly={showingUpdatesOnly}
                 availableTags={availableTags}
                 availableSpecialDemand={availableSpecialDemand}
               />
             </aside>
 
             <div className="flex-1 min-w-0 space-y-4">
-              {displayedItems.length === 0 ? (
+              {paginatedItems.length === 0 ? (
                 <EmptyState
                   icon={Inbox}
                   title={filters.type === "map" ? "No maps found" : "No mods found"}
                   description={
-                    showingUpdatesOnly
-                      ? "No updates available for the current filter"
-                      : filters.query
-                        ? `No installed ${filters.type} match "${filters.query}"`
-                        : `No installed ${filters.type} match the current filters`
+                    filters.query
+                      ? `No installed ${filters.type} match "${filters.query}"`
+                      : `No installed ${filters.type} match the current filters`
                   }
                   className="py-16"
                 />
               ) : (
                 <>
                   <LibraryTable
-                    items={displayedItems}
-                    updatesAvailable={updatesAvailable}
-                    sort={filters.sort}
+                    items={paginatedItems}
                     activeType={filters.type}
-                    onToggleNameSort={handleToggleNameSort}
-                    onToggleCountrySort={handleToggleCountrySort}
                   />
                   <Pagination
                     page={page}
@@ -363,10 +274,7 @@ export function LibraryPage() {
               )}
 
               <div className="sticky bottom-4">
-                <LibraryActionBar
-                  allItems={allFilteredItems}
-                  updatesAvailable={updatesAvailable}
-                />
+                <LibraryActionBar allItems={allFilteredItems} />
               </div>
             </div>
           </div>

@@ -2,7 +2,6 @@ import { cn } from "@/lib/utils";
 import {
   MapPin,
   Package,
-  Download,
   Tag,
   GraduationCap,
   BadgeCheck,
@@ -35,9 +34,6 @@ interface LibrarySidebarProps {
   onFiltersChange: Dispatch<SetStateAction<LibraryFilterState>>;
   modCount: number;
   mapCount: number;
-  updatesCount: number;
-  onShowUpdatesOnly: () => void;
-  showingUpdatesOnly: boolean;
   availableTags: string[];
   availableSpecialDemand: string[];
 }
@@ -56,9 +52,6 @@ export function LibrarySidebar({
   onFiltersChange,
   modCount,
   mapCount,
-  updatesCount,
-  onShowUpdatesOnly,
-  showingUpdatesOnly,
   availableTags,
   availableSpecialDemand,
 }: LibrarySidebarProps) {
@@ -93,7 +86,7 @@ export function LibrarySidebar({
               <span
                 className={cn(
                   "text-xs tabular-nums",
-                  filters.type === value && !showingUpdatesOnly
+                  filters.type === value
                     ? "text-foreground"
                     : "text-muted-foreground",
                 )}
@@ -180,38 +173,6 @@ export function LibrarySidebar({
         </>
       )}
 
-      {updatesCount > 0 && (
-        <>
-          <Separator />
-          <div>
-            <p className={FILTER_SECTION_TITLE_CLASS}>Updates</p>
-            <button
-              onClick={onShowUpdatesOnly}
-              className={cn(
-                "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors",
-                showingUpdatesOnly
-                  ? "bg-accent text-accent-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
-              )}
-            >
-              <span className="flex items-center gap-2">
-                <Download className="h-3.5 w-3.5 shrink-0" />
-                Updates available
-              </span>
-              <span
-                className={cn(
-                  "text-xs tabular-nums",
-                  showingUpdatesOnly
-                    ? "text-foreground"
-                    : "text-muted-foreground",
-                )}
-              >
-                {updatesCount}
-              </span>
-            </button>
-          </div>
-        </>
-      )}
     </div>
   );
 }

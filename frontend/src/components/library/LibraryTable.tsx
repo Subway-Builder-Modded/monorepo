@@ -11,12 +11,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { ChevronUp, Download, FolderOpen, Trash2 } from "lucide-react";
+import { FolderOpen, Trash2 } from "lucide-react";
 import { UninstallDialog } from "@/components/dialogs/UninstallDialog";
 import { useLibraryStore } from "@/stores/library-store";
 import { useConfigStore } from "@/stores/config-store";
@@ -26,7 +21,6 @@ import { types } from "../../../wailsjs/go/models";
 import { MAX_CARD_BADGES } from "@/lib/search";
 import { formatSourceQuality } from "@/lib/map-filter-values";
 import { getCountryFlagIcon } from "@/lib/flags";
-import { type LibrarySortOption } from "@/stores/library-store";
 import { OpenInFileExplorer } from "../../../wailsjs/go/main/App";
 import { toast } from "sonner";
 import type { AssetType } from "@/lib/asset-types";
@@ -34,11 +28,7 @@ import { assetTypeToListingPath } from "@/lib/asset-types";
 
 interface LibraryTableProps {
   items: InstalledTaggedItem[];
-  updatesAvailable: Map<string, types.VersionInfo>;
-  sort: LibrarySortOption;
   activeType: AssetType;
-  onToggleNameSort: () => void;
-  onToggleCountrySort: () => void;
 }
 
 function composeItemKey(item: InstalledTaggedItem): string {
@@ -47,19 +37,11 @@ function composeItemKey(item: InstalledTaggedItem): string {
 
 export function LibraryTable({
   items,
-  updatesAvailable,
-  sort,
   activeType,
-  onToggleNameSort,
-  onToggleCountrySort,
 }: LibraryTableProps) {
   const { selectedIds, toggleSelected, selectAll, clearSelection } =
     useLibraryStore();
   const showCountryColumn = activeType === "map";
-  const isNameDesc = sort === "name-desc";
-  const isNameSort = sort === "name-asc" || sort === "name-desc";
-  const isCountryDesc = sort === "country-desc";
-  const isCountrySort = sort === "country-asc" || sort === "country-desc";
 
   const allKeys = items.map(composeItemKey);
   const allSelected =
@@ -88,38 +70,10 @@ export function LibraryTable({
               />
             </TableHead>
             <TableHead>
-              <button
-                className="flex items-center gap-1 text-foreground font-medium"
-                type="button"
-                onClick={onToggleNameSort}
-              >
-                Name
-                <ChevronUp
-                  className={cn(
-                    "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-                    !isNameSort && "opacity-30",
-                    isNameDesc && "rotate-180",
-                  )}
-                />
-              </button>
+              <span className="text-foreground font-medium">Name</span>
             </TableHead>
             {showCountryColumn && (
-              <TableHead className="w-32 text-center">
-                <button
-                  className="mx-auto flex items-center gap-1 text-foreground font-medium"
-                  type="button"
-                  onClick={onToggleCountrySort}
-                >
-                  Country
-                  <ChevronUp
-                    className={cn(
-                      "h-3.5 w-3.5 text-muted-foreground transition-transform duration-200",
-                      !isCountrySort && "opacity-30",
-                      isCountryDesc && "rotate-180",
-                    )}
-                  />
-                </button>
-              </TableHead>
+              <TableHead className="w-32 text-center">Country</TableHead>
             )}
             <TableHead className="w-28 text-center">Version</TableHead>
             <TableHead className="w-24"></TableHead>
@@ -129,14 +83,12 @@ export function LibraryTable({
           {items.map((entry) => {
             const key = composeItemKey(entry);
             const isSelected = selectedIds.has(key);
-            const hasUpdate = updatesAvailable.has(entry.item.id);
 
             return (
               <LibraryTableRow
                 key={key}
                 entry={entry}
                 isSelected={isSelected}
-                hasUpdate={hasUpdate}
                 showCountryColumn={showCountryColumn}
                 onToggleSelect={() => toggleSelected(key)}
               />
@@ -151,7 +103,6 @@ export function LibraryTable({
 interface LibraryTableRowProps {
   entry: InstalledTaggedItem;
   isSelected: boolean;
-  hasUpdate: boolean;
   showCountryColumn: boolean;
   onToggleSelect: () => void;
 }
@@ -159,7 +110,6 @@ interface LibraryTableRowProps {
 function LibraryTableRow({
   entry,
   isSelected,
-  hasUpdate,
   showCountryColumn,
   onToggleSelect,
 }: LibraryTableRowProps) {
@@ -229,31 +179,12 @@ function LibraryTableRow({
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {entry.inRegistry ? (
-                    <Link
-                      href={`/project/${assetTypeToListingPath(entry.type)}/${entry.item.id}`}
-                      className="font-medium text-sm text-foreground hover:underline truncate"
-                    >
-                      {entry.item.name}
-                    </Link>
-                  ) : (
-                    <span className="font-medium text-sm text-foreground truncate">
-                      {entry.item.name}
-                    </span>
-                  )}
-                  {hasUpdate && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Badge
-                          variant="default"
-                          className="gap-1 text-xs px-1.5 py-0 shrink-0 cursor-default"
-                        >
-                          <Download className="h-2.5 w-2.5" />
-                        </Badge>
-                      </TooltipTrigger>
-                      <TooltipContent>Update available</TooltipContent>
-                    </Tooltip>
-                  )}
+                  <Link
+                    href={`/project/${assetTypeToListingPath(entry.type)}/${entry.item.id}`}
+                    className="font-medium text-sm text-foreground hover:underline truncate"
+                  >
+                    {entry.item.name}
+                  </Link>
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
                   by {entry.item.author}

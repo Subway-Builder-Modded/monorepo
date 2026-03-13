@@ -1,19 +1,19 @@
 import { create } from "zustand";
 import type { AssetType } from "@/lib/asset-types";
-import type { PerPage } from "@/lib/constants";
+import { DEFAULT_SORT_STATE, type PerPage, type SortState } from "@/lib/constants";
 
 export type LibraryTypeFilter = AssetType;
-export type LibrarySortOption =
-  | "name-asc"
-  | "name-desc"
-  | "author-asc"
-  | "country-asc"
-  | "country-desc";
+
+function createRandomSeed(): number {
+  return Math.floor(Math.random() * 2_147_483_647);
+}
 
 export interface LibraryFilterState {
   query: string;
   type: LibraryTypeFilter;
   perPage: PerPage;
+  sort: SortState;
+  randomSeed: number;
   mod: {
     tags: string[];
   };
@@ -23,7 +23,6 @@ export interface LibraryFilterState {
     levelOfDetail: string[];
     specialDemand: string[];
   };
-  sort: LibrarySortOption;
 }
 
 type LibraryFilterUpdater =
@@ -46,6 +45,8 @@ const defaultLibraryFilters: LibraryFilterState = {
   query: "",
   type: "mod",
   perPage: 12,
+  sort: DEFAULT_SORT_STATE,
+  randomSeed: createRandomSeed(),
   mod: {
     tags: [],
   },
@@ -55,7 +56,6 @@ const defaultLibraryFilters: LibraryFilterState = {
     levelOfDetail: [],
     specialDemand: [],
   },
-  sort: "name-asc",
 };
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
