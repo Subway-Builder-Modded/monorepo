@@ -48,7 +48,7 @@ export function LibraryPage() {
     for (const installed of installedMods) {
       const manifest = modManifestById.get(installed.id);
       items.push({
-        type: "mods",
+        type: "mod",
         item: manifest ?? new types.ModManifest({
           id: installed.id,
           name: installed.id,
@@ -66,7 +66,7 @@ export function LibraryPage() {
     for (const installed of installedMaps) {
       const manifest = mapManifestById.get(installed.id);
       items.push({
-        type: "maps",
+        type: "map",
         item: manifest ?? new types.MapManifest({
           id: installed.id,
           name: installed.config?.name || installed.id,
@@ -183,8 +183,8 @@ export function LibraryPage() {
   };
 
   // Precompute counts for sidebar display
-  const modCount = installedItems.filter((i) => i.type === "mods").length;
-  const mapCount = installedItems.filter((i) => i.type === "maps").length;
+  const modCount = installedItems.filter((i) => i.type === "mod").length;
+  const mapCount = installedItems.filter((i) => i.type === "map").length;
 
   // Collect all unique tags from full registry for filter vocabulary.
   // We source from the full registry (not just installed items) so users
@@ -210,7 +210,7 @@ export function LibraryPage() {
   const totalProjects = installedItems.length;
 
   useEffect(() => {
-    if (filters.type === "mods" && (filters.sort === "country-asc" || filters.sort === "country-desc")) {
+    if (filters.type === "mod" && (filters.sort === "country-asc" || filters.sort === "country-desc")) {
       setFilters((prev) => ({ ...prev, sort: "name-asc" }));
     }
   }, [filters.type, filters.sort, setFilters]);
@@ -346,7 +346,7 @@ export function LibraryPage() {
               {displayedItems.length === 0 ? (
                 <EmptyState
                   icon={Inbox}
-                  title={filters.type === "maps" ? "No maps found" : "No mods found"}
+                  title={filters.type === "map" ? "No maps found" : "No mods found"}
                   description={
                     showingUpdatesOnly
                       ? "No updates available for the current filter"

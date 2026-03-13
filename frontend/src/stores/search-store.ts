@@ -1,24 +1,15 @@
 import { create } from "zustand";
-import type { AssetType } from "@/lib/asset-types";
-import { DEFAULT_SORT_STATE, type PerPage, type SortState } from "@/lib/constants";
+import { DEFAULT_SORT_STATE, type SortState } from "@/lib/constants";
+import {
+  createDefaultSharedAssetFilters,
+  type SharedAssetFilterState,
+} from "@/stores/asset-filter-state";
 
-export type TypeFilter = AssetType;
+export type TypeFilter = SharedAssetFilterState["type"];
 
-export interface SearchFilterState {
-  query: string;
-  type: TypeFilter;
+export interface SearchFilterState extends SharedAssetFilterState {
   sort: SortState;
   randomSeed: number;
-  perPage: PerPage;
-  mod: {
-    tags: string[];
-  };
-  map: {
-    locations: string[];
-    sourceQuality: string[];
-    levelOfDetail: string[];
-    specialDemand: string[];
-  };
 }
 
 type SearchFilterUpdater = SearchFilterState | ((prev: SearchFilterState) => SearchFilterState);
@@ -35,20 +26,9 @@ export function createRandomSeed(): number {
 }
 
 const defaultSearchFilters: SearchFilterState = {
-  query: "",
-  type: "map",
+  ...createDefaultSharedAssetFilters("map"),
   sort: DEFAULT_SORT_STATE,
   randomSeed: createRandomSeed(),
-  perPage: 12,
-  mod: {
-    tags: [],
-  },
-  map: {
-    locations: [],
-    sourceQuality: [],
-    levelOfDetail: [],
-    specialDemand: [],
-  },
 };
 
 export const useSearchStore = create<SearchState>((set) => ({
