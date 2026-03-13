@@ -8,7 +8,6 @@ import { MAX_CARD_BADGES } from "@/lib/search";
 import { getCountryFlagIcon } from "@/lib/flags";
 import { assetTypeToListingPath, type AssetType } from "@/lib/asset-types";
 import { types } from "../../../wailsjs/go/models";
-import { assetTypeToListingPath, type AssetType } from "@/lib/asset-types";
 
 interface ItemCardProps {
   type: AssetType;
