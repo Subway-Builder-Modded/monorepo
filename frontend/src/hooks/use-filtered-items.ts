@@ -29,7 +29,7 @@ type SearchableItem = {
   searchText: string;
 };
 
-function buildSearchText(item: TaggedItem): string {
+export function buildSearchText(item: TaggedItem): string {
   const base = item.item;
   const values: string[] = [base.name ?? "", base.author ?? "", base.description ?? ""];
 
@@ -50,19 +50,19 @@ function buildSearchText(item: TaggedItem): string {
   return values.filter(Boolean).join(" ");
 }
 
-function matchesSingleValueFilter(value: string | undefined, selected: string[]): boolean {
+export function matchesSingleValueFilter(value: string | undefined, selected: string[]): boolean {
   if (selected.length === 0) return true;
   if (!value) return false;
   return selected.includes(value);
 }
 
-function matchesZeroOrManyValuesFilter(values: string[] | undefined, selected: string[]): boolean {
+export function matchesZeroOrManyValuesFilter(values: string[] | undefined, selected: string[]): boolean {
   if (selected.length === 0) return true;
   if (!values || values.length === 0) return false;
   return selected.some((tag) => values.includes(tag));
 }
 
-function matchesMapAttributeFilters(item: TaggedItem, filters: SearchFilterState["map"]): boolean {
+export function matchesMapAttributeFilters(item: TaggedItem, filters: SearchFilterState["map"]): boolean {
   if (item.type !== "map") return true;
 
   const map = item.item as types.MapManifest;
@@ -74,11 +74,11 @@ function matchesMapAttributeFilters(item: TaggedItem, filters: SearchFilterState
   );
 }
 
-function compareByDirection(a: number, b: number, direction: SortDirection): number {
+export function compareByDirection(a: number, b: number, direction: SortDirection): number {
   return direction === "asc" ? a - b : b - a;
 }
 
-function getTotalDownloads(
+export function getTotalDownloads(
   item: TaggedItem,
   modDownloadTotals: Record<string, number>,
   mapDownloadTotals: Record<string, number>
@@ -88,7 +88,7 @@ function getTotalDownloads(
     : mapDownloadTotals[item.item.id] ?? 0;
 }
 
-function getLastUpdated(item: TaggedItem): number {
+export function getLastUpdated(item: TaggedItem): number {
   const timestamp = item.item.last_updated;
   return typeof timestamp === "number" && Number.isFinite(timestamp)
     ? timestamp
@@ -96,7 +96,7 @@ function getLastUpdated(item: TaggedItem): number {
 }
 
 // Helper to determine comparation logic based on sort field and direction
-function compareItems(
+export function compareItems(
   a: TaggedItem,
   b: TaggedItem,
   sort: SortState,
@@ -136,7 +136,7 @@ function compareItems(
 }
 
 // Seeded hash function to provide consistent "random" sorting. Stable across renders, but different across sessions
-function seededHash(value: string, seed: number): number {
+export function seededHash(value: string, seed: number): number {
   const FNV_OFFSET_BASIS_32 = 0x811c9dc5;
   const FNV_PRIME_32 = 0x01000193;
 
@@ -148,7 +148,7 @@ function seededHash(value: string, seed: number): number {
   return hash;
 }
 
-function sortItemsBySeed(items: TaggedItem[], seed: number): TaggedItem[] {
+export function sortItemsBySeed(items: TaggedItem[], seed: number): TaggedItem[] {
   return [...items].sort((a, b) => {
     const hashA = seededHash(`${a.type}:${a.item.id}`, seed);
     const hashB = seededHash(`${b.type}:${b.item.id}`, seed);

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import {
   GetActiveProfile,
+  HasSubscriptionUpdates,
   UpdateAllSubscriptionsToLatest,
 } from "../../wailsjs/go/profiles/UserProfiles";
 import { toast } from "sonner";
@@ -94,18 +95,54 @@ export function LibraryPage() {
   });
 
   const [updatingAll, setUpdatingAll] = useState(false);
+  const [hasAvailableUpdates, setHasAvailableUpdates] = useState(false);
+
+  const resolveActiveProfileId = async (): Promise<string> => {
+    const activeResult = await GetActiveProfile();
+    if (activeResult.status !== "success") {
+      throw new Error(activeResult.message || "Failed to resolve active profile");
+    }
+
+    return activeResult.profile.id;
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (installedItems.length === 0) {
+      setHasAvailableUpdates(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const checkForAvailableUpdates = async () => {
+      try {
+        const profileID = await resolveActiveProfileId();
+        const updateResult = await HasSubscriptionUpdates(profileID);
+        if (!cancelled) {
+          setHasAvailableUpdates(updateResult.status !== "error" && updateResult.hasUpdates);
+        }
+      } catch {
+        if (!cancelled) {
+          setHasAvailableUpdates(false);
+        }
+      }
+    };
+
+    void checkForAvailableUpdates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [installedItems]);
 
   const handleUpdateAll = async () => {
     setUpdatingAll(true);
     try {
-      const activeResult = await GetActiveProfile();
-      if (activeResult.status !== "success") {
-        throw new Error(
-          activeResult.message || "Failed to resolve active profile",
-        );
-      }
+      const profileID = await resolveActiveProfileId();
       const result = await UpdateAllSubscriptionsToLatest(
-        activeResult.profile.id,
+        profileID,
       );
       if (result.status === "error") {
         throw new Error(result.message || "Update all failed");
@@ -214,16 +251,18 @@ export function LibraryPage() {
                 }
                 tab={filters.type}
               />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleUpdateAll}
-                disabled={updatingAll}
-                className="gap-1.5"
-              >
-                <Download className="h-3.5 w-3.5" />
-                Update all
-              </Button>
+              {hasAvailableUpdates && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUpdateAll}
+                  disabled={updatingAll}
+                  className="gap-1.5"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Update all
+                </Button>
+              )}
             </div>
           </div>
 

@@ -1,15 +1,18 @@
 import { useMemo, useEffect, useRef } from "react";
 import Fuse from "fuse.js";
 import { types } from "../../wailsjs/go/models";
-import {
-  type PerPage,
-  type SortDirection,
-  type SortField,
-  type SortState,
-} from "../lib/constants";
+import { type PerPage } from "../lib/constants";
 import { FUSE_SEARCH_OPTIONS } from "@/lib/search";
 import { useProfileStore } from "@/stores/profile-store";
 import { useLibraryStore } from "@/stores/library-store";
+import {
+  buildSearchText,
+  compareItems,
+  matchesMapAttributeFilters,
+  sortItemsBySeed,
+  type SearchFilterState,
+  type TaggedItem,
+} from "@/hooks/use-filtered-items";
 
 export type InstalledTaggedItem =
   | {
@@ -33,144 +36,6 @@ type SearchableItem = {
   entry: InstalledTaggedItem;
   searchText: string;
 };
-
-function matchesSingleValueFilter(value: string | undefined, selected: string[]): boolean {
-  if (selected.length === 0) return true;
-  if (!value) return false;
-  return selected.includes(value);
-}
-
-function matchesZeroOrManyValuesFilter(values: string[] | undefined, selected: string[]): boolean {
-  if (selected.length === 0) return true;
-  if (!values || values.length === 0) return false;
-  return selected.some((tag) => values.includes(tag));
-}
-
-function matchesMapAttributeFilters(
-  item: InstalledTaggedItem,
-  filters: {
-    locations: string[];
-    sourceQuality: string[];
-    levelOfDetail: string[];
-    specialDemand: string[];
-  },
-): boolean {
-  if (item.type !== "map") return true;
-
-  const map = item.item as types.MapManifest;
-  return (
-    matchesSingleValueFilter(map.location, filters.locations) &&
-    matchesSingleValueFilter(map.source_quality, filters.sourceQuality) &&
-    matchesSingleValueFilter(map.level_of_detail, filters.levelOfDetail) &&
-    matchesZeroOrManyValuesFilter(map.special_demand, filters.specialDemand)
-  );
-}
-
-function buildSearchText(entry: InstalledTaggedItem): string {
-  const base = entry.item;
-  const values: string[] = [base.name ?? "", base.author ?? ""];
-
-  if (entry.type === "mod") {
-    values.push(...(base.tags ?? []));
-  } else {
-    const map = base as types.MapManifest;
-    values.push(
-      map.city_code ?? "",
-      map.country ?? "",
-      map.location ?? "",
-      map.source_quality ?? "",
-      map.level_of_detail ?? "",
-      ...(map.special_demand ?? []),
-    );
-  }
-
-  return values.filter(Boolean).join(" ");
-}
-
-function compareByDirection(a: number, b: number, direction: SortDirection): number {
-  return direction === "asc" ? a - b : b - a;
-}
-
-function getTotalDownloads(
-  item: InstalledTaggedItem,
-  modDownloadTotals: Record<string, number>,
-  mapDownloadTotals: Record<string, number>,
-): number {
-  return item.type === "mod"
-    ? modDownloadTotals[item.item.id] ?? 0
-    : mapDownloadTotals[item.item.id] ?? 0;
-}
-
-function getLastUpdated(item: InstalledTaggedItem): number {
-  const timestamp = item.item.last_updated;
-  return typeof timestamp === "number" && Number.isFinite(timestamp)
-    ? timestamp
-    : 0;
-}
-
-function compareItems(
-  a: InstalledTaggedItem,
-  b: InstalledTaggedItem,
-  sort: SortState,
-  modDownloadTotals: Record<string, number>,
-  mapDownloadTotals: Record<string, number>,
-): number {
-  const compareText = (left: string, right: string, direction: SortDirection) =>
-    direction === "asc" ? left.localeCompare(right) : right.localeCompare(left);
-
-  const compareField = (field: SortField): number => {
-    switch (field) {
-      case "name":
-        return compareText(a.item.name ?? "", b.item.name ?? "", sort.direction);
-      case "author":
-        return compareText(a.item.author ?? "", b.item.author ?? "", sort.direction);
-      case "population": {
-        const popA = a.type === "map" ? (a.item as types.MapManifest).population ?? 0 : 0;
-        const popB = b.type === "map" ? (b.item as types.MapManifest).population ?? 0 : 0;
-        return compareByDirection(popA, popB, sort.direction);
-      }
-      case "downloads": {
-        const downloadsA = getTotalDownloads(a, modDownloadTotals, mapDownloadTotals);
-        const downloadsB = getTotalDownloads(b, modDownloadTotals, mapDownloadTotals);
-        return compareByDirection(downloadsA, downloadsB, sort.direction);
-      }
-      case "last_updated": {
-        const updatedA = getLastUpdated(a);
-        const updatedB = getLastUpdated(b);
-        return compareByDirection(updatedA, updatedB, sort.direction);
-      }
-      default:
-        return 0;
-    }
-  };
-
-  return compareField(sort.field);
-}
-
-function seededHash(value: string, seed: number): number {
-  const FNV_OFFSET_BASIS_32 = 0x811c9dc5;
-  const FNV_PRIME_32 = 0x01000193;
-
-  let hash = (seed ^ FNV_OFFSET_BASIS_32) >>> 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, FNV_PRIME_32) >>> 0;
-  }
-
-  return hash;
-}
-
-function sortItemsBySeed(items: InstalledTaggedItem[], seed: number): InstalledTaggedItem[] {
-  return [...items].sort((a, b) => {
-    const hashA = seededHash(`${a.type}:${a.item.id}`, seed);
-    const hashB = seededHash(`${b.type}:${b.item.id}`, seed);
-    if (hashA !== hashB) {
-      return hashA - hashB;
-    }
-
-    return a.item.id.localeCompare(b.item.id);
-  });
-}
 
 export function useFilteredInstalledItems({
   items,
@@ -211,23 +76,33 @@ export function useFilteredInstalledItems({
       );
     }
 
-    result = result.filter((i) => matchesMapAttributeFilters(i, filters.map));
+    result = result.filter((i) =>
+      matchesMapAttributeFilters(i as TaggedItem, filters.map as SearchFilterState["map"]),
+    );
 
     const query = filters.query.trim();
     if (query) {
       const searchable: SearchableItem[] = result.map((entry) => ({
         entry,
-        searchText: buildSearchText(entry),
+        searchText: buildSearchText(entry as TaggedItem),
       }));
       const fuse = new Fuse(searchable, FUSE_SEARCH_OPTIONS);
       result = fuse.search(query).map((r: { item: SearchableItem }) => r.item.entry);
     }
 
     if (filters.sort.field === "random") {
-      return sortItemsBySeed(result, filters.randomSeed);
+      return sortItemsBySeed(result as TaggedItem[], filters.randomSeed) as InstalledTaggedItem[];
     }
 
-    return result.sort((a, b) => compareItems(a, b, filters.sort, modDownloadTotals, mapDownloadTotals));
+    return result.sort((a, b) =>
+      compareItems(
+        a as TaggedItem,
+        b as TaggedItem,
+        filters.sort,
+        modDownloadTotals,
+        mapDownloadTotals,
+      ),
+    );
   }, [items, filters, mapDownloadTotals, modDownloadTotals]);
 
   const totalResults = filtered.length;
