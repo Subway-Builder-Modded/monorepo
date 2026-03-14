@@ -45,8 +45,17 @@ describe("sort helpers", () => {
     expect(modOptions.map((opt) => opt.value)).toContain("last_updated:desc");
     expect(modOptions.map((opt) => opt.value)).toContain("random:asc");
     expect(modOptions.map((opt) => opt.value)).not.toContain("random:desc");
-    expect(mapOptions).toHaveLength(11);
+    expect(mapOptions).toHaveLength(13);
     expect(mapOptions).toEqual(SORT_OPTIONS);
+  });
+
+  it("orders alphabetical sort labels as A-Z before Z-A", () => {
+    const mapOptions = getSortOptionsForType("map");
+    const labels = mapOptions.map((option) => option.label);
+
+    expect(labels.indexOf("Name (A-Z)")).toBeLessThan(labels.indexOf("Name (Z-A)"));
+    expect(labels.indexOf("Author (A-Z)")).toBeLessThan(labels.indexOf("Author (Z-A)"));
+    expect(labels.indexOf("Country (A-Z)")).toBeLessThan(labels.indexOf("Country (Z-A)"));
   });
 
   it("falls back to default when sort key is invalid", () => {

@@ -13,6 +13,7 @@ import { SearchX } from "lucide-react";
 import { useInstalledStore } from "@/stores/installed-store";
 import { createRandomSeed } from "@/stores/search-store";
 import type { AssetType } from "@/lib/asset-types";
+import { buildAssetListingCounts } from "@/lib/listing-counts";
 
 export function SearchPage() {
   const {
@@ -61,6 +62,14 @@ export function SearchPage() {
     const dynamicTags = maps.flatMap((m) => m.special_demand ?? []);
     return [...new Set(dynamicTags)].sort();
   }, [maps]);
+
+  const {
+    modTagCounts,
+    mapLocationCounts,
+    mapSourceQualityCounts,
+    mapLevelOfDetailCounts,
+    mapSpecialDemandCounts,
+  } = useMemo(() => buildAssetListingCounts(mods, maps), [mods, maps]);
 
   useEffect(() => {
     ensureDownloadTotals();
@@ -115,6 +124,11 @@ export function SearchPage() {
             onFiltersChange={setFilters}
             availableTags={allTags}
             availableSpecialDemand={specialDemandTags}
+            modTagCounts={modTagCounts}
+            mapLocationCounts={mapLocationCounts}
+            mapSourceQualityCounts={mapSourceQualityCounts}
+            mapLevelOfDetailCounts={mapLevelOfDetailCounts}
+            mapSpecialDemandCounts={mapSpecialDemandCounts}
             modCount={modCount}
             mapCount={mapCount}
           />

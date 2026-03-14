@@ -22,6 +22,7 @@ import {
 } from "@/lib/map-filter-values";
 import { SEARCH_FILTER_EMPTY_LABELS } from "@/lib/search";
 import { normalizeSortStateForType } from "@/lib/constants";
+import { filterVisibleListingValues } from "@/lib/listing-counts";
 
 const FILTER_SECTION_TITLE_CLASS =
   "text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1";
@@ -37,6 +38,11 @@ interface LibrarySidebarProps {
   mapCount: number;
   availableTags: string[];
   availableSpecialDemand: string[];
+  modTagCounts: Record<string, number>;
+  mapLocationCounts: Record<string, number>;
+  mapSourceQualityCounts: Record<string, number>;
+  mapLevelOfDetailCounts: Record<string, number>;
+  mapSpecialDemandCounts: Record<string, number>;
 }
 
 const typeOptions: Array<{
@@ -55,6 +61,11 @@ export function LibrarySidebar({
   mapCount,
   availableTags,
   availableSpecialDemand,
+  modTagCounts,
+  mapLocationCounts,
+  mapSourceQualityCounts,
+  mapLevelOfDetailCounts,
+  mapSpecialDemandCounts,
 }: LibrarySidebarProps) {
   const counts: Record<LibraryTypeFilter, number> = {
     mod: modCount,
@@ -110,6 +121,7 @@ export function LibrarySidebar({
             title="Tag"
             icon={Tag}
             values={availableTags}
+            counts={modTagCounts}
             selected={filters.mod.tags}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -129,6 +141,7 @@ export function LibrarySidebar({
             title="Location"
             icon={MapPin}
             values={LOCATION_TAGS}
+            counts={mapLocationCounts}
             selected={filters.map.locations}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -141,6 +154,7 @@ export function LibrarySidebar({
             title="Source Quality"
             icon={BadgeCheck}
             values={SOURCE_QUALITY_VALUES}
+            counts={mapSourceQualityCounts}
             selected={filters.map.sourceQuality}
             formatValue={formatSourceQuality}
             onChange={(values) =>
@@ -154,6 +168,7 @@ export function LibrarySidebar({
             title="Level of Detail"
             icon={Layers3}
             values={LEVEL_OF_DETAIL_VALUES}
+            counts={mapLevelOfDetailCounts}
             selected={filters.map.levelOfDetail}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -166,6 +181,7 @@ export function LibrarySidebar({
             title="Special Demand"
             icon={GraduationCap}
             values={availableSpecialDemand}
+            counts={mapSpecialDemandCounts}
             selected={filters.map.specialDemand}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -185,6 +201,7 @@ export function LibrarySidebar({
 interface ChecklistFilterSectionProps {
   title: string;
   values: readonly string[];
+  counts: Record<string, number>;
   selected: string[];
   icon: ComponentType<{ className?: string }>;
   onChange: (values: string[]) => void;
@@ -196,11 +213,14 @@ function ChecklistFilterSection({
   title,
   icon: Icon,
   values,
+  counts,
   selected,
   onChange,
   emptyLabel = SEARCH_FILTER_EMPTY_LABELS.generic,
   formatValue = (value) => value,
 }: ChecklistFilterSectionProps) {
+  const visibleValues = filterVisibleListingValues(values, counts, selected);
+
   const toggle = (value: string) => {
     onChange(
       selected.includes(value)
@@ -212,19 +232,24 @@ function ChecklistFilterSection({
   return (
     <div>
       <FilterSectionTitle title={title} icon={Icon} />
-      {values.length === 0 ? (
+      {visibleValues.length === 0 ? (
         <p className="text-xs text-muted-foreground px-1">{emptyLabel}</p>
       ) : (
         <div className="space-y-1">
-          {values.map((value) => (
+          {visibleValues.map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => toggle(value)}
-              className={FILTER_SECTION_OPTION_CLASS}
+              className={cn(FILTER_SECTION_OPTION_CLASS, "justify-between")}
             >
-              <Checkbox checked={selected.includes(value)} aria-hidden="true" />
-              <span>{formatValue(value)}</span>
+              <span className="flex items-center gap-2">
+                <Checkbox checked={selected.includes(value)} aria-hidden="true" />
+                <span>{formatValue(value)}</span>
+              </span>
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {counts[value] ?? 0}
+              </span>
             </button>
           ))}
         </div>
