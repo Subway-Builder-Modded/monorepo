@@ -105,7 +105,7 @@ type assetPurgeArgs struct {
 type assetSyncArgs[T any, U any] struct {
 	assetType     types.AssetType                                                 // The type of asset being synced: map or mod (or others in the future).
 	subscriptions map[string]string                                               // The desired subscription state for the profile, keyed by asset ID and valued by version.
-	isStale     func() bool                                                     // Returns true when the sync snapshot is stale due to a newer profile update.
+	isStale       func() bool                                                     // Returns true when the sync snapshot is stale due to a newer profile update.
 	installedArgs installedVersionArgs[T]                                         // Non-shared installed-version resolver args.
 	availableArgs availableVersionArgs[U]                                         // Non-shared available-version resolver args.
 	install       func(assetID string, version string) types.AssetInstallResponse // The function to call to install the asset (using the downloader).
@@ -133,7 +133,7 @@ func (s *UserProfiles) buildMapSyncArgs(profile types.UserProfile, isStale func(
 	return assetSyncArgs[types.InstalledMapInfo, types.MapManifest]{
 		assetType:     types.AssetTypeMap,
 		subscriptions: profile.Subscriptions.Maps,
-		isStale:     isStale,
+		isStale:       isStale,
 		installedArgs: installedVersionArgs[types.InstalledMapInfo]{
 			getInstalledAssetsFn: s.Registry.GetInstalledMaps,
 			idFn:                 func(item types.InstalledMapInfo) string { return item.ID },
@@ -159,7 +159,7 @@ func (s *UserProfiles) buildModSyncArgs(profile types.UserProfile, isStale func(
 	return assetSyncArgs[types.InstalledModInfo, types.ModManifest]{
 		assetType:     types.AssetTypeMod,
 		subscriptions: profile.Subscriptions.Mods,
-		isStale:     isStale,
+		isStale:       isStale,
 		installedArgs: installedVersionArgs[types.InstalledModInfo]{
 			getInstalledAssetsFn: s.Registry.GetInstalledMods,
 			idFn:                 func(item types.InstalledModInfo) string { return item.ID },

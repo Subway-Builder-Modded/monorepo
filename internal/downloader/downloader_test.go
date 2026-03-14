@@ -311,9 +311,9 @@ func TestUninstallAssetCancelsQueuedInstall(t *testing.T) {
 	cfg := config.NewConfig()
 	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
 	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
+		Registry:    reg,
+		Config:      cfg,
+		Logger:      logger.LoggerAtPath(""),
 		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
 	}
 	cancelledEvents := captureCancelledEvents(d)
@@ -437,9 +437,9 @@ func TestCancelDuringExtractRemovesInstalledFiles(t *testing.T) {
 	configureDownloaderConfig(t, cfg)
 
 	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
+		Registry:    reg,
+		Config:      cfg,
+		Logger:      logger.LoggerAtPath(""),
 		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
 	}
 	d.tempPath = t.TempDir()
