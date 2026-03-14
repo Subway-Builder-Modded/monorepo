@@ -1,19 +1,20 @@
-import { useEffect, useMemo } from "react";
-import { useRegistryStore } from "@/stores/registry-store";
-import { useFilteredItems } from "@/hooks/use-filtered-items";
-import { SearchBar } from "@/components/search/SearchBar";
-import { SidebarFilters } from "@/components/search/SidebarFilters";
-import { ItemCard } from "@/components/shared/ItemCard";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { CardSkeletonGrid } from "@/components/shared/CardSkeletonGrid";
-import { ErrorBanner } from "@/components/shared/ErrorBanner";
-import { Pagination } from "@/components/shared/Pagination";
-import { SortSelect } from "@/components/search/SortSelect";
-import { SearchX } from "lucide-react";
-import { useInstalledStore } from "@/stores/installed-store";
-import { createRandomSeed } from "@/stores/search-store";
-import type { AssetType } from "@/lib/asset-types";
-import { buildAssetListingCounts } from "@/lib/listing-counts";
+import { SearchX } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+
+import { SearchBar } from '@/components/search/SearchBar';
+import { SidebarFilters } from '@/components/search/SidebarFilters';
+import { SortSelect } from '@/components/search/SortSelect';
+import { CardSkeletonGrid } from '@/components/shared/CardSkeletonGrid';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { ItemCard } from '@/components/shared/ItemCard';
+import { Pagination } from '@/components/shared/Pagination';
+import { useFilteredItems } from '@/hooks/use-filtered-items';
+import type { AssetType } from '@/lib/asset-types';
+import { buildAssetListingCounts } from '@/lib/listing-counts';
+import { useInstalledStore } from '@/stores/installed-store';
+import { useRegistryStore } from '@/stores/registry-store';
+import { createRandomSeed } from '@/stores/search-store';
 
 export function SearchPage() {
   const {
@@ -36,7 +37,7 @@ export function SearchPage() {
       const manifest = mods.find((m) => m.id === installed.id);
       if (manifest)
         items.push({
-          type: "mod",
+          type: 'mod',
           item: manifest,
           installedVersion: installed.version,
         });
@@ -45,7 +46,7 @@ export function SearchPage() {
       const manifest = maps.find((m) => m.id === installed.id);
       if (manifest)
         items.push({
-          type: "map",
+          type: 'map',
           item: manifest,
           installedVersion: installed.version,
         });
@@ -145,8 +146,8 @@ export function SearchPage() {
                 <>
                   <span className="font-medium text-foreground">
                     {totalResults}
-                  </span>{" "}
-                  result{totalResults !== 1 ? "s" : ""}
+                  </span>{' '}
+                  result{totalResults !== 1 ? 's' : ''}
                   {filters.query && (
                     <span className="ml-1">
                       for <span className="italic">"{filters.query}"</span>
@@ -162,7 +163,9 @@ export function SearchPage() {
                   ...prev,
                   sort: value,
                   randomSeed:
-                    value.field === "random" ? createRandomSeed() : prev.randomSeed,
+                    value.field === 'random'
+                      ? createRandomSeed()
+                      : prev.randomSeed,
                 }))
               }
               tab={filters.type}
@@ -179,7 +182,7 @@ export function SearchPage() {
               description={
                 filters.query
                   ? `No items match "${filters.query}"`
-                  : "No items match the current filters"
+                  : 'No items match the current filters'
               }
             />
           ) : (
@@ -195,7 +198,7 @@ export function SearchPage() {
                         ?.installedVersion
                     }
                     totalDownloads={
-                      itemType === "mod"
+                      itemType === 'mod'
                         ? (modDownloadTotals[item.id] ?? 0)
                         : (mapDownloadTotals[item.id] ?? 0)
                     }

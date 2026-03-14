@@ -34,7 +34,9 @@ export function buildListingCounts({
   const counts: Record<string, number> = {};
 
   for (const rawValues of valuesByItem) {
-    const normalizedValues = dedupePerItem ? [...new Set(rawValues)] : rawValues;
+    const normalizedValues = dedupePerItem
+      ? [...new Set(rawValues)]
+      : rawValues;
     for (const value of normalizedValues) {
       incrementCount(counts, value);
     }

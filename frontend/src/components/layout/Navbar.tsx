@@ -1,32 +1,37 @@
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { Play, Square, RefreshCw, TrainTrack } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Play, RefreshCw, Square, TrainTrack } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Link, useLocation } from 'wouter';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { useRegistryStore } from "@/stores/registry-store";
-import { useConfigStore } from "@/stores/config-store";
-import { useInstalledStore } from "@/stores/installed-store";
-import { useGameStore } from "@/stores/game-store";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { useConfigStore } from '@/stores/config-store';
+import { useGameStore } from '@/stores/game-store';
+import { useInstalledStore } from '@/stores/installed-store';
+import { useRegistryStore } from '@/stores/registry-store';
 
 const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/library", label: "Library" },
-  { href: "/search", label: "Browse" },
-  { href: "/logs", label: "Logs" },
-  { href: "/settings", label: "Settings" },
+  { href: '/', label: 'Home' },
+  { href: '/library', label: 'Library' },
+  { href: '/search', label: 'Browse' },
+  { href: '/logs', label: 'Logs' },
+  { href: '/settings', label: 'Settings' },
 ] as const;
 
-const MOD_REMINDER_KEY = "railyard:mod-reminder-acknowledged";
+const MOD_REMINDER_KEY = 'railyard:mod-reminder-acknowledged';
 
 export function Navbar() {
   const [location] = useLocation();
@@ -38,7 +43,8 @@ export function Navbar() {
 
   const handleLaunch = async () => {
     const hasMaps = installedMaps.length > 0;
-    const alreadyAcknowledged = localStorage.getItem(MOD_REMINDER_KEY) === "true";
+    const alreadyAcknowledged =
+      localStorage.getItem(MOD_REMINDER_KEY) === 'true';
 
     if (hasMaps && !alreadyAcknowledged) {
       setShowModReminder(true);
@@ -48,17 +54,17 @@ export function Navbar() {
     try {
       await launch();
     } catch (err) {
-      toast.error(String(err) || "Failed to launch game.");
+      toast.error(String(err) || 'Failed to launch game.');
     }
   };
 
   const handleAcknowledgeAndLaunch = async () => {
-    localStorage.setItem(MOD_REMINDER_KEY, "true");
+    localStorage.setItem(MOD_REMINDER_KEY, 'true');
     setShowModReminder(false);
     try {
       await launch();
     } catch (err) {
-      toast.error(String(err) || "Failed to launch game.");
+      toast.error(String(err) || 'Failed to launch game.');
     }
   };
 
@@ -66,7 +72,7 @@ export function Navbar() {
     try {
       await stop();
     } catch (err) {
-      toast.error(String(err) || "Failed to stop game.");
+      toast.error(String(err) || 'Failed to stop game.');
     }
   };
 
@@ -84,10 +90,10 @@ export function Navbar() {
                 key={href}
                 href={href}
                 className={cn(
-                  "text-sm transition-colors hover:text-foreground flex items-center gap-1.5",
+                  'text-sm transition-colors hover:text-foreground flex items-center gap-1.5',
                   location === href
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground"
+                    ? 'text-foreground font-medium'
+                    : 'text-muted-foreground',
                 )}
               >
                 {label}
@@ -128,8 +134,18 @@ export function Navbar() {
               )}
             </Tooltip>
           )}
-          <Button variant="ghost" size="icon" onClick={refresh} disabled={loading || refreshing}>
-            <RefreshCw className={cn("h-4 w-4", (loading || refreshing) && "animate-spin")} />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={refresh}
+            disabled={loading || refreshing}
+          >
+            <RefreshCw
+              className={cn(
+                'h-4 w-4',
+                (loading || refreshing) && 'animate-spin',
+              )}
+            />
           </Button>
         </div>
       </div>
@@ -139,8 +155,10 @@ export function Navbar() {
           <DialogHeader>
             <DialogTitle>Enable Railyard Map Loader</DialogTitle>
             <DialogDescription>
-              You have custom maps installed. To use them in-game, make sure the{" "}
-              <span className="font-semibold text-foreground">Railyard Map Loader</span>{" "}
+              You have custom maps installed. To use them in-game, make sure the{' '}
+              <span className="font-semibold text-foreground">
+                Railyard Map Loader
+              </span>{' '}
               mod is enabled in the game's mod manager.
             </DialogDescription>
           </DialogHeader>

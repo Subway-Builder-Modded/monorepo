@@ -1,21 +1,22 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Tags, X } from 'lucide-react';
+import { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from "@/components/ui/command";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Tags, X } from "lucide-react";
+} from '@/components/ui/popover';
 
 interface TagsFilterProps {
   availableTags: string[];
@@ -34,7 +35,7 @@ export function TagsFilter({
     onChange(
       selectedTags.includes(tag)
         ? selectedTags.filter((t) => t !== tag)
-        : [...selectedTags, tag]
+        : [...selectedTags, tag],
     );
   };
 
@@ -46,10 +47,7 @@ export function TagsFilter({
             <Tags className="h-4 w-4 mr-1.5" />
             Tags
             {selectedTags.length > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-1.5 px-1.5 py-0 text-xs"
-              >
+              <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-xs">
                 {selectedTags.length}
               </Badge>
             )}

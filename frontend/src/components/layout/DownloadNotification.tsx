@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
-import { EventsOn } from "../../../wailsjs/runtime/runtime";
-import { toast } from "sonner";
-import { Download, CheckCircle } from "lucide-react";
-import { useDownloadQueueStore } from "@/stores/download-queue-store";
+import { CheckCircle,Download } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+
+import { useDownloadQueueStore } from '@/stores/download-queue-store';
+
+import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
 interface DownloadProgress {
   itemId: string;
@@ -24,7 +26,7 @@ export function DownloadNotification() {
   const toastIds = useRef<Map<string, string | number>>(new Map());
 
   useEffect(() => {
-    const cancel = EventsOn("download:progress", (data: DownloadProgress) => {
+    const cancel = EventsOn('download:progress', (data: DownloadProgress) => {
       const { itemId, received, total } = data;
       const percent = total > 0 ? Math.round((received / total) * 100) : -1;
       const isComplete = total > 0 && received >= total;
@@ -106,18 +108,21 @@ export function DownloadNotification() {
       }
     });
 
-    const cancelDownload = EventsOn("download:cancelled", (data: DownloadCancelled) => {
-      if (!data?.itemId) {
-        return;
-      }
-      const existingId = toastIds.current.get(data.itemId);
-      if (!existingId) {
-        return;
-      }
-      // Dismiss the toast immediately on cancellation without showing an error
-      toast.dismiss(existingId);
-      toastIds.current.delete(data.itemId);
-    });
+    const cancelDownload = EventsOn(
+      'download:cancelled',
+      (data: DownloadCancelled) => {
+        if (!data?.itemId) {
+          return;
+        }
+        const existingId = toastIds.current.get(data.itemId);
+        if (!existingId) {
+          return;
+        }
+        // Dismiss the toast immediately on cancellation without showing an error
+        toast.dismiss(existingId);
+        toastIds.current.delete(data.itemId);
+      },
+    );
 
     return () => {
       cancelDownload();

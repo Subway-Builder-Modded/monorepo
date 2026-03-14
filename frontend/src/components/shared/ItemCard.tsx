@@ -1,13 +1,15 @@
-import { Link } from "wouter";
-import { Badge } from "@/components/ui/badge";
-import { GalleryImage } from "./GalleryImage";
-import { cn } from "@/lib/utils";
-import { Users, CheckCircle, Package, MapPin, Download } from "lucide-react";
-import { formatSourceQuality } from "@/lib/map-filter-values";
-import { MAX_CARD_BADGES } from "@/lib/search";
-import { getCountryFlagIcon } from "@/lib/flags";
-import { types } from "../../../wailsjs/go/models";
-import { assetTypeToListingPath, type AssetType } from "@/lib/asset-types";
+import { CheckCircle, Download,MapPin, Package, Users } from 'lucide-react';
+import { Link } from 'wouter';
+
+import { Badge } from '@/components/ui/badge';
+import { type AssetType,assetTypeToListingPath } from '@/lib/asset-types';
+import { getCountryFlagIcon } from '@/lib/flags';
+import { formatSourceQuality } from '@/lib/map-filter-values';
+import { MAX_CARD_BADGES } from '@/lib/search';
+import { cn } from '@/lib/utils';
+
+import type { types } from '../../../wailsjs/go/models';
+import { GalleryImage } from './GalleryImage';
 
 interface ItemCardProps {
   type: AssetType;
@@ -19,7 +21,7 @@ interface ItemCardProps {
 function isMapManifest(
   item: types.ModManifest | types.MapManifest,
 ): item is types.MapManifest {
-  return "city_code" in item;
+  return 'city_code' in item;
 }
 
 export function ItemCard({
@@ -39,17 +41,17 @@ export function ItemCard({
     : [];
   const badges = isMap ? mapBadges : (item.tags ?? []);
 
-  const mapCityCode = isMap ? item.city_code!.trim() : "";
-  const mapCountry = isMap ? item.country!.trim().toUpperCase() : "";
+  const mapCityCode = isMap ? item.city_code!.trim() : '';
+  const mapCountry = isMap ? item.country!.trim().toUpperCase() : '';
   const CountryFlag = isMap ? getCountryFlagIcon(mapCountry) : null;
-  const showDownloads = typeof totalDownloads === "number";
+  const showDownloads = typeof totalDownloads === 'number';
 
   return (
     <Link href={`/project/${assetTypeToListingPath(type)}/${item.id}`}>
       <article
         className={cn(
-          "group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col",
-          installedVersion && "ring-1 ring-primary/40",
+          'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
+          installedVersion && 'ring-1 ring-primary/40',
         )}
       >
         {/* Thumbnail */}
@@ -70,7 +72,7 @@ export function ItemCard({
               ) : (
                 <Package className="h-2.5 w-2.5" />
               )}
-              {isMap ? "Map" : "Mod"}
+              {isMap ? 'Map' : 'Mod'}
             </span>
           </div>
           <GalleryImage

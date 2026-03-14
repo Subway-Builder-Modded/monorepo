@@ -1,19 +1,24 @@
-import { useEffect, useRef } from "react";
-import { useGameStore, LogEntry } from "@/stores/game-store";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { Trash2, ArrowDownToLine, Terminal, ExternalLink } from "lucide-react";
-import { BrowserOpenURL } from "../../wailsjs/runtime/runtime";
-import { cn } from "@/lib/utils";
+import { ArrowDownToLine, ExternalLink,Terminal, Trash2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import type { LogEntry} from '@/stores/game-store';
+import {useGameStore } from '@/stores/game-store';
+
+import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
 function LogLine({ entry }: { entry: LogEntry }) {
   const time = new Date(entry.timestamp).toLocaleTimeString();
   return (
-    <div className={cn(
-      "flex gap-2 px-3 py-0.5 text-xs font-mono hover:bg-muted/50",
-      entry.stream === "stderr" && "text-destructive"
-    )}>
+    <div
+      className={cn(
+        'flex gap-2 px-3 py-0.5 text-xs font-mono hover:bg-muted/50',
+        entry.stream === 'stderr' && 'text-destructive',
+      )}
+    >
       <span className="text-muted-foreground shrink-0 select-none">{time}</span>
       <span className="break-all whitespace-pre-wrap">{entry.line}</span>
     </div>
@@ -29,9 +34,11 @@ export function LogsPage() {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      100;
     if (isNearBottom) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [logs.length]);
 
@@ -40,32 +47,45 @@ export function LogsPage() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">Game Logs</h1>
-          <Badge variant={running ? "default" : "secondary"}>
-            {running ? "Running" : "Stopped"}
+          <Badge variant={running ? 'default' : 'secondary'}>
+            {running ? 'Running' : 'Stopped'}
           </Badge>
         </div>
         <div className="flex items-center gap-2">
           {logs.length > 0 && (
-            <span className="text-xs text-muted-foreground mr-2">{logs.length} lines</span>
+            <span className="text-xs text-muted-foreground mr-2">
+              {logs.length} lines
+            </span>
           )}
           {serverPort && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => BrowserOpenURL(`http://127.0.0.1:${serverPort}/debug/thumbnails`)}
+              onClick={() =>
+                BrowserOpenURL(
+                  `http://127.0.0.1:${serverPort}/debug/thumbnails`,
+                )
+              }
             >
               <ExternalLink className="h-4 w-4 mr-1.5" />
               Debug Thumbnails
             </Button>
           )}
-          <Button variant="outline" size="sm" onClick={clearLogs} disabled={logs.length === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearLogs}
+            disabled={logs.length === 0}
+          >
             <Trash2 className="h-4 w-4 mr-1.5" />
             Clear
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => bottomRef.current?.scrollIntoView({ behavior: "smooth" })}
+            onClick={() =>
+              bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+            }
             disabled={logs.length === 0}
           >
             <ArrowDownToLine className="h-4 w-4 mr-1.5" />
@@ -78,7 +98,11 @@ export function LogsPage() {
         <EmptyState
           icon={Terminal}
           title="No game logs yet"
-          description={running ? "Waiting for output..." : "Launch the game to see logs here."}
+          description={
+            running
+              ? 'Waiting for output...'
+              : 'Launch the game to see logs here.'
+          }
         />
       ) : (
         <div

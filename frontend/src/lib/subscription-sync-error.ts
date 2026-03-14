@@ -1,10 +1,11 @@
-import { SubscriptionSyncError } from "@/stores/installed-store"
-import { types } from "../../wailsjs/go/models"
+import { SubscriptionSyncError } from '@/stores/installed-store';
+
+import type { types } from '../../wailsjs/go/models';
 
 export interface SubscriptionSyncErrorState {
-  version: string
-  message: string
-  errors: types.UserProfilesError[]
+  version: string;
+  message: string;
+  errors: types.UserProfilesError[];
 }
 
 export function toSubscriptionSyncErrorState(
@@ -12,25 +13,27 @@ export function toSubscriptionSyncErrorState(
   version: string,
 ): SubscriptionSyncErrorState | null {
   if (!(err instanceof SubscriptionSyncError)) {
-    return null
+    return null;
   }
 
   return {
     version,
     message: err.message,
     errors: err.profileErrors,
-  }
+  };
 }
 
-export function isCancellationMessage(message: string | undefined | null): boolean {
+export function isCancellationMessage(
+  message: string | undefined | null,
+): boolean {
   if (!message) {
     return false;
   }
   const normalized = message.toLowerCase();
   return (
-    normalized.includes("cancel") ||
-    normalized.includes("superseded by newer queued request") ||
-    normalized.includes("not currently installed")
+    normalized.includes('cancel') ||
+    normalized.includes('superseded by newer queued request') ||
+    normalized.includes('not currently installed')
   );
 }
 

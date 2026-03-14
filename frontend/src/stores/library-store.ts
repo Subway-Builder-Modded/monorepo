@@ -1,6 +1,11 @@
-import { create } from "zustand";
-import type { AssetType } from "@/lib/asset-types";
-import { DEFAULT_SORT_STATE, type PerPage, type SortState } from "@/lib/constants";
+import { create } from 'zustand';
+
+import type { AssetType } from '@/lib/asset-types';
+import {
+  DEFAULT_SORT_STATE,
+  type PerPage,
+  type SortState,
+} from '@/lib/constants';
 
 export type LibraryTypeFilter = AssetType;
 
@@ -42,13 +47,13 @@ interface LibraryState {
 }
 
 const defaultLibraryFilters: LibraryFilterState = {
-  query: "",
-  type: "mod",
+  query: '',
+  type: 'mod',
   perPage: 12,
   sort: {
     ...DEFAULT_SORT_STATE,
-    field: "name",
-    direction: "asc",
+    field: 'name',
+    direction: 'asc',
   },
   randomSeed: createRandomSeed(),
   mod: {
@@ -68,8 +73,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   selectedIds: new Set<string>(),
   setFilters: (updater) =>
     set((state) => ({
-      filters:
-        typeof updater === "function" ? updater(state.filters) : updater,
+      filters: typeof updater === 'function' ? updater(state.filters) : updater,
     })),
   setPage: (page) => set({ page }),
   toggleSelected: (id) =>

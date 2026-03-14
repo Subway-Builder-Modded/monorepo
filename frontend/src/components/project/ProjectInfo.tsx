@@ -1,42 +1,44 @@
-import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import {
+  CheckCircle,
+  Download,
+  ExternalLink,
+  Globe,
+  Loader2,
+  MapPin,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react';
+import { useState } from 'react';
+import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import { toast } from 'sonner';
+
+import { InstallErrorDialog } from '@/components/dialogs/InstallErrorDialog';
+import { PrereleaseConfirmDialog } from '@/components/dialogs/PrereleaseConfirmDialog';
+import { SubscriptionSyncErrorDialog } from '@/components/dialogs/SubscriptionSyncErrorDialog';
+import { UninstallDialog } from '@/components/dialogs/UninstallDialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useInstalledStore } from "@/stores/installed-store";
-import { UninstallDialog } from "@/components/dialogs/UninstallDialog";
-import { InstallErrorDialog } from "@/components/dialogs/InstallErrorDialog";
-import { PrereleaseConfirmDialog } from "@/components/dialogs/PrereleaseConfirmDialog";
-import { SubscriptionSyncErrorDialog } from "@/components/dialogs/SubscriptionSyncErrorDialog";
-import { toast } from "sonner";
+} from '@/components/ui/tooltip';
+import type { AssetType } from '@/lib/asset-types';
+import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
-  ExternalLink,
-  MapPin,
-  Users,
-  Globe,
-  Loader2,
-  Trash2,
-  CheckCircle,
-  Download,
-  X,
-} from "lucide-react";
-import Markdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
-import { BrowserOpenURL } from "../../../wailsjs/runtime/runtime";
-import { types } from "../../../wailsjs/go/models";
-import { formatSourceQuality } from "@/lib/map-filter-values";
-import { useDownloadQueueStore } from "@/stores/download-queue-store";
-import type { AssetType } from "@/lib/asset-types";
-import {
-  isCancellationSyncError,
   isCancellationMessage,
+  isCancellationSyncError,
   toSubscriptionSyncErrorState,
-} from "@/lib/subscription-sync-error";
+} from '@/lib/subscription-sync-error';
+import { useDownloadQueueStore } from '@/stores/download-queue-store';
+import { useInstalledStore } from '@/stores/installed-store';
+
+import type { types } from '../../../wailsjs/go/models';
+import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 
 interface ProjectInfoProps {
   type: AssetType;
@@ -50,7 +52,7 @@ interface ProjectInfoProps {
 function isMapManifest(
   item: types.ModManifest | types.MapManifest,
 ): item is types.MapManifest {
-  return "city_code" in item;
+  return 'city_code' in item;
 }
 
 export function ProjectInfo({
@@ -73,8 +75,14 @@ export function ProjectInfo({
     message: string;
     errors: types.UserProfilesError[];
   } | null>(null);
-  const { installMod, installMap, cancelPendingInstall, getInstalledVersion, isInstalling, isUninstalling } =
-    useInstalledStore();
+  const {
+    installMod,
+    installMap,
+    cancelPendingInstall,
+    getInstalledVersion,
+    isInstalling,
+    isUninstalling,
+  } = useInstalledStore();
 
   const installedVersion = getInstalledVersion(item.id);
   const installing = isInstalling(item.id);
@@ -100,29 +108,39 @@ export function ProjectInfo({
   const handleInstall = async (version: string) => {
     try {
       let result: types.UpdateSubscriptionsResult;
-      if (type === "mod") {
+      if (type === 'mod') {
         result = await installMod(item.id, version);
       } else {
         result = await installMap(item.id, version);
       }
-      if (result.status === "warn") {
+      if (result.status === 'warn') {
         if (isCancellationMessage(result.message)) {
-          toast.success(`Cancelled pending install for ${item.name}.`, { id: cancellationToastId });
+          toast.success(`Cancelled pending install for ${item.name}.`, {
+            id: cancellationToastId,
+          });
         } else {
-          toast.warning(result.message || `Install for ${item.name} completed with warnings.`);
+          toast.warning(
+            result.message ||
+              `Install for ${item.name} completed with warnings.`,
+          );
         }
         return;
       }
       const { completed, total } = useDownloadQueueStore.getState();
-      const queueText = total > 1 ? ` (${completed}/${total} Downloaded)` : "";
+      const queueText = total > 1 ? ` (${completed}/${total} Downloaded)` : '';
       toast.success(
         `${item.name} ${version} installed successfully.${queueText}`,
       );
     } catch (err) {
       const syncError = toSubscriptionSyncErrorState(err, version);
       if (syncError) {
-        if (useInstalledStore.getState().isUninstalling(item.id) || isCancellationSyncError(syncError)) {
-          toast.success(`Cancelled pending install for ${item.name}.`, { id: cancellationToastId });
+        if (
+          useInstalledStore.getState().isUninstalling(item.id) ||
+          isCancellationSyncError(syncError)
+        ) {
+          toast.success(`Cancelled pending install for ${item.name}.`, {
+            id: cancellationToastId,
+          });
           return;
         }
         setSubscriptionSyncError(syncError);
@@ -138,7 +156,9 @@ export function ProjectInfo({
   const handleCancelInstall = async () => {
     try {
       await cancelPendingInstall(type, item.id);
-      toast.success(`Cancelled pending install for ${item.name}.`, { id: cancellationToastId });
+      toast.success(`Cancelled pending install for ${item.name}.`, {
+        id: cancellationToastId,
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     }
@@ -182,7 +202,7 @@ export function ProjectInfo({
           <Download className="h-4 w-4 mr-1.5" />
           {label}
         </Button>
-        {label.toLowerCase().includes("update") && (
+        {label.toLowerCase().includes('update') && (
           <Button
             variant="outline"
             size="icon"

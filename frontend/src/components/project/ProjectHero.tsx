@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { GetGalleryImage } from "../../../wailsjs/go/registry/Registry";
-import { assetTypeToListingPath, type AssetType } from "@/lib/asset-types";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect,useState } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { type AssetType,assetTypeToListingPath } from '@/lib/asset-types';
+
+import { GetGalleryImage } from '../../../wailsjs/go/registry/Registry';
 
 interface ProjectHeroProps {
   type: AssetType;
@@ -25,8 +27,10 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
 
     Promise.all(
       gallery.map((path) =>
-        GetGalleryImage(assetTypeToListingPath(type), id, path).catch(() => null)
-      )
+        GetGalleryImage(assetTypeToListingPath(type), id, path).catch(
+          () => null,
+        ),
+      ),
     ).then((urls) => {
       setImages(urls);
       setLoading(false);
@@ -36,9 +40,11 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
   if (loading) {
     return (
       <div className="flex gap-2 overflow-hidden">
-        {Array.from({ length: Math.min(gallery?.length || 3, 5) }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-40 rounded-md flex-shrink-0" />
-        ))}
+        {Array.from({ length: Math.min(gallery?.length || 3, 5) }).map(
+          (_, i) => (
+            <Skeleton key={i} className="h-24 w-40 rounded-md flex-shrink-0" />
+          ),
+        )}
       </div>
     );
   }
@@ -58,16 +64,15 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
             onClick={() => setSelectedIndex(i)}
             className="h-24 w-40 flex-shrink-0 rounded-md overflow-hidden ring-offset-background transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <img
-              src={url}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+            <img src={url} alt="" className="w-full h-full object-cover" />
           </button>
         ))}
       </div>
 
-      <Dialog open={selectedIndex !== null} onOpenChange={() => setSelectedIndex(null)}>
+      <Dialog
+        open={selectedIndex !== null}
+        onOpenChange={() => setSelectedIndex(null)}
+      >
         <DialogContent className="w-[95vw] sm:max-w-none max-h-[95vh] p-2 bg-background/95 backdrop-blur-sm border-border">
           {selectedIndex !== null && validImages[selectedIndex] && (
             <div className="relative flex items-center justify-center">
@@ -83,7 +88,10 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
                     size="icon"
                     className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm"
                     onClick={() =>
-                      setSelectedIndex((selectedIndex - 1 + validImages.length) % validImages.length)
+                      setSelectedIndex(
+                        (selectedIndex - 1 + validImages.length) %
+                          validImages.length,
+                      )
                     }
                   >
                     <ChevronLeft className="h-4 w-4" />

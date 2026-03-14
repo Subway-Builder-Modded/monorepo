@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useLibraryStore } from "@/stores/library-store";
-import { UninstallDialog } from "@/components/dialogs/UninstallDialog";
-import { Trash2, CheckCircle } from "lucide-react";
-import { type InstalledTaggedItem } from "@/hooks/use-filtered-installed-items";
-import type { AssetType } from "@/lib/asset-types";
+import { CheckCircle,Trash2 } from 'lucide-react';
+import { useState } from 'react';
+
+import { UninstallDialog } from '@/components/dialogs/UninstallDialog';
+import { Button } from '@/components/ui/button';
+import { type InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
+import type { AssetType } from '@/lib/asset-types';
+import { useLibraryStore } from '@/stores/library-store';
 
 interface UninstallTarget {
   type: AssetType;
@@ -16,11 +17,11 @@ interface LibraryActionBarProps {
   allItems: InstalledTaggedItem[];
 }
 
-export function LibraryActionBar({
-  allItems,
-}: LibraryActionBarProps) {
+export function LibraryActionBar({ allItems }: LibraryActionBarProps) {
   const { selectedIds, clearSelection } = useLibraryStore();
-  const [uninstallTargets, setUninstallTargets] = useState<UninstallTarget[] | null>(null);
+  const [uninstallTargets, setUninstallTargets] = useState<
+    UninstallTarget[] | null
+  >(null);
 
   if (selectedIds.size === 0) return null;
 

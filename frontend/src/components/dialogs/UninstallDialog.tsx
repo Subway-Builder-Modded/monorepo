@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { useInstalledStore } from "@/stores/installed-store";
+import { AlertTriangle, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,11 +10,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { AlertTriangle, Loader2 } from "lucide-react";
-import type { AssetType } from "@/lib/asset-types";
+} from '@/components/ui/dialog';
+import type { AssetType } from '@/lib/asset-types';
+import { useInstalledStore } from '@/stores/installed-store';
 
 interface UninstallTarget {
   type: AssetType;
@@ -39,13 +40,12 @@ export function UninstallDialog({
   const { uninstallAssets } = useInstalledStore();
   const [loading, setLoading] = useState(false);
 
-  const uninstallTargets: UninstallTarget[] = targets
-    ?? (type && id && name ? [{ type, id, name }] : []);
+  const uninstallTargets: UninstallTarget[] =
+    targets ?? (type && id && name ? [{ type, id, name }] : []);
   const itemCount = uninstallTargets.length;
   const firstTarget = uninstallTargets[0];
-  const titleName = itemCount === 1
-    ? (firstTarget?.name ?? "item")
-    : `${itemCount} items`;
+  const titleName =
+    itemCount === 1 ? (firstTarget?.name ?? 'item') : `${itemCount} items`;
   const singleType = itemCount === 1 ? firstTarget?.type : null;
 
   const handleUninstall = async () => {
@@ -53,10 +53,12 @@ export function UninstallDialog({
 
     setLoading(true);
     try {
-      await uninstallAssets(uninstallTargets.map((target) => ({
-        id: target.id,
-        type: target.type,
-      })));
+      await uninstallAssets(
+        uninstallTargets.map((target) => ({
+          id: target.id,
+          type: target.type,
+        })),
+      );
 
       toast.success(
         itemCount === 1
@@ -85,15 +87,23 @@ export function UninstallDialog({
           </DialogTitle>
           <DialogDescription>
             {itemCount === 1
-              ? `This will remove all installed files for this ${singleType === "mod" ? "mod" : "map"}. You can reinstall it later from the registry.`
-              : "This will remove all installed files for the selected assets. You can reinstall them later from the registry."}
+              ? `This will remove all installed files for this ${singleType === 'mod' ? 'mod' : 'map'}. You can reinstall it later from the registry.`
+              : 'This will remove all installed files for the selected assets. You can reinstall them later from the registry.'}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleUninstall} disabled={loading}>
+          <Button
+            variant="destructive"
+            onClick={handleUninstall}
+            disabled={loading}
+          >
             {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Uninstall
           </Button>

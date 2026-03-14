@@ -1,14 +1,15 @@
-import { useMemo } from "react";
-import { Link } from "wouter";
-import { useRegistryStore } from "@/stores/registry-store";
-import { useInstalledStore } from "@/stores/installed-store";
-import { ItemCard } from "@/components/shared/ItemCard";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { CardSkeletonGrid } from "@/components/shared/CardSkeletonGrid";
-import { ErrorBanner } from "@/components/shared/ErrorBanner";
-import { Button } from "@/components/ui/button";
-import { Compass, ArrowRight, Library, Search } from "lucide-react";
-import type { AssetType } from "@/lib/asset-types";
+import { ArrowRight, Compass, Library, Search } from 'lucide-react';
+import { useMemo } from 'react';
+import { Link } from 'wouter';
+
+import { CardSkeletonGrid } from '@/components/shared/CardSkeletonGrid';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { ItemCard } from '@/components/shared/ItemCard';
+import { Button } from '@/components/ui/button';
+import type { AssetType } from '@/lib/asset-types';
+import { useInstalledStore } from '@/stores/installed-store';
+import { useRegistryStore } from '@/stores/registry-store';
 
 export function HomePage() {
   const { mods, maps, loading, error } = useRegistryStore();
@@ -24,12 +25,17 @@ export function HomePage() {
   const installedCount = installedMods.length + installedMaps.length;
 
   const discoverItems = useMemo(() => {
-    const items: Array<{ type: AssetType; item: typeof mods[number] | typeof maps[number] }> = [];
+    const items: Array<{
+      type: AssetType;
+      item: (typeof mods)[number] | (typeof maps)[number];
+    }> = [];
     // Interleave mods and maps for variety, excluding already-installed items
     const maxLen = Math.max(mods.length, maps.length);
     for (let i = 0; i < maxLen && items.length < 8; i++) {
-      if (i < mods.length && items.length < 8 && !installedIds.has(mods[i].id)) items.push({ type: "mod", item: mods[i] });
-      if (i < maps.length && items.length < 8 && !installedIds.has(maps[i].id)) items.push({ type: "map", item: maps[i] });
+      if (i < mods.length && items.length < 8 && !installedIds.has(mods[i].id))
+        items.push({ type: 'mod', item: mods[i] });
+      if (i < maps.length && items.length < 8 && !installedIds.has(maps[i].id))
+        items.push({ type: 'map', item: maps[i] });
     }
     return items;
   }, [mods, maps, installedIds]);
@@ -52,8 +58,8 @@ export function HomePage() {
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {installedCount > 0
-                    ? `${installedCount} item${installedCount !== 1 ? "s" : ""} installed`
-                    : "No content installed yet"}
+                    ? `${installedCount} item${installedCount !== 1 ? 's' : ''} installed`
+                    : 'No content installed yet'}
                 </p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />

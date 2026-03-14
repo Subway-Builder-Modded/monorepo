@@ -1,4 +1,22 @@
-import { useState } from "react";
+import {
+  ArrowDownToLine,
+  CheckCircle,
+  Download,
+  FileText,
+  Loader2,
+  X,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+import { InstallErrorDialog } from '@/components/dialogs/InstallErrorDialog';
+import { PrereleaseConfirmDialog } from '@/components/dialogs/PrereleaseConfirmDialog';
+import { SubscriptionSyncErrorDialog } from '@/components/dialogs/SubscriptionSyncErrorDialog';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -6,40 +24,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+} from '@/components/ui/table';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/tooltip';
+import type { AssetType } from '@/lib/asset-types';
+import { isCompatible } from '@/lib/semver';
 import {
-  Download,
-  X,
-  FileText,
-  ArrowDownToLine,
-  Loader2,
-  CheckCircle,
-} from "lucide-react";
-import { useInstalledStore } from "@/stores/installed-store";
-import { types } from "../../../wailsjs/go/models";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { ErrorBanner } from "@/components/shared/ErrorBanner";
-import { InstallErrorDialog } from "@/components/dialogs/InstallErrorDialog";
-import { PrereleaseConfirmDialog } from "@/components/dialogs/PrereleaseConfirmDialog";
-import { SubscriptionSyncErrorDialog } from "@/components/dialogs/SubscriptionSyncErrorDialog";
-import { isCompatible } from "@/lib/semver";
-import { toast } from "sonner";
-import { useDownloadQueueStore } from "@/stores/download-queue-store";
-import type { AssetType } from "@/lib/asset-types";
-import {
-  isCancellationSyncError,
   isCancellationMessage,
+  isCancellationSyncError,
   toSubscriptionSyncErrorState,
-} from "@/lib/subscription-sync-error";
+} from '@/lib/subscription-sync-error';
+import { useDownloadQueueStore } from '@/stores/download-queue-store';
+import { useInstalledStore } from '@/stores/installed-store';
+
+import type { types } from '../../../wailsjs/go/models';
 
 interface VersionsTableProps {
   type: AssetType;
@@ -87,12 +89,12 @@ export function VersionsTable({
   const doInstall = async (version: string) => {
     try {
       let result: types.UpdateSubscriptionsResult;
-      if (type === "mod") {
+      if (type === 'mod') {
         result = await installMod(itemId, version);
       } else {
         result = await installMap(itemId, version);
       }
-      if (result.status === "warn") {
+      if (result.status === 'warn') {
         if (isCancellationMessage(result.message)) {
           toast.success(`Cancelled pending install for ${itemName}.`, {
             id: cancellationToastId,
@@ -106,7 +108,7 @@ export function VersionsTable({
         return;
       }
       const { completed, total } = useDownloadQueueStore.getState();
-      const queueText = total > 1 ? ` (${completed}/${total} Downloaded)` : "";
+      const queueText = total > 1 ? ` (${completed}/${total} Downloaded)` : '';
       toast.success(`Installed ${version} successfully.${queueText}`);
     } catch (err) {
       const syncError = toSubscriptionSyncErrorState(err, version);
@@ -181,9 +183,9 @@ export function VersionsTable({
   const formatDate = (dateStr: string) => {
     try {
       return new Date(dateStr).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
       });
     } catch {
       return dateStr;
@@ -218,7 +220,7 @@ export function VersionsTable({
               return (
                 <TableRow
                   key={v.version}
-                  className={incompatible ? "opacity-50" : ""}
+                  className={incompatible ? 'opacity-50' : ''}
                 >
                   <TableCell className="font-mono font-medium">
                     <span className="flex items-center gap-2">
@@ -238,7 +240,7 @@ export function VersionsTable({
                   </TableCell>
                   {hasAnyGameVersion && (
                     <TableCell className="text-muted-foreground font-mono text-xs">
-                      {v.game_version || "\u2014"}
+                      {v.game_version || '\u2014'}
                     </TableCell>
                   )}
                   <TableCell className="text-sm text-muted-foreground max-w-xs truncate">

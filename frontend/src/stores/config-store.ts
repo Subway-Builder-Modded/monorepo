@@ -1,16 +1,17 @@
 import { create } from 'zustand';
-import { types } from '../../wailsjs/go/models';
+
 import {
-  GetConfig,
-  SaveConfig,
   ClearConfig,
-  OpenMetroMakerDataFolderDialog,
-  OpenExecutableDialog,
-  UpdateCheckForUpdatesOnLaunch,
-  UpdateGithubToken,
   ClearGithubToken,
   CompleteSetup,
+  GetConfig,
+  OpenExecutableDialog,
+  OpenMetroMakerDataFolderDialog,
+  SaveConfig,
+  UpdateCheckForUpdatesOnLaunch,
+  UpdateGithubToken,
 } from '../../wailsjs/go/config/Config';
+import { types } from '../../wailsjs/go/models';
 
 interface ConfigState {
   config: types.AppConfig | null;
@@ -22,13 +23,19 @@ interface ConfigState {
 
   isConfigured: () => boolean;
   initialize: () => Promise<void>;
-  openDataFolderDialog: (allowAutoDetect: boolean) => Promise<types.SetConfigPathResult>;
-  openExecutableDialog: (allowAutoDetect: boolean) => Promise<types.SetConfigPathResult>;
+  openDataFolderDialog: (
+    allowAutoDetect: boolean,
+  ) => Promise<types.SetConfigPathResult>;
+  openExecutableDialog: (
+    allowAutoDetect: boolean,
+  ) => Promise<types.SetConfigPathResult>;
   saveConfig: () => Promise<void>;
   clearConfig: () => Promise<void>;
   updateGithubToken: (token: string) => Promise<types.ResolveConfigResult>;
   clearGithubToken: () => Promise<types.ResolveConfigResult>;
-  updateCheckForUpdatesOnLaunch: (checkForUpdates: boolean) => Promise<types.ResolveConfigResult>;
+  updateCheckForUpdatesOnLaunch: (
+    checkForUpdates: boolean,
+  ) => Promise<types.ResolveConfigResult>;
   completeSetup: () => Promise<void>;
 }
 
@@ -55,14 +62,19 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        loading: false,
+      });
     }
   },
 
   openDataFolderDialog: async (allowAutoDetect: boolean) => {
     set({ error: null });
     try {
-      const result = await OpenMetroMakerDataFolderDialog(new types.SetConfigPathOptions({ allowAutoDetect }));
+      const result = await OpenMetroMakerDataFolderDialog(
+        new types.SetConfigPathOptions({ allowAutoDetect }),
+      );
       set({
         config: result.resolveConfigResult.config,
         validation: result.resolveConfigResult.validation,
@@ -78,7 +90,9 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   openExecutableDialog: async (allowAutoDetect: boolean) => {
     set({ error: null });
     try {
-      const result = await OpenExecutableDialog(new types.SetConfigPathOptions({ allowAutoDetect }));
+      const result = await OpenExecutableDialog(
+        new types.SetConfigPathOptions({ allowAutoDetect }),
+      );
       set({
         config: result.resolveConfigResult.config,
         validation: result.resolveConfigResult.validation,
@@ -102,7 +116,10 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        loading: false,
+      });
     }
   },
 
@@ -118,7 +135,10 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        loading: false,
+      });
     }
   },
 
@@ -181,7 +201,10 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        loading: false,
+      });
     }
   },
 }));

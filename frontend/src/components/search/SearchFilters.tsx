@@ -1,10 +1,12 @@
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { TypeToggle } from "./TypeToggle";
-import { TagsFilter } from "./TagsFilter";
-import { SortSelect } from "./SortSelect";
-import type { SortState } from "@/lib/constants";
-import type { AssetType } from "@/lib/asset-types";
+import { Search } from 'lucide-react';
+
+import { Input } from '@/components/ui/input';
+import type { AssetType } from '@/lib/asset-types';
+import type { SortState } from '@/lib/constants';
+
+import { SortSelect } from './SortSelect';
+import { TagsFilter } from './TagsFilter';
+import { TypeToggle } from './TypeToggle';
 
 interface SearchFiltersProps {
   query: string;

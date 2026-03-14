@@ -1,6 +1,7 @@
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Package, MapPin } from "lucide-react";
-import type { AssetType } from "@/lib/asset-types";
+import { MapPin,Package } from 'lucide-react';
+
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import type { AssetType } from '@/lib/asset-types';
 
 interface TypeToggleProps {
   value: AssetType;
@@ -13,7 +14,7 @@ export function TypeToggle({ value, onChange }: TypeToggleProps) {
       type="single"
       value={value}
       onValueChange={(v) => {
-        if (v === "mod" || v === "map") onChange(v);
+        if (v === 'mod' || v === 'map') onChange(v);
       }}
     >
       <ToggleGroupItem value="map" aria-label="Maps">

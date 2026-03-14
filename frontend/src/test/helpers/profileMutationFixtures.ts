@@ -1,15 +1,20 @@
-import { types } from "../../../wailsjs/go/models";
-import type { UpdateSubscriptionsRequestType } from "@/lib/profile-update-request-type";
+import type { UpdateSubscriptionsRequestType } from '@/lib/profile-update-request-type';
 
-const UPDATE_SUBSCRIPTIONS: UpdateSubscriptionsRequestType = "update_subscriptions";
+import { types } from '../../../wailsjs/go/models';
 
-export function activeProfileFixture(profileId: string = "__default__", existingSubscriptions: types.Subscriptions = { maps: {}, mods: {} }): types.UserProfile {
+const UPDATE_SUBSCRIPTIONS: UpdateSubscriptionsRequestType =
+  'update_subscriptions';
+
+export function activeProfileFixture(
+  profileId: string = '__default__',
+  existingSubscriptions: types.Subscriptions = { maps: {}, mods: {} },
+): types.UserProfile {
   return new types.UserProfile({
     id: profileId,
-    uuid: "uuid",
-    name: "Default",
+    uuid: 'uuid',
+    name: 'Default',
     uiPreferences: {
-      theme: "dark",
+      theme: 'dark',
       defaultPerPage: 12,
     },
     systemPreferences: {
@@ -24,27 +29,34 @@ export function activeProfileFixture(profileId: string = "__default__", existing
   });
 }
 
-export function activeProfileResultSuccess(profileId: string = "__default__", existingSubscriptions: types.Subscriptions = { maps: {}, mods: {} }): types.UserProfileResult {
+export function activeProfileResultSuccess(
+  profileId: string = '__default__',
+  existingSubscriptions: types.Subscriptions = { maps: {}, mods: {} },
+): types.UserProfileResult {
   return new types.UserProfileResult({
-    status: "success",
-    message: "active profile resolved",
+    status: 'success',
+    message: 'active profile resolved',
     profile: activeProfileFixture(profileId, existingSubscriptions),
     errors: [],
   });
 }
 
-export function activeProfileResultError(message: string): types.UserProfileResult {
+export function activeProfileResultError(
+  message: string,
+): types.UserProfileResult {
   return new types.UserProfileResult({
-    status: "error",
+    status: 'error',
     message,
     profile: activeProfileFixture(),
     errors: [],
   });
 }
 
-export function updateSubscriptionsSuccess(message: string = "ok"): types.UpdateSubscriptionsResult {
+export function updateSubscriptionsSuccess(
+  message: string = 'ok',
+): types.UpdateSubscriptionsResult {
   return new types.UpdateSubscriptionsResult({
-    status: "success",
+    status: 'success',
     message,
     requestType: UPDATE_SUBSCRIPTIONS,
     hasUpdates: false,
@@ -57,9 +69,11 @@ export function updateSubscriptionsSuccess(message: string = "ok"): types.Update
   });
 }
 
-export function updateSubscriptionsError(message: string): types.UpdateSubscriptionsResult {
+export function updateSubscriptionsError(
+  message: string,
+): types.UpdateSubscriptionsResult {
   return new types.UpdateSubscriptionsResult({
-    status: "error",
+    status: 'error',
     message,
     requestType: UPDATE_SUBSCRIPTIONS,
     hasUpdates: false,
@@ -72,9 +86,11 @@ export function updateSubscriptionsError(message: string): types.UpdateSubscript
   });
 }
 
-export function updateSubscriptionsWarn(message: string): types.UpdateSubscriptionsResult {
+export function updateSubscriptionsWarn(
+  message: string,
+): types.UpdateSubscriptionsResult {
   return new types.UpdateSubscriptionsResult({
-    status: "warn",
+    status: 'warn',
     message,
     requestType: UPDATE_SUBSCRIPTIONS,
     hasUpdates: false,

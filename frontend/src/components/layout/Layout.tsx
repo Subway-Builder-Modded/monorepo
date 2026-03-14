@@ -1,12 +1,13 @@
-import React from "react";
-import { GetCurrentVersion } from "../../../wailsjs/go/main/App";
-import { Navbar } from "./Navbar";
+import React from 'react';
+
+import { GetCurrentVersion } from '../../../wailsjs/go/main/App';
+import { Navbar } from './Navbar';
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const [version, setVersion] = React.useState<string>("");
+  const [version, setVersion] = React.useState<string>('');
   React.useMemo(() => {
     GetCurrentVersion().then((s) => {
-      setVersion([...s].filter((c) => c !== "\u0000").join(""));
+      setVersion([...s].filter((c) => c !== '\u0000').join(''));
     });
   }, []);
   return (

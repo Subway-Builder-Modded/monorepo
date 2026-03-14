@@ -1,5 +1,6 @@
-import { Check, Loader2, Circle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Check, Circle,Loader2 } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 
 export interface LoadingState {
   text: string;
@@ -37,17 +38,20 @@ export function MultiStepLoader({
               <div
                 key={state.text}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-500 ease-out",
-                  isActive && "bg-muted/60",
-                  isComplete && "opacity-75",
-                  !isActive && !isComplete && "opacity-40",
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-500 ease-out',
+                  isActive && 'bg-muted/60',
+                  isComplete && 'opacity-75',
+                  !isActive && !isComplete && 'opacity-40',
                 )}
               >
                 {/* Status icon */}
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                   {isComplete ? (
                     <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-chart-2/15 transition-all duration-300">
-                      <Check className="h-3 w-3 text-chart-2" strokeWidth={2.5} />
+                      <Check
+                        className="h-3 w-3 text-chart-2"
+                        strokeWidth={2.5}
+                      />
                     </div>
                   ) : isActive ? (
                     <Loader2 className="h-4 w-4 animate-spin text-foreground" />
@@ -59,10 +63,10 @@ export function MultiStepLoader({
                 {/* Label */}
                 <span
                   className={cn(
-                    "text-sm leading-none transition-colors duration-300",
-                    isActive && "font-medium text-foreground",
-                    isComplete && "text-muted-foreground",
-                    !isActive && !isComplete && "text-muted-foreground/70",
+                    'text-sm leading-none transition-colors duration-300',
+                    isActive && 'font-medium text-foreground',
+                    isComplete && 'text-muted-foreground',
+                    !isActive && !isComplete && 'text-muted-foreground/70',
                   )}
                 >
                   {state.text}

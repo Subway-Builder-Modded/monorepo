@@ -1,23 +1,22 @@
-﻿import { useState } from "react";
-import { useConfigStore } from "@/stores/config-store";
-import { useProfileStore } from "@/stores/profile-store";
+﻿import {
+  AlertTriangle,
+  FolderOpen,
+  Gamepad2,
+  Github,
+  RefreshCw,
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -25,19 +24,22 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { toast } from "sonner";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import {
-  FolderOpen,
-  Gamepad2,
-  Github,
-  AlertTriangle,
-  RefreshCw,
-} from "lucide-react";
-import { ManuallyCheckForUpdates } from "../../wailsjs/go/main/App";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useConfigStore } from '@/stores/config-store';
+import { useProfileStore } from '@/stores/profile-store';
+
+import { ManuallyCheckForUpdates } from '../../wailsjs/go/main/App';
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48] as const;
-const THEME_OPTIONS = ["dark", "light", "system"] as const;
+const THEME_OPTIONS = ['dark', 'light', 'system'] as const;
 
 export function SettingsPage() {
   const {
@@ -57,17 +59,17 @@ export function SettingsPage() {
   const updateUIPreferences = useProfileStore((s) => s.updateUIPreferences);
 
   const [confirmAction, setConfirmAction] = useState<
-    "config" | "profile" | null
+    'config' | 'profile' | null
   >(null);
   const [githubTokenDialogOpen, setGithubTokenDialogOpen] = useState(false);
-  const [githubTokenDraft, setGithubTokenDraft] = useState("");
+  const [githubTokenDraft, setGithubTokenDraft] = useState('');
 
   const handleUpdatesCheck = async () => {
     try {
       await ManuallyCheckForUpdates();
-      toast.success("No updates found, or installation was cancelled.");
+      toast.success('No updates found, or installation was cancelled.');
     } catch (error: any) {
-      toast.error("Failed to check for updates.");
+      toast.error('Failed to check for updates.');
     }
   };
 
@@ -76,10 +78,10 @@ export function SettingsPage() {
       const newValue = !config?.checkForUpdatesOnLaunch;
       await updateCheckForUpdatesOnLaunch(newValue);
       toast.success(
-        `Check for updates on launch ${newValue ? "enabled" : "disabled"}.`,
+        `Check for updates on launch ${newValue ? 'enabled' : 'disabled'}.`,
       );
     } catch {
-      toast.error("Failed to update check for updates on launch setting.");
+      toast.error('Failed to update check for updates on launch setting.');
     }
   };
 
@@ -95,9 +97,9 @@ export function SettingsPage() {
         theme,
         profile.uiPreferences?.defaultPerPage ?? 12,
       );
-      toast.success("Theme updated.");
+      toast.success('Theme updated.');
     } catch {
-      toast.error("Failed to update theme.");
+      toast.error('Failed to update theme.');
     }
   };
 
@@ -111,43 +113,43 @@ export function SettingsPage() {
       return;
 
     try {
-      await updateUIPreferences(profile.uiPreferences?.theme ?? "dark", parsed);
-      toast.success("Default cards per page updated.");
+      await updateUIPreferences(profile.uiPreferences?.theme ?? 'dark', parsed);
+      toast.success('Default cards per page updated.');
     } catch {
-      toast.error("Failed to update default cards per page.");
+      toast.error('Failed to update default cards per page.');
     }
   };
 
   const handleChangeDataFolder = async () => {
     try {
       const result = await openDataFolderDialog(false);
-      if (result.source === "cancelled") return;
+      if (result.source === 'cancelled') return;
       await saveConfig();
-      toast.success("Data folder path updated.");
+      toast.success('Data folder path updated.');
     } catch {
-      toast.error("Failed to update data folder path.");
+      toast.error('Failed to update data folder path.');
     }
   };
 
   const handleChangeExecutable = async () => {
     try {
       const result = await openExecutableDialog(false);
-      if (result.source === "cancelled") return;
+      if (result.source === 'cancelled') return;
       await saveConfig();
-      toast.success("Executable path updated.");
+      toast.success('Executable path updated.');
     } catch {
-      toast.error("Failed to update executable path.");
+      toast.error('Failed to update executable path.');
     }
   };
 
   const handleConfirm = async () => {
     try {
-      if (confirmAction === "config") {
+      if (confirmAction === 'config') {
         await clearConfig();
-        toast.success("Configuration has been reset.");
-      } else if (confirmAction === "profile") {
+        toast.success('Configuration has been reset.');
+      } else if (confirmAction === 'profile') {
         await resetProfile();
-        toast.success("Profile has been reset.");
+        toast.success('Profile has been reset.');
       }
     } catch {
       toast.error(`Failed to reset ${confirmAction}.`);
@@ -160,11 +162,11 @@ export function SettingsPage() {
     try {
       await updateGithubToken(githubTokenDraft);
       await saveConfig();
-      setGithubTokenDraft("");
+      setGithubTokenDraft('');
       setGithubTokenDialogOpen(false);
-      toast.success("GitHub token updated.");
+      toast.success('GitHub token updated.');
     } catch {
-      toast.error("Failed to update GitHub token.");
+      toast.error('Failed to update GitHub token.');
     }
   };
 
@@ -172,11 +174,11 @@ export function SettingsPage() {
     try {
       await clearGithubToken();
       await saveConfig();
-      setGithubTokenDraft("");
+      setGithubTokenDraft('');
       setGithubTokenDialogOpen(false);
-      toast.success("GitHub token cleared.");
+      toast.success('GitHub token cleared.');
     } catch {
-      toast.error("Failed to clear GitHub token.");
+      toast.error('Failed to clear GitHub token.');
     }
   };
 
@@ -198,7 +200,7 @@ export function SettingsPage() {
               <div className="min-w-0">
                 <p className="text-sm font-medium">Data Folder</p>
                 <p className="text-xs text-muted-foreground font-mono truncate">
-                  {config?.metroMakerDataPath || "Not set"}
+                  {config?.metroMakerDataPath || 'Not set'}
                 </p>
               </div>
             </div>
@@ -206,17 +208,17 @@ export function SettingsPage() {
               <Badge
                 variant={
                   validation?.metroMakerDataPathValid
-                    ? "default"
+                    ? 'default'
                     : config?.metroMakerDataPath
-                      ? "destructive"
-                      : "outline"
+                      ? 'destructive'
+                      : 'outline'
                 }
               >
                 {validation?.metroMakerDataPathValid
-                  ? "Valid"
+                  ? 'Valid'
                   : config?.metroMakerDataPath
-                    ? "Invalid"
-                    : "Not Set"}
+                    ? 'Invalid'
+                    : 'Not Set'}
               </Badge>
               <Button
                 variant="outline"
@@ -234,7 +236,7 @@ export function SettingsPage() {
               <div className="min-w-0">
                 <p className="text-sm font-medium">Game Executable</p>
                 <p className="text-xs text-muted-foreground font-mono truncate">
-                  {config?.executablePath || "Not set"}
+                  {config?.executablePath || 'Not set'}
                 </p>
               </div>
             </div>
@@ -242,17 +244,17 @@ export function SettingsPage() {
               <Badge
                 variant={
                   validation?.executablePathValid
-                    ? "default"
+                    ? 'default'
                     : config?.executablePath
-                      ? "destructive"
-                      : "outline"
+                      ? 'destructive'
+                      : 'outline'
                 }
               >
                 {validation?.executablePathValid
-                  ? "Valid"
+                  ? 'Valid'
                   : config?.executablePath
-                    ? "Invalid"
-                    : "Not Set"}
+                    ? 'Invalid'
+                    : 'Not Set'}
               </Badge>
               <Button
                 variant="outline"
@@ -270,13 +272,13 @@ export function SettingsPage() {
               <div className="min-w-0">
                 <p className="text-sm font-medium">GitHub Token (Optional)</p>
                 <p className="text-xs text-muted-foreground font-mono truncate">
-                  {hasGithubToken ? "********" : "Not set"}
+                  {hasGithubToken ? '********' : 'Not set'}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Badge variant={hasGithubToken ? "default" : "outline"}>
-                {hasGithubToken ? "Set" : "Unset"}
+              <Badge variant={hasGithubToken ? 'default' : 'outline'}>
+                {hasGithubToken ? 'Set' : 'Unset'}
               </Badge>
               <Button
                 variant="outline"
@@ -301,7 +303,7 @@ export function SettingsPage() {
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Theme</label>
             <Select
-              value={profile?.uiPreferences?.theme ?? "system"}
+              value={profile?.uiPreferences?.theme ?? 'system'}
               onValueChange={handleThemeChange}
             >
               <SelectTrigger className="w-35">
@@ -342,7 +344,7 @@ export function SettingsPage() {
                 size="sm"
                 onClick={handleChangeUpdatesOnLaunch}
               >
-                {config?.checkForUpdatesOnLaunch ? "Disable" : "Enable"}
+                {config?.checkForUpdatesOnLaunch ? 'Disable' : 'Enable'}
               </Button>
               <Button variant="outline" size="sm" onClick={handleUpdatesCheck}>
                 <RefreshCw />
@@ -358,7 +360,7 @@ export function SettingsPage() {
         onOpenChange={(open) => {
           setGithubTokenDialogOpen(open);
           if (!open) {
-            setGithubTokenDraft("");
+            setGithubTokenDraft('');
           }
         }}
       >
@@ -372,7 +374,7 @@ export function SettingsPage() {
           </DialogHeader>
           <Input
             type="password"
-            placeholder={hasGithubToken ? "********" : "github_pat_..."}
+            placeholder={hasGithubToken ? '********' : 'github_pat_...'}
             value={githubTokenDraft}
             onChange={(event) => setGithubTokenDraft(event.target.value)}
             className="font-mono"
@@ -387,7 +389,7 @@ export function SettingsPage() {
             </Button>
             <Button
               onClick={handleSaveGithubToken}
-              disabled={githubTokenDraft.trim() === ""}
+              disabled={githubTokenDraft.trim() === ''}
             >
               Save
             </Button>
@@ -413,7 +415,7 @@ export function SettingsPage() {
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => setConfirmAction("config")}
+              onClick={() => setConfirmAction('config')}
             >
               Reset Config
             </Button>
@@ -428,7 +430,7 @@ export function SettingsPage() {
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => setConfirmAction("profile")}
+              onClick={() => setConfirmAction('profile')}
             >
               Reset Profile
             </Button>
@@ -447,9 +449,9 @@ export function SettingsPage() {
               Are you sure?
             </DialogTitle>
             <DialogDescription>
-              {confirmAction === "config"
-                ? "This will reset all configuration including game paths. You will need to set them up again."
-                : "This will reset your profile and all preferences to defaults."}
+              {confirmAction === 'config'
+                ? 'This will reset all configuration including game paths. You will need to set them up again.'
+                : 'This will reset your profile and all preferences to defaults.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

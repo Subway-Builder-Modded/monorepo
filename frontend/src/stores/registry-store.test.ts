@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useRegistryStore } from "./registry-store";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { useRegistryStore } from './registry-store';
 
 const {
   mockGetMods,
@@ -13,17 +14,17 @@ const {
   mockGetDownloadCountsByAssetType: vi.fn(),
 }));
 
-vi.mock("../../wailsjs/go/registry/Registry", () => ({
+vi.mock('../../wailsjs/go/registry/Registry', () => ({
   GetMods: mockGetMods,
   GetMaps: mockGetMaps,
   Refresh: mockRefresh,
   GetDownloadCountsByAssetType: mockGetDownloadCountsByAssetType,
 }));
 
-describe("useRegistryStore download totals", () => {
+describe('useRegistryStore download totals', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
     useRegistryStore.setState({
       mods: [],
       maps: [],
@@ -37,23 +38,23 @@ describe("useRegistryStore download totals", () => {
     });
   });
 
-  it("loads and caches cumulative totals by asset type", async () => {
+  it('loads and caches cumulative totals by asset type', async () => {
     mockGetDownloadCountsByAssetType
       .mockResolvedValueOnce({
-        status: "success",
-        message: "ok",
-        assetType: "mod",
+        status: 'success',
+        message: 'ok',
+        assetType: 'mod',
         counts: {
-          mod_a: { "1.0.0": 2, "1.1.0": 3 },
-          mod_b: { "2.0.0": 7 },
+          mod_a: { '1.0.0': 2, '1.1.0': 3 },
+          mod_b: { '2.0.0': 7 },
         },
       })
       .mockResolvedValueOnce({
-        status: "success",
-        message: "ok",
-        assetType: "map",
+        status: 'success',
+        message: 'ok',
+        assetType: 'map',
         counts: {
-          map_a: { "1.0.0": 11 },
+          map_a: { '1.0.0': 11 },
         },
       });
 
@@ -61,25 +62,25 @@ describe("useRegistryStore download totals", () => {
 
     const state = useRegistryStore.getState();
     expect(mockGetDownloadCountsByAssetType).toHaveBeenCalledTimes(2);
-    expect(mockGetDownloadCountsByAssetType).toHaveBeenNthCalledWith(1, "mod");
-    expect(mockGetDownloadCountsByAssetType).toHaveBeenNthCalledWith(2, "map");
+    expect(mockGetDownloadCountsByAssetType).toHaveBeenNthCalledWith(1, 'mod');
+    expect(mockGetDownloadCountsByAssetType).toHaveBeenNthCalledWith(2, 'map');
     expect(state.modDownloadTotals).toEqual({ mod_a: 5, mod_b: 7 });
     expect(state.mapDownloadTotals).toEqual({ map_a: 11 });
     expect(state.downloadTotalsLoaded).toBe(true);
   });
 
-  it("keeps zero/default totals on non-success responses", async () => {
+  it('keeps zero/default totals on non-success responses', async () => {
     mockGetDownloadCountsByAssetType
       .mockResolvedValueOnce({
-        status: "error",
-        message: "failed",
-        assetType: "mod",
+        status: 'error',
+        message: 'failed',
+        assetType: 'mod',
         counts: {},
       })
       .mockResolvedValueOnce({
-        status: "warn",
-        message: "partial",
-        assetType: "map",
+        status: 'warn',
+        message: 'partial',
+        assetType: 'map',
         counts: {},
       });
 
@@ -91,19 +92,19 @@ describe("useRegistryStore download totals", () => {
     expect(state.downloadTotalsLoaded).toBe(true);
   });
 
-  it("deduplicates concurrent totals loads with an in-flight promise", async () => {
+  it('deduplicates concurrent totals loads with an in-flight promise', async () => {
     mockGetDownloadCountsByAssetType
       .mockResolvedValueOnce({
-        status: "success",
-        message: "ok",
-        assetType: "mod",
-        counts: { mod_a: { "1.0.0": 1 } },
+        status: 'success',
+        message: 'ok',
+        assetType: 'mod',
+        counts: { mod_a: { '1.0.0': 1 } },
       })
       .mockResolvedValueOnce({
-        status: "success",
-        message: "ok",
-        assetType: "map",
-        counts: { map_a: { "1.0.0": 2 } },
+        status: 'success',
+        message: 'ok',
+        assetType: 'map',
+        counts: { map_a: { '1.0.0': 2 } },
       });
 
     await Promise.all([
@@ -116,22 +117,22 @@ describe("useRegistryStore download totals", () => {
     expect(useRegistryStore.getState().downloadTotalsLoaded).toBe(true);
   });
 
-  it("recomputes totals during refresh", async () => {
+  it('recomputes totals during refresh', async () => {
     mockRefresh.mockResolvedValue(undefined);
     mockGetMods.mockResolvedValue([]);
     mockGetMaps.mockResolvedValue([]);
     mockGetDownloadCountsByAssetType
       .mockResolvedValueOnce({
-        status: "success",
-        message: "ok",
-        assetType: "mod",
-        counts: { mod_c: { "1.0.0": 9 } },
+        status: 'success',
+        message: 'ok',
+        assetType: 'mod',
+        counts: { mod_c: { '1.0.0': 9 } },
       })
       .mockResolvedValueOnce({
-        status: "success",
-        message: "ok",
-        assetType: "map",
-        counts: { map_c: { "1.0.0": 4, "1.1.0": 6 } },
+        status: 'success',
+        message: 'ok',
+        assetType: 'map',
+        counts: { map_c: { '1.0.0': 4, '1.1.0': 6 } },
       });
 
     await useRegistryStore.getState().refresh();

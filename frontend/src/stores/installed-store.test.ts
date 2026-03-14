@@ -1,7 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useInstalledStore } from "./installed-store";
-import { activeProfileResultSuccess, updateSubscriptionsError, updateSubscriptionsSuccess, updateSubscriptionsWarn } from "@/test/helpers/profileMutationFixtures";
-import type { AssetType } from "@/lib/asset-types";
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { AssetType } from '@/lib/asset-types';
+import {
+  activeProfileResultSuccess,
+  updateSubscriptionsError,
+  updateSubscriptionsSuccess,
+  updateSubscriptionsWarn,
+} from '@/test/helpers/profileMutationFixtures';
+
+import { useInstalledStore } from './installed-store';
 
 const {
   mockGetInstalledMods,
@@ -23,17 +30,17 @@ const {
   mockUninstallModFiles: vi.fn(),
 }));
 
-vi.mock("../../wailsjs/go/registry/Registry", () => ({
+vi.mock('../../wailsjs/go/registry/Registry', () => ({
   GetInstalledMods: mockGetInstalledMods,
   GetInstalledMaps: mockGetInstalledMaps,
 }));
 
-vi.mock("../../wailsjs/go/profiles/UserProfiles", () => ({
+vi.mock('../../wailsjs/go/profiles/UserProfiles', () => ({
   GetActiveProfile: mockGetActiveProfile,
   UpdateSubscriptions: mockUpdateSubscriptions,
 }));
 
-vi.mock("../../wailsjs/go/downloader/Downloader", () => ({
+vi.mock('../../wailsjs/go/downloader/Downloader', () => ({
   InstallMap: mockInstallMapFiles,
   InstallMod: mockInstallModFiles,
   UninstallMap: mockUninstallMapFiles,
@@ -42,7 +49,7 @@ vi.mock("../../wailsjs/go/downloader/Downloader", () => ({
 
 type ProfilesRequest = {
   profileId: string;
-  action: "subscribe" | "unsubscribe";
+  action: 'subscribe' | 'unsubscribe';
   assetId: string;
   assetType: AssetType;
   version: string;
@@ -64,7 +71,7 @@ function validateInstallationRefreshes(expectedCalls: number) {
 }
 
 function validateFinalState(
-  lane: "installing" | "uninstalling",
+  lane: 'installing' | 'uninstalling',
   assetId: string,
   error: string | null,
 ) {
@@ -77,7 +84,7 @@ function validateFinalState(
   }
 }
 
-describe("useInstalledStore", () => {
+describe('useInstalledStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useInstalledStore.setState({
@@ -89,136 +96,172 @@ describe("useInstalledStore", () => {
       error: null,
       initialized: false,
     });
-    mockInstallMapFiles.mockResolvedValue({ status: "success", message: "" });
-    mockInstallModFiles.mockResolvedValue({ status: "success", message: "" });
-    mockUninstallMapFiles.mockResolvedValue({ status: "success", message: "" });
-    mockUninstallModFiles.mockResolvedValue({ status: "success", message: "" });
+    mockInstallMapFiles.mockResolvedValue({ status: 'success', message: '' });
+    mockInstallModFiles.mockResolvedValue({ status: 'success', message: '' });
+    mockUninstallMapFiles.mockResolvedValue({ status: 'success', message: '' });
+    mockUninstallModFiles.mockResolvedValue({ status: 'success', message: '' });
   });
 
-  it("installMap correctly updates subscriptions and refreshes installed lists", async () => {
-    mockGetActiveProfile.mockResolvedValue(activeProfileResultSuccess("profile-a"));
-    mockUpdateSubscriptions.mockResolvedValue(updateSubscriptionsSuccess("subscriptions updated"));
-    mockGetInstalledMods.mockResolvedValue([{ id: "mod-1", version: "1.0.0" }]);
-    mockGetInstalledMaps.mockResolvedValue([{ id: "map-1", version: "2.0.0", config: { code: "AAA" } }]);
+  it('installMap correctly updates subscriptions and refreshes installed lists', async () => {
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsSuccess('subscriptions updated'),
+    );
+    mockGetInstalledMods.mockResolvedValue([{ id: 'mod-1', version: '1.0.0' }]);
+    mockGetInstalledMaps.mockResolvedValue([
+      { id: 'map-1', version: '2.0.0', config: { code: 'AAA' } },
+    ]);
 
-    await useInstalledStore.getState().installMap("map-1", "2.0.0");
+    await useInstalledStore.getState().installMap('map-1', '2.0.0');
 
     validateProfilesRequest({
-      profileId: "profile-a",
-      action: "subscribe",
-      assetId: "map-1",
-      assetType: "map",
-      version: "2.0.0",
+      profileId: 'profile-a',
+      action: 'subscribe',
+      assetId: 'map-1',
+      assetType: 'map',
+      version: '2.0.0',
     });
     validateInstallationRefreshes(1);
-    validateFinalState("installing", "map-1", null);
+    validateFinalState('installing', 'map-1', null);
   });
 
-  it("uninstallMap correctly updates subscriptions and refreshes installed lists on success", async () => {
-    mockGetActiveProfile.mockResolvedValue(activeProfileResultSuccess("profile-a"));
-    mockUpdateSubscriptions.mockResolvedValue(updateSubscriptionsSuccess("subscriptions updated"));
-    mockGetInstalledMods.mockResolvedValue([{ id: "mod-1", version: "1.0.0" }]);
+  it('uninstallMap correctly updates subscriptions and refreshes installed lists on success', async () => {
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsSuccess('subscriptions updated'),
+    );
+    mockGetInstalledMods.mockResolvedValue([{ id: 'mod-1', version: '1.0.0' }]);
     mockGetInstalledMaps.mockResolvedValue([]);
 
-    await useInstalledStore.getState().uninstallMap("map-7");
+    await useInstalledStore.getState().uninstallMap('map-7');
 
     validateProfilesRequest({
-      profileId: "profile-a",
-      action: "unsubscribe",
-      assetId: "map-7",
-      assetType: "map",
-      version: "",
+      profileId: 'profile-a',
+      action: 'unsubscribe',
+      assetId: 'map-7',
+      assetType: 'map',
+      version: '',
     });
     validateInstallationRefreshes(1);
-    validateFinalState("uninstalling", "map-7", null);
+    validateFinalState('uninstalling', 'map-7', null);
   });
 
-  it("installMod errors when profile mutation fails", async () => {
-    mockGetActiveProfile.mockResolvedValue(activeProfileResultSuccess("profile-a"));
-    mockUpdateSubscriptions.mockResolvedValue(updateSubscriptionsError("Install failed"));
+  it('installMod errors when profile mutation fails', async () => {
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsError('Install failed'),
+    );
 
-    await expect(useInstalledStore.getState().installMod("mod-2", "1.2.3")).rejects.toThrow("Install failed");
+    await expect(
+      useInstalledStore.getState().installMod('mod-2', '1.2.3'),
+    ).rejects.toThrow('Install failed');
 
     validateProfilesRequest({
-      profileId: "profile-a",
-      action: "subscribe",
-      assetId: "mod-2",
-      assetType: "mod",
-      version: "1.2.3",
+      profileId: 'profile-a',
+      action: 'subscribe',
+      assetId: 'mod-2',
+      assetType: 'mod',
+      version: '1.2.3',
     });
     validateInstallationRefreshes(0);
-    validateFinalState("installing", "mod-2", "Install failed");
+    validateFinalState('installing', 'mod-2', 'Install failed');
   });
 
-  it("installMap resolves when profile mutation returns warn", async () => {
-    mockGetActiveProfile.mockResolvedValue(activeProfileResultSuccess("profile-a"));
-    mockUpdateSubscriptions.mockResolvedValue(updateSubscriptionsWarn("sync completed with warnings"));
-    mockGetInstalledMods.mockResolvedValue([{ id: "mod-1", version: "1.0.0" }]);
-    mockGetInstalledMaps.mockResolvedValue([{ id: "map-1", version: "2.0.0", config: { code: "AAA" } }]);
+  it('installMap resolves when profile mutation returns warn', async () => {
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsWarn('sync completed with warnings'),
+    );
+    mockGetInstalledMods.mockResolvedValue([{ id: 'mod-1', version: '1.0.0' }]);
+    mockGetInstalledMaps.mockResolvedValue([
+      { id: 'map-1', version: '2.0.0', config: { code: 'AAA' } },
+    ]);
 
-    const result = await useInstalledStore.getState().installMap("map-1", "2.0.0");
+    const result = await useInstalledStore
+      .getState()
+      .installMap('map-1', '2.0.0');
 
     validateProfilesRequest({
-      profileId: "profile-a",
-      action: "subscribe",
-      assetId: "map-1",
-      assetType: "map",
-      version: "2.0.0",
+      profileId: 'profile-a',
+      action: 'subscribe',
+      assetId: 'map-1',
+      assetType: 'map',
+      version: '2.0.0',
     });
     validateInstallationRefreshes(1);
-    validateFinalState("installing", "map-1", null);
-    expect(result.status).toBe("warn");
-    expect(result.message).toContain("sync completed with warnings");
+    validateFinalState('installing', 'map-1', null);
+    expect(result.status).toBe('warn');
+    expect(result.message).toContain('sync completed with warnings');
   });
 
-  it("uninstallMod errors when profile mutation fails", async () => {
-    mockGetActiveProfile.mockResolvedValue(activeProfileResultSuccess("profile-a"));
-    mockUpdateSubscriptions.mockResolvedValue(updateSubscriptionsError("Uninstall failed"));
+  it('uninstallMod errors when profile mutation fails', async () => {
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsError('Uninstall failed'),
+    );
 
-    await expect(useInstalledStore.getState().uninstallMod("mod-9")).rejects.toThrow("Uninstall failed");
+    await expect(
+      useInstalledStore.getState().uninstallMod('mod-9'),
+    ).rejects.toThrow('Uninstall failed');
 
     validateProfilesRequest({
-      profileId: "profile-a",
-      action: "unsubscribe",
-      assetId: "mod-9",
-      assetType: "mod",
-      version: "",
+      profileId: 'profile-a',
+      action: 'unsubscribe',
+      assetId: 'mod-9',
+      assetType: 'mod',
+      version: '',
     });
     validateInstallationRefreshes(0);
-    validateFinalState("uninstalling", "mod-9", "Uninstall failed");
+    validateFinalState('uninstalling', 'mod-9', 'Uninstall failed');
   });
 
-  it("cancelPendingInstall routes through unsubscribe and tolerates warn", async () => {
-    mockGetActiveProfile.mockResolvedValue(activeProfileResultSuccess("profile-a"));
-    mockUpdateSubscriptions.mockResolvedValue(updateSubscriptionsWarn("not installed; nothing to do"));
+  it('cancelPendingInstall routes through unsubscribe and tolerates warn', async () => {
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsWarn('not installed; nothing to do'),
+    );
     mockGetInstalledMods.mockResolvedValue([]);
     mockGetInstalledMaps.mockResolvedValue([]);
 
-    const result = await useInstalledStore.getState().cancelPendingInstall("map", "map-42");
+    const result = await useInstalledStore
+      .getState()
+      .cancelPendingInstall('map', 'map-42');
 
     validateProfilesRequest({
-      profileId: "profile-a",
-      action: "unsubscribe",
-      assetId: "map-42",
-      assetType: "map",
-      version: "",
+      profileId: 'profile-a',
+      action: 'unsubscribe',
+      assetId: 'map-42',
+      assetType: 'map',
+      version: '',
     });
     validateInstallationRefreshes(1);
-    validateFinalState("uninstalling", "map-42", null);
-    expect(result.status).toBe("warn");
+    validateFinalState('uninstalling', 'map-42', null);
+    expect(result.status).toBe('warn');
   });
 
-  it("acknowledgeCancelledInstall removes item from installing lane idempotently", () => {
+  it('acknowledgeCancelledInstall removes item from installing lane idempotently', () => {
     useInstalledStore.setState((state) => ({
       ...state,
-      installing: new Set(["map-1", "map-2"]),
+      installing: new Set(['map-1', 'map-2']),
     }));
 
-    useInstalledStore.getState().acknowledgeCancelledInstall("map-1");
-    expect(useInstalledStore.getState().installing.has("map-1")).toBe(false);
-    expect(useInstalledStore.getState().installing.has("map-2")).toBe(true);
+    useInstalledStore.getState().acknowledgeCancelledInstall('map-1');
+    expect(useInstalledStore.getState().installing.has('map-1')).toBe(false);
+    expect(useInstalledStore.getState().installing.has('map-2')).toBe(true);
 
-    useInstalledStore.getState().acknowledgeCancelledInstall("missing-map");
-    expect(useInstalledStore.getState().installing.has("map-2")).toBe(true);
+    useInstalledStore.getState().acknowledgeCancelledInstall('missing-map');
+    expect(useInstalledStore.getState().installing.has('map-2')).toBe(true);
   });
 });

@@ -1,35 +1,41 @@
-import { useEffect, useRef } from "react";
-import { EventsOn } from "../../../wailsjs/runtime/runtime";
-import { toast } from "sonner";
-import { Package, CheckCircle } from "lucide-react";
-import { useDownloadQueueStore } from "@/stores/download-queue-store";
+import { CheckCircle,Package } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+
+import { useDownloadQueueStore } from '@/stores/download-queue-store';
+
+import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
 interface ExtractProgress {
-    itemId: string,
-    amountExtracted: number,
-    total: number,
+  itemId: string;
+  amountExtracted: number;
+  total: number;
 }
 
 export function ExtractNotification() {
   const toastIds = useRef<Map<string, string | number>>(new Map());
 
   useEffect(() => {
-    const cancel = EventsOn("extract:progress", (data: ExtractProgress) => {
+    const cancel = EventsOn('extract:progress', (data: ExtractProgress) => {
       const { itemId, amountExtracted, total } = data;
       const isComplete = total > 0 && amountExtracted >= total;
 
       if (isComplete) {
         const existingId = toastIds.current.get(itemId);
         if (existingId) {
-          const { completed, total: queueTotal } = useDownloadQueueStore.getState();
-          const queueLabel = queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
+          const { completed, total: queueTotal } =
+            useDownloadQueueStore.getState();
+          const queueLabel =
+            queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
 
           toast(
             <div className="flex flex-col gap-1.5 w-full">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-sm font-medium truncate">Extracted {itemId}</span>
+                  <span className="text-sm font-medium truncate">
+                    Extracted {itemId}
+                  </span>
                 </div>
                 {queueLabel && (
                   <span className="text-xs font-medium text-muted-foreground shrink-0 tabular-nums">
@@ -46,7 +52,8 @@ export function ExtractNotification() {
       }
 
       const { completed, total: queueTotal } = useDownloadQueueStore.getState();
-      const queueLabel = queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
+      const queueLabel =
+        queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
 
       const description = `Extracting\u2026 (${amountExtracted} / ${total})`;
 
@@ -55,7 +62,9 @@ export function ExtractNotification() {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <Package className="h-4 w-4 shrink-0" />
-              <span className="text-sm font-medium truncate">Extracting {itemId}</span>
+              <span className="text-sm font-medium truncate">
+                Extracting {itemId}
+              </span>
             </div>
             {queueLabel && (
               <span className="text-xs font-medium text-muted-foreground shrink-0 tabular-nums">

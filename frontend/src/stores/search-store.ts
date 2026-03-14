@@ -1,6 +1,11 @@
-import { create } from "zustand";
-import type { AssetType } from "@/lib/asset-types";
-import { DEFAULT_SORT_STATE, type PerPage, type SortState } from "@/lib/constants";
+import { create } from 'zustand';
+
+import type { AssetType } from '@/lib/asset-types';
+import {
+  DEFAULT_SORT_STATE,
+  type PerPage,
+  type SortState,
+} from '@/lib/constants';
 
 export type TypeFilter = AssetType;
 
@@ -21,7 +26,9 @@ export interface SearchFilterState {
   };
 }
 
-type SearchFilterUpdater = SearchFilterState | ((prev: SearchFilterState) => SearchFilterState);
+type SearchFilterUpdater =
+  | SearchFilterState
+  | ((prev: SearchFilterState) => SearchFilterState);
 
 interface SearchState {
   filters: SearchFilterState;
@@ -35,8 +42,8 @@ export function createRandomSeed(): number {
 }
 
 const defaultSearchFilters: SearchFilterState = {
-  query: "",
-  type: "map",
+  query: '',
+  type: 'map',
   sort: DEFAULT_SORT_STATE,
   randomSeed: createRandomSeed(),
   perPage: 12,
@@ -56,7 +63,7 @@ export const useSearchStore = create<SearchState>((set) => ({
   page: 1,
   setFilters: (updater) =>
     set((state) => ({
-      filters: typeof updater === "function" ? updater(state.filters) : updater,
+      filters: typeof updater === 'function' ? updater(state.filters) : updater,
     })),
   setPage: (page) => set({ page }),
 }));

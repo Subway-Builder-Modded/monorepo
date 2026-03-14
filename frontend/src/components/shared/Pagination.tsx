@@ -1,8 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { PER_PAGE_OPTIONS, type PerPage } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { PER_PAGE_OPTIONS, type PerPage } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 
 interface PaginationProps {
   page: number;
@@ -13,7 +20,14 @@ interface PaginationProps {
   onPerPageChange: (perPage: PerPage) => void;
 }
 
-export function Pagination({ page, totalPages, totalResults, perPage, onPageChange, onPerPageChange }: PaginationProps) {
+export function Pagination({
+  page,
+  totalPages,
+  totalResults,
+  perPage,
+  onPageChange,
+  onPerPageChange,
+}: PaginationProps) {
   if (totalResults === 0) return null;
 
   const getPageNumbers = () => {
@@ -31,7 +45,10 @@ export function Pagination({ page, totalPages, totalResults, perPage, onPageChan
       {/* Per-page selector */}
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>Show</span>
-        <Select value={String(perPage)} onValueChange={(v) => onPerPageChange(Number(v) as PerPage)}>
+        <Select
+          value={String(perPage)}
+          onValueChange={(v) => onPerPageChange(Number(v) as PerPage)}
+        >
           <SelectTrigger className="w-16 h-7 text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -62,12 +79,12 @@ export function Pagination({ page, totalPages, totalResults, perPage, onPageChan
           {getPageNumbers().map((p) => (
             <Button
               key={p}
-              variant={p === page ? "secondary" : "ghost"}
+              variant={p === page ? 'secondary' : 'ghost'}
               size="icon"
-              className={cn("h-7 w-7 text-xs", p === page && "font-semibold")}
+              className={cn('h-7 w-7 text-xs', p === page && 'font-semibold')}
               onClick={() => onPageChange(p)}
               aria-label={`Page ${p}`}
-              aria-current={p === page ? "page" : undefined}
+              aria-current={p === page ? 'page' : undefined}
             >
               {p}
             </Button>
@@ -87,7 +104,8 @@ export function Pagination({ page, totalPages, totalResults, perPage, onPageChan
 
       {/* Total count */}
       <p className="text-xs text-muted-foreground tabular-nums">
-        {((page - 1) * perPage) + 1}–{Math.min(page * perPage, totalResults)} of {totalResults}
+        {(page - 1) * perPage + 1}–{Math.min(page * perPage, totalResults)} of{' '}
+        {totalResults}
       </p>
     </div>
   );

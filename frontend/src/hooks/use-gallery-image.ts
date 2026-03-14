@@ -1,8 +1,14 @@
-import { useState, useEffect } from 'react';
-import { GetGalleryImage } from '../../wailsjs/go/registry/Registry';
-import { assetTypeToListingPath, type AssetType } from "@/lib/asset-types";
+import { useEffect,useState } from 'react';
 
-export function useGalleryImage(type: AssetType, id: string, imagePath?: string) {
+import { type AssetType,assetTypeToListingPath } from '@/lib/asset-types';
+
+import { GetGalleryImage } from '../../wailsjs/go/registry/Registry';
+
+export function useGalleryImage(
+  type: AssetType,
+  id: string,
+  imagePath?: string,
+) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -31,7 +37,9 @@ export function useGalleryImage(type: AssetType, id: string, imagePath?: string)
         }
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [type, id, imagePath]);
 
   return { imageUrl, loading, error };

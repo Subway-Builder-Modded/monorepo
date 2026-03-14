@@ -1,26 +1,28 @@
-import { useEffect, useState } from "react";
-import { Route, Switch } from "wouter";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/sonner";
-import { Layout } from "@/components/layout/Layout";
-import { SetupScreen } from "@/components/setup/SetupScreen";
-import { MultiStepLoader } from "@/components/layout/MultiStepLoader";
-import { useRegistryStore } from "@/stores/registry-store";
-import { useConfigStore } from "@/stores/config-store";
-import { useInstalledStore } from "@/stores/installed-store";
-import { useProfileStore } from "@/stores/profile-store";
-import { useGameStore } from "@/stores/game-store";
-import { useTheme } from "@/hooks/use-theme";
-import { DownloadNotification } from "@/components/layout/DownloadNotification";
-import { HomePage } from "@/pages/HomePage";
-import { SearchPage } from "@/pages/SearchPage";
-import { ProjectPage } from "@/pages/ProjectPage";
-import { SettingsPage } from "@/pages/SettingsPage";
-import { LogsPage } from "@/pages/LogsPage";
-import { LibraryPage } from "@/pages/LibraryPage";
-import { ExtractNotification } from "./components/layout/ExtractNotification";
-import { IsStartupReady } from "../wailsjs/go/main/App";
-import { EventsOn } from "../wailsjs/runtime/runtime";
+import { useEffect, useState } from 'react';
+import { Route, Switch } from 'wouter';
+
+import { DownloadNotification } from '@/components/layout/DownloadNotification';
+import { Layout } from '@/components/layout/Layout';
+import { MultiStepLoader } from '@/components/layout/MultiStepLoader';
+import { SetupScreen } from '@/components/setup/SetupScreen';
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { useTheme } from '@/hooks/use-theme';
+import { HomePage } from '@/pages/HomePage';
+import { LibraryPage } from '@/pages/LibraryPage';
+import { LogsPage } from '@/pages/LogsPage';
+import { ProjectPage } from '@/pages/ProjectPage';
+import { SearchPage } from '@/pages/SearchPage';
+import { SettingsPage } from '@/pages/SettingsPage';
+import { useConfigStore } from '@/stores/config-store';
+import { useGameStore } from '@/stores/game-store';
+import { useInstalledStore } from '@/stores/installed-store';
+import { useProfileStore } from '@/stores/profile-store';
+import { useRegistryStore } from '@/stores/registry-store';
+
+import { IsStartupReady } from '../wailsjs/go/main/App';
+import { EventsOn } from '../wailsjs/runtime/runtime';
+import { ExtractNotification } from './components/layout/ExtractNotification';
 
 interface DownloadCancelledEvent {
   itemId?: string;
@@ -53,11 +55,11 @@ function App() {
   const initGame = useGameStore((s) => s.initialize);
 
   useEffect(() => {
-    const registryUpdate = EventsOn("registry:update", () => {
+    const registryUpdate = EventsOn('registry:update', () => {
       updateInstalledLists();
     });
     const downloadCancelled = EventsOn(
-      "download:cancelled",
+      'download:cancelled',
       (payload: DownloadCancelledEvent) => {
         if (!payload?.itemId) {
           return;
@@ -122,14 +124,14 @@ function App() {
   // Build loading states based on current initialization progress
   const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const loadingStates = [
-    { text: "Starting backend services" },
-    { text: "Loading configuration" },
-    { text: "Applying theme preferences" },
-    { text: "Loading user profile" },
+    { text: 'Starting backend services' },
+    { text: 'Loading configuration' },
+    { text: 'Applying theme preferences' },
+    { text: 'Loading user profile' },
     ...(showRegistrySteps
       ? [
-          { text: "Connecting to registry" },
-          { text: "Loading installed content" },
+          { text: 'Connecting to registry' },
+          { text: 'Loading installed content' },
         ]
       : []),
   ];

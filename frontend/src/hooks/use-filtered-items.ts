@@ -1,21 +1,23 @@
-import { useMemo, useEffect, useRef } from "react";
-import Fuse from "fuse.js";
-import { types } from "../../wailsjs/go/models";
+import Fuse from 'fuse.js';
+import { useEffect, useMemo, useRef } from 'react';
+
+import { FUSE_SEARCH_OPTIONS } from '@/lib/search';
+import { useProfileStore } from '@/stores/profile-store';
+import { type SearchFilterState, useSearchStore } from '@/stores/search-store';
+
+import type { types } from '../../wailsjs/go/models';
 import {
   type PerPage,
   type SortDirection,
   type SortField,
   type SortState,
-} from "../lib/constants";
-import { FUSE_SEARCH_OPTIONS } from "@/lib/search";
-import { useProfileStore } from "@/stores/profile-store";
-import { type SearchFilterState, useSearchStore } from "@/stores/search-store";
+} from '../lib/constants';
 
 export type TaggedItem =
-  | { type: "mod"; item: types.ModManifest }
-  | { type: "map"; item: types.MapManifest };
+  | { type: 'mod'; item: types.ModManifest }
+  | { type: 'map'; item: types.MapManifest };
 
-export type { TypeFilter, SearchFilterState } from "@/stores/search-store";
+export type { SearchFilterState,TypeFilter } from '@/stores/search-store';
 
 interface UseFilteredItemsParams {
   mods: types.ModManifest[];
@@ -31,50 +33,63 @@ type SearchableItem = {
 
 export interface TaggedItemFilterState {
   query: string;
-  type: "mod" | "map";
+  type: 'mod' | 'map';
   sort: SortState;
   randomSeed: number;
   mod: {
     tags: string[];
   };
-  map: SearchFilterState["map"];
+  map: SearchFilterState['map'];
 }
 
 export function buildSearchText(item: TaggedItem): string {
   const base = item.item;
-  const values: string[] = [base.name ?? "", base.author ?? "", base.description ?? ""];
+  const values: string[] = [
+    base.name ?? '',
+    base.author ?? '',
+    base.description ?? '',
+  ];
 
-  if (item.type === "mod") {
+  if (item.type === 'mod') {
     values.push(...(base.tags ?? []));
   } else {
     const map = base as types.MapManifest;
     values.push(
-      map.city_code ?? "",
-      map.country ?? "",
-      map.location ?? "",
-      map.source_quality ?? "",
-      map.level_of_detail ?? "",
-      ...(map.special_demand ?? [])
+      map.city_code ?? '',
+      map.country ?? '',
+      map.location ?? '',
+      map.source_quality ?? '',
+      map.level_of_detail ?? '',
+      ...(map.special_demand ?? []),
     );
   }
 
-  return values.filter(Boolean).join(" ");
+  return values.filter(Boolean).join(' ');
 }
 
-export function matchesSingleValueFilter(value: string | undefined, selected: string[]): boolean {
+export function matchesSingleValueFilter(
+  value: string | undefined,
+  selected: string[],
+): boolean {
   if (selected.length === 0) return true;
   if (!value) return false;
   return selected.includes(value);
 }
 
-export function matchesZeroOrManyValuesFilter(values: string[] | undefined, selected: string[]): boolean {
+export function matchesZeroOrManyValuesFilter(
+  values: string[] | undefined,
+  selected: string[],
+): boolean {
   if (selected.length === 0) return true;
   if (!values || values.length === 0) return false;
   return selected.some((tag) => values.includes(tag));
 }
 
-export function matchesMapAttributeFilters(item: TaggedItem, filters: SearchFilterState["map"]): boolean {
-  if (item.type !== "map") return true;
+export function matchesMapAttributeFilters(
+  item: TaggedItem,
+  filters: SearchFilterState['map'],
+): boolean {
+  if (item.type !== 'map') return true;
 
   const map = item.item as types.MapManifest;
   return (
@@ -85,23 +100,27 @@ export function matchesMapAttributeFilters(item: TaggedItem, filters: SearchFilt
   );
 }
 
-export function compareByDirection(a: number, b: number, direction: SortDirection): number {
-  return direction === "asc" ? a - b : b - a;
+export function compareByDirection(
+  a: number,
+  b: number,
+  direction: SortDirection,
+): number {
+  return direction === 'asc' ? a - b : b - a;
 }
 
 export function getTotalDownloads(
   item: TaggedItem,
   modDownloadTotals: Record<string, number>,
-  mapDownloadTotals: Record<string, number>
+  mapDownloadTotals: Record<string, number>,
 ): number {
-  return item.type === "mod"
-    ? modDownloadTotals[item.item.id] ?? 0
-    : mapDownloadTotals[item.item.id] ?? 0;
+  return item.type === 'mod'
+    ? (modDownloadTotals[item.item.id] ?? 0)
+    : (mapDownloadTotals[item.item.id] ?? 0);
 }
 
 export function getLastUpdated(item: TaggedItem): number {
   const timestamp = item.item.last_updated;
-  return typeof timestamp === "number" && Number.isFinite(timestamp)
+  return typeof timestamp === 'number' && Number.isFinite(timestamp)
     ? timestamp
     : 0;
 }
@@ -112,33 +131,61 @@ export function compareItems(
   b: TaggedItem,
   sort: SortState,
   modDownloadTotals: Record<string, number>,
-  mapDownloadTotals: Record<string, number>
+  mapDownloadTotals: Record<string, number>,
 ): number {
-  const compareText = (left: string, right: string, direction: SortDirection) =>
-    direction === "asc" ? left.localeCompare(right) : right.localeCompare(left);
+  const compareText = (
+    left: string,
+    right: string,
+    direction: SortDirection,
+  ) =>
+    direction === 'asc' ? left.localeCompare(right) : right.localeCompare(left);
 
   const compareField = (field: SortField): number => {
     switch (field) {
-      case "name":
-        return compareText(a.item.name ?? "", b.item.name ?? "", sort.direction);
-      case "country": {
-        const countryA = a.type === "map" ? ((a.item as types.MapManifest).country ?? "") : "";
-        const countryB = b.type === "map" ? ((b.item as types.MapManifest).country ?? "") : "";
+      case 'name':
+        return compareText(
+          a.item.name ?? '',
+          b.item.name ?? '',
+          sort.direction,
+        );
+      case 'country': {
+        const countryA =
+          a.type === 'map' ? ((a.item as types.MapManifest).country ?? '') : '';
+        const countryB =
+          b.type === 'map' ? ((b.item as types.MapManifest).country ?? '') : '';
         return compareText(countryA, countryB, sort.direction);
       }
-      case "author":
-        return compareText(a.item.author ?? "", b.item.author ?? "", sort.direction);
-      case "population": {
-        const popA = a.type === "map" ? (a.item as types.MapManifest).population ?? 0 : 0;
-        const popB = b.type === "map" ? (b.item as types.MapManifest).population ?? 0 : 0;
+      case 'author':
+        return compareText(
+          a.item.author ?? '',
+          b.item.author ?? '',
+          sort.direction,
+        );
+      case 'population': {
+        const popA =
+          a.type === 'map'
+            ? ((a.item as types.MapManifest).population ?? 0)
+            : 0;
+        const popB =
+          b.type === 'map'
+            ? ((b.item as types.MapManifest).population ?? 0)
+            : 0;
         return compareByDirection(popA, popB, sort.direction);
       }
-      case "downloads": {
-        const downloadsA = getTotalDownloads(a, modDownloadTotals, mapDownloadTotals);
-        const downloadsB = getTotalDownloads(b, modDownloadTotals, mapDownloadTotals);
+      case 'downloads': {
+        const downloadsA = getTotalDownloads(
+          a,
+          modDownloadTotals,
+          mapDownloadTotals,
+        );
+        const downloadsB = getTotalDownloads(
+          b,
+          modDownloadTotals,
+          mapDownloadTotals,
+        );
         return compareByDirection(downloadsA, downloadsB, sort.direction);
       }
-      case "last_updated": {
+      case 'last_updated': {
         const updatedA = getLastUpdated(a);
         const updatedB = getLastUpdated(b);
         return compareByDirection(updatedA, updatedB, sort.direction);
@@ -164,7 +211,10 @@ export function seededHash(value: string, seed: number): number {
   return hash;
 }
 
-export function sortItemsBySeed(items: TaggedItem[], seed: number): TaggedItem[] {
+export function sortItemsBySeed(
+  items: TaggedItem[],
+  seed: number,
+): TaggedItem[] {
   return [...items].sort((a, b) => {
     const hashA = seededHash(`${a.type}:${a.item.id}`, seed);
     const hashB = seededHash(`${b.type}:${b.item.id}`, seed);
@@ -179,13 +229,15 @@ export function filterAndSortTaggedItems<T extends TaggedItem>(
   items: T[],
   filters: TaggedItemFilterState,
   modDownloadTotals: Record<string, number>,
-  mapDownloadTotals: Record<string, number>
+  mapDownloadTotals: Record<string, number>,
 ): T[] {
   let result = items.filter((i) => i.type === filters.type);
 
   if (filters.mod.tags.length > 0) {
     result = result.filter((i) =>
-      i.type === "mod" ? matchesZeroOrManyValuesFilter(i.item.tags, filters.mod.tags) : true
+      i.type === 'mod'
+        ? matchesZeroOrManyValuesFilter(i.item.tags, filters.mod.tags)
+        : true,
     );
   }
 
@@ -202,18 +254,12 @@ export function filterAndSortTaggedItems<T extends TaggedItem>(
     result = fuse.search(query).map(({ item }) => item.entry as T);
   }
 
-  if (filters.sort.field === "random") {
+  if (filters.sort.field === 'random') {
     return sortItemsBySeed(result, filters.randomSeed) as T[];
   }
 
   return [...result].sort((a, b) =>
-    compareItems(
-      a,
-      b,
-      filters.sort,
-      modDownloadTotals,
-      mapDownloadTotals
-    )
+    compareItems(a, b, filters.sort, modDownloadTotals, mapDownloadTotals),
   );
 }
 
@@ -234,9 +280,9 @@ export function useFilteredItems({
       prev.perPage === defaultPerPage
         ? prev
         : {
-          ...prev,
-          perPage: defaultPerPage,
-        }
+            ...prev,
+            perPage: defaultPerPage,
+          },
     );
   }, [defaultPerPage, setFilters]);
 
@@ -250,8 +296,14 @@ export function useFilteredItems({
   }, [filters, setPage]);
 
   const allItems = useMemo<TaggedItem[]>(() => {
-    const modItems: TaggedItem[] = (mods || []).map((m) => ({ type: "mod" as const, item: m }));
-    const mapItems: TaggedItem[] = (maps || []).map((m) => ({ type: "map" as const, item: m }));
+    const modItems: TaggedItem[] = (mods || []).map((m) => ({
+      type: 'mod' as const,
+      item: m,
+    }));
+    const mapItems: TaggedItem[] = (maps || []).map((m) => ({
+      type: 'map' as const,
+      item: m,
+    }));
     return [...modItems, ...mapItems];
   }, [mods, maps]);
 
@@ -260,7 +312,7 @@ export function useFilteredItems({
       allItems,
       filters,
       modDownloadTotals,
-      mapDownloadTotals
+      mapDownloadTotals,
     );
   }, [allItems, filters, mapDownloadTotals, modDownloadTotals]);
 

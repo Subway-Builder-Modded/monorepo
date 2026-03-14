@@ -1,6 +1,8 @@
-import { types } from "../../wailsjs/go/models";
+import type { types } from '../../wailsjs/go/models';
 
-export function withZeroDownloads(versions: types.VersionInfo[]): types.VersionInfo[] {
+export function withZeroDownloads(
+  versions: types.VersionInfo[],
+): types.VersionInfo[] {
   return versions.map((version) => ({ ...version, downloads: 0 }));
 }
 
@@ -14,7 +16,9 @@ export function mergeVersionDownloads(
 
   const merged = versions.map((version) => {
     if (!(version.version in countsByVersion)) {
-      console.warn(`[${warningContext}] Missing download count for version "${version.version}"`);
+      console.warn(
+        `[${warningContext}] Missing download count for version "${version.version}"`,
+      );
     }
     return {
       ...version,
@@ -24,10 +28,11 @@ export function mergeVersionDownloads(
 
   for (const version of Object.keys(countsByVersion)) {
     if (!knownVersions.has(version)) {
-      console.warn(`[${warningContext}] Download counts contain unknown version "${version}"`);
+      console.warn(
+        `[${warningContext}] Download counts contain unknown version "${version}"`,
+      );
     }
   }
 
   return merged;
 }
-

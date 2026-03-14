@@ -1,14 +1,15 @@
-import { useState } from "react";
-import { CircleX, Copy, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Check,CircleX, Copy } from 'lucide-react';
+import { useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface InstallErrorDialogProps {
   open: boolean;
@@ -18,7 +19,13 @@ interface InstallErrorDialogProps {
   error: string;
 }
 
-export function InstallErrorDialog({ open, onOpenChange, itemName, version, error }: InstallErrorDialogProps) {
+export function InstallErrorDialog({
+  open,
+  onOpenChange,
+  itemName,
+  version,
+  error,
+}: InstallErrorDialogProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -36,20 +43,28 @@ export function InstallErrorDialog({ open, onOpenChange, itemName, version, erro
             Installation Failed
           </DialogTitle>
           <DialogDescription>
-            Failed to install <span className="font-semibold text-foreground">{itemName}</span> {version}
+            Failed to install{' '}
+            <span className="font-semibold text-foreground">{itemName}</span>{' '}
+            {version}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-0">
           <div className="flex items-center justify-between rounded-t-md border border-b-0 border-border bg-muted px-3 py-1.5">
-            <span className="text-xs font-medium text-muted-foreground">Error Details</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              Error Details
+            </span>
             <Button
               variant="ghost"
               size="sm"
               className="h-6 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
               onClick={handleCopy}
             >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              {copied ? "Copied" : "Copy"}
+              {copied ? (
+                <Check className="h-3 w-3" />
+              ) : (
+                <Copy className="h-3 w-3" />
+              )}
+              {copied ? 'Copied' : 'Copy'}
             </Button>
           </div>
           <pre className="rounded-b-md border border-t-0 border-border bg-muted/50 p-4 text-xs font-mono whitespace-pre-wrap break-all max-h-60 overflow-y-auto">

@@ -1,9 +1,10 @@
 import { create } from 'zustand';
+
+import { IsGameRunning, LaunchGame,StopGame } from '../../wailsjs/go/main/App';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
-import { IsGameRunning, StopGame, LaunchGame } from '../../wailsjs/go/main/App';
 
 export interface LogEntry {
-  stream: "stdout" | "stderr";
+  stream: 'stdout' | 'stderr';
   line: string;
   timestamp: number;
 }
@@ -31,34 +32,38 @@ export const useGameStore = create<GameState>((set, get) => ({
     IsGameRunning().then((running) => set({ running }));
 
     // Listen for events from backend
-    EventsOn("game:status", (status: string) => {
-      set({ running: status === "running" });
-      if (status === "stopped") {
+    EventsOn('game:status', (status: string) => {
+      set({ running: status === 'running' });
+      if (status === 'stopped') {
         set({ serverPort: null });
       }
     });
 
-    EventsOn("server:port", (port: number) => {
+    EventsOn('server:port', (port: number) => {
       set({ serverPort: port });
     });
 
-    EventsOn("game:log", (data: { stream: "stdout" | "stderr"; line: string }) => {
-      const entry: LogEntry = {
-        stream: data.stream,
-        line: data.line,
-        timestamp: Date.now(),
-      };
-      const { logs, maxLogs } = get();
-      const next = [...logs, entry];
-      set({ logs: next.length > maxLogs ? next.slice(-maxLogs) : next });
-    });
+    EventsOn(
+      'game:log',
+      (data: { stream: 'stdout' | 'stderr'; line: string }) => {
+        const entry: LogEntry = {
+          stream: data.stream,
+          line: data.line,
+          timestamp: Date.now(),
+        };
+        const { logs, maxLogs } = get();
+        const next = [...logs, entry];
+        set({ logs: next.length > maxLogs ? next.slice(-maxLogs) : next });
+      },
+    );
 
-    EventsOn("game:exit", (exitCode: number) => {
+    EventsOn('game:exit', (exitCode: number) => {
       const entry: LogEntry = {
-        stream: "stderr",
-        line: exitCode === 0
-          ? "--- Game exited normally ---"
-          : `--- Game exited with code ${exitCode} ---`,
+        stream: 'stderr',
+        line:
+          exitCode === 0
+            ? '--- Game exited normally ---'
+            : `--- Game exited with code ${exitCode} ---`,
         timestamp: Date.now(),
       };
       set((s) => ({ logs: [...s.logs, entry] }));

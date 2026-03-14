@@ -1,4 +1,6 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -6,8 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/dialog';
 
 interface PrereleaseConfirmDialogProps {
   open: boolean;
@@ -18,7 +19,11 @@ interface PrereleaseConfirmDialogProps {
 }
 
 export function PrereleaseConfirmDialog({
-  open, onOpenChange, itemName, version, onConfirm,
+  open,
+  onOpenChange,
+  itemName,
+  version,
+  onConfirm,
 }: PrereleaseConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -29,8 +34,9 @@ export function PrereleaseConfirmDialog({
             Install Beta Release?
           </DialogTitle>
           <DialogDescription>
-            <span className="font-semibold text-foreground">{itemName}</span>{" "}
-            {version} is a pre-release version and may be unstable or contain bugs.
+            <span className="font-semibold text-foreground">{itemName}</span>{' '}
+            {version} is a pre-release version and may be unstable or contain
+            bugs.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

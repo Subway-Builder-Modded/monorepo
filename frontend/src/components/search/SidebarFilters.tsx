@@ -1,33 +1,34 @@
-import { cn } from "@/lib/utils";
 import {
+  BadgeCheck,
+  GraduationCap,
+  Layers3,
   MapPin,
   Package,
   Tag,
-  GraduationCap,
-  BadgeCheck,
-  Layers3,
-} from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
-import { type ComponentType, type Dispatch, type SetStateAction } from "react";
+} from 'lucide-react';
+import { type ComponentType, type Dispatch, type SetStateAction } from 'react';
+
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
+import type { AssetType } from '@/lib/asset-types';
+import { normalizeSortStateForType } from '@/lib/constants';
+import { filterVisibleListingValues } from '@/lib/listing-counts';
 import {
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SOURCE_QUALITY_VALUES,
-} from "@/lib/map-filter-values";
-import { SEARCH_FILTER_EMPTY_LABELS } from "@/lib/search";
-import { type SearchFilterState } from "@/stores/search-store";
-import type { AssetType } from "@/lib/asset-types";
-import { normalizeSortStateForType } from "@/lib/constants";
-import { filterVisibleListingValues } from "@/lib/listing-counts";
+} from '@/lib/map-filter-values';
+import { SEARCH_FILTER_EMPTY_LABELS } from '@/lib/search';
+import { cn } from '@/lib/utils';
+import { type SearchFilterState } from '@/stores/search-store';
 
 const FILTER_SECTION_TITLE_CLASS =
-  "text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1";
+  'text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1';
 const FILTER_SECTION_OPTION_CLASS =
-  "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left text-sm text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors";
+  'w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left text-sm text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors';
 const FILTER_SECTION_CLEAR_CLASS =
-  "mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors";
+  'mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors';
 
 interface SidebarFiltersProps {
   filters: SearchFilterState;
@@ -44,8 +45,8 @@ interface SidebarFiltersProps {
 }
 
 const typeOptions = [
-  { value: "map" as const, label: "Maps", icon: MapPin },
-  { value: "mod" as const, label: "Mods", icon: Package },
+  { value: 'map' as const, label: 'Maps', icon: MapPin },
+  { value: 'mod' as const, label: 'Mods', icon: Package },
 ];
 
 export function SidebarFilters({
@@ -83,12 +84,12 @@ export function SidebarFilters({
                 }))
               }
               className={cn(
-                "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors",
+                'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm transition-colors',
                 filters.type === value
-                  ? "bg-accent text-accent-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/60",
+                  ? 'bg-accent text-accent-foreground font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/60',
               )}
-              aria-current={filters.type === value ? "true" : undefined}
+              aria-current={filters.type === value ? 'true' : undefined}
             >
               <span className="flex items-center gap-2">
                 <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -96,10 +97,10 @@ export function SidebarFilters({
               </span>
               <span
                 className={cn(
-                  "text-xs tabular-nums",
+                  'text-xs tabular-nums',
                   filters.type === value
-                    ? "text-foreground"
-                    : "text-muted-foreground",
+                    ? 'text-foreground'
+                    : 'text-muted-foreground',
                 )}
               >
                 {counts[value]}
@@ -109,7 +110,7 @@ export function SidebarFilters({
         </nav>
       </div>
 
-      {filters.type !== "map" && (
+      {filters.type !== 'map' && (
         <>
           <Separator />
           <ChecklistFilterSection
@@ -129,7 +130,7 @@ export function SidebarFilters({
         </>
       )}
 
-      {filters.type !== "mod" && (
+      {filters.type !== 'mod' && (
         <>
           <Separator />
           <ChecklistFilterSection
@@ -235,10 +236,13 @@ function ChecklistFilterSection({
               key={value}
               type="button"
               onClick={() => toggle(value)}
-              className={cn(FILTER_SECTION_OPTION_CLASS, "justify-between")}
+              className={cn(FILTER_SECTION_OPTION_CLASS, 'justify-between')}
             >
               <span className="flex items-center gap-2">
-                <Checkbox checked={selected.includes(value)} aria-hidden="true" />
+                <Checkbox
+                  checked={selected.includes(value)}
+                  aria-hidden="true"
+                />
                 <span>{formatValue(value)}</span>
               </span>
               <span className="text-xs tabular-nums text-muted-foreground">
@@ -271,7 +275,7 @@ function FilterSectionTitle({ title, icon: Icon }: TitleProperties) {
     <p
       className={cn(
         FILTER_SECTION_TITLE_CLASS,
-        Icon && "flex items-center gap-1.5",
+        Icon && 'flex items-center gap-1.5',
       )}
     >
       {Icon && <Icon className="h-3.5 w-3.5" />}

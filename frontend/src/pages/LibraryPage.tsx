@@ -1,23 +1,19 @@
-import { useEffect, useMemo } from "react";
-import { Link } from "wouter";
-import { useRegistryStore } from "@/stores/registry-store";
-import { useInstalledStore } from "@/stores/installed-store";
-import {
-  useFilteredInstalledItems,
-} from "@/hooks/use-filtered-installed-items";
-import { SearchBar } from "@/components/search/SearchBar";
-import { LibrarySidebar } from "@/components/library/LibrarySidebar";
-import { LibraryTable } from "@/components/library/LibraryTable";
-import { LibraryActionBar } from "@/components/library/LibraryActionBar";
-import { EmptyState } from "@/components/shared/EmptyState";
-import { Pagination } from "@/components/shared/Pagination";
-import { ErrorBanner } from "@/components/shared/ErrorBanner";
-import { Button } from "@/components/ui/button";
-import { buildAssetListingCounts } from "@/lib/listing-counts";
-import {
-  Inbox,
-  Plus,
-} from "lucide-react";
+import { Inbox, Plus } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
+import { Link } from 'wouter';
+
+import { LibraryActionBar } from '@/components/library/LibraryActionBar';
+import { LibrarySidebar } from '@/components/library/LibrarySidebar';
+import { LibraryTable } from '@/components/library/LibraryTable';
+import { SearchBar } from '@/components/search/SearchBar';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { Pagination } from '@/components/shared/Pagination';
+import { Button } from '@/components/ui/button';
+import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
+import { buildAssetListingCounts } from '@/lib/listing-counts';
+import { useInstalledStore } from '@/stores/installed-store';
+import { useRegistryStore } from '@/stores/registry-store';
 
 export function LibraryPage() {
   const {
@@ -57,13 +53,25 @@ export function LibraryPage() {
     const modItems = installedMods.flatMap((installed) => {
       const manifest = modManifestById.get(installed.id);
       return manifest
-        ? [{ type: "mod" as const, item: manifest, installedVersion: installed.version }]
+        ? [
+            {
+              type: 'mod' as const,
+              item: manifest,
+              installedVersion: installed.version,
+            },
+          ]
         : [];
     });
     const mapItems = installedMaps.flatMap((installed) => {
       const manifest = mapManifestById.get(installed.id);
       return manifest
-        ? [{ type: "map" as const, item: manifest, installedVersion: installed.version }]
+        ? [
+            {
+              type: 'map' as const,
+              item: manifest,
+              installedVersion: installed.version,
+            },
+          ]
         : [];
     });
 
@@ -85,19 +93,21 @@ export function LibraryPage() {
     mapDownloadTotals,
   });
 
-  const modCount = installedItems.filter((i) => i.type === "mod").length;
-  const mapCount = installedItems.filter((i) => i.type === "map").length;
+  const modCount = installedItems.filter((i) => i.type === 'mod').length;
+  const mapCount = installedItems.filter((i) => i.type === 'map').length;
 
   const installedModItems = useMemo(
-    () => installedItems
-      .filter((entry) => entry.type === "mod")
-      .map((entry) => entry.item),
+    () =>
+      installedItems
+        .filter((entry) => entry.type === 'mod')
+        .map((entry) => entry.item),
     [installedItems],
   );
   const installedMapItems = useMemo(
-    () => installedItems
-      .filter((entry) => entry.type === "map")
-      .map((entry) => entry.item),
+    () =>
+      installedItems
+        .filter((entry) => entry.type === 'map')
+        .map((entry) => entry.item),
     [installedItems],
   );
 
@@ -107,7 +117,9 @@ export function LibraryPage() {
   }, [installedModItems]);
 
   const availableSpecialDemand = useMemo(() => {
-    const tags = new Set(installedMapItems.flatMap((item) => item.special_demand ?? []));
+    const tags = new Set(
+      installedMapItems.flatMap((item) => item.special_demand ?? []),
+    );
     return Array.from(tags).sort();
   }, [installedMapItems]);
 
@@ -180,8 +192,10 @@ export function LibraryPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>
-                <span className="font-medium text-foreground">{totalResults}</span>{" "}
-                result{totalResults !== 1 ? "s" : ""}
+                <span className="font-medium text-foreground">
+                  {totalResults}
+                </span>{' '}
+                result{totalResults !== 1 ? 's' : ''}
                 {filters.query && (
                   <span className="ml-1">
                     for <span className="italic">"{filters.query}"</span>
@@ -212,7 +226,9 @@ export function LibraryPage() {
               {paginatedItems.length === 0 ? (
                 <EmptyState
                   icon={Inbox}
-                  title={filters.type === "map" ? "No maps found" : "No mods found"}
+                  title={
+                    filters.type === 'map' ? 'No maps found' : 'No mods found'
+                  }
                   description={
                     filters.query
                       ? `No installed ${filters.type} match "${filters.query}"`

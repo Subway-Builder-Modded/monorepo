@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface DownloadQueueState {
   /** Total items enqueued in the current batch. */

@@ -1,5 +1,12 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { ChevronDown, ChevronUp, FolderOpen, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Link } from 'wouter';
+
+import { UninstallDialog } from '@/components/dialogs/UninstallDialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -7,26 +14,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, FolderOpen, Trash2 } from "lucide-react";
-import { UninstallDialog } from "@/components/dialogs/UninstallDialog";
-import { useLibraryStore } from "@/stores/library-store";
-import { useConfigStore } from "@/stores/config-store";
-import { type InstalledTaggedItem } from "@/hooks/use-filtered-installed-items";
-import { cn } from "@/lib/utils";
-import { types } from "../../../wailsjs/go/models";
-import { MAX_CARD_BADGES } from "@/lib/search";
-import { formatSourceQuality } from "@/lib/map-filter-values";
-import { getCountryFlagIcon } from "@/lib/flags";
-import { OpenInFileExplorer } from "../../../wailsjs/go/main/App";
-import { toast } from "sonner";
-import type { AssetType } from "@/lib/asset-types";
-import { assetTypeToListingPath } from "@/lib/asset-types";
-import type { SortState } from "@/lib/constants";
-import { toggleSortField } from "@/lib/constants";
+} from '@/components/ui/table';
+import { type InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
+import type { AssetType } from '@/lib/asset-types';
+import { assetTypeToListingPath } from '@/lib/asset-types';
+import type { SortState } from '@/lib/constants';
+import { toggleSortField } from '@/lib/constants';
+import { getCountryFlagIcon } from '@/lib/flags';
+import { formatSourceQuality } from '@/lib/map-filter-values';
+import { MAX_CARD_BADGES } from '@/lib/search';
+import { cn } from '@/lib/utils';
+import { useConfigStore } from '@/stores/config-store';
+import { useLibraryStore } from '@/stores/library-store';
+
+import { OpenInFileExplorer } from '../../../wailsjs/go/main/App';
+import type { types } from '../../../wailsjs/go/models';
 
 interface LibraryTableProps {
   items: InstalledTaggedItem[];
@@ -47,13 +49,12 @@ export function LibraryTable({
 }: LibraryTableProps) {
   const { selectedIds, toggleSelected, selectAll, clearSelection } =
     useLibraryStore();
-  const showCountryColumn = activeType === "map";
+  const showCountryColumn = activeType === 'map';
 
   const allKeys = items.map(composeItemKey);
   const allSelected =
     items.length > 0 && allKeys.every((k) => selectedIds.has(k));
-  const someSelected =
-    !allSelected && allKeys.some((k) => selectedIds.has(k));
+  const someSelected = !allSelected && allKeys.some((k) => selectedIds.has(k));
 
   const handleSelectAll = () => {
     if (allSelected) {
@@ -63,14 +64,12 @@ export function LibraryTable({
     }
   };
 
-  const isNameSorted = sort.field === "name";
-  const NameSortIcon = isNameSorted && sort.direction === "asc"
-    ? ChevronUp
-    : ChevronDown;
-  const isCountrySorted = sort.field === "country";
-  const CountrySortIcon = isCountrySorted && sort.direction === "asc"
-    ? ChevronUp
-    : ChevronDown;
+  const isNameSorted = sort.field === 'name';
+  const NameSortIcon =
+    isNameSorted && sort.direction === 'asc' ? ChevronUp : ChevronDown;
+  const isCountrySorted = sort.field === 'country';
+  const CountrySortIcon =
+    isCountrySorted && sort.direction === 'asc' ? ChevronUp : ChevronDown;
 
   return (
     <div className="rounded-md border border-border">
@@ -79,7 +78,9 @@ export function LibraryTable({
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-10">
               <Checkbox
-                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                checked={
+                  allSelected ? true : someSelected ? 'indeterminate' : false
+                }
                 onCheckedChange={handleSelectAll}
                 aria-label="Select all"
               />
@@ -87,15 +88,19 @@ export function LibraryTable({
             <TableHead>
               <button
                 type="button"
-                onClick={() => onSortChange(toggleSortField(sort, "name"))}
+                onClick={() => onSortChange(toggleSortField(sort, 'name'))}
                 className="inline-flex items-center gap-1 text-foreground font-medium hover:text-foreground/80 transition-colors"
-                aria-label={isNameSorted && sort.direction === "asc" ? "Sort name descending" : "Sort name ascending"}
+                aria-label={
+                  isNameSorted && sort.direction === 'asc'
+                    ? 'Sort name descending'
+                    : 'Sort name ascending'
+                }
               >
                 <span>Name</span>
                 <NameSortIcon
                   className={cn(
-                    "h-4 w-4",
-                    isNameSorted ? "opacity-100" : "opacity-40",
+                    'h-4 w-4',
+                    isNameSorted ? 'opacity-100' : 'opacity-40',
                   )}
                 />
               </button>
@@ -104,15 +109,19 @@ export function LibraryTable({
               <TableHead className="w-32 text-center">
                 <button
                   type="button"
-                  onClick={() => onSortChange(toggleSortField(sort, "country"))}
+                  onClick={() => onSortChange(toggleSortField(sort, 'country'))}
                   className="inline-flex items-center gap-1 text-foreground font-medium hover:text-foreground/80 transition-colors"
-                  aria-label={isCountrySorted && sort.direction === "asc" ? "Sort country descending" : "Sort country ascending"}
+                  aria-label={
+                    isCountrySorted && sort.direction === 'asc'
+                      ? 'Sort country descending'
+                      : 'Sort country ascending'
+                  }
                 >
                   <span>Country</span>
                   <CountrySortIcon
                     className={cn(
-                      "h-4 w-4",
-                      isCountrySorted ? "opacity-100" : "opacity-40",
+                      'h-4 w-4',
+                      isCountrySorted ? 'opacity-100' : 'opacity-40',
                     )}
                   />
                 </button>
@@ -157,8 +166,10 @@ function LibraryTableRow({
   onToggleSelect,
 }: LibraryTableRowProps) {
   const [uninstallOpen, setUninstallOpen] = useState(false);
-  const metroMakerDataPath = useConfigStore((s) => s.config?.metroMakerDataPath);
-  const isMap = entry.type === "map";
+  const metroMakerDataPath = useConfigStore(
+    (s) => s.config?.metroMakerDataPath,
+  );
+  const isMap = entry.type === 'map';
   const map = isMap ? (entry.item as types.MapManifest) : null;
   const mapBadges = map
     ? [
@@ -169,17 +180,17 @@ function LibraryTableRow({
       ].filter((value): value is string => Boolean(value))
     : [];
   const badges = isMap ? mapBadges : (entry.item.tags ?? []);
-  const mapCountry = map?.country?.trim().toUpperCase() ?? "";
+  const mapCountry = map?.country?.trim().toUpperCase() ?? '';
   const CountryFlag = isMap ? getCountryFlagIcon(mapCountry) : null;
 
   const resolveInstallFolderPath = (): string | null => {
     if (!metroMakerDataPath) return null;
 
-    if (entry.type === "mod") {
+    if (entry.type === 'mod') {
       return `${metroMakerDataPath}\\mods\\${entry.item.id}`;
     }
 
-    const cityCode = (map?.city_code ?? "").trim();
+    const cityCode = (map?.city_code ?? '').trim();
     if (!cityCode) {
       return `${metroMakerDataPath}\\cities\\data`;
     }
@@ -194,8 +205,8 @@ function LibraryTableRow({
     void (async () => {
       try {
         const result = await OpenInFileExplorer(folderPath);
-        if (result?.status === "error") {
-          toast.error(result?.message || "Failed to open install folder");
+        if (result?.status === 'error') {
+          toast.error(result?.message || 'Failed to open install folder');
         }
       } catch (err) {
         toast.error(err instanceof Error ? err.message : String(err));
@@ -206,8 +217,8 @@ function LibraryTableRow({
   return (
     <>
       <TableRow
-        data-state={isSelected ? "selected" : undefined}
-        className={cn("group transition-colors", isSelected && "bg-muted/50")}
+        data-state={isSelected ? 'selected' : undefined}
+        className={cn('group transition-colors', isSelected && 'bg-muted/50')}
       >
         <TableCell>
           <Checkbox
@@ -237,8 +248,8 @@ function LibraryTableRow({
               {badges.length > 0 && (
                 <div
                   className={cn(
-                    "shrink-0 flex items-center gap-1 self-center justify-start text-left",
-                    isMap && "ml-1",
+                    'shrink-0 flex items-center gap-1 self-center justify-start text-left',
+                    isMap && 'ml-1',
                   )}
                 >
                   {badges.slice(0, MAX_CARD_BADGES).map((badge) => (
@@ -265,8 +276,12 @@ function LibraryTableRow({
           <TableCell className="align-middle text-center">
             {isMap && mapCountry ? (
               <div className="mx-auto flex items-center justify-center gap-1.5 whitespace-nowrap">
-                {CountryFlag && <CountryFlag className="h-3.5 w-5 rounded-[1px] shrink-0" />}
-                <span className="font-mono text-sm font-bold text-foreground">{mapCountry}</span>
+                {CountryFlag && (
+                  <CountryFlag className="h-3.5 w-5 rounded-[1px] shrink-0" />
+                )}
+                <span className="font-mono text-sm font-bold text-foreground">
+                  {mapCountry}
+                </span>
               </div>
             ) : (
               <span className="block h-5" aria-hidden="true" />

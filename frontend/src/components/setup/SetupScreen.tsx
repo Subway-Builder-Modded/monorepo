@@ -1,31 +1,32 @@
-import { useState } from "react";
-import { useConfigStore } from "@/stores/config-store";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import {
+  CheckCircle,
+  ChevronRight,
+  FolderSearch,
+  Gamepad2,
+  Github,
+  Loader2,
+  TrainTrack,
+  XCircle,
+} from 'lucide-react';
+import { useState } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import {
-  TrainTrack,
-  FolderSearch,
-  Gamepad2,
-  Github,
-  CheckCircle,
-  XCircle,
-  Loader2,
-  ChevronRight,
-} from "lucide-react";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useConfigStore } from '@/stores/config-store';
 
 export function SetupScreen() {
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [checkForUpdates, setCheckForUpdates] = useState<boolean | null>(null);
-  const [githubToken, setGithubToken] = useState("");
+  const [githubToken, setGithubToken] = useState('');
   const {
     config,
     validation,
@@ -39,7 +40,7 @@ export function SetupScreen() {
   const handleDataFolder = async (autoDetect: boolean) => {
     try {
       const result = await openDataFolderDialog(autoDetect);
-      if (result.source === "cancelled") return;
+      if (result.source === 'cancelled') return;
     } catch {
       // error is set in the store
     }
@@ -48,7 +49,7 @@ export function SetupScreen() {
   const handleExecutable = async (autoDetect: boolean) => {
     try {
       const result = await openExecutableDialog(autoDetect);
-      if (result.source === "cancelled") return;
+      if (result.source === 'cancelled') return;
     } catch {
       // error is set in the store
     }
@@ -61,7 +62,7 @@ export function SetupScreen() {
         await updateCheckForUpdatesOnLaunch(checkForUpdates);
       }
       const trimmedGithubToken = githubToken.trim();
-      if (trimmedGithubToken !== "") {
+      if (trimmedGithubToken !== '') {
         await updateGithubToken(trimmedGithubToken);
       }
       await completeSetup();
@@ -123,22 +124,22 @@ export function SetupScreen() {
           <div className="flex items-center justify-center gap-2 pt-2">
             <span
               className={`h-2 w-6 rounded-full ${
-                step === 1 ? "bg-primary" : "bg-muted"
+                step === 1 ? 'bg-primary' : 'bg-muted'
               }`}
             />
             <span
               className={`h-2 w-6 rounded-full ${
-                step === 2 ? "bg-primary" : "bg-muted"
+                step === 2 ? 'bg-primary' : 'bg-muted'
               }`}
             />
             <span
               className={`h-2 w-6 rounded-full ${
-                step === 3 ? "bg-primary" : "bg-muted"
+                step === 3 ? 'bg-primary' : 'bg-muted'
               }`}
             />
             <span
               className={`h-2 w-6 rounded-full ${
-                step === 4 ? "bg-primary" : "bg-muted"
+                step === 4 ? 'bg-primary' : 'bg-muted'
               }`}
             />
           </div>
@@ -279,13 +280,13 @@ export function SetupScreen() {
                 </p>
                 <div className="flex items-center gap-4 w-full justify-center">
                   <Button
-                    variant={checkForUpdates === true ? "default" : "outline"}
+                    variant={checkForUpdates === true ? 'default' : 'outline'}
                     onClick={() => setCheckForUpdates(true)}
                   >
                     Yes
                   </Button>
                   <Button
-                    variant={checkForUpdates === false ? "default" : "outline"}
+                    variant={checkForUpdates === false ? 'default' : 'outline'}
                     onClick={() => setCheckForUpdates(false)}
                   >
                     No

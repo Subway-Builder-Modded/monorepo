@@ -1,21 +1,23 @@
-import { useMemo, useEffect, useRef } from "react";
-import { types } from "../../wailsjs/go/models";
-import { type PerPage } from "../lib/constants";
-import { useProfileStore } from "@/stores/profile-store";
-import { useLibraryStore } from "@/stores/library-store";
+import { useEffect, useMemo, useRef } from 'react';
+
 import {
   filterAndSortTaggedItems,
   type TaggedItemFilterState,
-} from "@/hooks/use-filtered-items";
+} from '@/hooks/use-filtered-items';
+import { useLibraryStore } from '@/stores/library-store';
+import { useProfileStore } from '@/stores/profile-store';
+
+import type { types } from '../../wailsjs/go/models';
+import { type PerPage } from '../lib/constants';
 
 export type InstalledTaggedItem =
   | {
-      type: "mod";
+      type: 'mod';
       item: types.ModManifest;
       installedVersion: string;
     }
   | {
-      type: "map";
+      type: 'map';
       item: types.MapManifest;
       installedVersion: string;
     };
@@ -39,7 +41,9 @@ export function useFilteredInstalledItems({
 
   useEffect(() => {
     setFilters((prev) =>
-      prev.perPage === defaultPerPage ? prev : { ...prev, perPage: defaultPerPage },
+      prev.perPage === defaultPerPage
+        ? prev
+        : { ...prev, perPage: defaultPerPage },
     );
   }, [defaultPerPage, setFilters]);
 

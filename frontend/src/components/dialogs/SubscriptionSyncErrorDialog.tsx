@@ -1,3 +1,6 @@
+import { TriangleAlert } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -5,10 +8,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { TriangleAlert } from "lucide-react";
-import { types } from "../../../wailsjs/go/models";
+} from '@/components/ui/dialog';
+
+import type { types } from '../../../wailsjs/go/models';
 
 interface SubscriptionSyncErrorDialogProps {
   open: boolean;
@@ -36,8 +38,8 @@ export function SubscriptionSyncErrorDialog({
             Subscription Sync Failed
           </DialogTitle>
           <DialogDescription className="pt-0.5">
-            Could not finish updating subscriptions for{" "}
-            <span className="font-semibold text-foreground">{itemName}</span>{" "}
+            Could not finish updating subscriptions for{' '}
+            <span className="font-semibold text-foreground">{itemName}</span>{' '}
             {version}.
           </DialogDescription>
         </DialogHeader>

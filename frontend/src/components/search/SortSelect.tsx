@@ -1,20 +1,21 @@
+import { useEffect } from 'react';
+
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
+import type { AssetType } from '@/lib/asset-types';
 import {
   DEFAULT_SORT_STATE,
   getSortOptionsForType,
   SortKey,
   sortKeyToState,
-  sortStateToOptionKey,
   type SortState,
-} from "@/lib/constants";
-import { useEffect } from "react";
-import type { AssetType } from "@/lib/asset-types";
+  sortStateToOptionKey,
+} from '@/lib/constants';
 
 interface SortSelectProps {
   value: SortState;
