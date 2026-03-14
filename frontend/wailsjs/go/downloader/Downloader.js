@@ -6,10 +6,6 @@ export function InstallAsset(arg1, arg2, arg3) {
   return window['go']['downloader']['Downloader']['InstallAsset'](arg1, arg2, arg3);
 }
 
-export function SetContext(arg1) {
-  return window['go']['downloader']['Downloader']['SetContext'](arg1);
-}
-
 export function UninstallAsset(arg1, arg2) {
   return window['go']['downloader']['Downloader']['UninstallAsset'](arg1, arg2);
 }
