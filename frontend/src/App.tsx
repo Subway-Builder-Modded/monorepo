@@ -30,7 +30,9 @@ function App() {
   useTheme();
   const [startupReady, setStartupReady] = useState(false);
   const updateInstalledLists = useInstalledStore((s) => s.updateInstalledLists);
-  const acknowledgeCancel = useInstalledStore((s) => s.ackCancelledInstall);
+  const acknowledgeCancel = useInstalledStore(
+    (s) => s.acknowledgeCancelledInstall,
+  );
 
   const initConfig = useConfigStore((s) => s.initialize);
   const configInitialized = useConfigStore((s) => s.initialized);

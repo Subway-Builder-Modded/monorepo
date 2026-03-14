@@ -49,7 +49,7 @@ interface InstalledState {
   uninstallMap: (id: string) => Promise<types.UpdateSubscriptionsResult>;
   uninstallAssets: (assets: Array<{ id: string; type: AssetType }>) => Promise<types.UpdateSubscriptionsResult>;
   cancelPendingInstall: (type: AssetType, id: string) => Promise<types.UpdateSubscriptionsResult>;
-  ackCancelledInstall: (id: string) => void;
+  acknowledgeCancelledInstall: (id: string) => void;
   isInstalled: (id: string) => boolean;
   getInstalledVersion: (id: string) => string | null;
   isOperating: (id: string) => boolean;
@@ -198,82 +198,82 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
   };
 
   return ({
-  installedMods: [],
-  installedMaps: [],
-  installing: new Set<string>(),
-  uninstalling: new Set<string>(),
-  loading: false,
-  error: null,
-  initialized: false,
+    installedMods: [],
+    installedMaps: [],
+    installing: new Set<string>(),
+    uninstalling: new Set<string>(),
+    loading: false,
+    error: null,
+    initialized: false,
 
-  initialize: async () => {
-    if (get().initialized) return;
-    set({ loading: true, error: null });
-    try {
-      set({ ...await getInstalledLists(), initialized: true, loading: false });
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
-    }
-  },
-
-  updateInstalledLists: async () => {
-    set({ loading: true, error: null });
-    try {
-      set({ ...await getInstalledLists(), loading: false });
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
-    }
-  },
-
-  installMod: (id: string, version: string) =>
-    installAsset(id, version, "mod"),
-
-  installMap: (id: string, version: string) =>
-    installAsset(id, version, "map"),
-
-  uninstallMod: (id: string) =>
-    uninstallAssets([{ id, type: "mod" }]),
-
-  uninstallMap: (id: string) =>
-    uninstallAssets([{ id, type: "map" }]),
-
-  uninstallAssets,
-
-  cancelPendingInstall: async (type: AssetType, id: string) => {
-    return uninstallAssets([{ id, type }]);
-  },
-
-  ackCancelledInstall: (id: string) => {
-    set((state) => {
-      if (!state.installing.has(id)) {
-        return state;
+    initialize: async () => {
+      if (get().initialized) return;
+      set({ loading: true, error: null });
+      try {
+        set({ ...await getInstalledLists(), initialized: true, loading: false });
+      } catch (err) {
+        set({ error: err instanceof Error ? err.message : String(err), loading: false });
       }
-      const nextInstalling = new Set(state.installing);
-      nextInstalling.delete(id);
-      return { installing: nextInstalling };
-    });
-  },
+    },
 
-  isInstalled: (id: string) => {
-    const { installedMods, installedMaps } = get();
-    return installedMods.some((m) => m.id === id) || installedMaps.some((m) => m.id === id);
-  },
+    updateInstalledLists: async () => {
+      set({ loading: true, error: null });
+      try {
+        set({ ...await getInstalledLists(), loading: false });
+      } catch (err) {
+        set({ error: err instanceof Error ? err.message : String(err), loading: false });
+      }
+    },
 
-  getInstalledVersion: (id: string) => {
-    const { installedMods, installedMaps } = get();
-    const mod = installedMods.find((m) => m.id === id);
-    if (mod) return mod.version;
-    const map = installedMaps.find((m) => m.id === id);
-    if (map) return map.version;
-    return null;
-  },
+    installMod: (id: string, version: string) =>
+      installAsset(id, version, "mod"),
 
-  isOperating: (id: string) => {
-    return get().installing.has(id) || get().uninstalling.has(id);
-  },
+    installMap: (id: string, version: string) =>
+      installAsset(id, version, "map"),
 
-  isInstalling: (id: string) => get().installing.has(id),
+    uninstallMod: (id: string) =>
+      uninstallAssets([{ id, type: "mod" }]),
 
-  isUninstalling: (id: string) => get().uninstalling.has(id),
+    uninstallMap: (id: string) =>
+      uninstallAssets([{ id, type: "map" }]),
+
+    uninstallAssets,
+
+    cancelPendingInstall: async (type: AssetType, id: string) => {
+      return uninstallAssets([{ id, type }]);
+    },
+
+    acknowledgeCancelledInstall: (id: string) => {
+      set((state) => {
+        if (!state.installing.has(id)) {
+          return state;
+        }
+        const nextInstalling = new Set(state.installing);
+        nextInstalling.delete(id);
+        return { installing: nextInstalling };
+      });
+    },
+
+    isInstalled: (id: string) => {
+      const { installedMods, installedMaps } = get();
+      return installedMods.some((m) => m.id === id) || installedMaps.some((m) => m.id === id);
+    },
+
+    getInstalledVersion: (id: string) => {
+      const { installedMods, installedMaps } = get();
+      const mod = installedMods.find((m) => m.id === id);
+      if (mod) return mod.version;
+      const map = installedMaps.find((m) => m.id === id);
+      if (map) return map.version;
+      return null;
+    },
+
+    isOperating: (id: string) => {
+      return get().installing.has(id) || get().uninstalling.has(id);
+    },
+
+    isInstalling: (id: string) => get().installing.has(id),
+
+    isUninstalling: (id: string) => get().uninstalling.has(id),
   });
 });

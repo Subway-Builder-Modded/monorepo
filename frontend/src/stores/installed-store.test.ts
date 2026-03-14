@@ -208,17 +208,17 @@ describe("useInstalledStore", () => {
     expect(result.status).toBe("warn");
   });
 
-  it("ackCancelledInstall removes item from installing lane idempotently", () => {
+  it("acknowledgeCancelledInstall removes item from installing lane idempotently", () => {
     useInstalledStore.setState((state) => ({
       ...state,
       installing: new Set(["map-1", "map-2"]),
     }));
 
-    useInstalledStore.getState().ackCancelledInstall("map-1");
+    useInstalledStore.getState().acknowledgeCancelledInstall("map-1");
     expect(useInstalledStore.getState().installing.has("map-1")).toBe(false);
     expect(useInstalledStore.getState().installing.has("map-2")).toBe(true);
 
-    useInstalledStore.getState().ackCancelledInstall("missing-map");
+    useInstalledStore.getState().acknowledgeCancelledInstall("missing-map");
     expect(useInstalledStore.getState().installing.has("map-2")).toBe(true);
   });
 });
