@@ -99,7 +99,6 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.setStartupReady(false)
 	a.ctx = ctx
-	a.Downloader.SetContext(ctx)
 	a.Config.SetContext(ctx)
 	a.Downloader.OnExtractProgress = func(itemId string, extracted int64, total int64) {
 		wailsruntime.EventsEmit(ctx, "extract:progress", map[string]interface{}{
@@ -114,6 +113,16 @@ func (a *App) startup(ctx context.Context) {
 			"received": received,
 			"total":    total,
 		})
+	}
+	a.Downloader.OnCancelled = func(itemId string, assetType types.AssetType, phase string) {
+		wailsruntime.EventsEmit(ctx, "download:cancelled", map[string]interface{}{
+			"itemId":    itemId,
+			"assetType": string(assetType),
+			"phase":     phase,
+		})
+	}
+	a.Downloader.OnRegistryUpdate = func() {
+		wailsruntime.EventsEmit(ctx, "registry:update")
 	}
 	if _, err := a.Config.ResolveConfig(); err != nil {
 		log.Printf("Warning: failed to resolve config on startup: %v", err)
@@ -138,7 +147,7 @@ func (a *App) startup(ctx context.Context) {
 		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
 	}
 	// TODO: Bootstrap installed asset state on startup by scanning managed install directories.
-  // Use per-asset integrity SHA checks and a dedicated marker file (.railyard) so startup can safely reconstruct installed_maps/installed_mods when persisted state is missing/corrupt or after an unclean shutdown.
+	// Use per-asset integrity SHA checks and a dedicated marker file (.railyard) so startup can safely reconstruct installed_maps/installed_mods when persisted state is missing/corrupt or after an unclean shutdown.
 	// Use profile state as a backup source of truth as it is more likely to be persisted successfully due to frequent writes after subscription changes (while installs/uninstalls generally lag behind user actions due to the downloader queue)
 	if a.Config.Cfg.CheckForUpdatesOnLaunch {
 		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())

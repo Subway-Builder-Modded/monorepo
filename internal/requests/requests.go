@@ -16,12 +16,12 @@ type GithubTokenRequestArgs struct {
 	GitHubToken            string
 	Context                context.Context
 	Headers                map[string]string
-	ForceAuthByToken         bool
+	ForceAuthByToken       bool
 	ShouldAuthenticateHost func(host string) bool
 	OnTokenRejected        func(statusCode int)
 }
 
-// Generic client for API requests 
+// Generic client for API requests
 func NewAPIClient() *http.Client {
 	return &http.Client{Timeout: types.RequestTimeout}
 }
@@ -101,7 +101,7 @@ func GetWithGithubToken(client *http.Client, opts GithubTokenRequestArgs) (*http
 			opts.OnTokenRejected(resp.StatusCode)
 		}
 		resp.Body.Close()
-    
+
 		// Attempt again with unauthorized request
 		reqNoAuth, reqErr := buildRequest(false)
 		if reqErr != nil {

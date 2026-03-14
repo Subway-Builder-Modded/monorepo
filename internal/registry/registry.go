@@ -25,19 +25,19 @@ type logSink interface {
 
 // Registry manages the local clone of The Railyard registry repository.
 type Registry struct {
-	repoPath        string
-	httpClient      *http.Client
-	logger          logSink
-	config          *config.Config
-	mods            []types.ModManifest
-	maps            []types.MapManifest
-	downloadCounts  map[types.AssetType]map[string]map[string]int
-	versionsCache   map[string][]types.VersionInfo
-	versionsMu      sync.RWMutex
-	installedMods   []types.InstalledModInfo
-	installedMaps   []types.InstalledMapInfo
-	integrityMaps   types.RegistryIntegrityReport
-	integrityMods   types.RegistryIntegrityReport
+	repoPath       string
+	httpClient     *http.Client
+	logger         logSink
+	config         *config.Config
+	mods           []types.ModManifest
+	maps           []types.MapManifest
+	downloadCounts map[types.AssetType]map[string]map[string]int
+	versionsCache  map[string][]types.VersionInfo
+	versionsMu     sync.RWMutex
+	installedMods  []types.InstalledModInfo
+	installedMaps  []types.InstalledMapInfo
+	integrityMaps  types.RegistryIntegrityReport
+	integrityMods  types.RegistryIntegrityReport
 }
 
 // NewRegistry creates a new Registry instance with the platform-appropriate
@@ -73,7 +73,7 @@ func (r *Registry) Initialize() error {
 
 // Refresh forces a pull of the latest registry changes.
 func (r *Registry) Refresh() error {
-	r.clearVersionsCache() // Clear versions cache on refresh to ensure we fetch fresh version 
+	r.clearVersionsCache() // Clear versions cache on refresh to ensure we fetch fresh version
 	if err := r.refreshRepo(); err != nil {
 		return err
 	}

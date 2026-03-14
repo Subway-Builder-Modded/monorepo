@@ -4,7 +4,6 @@ import { GetInstalledMods, GetInstalledMaps } from '../../wailsjs/go/registry/Re
 import { GetActiveProfile, UpdateSubscriptions } from '../../wailsjs/go/profiles/UserProfiles';
 import { useDownloadQueueStore } from './download-queue-store';
 import type { AssetType } from "@/lib/asset-types";
-import { emitDownloadCancelled } from "@/lib/download-cancel";
 
 export class SubscriptionSyncError extends Error {
   readonly status: string;
@@ -50,6 +49,7 @@ interface InstalledState {
   uninstallMap: (id: string) => Promise<types.UpdateSubscriptionsResult>;
   uninstallAssets: (assets: Array<{ id: string; type: AssetType }>) => Promise<types.UpdateSubscriptionsResult>;
   cancelPendingInstall: (type: AssetType, id: string) => Promise<types.UpdateSubscriptionsResult>;
+  acknowledgeCancelledInstall: (id: string) => void;
   isInstalled: (id: string) => boolean;
   getInstalledVersion: (id: string) => string | null;
   isOperating: (id: string) => boolean;
@@ -198,73 +198,82 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
   };
 
   return ({
-  installedMods: [],
-  installedMaps: [],
-  installing: new Set<string>(),
-  uninstalling: new Set<string>(),
-  loading: false,
-  error: null,
-  initialized: false,
+    installedMods: [],
+    installedMaps: [],
+    installing: new Set<string>(),
+    uninstalling: new Set<string>(),
+    loading: false,
+    error: null,
+    initialized: false,
 
-  initialize: async () => {
-    if (get().initialized) return;
-    set({ loading: true, error: null });
-    try {
-      set({ ...await getInstalledLists(), initialized: true, loading: false });
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
-    }
-  },
+    initialize: async () => {
+      if (get().initialized) return;
+      set({ loading: true, error: null });
+      try {
+        set({ ...await getInstalledLists(), initialized: true, loading: false });
+      } catch (err) {
+        set({ error: err instanceof Error ? err.message : String(err), loading: false });
+      }
+    },
 
-  updateInstalledLists: async () => {
-    set({ loading: true, error: null });
-    try {
-      set({ ...await getInstalledLists(), loading: false });
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), loading: false });
-    }
-  },
+    updateInstalledLists: async () => {
+      set({ loading: true, error: null });
+      try {
+        set({ ...await getInstalledLists(), loading: false });
+      } catch (err) {
+        set({ error: err instanceof Error ? err.message : String(err), loading: false });
+      }
+    },
 
-  installMod: (id: string, version: string) =>
-    installAsset(id, version, "mod"),
+    installMod: (id: string, version: string) =>
+      installAsset(id, version, "mod"),
 
-  installMap: (id: string, version: string) =>
-    installAsset(id, version, "map"),
+    installMap: (id: string, version: string) =>
+      installAsset(id, version, "map"),
 
-  uninstallMod: (id: string) =>
-    uninstallAssets([{ id, type: "mod" }]),
+    uninstallMod: (id: string) =>
+      uninstallAssets([{ id, type: "mod" }]),
 
-  uninstallMap: (id: string) =>
-    uninstallAssets([{ id, type: "map" }]),
+    uninstallMap: (id: string) =>
+      uninstallAssets([{ id, type: "map" }]),
 
-  uninstallAssets,
+    uninstallAssets,
 
-  cancelPendingInstall: async (type: AssetType, id: string) => {
-    const result = await uninstallAssets([{ id, type }]);
-    emitDownloadCancelled(id);
-    return result;
-  },
+    cancelPendingInstall: async (type: AssetType, id: string) => {
+      return uninstallAssets([{ id, type }]);
+    },
 
-  isInstalled: (id: string) => {
-    const { installedMods, installedMaps } = get();
-    return installedMods.some((m) => m.id === id) || installedMaps.some((m) => m.id === id);
-  },
+    acknowledgeCancelledInstall: (id: string) => {
+      set((state) => {
+        if (!state.installing.has(id)) {
+          return state;
+        }
+        const nextInstalling = new Set(state.installing);
+        nextInstalling.delete(id);
+        return { installing: nextInstalling };
+      });
+    },
 
-  getInstalledVersion: (id: string) => {
-    const { installedMods, installedMaps } = get();
-    const mod = installedMods.find((m) => m.id === id);
-    if (mod) return mod.version;
-    const map = installedMaps.find((m) => m.id === id);
-    if (map) return map.version;
-    return null;
-  },
+    isInstalled: (id: string) => {
+      const { installedMods, installedMaps } = get();
+      return installedMods.some((m) => m.id === id) || installedMaps.some((m) => m.id === id);
+    },
 
-  isOperating: (id: string) => {
-    return get().installing.has(id) || get().uninstalling.has(id);
-  },
+    getInstalledVersion: (id: string) => {
+      const { installedMods, installedMaps } = get();
+      const mod = installedMods.find((m) => m.id === id);
+      if (mod) return mod.version;
+      const map = installedMaps.find((m) => m.id === id);
+      if (map) return map.version;
+      return null;
+    },
 
-  isInstalling: (id: string) => get().installing.has(id),
+    isOperating: (id: string) => {
+      return get().installing.has(id) || get().uninstalling.has(id);
+    },
 
-  isUninstalling: (id: string) => get().uninstalling.has(id),
+    isInstalling: (id: string) => get().installing.has(id),
+
+    isUninstalling: (id: string) => get().uninstalling.has(id),
   });
 });

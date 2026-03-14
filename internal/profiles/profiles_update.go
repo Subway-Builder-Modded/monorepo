@@ -35,6 +35,11 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 			}
 		}
 
+		// Unsubscribe requests already issue direct uninstall/cancel operations above. Skip the full sync routine to avoid redundant processing
+		if req.Action == types.SubscriptionActionUnsubscribe {
+			return result
+		}
+
 		// TODO: Implement per-profile request coalescing so burst frontend updates reconcile once
 		// against the latest desired subscriptions state instead of running multiple stale snapshots.
 		syncResult := s.SyncSubscriptions(req.ProfileID)
@@ -46,7 +51,11 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 		}
 		if syncResult.Status == types.ResponseWarn {
 			result.Status = types.ResponseWarn
-			result.Message = "Subscriptions updated with sync warnings"
+			if strings.TrimSpace(syncResult.Message) != "" {
+				result.Message = syncResult.Message
+			} else {
+				result.Message = "Subscriptions updated with sync warnings"
+			}
 			result.Errors = append(result.Errors, syncResult.Errors...)
 		}
 	}
@@ -161,7 +170,7 @@ func (s *UserProfiles) UpdateAllSubscriptionsToLatest(req types.UpdateAllSubscri
 }
 
 func (s *UserProfiles) resolveLatestUpdatesForProfile(profileID string) (types.UserProfile, map[string]types.SubscriptionUpdateItem, []types.UserProfilesError, *types.UserProfilesError) {
-	profile, profileErr := s.profileSnapshot(profileID)
+	profile, _, profileErr := s.profileSnapshot(profileID)
 	if profileErr != nil {
 		return types.UserProfile{}, map[string]types.SubscriptionUpdateItem{}, []types.UserProfilesError{}, profileErr
 	}

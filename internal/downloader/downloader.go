@@ -22,11 +22,12 @@ import (
 	"railyard/internal/requests"
 	"railyard/internal/types"
 
-	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.yaml.in/yaml/v4"
 )
 
 type ExtractProgressFunc func(itemId string, extracted int64, total int64)
+type CancelledFunc func(itemID string, assetType types.AssetType, phase string)
+type RegistryUpdateFunc func()
 
 // TODO: Consider adding this as an injectable dependency for other services
 var downloaderHTTPClient = requests.NewDownloadClient()
@@ -39,6 +40,8 @@ type Downloader struct {
 	Logger            logger.Logger
 	OnProgress        types.ProgressFunc
 	OnExtractProgress ExtractProgressFunc
+	OnCancelled       CancelledFunc
+	OnRegistryUpdate  RegistryUpdateFunc
 
 	downloadMu   sync.Mutex
 	downloadCond *sync.Cond
@@ -47,7 +50,6 @@ type Downloader struct {
 	pending map[downloadQueueKey]*downloadOperation
 	// Track running operations to prevent concurrent operations for the same asset
 	running map[downloadQueueKey]*downloadOperation
-	ctx     context.Context
 }
 
 // downloadQueueKey is used to coalesce download operations for a specific asset (mod/map) ensuring that only one operation is in process or queued at a given time
@@ -80,6 +82,11 @@ const (
 	operationActionUninstall operationAction = "uninstall"
 )
 
+const (
+	cancelledPhaseQueued  = "queued"
+	cancelledPhaseRunning = "running"
+)
+
 func isValidOperationAction(action operationAction) bool {
 	switch action {
 	case operationActionInstall, operationActionUninstall:
@@ -100,10 +107,6 @@ func NewDownloader(cfg *config.Config, reg *registry.Registry, l logger.Logger) 
 	}
 	d.startQueue()
 	return d
-}
-
-func (d *Downloader) SetContext(ctx context.Context) {
-	d.ctx = ctx
 }
 
 // startQueue initializes the download queue and starts the worker goroutine if it hasn't been started yet.
@@ -148,8 +151,8 @@ func (d *Downloader) runQueue() {
 
 		op.completed <- result
 		close(op.completed)
-		if d.ctx != nil {
-			wailsruntime.EventsEmit(d.ctx, "registry:update") // Emit update event after each operation completes to trigger UI refresh
+		if d.OnRegistryUpdate != nil {
+			d.OnRegistryUpdate() // Trigger UI refresh after each operation completes.
 		}
 	}
 }
@@ -163,6 +166,45 @@ func (d *Downloader) replaceQueuedOperation(target *downloadOperation, replaceme
 		}
 	}
 	return false
+}
+
+// removeQueuedOperation removes a queued operation from the queue, returning a boolean to indicate success
+func (d *Downloader) removeQueuedOperation(target *downloadOperation) bool {
+	for i, queued := range d.queue {
+		if queued != target {
+			continue
+		}
+		d.queue = append(d.queue[:i], d.queue[i+1:]...)
+		return true
+	}
+	return false
+}
+
+// cancelPendingQueuedInstall removes a queued install for the same asset when an uninstall arrives, but only when that asset is not already installed
+func (d *Downloader) cancelPendingQueuedInstall(assetType types.AssetType, assetID string, assetKey downloadQueueKey) bool {
+	if _, installed := d.getInstalledState(assetType, assetID); installed {
+		return false
+	}
+
+	d.downloadMu.Lock()
+	defer d.downloadMu.Unlock()
+
+	pending, ok := d.pending[assetKey]
+	if !ok || pending.action != operationActionInstall {
+		return false
+	}
+	if !d.removeQueuedOperation(pending) {
+		return false
+	}
+
+	delete(d.pending, assetKey)
+	if pending.cancel != nil {
+		pending.cancel()
+	}
+	pending.completed <- pending.supersededResult
+	close(pending.completed)
+	d.OnCancelled(assetID, assetType, cancelledPhaseQueued)
+	return true
 }
 
 // enqueueOperation adds a new operation to the queue using asset-level coalescing.
@@ -185,6 +227,7 @@ func (d *Downloader) enqueueOperation(action operationAction, assetKey downloadQ
 		// If an uninstall action is enqueued while an install is running for the same asset, attempt to cancel the install
 		if running, ok := d.running[assetKey]; ok && running.action == operationActionInstall && running.cancel != nil {
 			running.cancel()
+			d.OnCancelled(assetKey.assetID, assetKey.assetType, cancelledPhaseRunning)
 		}
 	}
 	// If there's an existing pending operation for the same asset, replace it in-place in the queue and mark it as superseded.
@@ -390,6 +433,16 @@ func (d *Downloader) UninstallAsset(assetType types.AssetType, assetID string) t
 
 	key := d.operationKey(operationActionUninstall, assetType, assetID, "")
 	assetKey := downloadQueueKey{assetType: assetType, assetID: assetID}
+	if d.cancelPendingQueuedInstall(assetType, assetID, assetKey) {
+		return d.uninstallWarn(
+			assetType,
+			assetID,
+			types.UninstallErrorNotInstalled,
+			"Cancelled pending install. No uninstall required.",
+			"asset_type", assetType,
+			"asset_id", assetID,
+		)
+	}
 	result := d.enqueueOperation(operationActionUninstall, assetKey, key, func() operationResult {
 		switch assetType {
 		case types.AssetTypeMap:
@@ -562,7 +615,7 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 	}
 
 	d.Logger.Info("Downloading mod", "mod_id", modId, "version", version, "download_url", versionInfo.DownloadURL)
-  // Pass in context to the download function so that it can be cancelled if the operation is no longer needed
+	// Pass in context to the download function so that it can be cancelled if the operation is no longer needed
 	downloadResp := d.downloadTempZip(ctx, versionInfo.DownloadURL, modId)
 	if downloadResp.Status == types.ResponseWarn {
 		return d.installWarn(types.AssetTypeMod, modId, version, types.ConfigData{}, downloadResp.Message, "mod_id", modId, "version", version)

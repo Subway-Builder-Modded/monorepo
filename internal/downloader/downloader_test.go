@@ -84,6 +84,20 @@ func enqueueOperation(d *Downloader, action operationAction, assetType types.Ass
 	)
 }
 
+type cancelledEvent struct {
+	itemID    string
+	assetType string
+	phase     string
+}
+
+func captureCancelledEvents(d *Downloader) <-chan cancelledEvent {
+	events := make(chan cancelledEvent, 8)
+	d.OnCancelled = func(itemID string, assetType types.AssetType, phase string) {
+		events <- cancelledEvent{itemID: itemID, assetType: string(assetType), phase: phase}
+	}
+	return events
+}
+
 // waitForPendingOperation is a helper function that waits until the specified asset key is present in the downloader's pending map, or fails the test if it times out.
 func waitForPendingOperation(t *testing.T, d *Downloader, assetKey downloadQueueKey) {
 	t.Helper()
@@ -292,8 +306,71 @@ func TestEnqueueOperationUsesLatestRequestForPendingAsset(t *testing.T) {
 	require.Equal(t, int32(1), atomic.LoadInt32(&uninstallRunCount))
 }
 
+func TestUninstallAssetCancelsQueuedInstall(t *testing.T) {
+	testutil.SetEnv(t)
+	cfg := config.NewConfig()
+	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	d := &Downloader{
+		Registry:    reg,
+		Config:      cfg,
+		Logger:      logger.LoggerAtPath(""),
+		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
+	}
+	cancelledEvents := captureCancelledEvents(d)
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	blockerResultCh := make(chan operationResult, 1)
+
+	go func() {
+		// enqueue a blocking operation (mimicing a long-running install) to ensure the uninstall is queued behind it, then enqueue the uninstall which should cancel the pending install for the same asset
+		blockerResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+		})
+	}()
+	<-blockerStarted
+
+	var installRunCount int32
+	// Enqueue an install for map-a that will be superseded by the uninstall
+	pendingInstallResultCh := make(chan operationResult, 1)
+	go func() {
+		pendingInstallResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "map-a", "1.0.0", operationSuccess("install ran", 0, func() {
+			atomic.AddInt32(&installRunCount, 1)
+		}))
+	}()
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
+
+	started := time.Now()
+	// Enqueue an uninstall for map-a that should cancel the pending install
+	uninstallResp := d.UninstallAsset(types.AssetTypeMap, "map-a")
+	require.Less(t, time.Since(started), 500*time.Millisecond)
+	require.Equal(t, types.ResponseWarn, uninstallResp.Status)
+	require.Contains(t, strings.ToLower(uninstallResp.Message), "cancelled pending install")
+	select {
+	case event := <-cancelledEvents:
+		require.Equal(t, "map-a", event.itemID)
+		require.Equal(t, string(types.AssetTypeMap), event.assetType)
+		require.Equal(t, cancelledPhaseQueued, event.phase)
+	case <-time.After(time.Second):
+		t.Fatal("expected download:cancelled queued event")
+	}
+
+	pendingInstallResult := <-pendingInstallResultCh
+	// Validate that the pending install was superseded and did not run
+	require.Equal(t, types.ResponseSuccess, pendingInstallResult.genericResponse.Status)
+	require.Contains(t, strings.ToLower(pendingInstallResult.genericResponse.Message), "superseded")
+	require.Equal(t, int32(0), atomic.LoadInt32(&installRunCount))
+
+	close(releaseBlocker)
+	blockerResult := <-blockerResultCh
+	require.Equal(t, types.ResponseSuccess, blockerResult.genericResponse.Status)
+}
+
 func TestUninstallCancelsRunningInstall(t *testing.T) {
 	d := newTestDownloader()
+	cancelledEvents := captureCancelledEvents(d)
 
 	releaseInstall := make(chan struct{})
 	cancelCalled := make(chan struct{}, 1)
@@ -335,6 +412,14 @@ func TestUninstallCancelsRunningInstall(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Fatal("expected running install cancel func to be called")
 	}
+	select {
+	case event := <-cancelledEvents:
+		require.Equal(t, "map-a", event.itemID)
+		require.Equal(t, string(types.AssetTypeMap), event.assetType)
+		require.Equal(t, cancelledPhaseRunning, event.phase)
+	case <-time.After(time.Second):
+		t.Fatal("expected download:cancelled running event")
+	}
 
 	installResult := <-installResultCh
 	require.Equal(t, types.ResponseSuccess, installResult.genericResponse.Status)
@@ -352,9 +437,10 @@ func TestCancelDuringExtractRemovesInstalledFiles(t *testing.T) {
 	configureDownloaderConfig(t, cfg)
 
 	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
+		Registry:    reg,
+		Config:      cfg,
+		Logger:      logger.LoggerAtPath(""),
+		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
 	}
 	d.tempPath = t.TempDir()
 	d.mapTilePath = d.getMapTilePath()
