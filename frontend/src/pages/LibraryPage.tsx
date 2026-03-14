@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { Pagination } from "@/components/shared/Pagination";
 import { ErrorBanner } from "@/components/shared/ErrorBanner";
 import { Button } from "@/components/ui/button";
+import { buildAssetListingCounts } from "@/lib/listing-counts";
 import {
   Inbox,
   Plus,
@@ -87,17 +88,39 @@ export function LibraryPage() {
   const modCount = installedItems.filter((i) => i.type === "mod").length;
   const mapCount = installedItems.filter((i) => i.type === "map").length;
 
+  const installedModItems = useMemo(
+    () => installedItems
+      .filter((entry) => entry.type === "mod")
+      .map((entry) => entry.item),
+    [installedItems],
+  );
+  const installedMapItems = useMemo(
+    () => installedItems
+      .filter((entry) => entry.type === "map")
+      .map((entry) => entry.item),
+    [installedItems],
+  );
+
   const availableTags = useMemo(() => {
-    const tags = new Set(mods.flatMap((item) => item.tags ?? []));
+    const tags = new Set(installedModItems.flatMap((item) => item.tags ?? []));
     return Array.from(tags).sort();
-  }, [mods]);
+  }, [installedModItems]);
 
   const availableSpecialDemand = useMemo(() => {
-    const tags = new Set(maps.flatMap((item) => item.special_demand ?? []));
+    const tags = new Set(installedMapItems.flatMap((item) => item.special_demand ?? []));
     return Array.from(tags).sort();
-  }, [maps]);
+  }, [installedMapItems]);
 
-  const totalProjects = installedItems.length;
+  const {
+    modTagCounts,
+    mapLocationCounts,
+    mapSourceQualityCounts,
+    mapLevelOfDetailCounts,
+    mapSpecialDemandCounts,
+  } = useMemo(
+    () => buildAssetListingCounts(installedModItems, installedMapItems),
+    [installedMapItems, installedModItems],
+  );
 
   return (
     <div className="space-y-5">
@@ -157,10 +180,13 @@ export function LibraryPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>
-                <span className="font-medium text-foreground">
-                  {totalProjects}
-                </span>{" "}
-                Assets
+                <span className="font-medium text-foreground">{totalResults}</span>{" "}
+                result{totalResults !== 1 ? "s" : ""}
+                {filters.query && (
+                  <span className="ml-1">
+                    for <span className="italic">"{filters.query}"</span>
+                  </span>
+                )}
               </span>
             </div>
           </div>
@@ -174,6 +200,11 @@ export function LibraryPage() {
                 mapCount={mapCount}
                 availableTags={availableTags}
                 availableSpecialDemand={availableSpecialDemand}
+                modTagCounts={modTagCounts}
+                mapLocationCounts={mapLocationCounts}
+                mapSourceQualityCounts={mapSourceQualityCounts}
+                mapLevelOfDetailCounts={mapLevelOfDetailCounts}
+                mapSpecialDemandCounts={mapSpecialDemandCounts}
               />
             </aside>
 

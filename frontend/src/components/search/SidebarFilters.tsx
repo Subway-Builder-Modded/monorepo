@@ -20,6 +20,7 @@ import { SEARCH_FILTER_EMPTY_LABELS } from "@/lib/search";
 import { type SearchFilterState } from "@/stores/search-store";
 import type { AssetType } from "@/lib/asset-types";
 import { normalizeSortStateForType } from "@/lib/constants";
+import { filterVisibleListingValues } from "@/lib/listing-counts";
 
 const FILTER_SECTION_TITLE_CLASS =
   "text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 px-1";
@@ -212,9 +213,7 @@ function ChecklistFilterSection({
   emptyLabel = SEARCH_FILTER_EMPTY_LABELS.generic,
   formatValue = (value) => value,
 }: FilterSectionProperties) {
-  const visibleValues = values.filter(
-    (value) => selected.includes(value) || (counts[value] ?? 0) > 0,
-  );
+  const visibleValues = filterVisibleListingValues(values, counts, selected);
 
   const toggle = (value: string) => {
     onChange(

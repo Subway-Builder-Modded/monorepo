@@ -13,11 +13,7 @@ import { SearchX } from "lucide-react";
 import { useInstalledStore } from "@/stores/installed-store";
 import { createRandomSeed } from "@/stores/search-store";
 import type { AssetType } from "@/lib/asset-types";
-
-function incrementCount(target: Record<string, number>, value?: string) {
-  if (!value) return;
-  target[value] = (target[value] ?? 0) + 1;
-}
+import { buildAssetListingCounts } from "@/lib/listing-counts";
 
 export function SearchPage() {
   const {
@@ -73,39 +69,7 @@ export function SearchPage() {
     mapSourceQualityCounts,
     mapLevelOfDetailCounts,
     mapSpecialDemandCounts,
-  } = useMemo(() => {
-    const nextModTagCounts: Record<string, number> = {};
-    const nextMapLocationCounts: Record<string, number> = {};
-    const nextMapSourceQualityCounts: Record<string, number> = {};
-    const nextMapLevelOfDetailCounts: Record<string, number> = {};
-    const nextMapSpecialDemandCounts: Record<string, number> = {};
-
-    for (const mod of mods) {
-      const uniqueTags = new Set(mod.tags ?? []);
-      for (const tag of uniqueTags) {
-        incrementCount(nextModTagCounts, tag);
-      }
-    }
-
-    for (const map of maps) {
-      incrementCount(nextMapLocationCounts, map.location);
-      incrementCount(nextMapSourceQualityCounts, map.source_quality);
-      incrementCount(nextMapLevelOfDetailCounts, map.level_of_detail);
-
-      const uniqueSpecialDemand = new Set(map.special_demand ?? []);
-      for (const tag of uniqueSpecialDemand) {
-        incrementCount(nextMapSpecialDemandCounts, tag);
-      }
-    }
-
-    return {
-      modTagCounts: nextModTagCounts,
-      mapLocationCounts: nextMapLocationCounts,
-      mapSourceQualityCounts: nextMapSourceQualityCounts,
-      mapLevelOfDetailCounts: nextMapLevelOfDetailCounts,
-      mapSpecialDemandCounts: nextMapSpecialDemandCounts,
-    };
-  }, [mods, maps]);
+  } = useMemo(() => buildAssetListingCounts(mods, maps), [mods, maps]);
 
   useEffect(() => {
     ensureDownloadTotals();
