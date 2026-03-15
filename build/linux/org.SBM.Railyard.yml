@@ -1,6 +1,6 @@
 id: org.SBM.Railyard
 runtime: org.gnome.Platform
-runtime-version: '47'
+runtime-version: "47"
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.golang
@@ -10,10 +10,12 @@ finish-args:
   # Needs X11, Wayland, Network, Filesystem
   - --share=network
   - --filesystem=host
+  - --filesystem=/tmp
   - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
+  - --talk-name=org.freedesktop.Flatpak
 
 modules:
   - name: Railyard
@@ -29,5 +31,6 @@ modules:
     build-commands:
       - cd frontend && npm run build
       - go build -mod=vendor -tags "desktop,production,webkit2_41" -ldflags "-s -w" -o /app/bin/railyard .
-      - install -Dm644 ./build/linux/railyard.desktop /app/share/applications/railyard.desktop
-      - install -Dm644 ./build/appicon_small.png /app/share/icons/hicolor/512x512/apps/railyard.png
+      - install -Dm644 ./build/linux/railyard.desktop /app/share/applications/org.SBM.Railyard.desktop
+      - install -Dm644 ./build/linux/org.SBM.Railyard.metainfo.xml /app/share/metainfo/org.SBM.Railyard.metainfo.xml
+      - install -Dm644 ./build/appicon_small.png /app/share/icons/hicolor/512x512/apps/org.SBM.Railyard.png

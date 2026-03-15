@@ -135,11 +135,7 @@ func downloadAndRunInstaller(downloadURL string, ctx context.Context, downloadPr
 	}
 
 	if runtime.GOOS == "linux" {
-		if err != nil {
-			os.Remove(tempFile.Name())
-			return fmt.Errorf("failed to make installer executable: %w", err)
-		}
-		proc := exec.Command("flatpak", "--user", "install", "--assumeyes", tempFile.Name())
+		proc := exec.Command("flatpak-spawn", "--host", "flatpak", "--user", "install", "--assumeyes", tempFile.Name())
 		err := proc.Start()
 		if err != nil {
 			os.Remove(tempFile.Name())

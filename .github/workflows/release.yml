@@ -52,7 +52,6 @@ jobs:
 
       - name: Free up Space for DMG Creation
         run: |
-          rm -rf build/bin/railyard-${VERSION}-macos-universal.zip
           rm -rf frontend/node_modules
 
       - name: Create DMG
@@ -93,8 +92,9 @@ jobs:
 
       - name: Install Linux dependencies
         run: |
+          sudo add-apt-repository -y ppa:flatpak/stable
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev flatpak flatpak-builder
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev flatpak flatpak-builder appstream appstream-util
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           sudo flatpak install -y org.gnome.Platform//47 org.gnome.Sdk//47 org.freedesktop.Sdk.Extension.golang//24.08 org.freedesktop.Sdk.Extension.node24//24.08
 

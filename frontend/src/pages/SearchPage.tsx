@@ -97,6 +97,7 @@ export function SearchPage() {
     totalResults,
     filters,
     setFilters,
+    setType,
     setPage,
   } = useFilteredItems({
     mods,
@@ -144,6 +145,7 @@ export function SearchPage() {
           <SidebarFilters
             filters={filters}
             onFiltersChange={setFilters}
+            onTypeChange={setType}
             availableTags={allTags}
             availableSpecialDemand={specialDemandTags}
             modTagCounts={modTagCounts}
