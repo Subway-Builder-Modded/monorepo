@@ -108,7 +108,7 @@ export function SearchPage() {
   const mapCount = maps.length;
 
   const resultsLayoutClassName = useMemo(() => {
-    if (viewMode === 'list') return 'space-y-3';
+    if (viewMode === 'list') return 'space-y-4';
     if (viewMode === 'compact')
       return 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3';
     return 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4';

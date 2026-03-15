@@ -14,6 +14,7 @@ export function ViewModeToggle({ value, onChange }: ViewModeToggleProps) {
       type="single"
       value={value}
       variant="outline"
+      size="sm"
       onValueChange={(v) => {
         if (v === 'full' || v === 'compact' || v === 'list') onChange(v);
       }}

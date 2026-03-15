@@ -129,10 +129,12 @@ function ItemBadges({
   badges,
   align = 'right',
   compact = false,
+  wrap = true,
 }: {
   badges: string[];
   align?: 'left' | 'right';
   compact?: boolean;
+  wrap?: boolean;
 }) {
   if (badges.length === 0) return null;
 
@@ -140,7 +142,13 @@ function ItemBadges({
   const badgeClassName = compact ? 'text-[11px] px-1.5 py-0 h-5' : 'text-xs px-1.5 py-0';
 
   return (
-    <div className={cn('flex flex-wrap gap-1', justifyClass)}>
+    <div
+      className={cn(
+        'flex gap-1',
+        wrap ? 'flex-wrap' : 'flex-nowrap overflow-hidden',
+        justifyClass,
+      )}
+    >
       {badges.slice(0, MAX_CARD_BADGES).map((badge) => (
         <Badge key={badge} variant="secondary" className={badgeClassName}>
           {badge}
@@ -166,7 +174,10 @@ export function ItemCard({
 
   if (viewMode === 'list') {
     return (
-      <Link href={`/project/${assetTypeToListingPath(type)}/${item.id}`}>
+      <Link
+        href={`/project/${assetTypeToListingPath(type)}/${item.id}`}
+        className="block w-full"
+      >
         <article
           className={cn(
             'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm',
@@ -174,7 +185,7 @@ export function ItemCard({
           )}
         >
           <div className="flex flex-col sm:flex-row">
-            <div className="relative aspect-video sm:aspect-auto sm:w-56 md:w-60 overflow-hidden bg-muted shrink-0">
+            <div className="relative h-44 sm:h-36 sm:w-48 md:w-52 overflow-hidden bg-muted shrink-0">
               {installedVersion && (
                 <div className="absolute top-2 right-2 z-10">
                   <Badge className="gap-1 text-xs shadow-sm">
@@ -201,7 +212,7 @@ export function ItemCard({
               />
             </div>
 
-            <div className="flex flex-col flex-1 p-4 gap-3 min-w-0">
+            <div className="flex flex-col flex-1 p-3 gap-2 min-w-0">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-sm leading-snug text-foreground truncate">
@@ -220,18 +231,18 @@ export function ItemCard({
                 )}
               </div>
 
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-1">
                 {item.description}
               </p>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mt-auto">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-auto">
                 <ItemStats
                   isMap={presentation.isMap}
                   population={presentation.mapPopulation}
                   showDownloads={presentation.showDownloads}
                   totalDownloads={totalDownloads}
                 />
-                <ItemBadges badges={presentation.badges} align="left" />
+                <ItemBadges badges={presentation.badges} align="left" wrap={false} />
               </div>
             </div>
           </div>
@@ -242,7 +253,10 @@ export function ItemCard({
 
   if (viewMode === 'compact') {
     return (
-      <Link href={`/project/${assetTypeToListingPath(type)}/${item.id}`}>
+      <Link
+        href={`/project/${assetTypeToListingPath(type)}/${item.id}`}
+        className="block w-full"
+      >
         <article
           className={cn(
             'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
@@ -306,7 +320,6 @@ export function ItemCard({
                 showDownloads={presentation.showDownloads}
                 totalDownloads={totalDownloads}
               />
-              <ItemBadges badges={presentation.badges} compact />
             </div>
           </div>
         </article>
@@ -315,7 +328,10 @@ export function ItemCard({
   }
 
   return (
-    <Link href={`/project/${assetTypeToListingPath(type)}/${item.id}`}>
+    <Link
+      href={`/project/${assetTypeToListingPath(type)}/${item.id}`}
+      className="block w-full"
+    >
       <article
         className={cn(
           'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
