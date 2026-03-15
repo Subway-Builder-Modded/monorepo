@@ -92,8 +92,8 @@ func LockFilePath() string {
 	return filepath.Join(AppDataRoot(), LockFile)
 }
 
-// NormalizeLocalPath normalizes a local filesystem path for the current OS.
-// It trims whitespace, replaces both slash styles with os.PathSeparator, and cleans dot segments.
+// NormalizeLocalPath normalizes a local filesystem path for the current OS. 
+// It trims whitespace and replaces both backslashes and forward slashes with os.PathSeparator
 func NormalizeLocalPath(input string) string {
 	trimmed := strings.TrimSpace(input)
 	if trimmed == "" {
