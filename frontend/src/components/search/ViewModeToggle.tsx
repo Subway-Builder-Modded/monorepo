@@ -1,7 +1,7 @@
 import { Rows3, SquareMenu, TableProperties } from 'lucide-react';
 
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import type { SearchViewMode } from '@/lib/search-view-mode';
+import { isSearchViewMode, type SearchViewMode } from '@/lib/search-view-mode';
 
 interface ViewModeToggleProps {
   value: SearchViewMode;
@@ -16,7 +16,7 @@ export function ViewModeToggle({ value, onChange }: ViewModeToggleProps) {
       variant="outline"
       size="sm"
       onValueChange={(v) => {
-        if (v === 'full' || v === 'compact' || v === 'list') onChange(v);
+        if (isSearchViewMode(v)) onChange(v);
       }}
       aria-label="Browse view mode"
     >

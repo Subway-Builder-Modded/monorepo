@@ -733,6 +733,7 @@ export namespace types {
 	export class UIPreferences {
 	    theme: string;
 	    defaultPerPage: number;
+	    searchViewMode: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UIPreferences(source);
@@ -742,6 +743,7 @@ export namespace types {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.theme = source["theme"];
 	        this.defaultPerPage = source["defaultPerPage"];
+	        this.searchViewMode = source["searchViewMode"];
 	    }
 	}
 	export class UpdateAllSubscriptionsToLatestRequest {

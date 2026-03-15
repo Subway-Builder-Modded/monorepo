@@ -1,5 +1,5 @@
 import { SearchX } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { SearchBar } from '@/components/search/SearchBar';
 import { SidebarFilters } from '@/components/search/SidebarFilters';
@@ -14,14 +14,18 @@ import { useFilteredItems } from '@/hooks/use-filtered-items';
 import type { AssetType } from '@/lib/asset-types';
 import { buildAssetListingCounts } from '@/lib/listing-counts';
 import { buildSpecialDemandValues } from '@/lib/map-filter-values';
-import type { SearchViewMode } from '@/lib/search-view-mode';
 import { cn } from '@/lib/utils';
 import { useInstalledStore } from '@/stores/installed-store';
+import { useProfileStore } from '@/stores/profile-store';
 import { useRegistryStore } from '@/stores/registry-store';
 import { createRandomSeed } from '@/stores/search-store';
+import { useSearchStore } from '@/stores/search-store';
 
 export function SearchPage() {
-  const [viewMode, setViewMode] = useState<SearchViewMode>('full');
+  const viewMode = useSearchStore((s) => s.viewMode);
+  const setViewMode = useSearchStore((s) => s.setViewMode);
+  const initializeViewMode = useSearchStore((s) => s.initializeViewMode);
+  const defaultSearchViewMode = useProfileStore((s) => s.searchViewMode)();
 
   const {
     mods,
@@ -87,6 +91,10 @@ export function SearchPage() {
   useEffect(() => {
     ensureDownloadTotals();
   }, [ensureDownloadTotals]);
+
+  useEffect(() => {
+    initializeViewMode(defaultSearchViewMode);
+  }, [defaultSearchViewMode, initializeViewMode]);
 
   const {
     items,

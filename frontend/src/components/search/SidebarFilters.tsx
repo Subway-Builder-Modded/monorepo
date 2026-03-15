@@ -190,7 +190,7 @@ export function SidebarFilters({
 
 interface FilterSectionProperties {
   title: string;
-  values: string[];
+  values: readonly string[];
   counts: Record<string, number>;
   selected: string[];
   icon: ComponentType<{ className?: string }>;
