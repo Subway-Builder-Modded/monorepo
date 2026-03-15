@@ -12,6 +12,7 @@ import (
 
 // WriteInstalledToDisk persists installed mods and maps state to disk.
 func (r *Registry) WriteInstalledToDisk() error {
+	// Indent JSON for readability
 	modsJSON, err := json.MarshalIndent(types.InstalledModFile(r.installedMods), "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to serialize installed mod file: %w", err)

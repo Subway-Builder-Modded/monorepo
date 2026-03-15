@@ -18,6 +18,7 @@ type JSONReadOptions struct {
 func ReadJSON[T any](path string, label string, opts JSONReadOptions) (T, error) {
 	var zero T
 	data, err := os.ReadFile(path)
+	// If the file is missing, attempt to recover from backup if allowed, then try reading again. If still missing and AllowMissing is true, return zero value without error.
 	if os.IsNotExist(err) {
 		if recoverErr := recoverAtomicBackup(path, label); recoverErr != nil {
 			return zero, recoverErr
