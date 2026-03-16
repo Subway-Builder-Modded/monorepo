@@ -13,11 +13,11 @@ type ThemeMode string
 
 const (
 	ThemeDark      ThemeMode = "dark"
-	ThemeDarkLow   ThemeMode = "dark-low"
-	ThemeDarkHigh  ThemeMode = "dark-high"
+	ThemeDarkLow   ThemeMode = "dark_low"
+	ThemeDarkHigh  ThemeMode = "dark_high"
 	ThemeLight     ThemeMode = "light"
-	ThemeLightLow  ThemeMode = "light-low"
-	ThemeLightHigh ThemeMode = "light-high"
+	ThemeLightLow  ThemeMode = "light_low"
+	ThemeLightHigh ThemeMode = "light_high"
 	ThemeSystem    ThemeMode = "system"
 )
 

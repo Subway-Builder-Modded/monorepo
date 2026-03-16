@@ -2,11 +2,11 @@ import { cn } from '@/lib/utils';
 
 export type ThemeValue =
   | 'dark'
-  | 'dark-low'
-  | 'dark-high'
+  | 'dark_low'
+  | 'dark_high'
   | 'light'
-  | 'light-low'
-  | 'light-high'
+  | 'light_low'
+  | 'light_high'
   | 'system';
 
 interface ThemePreviewColors {
@@ -40,20 +40,20 @@ const THEME_OPTIONS: ThemeOption[] = [
     },
   },
   {
-    value: 'light-low',
+    value: 'light_low',
     label: 'Light (Soft)',
     colors: {
-      bg: '#e5e3df',
-      sidebar: '#dfddd8',
-      card: '#ece9e4',
-      bar: '#d9d6d1',
-      primary: '#66625d',
-      muted: '#cfcac4',
-      border: '#b8b2aa',
+      bg: '#d4cec4',
+      sidebar: '#cbc5bb',
+      card: '#ddd6cd',
+      bar: '#bfb8ad',
+      primary: '#6f665b',
+      muted: '#b4ad9f',
+      border: '#9d9587',
     },
   },
   {
-    value: 'light-high',
+    value: 'light_high',
     label: 'Light (Contrast)',
     colors: {
       bg: '#ffffff',
@@ -79,7 +79,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     },
   },
   {
-    value: 'dark-low',
+    value: 'dark_low',
     label: 'Dark (Soft)',
     colors: {
       bg: '#3a3a3a',
@@ -92,7 +92,7 @@ const THEME_OPTIONS: ThemeOption[] = [
     },
   },
   {
-    value: 'dark-high',
+    value: 'dark_high',
     label: 'Dark (Contrast)',
     colors: {
       bg: '#050505',

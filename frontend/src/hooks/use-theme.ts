@@ -2,23 +2,23 @@ import { useEffect } from 'react';
 
 import { useProfileStore } from '@/stores/profile-store';
 
-const DARK_THEMES = new Set(['dark', 'dark-low', 'dark-high']);
+const DARK_THEMES = new Set(['dark', 'dark_low', 'dark_high']);
 
 const VARIANT_CLASS_MAP: Record<string, string | null> = {
   'dark': null,
-  'dark-low': 'theme-dark-low',
-  'dark-high': 'theme-dark-high',
+  'dark_low': 'theme-dark_low',
+  'dark_high': 'theme-dark_high',
   'light': null,
-  'light-low': 'theme-light-low',
-  'light-high': 'theme-light-high',
+  'light_low': 'theme-light_low',
+  'light_high': 'theme-light_high',
   'system': null,
 };
 
 const ALL_VARIANT_CLASSES = [
-  'theme-dark-low',
-  'theme-dark-high',
-  'theme-light-low',
-  'theme-light-high',
+  'theme-dark_low',
+  'theme-dark_high',
+  'theme-light_low',
+  'theme-light_high',
 ];
 
 function applyThemeClasses(root: HTMLElement, effectiveTheme: string) {

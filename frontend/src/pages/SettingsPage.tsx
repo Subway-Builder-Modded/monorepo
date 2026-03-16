@@ -53,16 +53,16 @@ import {
 const PAGE_SIZE_OPTIONS = [12, 24, 48] as const;
 
 const VALID_THEMES = new Set<ThemeValue>([
-  'dark', 'dark-low', 'dark-high', 'light', 'light-low', 'light-high', 'system',
+  'dark', 'dark_low', 'dark_high', 'light', 'light_low', 'light_high', 'system',
 ]);
 
 const THEME_LABELS: Record<ThemeValue, string> = {
   dark: 'Dark',
-  'dark-low': 'Dark (Soft)',
-  'dark-high': 'Dark (Contrast)',
+  'dark_low': 'Dark (Soft)',
+  'dark_high': 'Dark (Contrast)',
   light: 'Light',
-  'light-low': 'Light (Soft)',
-  'light-high': 'Light (Contrast)',
+  'light_low': 'Light (Soft)',
+  'light_high': 'Light (Contrast)',
   system: 'System',
 };
 
