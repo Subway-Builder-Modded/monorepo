@@ -420,7 +420,7 @@ export function SettingsPage() {
                 variant="outline"
                 type="button"
                 onClick={() => setShowThemePreviews((current) => !current)}
-                className="w-35 justify-between"
+                className="w-35 justify-between font-normal"
                 aria-expanded={showThemePreviews}
               >
                 {
@@ -430,7 +430,7 @@ export function SettingsPage() {
                   ]
                 }
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform ${showThemePreviews ? 'rotate-180' : ''}`}
+                  className={`size-4 shrink-0 text-muted-foreground opacity-50 transition-transform ${showThemePreviews ? 'rotate-180' : ''}`}
                 />
               </Button>
             </div>

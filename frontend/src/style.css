@@ -263,6 +263,29 @@
   --sidebar-accent-foreground: oklch(0.03 0 0);
   --sidebar-border: oklch(0.45 0 0);
   --sidebar-ring: oklch(0.18 0 0);
+  --destructive: oklch(0.50 0.27 26);
+}
+
+.dark.theme-dark-high {
+  --destructive: oklch(0.76 0.23 25);
+}
+
+.dark.theme-dark-high .railyard-accent {
+  --primary: oklch(0.84 0.18 162);
+  --primary-foreground: oklch(0.12 0.03 162);
+  --accent: oklch(0.34 0.06 162);
+  --accent-foreground: oklch(0.96 0.02 162);
+  --ring: oklch(0.80 0.16 162);
+  --destructive: oklch(0.80 0.24 25);
+}
+
+.theme-light-high .railyard-accent {
+  --primary: oklch(0.32 0.17 162);
+  --primary-foreground: oklch(0.98 0.01 162);
+  --accent: oklch(0.80 0.07 162);
+  --accent-foreground: oklch(0.20 0.05 162);
+  --ring: oklch(0.42 0.15 162);
+  --destructive: oklch(0.50 0.27 26);
 }
 
 .toaster,
