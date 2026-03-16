@@ -177,8 +177,6 @@ func TestUpdateAndClearGithubToken(t *testing.T) {
 }
 
 func mockGithubTokenValidationResponse(t *testing.T, apiKey string) func() (bool, error) {
-	// This is a placeholder for where you would implement mocking of the GitHub token validation logic.
-	// In a real test, you might want to abstract the token validation into an interface and then provide a mock implementation for testing.
 	return func() (bool, error) {
 		httpserver := http.NewServeMux()
 		httpserver.HandleFunc("/rate_limit", func(w http.ResponseWriter, r *http.Request) {
