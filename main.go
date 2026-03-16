@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"railyard/internal/deeplink"
+	"railyard/internal/paths"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -32,7 +33,7 @@ func main() {
 			Assets: assets,
 		},
 		SingleInstanceLock: &options.SingleInstanceLock{
-			UniqueId: "railyard-single-instance-lock",
+			UniqueId: paths.LockFilePath(),
 			OnSecondInstanceLaunch: app.onSecondInstanceLaunch,
 		},
 		Mac: &mac.Options{
