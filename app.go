@@ -252,7 +252,8 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 func (a *App) bootstrapInstalledState(activeProfile types.UserProfile) {
 	err := a.Registry.BootstrapInstalledStateFromProfile(activeProfile)
 	if err != nil {
-		a.Logger.Warn("Failed to bootstrap installed asset state on startup", "error", err, "profile_id", activeProfile.ID)
+		// This should not be blocking as we are already in an error state
+		a.Logger.Error("Failed to bootstrap installed asset state on startup", err, "profile_id", activeProfile.ID)
 	}
 }
 

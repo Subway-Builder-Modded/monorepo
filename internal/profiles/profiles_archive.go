@@ -121,7 +121,7 @@ func (s *UserProfiles) copyModsToArchive(tempDir, profileID string) (types.Gener
 			return s.archiveError("Failed to create mod directory", "failed to create mod directory", err, "profile_id", profileID, "mod_id", modInfo.ID)
 		}
 
-		modSrc := paths.JoinLocalPath(s.Config.Cfg.GetModFolderPath(), modInfo.ID)
+		modSrc := paths.JoinLocalPath(s.Config.Cfg.GetModsFolderPath(), modInfo.ID)
 		if err := os.CopyFS(paths.JoinLocalPath(modDest, "data"), os.DirFS(modSrc)); err != nil {
 			return s.archiveError("Failed to copy mod data", "failed to copy mod data", err, "profile_id", profileID, "mod_id", modInfo.ID)
 		}
@@ -251,7 +251,7 @@ func (s *UserProfiles) restoreMapsFromArchive(tempDir, profileID string) (types.
 // restoreModsFromArchive restores mods data from the archive
 func (s *UserProfiles) restoreModsFromArchive(tempDir, profileID string) (types.GenericResponse, bool) {
 	for _, modInfo := range s.Registry.GetInstalledMods() {
-		modDest := paths.JoinLocalPath(s.Config.Cfg.GetModFolderPath(), modInfo.ID)
+		modDest := paths.JoinLocalPath(s.Config.Cfg.GetModsFolderPath(), modInfo.ID)
 
 		if err := os.MkdirAll(modDest, os.ModePerm); err != nil {
 			return s.archiveError("Failed to create mod directory", "failed to create mod directory", err, "profile_id", profileID, "mod_id", modInfo.ID)

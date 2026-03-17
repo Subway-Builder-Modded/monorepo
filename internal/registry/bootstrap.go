@@ -6,17 +6,16 @@ import (
 	"strings"
 
 	"railyard/internal/constants"
+	"railyard/internal/files"
 	"railyard/internal/paths"
 	"railyard/internal/types"
 )
 
-// BootstrapInstalledStateFromProfile rebuilds installed_mods/installed_maps from active profile subscriptions
-// and on-disk marker checks, then persists the rebuilt state.
+// BootstrapInstalledStateFromProfile rebuilds installed_mods/installed_maps from active profile subscriptions and on-disk marker checks, then persists the rebuilt state.
+// This is primarily used when the installed_maps/mods are corrupted/incomplete to avoid having the user deal with a long queue of downloads for already-installed assets
 func (r *Registry) BootstrapInstalledStateFromProfile(profile types.UserProfile) error {
-	hasSubscriptions := len(profile.Subscriptions.Mods) > 0 || len(profile.Subscriptions.Maps) > 0
-
 	metroMakerDataPath := strings.TrimSpace(r.config.Cfg.MetroMakerDataPath)
-	if hasSubscriptions && metroMakerDataPath == "" {
+	if (len(profile.Subscriptions.Mods) > 0 || len(profile.Subscriptions.Maps) > 0) && metroMakerDataPath == "" {
 		return fmt.Errorf("metro maker data path is not configured")
 	}
 
@@ -57,12 +56,32 @@ func (r *Registry) bootstrapInstalledMods(subscriptions types.Subscriptions, mod
 
 	installedMods := make([]types.InstalledModInfo, 0, len(subscriptions.Mods))
 	for modID, version := range subscriptions.Mods {
+		modPath := paths.JoinLocalPath(modInstallRoot, modID)
 		markerPath := paths.JoinLocalPath(modInstallRoot, modID, constants.RailyardAssetMarker)
 		if !fileExists(markerPath) {
 			r.logger.Warn(
 				"Skipping subscribed mod during installed-state bootstrap: missing marker",
 				"mod_id", modID,
 				"marker_path", markerPath,
+			)
+			continue
+		}
+
+		manifestMatch, manifestErr := modManifestVersionMatches(modPath, version)
+		if manifestErr != nil {
+			r.logger.Warn(
+				"Skipping subscribed mod during installed-state bootstrap: invalid manifest",
+				"mod_id", modID,
+				"manifest_path", paths.JoinLocalPath(modPath, constants.MANIFEST_JSON),
+				"error", manifestErr,
+			)
+			continue
+		}
+		if !manifestMatch {
+			r.logger.Warn(
+				"Skipping subscribed mod during installed-state bootstrap: manifest version mismatch",
+				"mod_id", modID,
+				"expected_version", version,
 			)
 			continue
 		}
@@ -79,17 +98,16 @@ func (r *Registry) bootstrapInstalledMods(subscriptions types.Subscriptions, mod
 func (r *Registry) bootstrapInstalledMaps(subscriptions types.Subscriptions, mapInstallRoot string) []types.InstalledMapInfo {
 	r.logger.Info("Bootstrapping installed maps from subscriptions", "subscriptions", subscriptions.Maps)
 
-	mapManifestByID := r.mapManifestByID()
 	installedMaps := make([]types.InstalledMapInfo, 0, len(subscriptions.Maps))
 
 	for mapID, version := range subscriptions.Maps {
-		manifest, ok := mapManifestByID[mapID]
-		if !ok {
-			r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing manifest", "map_id", mapID)
+		manifest, err := r.GetMap(mapID)
+		if err != nil {
+			r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing manifest", "map_id", mapID, "error", err)
 			continue
 		}
 
-		cityCode := strings.TrimSpace(manifest.CityCode)
+		cityCode := manifest.CityCode
 		if cityCode == "" {
 			r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing city_code", "map_id", mapID)
 			continue
@@ -118,12 +136,29 @@ func (r *Registry) bootstrapInstalledMaps(subscriptions types.Subscriptions, map
 	return installedMaps
 }
 
-func (r *Registry) mapManifestByID() map[string]types.MapManifest {
-	manifestByID := make(map[string]types.MapManifest, len(r.maps))
-	for _, manifest := range r.maps {
-		manifestByID[manifest.ID] = manifest
+func modManifestVersionMatches(modPath string, expectedVersion string) (bool, error) {
+	manifestPath := paths.JoinLocalPath(modPath, constants.MANIFEST_JSON)
+	manifest, err := files.ReadJSON[types.MetroMakerModManifest](manifestPath, "installed mod manifest", files.JSONReadOptions{})
+	if err != nil {
+		return false, err
 	}
-	return manifestByID
+	manifestVersion := strings.TrimSpace(manifest.Version)
+	subscriptionVersion := strings.TrimSpace(expectedVersion)
+	if manifestVersion == subscriptionVersion {
+		return true, nil
+	}
+	return normalizeSemverPrefix(manifestVersion) == normalizeSemverPrefix(subscriptionVersion), nil
+}
+
+func normalizeSemverPrefix(version string) string {
+	trimmed := strings.TrimSpace(version)
+	if trimmed == "" {
+		return ""
+	}
+	if strings.HasPrefix(trimmed, "v") {
+		return trimmed
+	}
+	return "v" + trimmed
 }
 
 func fileExists(path string) bool {

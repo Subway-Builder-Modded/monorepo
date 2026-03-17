@@ -68,7 +68,7 @@ func TestAppConfigFolderPathGetters(t *testing.T) {
 		ExecutablePath:     exePath,
 	}
 
-	require.Equal(t, filepath.Join(metroMakerDir, "mods"), cfg.GetModFolderPath())
+	require.Equal(t, filepath.Join(metroMakerDir, "mods"), cfg.GetModsFolderPath())
 	require.Equal(t, filepath.Join(metroMakerDir, "public", "data", "city-maps"), cfg.GetThumbnailFolderPath())
 	require.Equal(t, filepath.Join(metroMakerDir, "cities", "data"), cfg.GetMapsFolderPath())
 }

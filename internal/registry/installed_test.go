@@ -104,6 +104,11 @@ func TestBootstrapInstalledStateFromProfileRebuildsFromMarkers(t *testing.T) {
 	modPath := paths.JoinLocalPath(cfg.Cfg.MetroMakerDataPath, "mods", "mod-a")
 	require.NoError(t, os.MkdirAll(modPath, 0o755))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modPath, constants.RailyardAssetMarker), []byte(""), 0o644))
+	require.NoError(t, files.WriteJSON(
+		paths.JoinLocalPath(modPath, constants.MANIFEST_JSON),
+		"installed mod manifest",
+		types.MetroMakerModManifest{Version: "1.0.0"},
+	))
 
 	mapPath := paths.JoinLocalPath(cfg.Cfg.MetroMakerDataPath, "cities", "data", "AAA")
 	require.NoError(t, os.MkdirAll(mapPath, 0o755))
@@ -136,6 +141,36 @@ func TestBootstrapInstalledStateFromProfileRebuildsFromMarkers(t *testing.T) {
 	mapsOnDisk, err := files.ReadJSON[[]types.InstalledMapInfo](paths.InstalledMapsPath(), "installed maps file", files.JSONReadOptions{})
 	require.NoError(t, err)
 	require.Equal(t, reg.GetInstalledMaps(), mapsOnDisk)
+}
+
+func TestBootstrapInstalledStateFromProfileSkipsModWhenManifestVersionMismatches(t *testing.T) {
+	testutil.NewHarness(t)
+	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
+		Mods: []types.ModManifest{
+			{ID: "mod-a"},
+		},
+	})
+
+	cfg := config.NewConfig()
+	cfg.Cfg.MetroMakerDataPath = t.TempDir()
+	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	require.NoError(t, reg.fetchFromDisk())
+
+	modPath := paths.JoinLocalPath(cfg.Cfg.MetroMakerDataPath, "mods", "mod-a")
+	require.NoError(t, os.MkdirAll(modPath, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modPath, constants.RailyardAssetMarker), []byte(""), 0o644))
+	require.NoError(t, files.WriteJSON(
+		paths.JoinLocalPath(modPath, constants.MANIFEST_JSON),
+		"installed mod manifest",
+		types.MetroMakerModManifest{Version: "2.0.0"},
+	))
+
+	profile := types.DefaultProfile()
+	profile.Subscriptions.Mods["mod-a"] = "1.0.0"
+
+	err := reg.BootstrapInstalledStateFromProfile(profile)
+	require.NoError(t, err)
+	require.Empty(t, reg.GetInstalledMods())
 }
 
 func TestBootstrapInstalledStateFromProfileSkipsMissingMarkerManifestAndCode(t *testing.T) {
@@ -190,6 +225,11 @@ func TestBootstrapInstalledStateRepairsCorruptedInstalledStateFiles(t *testing.T
 	modPath := paths.JoinLocalPath(cfg.Cfg.MetroMakerDataPath, "mods", "mod-a")
 	require.NoError(t, os.MkdirAll(modPath, 0o755))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modPath, constants.RailyardAssetMarker), []byte(""), 0o644))
+	require.NoError(t, files.WriteJSON(
+		paths.JoinLocalPath(modPath, constants.MANIFEST_JSON),
+		"installed mod manifest",
+		types.MetroMakerModManifest{Version: "1.0.0"},
+	))
 	mapPath := paths.JoinLocalPath(cfg.Cfg.MetroMakerDataPath, "cities", "data", "AAA")
 	require.NoError(t, os.MkdirAll(mapPath, 0o755))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, constants.RailyardAssetMarker), []byte(""), 0o644))
