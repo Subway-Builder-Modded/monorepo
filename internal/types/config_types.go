@@ -57,8 +57,8 @@ func (c AppConfig) AreConfigPathsConfigured() bool {
 	return strings.TrimSpace(c.MetroMakerDataPath) != "" && strings.TrimSpace(c.ExecutablePath) != ""
 }
 
-// GetModFolderPath returns the full path to the mods folder based on the MetroMakerDataPath in AppConfig, or an empty string if paths are not properly configured.
-func (c AppConfig) GetModFolderPath() string {
+// GetModsFolderPath returns the full path to the mods folder based on the MetroMakerDataPath in AppConfig, or an empty string if paths are not properly configured.
+func (c AppConfig) GetModsFolderPath() string {
 	pathsValid, _ := c.ValidateConfigPaths()
 	if pathsValid {
 		return paths.JoinLocalPath(c.MetroMakerDataPath, "mods")

@@ -155,6 +155,17 @@ func IsValidSemverVersion(version Version) bool {
 	return strings.Count(core, ".") == 2
 }
 
+func NormalizeSemver(version string) string {
+	trimmed := strings.TrimSpace(version)
+	if trimmed == "" {
+		return ""
+	}
+	if strings.HasPrefix(trimmed, "v") {
+		return trimmed
+	}
+	return "v" + trimmed
+}
+
 // MissingFilesError is returned when required files are missing from an archive.
 type MissingFilesError struct {
 	Files []string
