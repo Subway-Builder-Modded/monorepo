@@ -124,10 +124,12 @@ func modManifestVersionMatches(modPath string, expectedVersion string) (bool, er
 	if err != nil {
 		return false, err
 	}
-	if manifest.Version == expectedVersion {
-		return true, nil
+	semverExpected, semverActual := types.NormalizeSemver(expectedVersion), types.NormalizeSemver(manifest.Version)
+
+	if semverExpected != semverActual {
+		return false, fmt.Errorf("manifest version mismatch: expected %s, got %s", semverExpected, semverActual)
 	}
-	return manifest.Version == expectedVersion, nil
+	return true, nil
 }
 
 // hasAssetMarker checks for the presence of the .railyard_asset marker file in the expected location for the given asset, logging a warning if it is missing to avoid bootstrapping assets that may not be managed by Railyard or are corrupted/missing
