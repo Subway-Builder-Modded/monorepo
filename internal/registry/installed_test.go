@@ -193,7 +193,7 @@ func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 	// Validate that the recovered installed state is persisted to disk
 	modsOnDisk, err := files.ReadJSON[[]types.InstalledModInfo](paths.InstalledModsPath(), "installed mods file", files.JSONReadOptions{})
 	require.NoError(t, err)
-	require.Equal(t, reg.GetInstalledMods(), modsOnDisk) 
+	require.Equal(t, reg.GetInstalledMods(), modsOnDisk)
 
 	mapsOnDisk, err := files.ReadJSON[[]types.InstalledMapInfo](paths.InstalledMapsPath(), "installed maps file", files.JSONReadOptions{})
 	require.NoError(t, err)
