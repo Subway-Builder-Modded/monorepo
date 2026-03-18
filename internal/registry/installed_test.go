@@ -142,12 +142,21 @@ func TestBootstrapInstalledStateFromProfileSkipsMissingRequiredData(t *testing.T
 
 func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 	testutil.NewHarness(t)
+	country := "IT"
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a"},
+			{ID: "mod-a", Name: "Mod A"},
 		},
 		Maps: []types.MapManifest{
-			{ID: "map-a", CityCode: "AAA"},
+			{
+				ID:          "map-a",
+				CityCode:    "AAA",
+				Name:        "Map A",
+				Description: "Map Description",
+				Author:      "Author A",
+				Country:     country,
+				Population:  123456,
+			},
 		},
 	})
 
@@ -185,7 +194,13 @@ func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 			ID:      "map-a",
 			Version: "2.0.0",
 			MapConfig: types.ConfigData{
-				Code: "AAA",
+				Code:        "AAA",
+				Name:        "Map A",
+				Description: "Map Description",
+				Population:  123456,
+				Creator:     "Author A",
+				Country:     &country,
+				Version:     "2.0.0",
 			},
 		},
 	}, reg.GetInstalledMaps())

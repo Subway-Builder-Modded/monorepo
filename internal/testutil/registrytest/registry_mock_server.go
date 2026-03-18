@@ -101,9 +101,15 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 		updatePath := "/updates/" + current.AssetID + ".json"
 
 		if current.AssetType == types.AssetTypeMap {
+			mapCode := current.MapCode
+			if mapCode == "" {
+				mapCode = "AAA"
+			}
 			maps = append(maps, types.MapManifest{
-				ID:     current.AssetID,
-				Update: types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
+				ID:       current.AssetID,
+				Name:     "Fixture Map",
+				CityCode: mapCode,
+				Update:   types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
 			})
 		} else {
 			mods = append(mods, types.ModManifest{

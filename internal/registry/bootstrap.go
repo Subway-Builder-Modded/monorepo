@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"railyard/internal/constants"
 	"railyard/internal/files"
@@ -46,6 +47,12 @@ func (r *Registry) bootstrapInstalledMods(subscriptions types.Subscriptions, mod
 
 	installedMods := make([]types.InstalledModInfo, 0, len(subscriptions.Mods))
 	for modID, version := range subscriptions.Mods {
+		registryManifest, err := r.GetMod(modID)
+		if err != nil {
+			r.logger.Warn("Skipping subscribed mod during installed-state bootstrap: missing registry manifest", "mod_id", modID, "error", err)
+			continue
+		}
+
 		modPath := paths.JoinLocalPath(modInstallRoot, modID)
 		if !r.hasAssetMarker(types.AssetTypeMod, modID, modInstallRoot, modID) {
 			continue
@@ -63,10 +70,7 @@ func (r *Registry) bootstrapInstalledMods(subscriptions types.Subscriptions, mod
 			continue
 		}
 
-		installedMods = append(installedMods, types.InstalledModInfo{
-			ID:      modID,
-			Version: version,
-		})
+		installedMods = append(installedMods, installedModInfoFromManifest(modID, version, registryManifest))
 	}
 
 	return installedMods
@@ -84,17 +88,16 @@ func (r *Registry) bootstrapInstalledMaps(subscriptions types.Subscriptions, map
 			r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing manifest", "map_id", mapID, "error", err)
 			continue
 		}
-		if !r.hasAssetMarker(types.AssetTypeMap, mapID, mapInstallRoot, manifest.CityCode) {
+		cityCode := strings.TrimSpace(manifest.CityCode)
+		if cityCode == "" {
+			r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing city_code", "map_id", mapID)
+			continue
+		}
+		if !r.hasAssetMarker(types.AssetTypeMap, mapID, mapInstallRoot, cityCode) {
 			continue
 		}
 
-		installedMaps = append(installedMaps, types.InstalledMapInfo{
-			ID:      mapID,
-			Version: version,
-			MapConfig: types.ConfigData{
-				Code: manifest.CityCode,
-			},
-		})
+		installedMaps = append(installedMaps, installedMapInfoFromManifest(mapID, version, manifest, types.ConfigData{}))
 	}
 
 	return installedMaps
