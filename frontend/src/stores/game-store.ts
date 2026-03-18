@@ -16,6 +16,34 @@ export interface GameLogSession {
   logs: LogEntry[];
 }
 
+function createSessionId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createNewSessionPatch(
+  sessions: GameLogSession[],
+  startedAt: number,
+  logs: LogEntry[] = [],
+): { sessionId: string; sessions: GameLogSession[] } {
+  const sessionId = createSessionId();
+  return {
+    sessionId,
+    sessions: [
+      ...sessions,
+      {
+        id: sessionId,
+        startedAt,
+        endedAt: null,
+        logs,
+      },
+    ],
+  };
+}
+
 interface GameState {
   running: boolean;
   sessions: GameLogSession[];
@@ -46,19 +74,16 @@ export const useGameStore = create<GameState>((set) => ({
         );
 
         if (activeIndex === -1) {
-          const sessionId = `session-${timestamp}-${Math.random().toString(36).slice(2, 8)}`;
           const entry: LogEntry = { stream, line, timestamp };
+          const { sessionId, sessions } = createNewSessionPatch(
+            state.sessions,
+            timestamp,
+            [entry],
+          );
+
           return {
             selectedSessionId: sessionId,
-            sessions: [
-              ...state.sessions,
-              {
-                id: sessionId,
-                startedAt: timestamp,
-                endedAt: null,
-                logs: [entry],
-              },
-            ],
+            sessions,
           };
         }
 
@@ -101,19 +126,14 @@ export const useGameStore = create<GameState>((set) => ({
           return { running: true };
         }
 
-        const sessionId = `session-${now}-${Math.random().toString(36).slice(2, 8)}`;
+        const { sessionId, sessions } = createNewSessionPatch(
+          state.sessions,
+          now,
+        );
         return {
           running: true,
           selectedSessionId: sessionId,
-          sessions: [
-            ...state.sessions,
-            {
-              id: sessionId,
-              startedAt: now,
-              endedAt: null,
-              logs: [],
-            },
-          ],
+          sessions,
         };
       });
     });
@@ -130,19 +150,14 @@ export const useGameStore = create<GameState>((set) => ({
             return { running: true };
           }
 
-          const sessionId = `session-${now}-${Math.random().toString(36).slice(2, 8)}`;
+          const { sessionId, sessions } = createNewSessionPatch(
+            state.sessions,
+            now,
+          );
           return {
             running: true,
             selectedSessionId: sessionId,
-            sessions: [
-              ...state.sessions,
-              {
-                id: sessionId,
-                startedAt: now,
-                endedAt: null,
-                logs: [],
-              },
-            ],
+            sessions,
           };
         });
         return;
