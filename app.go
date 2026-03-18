@@ -55,17 +55,21 @@ type App struct {
 }
 
 func (a *App) OpenInFileExplorer(targetPath string) types.GenericResponse {
+	a.Logger.Info("Spawning file explorer", "path", targetPath)
 	trimmedPath := strings.TrimSpace(targetPath)
 	if trimmedPath == "" {
+		a.Logger.Warn("Invalid path provided to OpenInFileExplorer", "path", targetPath)
 		return types.ErrorResponse("invalid path")
 	}
 	cleanedPath := paths.NormalizeLocalPath(trimmedPath)
 	if cleanedPath == "" {
+		a.Logger.Warn("Invalid path provided to OpenInFileExplorer", "path", targetPath)
 		return types.ErrorResponse("invalid path")
 	}
 
 	info, err := os.Stat(cleanedPath)
 	if err != nil {
+		a.Logger.Warn("Failed to stat path in OpenInFileExplorer", "path", cleanedPath, "error", err)
 		return types.ErrorResponse(fmt.Sprintf("failed to resolve path: %v", err))
 	}
 	if !info.IsDir() {
@@ -83,9 +87,11 @@ func (a *App) OpenInFileExplorer(targetPath string) types.GenericResponse {
 	}
 
 	if err := cmd.Start(); err != nil {
+		a.Logger.Warn("Failed to open path in file explorer", "path", cleanedPath, "error", err)
 		return types.ErrorResponse(fmt.Sprintf("failed to open path in file explorer: %v", err))
 	}
 
+	a.Logger.Info("File explorer opened successfully", "path", cleanedPath)
 	return types.SuccessResponse("opened in file explorer")
 }
 
@@ -110,6 +116,7 @@ func (a *App) startup(ctx context.Context) {
 	a.setStartupReady(false)
 	a.ctx = ctx
 	a.Config.SetContext(ctx)
+	a.Config.SetLogger(a.Logger)
 	a.Downloader.OnExtractProgress = func(itemId string, extracted int64, total int64) {
 		wailsruntime.EventsEmit(ctx, "extract:progress", map[string]interface{}{
 			"itemId":          itemId,
@@ -266,6 +273,7 @@ func (a *App) bootstrapInstalledState(activeProfile types.UserProfile) {
 // GetGameVersion attempts to detect the installed Subway Builder version.
 // Returns an empty version with a warning status if detection fails.
 func (a *App) GetGameVersion() types.GameVersionResponse {
+	a.Logger.Info("Attempting to resolve game version")
 	cfg := a.Config.GetConfig()
 	if !cfg.Validation.ExecutablePathValid {
 		return types.GameVersionResponse{
@@ -300,15 +308,18 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 			Version string `json:"version"`
 		}
 		if err := json.Unmarshal(data, &pkg); err != nil {
+			a.Logger.Warn("Failed to unmarshal package.json", "candidate", candidate, "error", err)
 			continue
 		}
 		if pkg.Version != "" {
+			a.Logger.Info("Successfully resolved game version", "version", pkg.Version, "candidate", candidate)
 			return types.GameVersionResponse{
 				GenericResponse: types.SuccessResponse("Game version resolved"),
 				Version:         pkg.Version,
 			}
 		}
 	}
+	a.Logger.Warn("Could not detect game version from expected locations", "candidates", candidates)
 	return types.GameVersionResponse{
 		GenericResponse: types.WarnResponse("Game version not detected"),
 		Version:         "",
@@ -446,22 +457,27 @@ func (a *App) IsGameRunning() types.GameRunningResponse {
 }
 
 func (a *App) StopGame() types.GenericResponse {
+	a.Logger.Info("Killing game process")
 	a.gameMu.Lock()
 	cmd := a.gameCmd
 	a.gameMu.Unlock()
 
 	if cmd == nil || cmd.ProcessState != nil {
+		a.Logger.Warn("No game process to kill")
 		return types.ErrorResponse("game is not running")
 	}
 
 	if a.pmtilesServer != nil {
+		a.Logger.Info("Shutting down PMTiles server")
 		a.pmtilesServer.Close()
 	}
 
 	if err := cmd.Process.Kill(); err != nil {
+		a.Logger.Warn("Failed to kill game process", "error", err)
 		return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
 	}
 
+	a.Logger.Info("Game process killed successfully")
 	return types.SuccessResponse("Game stopped")
 }
 
