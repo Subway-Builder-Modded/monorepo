@@ -3,7 +3,6 @@ package registry
 import (
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"sync/atomic"
 	"testing"
 
@@ -42,7 +41,7 @@ func TestGetGitHubVersionsAuthFallbackAndCache(t *testing.T) {
 	})
 
 	var requestCount int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		current := atomic.AddInt32(&requestCount, 1)
 		require.Equal(t, "/repos/owner/repo/releases", r.URL.Path)
 

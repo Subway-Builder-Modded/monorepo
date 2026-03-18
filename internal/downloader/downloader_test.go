@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -513,7 +512,7 @@ func TestCancelDuringExtractRemovesInstalledFiles(t *testing.T) {
 }
 
 func TestDownloadTempZipCancelledCleansUpArtifact(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		<-r.Context().Done()
 	}))
 	defer server.Close()
@@ -809,7 +808,7 @@ func TestDownloadTempZipGithubAuthFallback(t *testing.T) {
 	defer func() { isGitHubDownloadHost = originalHostCheck }()
 
 	requestCount := 0
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCount++
 		if requestCount == 1 {
 			// On first request, return a 403 on the Github token based request
