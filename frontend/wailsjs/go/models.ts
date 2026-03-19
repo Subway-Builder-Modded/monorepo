@@ -791,11 +791,11 @@ export namespace types {
 	    type: string;
 	    currentVersion: string;
 	    latestVersion: string;
-
+	
 	    static createFrom(source: any = {}) {
 	        return new PendingSubscriptionUpdate(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.assetId = source["assetId"];

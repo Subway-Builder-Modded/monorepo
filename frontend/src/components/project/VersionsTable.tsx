@@ -4,7 +4,6 @@ import {
   Download,
   FileText,
   Loader2,
-  X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -68,8 +67,8 @@ export function VersionsTable({
     getInstalledVersion,
     installMod,
     installMap,
-    cancelPendingInstall,
     isInstalling,
+    getInstallingVersion,
     isUninstalling,
   } = useInstalledStore();
   const cancellationToastId = `cancel-install-${type}-${itemId}`;
@@ -132,17 +131,6 @@ export function VersionsTable({
           message: err instanceof Error ? err.message : String(err),
         });
       }
-    }
-  };
-
-  const cancelInstall = async () => {
-    try {
-      await cancelPendingInstall(type, itemId);
-      toast.success(`Cancelled pending install for ${itemName}.`, {
-        id: cancellationToastId,
-      });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -216,6 +204,7 @@ export function VersionsTable({
             {versions.map((v) => {
               const isThisInstalled = installedVersion === v.version;
               const installing = isInstalling(itemId);
+              const installingVersion = getInstallingVersion(itemId);
               const uninstalling = isUninstalling(itemId);
               const compat = isCompatible(gameVersion, v.game_version);
               const incompatible = compat === false;
@@ -256,7 +245,19 @@ export function VersionsTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    {isThisInstalled ? (
+                    {uninstalling ? (
+                      <Button variant="outline" size="sm" disabled>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      </Button>
+                    ) : installing ? (
+                      installingVersion === v.version ? (
+                        <Button variant="outline" size="sm" disabled>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </Button>
+                      ) : (
+                        <span className="inline-flex h-8 w-8" />
+                      )
+                    ) : isThisInstalled ? (
                       <Badge variant="secondary" className="gap-1">
                         <CheckCircle className="h-3 w-3" />
                         Installed
@@ -277,18 +278,6 @@ export function VersionsTable({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    ) : uninstalling ? (
-                      <Button variant="outline" size="sm" disabled>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      </Button>
-                    ) : installing ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={cancelInstall}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
                     ) : (
                       <Button
                         variant="outline"

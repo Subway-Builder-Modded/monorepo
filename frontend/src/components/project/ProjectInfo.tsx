@@ -1,5 +1,6 @@
 import {
   CheckCircle,
+  CircleFadingArrowUp,
   Download,
   ExternalLink,
   Globe,
@@ -176,6 +177,7 @@ export function ProjectInfo({
   };
 
   const renderInstallButton = (v: types.VersionInfo, label: string) => {
+    const isUpdate = label.toLowerCase().includes('update');
     if (noCompatibleVersion) {
       return (
         <TooltipProvider>
@@ -200,12 +202,21 @@ export function ProjectInfo({
       <>
         <Button
           size="sm"
+          className={
+            isUpdate
+              ? 'bg-[var(--update-primary)] text-white hover:opacity-90'
+              : undefined
+          }
           onClick={() => handleInstallClick(v.version, v.prerelease)}
         >
-          <Download className="h-4 w-4 mr-1.5" />
+          {isUpdate ? (
+            <CircleFadingArrowUp className="h-4 w-4 mr-1.5" />
+          ) : (
+            <Download className="h-4 w-4 mr-1.5" />
+          )}
           {label}
         </Button>
-        {label.toLowerCase().includes('update') && (
+        {isUpdate && (
           <Button
             variant="outline"
             size="icon"

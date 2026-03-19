@@ -94,6 +94,7 @@ describe('useInstalledStore', () => {
       installedMods: [],
       installedMaps: [],
       installing: new Set<string>(),
+      installingVersionById: {},
       uninstalling: new Set<string>(),
       loading: false,
       error: null,
@@ -289,11 +290,18 @@ describe('useInstalledStore', () => {
     useInstalledStore.setState((state) => ({
       ...state,
       installing: new Set(['map-1', 'map-2']),
+      installingVersionById: { 'map-1': '1.0.0', 'map-2': '2.0.0' },
     }));
 
     useInstalledStore.getState().acknowledgeCancelledInstall('map-1');
     expect(useInstalledStore.getState().installing.has('map-1')).toBe(false);
+    expect(
+      useInstalledStore.getState().getInstallingVersion('map-1'),
+    ).toBeNull();
     expect(useInstalledStore.getState().installing.has('map-2')).toBe(true);
+    expect(useInstalledStore.getState().getInstallingVersion('map-2')).toBe(
+      '2.0.0',
+    );
 
     useInstalledStore.getState().acknowledgeCancelledInstall('missing-map');
     expect(useInstalledStore.getState().installing.has('map-2')).toBe(true);

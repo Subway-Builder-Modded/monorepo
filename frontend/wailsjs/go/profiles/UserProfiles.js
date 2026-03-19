@@ -30,12 +30,12 @@ export function SyncSubscriptions(arg1) {
   return window['go']['profiles']['UserProfiles']['SyncSubscriptions'](arg1);
 }
 
-export function UpdateSubscriptionsToLatest(arg1) {
-  return window['go']['profiles']['UserProfiles']['UpdateSubscriptionsToLatest'](arg1);
-}
-
 export function UpdateSubscriptions(arg1) {
   return window['go']['profiles']['UserProfiles']['UpdateSubscriptions'](arg1);
+}
+
+export function UpdateSubscriptionsToLatest(arg1) {
+  return window['go']['profiles']['UserProfiles']['UpdateSubscriptionsToLatest'](arg1);
 }
 
 export function UpdateUIPreferences(arg1) {

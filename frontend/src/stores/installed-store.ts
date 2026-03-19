@@ -50,6 +50,7 @@ interface InstalledState {
   installedMods: types.InstalledModInfo[];
   installedMaps: types.InstalledMapInfo[];
   installing: Set<string>;
+  installingVersionById: Record<string, string>;
   uninstalling: Set<string>;
   loading: boolean;
   error: string | null;
@@ -81,6 +82,7 @@ interface InstalledState {
   getInstalledVersion: (id: string) => string | null;
   isOperating: (id: string) => boolean;
   isInstalling: (id: string) => boolean;
+  getInstallingVersion: (id: string) => string | null;
   isUninstalling: (id: string) => boolean;
   updateInstalledLists: () => Promise<void>;
 }
@@ -172,6 +174,12 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     assetType: AssetType,
   ) => {
     useDownloadQueueStore.getState().enqueue();
+    set((state) => ({
+      installingVersionById: {
+        ...state.installingVersionById,
+        [id]: version,
+      },
+    }));
     setOperationState('installing', id, true);
     set({ error: null });
 
@@ -192,6 +200,11 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       throw err;
     } finally {
       setOperationState('installing', id, false);
+      set((state) => {
+        const next = { ...state.installingVersionById };
+        delete next[id];
+        return { installingVersionById: next };
+      });
       useDownloadQueueStore.getState().complete();
     }
   };
@@ -264,6 +277,13 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       throw err;
     } finally {
       setOperationStateForIds('installing', ids, false);
+      set((state) => {
+        const next = { ...state.installingVersionById };
+        for (const id of ids) {
+          delete next[id];
+        }
+        return { installingVersionById: next };
+      });
       useDownloadQueueStore.getState().complete();
     }
   };
@@ -272,6 +292,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     installedMods: [],
     installedMaps: [],
     installing: new Set<string>(),
+    installingVersionById: {},
     uninstalling: new Set<string>(),
     loading: false,
     error: null,
@@ -331,7 +352,12 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
         }
         const nextInstalling = new Set(state.installing);
         nextInstalling.delete(id);
-        return { installing: nextInstalling };
+        const nextInstallingVersionById = { ...state.installingVersionById };
+        delete nextInstallingVersionById[id];
+        return {
+          installing: nextInstalling,
+          installingVersionById: nextInstallingVersionById,
+        };
       });
     },
 
@@ -357,6 +383,9 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     },
 
     isInstalling: (id: string) => get().installing.has(id),
+
+    getInstallingVersion: (id: string) =>
+      get().installingVersionById[id] ?? null,
 
     isUninstalling: (id: string) => get().uninstalling.has(id),
   };
