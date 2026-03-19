@@ -5,7 +5,7 @@
 <h1 align="center">Railyard</h1>
 
 <p align="center">
-  A mod and map manager for <a href="https://store.steampowered.com/app/1078000/Subway_Builder/">Subway Builder</a>.
+  A mod and map manager for <a href="https://subwaybuilder.com">Subway Builder</a>.
 </p>
 
 ## Features
