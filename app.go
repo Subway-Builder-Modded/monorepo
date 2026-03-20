@@ -338,6 +338,8 @@ func (a *App) LaunchGame() types.GenericResponse {
 		return types.ErrorResponse("game executable path is not configured or invalid")
 	}
 
+	extraSplitArgs := strings.Split(cfg.Config.CommandLineArgs, " ")
+
 	port, err := a.startPMTilesServer()
 	if err != nil {
 		a.Logger.Warn("Failed to start PMTiles server", "error", err)
@@ -367,24 +369,30 @@ func (a *App) LaunchGame() types.GenericResponse {
 			bundleName := strings.TrimSuffix(path.Base(exePath), ".app")
 			innerExe = path.Join(exePath, "Contents", "MacOS", bundleName)
 		}
-		cmd = exec.Command("/bin/sh", "-c", `ELECTRON_ENABLE_LOGGING=1 exec "$0"`, innerExe)
+		args := []string{"/bin/sh", "-c", `ELECTRON_ENABLE_LOGGING=1 exec "$0"`, innerExe}
+		args = append(args, extraSplitArgs...)
+		cmd = exec.Command("/bin/sh", args...)
 	} else if runtime.GOOS == "linux" {
 		// Prefer host launch via Flatpak
 		if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
 			if a.Config.Cfg.ChromeSandboxPath != "" {
 				// Ensure sandbox is used if available to avoid permission issues in Flatpak environments
-				cmd = exec.Command("flatpak-spawn", "--env=CHROME_DEVEL_SANDBOX="+a.Config.Cfg.ChromeSandboxPath, "--host", exePath)
+				args := []string{"--env=CHROME_DEVEL_SANDBOX=" + a.Config.Cfg.ChromeSandboxPath, "--host", exePath}
+				args = append(args, extraSplitArgs...)
+				cmd = exec.Command("flatpak-spawn", args...)
 			} else {
-				cmd = exec.Command("flatpak-spawn", "--host", exePath, "--no-sandbox")
+				args := []string{"--host", exePath, "--no-sandbox"}
+				args = append(args, extraSplitArgs...)
+				cmd = exec.Command("flatpak-spawn", args...)
 			}
 		} else {
 			// Fall back to direct launch if flatpak-spawn is not available
 			a.Logger.Warn("flatpak-spawn not available; falling back to direct executable launch", "error", lookPathErr)
-			cmd = exec.Command(exePath)
+			cmd = exec.Command(exePath, extraSplitArgs...)
 			cmd.Dir = path.Dir(exePath)
 		}
 	} else {
-		cmd = exec.Command(exePath)
+		cmd = exec.Command(exePath, extraSplitArgs...)
 		cmd.Dir = path.Dir(exePath)
 	}
 
@@ -407,6 +415,11 @@ func (a *App) LaunchGame() types.GenericResponse {
 	a.gameMu.Unlock()
 
 	wailsruntime.EventsEmit(a.ctx, "game:status", "running")
+
+	wailsruntime.EventsEmit(a.ctx, "game:log", map[string]string{
+		"stream": "stdout",
+		"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),
+	})
 
 	// Stream stdout/stderr to frontend
 	go a.streamGameOutput(stdout, "stdout")
