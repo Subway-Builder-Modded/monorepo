@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import {
+  ClearCommandLineArgs,
   ClearConfig,
   ClearGithubToken,
   CompleteSetup,
@@ -9,6 +10,7 @@ import {
   OpenExecutableDialog,
   OpenMetroMakerDataFolderDialog,
   SaveConfig,
+  UpdateCommandLineArgs,
   UpdateCheckForUpdatesOnLaunch,
   UpdateGithubToken,
 } from '../../wailsjs/go/config/Config';
@@ -39,6 +41,8 @@ interface ConfigState {
     checkForUpdates: boolean,
   ) => Promise<types.ResolveConfigResponse>;
   completeSetup: () => Promise<void>;
+  updateCommandLineArgs: (args: string) => Promise<types.ResolveConfigResponse>;
+  clearCommandLineArgs: () => Promise<types.ResolveConfigResponse>;
 }
 
 export const useConfigStore = create<ConfigState>((set, get) => ({
@@ -49,6 +53,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   error: null,
   initialized: false,
   githubTokenValid: false,
+
 
   isConfigured: () => get().validation?.isConfigured ?? false,
 
@@ -257,4 +262,41 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       });
     }
   },
+
+  updateCommandLineArgs: async (args: string) => {
+    set({ error: null });
+    try {
+      const result = await UpdateCommandLineArgs(args);
+      if (result.status === 'error') {
+        throw new Error(result.message || 'Failed to update command line arguments');
+      }
+      set({
+        config: result.config,
+        validation: result.validation,
+      });
+      return result;
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+      throw err;
+    };
+  },
+
+  clearCommandLineArgs: async () => {
+    set({ error: null });
+    try {
+      const result = await ClearCommandLineArgs();
+      if (result.status === 'error') {
+        throw new Error(result.message || 'Failed to clear command line arguments');
+      }
+      set({
+        config: result.config,
+        validation: result.validation,
+      });
+      return result;
+    }
+    catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+      throw err;
+    }
+  }
 }));

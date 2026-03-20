@@ -26,6 +26,7 @@ export namespace types {
 	    checkForUpdatesOnLaunch: boolean;
 	    setupCompleted: boolean;
 	    chromeSandboxPath?: string;
+	    commandLineArgs?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -39,6 +40,7 @@ export namespace types {
 	        this.checkForUpdatesOnLaunch = source["checkForUpdatesOnLaunch"];
 	        this.setupCompleted = source["setupCompleted"];
 	        this.chromeSandboxPath = source["chromeSandboxPath"];
+	        this.commandLineArgs = source["commandLineArgs"];
 	    }
 	}
 	export class AppVersionResponse {

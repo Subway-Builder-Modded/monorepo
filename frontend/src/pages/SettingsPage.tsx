@@ -6,6 +6,7 @@
   Github,
   RefreshCw,
   Shield,
+  Terminal,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -84,6 +85,8 @@ export function SettingsPage() {
     clearConfig,
     updateGithubToken,
     clearGithubToken,
+    clearCommandLineArgs,
+    updateCommandLineArgs,
     updateCheckForUpdatesOnLaunch,
   } = useConfigStore();
   const profile = useProfileStore((s) => s.profile);
@@ -285,6 +288,35 @@ export function SettingsPage() {
     }
   };
 
+  const [commandLineArgsDialogOpen, setCommandLineArgsDialogOpen] = useState(false);
+  const [commandLineArgsDraft, setCommandLineArgsDraft] = useState('');
+
+  const handleSaveCommandLineArgs = async () => {
+    try {
+      await updateCommandLineArgs(commandLineArgsDraft);
+      await saveConfig();
+      setCommandLineArgsDraft('');
+      setCommandLineArgsDialogOpen(false);
+      toast.success('Command line arguments updated.');
+    }
+    catch {
+      toast.error('Failed to update command line arguments.');
+    }
+  };
+
+  const handleClearCommandLineArgs = async () => {
+    try {
+      await clearCommandLineArgs();
+      await saveConfig();
+      setCommandLineArgsDraft('');
+      setCommandLineArgsDialogOpen(false);
+      toast.success('Command line arguments cleared.');
+    }
+    catch {
+      toast.error('Failed to clear command line arguments.');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
@@ -396,6 +428,35 @@ export function SettingsPage() {
               </Button>
             </div>
           </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <Terminal className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium">Command Line Args</p>
+                <p className="text-xs text-muted-foreground font-mono truncate">
+                  {config?.commandLineArgs || 'None'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearCommandLineArgs}
+              >
+                Clear
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={()=>{setCommandLineArgsDialogOpen(true)}}
+              >
+                Change
+              </Button>
+            </div>
+          </div>
+
 
           {platform == 'linux' && (
             <div className="flex items-center justify-between gap-4">
@@ -535,6 +596,48 @@ export function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={commandLineArgsDialogOpen}
+        onOpenChange={(open) => {
+          setCommandLineArgsDialogOpen(open);
+          if(!open){
+            setCommandLineArgsDraft('');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Command Line Arguments</DialogTitle>
+            <DialogDescription>
+              Provide additional command line arguments to launch the game with.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            placeholder='e.g. --js-flags="--max-old-space-size=4096"'
+            value={commandLineArgsDraft}
+            onChange={(event) => setCommandLineArgsDraft(event.target.value)}
+            className="font-mono"
+          />
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCommandLineArgsDraft('');
+                setCommandLineArgsDialogOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCommandLineArgs}
+              disabled={commandLineArgsDraft.trim() === ''}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={githubTokenDialogOpen}
