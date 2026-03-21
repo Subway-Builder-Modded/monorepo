@@ -50,6 +50,8 @@ type UIPreferences struct {
 type SystemPreferences struct {
 	RefreshRegistryOnStartup bool `json:"refreshRegistryOnStartup"` // Whether to refresh the registry on application startup
 	// AutoUpdateSubscriptions  bool `json:"autoUpdateSubscriptions"`  // Whether to automatically update subscribed maps/mods when new versions are released
+	ExtraHeapSize int  `json:"extraMemorySize,omitempty"` // Amount of memory to allocate to the game, if specified by the user (in MB). This is an optional preference that can help improve performance for users with larger libraries or lower-end hardware.
+	UseDevTools   bool `json:"useDevTools,omitempty"`     // Whether to enable developer tools for the game on launch.
 }
 
 // Favorites represents favorite authors/maps/mods for a profile.
@@ -217,6 +219,8 @@ func defaultUIPreferences() UIPreferences {
 func defaultSystemPreferences() SystemPreferences {
 	return SystemPreferences{
 		RefreshRegistryOnStartup: true,
+		ExtraHeapSize:            -1,
+		UseDevTools:              false,
 		// AutoUpdateSubscriptions:  false,
 	}
 }

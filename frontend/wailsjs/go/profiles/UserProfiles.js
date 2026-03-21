@@ -38,6 +38,10 @@ export function UpdateSubscriptionsToLatest(arg1) {
   return window['go']['profiles']['UserProfiles']['UpdateSubscriptionsToLatest'](arg1);
 }
 
+export function UpdateSystemPreferences(arg1) {
+  return window['go']['profiles']['UserProfiles']['UpdateSystemPreferences'](arg1);
+}
+
 export function UpdateUIPreferences(arg1) {
   return window['go']['profiles']['UserProfiles']['UpdateUIPreferences'](arg1);
 }

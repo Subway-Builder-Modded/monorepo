@@ -20,4 +20,6 @@ export function UpdateSubscriptions(arg1:types.UpdateSubscriptionsRequest):Promi
 
 export function UpdateSubscriptionsToLatest(arg1:types.UpdateSubscriptionsToLatestRequest):Promise<types.UpdateSubscriptionsResult>;
 
+export function UpdateSystemPreferences(arg1:types.SystemPreferences):Promise<types.UserProfileResult>;
+
 export function UpdateUIPreferences(arg1:types.UIPreferences):Promise<types.UserProfileResult>;

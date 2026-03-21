@@ -26,7 +26,6 @@ export namespace types {
 	    checkForUpdatesOnLaunch: boolean;
 	    setupCompleted: boolean;
 	    chromeSandboxPath?: string;
-	    commandLineArgs?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -40,7 +39,6 @@ export namespace types {
 	        this.checkForUpdatesOnLaunch = source["checkForUpdatesOnLaunch"];
 	        this.setupCompleted = source["setupCompleted"];
 	        this.chromeSandboxPath = source["chromeSandboxPath"];
-	        this.commandLineArgs = source["commandLineArgs"];
 	    }
 	}
 	export class AppVersionResponse {
@@ -1200,6 +1198,8 @@ export namespace types {
 	}
 	export class SystemPreferences {
 	    refreshRegistryOnStartup: boolean;
+	    extraMemorySize?: number;
+	    useDevTools?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new SystemPreferences(source);
@@ -1208,6 +1208,8 @@ export namespace types {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.refreshRegistryOnStartup = source["refreshRegistryOnStartup"];
+	        this.extraMemorySize = source["extraMemorySize"];
+	        this.useDevTools = source["useDevTools"];
 	    }
 	}
 	export class UIPreferences {

@@ -406,12 +406,3 @@ func TestTryAutoDetectMetroMakerSucceedsWhenMetroMakerDataPathIsValid(t *testing
 	runtimeAfter := cfg.GetConfig()
 	require.Equal(t, detectedPath, runtimeAfter.Config.MetroMakerDataPath)
 }
-
-func TestSetAndGetCommandLineArgs(t *testing.T) {
-	h := setup(t, types.AppConfig{})
-	require.Equal(t, "", h.runtime().Config.CommandLineArgs)
-	updated := h.cfg.UpdateCommandLineArgs("--test-arg 1")
-	require.False(t, updated.Status == types.ResponseError)
-	require.Equal(t, "--test-arg 1", updated.Config.CommandLineArgs)
-	require.Equal(t, "--test-arg 1", h.runtime().Config.CommandLineArgs)
-}

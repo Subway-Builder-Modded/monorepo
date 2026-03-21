@@ -152,6 +152,53 @@ func (s *UserProfiles) ResetUserProfiles() types.UserProfileResult {
 	}
 }
 
+func (s *UserProfiles) UpdateSystemPreferences(prefs types.SystemPreferences) types.UserProfileResult {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.logRequest("UpdateSystemPreferences", "refresh_registry_on_startup", prefs.RefreshRegistryOnStartup, "extra_heap_size", prefs.ExtraHeapSize, "use_dev_tools", prefs.UseDevTools)
+
+	nextState := types.UserProfilesState{
+		ActiveProfileID: s.state.ActiveProfileID,
+		Profiles:        make(map[string]types.UserProfile, len(s.state.Profiles)),
+	}
+	for id, p := range s.state.Profiles {
+		nextState.Profiles[id] = p
+	}
+
+	profile := nextState.Profiles[s.state.ActiveProfileID]
+	profile.SystemPreferences = prefs
+	nextState.Profiles[s.state.ActiveProfileID] = profile
+
+	validatedState, err := types.ValidateState(nextState)
+	if err != nil {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Invalid system preferences"),
+			Profile:         s.state.Profiles[s.state.ActiveProfileID],
+			Errors: []types.UserProfilesError{
+				userProfilesError(s.state.ActiveProfileID, "", "", types.ErrorUnknown, "", "Invalid system preferences: "+err.Error()),
+			},
+		}
+	}
+
+	s.setState(validatedState)
+
+	if err := WriteUserProfilesState(validatedState); err != nil {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Failed to persist system preferences"),
+			Profile:         validatedState.Profiles[s.state.ActiveProfileID],
+			Errors: []types.UserProfilesError{
+				userProfilesError(s.state.ActiveProfileID, "", "", types.ErrorPersistFailed, "", "Failed to persist system preferences: "+err.Error()),
+			},
+		}
+	}
+
+	return types.UserProfileResult{
+		GenericResponse: types.SuccessResponse("System preferences updated"),
+		Profile:         validatedState.Profiles[s.state.ActiveProfileID],
+		Errors:          []types.UserProfilesError{},
+	}
+}
+
 // UpdateUIPreferences updates the active profile UI preferences and persists the profile state.
 func (s *UserProfiles) UpdateUIPreferences(uiPrefs types.UIPreferences) types.UserProfileResult {
 	s.mu.Lock()

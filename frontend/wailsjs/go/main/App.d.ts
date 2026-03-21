@@ -11,6 +11,8 @@ export function GetGameVersion():Promise<types.GameVersionResponse>;
 
 export function GetPlatform():Promise<types.PlatformResponse>;
 
+export function GetTotalMemory():Promise<number>;
+
 export function HandleDeepLinkTarget(arg1:deeplink.Target):Promise<void>;
 
 export function HandleDeepLinkURL(arg1:string):Promise<void>;

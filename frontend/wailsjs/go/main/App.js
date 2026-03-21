@@ -18,6 +18,10 @@ export function GetPlatform() {
   return window['go']['main']['App']['GetPlatform']();
 }
 
+export function GetTotalMemory() {
+  return window['go']['main']['App']['GetTotalMemory']();
+}
+
 export function HandleDeepLinkTarget(arg1) {
   return window['go']['main']['App']['HandleDeepLinkTarget'](arg1);
 }

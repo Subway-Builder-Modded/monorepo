@@ -424,34 +424,6 @@ func (s *Config) TryAutoDetectPath(
 	}, true
 }
 
-func (s *Config) GetCommandLineArgs() string {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.Cfg.CommandLineArgs
-}
-
-func (s *Config) UpdateCommandLineArgs(args string) types.ResolveConfigResponse {
-	s.logger.Info("Updating command line arguments", "args", args)
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
-		cfg.CommandLineArgs = args
-	}, false)
-
-	if err != nil {
-		s.logger.Error("Failed to update command line arguments", err)
-		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
-	}
-
-	s.logger.Info("Command line arguments updated successfully", "args", args)
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("Command line arguments updated"),
-		ResolveConfigResult: result,
-	}
-}
-
-func (s *Config) ClearCommandLineArgs() types.ResolveConfigResponse {
-	return s.UpdateCommandLineArgs("")
-}
-
 // FindDefaultPath iterates through the provided candidates and returns the first path that exists and matches the expected type (file vs directory).
 func FindDefaultPath(candidates []string, shouldBeDir bool) (detectedPath string, success bool) {
 	for _, candidate := range candidates {

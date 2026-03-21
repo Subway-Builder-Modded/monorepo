@@ -5,10 +5,9 @@
   Gamepad2,
   Github,
   RefreshCw,
-  Shield,
-  Terminal,
+  Shield
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { ThemePicker, type ThemeValue } from '@/components/shared/ThemePicker';
@@ -46,6 +45,7 @@ import { useProfileStore } from '@/stores/profile-store';
 
 import {
   GetPlatform,
+  GetTotalMemory,
   InstallLinuxSandbox,
   ManuallyCheckForUpdates,
   SandboxIsInstalled,
@@ -85,14 +85,20 @@ export function SettingsPage() {
     clearConfig,
     updateGithubToken,
     clearGithubToken,
-    clearCommandLineArgs,
-    updateCommandLineArgs,
     updateCheckForUpdatesOnLaunch,
   } = useConfigStore();
   const profile = useProfileStore((s) => s.profile);
   const resetProfile = useProfileStore((s) => s.resetProfile);
   const updateUIPreferences = useProfileStore((s) => s.updateUIPreferences);
+  const updateCommandLineArgs = useProfileStore((s) => s.updateCommandLineArgs);
   const [showThemePreviews, setShowThemePreviews] = useState(false);
+  const [extraMemoryDraft, setExtraMemoryDraft] = useState('');
+
+  useEffect(() => {
+    setExtraMemoryDraft(
+      String(profile?.systemPreferences?.extraMemorySize ?? 0),
+    );
+  }, [profile?.systemPreferences?.extraMemorySize]);
 
   const handleCheckToken = async () => {
     let req = await fetch('https://api.github.com/rate_limit', {
@@ -168,6 +174,39 @@ export function SettingsPage() {
       );
     } catch {
       toast.error('Failed to update check for updates on launch setting.');
+    }
+  };
+
+  const handleSaveExtraMemory = async () => {
+    if (!profile) return;
+    const parsed = Number.parseInt(extraMemoryDraft, 10);
+
+    const minBounds = 4096; // 4GB, default heap size
+
+    const maxBounds = Math.floor((await GetTotalMemory())/2); // Don't allow setting more than half of system memory
+
+    if (!Number.isFinite(parsed) || parsed < minBounds || parsed > maxBounds) {
+      toast.error('Extra memory size must be between 4096 MB and no more than half your system memory (' + maxBounds + ' MB).');
+      return;
+    }
+
+    try {
+      await updateCommandLineArgs({ extraMemorySize: parsed });
+      toast.success('Extra memory size updated.');
+    } catch {
+      toast.error('Failed to update extra memory size.');
+    }
+  };
+
+  const handleToggleDevTools = async () => {
+    if (!profile) return;
+    const newValue = !profile.systemPreferences?.useDevTools;
+
+    try {
+      await updateCommandLineArgs({ useDevTools: newValue });
+      toast.success(`Developer tools ${newValue ? 'enabled' : 'disabled'}.`);
+    } catch {
+      toast.error('Failed to update developer tools setting.');
     }
   };
 
@@ -288,35 +327,6 @@ export function SettingsPage() {
     }
   };
 
-  const [commandLineArgsDialogOpen, setCommandLineArgsDialogOpen] = useState(false);
-  const [commandLineArgsDraft, setCommandLineArgsDraft] = useState('');
-
-  const handleSaveCommandLineArgs = async () => {
-    try {
-      await updateCommandLineArgs(commandLineArgsDraft);
-      await saveConfig();
-      setCommandLineArgsDraft('');
-      setCommandLineArgsDialogOpen(false);
-      toast.success('Command line arguments updated.');
-    }
-    catch {
-      toast.error('Failed to update command line arguments.');
-    }
-  };
-
-  const handleClearCommandLineArgs = async () => {
-    try {
-      await clearCommandLineArgs();
-      await saveConfig();
-      setCommandLineArgsDraft('');
-      setCommandLineArgsDialogOpen(false);
-      toast.success('Command line arguments cleared.');
-    }
-    catch {
-      toast.error('Failed to clear command line arguments.');
-    }
-  };
-
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
@@ -429,35 +439,6 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <Terminal className="h-5 w-5 shrink-0 text-muted-foreground" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium">Command Line Args</p>
-                <p className="text-xs text-muted-foreground font-mono truncate">
-                  {config?.commandLineArgs || 'None'}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClearCommandLineArgs}
-              >
-                Clear
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={()=>{setCommandLineArgsDialogOpen(true)}}
-              >
-                Change
-              </Button>
-            </div>
-          </div>
-
-
           {platform == 'linux' && (
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0">
@@ -492,9 +473,9 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Preferences</CardTitle>
+          <CardTitle>UI Preferences</CardTitle>
           <CardDescription>
-            Display and behavior preferences from your profile.
+            Display preferences from your profile.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -576,6 +557,17 @@ export function SettingsPage() {
             </Select>
           </div>
 
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>System Preferences</CardTitle>
+          <CardDescription>
+            System behavior preferences and update settings.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium">
               Check For Updates On Launch
@@ -594,50 +586,38 @@ export function SettingsPage() {
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Dialog
-        open={commandLineArgsDialogOpen}
-        onOpenChange={(open) => {
-          setCommandLineArgsDialogOpen(open);
-          if(!open){
-            setCommandLineArgsDraft('');
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Command Line Arguments</DialogTitle>
-            <DialogDescription>
-              Provide additional command line arguments to launch the game with.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            placeholder='e.g. --js-flags="--max-old-space-size=4096"'
-            value={commandLineArgsDraft}
-            onChange={(event) => setCommandLineArgsDraft(event.target.value)}
-            className="font-mono"
-          />
-          <DialogFooter className="gap-2">
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">
+              Extra Memory for Game (MB)
+            </label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                placeholder="16384"
+                value={extraMemoryDraft}
+                onChange={(event) => setExtraMemoryDraft(event.target.value)}
+                className="w-[8lvh]"
+              />
+              <Button variant="outline" size="sm" onClick={handleSaveExtraMemory}>
+                Save
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium">Use Developer Tools</label>
             <Button
               variant="outline"
-              onClick={() => {
-                setCommandLineArgsDraft('');
-                setCommandLineArgsDialogOpen(false);
-              }}
+              size="sm"
+              onClick={handleToggleDevTools}
             >
-              Cancel
+              {profile?.systemPreferences.useDevTools ? 'Disable' : 'Enable'}
             </Button>
-            <Button
-              onClick={handleSaveCommandLineArgs}
-              disabled={commandLineArgsDraft.trim() === ''}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </CardContent>
+      </Card>
 
       <Dialog
         open={githubTokenDialogOpen}

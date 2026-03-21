@@ -338,7 +338,16 @@ func (a *App) LaunchGame() types.GenericResponse {
 		return types.ErrorResponse("game executable path is not configured or invalid")
 	}
 
-	extraSplitArgs := strings.Split(cfg.Config.CommandLineArgs, " ")
+	extraSplitArgs := []string{}
+
+	profile := a.Profiles.GetActiveProfile()
+	if profile.Status != types.ResponseSuccess {
+		a.Logger.Warn("Failed to get active profile for command line args on game launch", "status", profile.Status, "message", profile.Message)
+	} else {
+		if profile.Profile.SystemPreferences.ExtraHeapSize > 0 {
+			extraSplitArgs = append(extraSplitArgs, fmt.Sprintf(`--js-flags="--max-old-space-size=%d"`, profile.Profile.SystemPreferences.ExtraHeapSize))
+		}
+	}
 
 	port, err := a.startPMTilesServer()
 	if err != nil {
@@ -372,6 +381,11 @@ func (a *App) LaunchGame() types.GenericResponse {
 		args := []string{"/bin/sh", "-c", `ELECTRON_ENABLE_LOGGING=1 exec "$0"`, innerExe}
 		args = append(args, extraSplitArgs...)
 		cmd = exec.Command("/bin/sh", args...)
+		if profile.Status == types.ResponseSuccess {
+			if profile.Profile.SystemPreferences.UseDevTools {
+				cmd.Env = append(cmd.Env, "DEBUG_PROD=TRUE")
+			}
+		}
 	} else if runtime.GOOS == "linux" {
 		// Prefer host launch via Flatpak
 		if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
@@ -391,9 +405,19 @@ func (a *App) LaunchGame() types.GenericResponse {
 			cmd = exec.Command(exePath, extraSplitArgs...)
 			cmd.Dir = path.Dir(exePath)
 		}
+		if profile.Status == types.ResponseSuccess {
+			if profile.Profile.SystemPreferences.UseDevTools {
+				cmd.Env = append(cmd.Env, "DEBUG_PROD=TRUE")
+			}
+		}
 	} else {
 		cmd = exec.Command(exePath, extraSplitArgs...)
 		cmd.Dir = path.Dir(exePath)
+		if profile.Status == types.ResponseSuccess {
+			if profile.Profile.SystemPreferences.UseDevTools {
+				cmd.Env = append(cmd.Env, "DEBUG_PROD=TRUE")
+			}
+		}
 	}
 
 	stdout, err := cmd.StdoutPipe()
@@ -741,4 +765,8 @@ func (a *App) addSaltsOnFirstRun() error {
 		}
 	}
 	return nil
+}
+
+func (a *App) GetTotalMemory() (uint64, error) {
+	return utils.GetTotalSystemMemoryMB()
 }

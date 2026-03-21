@@ -12,12 +12,18 @@ import {
   ResetUserProfiles,
   UpdateSubscriptions,
   UpdateUIPreferences,
+  UpdateSystemPreferences
 } from '../../wailsjs/go/profiles/UserProfiles';
 
 interface UIPreferencesPayload {
   theme: string;
   defaultPerPage: number;
   searchViewMode: SearchViewMode;
+}
+
+interface UpdateCommandLineArgsPayload {
+  extraMemorySize?: number;
+  useDevTools?: boolean;
 }
 
 const DEFAULT_UI_PREFERENCES: UIPreferencesPayload = {
@@ -44,6 +50,14 @@ function resolveUIPreferences(
   };
 }
 
+function resolveSystemPreferences(profile: types.UserProfile | null): types.SystemPreferences {
+  return {
+    refreshRegistryOnStartup: profile?.systemPreferences?.refreshRegistryOnStartup ?? false,
+    extraMemorySize: profile?.systemPreferences?.extraMemorySize ?? 0,
+    useDevTools: profile?.systemPreferences?.useDevTools ?? false,
+  }
+}
+
 interface ProfileState {
   profile: types.UserProfile | null;
   loading: boolean;
@@ -65,6 +79,7 @@ interface ProfileState {
     version: string,
   ) => Promise<void>;
   resetProfile: () => Promise<void>;
+  updateCommandLineArgs: (preferences: Partial<UpdateCommandLineArgsPayload>) => Promise<void>;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -145,6 +160,26 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     try {
       const resetResult = await ResetUserProfiles();
       set({ profile: resetResult.profile, loading: false });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        loading: false,
+      });
+    }
+  },
+
+  updateCommandLineArgs: async (preferences) => {
+    set({ loading: true, error: null });
+    try {
+      const payload = {
+        ...resolveSystemPreferences(get().profile),
+        ...preferences
+      }
+      const result = await UpdateSystemPreferences(payload);
+      if (result.status === 'error') {
+        throw new Error(result.message || 'Failed to update system preferences');
+      }
+      set({ profile: result.profile, loading: false });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : String(err),

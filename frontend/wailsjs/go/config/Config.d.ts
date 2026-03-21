@@ -3,15 +3,11 @@
 import {types} from '../models';
 import {context} from '../models';
 
-export function ClearCommandLineArgs():Promise<types.ResolveConfigResponse>;
-
 export function ClearConfig():Promise<types.ResolveConfigResponse>;
 
 export function ClearGithubToken():Promise<types.ResolveConfigResponse>;
 
 export function CompleteSetup():Promise<types.ResolveConfigResponse>;
-
-export function GetCommandLineArgs():Promise<string>;
 
 export function GetConfig():Promise<types.ResolveConfigResponse>;
 
@@ -34,8 +30,6 @@ export function SetContext(arg1:context.Context):Promise<void>;
 export function TryAutoDetectPath(arg1:Array<string>,arg2:boolean,arg3:any,arg4:any):Promise<types.SetConfigPathResult|boolean>;
 
 export function UpdateCheckForUpdatesOnLaunch(arg1:boolean):Promise<types.ResolveConfigResponse>;
-
-export function UpdateCommandLineArgs(arg1:string):Promise<types.ResolveConfigResponse>;
 
 export function UpdateConfig(arg1:any,arg2:boolean):Promise<types.ResolveConfigResult>;
 
