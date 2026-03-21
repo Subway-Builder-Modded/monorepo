@@ -372,7 +372,7 @@ func resolveLatestVersionForManifest(
 // ===== Runtime Mutation Helpers ===== //
 
 func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsRequest) types.UpdateSubscriptionsResult {
-	stateCopy, profile, profileErr := s.copyStateAndResolveProfile(req.ProfileID)
+	stateCopy, profile, profileErr := s.resolveProfileFromCopy(req.ProfileID)
 	if profileErr != nil {
 		s.Logger.Error("Profile not found", profileErr, "profile_id", req.ProfileID)
 		return profileNotFoundUpdateResult(profileErr, types.UpdateSubscriptions, "profile not found")
@@ -383,16 +383,17 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 	operations := make([]types.SubscriptionOperation, 0, len(req.Assets))
 	conflicts := make([]types.MapCodeConflict, 0)
 	if req.Action == types.SubscriptionActionSubscribe && req.ForceSync {
-		preflightConflicts := s.preflightMapCodeConflicts(req)
-		if len(preflightConflicts) > 0 && !req.ReplaceOnConflict {
+		// Check for map code conflicts before applying any mutations to surface surface confirmation request to FE
+		mapCodeConflicts := s.checkMapCodeConflicts(req)
+		if len(mapCodeConflicts) > 0 && !req.ReplaceOnConflict {
 			return conflictWarningResult(
 				types.UpdateSubscriptions,
 				"Map code conflict detected. Confirm replacement to continue.",
 				profile,
-				preflightConflicts,
+				mapCodeConflicts,
 			)
 		}
-		conflicts = preflightConflicts
+		conflicts = mapCodeConflicts
 
 		conflictOps, conflictErr := s.applyConflictReplacement(req.ProfileID, &profile, conflicts)
 		if conflictErr != nil {
@@ -454,11 +455,14 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 		"asset_type", req.AssetType,
 		"replace_on_conflict", req.ReplaceOnConflict,
 	)
+	// Initial snapshot to validate profile existence before performing any operations.
+	// Unlike remote subscription updates, we need to validate that the asset can be imported before mutating the profile state since we do not want to persist any subscription changes if the import fails.
 	profile, _, profileErr := s.profileSnapshot(req.ProfileID)
 	if profileErr != nil {
 		return profileNotFoundUpdateResult(profileErr, types.ImportAsset, "Profile not found")
 	}
 
+	// Validate that the asset can be imported successfully
 	importResp := s.Downloader.ImportAsset(req.AssetType, req.ZipPath, req.ReplaceOnConflict)
 	if importResp.Status == types.ResponseError {
 		err := userProfilesError(
@@ -475,6 +479,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 		return result
 	}
 
+	// If the import succeeded but recorded a warning about map code conflict, this must be raised to the frontend to confirm replaceent before profile mutation
 	if importResp.Status == types.ResponseWarn && importResp.MapCodeConflict != nil && !req.ReplaceOnConflict {
 		result := conflictWarningResult(
 			types.ImportAsset,
@@ -485,20 +490,23 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 		return result
 	}
 
+	// Re-lock and re-snapshot to perform profile mutation after import (given that import itself may take an extended period of time)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	stateCopy, nextProfile, nextProfileErr := s.copyStateAndResolveProfile(req.ProfileID)
+	stateCopy, nextProfile, nextProfileErr := s.resolveProfileFromCopy(req.ProfileID)
 	if nextProfileErr != nil {
 		return profileNotFoundUpdateResult(nextProfileErr, types.ImportAsset, "Profile not found")
 	}
 
 	cloneProfileSubscriptions(&nextProfile)
 
+	// There will be at most two subscription mutations to apply for an imported map asset: one to resolve map code conflicts if they exist, and one to subscribe to the newly imported map.
+	// Apply conflict resolution first to ensure the profile is in a valid state to subscribe to the new asse\
 	operations := make([]types.SubscriptionOperation, 0, 2)
 	appliedConflicts := make([]types.MapCodeConflict, 0)
 	if importResp.MapCodeConflict != nil && req.ReplaceOnConflict {
-		conflictOps, conflictErr := s.applyConflictReplacement(req.ProfileID, &nextProfile, []types.MapCodeConflict{*importResp.MapCodeConflict})
+		conflictOperations, conflictErr := s.applyConflictReplacement(req.ProfileID, &nextProfile, []types.MapCodeConflict{*importResp.MapCodeConflict})
 		if conflictErr != nil {
 			message := "Failed to replace conflicting subscription"
 			if conflictErr.DownloaderErrorType == types.InstallErrorMapCodeConflict {
@@ -509,10 +517,12 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 			result.Errors = []types.UserProfilesError{*conflictErr}
 			return result
 		}
-		operations = appendOperations(operations, conflictOps)
+		operations = appendOperations(operations, conflictOperations)
 		appliedConflicts = append(appliedConflicts, *importResp.MapCodeConflict)
 	}
 
+	// Then apply the subscription mutation to add the imported asset to the profile.
+	// Each asset type will have two different sets of subscription collections, one for locally imported assets and one for remotely subscribed assets.
 	localOperation, localErr := applySubscriptionMutation(
 		&nextProfile,
 		types.SubscriptionActionSubscribe,
@@ -531,6 +541,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 	}
 	operations = appendOperation(operations, localOperation)
 
+	// If all operations (optional conflict replacement + import subscription) were applied successfully, commit the profile mutation to persist the new subscriptions state with the imported asset.
 	if err := s.commitProfileMutation(&stateCopy, req.ProfileID, nextProfile, true); err != nil {
 		persistErr := updateSubscriptionError(
 			req.ProfileID,
@@ -550,11 +561,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 	message := "Asset imported and subscribed successfully"
 	if importResp.Status == types.ResponseWarn {
 		status = types.ResponseWarn
-		if strings.TrimSpace(importResp.Message) != "" {
-			message = importResp.Message
-		} else {
-			message = "Asset imported with warnings"
-		}
+		message = importResp.Message
 	}
 
 	result := newUpdateResultBase(types.ImportAsset, status, message)
@@ -566,9 +573,9 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 	return result
 }
 
-func (s *UserProfiles) preflightMapCodeConflicts(req types.UpdateSubscriptionsRequest) []types.MapCodeConflict {
+// checkMapCodeConflicts checks for potential map code conflicts between the maps in the update request and existing subscriptions.
+func (s *UserProfiles) checkMapCodeConflicts(req types.UpdateSubscriptionsRequest) []types.MapCodeConflict {
 	conflicts := make([]types.MapCodeConflict, 0)
-	seen := make(map[string]struct{})
 
 	for assetID, item := range req.Assets {
 		if item.Type != types.AssetTypeMap || item.IsLocal {
@@ -580,13 +587,9 @@ func (s *UserProfiles) preflightMapCodeConflicts(req types.UpdateSubscriptionsRe
 		}
 
 		conflict, hasConflict := s.Downloader.FindMapCodeConflict(assetID, manifest.CityCode, true)
-		if !hasConflict || conflict == nil {
+		if !hasConflict {
 			continue
 		}
-		if _, ok := seen[conflict.ExistingAssetID]; ok {
-			continue
-		}
-		seen[conflict.ExistingAssetID] = struct{}{}
 		conflicts = append(conflicts, *conflict)
 	}
 
@@ -605,8 +608,8 @@ func copyProfilesState(source types.UserProfilesState) types.UserProfilesState {
 	return copied
 }
 
-// copyStateAndResolveProfile returns a mutable state copy and resolved profile for mutation paths.
-func (s *UserProfiles) copyStateAndResolveProfile(profileID string) (types.UserProfilesState, types.UserProfile, *types.UserProfilesError) {
+// resolveProfileFromCopy returns a mutable state copy and resolved profile for mutation paths.
+func (s *UserProfiles) resolveProfileFromCopy(profileID string) (types.UserProfilesState, types.UserProfile, *types.UserProfilesError) {
 	stateCopy := copyProfilesState(s.state)
 	profile, profileErr := profileFromState(stateCopy, profileID)
 	if profileErr != nil {
@@ -646,6 +649,7 @@ func appendOperations(operations []types.SubscriptionOperation, additional []typ
 	return append(operations, additional...)
 }
 
+// applyConflictReplacement applies the necessary subscription mutations to resolve map code conflicts.
 func (s *UserProfiles) applyConflictReplacement(
 	profileID string,
 	profile *types.UserProfile,
@@ -653,6 +657,8 @@ func (s *UserProfiles) applyConflictReplacement(
 ) ([]types.SubscriptionOperation, *types.UserProfilesError) {
 	operations := make([]types.SubscriptionOperation, 0, len(conflicts))
 	for _, conflict := range conflicts {
+		// Vanilla map conflicts are not resolvable since we should not overwrite vanilla maps.
+		// If this occurs it is either a registry error or an issue with an imported map's configuration
 		if strings.HasPrefix(conflict.ExistingAssetID, "vanilla:") {
 			err := userProfilesError(
 				profileID,
@@ -680,6 +686,7 @@ func applySubscriptionMutation(
 	item types.SubscriptionUpdateItem,
 ) (*types.SubscriptionOperation, *types.UserProfilesError) {
 	switch item.Type {
+	// TODO: Generalize non-local/local split across all asset types instead of applying a special case for maps only.
 	case types.AssetTypeMap:
 		target := profile.Subscriptions.Maps
 		if item.IsLocal {
@@ -698,6 +705,7 @@ func applySubscriptionMutation(
 	}
 }
 
+// removeMapConflictSubscription removes the subscription that is in conflict with a new map subscription to resolve map code conflicts.
 func removeMapConflictSubscription(
 	profile *types.UserProfile,
 	conflict types.MapCodeConflict,
