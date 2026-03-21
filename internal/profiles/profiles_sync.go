@@ -15,7 +15,7 @@ func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict boo
 	profile, snapshotVersion, profileErr := s.profileSnapshot(profileID)
 	if profileErr != nil {
 		s.Logger.Error("Profile not found for sync", profileErr, "profile_id", profileID)
-		result := newSyncResultBase(types.ResponseError, "Profile not found for sync", profileID)
+		result := syncResultBase(types.ResponseError, "Profile not found for sync", profileID)
 		result.Errors = []types.UserProfilesError{*profileErr}
 		return result
 	}
@@ -50,7 +50,7 @@ func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict boo
 			"",
 			"Sync superseded by newer subscription update",
 		)
-		result := newSyncResultBase(types.ResponseWarn, "Sync cancelled by newer subscription update", profileID)
+		result := syncResultBase(types.ResponseWarn, "Sync cancelled by newer subscription update", profileID)
 		result.Operations = operations
 		result.Errors = []types.UserProfilesError{staleWarning}
 		return result
@@ -65,7 +65,7 @@ func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict boo
 
 	if len(syncErrors) > 0 {
 		s.Logger.Warn("Subscription sync completed with errors", "error_count", len(syncErrors))
-		result := newSyncResultBase(types.ResponseError, fmt.Sprintf("subscription sync completed with %d error(s)", len(syncErrors)), profileID)
+		result := syncResultBase(types.ResponseError, fmt.Sprintf("subscription sync completed with %d error(s)", len(syncErrors)), profileID)
 		result.Operations = operations
 		result.Errors = syncErrors
 		return result
@@ -73,12 +73,12 @@ func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict boo
 
 	if len(purgeOperations) > 0 {
 		s.Logger.Warn("Subscription sync completed with purge warnings", "purge_count", len(purgeOperations))
-		result := newSyncResultBase(types.ResponseWarn, fmt.Sprintf("subscription sync auto-purged %d invalid subscription(s)", len(purgeOperations)), profileID)
+		result := syncResultBase(types.ResponseWarn, fmt.Sprintf("subscription sync auto-purged %d invalid subscription(s)", len(purgeOperations)), profileID)
 		result.Operations = operations
 		return result
 	}
 
-	result := newSyncResultBase(types.ResponseSuccess, "subscriptions synced", profileID)
+	result := syncResultBase(types.ResponseSuccess, "subscriptions synced", profileID)
 	result.Operations = operations
 	return result
 }

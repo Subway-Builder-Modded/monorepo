@@ -150,7 +150,7 @@ func (s *UserProfiles) UpdateSubscriptionsToLatest(req types.UpdateSubscriptions
 			}
 		}
 
-		result := newUpdateResultBase(requestType, status, message)
+		result := updateResultBase(requestType, status, message)
 		result.HasUpdates = hasUpdates
 		result.PendingCount = pendingCount
 		result.PendingUpdates = pendingUpdates
@@ -177,7 +177,7 @@ func (s *UserProfiles) UpdateSubscriptionsToLatest(req types.UpdateSubscriptions
 		errors = append(errors, resultWarnings...)
 	}
 
-	result := newUpdateResultBase(types.LatestApply, status, message)
+	result := updateResultBase(types.LatestApply, status, message)
 	result.HasUpdates = hasUpdates
 	result.PendingCount = pendingCount
 	result.PendingUpdates = pendingUpdates
@@ -401,7 +401,7 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 			if conflictErr.DownloaderErrorType == types.InstallErrorMapCodeConflict {
 				message = conflictErr.Message
 			}
-			result := newUpdateResultBase(types.UpdateSubscriptions, types.ResponseError, message)
+			result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, message)
 			result.Profile = profile
 			result.Errors = []types.UserProfilesError{*conflictErr}
 			return result
@@ -413,7 +413,7 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 		operation, opErr := applySubscriptionMutation(&profile, req.Action, strings.TrimSpace(assetID), item)
 		if opErr != nil {
 			s.Logger.Error("Failed to apply subscription mutation", *opErr, "asset_id", assetID, "asset_type", item.Type, "action", req.Action)
-			result := newUpdateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to apply subscription mutation")
+			result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to apply subscription mutation")
 			result.Profile = profile
 			result.Errors = []types.UserProfilesError{*opErr}
 			return result
@@ -422,7 +422,7 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 	}
 
 	if err := s.commitProfileMutation(&stateCopy, req.ProfileID, profile, req.ForceSync); err != nil {
-		result := newUpdateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to persist subscriptions")
+		result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to persist subscriptions")
 		result.Profile = profile
 		result.Operations = operations
 		result.Errors = []types.UserProfilesError{
@@ -431,7 +431,7 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 		return result
 	}
 
-	result := newUpdateResultBase(types.UpdateSubscriptions, types.ResponseSuccess, "Subscriptions updated")
+	result := updateResultBase(types.UpdateSubscriptions, types.ResponseSuccess, "Subscriptions updated")
 	result.Applied = true
 	result.Profile = profile
 	result.Persisted = req.ForceSync
@@ -473,7 +473,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 			importResp.ErrorType,
 			importResp.Message,
 		)
-		result := newUpdateResultBase(types.ImportAsset, types.ResponseError, importResp.Message)
+		result := updateResultBase(types.ImportAsset, types.ResponseError, importResp.Message)
 		result.Profile = profile
 		result.Errors = []types.UserProfilesError{err}
 		return result
@@ -512,7 +512,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 			if conflictErr.DownloaderErrorType == types.InstallErrorMapCodeConflict {
 				message = conflictErr.Message
 			}
-			result := newUpdateResultBase(types.ImportAsset, types.ResponseError, message)
+			result := updateResultBase(types.ImportAsset, types.ResponseError, message)
 			result.Profile = nextProfile
 			result.Errors = []types.UserProfilesError{*conflictErr}
 			return result
@@ -534,7 +534,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 		},
 	)
 	if localErr != nil {
-		result := newUpdateResultBase(types.ImportAsset, types.ResponseError, "Failed to add imported map to profile subscriptions")
+		result := updateResultBase(types.ImportAsset, types.ResponseError, "Failed to add imported map to profile subscriptions")
 		result.Profile = nextProfile
 		result.Errors = []types.UserProfilesError{*localErr}
 		return result
@@ -550,7 +550,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 			types.ErrorPersistFailed,
 			fmt.Errorf("failed to persist imported asset subscriptions: %w", err),
 		)
-		result := newUpdateResultBase(types.ImportAsset, types.ResponseError, "Failed to persist imported asset subscriptions")
+		result := updateResultBase(types.ImportAsset, types.ResponseError, "Failed to persist imported asset subscriptions")
 		result.Profile = nextProfile
 		result.Operations = operations
 		result.Errors = []types.UserProfilesError{persistErr}
@@ -564,7 +564,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 		message = importResp.Message
 	}
 
-	result := newUpdateResultBase(types.ImportAsset, status, message)
+	result := updateResultBase(types.ImportAsset, status, message)
 	result.Applied = true
 	result.Profile = nextProfile
 	result.Persisted = true

@@ -49,7 +49,7 @@ func (s *UserProfiles) logRequest(method string, attrs ...any) {
 
 // ===== Request Results ===== //
 
-func newUpdateResultBase(
+func updateResultBase(
 	requestType types.UpdateSubscriptionRequestType,
 	status types.Status,
 	message string,
@@ -67,7 +67,7 @@ func newUpdateResultBase(
 	}
 }
 
-func newSyncResultBase(
+func syncResultBase(
 	status types.Status,
 	message string,
 	profileID string,
@@ -88,7 +88,7 @@ func profileNotFoundUpdateResult(
 	requestType types.UpdateSubscriptionRequestType,
 	message string,
 ) types.UpdateSubscriptionsResult {
-	result := newUpdateResultBase(requestType, types.ResponseError, message)
+	result := updateResultBase(requestType, types.ResponseError, message)
 	result.Errors = []types.UserProfilesError{*profileErr}
 	return result
 }
@@ -157,7 +157,7 @@ func conflictWarningResult(
 	profile types.UserProfile,
 	conflicts []types.MapCodeConflict,
 ) types.UpdateSubscriptionsResult {
-	result := newUpdateResultBase(requestType, types.ResponseWarn, message)
+	result := updateResultBase(requestType, types.ResponseWarn, message)
 	result.Profile = profile
 	result.Conflicts = conflicts
 	return result
