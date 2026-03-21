@@ -29,12 +29,12 @@ export function AppFooter({ version }: AppFooterProps) {
   return (
     <footer className="pb-5 pt-6 sm:pb-7 sm:pt-8">
       <div className={cn(APP_SHELL_WIDTH_CLASS, APP_SHELL_PADDING_CLASS)}>
-        <div className="rounded-2xl border border-border/70 bg-card/85 px-[clamp(1rem,2vw,1.5rem)] py-4 shadow-sm backdrop-blur-sm">
+        <div className="border-t border-border/60 pt-4">
           <p className="text-center text-sm font-medium text-muted-foreground">
             Railyard {version || 'v0.0.0'} | &copy; Subway Builder Modded 2026.
           </p>
 
-          <div className="mt-4 border-t border-border/60 pt-3">
+          <div className="mt-2.5">
             <div className="flex items-center justify-center gap-2.5">
               {COMMUNITY_LINKS.map(({ id, href, icon: Icon, label }) => (
                 <a
