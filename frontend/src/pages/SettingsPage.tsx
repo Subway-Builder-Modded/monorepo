@@ -95,9 +95,13 @@ export function SettingsPage() {
   const [extraMemoryDraft, setExtraMemoryDraft] = useState('');
 
   useEffect(() => {
-    setExtraMemoryDraft(
-      String(profile?.systemPreferences?.extraMemorySize ?? 0),
-    );
+    if (profile?.systemPreferences?.extraMemorySize !== -1) {
+      setExtraMemoryDraft(
+        String(profile?.systemPreferences?.extraMemorySize ?? 0),
+      );
+    } else {
+      setExtraMemoryDraft('');
+    }
   }, [profile?.systemPreferences?.extraMemorySize]);
 
   const handleCheckToken = async () => {
@@ -195,6 +199,17 @@ export function SettingsPage() {
       toast.success('Extra memory size updated.');
     } catch {
       toast.error('Failed to update extra memory size.');
+    }
+  };
+
+  const handleClearExtraMemory = async () => {
+    if (!profile) return;
+    try {
+      setExtraMemoryDraft('');
+      await updateCommandLineArgs({ extraMemorySize: -1 });
+      toast.success('Extra memory size cleared.');
+    } catch {
+      toast.error('Failed to clear extra memory size.');  
     }
   };
 
@@ -600,6 +615,9 @@ export function SettingsPage() {
                 onChange={(event) => setExtraMemoryDraft(event.target.value)}
                 className="w-[8lvh]"
               />
+              <Button variant="outline" size="sm" onClick={handleClearExtraMemory}>
+                Clear
+              </Button>
               <Button variant="outline" size="sm" onClick={handleSaveExtraMemory}>
                 Save
               </Button>
