@@ -93,11 +93,20 @@ export function SettingsPage() {
   const updateCommandLineArgs = useProfileStore((s) => s.updateCommandLineArgs);
   const [showThemePreviews, setShowThemePreviews] = useState(false);
   const [extraMemoryDraft, setExtraMemoryDraft] = useState('');
+  const [MAX_MEMORY_MB, setMaxMemoryMB] = useState<number | null>(null);
+
+  const MIN_MEMORY_MB = 4096;
+
+  useEffect(() => {
+    GetTotalMemory().then((totalMemoryMB) => {
+      setMaxMemoryMB(Math.floor(totalMemoryMB * (5/8)));
+    });
+  }, []);
 
   useEffect(() => {
     if (profile?.systemPreferences?.extraMemorySize !== -1) {
       setExtraMemoryDraft(
-        String(profile?.systemPreferences?.extraMemorySize ?? 0),
+        String(profile?.systemPreferences?.extraMemorySize ?? ''),
       );
     } else {
       setExtraMemoryDraft('');
@@ -185,12 +194,8 @@ export function SettingsPage() {
     if (!profile) return;
     const parsed = Number.parseInt(extraMemoryDraft, 10);
 
-    const minBounds = 4096; // 4GB, default heap size
-
-    const maxBounds = Math.floor((await GetTotalMemory())/2); // Don't allow setting more than half of system memory
-
-    if (!Number.isFinite(parsed) || parsed < minBounds || parsed > maxBounds) {
-      toast.error('Extra memory size must be between 4096 MB and no more than half your system memory (' + maxBounds + ' MB).');
+    if (!Number.isFinite(parsed) || parsed < MIN_MEMORY_MB || parsed > MAX_MEMORY_MB!) {
+      toast.error('Extra memory size must be between 4096 MB and no more than about 60% of your system memory (' + MAX_MEMORY_MB! + ' MB).');
       return;
     }
 
@@ -609,8 +614,9 @@ export function SettingsPage() {
             <div className="flex items-center gap-2">
               <Input
                 type="number"
-                min={0}
-                placeholder="16384"
+                min={MIN_MEMORY_MB}
+                max={MAX_MEMORY_MB ?? undefined}
+                placeholder={MAX_MEMORY_MB !== null ? MAX_MEMORY_MB!.toString() : "8192"}
                 value={extraMemoryDraft}
                 onChange={(event) => setExtraMemoryDraft(event.target.value)}
                 className="w-[8lvh]"
