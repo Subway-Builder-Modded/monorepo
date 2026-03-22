@@ -30,7 +30,6 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
   const selectedOption =
     sortOptions.find((opt) => opt.value === selectedOptionKey) ?? sortOptions[0];
 
-  // Reset to default if current value is not available in filtered options
   useEffect(() => {
     if (!sortOptions.some((opt) => opt.value === selectedOptionKey)) {
       const defaultKey = SortKey.fromState(DEFAULT_SORT_STATE);
@@ -53,7 +52,6 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
         className={cn(
           'h-8 min-w-[11.5rem] justify-between rounded-xl border border-border/70 bg-background/90 px-3 text-xs font-semibold text-muted-foreground shadow-sm backdrop-blur-md',
           'hover:bg-accent/45 hover:text-primary data-[state=open]:bg-accent/45 data-[state=open]:text-primary',
-          // Ensure the chevron + option icon inherit the same active color as the label.
           '[&_svg]:text-current',
         )}
       >
@@ -66,7 +64,6 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
           <span className="text-muted-foreground">Sort</span>
         )}
       </SelectTrigger>
-      {/* Make sure that the selected option is always visible and ensure the dropdown renders downwards */}
       <SelectContent
         side="bottom"
         sideOffset={4}

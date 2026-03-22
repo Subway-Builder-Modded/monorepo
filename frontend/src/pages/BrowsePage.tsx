@@ -114,9 +114,6 @@ export function BrowsePage() {
         mapCount={maps.length}
       />
 
-      {/* Content area — shifts right when sidebar is open.
-          minHeight keeps the footer below the initial viewport so the sidebar
-          never snaps into absolute mode just because filters reduced results. */}
       <div
         className="space-y-5"
         style={{
@@ -139,7 +136,6 @@ export function BrowsePage() {
         />
 
         <div className="space-y-4">
-          {/* Results toolbar */}
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               {loading ? (
@@ -173,7 +169,6 @@ export function BrowsePage() {
             </div>
           </div>
 
-          {/* Cards / empty / loading */}
           {loading ? (
             <CardSkeletonGrid count={filters.perPage} preset={cardGridPreset} />
           ) : items.length === 0 ? (

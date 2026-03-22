@@ -12,9 +12,8 @@ export type SortField =
   | 'downloads'
   | 'last_updated'
   | 'random';
-// Union type of valid sort directions
 export type SortDirection = 'asc' | 'desc';
-export type SortKey = `${SortField}:${SortDirection}`; // Template literal type to help encapsulate logic of converting between SortState and string keys
+export type SortKey = `${SortField}:${SortDirection}`;
 
 export interface SortState {
   field: SortField;
