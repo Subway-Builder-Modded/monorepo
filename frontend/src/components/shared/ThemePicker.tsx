@@ -1,13 +1,6 @@
 import { cn } from '@/lib/utils';
 
-export type ThemeValue =
-  | 'dark'
-  | 'dark_low'
-  | 'dark_high'
-  | 'light'
-  | 'light_low'
-  | 'light_high'
-  | 'system';
+export type ThemeValue = 'dark' | 'light' | 'system';
 
 interface ThemePreviewColors {
   bg: string;
@@ -40,32 +33,6 @@ const THEME_OPTIONS: ThemeOption[] = [
     },
   },
   {
-    value: 'light_low',
-    label: 'Light (Soft)',
-    colors: {
-      bg: '#d4cec4',
-      sidebar: '#cbc5bb',
-      card: '#ddd6cd',
-      bar: '#bfb8ad',
-      primary: '#6f665b',
-      muted: '#b4ad9f',
-      border: '#9d9587',
-    },
-  },
-  {
-    value: 'light_high',
-    label: 'Light (Contrast)',
-    colors: {
-      bg: '#ffffff',
-      sidebar: '#fbfbfb',
-      card: '#ffffff',
-      bar: '#efefef',
-      primary: '#0f0f0f',
-      muted: '#d9d9d9',
-      border: '#737373',
-    },
-  },
-  {
     value: 'dark',
     label: 'Dark',
     colors: {
@@ -76,32 +43,6 @@ const THEME_OPTIONS: ThemeOption[] = [
       primary: '#ebebeb',
       muted: '#383838',
       border: '#2e2e2e',
-    },
-  },
-  {
-    value: 'dark_low',
-    label: 'Dark (Soft)',
-    colors: {
-      bg: '#3a3a3a',
-      sidebar: '#434343',
-      card: '#4b4b4b',
-      bar: '#3f3f3f',
-      primary: '#e4e4e4',
-      muted: '#585858',
-      border: '#666666',
-    },
-  },
-  {
-    value: 'dark_high',
-    label: 'Dark (Contrast)',
-    colors: {
-      bg: '#050505',
-      sidebar: '#0c0c0c',
-      card: '#121212',
-      bar: '#080808',
-      primary: '#ffffff',
-      muted: '#232323',
-      border: '#6a6a6a',
     },
   },
 ];
@@ -239,7 +180,7 @@ interface ThemePickerProps {
 
 export function ThemePicker({ value, onChange, disabled }: ThemePickerProps) {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 gap-3">
       {THEME_OPTIONS.map((option) => {
         const isSelected = value === option.value;
         return (

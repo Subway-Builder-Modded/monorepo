@@ -36,17 +36,18 @@ function buildToneClasses(toneVarsClass: string): LocalAccentVariantClasses {
   };
 }
 
-function buildLocalAccentToneClasses<TTone extends string>(
-  toneVarClasses: {
-    [Tone in TTone]: string;
-  }
-): {
+function buildLocalAccentToneClasses<TTone extends string>(toneVarClasses: {
+  [Tone in TTone]: string;
+}): {
   [Tone in TTone]: LocalAccentVariantClasses;
 } {
   const entries = Object.entries(toneVarClasses) as [TTone, string][];
 
   return Object.fromEntries(
-    entries.map(([tone, toneVarsClass]) => [tone, buildToneClasses(toneVarsClass)])
+    entries.map(([tone, toneVarsClass]) => [
+      tone,
+      buildToneClasses(toneVarsClass),
+    ]),
   ) as {
     [Tone in TTone]: LocalAccentVariantClasses;
   };
@@ -65,8 +66,9 @@ const LOCAL_ACCENT_TONE_VARS = {
     '[--local-tone-primary:var(--files-primary)] [--local-tone-foreground:var(--files-foreground)]',
 } satisfies Record<LocalAccentTone, string>;
 
-const LOCAL_ACCENT_TONE_CLASSES =
-  buildLocalAccentToneClasses(LOCAL_ACCENT_TONE_VARS);
+const LOCAL_ACCENT_TONE_CLASSES = buildLocalAccentToneClasses(
+  LOCAL_ACCENT_TONE_VARS,
+);
 
 export function getLocalAccentClasses(tone: LocalAccentTone) {
   return LOCAL_ACCENT_TONE_CLASSES[tone];

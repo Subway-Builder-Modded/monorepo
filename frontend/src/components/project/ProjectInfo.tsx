@@ -226,9 +226,7 @@ export function ProjectInfo({
         <Button
           size="sm"
           className={
-            isUpdate
-              ? UPDATE_ACCENT.solidButton
-              : INSTALL_ACCENT.solidButton
+            isUpdate ? UPDATE_ACCENT.solidButton : INSTALL_ACCENT.solidButton
           }
           onClick={() => handleInstallClick(v.version, v.prerelease)}
         >

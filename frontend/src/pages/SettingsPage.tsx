@@ -53,25 +53,27 @@ import {
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48] as const;
 
-const VALID_THEMES = new Set<ThemeValue>([
-  'dark',
-  'dark_low',
-  'dark_high',
-  'light',
-  'light_low',
-  'light_high',
-  'system',
-]);
+const VALID_THEMES = new Set<ThemeValue>(['dark', 'light', 'system']);
 
 const THEME_LABELS: Record<ThemeValue, string> = {
   dark: 'Dark',
-  dark_low: 'Dark (Soft)',
-  dark_high: 'Dark (Contrast)',
   light: 'Light',
-  light_low: 'Light (Soft)',
-  light_high: 'Light (Contrast)',
   system: 'System',
 };
+
+function normalizeThemeValue(theme: unknown): ThemeValue {
+  if (theme === 'system' || theme === 'light' || theme === 'dark') {
+    return theme;
+  }
+
+  if (typeof theme === 'string') {
+    const lowered = theme.toLowerCase();
+    if (lowered.startsWith('light')) return 'light';
+    if (lowered.startsWith('dark')) return 'dark';
+  }
+
+  return 'dark';
+}
 
 export function SettingsPage() {
   const {
@@ -519,9 +521,7 @@ export function SettingsPage() {
               >
                 {
                   THEME_LABELS[
-                    ((profile?.uiPreferences?.theme as
-                      | ThemeValue
-                      | undefined) ?? 'dark') as ThemeValue
+                    normalizeThemeValue(profile?.uiPreferences?.theme)
                   ]
                 }
                 <ChevronDown
@@ -532,14 +532,7 @@ export function SettingsPage() {
 
             {showThemePreviews && (
               <ThemePicker
-                value={
-                  ((profile?.uiPreferences?.theme as ThemeValue | undefined) ??
-                    'dark') === 'system'
-                    ? 'dark'
-                    : ((profile?.uiPreferences?.theme as
-                        | ThemeValue
-                        | undefined) ?? 'dark')
-                }
+                value={normalizeThemeValue(profile?.uiPreferences?.theme)}
                 onChange={handleThemeChange}
               />
             )}

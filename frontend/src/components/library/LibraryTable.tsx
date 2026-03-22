@@ -399,10 +399,7 @@ function LibraryTableRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className={cn(
-                  actionButtonBaseClass,
-                  UPDATE_ICON_ACCENT_CLASS,
-                )}
+                className={cn(actionButtonBaseClass, UPDATE_ICON_ACCENT_CLASS)}
                 onClick={() => setUpdateOpen(true)}
                 aria-label="Update to latest"
               >
@@ -414,10 +411,7 @@ function LibraryTableRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className={cn(
-                  actionButtonBaseClass,
-                  FILES_ICON_ACCENT_CLASS,
-                )}
+                className={cn(actionButtonBaseClass, FILES_ICON_ACCENT_CLASS)}
                 onClick={handleOpenInstallFolder}
                 aria-label="Open install folder"
                 disabled={!metroMakerDataPath}

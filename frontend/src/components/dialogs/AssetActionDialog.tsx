@@ -10,7 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { getLocalAccentClasses, type LocalAccentTone } from '@/lib/local-accent';
+import {
+  getLocalAccentClasses,
+  type LocalAccentTone,
+} from '@/lib/local-accent';
 
 import type { types } from '../../../wailsjs/go/models';
 
@@ -91,7 +94,8 @@ export function AssetActionDialog({
             onClick={() => onOpenChange(false)}
             disabled={loading}
             className={
-              toneStyles?.dialogCancel ?? 'hover:bg-muted/70 hover:text-foreground'
+              toneStyles?.dialogCancel ??
+              'hover:bg-muted/70 hover:text-foreground'
             }
           >
             Cancel
