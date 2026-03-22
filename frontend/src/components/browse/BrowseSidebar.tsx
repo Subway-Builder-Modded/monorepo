@@ -14,19 +14,10 @@ import type { AssetType } from '@/lib/asset-types';
 import { cn } from '@/lib/utils';
 import type { BrowseFilterState } from '@/stores/browse-store';
 
-/** Width of the expanded sidebar panel (rem). */
 const SIDEBAR_WIDTH_REM = 15.5;
-
-/** Gap between sidebar right edge and page content (rem). */
 const SIDEBAR_GAP_REM = 1.5;
-
-/** Symmetric vertical gap above/below the sidebar within the viewport (px). */
 const VIEWPORT_EDGE_GAP_PX = 24;
 
-/**
- * CSS padding-left to apply to page content when the sidebar is open,
- * so content does not overlap the floating panel.
- */
 export const SIDEBAR_CONTENT_OFFSET = `${SIDEBAR_WIDTH_REM + SIDEBAR_GAP_REM}rem`;
 
 export interface BrowseSidebarProps {
@@ -61,29 +52,10 @@ function getMainContentLeft(): number {
   return left + (parseFloat(getComputedStyle(el).paddingLeft) || 0);
 }
 
-/** `top` value (px) pinned below the navbar by a constant viewport gap. */
 function computeSidebarTop(): number {
   return getNavbarOffsetPx() - 24;
 }
 
-/**
- * Floating filter sidebar for the Browse page.
- *
- * Vertical position:
- *   The sidebar starts at a stable top offset under the navbar and grows
- *   downward as content increases. `maxHeight` is recalculated with viewport
- *   size so top/bottom viewport gaps stay symmetric.
- *
- * Position mode:
- *   • `fixed`    — default; sidebar is anchored to the viewport.
- *   • `absolute` — engaged when the footer enters the viewport AND the sidebar
- *                  is tall enough to actually reach it.  The absolute `top` is
- *                  derived deterministically from the footer's document-space
- *                  position and the sidebar height, so the breakpoint is
- *                  scroll-speed-independent.  The sidebar then scrolls with
- *                  the page. Reverts to `fixed` when the footer leaves
- *                  the viewport.
- */
 export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarProps) {
   const panelRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -123,8 +95,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
         return;
       }
 
-      // Guard: only anchor if the sidebar is tall enough to actually reach
-      // the footer from its fixed start position.
       if (fixedTop + sH < footerTopViewport - VIEWPORT_EDGE_GAP_PX) {
         setAnchored(false);
         return;
@@ -145,9 +115,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
       rafId = requestAnimationFrame(updateAll);
     };
     const handleScroll = () => {
-      // Important: update anchoring immediately on scroll. If we wait for RAF here,
-      // a fast upward fling from the bottom can show one frame of stale "anchored"
-      // positioning (sidebar briefly shifts down before snapping back).
       recomputeAnchor();
     };
 
@@ -155,8 +122,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
 
     const mainEl = document.querySelector<HTMLElement>('main');
 
-    // ResizeObserver covers both <main> (left alignment) and the panel itself
-    // (height, used for footer-overlap guard calculations).
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
         if (entry.target === mainEl) updateLeft();
@@ -184,7 +149,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
       return;
     }
 
-    // Product behavior: after changing filters, snap to the top of the page.
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     lastFiltersRef.current = filterProps.filters;
   }, [filterProps.filters, open]);
@@ -242,7 +206,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
 
   return (
     <>
-      {/* ── Expanded panel ─────────────────────────────────────────────── */}
       <aside
         ref={panelRef}
         aria-label="Browse filters"
@@ -256,7 +219,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
         )}
         style={{ ...expandedPositionStyle, width: `${SIDEBAR_WIDTH_REM}rem`, maxHeight }}
       >
-        {/* Header — proportions mirrored from navbar pill */}
         <div className="flex shrink-0 items-center gap-2 border-b border-border/60 px-[clamp(0.65rem,1.4vw,1rem)] py-[clamp(0.42rem,0.88vw,0.6rem)]">
           <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="flex-1 text-[clamp(0.78rem,0.92vw,0.88rem)] font-semibold text-muted-foreground">
@@ -272,7 +234,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
           </button>
         </div>
 
-        {/* Scrollable filter content with custom overlay scrollbar. */}
         <div className="group/sidebar relative flex min-h-0 flex-1 flex-col">
           <div
             ref={scrollRef}
@@ -293,7 +254,6 @@ export function BrowseSidebar({ open, onToggle, ...filterProps }: BrowseSidebarP
         </div>
       </aside>
 
-      {/* ── Collapsed toggle pill ───────────────────────────────────────── */}
       <button
         type="button"
         onClick={onToggle}
