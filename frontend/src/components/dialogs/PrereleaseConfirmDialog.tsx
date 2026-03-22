@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 
 interface PrereleaseConfirmDialogProps {
   open: boolean;
@@ -17,6 +18,8 @@ interface PrereleaseConfirmDialogProps {
   version: string;
   onConfirm: () => void;
 }
+
+const INSTALL_ACCENT = getLocalAccentClasses('install');
 
 export function PrereleaseConfirmDialog({
   open,
@@ -40,10 +43,15 @@ export function PrereleaseConfirmDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            className={INSTALL_ACCENT.outlineButton}
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
           <Button
+            className={INSTALL_ACCENT.solidButton}
             onClick={() => {
               onOpenChange(false);
               onConfirm();

@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react';
+import { OctagonX } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -82,10 +82,11 @@ export function UninstallDialog({
           ? `This will remove all installed files for this ${singleType === 'mod' ? 'mod' : 'map'}. You can reinstall it later from the registry.`
           : 'This will remove all installed files for the selected assets. You can reinstall them later from the registry.'
       }
-      icon={AlertTriangle}
+      icon={OctagonX}
       iconClassName="h-5 w-5 text-destructive"
       confirmLabel="Uninstall"
       confirmVariant="destructive"
+      tone="uninstall"
       loading={loading}
       onConfirm={handleUninstall}
     />

@@ -31,6 +31,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { AssetType } from '@/lib/asset-types';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
   hasCancellationSyncErrors,
@@ -55,6 +56,10 @@ interface ProjectInfoProps {
   versionsLoading: boolean;
   gameVersion: string;
 }
+
+const INSTALL_ACCENT = getLocalAccentClasses('install');
+const UPDATE_ACCENT = getLocalAccentClasses('update');
+const FILES_ACCENT = getLocalAccentClasses('files');
 
 function isMapManifest(
   item: types.ModManifest | types.MapManifest,
@@ -198,7 +203,11 @@ export function ProjectInfo({
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
-                <Button size="sm" disabled>
+                <Button
+                  size="sm"
+                  disabled
+                  className={INSTALL_ACCENT.solidButton}
+                >
                   <Download className="h-4 w-4 mr-1.5" />
                   {label}
                 </Button>
@@ -218,8 +227,8 @@ export function ProjectInfo({
           size="sm"
           className={
             isUpdate
-              ? 'bg-[var(--update-primary)] text-white hover:opacity-90'
-              : 'bg-[var(--installed-primary)] text-[var(--primary-foreground)] hover:opacity-90'
+              ? UPDATE_ACCENT.solidButton
+              : INSTALL_ACCENT.solidButton
           }
           onClick={() => handleInstallClick(v.version, v.prerelease)}
         >
@@ -234,7 +243,7 @@ export function ProjectInfo({
           <Button
             variant="destructive"
             size="icon"
-            className="h-8 w-8 text-white hover:opacity-90"
+            className="h-8 w-8"
             onClick={() => setUninstallOpen(true)}
           >
             <Trash2 className="h-4 w-4" />
@@ -280,14 +289,14 @@ export function ProjectInfo({
             )
           ) : installedVersion ? (
             <>
-              <Badge className="gap-1 bg-[var(--installed-primary)] text-[var(--primary-foreground)]">
+              <Badge className="gap-1 bg-[var(--installed-primary)] text-[var(--install-foreground)]">
                 <CheckCircle className="h-3 w-3" />
                 Installed {installedVersion}
               </Badge>
               <Button
                 variant="destructive"
                 size="icon"
-                className="h-8 w-8 text-white hover:opacity-90"
+                className="h-8 w-8"
                 onClick={() => setUninstallOpen(true)}
               >
                 <Trash2 className="h-4 w-4" />
@@ -422,12 +431,13 @@ export function ProjectInfo({
           }}
           loading={false}
           icon={AlertTriangle}
-          iconClassName="h-5 w-5 text-[var(--warning-primary)]"
+          iconClassName="h-5 w-5 text-[var(--files-primary)]"
           title={`Replace conflicting map for ${item.name}?`}
           description={`Installing ${item.name} ${conflictState.version} conflicts with an existing map. Replace the existing map to continue.`}
           conflict={conflictState.conflict}
           confirmLabel="Replace"
-          confirmClassName="bg-[var(--warning-primary)] text-black hover:opacity-90"
+          confirmClassName={FILES_ACCENT.solidButton}
+          tone="files"
           onConfirm={() => {
             const version = conflictState.version;
             setConflictState(null);

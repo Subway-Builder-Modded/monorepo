@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   AssetConflictError,
   InvalidMapCodeError,
@@ -26,6 +27,9 @@ interface ImportAssetDialogProps {
   onOpenChange: (open: boolean) => void;
   onImportSuccess?: () => void;
 }
+
+const IMPORT_ACCENT = getLocalAccentClasses('import');
+const FILES_ACCENT = getLocalAccentClasses('files');
 
 export function ImportAssetDialog({
   open,
@@ -95,7 +99,7 @@ export function ImportAssetDialog({
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileArchive className="h-5 w-5 text-[var(--update-primary)]" />
+              <FileArchive className="h-5 w-5 text-[var(--import-primary)]" />
               Import Asset
             </DialogTitle>
             <DialogDescription>
@@ -117,13 +121,14 @@ export function ImportAssetDialog({
           <DialogFooter>
             <Button
               variant="outline"
+              className={IMPORT_ACCENT.outlineButton}
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
               Close
             </Button>
             <Button
-              className="gap-1.5"
+              className={`gap-1.5 ${IMPORT_ACCENT.solidButton}`}
               onClick={handlePickArchive}
               disabled={loading}
             >
@@ -144,12 +149,13 @@ export function ImportAssetDialog({
           }}
           loading={loading}
           icon={AlertTriangle}
-          iconClassName="h-5 w-5 text-[var(--warning-primary)]"
+          iconClassName="h-5 w-5 text-[var(--files-primary)]"
           title="Replace conflicting map?"
           description="This local import conflicts with an existing map. Replace the existing map to continue."
           conflict={conflict}
           confirmLabel="Replace"
-          confirmClassName="bg-[var(--warning-primary)] text-black hover:opacity-90"
+          confirmClassName={FILES_ACCENT.solidButton}
+          tone="files"
           onConfirm={() => {
             if (!selectedPath) return;
             void runImport(selectedPath, true);
@@ -167,11 +173,12 @@ export function ImportAssetDialog({
           }}
           loading={false}
           icon={AlertTriangle}
-          iconClassName="h-5 w-5 text-[var(--warning-primary)]"
+          iconClassName="h-5 w-5 text-[var(--files-primary)]"
           title="Invalid local map code"
           description={`${invalidCodeMessage} Local map codes must be 2-4 uppercase letters (e.g. "AAA").`}
           confirmLabel="OK"
-          confirmClassName="bg-[var(--warning-primary)] text-black hover:opacity-90"
+          confirmClassName={FILES_ACCENT.solidButton}
+          tone="files"
           onConfirm={() => setInvalidCodeMessage(null)}
         />
       )}

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AssetActionDialog } from '@/components/dialogs/AssetActionDialog';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 import type { PendingUpdateTarget } from '@/lib/subscription-updates';
 import { useInstalledStore } from '@/stores/installed-store';
 
@@ -12,6 +13,8 @@ interface UpdateSubscriptionsDialogProps {
   targets: PendingUpdateTarget[];
   onUpdateSuccess?: (targets: PendingUpdateTarget[]) => void;
 }
+
+const UPDATE_ACCENT = getLocalAccentClasses('update');
 
 export function UpdateSubscriptionsDialog({
   open,
@@ -79,12 +82,15 @@ export function UpdateSubscriptionsDialog({
       icon={Info}
       iconClassName="h-5 w-5 text-[var(--update-primary)]"
       confirmLabel="Update"
-      confirmClassName="bg-[var(--update-primary)] text-white hover:opacity-90"
+      confirmClassName={UPDATE_ACCENT.solidButton}
+      tone="update"
       loading={loading}
       onConfirm={handleUpdate}
     >
       {itemCount > 1 && (
-        <div className="mt-1 max-h-48 overflow-y-auto rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        <div
+          className={`mt-1 max-h-48 overflow-y-auto rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground ${UPDATE_ACCENT.dialogPanel}`}
+        >
           <ul className="space-y-1">
             {sortedTargets.map((target) => (
               <li key={`${target.type}-${target.id}`} className="flex gap-2">

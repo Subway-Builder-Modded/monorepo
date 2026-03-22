@@ -5,6 +5,7 @@ import { UninstallDialog } from '@/components/dialogs/UninstallDialog';
 import { UpdateSubscriptionsDialog } from '@/components/dialogs/UpdateSubscriptionsDialog';
 import { Button } from '@/components/ui/button';
 import { type InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   type AssetTarget,
   composeAssetKey,
@@ -19,6 +20,8 @@ interface LibraryActionBarProps {
   pendingUpdatesByKey: PendingUpdatesByKey;
   onRefreshPendingUpdates: () => Promise<void>;
 }
+
+const UPDATE_ACCENT_BUTTON_CLASS = getLocalAccentClasses('update').solidButton;
 
 export function LibraryActionBar({
   allItems,
@@ -70,7 +73,7 @@ export function LibraryActionBar({
           <Button
             size="sm"
             onClick={handleUpdate}
-            className="gap-1.5 bg-[var(--update-primary)] text-white hover:opacity-90"
+            className={`gap-1.5 ${UPDATE_ACCENT_BUTTON_CLASS}`}
           >
             <CircleFadingArrowUp className="h-3.5 w-3.5" />
             Update Selected

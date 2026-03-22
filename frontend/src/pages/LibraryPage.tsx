@@ -13,6 +13,7 @@ import { Pagination } from '@/components/shared/Pagination';
 import { Button } from '@/components/ui/button';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
 import { buildAssetListingCounts } from '@/lib/listing-counts';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 import { buildSpecialDemandValues } from '@/lib/map-filter-values';
 import {
   indexPendingSubscriptionUpdates,
@@ -57,6 +58,9 @@ function localMapManifestFromInstalled(
     },
   });
 }
+
+const INSTALL_ACCENT = getLocalAccentClasses('install');
+const IMPORT_ACCENT = getLocalAccentClasses('import');
 
 export function LibraryPage() {
   const {
@@ -270,14 +274,14 @@ export function LibraryPage() {
           />
         </div>
         <Link href="/search">
-          <Button className="gap-1.5 shrink-0">
+          <Button className={`gap-1.5 shrink-0 ${INSTALL_ACCENT.solidButton}`}>
             <Plus className="h-4 w-4" />
             Install Content
           </Button>
         </Link>
         <Button
           variant="outline"
-          className="gap-1.5 shrink-0"
+          className={`gap-1.5 shrink-0 ${IMPORT_ACCENT.outlineButton}`}
           onClick={() => setImportDialogOpen(true)}
         >
           <Inbox className="h-4 w-4" />
@@ -292,7 +296,7 @@ export function LibraryPage() {
           description="Your library is empty. Browse the registry to discover and install community content."
         >
           <Link href="/search">
-            <Button className="gap-1.5">
+            <Button className={`gap-1.5 ${INSTALL_ACCENT.solidButton}`}>
               <Plus className="h-4 w-4" />
               Install Content
             </Button>

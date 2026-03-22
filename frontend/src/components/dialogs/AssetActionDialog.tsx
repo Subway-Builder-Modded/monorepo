@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getLocalAccentClasses, type LocalAccentTone } from '@/lib/local-accent';
 
 import type { types } from '../../../wailsjs/go/models';
 
@@ -23,6 +24,7 @@ interface AssetActionDialogProps {
   confirmLabel: string;
   confirmClassName?: string;
   confirmVariant?: 'default' | 'destructive';
+  tone?: LocalAccentTone;
   loading: boolean;
   onConfirm: () => void;
   conflict?: types.MapCodeConflict;
@@ -46,11 +48,14 @@ export function AssetActionDialog({
   confirmLabel,
   confirmClassName,
   confirmVariant = 'default',
+  tone,
   loading,
   onConfirm,
   conflict,
   children,
 }: AssetActionDialogProps) {
+  const toneStyles = tone ? getLocalAccentClasses(tone) : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -61,7 +66,9 @@ export function AssetActionDialog({
           </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
           {conflict ? (
-            <div className="mt-1 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <div
+              className={`mt-1 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground ${toneStyles?.dialogPanel ?? 'border-border'}`}
+            >
               <p className="font-medium text-foreground">
                 Conflicting City Code: {conflict.cityCode}
               </p>
@@ -83,6 +90,9 @@ export function AssetActionDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
+            className={
+              toneStyles?.dialogCancel ?? 'hover:bg-muted/70 hover:text-foreground'
+            }
           >
             Cancel
           </Button>

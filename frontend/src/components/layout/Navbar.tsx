@@ -73,7 +73,7 @@ const navLinks: NavLinkConfig[] = [
 
 const MOD_REMINDER_KEY = 'railyard:mod-reminder-acknowledged';
 const NAV_ITEM_BASE_CLASS =
-  'group relative flex items-center gap-2 rounded-lg px-[clamp(0.45rem,0.95vw,0.7rem)] py-[clamp(0.4rem,0.82vw,0.56rem)] text-[clamp(0.8rem,0.95vw,0.9rem)] font-semibold text-white transition-all duration-150';
+  'group relative flex items-center gap-2 rounded-lg px-[clamp(0.45rem,0.95vw,0.7rem)] py-[clamp(0.4rem,0.82vw,0.56rem)] text-[clamp(0.8rem,0.95vw,0.9rem)] font-semibold text-muted-foreground transition-all duration-150';
 const NAV_ITEM_GREEN_HOVER_CLASS = 'hover:text-primary hover:bg-accent/45';
 const NAV_CURRENT_INDICATOR_CLASS =
   'absolute -bottom-[0.38rem] left-1/2 h-1 w-[calc(100%-1rem)] -translate-x-1/2 rounded-full bg-primary';
@@ -158,7 +158,7 @@ export function Navbar() {
           <div className="flex min-w-0 flex-wrap items-center gap-[clamp(0.6rem,1.8vw,1.25rem)]">
             <Link
               href="/"
-              className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[clamp(1rem,1.55vw,1.15rem)] font-extrabold tracking-[0.01em] text-white"
+              className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[clamp(1rem,1.55vw,1.15rem)] font-extrabold tracking-[0.01em] text-foreground"
             >
               <TrainTrack className="h-[1.2em] w-[1.2em]" />
               <span>Railyard</span>
@@ -178,7 +178,7 @@ export function Navbar() {
                       current ? 'text-primary bg-accent/45' : undefined,
                     )}
                   >
-                    <Icon className="h-[1.05em] w-[1.05em] shrink-0 text-white transition-colors group-hover:text-primary group-aria-[current=page]:text-primary" />
+                    <Icon className="h-[1.05em] w-[1.05em] shrink-0 transition-colors" />
                     <span>{label}</span>
                     {current && (
                       <span
@@ -199,7 +199,7 @@ export function Navbar() {
                 onClick={handleStop}
                 className={cn(
                   NAV_ITEM_BASE_CLASS,
-                  'h-auto bg-accent/45 text-primary hover:!bg-destructive/20 hover:!text-destructive',
+                  'h-auto bg-[color-mix(in_srgb,var(--install-primary)_20%,transparent)] text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_24%,transparent)] hover:!text-[var(--uninstall-primary)]',
                 )}
               >
                 <Square className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
@@ -208,7 +208,7 @@ export function Navbar() {
                   aria-hidden
                   className={cn(
                     NAV_CURRENT_INDICATOR_CLASS,
-                    'transition-colors group-hover:bg-destructive',
+                    'bg-[var(--install-primary)] transition-colors group-hover:bg-[var(--uninstall-primary)]',
                   )}
                 />
               </Button>

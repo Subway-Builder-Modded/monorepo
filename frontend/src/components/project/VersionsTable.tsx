@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { AssetType } from '@/lib/asset-types';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {
   hasCancellationSyncErrors,
@@ -58,6 +59,9 @@ interface VersionsTableProps {
   error: string | null;
   gameVersion: string;
 }
+
+const INSTALL_ACCENT = getLocalAccentClasses('install');
+const FILES_ACCENT = getLocalAccentClasses('files');
 
 export function VersionsTable({
   type,
@@ -272,7 +276,7 @@ export function VersionsTable({
                         <span className="inline-flex h-8 w-8" />
                       )
                     ) : isThisInstalled ? (
-                      <Badge className="gap-1 bg-[var(--installed-primary)] text-[var(--primary-foreground)]">
+                      <Badge className="gap-1 bg-[var(--installed-primary)] text-[var(--install-foreground)]">
                         <CheckCircle className="h-3 w-3" />
                         Installed
                       </Badge>
@@ -281,7 +285,12 @@ export function VersionsTable({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span>
-                              <Button variant="outline" size="sm" disabled>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled
+                                className={INSTALL_ACCENT.outlineButton}
+                              >
                                 <Download className="h-4 w-4" />
                               </Button>
                             </span>
@@ -296,6 +305,7 @@ export function VersionsTable({
                       <Button
                         variant="outline"
                         size="sm"
+                        className={INSTALL_ACCENT.outlineButton}
                         onClick={() => handleInstall(v.version, v.prerelease)}
                       >
                         <Download className="h-4 w-4" />
@@ -356,12 +366,13 @@ export function VersionsTable({
           }}
           loading={false}
           icon={AlertTriangle}
-          iconClassName="h-5 w-5 text-[var(--warning-primary)]"
+          iconClassName="h-5 w-5 text-[var(--files-primary)]"
           title={`Replace conflicting map for ${itemName}?`}
           description={`Installing ${itemName} ${conflictState.version} conflicts with an existing map. Replace the existing map to continue.`}
           conflict={conflictState.conflict}
           confirmLabel="Replace"
-          confirmClassName="bg-[var(--warning-primary)] text-black hover:opacity-90"
+          confirmClassName={FILES_ACCENT.solidButton}
+          tone="files"
           onConfirm={() => {
             const version = conflictState.version;
             setConflictState(null);
