@@ -46,9 +46,9 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* === Light === */
 :root {
   --radius: 0.5rem;
-  /* Light mode — clean off-white surfaces */
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.13 0 0);
   --card: oklch(1 0 0);
@@ -81,67 +81,30 @@
   --sidebar-accent-foreground: oklch(0.2 0 0);
   --sidebar-border: oklch(0.88 0 0);
   --sidebar-ring: oklch(0.65 0 0);
-  --install-primary: #0f8f68;
-  --install-foreground: #0b2b1d;
-  --uninstall-primary: #df7f98;
-  --uninstall-foreground: #3f1622;
-  --update-primary: #2a4d8f;
-  --update-foreground: #2b1a42;
-  --import-primary: #0f8f68;
-  --import-foreground: #122947;
-  --files-primary: #e2c780;
-  --files-foreground: #3c2f0c;
-  --warning-primary: var(--files-primary);
-  --folder-primary: var(--files-primary);
-  --installed-primary: var(--install-primary);
-}
+  --local-install: #0f8f68;
+  --local-install-fg: #0b2b1d;
+  --local-uninstall: #df7f98;
+  --local-uninstall-fg: #3f1622;
+  --local-update: #2a4d8f;
+  --local-update-fg: #2b1a42;
+  --local-import: #0f8f68;
+  --local-import-fg: #122947;
+  --local-files: #e2c780;
+  --local-files-fg: #3c2f0c;
 
-.dark {
-  --background: oklch(0.11 0 0);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.16 0 0);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.16 0 0);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.92 0 0);
-  --primary-foreground: oklch(0.16 0 0);
-  --secondary: oklch(0.22 0 0);
-  --secondary-foreground: oklch(0.92 0 0);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.62 0 0);
-  --accent: oklch(0.24 0 0);
-  --accent-foreground: oklch(0.92 0 0);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.5 0 0);
-  --surface-raised: oklch(0.18 0 0);
-  --surface-sunken: oklch(0.09 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.14 0 0);
-  --sidebar-foreground: oklch(0.92 0 0);
-  --sidebar-primary: oklch(0.92 0 0);
-  --sidebar-primary-foreground: oklch(0.16 0 0);
-  --sidebar-accent: oklch(0.24 0 0);
-  --sidebar-accent-foreground: oklch(0.92 0 0);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.5 0 0);
-  --install-primary: #32e8b0;
-  --install-foreground: #ddfbed;
-  --uninstall-primary: #b83a5d;
-  --uninstall-foreground: #ffe5ee;
-  --update-primary: #3a6bbf;
-  --update-foreground: #f3ecff;
-  --import-primary: #32e8b0;
-  --import-foreground: #eaf3ff;
-  --files-primary: #b58721;
-  --files-foreground: #fff4d5;
-  --warning-primary: var(--files-primary);
-  --folder-primary: var(--files-primary);
-  --installed-primary: var(--install-primary);
+  --install-primary: var(--local-install);
+  --install-foreground: var(--local-install-fg);
+  --uninstall-primary: var(--local-uninstall);
+  --uninstall-foreground: var(--local-uninstall-fg);
+  --update-primary: var(--local-update);
+  --update-foreground: var(--local-update-fg);
+  --import-primary: var(--local-import);
+  --import-foreground: var(--local-import-fg);
+  --files-primary: var(--local-files);
+  --files-foreground: var(--local-files-fg);
+  --warning-primary: var(--local-files);
+  --folder-primary: var(--local-files);
+  --installed-primary: var(--local-install);
 }
 
 .railyard-accent {
@@ -177,92 +140,7 @@
   --sidebar-ring: var(--ring);
 }
 
-.dark .railyard-accent {
-  --primary: var(--suite-accent-dark);
-  --primary-foreground: var(--suite-text-inverted-dark);
-  --secondary: oklch(0.22 0 0);
-  --secondary-foreground: oklch(0.92 0 0);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.62 0 0);
-  --accent: color-mix(in srgb, var(--suite-accent-dark) 22%, black);
-  --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 72%, white);
-  --ring: color-mix(in srgb, var(--suite-accent-dark) 48%, transparent);
-  --sidebar-hover: var(--sidebar-accent);
-}
-
-/* ── Dark Soft (Railyard-derived) ─────────────────── */
-.dark.theme-dark_low {
-  --background: oklch(0.18 0.008 166);
-  --foreground: oklch(0.86 0.01 166);
-  --card: oklch(0.22 0.008 166);
-  --card-foreground: oklch(0.86 0.01 166);
-  --popover: oklch(0.22 0.008 166);
-  --popover-foreground: oklch(0.86 0.01 166);
-  --primary: #2bc69a;
-  --primary-foreground: #17231f;
-  --secondary: oklch(0.26 0.008 166);
-  --secondary-foreground: oklch(0.86 0.01 166);
-  --muted: oklch(0.26 0.008 166);
-  --muted-foreground: oklch(0.7 0.008 166);
-  --accent: color-mix(in srgb, #32e8b0 18%, black);
-  --accent-foreground: color-mix(in srgb, #32e8b0 64%, white);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: color-mix(in srgb, #32e8b0 42%, transparent);
-  --surface-raised: oklch(0.24 0.008 166);
-  --surface-sunken: oklch(0.16 0.008 166);
-  --sidebar: oklch(0.2 0.008 166);
-  --sidebar-foreground: oklch(0.86 0.01 166);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--ring);
-  --install-primary: #2bc69a;
-  --install-foreground: #ddfbed;
-  --uninstall-primary: #c06883;
-  --uninstall-foreground: #ffe4ed;
-  --update-primary: #5f87b4;
-  --update-foreground: #f5eeff;
-  --import-primary: #2bc69a;
-  --import-foreground: #eaf3ff;
-  --files-primary: #c0a55a;
-  --files-foreground: #fff5d6;
-}
-
-/* ── Dark High Contrast (Railyard-derived) ─────── */
-.dark.theme-dark_high {
-  --background: oklch(0.03 0 0);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.08 0 0);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.08 0 0);
-  --popover-foreground: oklch(0.98 0 0);
-  --primary: color-mix(in srgb, #32e8b0 88%, white);
-  --primary-foreground: #101b17;
-  --secondary: oklch(0.14 0 0);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.14 0 0);
-  --muted-foreground: oklch(0.9 0 0);
-  --accent: color-mix(in srgb, #32e8b0 30%, black);
-  --accent-foreground: color-mix(in srgb, #32e8b0 88%, white);
-  --border: oklch(1 0 0 / 35%);
-  --input: oklch(1 0 0 / 30%);
-  --ring: color-mix(in srgb, #32e8b0 70%, transparent);
-  --surface-raised: oklch(0.11 0 0);
-  --surface-sunken: oklch(0.02 0 0);
-  --sidebar: oklch(0.06 0 0);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: oklch(1 0 0 / 35%);
-  --sidebar-ring: var(--ring);
-}
-
-/* ── Light Soft (Railyard-derived) ────────────────── */
+/* === Light (Soft) === */
 .theme-light_low {
   --background: oklch(0.95 0.008 166);
   --foreground: oklch(0.35 0.02 166);
@@ -291,19 +169,27 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: oklch(0.86 0.01 166);
   --sidebar-ring: var(--ring);
-  --install-primary: #14815f;
-  --install-foreground: #183428;
-  --uninstall-primary: #e093a9;
-  --uninstall-foreground: #441a28;
-  --update-primary: #6f9bcf;
-  --update-foreground: #322048;
-  --import-primary: #14815f;
-  --import-foreground: #16304d;
-  --files-primary: #e6cf95;
-  --files-foreground: #433514;
+  --local-install: #14815f;
+  --local-install-fg: #183428;
+  --local-uninstall: #e093a9;
+  --local-uninstall-fg: #441a28;
+  --local-update: #6f9bcf;
+  --local-update-fg: #322048;
+  --local-import: #14815f;
+  --local-import-fg: #16304d;
+  --local-files: #e6cf95;
+  --local-files-fg: #433514;
 }
 
-/* ── Light High Contrast (Railyard-derived) ───── */
+.theme-light_low .railyard-accent {
+  --primary: #14815f;
+  --primary-foreground: var(--suite-text-inverted-light);
+  --accent: color-mix(in srgb, var(--suite-accent-light) 12%, white);
+  --accent-foreground: color-mix(in srgb, var(--suite-accent-light) 62%, black);
+  --ring: color-mix(in srgb, var(--suite-accent-light) 35%, transparent);
+}
+
+/* === Light (High Contrast) === */
 .theme-light_high {
   --background: oklch(1 0 0);
   --foreground: oklch(0.08 0 0);
@@ -332,37 +218,16 @@
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: oklch(0.35 0 0);
   --sidebar-ring: var(--ring);
-  --install-primary: #0f8f68;
-  --install-foreground: #0a281b;
-  --uninstall-primary: #d76d8a;
-  --uninstall-foreground: #3b1420;
-  --update-primary: #2f63ad;
-  --update-foreground: #241538;
-  --import-primary: #0f8f68;
-  --import-foreground: #102643;
-  --files-primary: #d5b363;
-  --files-foreground: #322607;
-}
-
-.dark.theme-dark_high {
-  --install-primary: #32e8b0;
-  --install-foreground: #e5fcf1;
-  --uninstall-primary: #ad3153;
-  --uninstall-foreground: #ffe7ef;
-  --update-primary: #3d7dff;
-  --update-foreground: #f4eeff;
-  --import-primary: #32e8b0;
-  --import-foreground: #edf4ff;
-  --files-primary: #a57d1f;
-  --files-foreground: #fff5d8;
-}
-
-.dark.theme-dark_high .railyard-accent {
-  --primary: color-mix(in srgb, var(--suite-accent-dark) 88%, white);
-  --primary-foreground: #101b17;
-  --accent: color-mix(in srgb, var(--suite-accent-dark) 30%, black);
-  --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 88%, white);
-  --ring: color-mix(in srgb, var(--suite-accent-dark) 70%, transparent);
+  --local-install: #0f8f68;
+  --local-install-fg: #0a281b;
+  --local-uninstall: #d76d8a;
+  --local-uninstall-fg: #3b1420;
+  --local-update: #2f63ad;
+  --local-update-fg: #241538;
+  --local-import: #0f8f68;
+  --local-import-fg: #102643;
+  --local-files: #d5b363;
+  --local-files-fg: #322607;
 }
 
 .theme-light_high .railyard-accent {
@@ -373,12 +238,104 @@
   --ring: color-mix(in srgb, var(--suite-accent-light) 72%, transparent);
 }
 
-.theme-light_low .railyard-accent {
-  --primary: #14815f;
-  --primary-foreground: var(--suite-text-inverted-light);
-  --accent: color-mix(in srgb, var(--suite-accent-light) 12%, white);
-  --accent-foreground: color-mix(in srgb, var(--suite-accent-light) 62%, black);
-  --ring: color-mix(in srgb, var(--suite-accent-light) 35%, transparent);
+/* === Dark === */
+.dark {
+  --background: oklch(0.11 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.16 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.16 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.92 0 0);
+  --primary-foreground: oklch(0.16 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.92 0 0);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.62 0 0);
+  --accent: oklch(0.24 0 0);
+  --accent-foreground: oklch(0.92 0 0);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.5 0 0);
+  --surface-raised: oklch(0.18 0 0);
+  --surface-sunken: oklch(0.09 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.14 0 0);
+  --sidebar-foreground: oklch(0.92 0 0);
+  --sidebar-primary: oklch(0.92 0 0);
+  --sidebar-primary-foreground: oklch(0.16 0 0);
+  --sidebar-accent: oklch(0.24 0 0);
+  --sidebar-accent-foreground: oklch(0.92 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.5 0 0);
+  --local-install: #32e8b0;
+  --local-install-fg: #ddfbed;
+  --local-uninstall: #b83a5d;
+  --local-uninstall-fg: #ffe5ee;
+  --local-update: #3a6bbf;
+  --local-update-fg: #f3ecff;
+  --local-import: #32e8b0;
+  --local-import-fg: #eaf3ff;
+  --local-files: #b58721;
+  --local-files-fg: #fff4d5;
+}
+
+.dark .railyard-accent {
+  --primary: var(--suite-accent-dark);
+  --primary-foreground: var(--suite-text-inverted-dark);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.92 0 0);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.62 0 0);
+  --accent: color-mix(in srgb, var(--suite-accent-dark) 22%, black);
+  --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 72%, white);
+  --ring: color-mix(in srgb, var(--suite-accent-dark) 48%, transparent);
+  --sidebar-hover: var(--sidebar-accent);
+}
+
+/* === Dark (Soft) === */
+.dark.theme-dark_low {
+  --background: oklch(0.18 0.008 166);
+  --foreground: oklch(0.86 0.01 166);
+  --card: oklch(0.22 0.008 166);
+  --card-foreground: oklch(0.86 0.01 166);
+  --popover: oklch(0.22 0.008 166);
+  --popover-foreground: oklch(0.86 0.01 166);
+  --primary: #2bc69a;
+  --primary-foreground: #17231f;
+  --secondary: oklch(0.26 0.008 166);
+  --secondary-foreground: oklch(0.86 0.01 166);
+  --muted: oklch(0.26 0.008 166);
+  --muted-foreground: oklch(0.7 0.008 166);
+  --accent: color-mix(in srgb, #32e8b0 18%, black);
+  --accent-foreground: color-mix(in srgb, #32e8b0 64%, white);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: color-mix(in srgb, #32e8b0 42%, transparent);
+  --surface-raised: oklch(0.24 0.008 166);
+  --surface-sunken: oklch(0.16 0.008 166);
+  --sidebar: oklch(0.2 0.008 166);
+  --sidebar-foreground: oklch(0.86 0.01 166);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--ring);
+  --local-install: #2bc69a;
+  --local-install-fg: #ddfbed;
+  --local-uninstall: #c06883;
+  --local-uninstall-fg: #ffe4ed;
+  --local-update: #5f87b4;
+  --local-update-fg: #f5eeff;
+  --local-import: #2bc69a;
+  --local-import-fg: #eaf3ff;
+  --local-files: #c0a55a;
+  --local-files-fg: #fff5d6;
 }
 
 .dark.theme-dark_low .railyard-accent {
@@ -387,6 +344,55 @@
   --accent: color-mix(in srgb, var(--suite-accent-dark) 18%, black);
   --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 64%, white);
   --ring: color-mix(in srgb, var(--suite-accent-dark) 42%, transparent);
+}
+
+/* === Dark (Contrast) === */
+.dark.theme-dark_high {
+  --background: oklch(0.03 0 0);
+  --foreground: oklch(0.98 0 0);
+  --card: oklch(0.08 0 0);
+  --card-foreground: oklch(0.98 0 0);
+  --popover: oklch(0.08 0 0);
+  --popover-foreground: oklch(0.98 0 0);
+  --primary: color-mix(in srgb, #32e8b0 88%, white);
+  --primary-foreground: #101b17;
+  --secondary: oklch(0.14 0 0);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.14 0 0);
+  --muted-foreground: oklch(0.9 0 0);
+  --accent: color-mix(in srgb, #32e8b0 30%, black);
+  --accent-foreground: color-mix(in srgb, #32e8b0 88%, white);
+  --border: oklch(1 0 0 / 35%);
+  --input: oklch(1 0 0 / 30%);
+  --ring: color-mix(in srgb, #32e8b0 70%, transparent);
+  --surface-raised: oklch(0.11 0 0);
+  --surface-sunken: oklch(0.02 0 0);
+  --sidebar: oklch(0.06 0 0);
+  --sidebar-foreground: oklch(0.98 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: oklch(1 0 0 / 35%);
+  --sidebar-ring: var(--ring);
+  --local-install: #32e8b0;
+  --local-install-fg: #e5fcf1;
+  --local-uninstall: #ad3153;
+  --local-uninstall-fg: #ffe7ef;
+  --local-update: #3d7dff;
+  --local-update-fg: #f4eeff;
+  --local-import: #32e8b0;
+  --local-import-fg: #edf4ff;
+  --local-files: #a57d1f;
+  --local-files-fg: #fff5d8;
+}
+
+.dark.theme-dark_high .railyard-accent {
+  --primary: color-mix(in srgb, var(--suite-accent-dark) 88%, white);
+  --primary-foreground: #101b17;
+  --accent: color-mix(in srgb, var(--suite-accent-dark) 30%, black);
+  --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 88%, white);
+  --ring: color-mix(in srgb, var(--suite-accent-dark) 70%, transparent);
 }
 
 .toaster,

@@ -5,7 +5,7 @@ export type LocalAccentTone =
   | 'import'
   | 'files';
 
-type LocalAccentToneClasses = {
+type LocalAccentVariantClasses = {
   solidButton: string;
   outlineButton: string;
   iconButton: string;
@@ -13,71 +13,59 @@ type LocalAccentToneClasses = {
   dialogPanel: string;
 };
 
-const LOCAL_ACCENT_TONE_CLASSES: Record<
-  LocalAccentTone,
-  LocalAccentToneClasses
-> = {
-  install: {
-    solidButton:
-      '!bg-[var(--install-primary)] !text-[var(--install-foreground)] hover:!brightness-90 hover:!text-[var(--install-foreground)]',
-    outlineButton:
-      'border-[var(--install-primary)] text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--install-primary)_20%,transparent)] hover:!text-[var(--install-primary)]',
-    iconButton:
-      'text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--install-primary)_20%,transparent)] hover:!text-[var(--install-primary)]',
-    dialogCancel:
-      'border-[color-mix(in_srgb,var(--install-primary)_45%,transparent)] text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--install-primary)_20%,transparent)] hover:!text-[var(--install-primary)]',
-    dialogPanel:
-      'border-[color-mix(in_srgb,var(--install-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--install-primary)_12%,transparent)]',
-  },
-  uninstall: {
-    solidButton:
-      '!bg-[var(--uninstall-primary)] !text-[var(--uninstall-foreground)] hover:!brightness-90 hover:!text-[var(--uninstall-foreground)]',
-    outlineButton:
-      'border-[var(--uninstall-primary)] text-[var(--uninstall-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_20%,transparent)] hover:!text-[var(--uninstall-primary)]',
-    iconButton:
-      'text-[var(--uninstall-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_20%,transparent)] hover:!text-[var(--uninstall-primary)]',
-    dialogCancel:
-      'border-[color-mix(in_srgb,var(--uninstall-primary)_45%,transparent)] text-[var(--uninstall-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_20%,transparent)] hover:!text-[var(--uninstall-primary)]',
-    dialogPanel:
-      'border-[color-mix(in_srgb,var(--uninstall-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--uninstall-primary)_12%,transparent)]',
-  },
-  update: {
-    solidButton:
-      '!bg-[var(--update-primary)] !text-[var(--update-foreground)] hover:!brightness-90 hover:!text-[var(--update-foreground)]',
-    outlineButton:
-      'border-[var(--update-primary)] text-[var(--update-primary)] hover:!bg-[color-mix(in_srgb,var(--update-primary)_20%,transparent)] hover:!text-[var(--update-primary)]',
-    iconButton:
-      'text-[var(--update-primary)] hover:!bg-[color-mix(in_srgb,var(--update-primary)_20%,transparent)] hover:!text-[var(--update-primary)]',
-    dialogCancel:
-      'border-[color-mix(in_srgb,var(--update-primary)_45%,transparent)] text-[var(--update-primary)] hover:!bg-[color-mix(in_srgb,var(--update-primary)_20%,transparent)] hover:!text-[var(--update-primary)]',
-    dialogPanel:
-      'border-[color-mix(in_srgb,var(--update-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--update-primary)_12%,transparent)]',
-  },
-  import: {
-    solidButton:
-      '!bg-[var(--import-primary)] !text-[var(--import-foreground)] hover:!brightness-90 hover:!text-[var(--import-foreground)]',
-    outlineButton:
-      'border-[var(--import-primary)] text-[var(--import-primary)] hover:!bg-[color-mix(in_srgb,var(--import-primary)_20%,transparent)] hover:!text-[var(--import-primary)]',
-    iconButton:
-      'text-[var(--import-primary)] hover:!bg-[color-mix(in_srgb,var(--import-primary)_20%,transparent)] hover:!text-[var(--import-primary)]',
-    dialogCancel:
-      'border-[color-mix(in_srgb,var(--import-primary)_45%,transparent)] text-[var(--import-primary)] hover:!bg-[color-mix(in_srgb,var(--import-primary)_20%,transparent)] hover:!text-[var(--import-primary)]',
-    dialogPanel:
-      'border-[color-mix(in_srgb,var(--import-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--import-primary)_12%,transparent)]',
-  },
-  files: {
-    solidButton:
-      '!bg-[var(--files-primary)] !text-[var(--files-foreground)] hover:!brightness-90 hover:!text-[var(--files-foreground)]',
-    outlineButton:
-      'border-[var(--files-primary)] text-[var(--files-primary)] hover:!bg-[color-mix(in_srgb,var(--files-primary)_20%,transparent)] hover:!text-[var(--files-primary)]',
-    iconButton:
-      'text-[var(--files-primary)] hover:!bg-[color-mix(in_srgb,var(--files-primary)_20%,transparent)] hover:!text-[var(--files-primary)]',
-    dialogCancel:
-      'border-[color-mix(in_srgb,var(--files-primary)_45%,transparent)] text-[var(--files-primary)] hover:!bg-[color-mix(in_srgb,var(--files-primary)_20%,transparent)] hover:!text-[var(--files-primary)]',
-    dialogPanel:
-      'border-[color-mix(in_srgb,var(--files-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--files-primary)_12%,transparent)]',
-  },
+type LocalAccentTokenName = `${LocalAccentTone}-primary`;
+type LocalAccentForegroundTokenName = `${LocalAccentTone}-foreground`;
+
+type LocalAccentTokenPair = {
+  primary: LocalAccentTokenName;
+  foreground: LocalAccentForegroundTokenName;
 };
+
+function localAccentVar(token: string) {
+  return `var(--${token})`;
+}
+
+function localAccentMix(token: string, percent: number) {
+  return `color-mix(in_srgb,var(--${token})_${percent}%,transparent)`;
+}
+
+function buildToneClasses({
+  primary,
+  foreground,
+}: LocalAccentTokenPair): LocalAccentVariantClasses {
+  const primaryVar = localAccentVar(primary);
+  const foregroundVar = localAccentVar(foreground);
+  const hoverTone20 = localAccentMix(primary, 20);
+  const borderTone45 = localAccentMix(primary, 45);
+  const panelTone12 = localAccentMix(primary, 12);
+
+  return {
+    solidButton: `!bg-[${primaryVar}] !text-[${foregroundVar}] hover:!brightness-90 hover:!text-[${foregroundVar}]`,
+    outlineButton: `border-[${primaryVar}] text-[${primaryVar}] hover:!bg-[${hoverTone20}] hover:!text-[${primaryVar}]`,
+    iconButton: `text-[${primaryVar}] hover:!bg-[${hoverTone20}] hover:!text-[${primaryVar}]`,
+    dialogCancel: `border-[${borderTone45}] text-[${primaryVar}] hover:!bg-[${hoverTone20}] hover:!text-[${primaryVar}]`,
+    dialogPanel: `border-[${borderTone45}] bg-[${panelTone12}]`,
+  };
+}
+
+const LOCAL_ACCENT_TOKEN_PAIRS: Record<LocalAccentTone, LocalAccentTokenPair> = {
+  install: { primary: 'install-primary', foreground: 'install-foreground' },
+  uninstall: {
+    primary: 'uninstall-primary',
+    foreground: 'uninstall-foreground',
+  },
+  update: { primary: 'update-primary', foreground: 'update-foreground' },
+  import: { primary: 'import-primary', foreground: 'import-foreground' },
+  files: { primary: 'files-primary', foreground: 'files-foreground' },
+};
+
+const LOCAL_ACCENT_TONE_CLASSES: Record<LocalAccentTone, LocalAccentVariantClasses> =
+  Object.fromEntries(
+    Object.entries(LOCAL_ACCENT_TOKEN_PAIRS).map(([tone, tokens]) => [
+      tone,
+      buildToneClasses(tokens),
+    ])
+  ) as Record<LocalAccentTone, LocalAccentVariantClasses>;
 
 export function getLocalAccentClasses(tone: LocalAccentTone) {
   return LOCAL_ACCENT_TONE_CLASSES[tone];
