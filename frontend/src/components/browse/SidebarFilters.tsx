@@ -29,8 +29,6 @@ import { SEARCH_FILTER_EMPTY_LABELS } from '@/lib/search';
 import { cn } from '@/lib/utils';
 import { type BrowseFilterState } from '@/stores/browse-store';
 
-// Shared class for filter section title text (used both in static and
-// collapsible headers — only the text/icon style, no layout).
 const FILTER_SECTION_TITLE_CLASS =
   'text-xs font-semibold uppercase tracking-widest text-muted-foreground';
 const FILTER_COUNT_BADGE_CLASS =
@@ -74,9 +72,7 @@ export function SidebarFilters({
 
   return (
     <div className="space-y-5">
-      {/* Type filter */}
       <div>
-        {/* Static section title — vertically padded to match collapsible headers */}
         <p className={cn(FILTER_SECTION_TITLE_CLASS, 'mb-1 px-1 py-1.5')} aria-hidden>
           Type
         </p>
@@ -93,14 +89,11 @@ export function SidebarFilters({
               >
                 <span
                   className={cn(
-                    // Reserve a gutter for the current-indicator so it never gets clipped.
                     'mr-3 flex items-center gap-2 rounded-lg px-2',
                     'py-[clamp(0.38rem,0.8vw,0.52rem)]',
                     'text-[clamp(0.78rem,0.9vw,0.86rem)] font-semibold',
                     'transition-all duration-150',
-                    // Hover — green text + bg on all items (matches navbar hover)
                     'group-hover:bg-accent/45 group-hover:text-primary',
-                    // Current — same green treatment even without hover
                     isCurrent ? 'bg-accent/45 text-primary' : 'text-muted-foreground',
                   )}
                 >
@@ -118,7 +111,6 @@ export function SidebarFilters({
                   </span>
                 </span>
 
-                {/* Right-edge indicator — mirrors navbar's current-page pill */}
                 {isCurrent && (
                   <span
                     aria-hidden
@@ -284,7 +276,6 @@ function ChecklistFilterSection({
             </div>
           )}
 
-          {/* Clear selection — styled as a subtle removable chip */}
           {selected.length > 0 && (
             <div className="mt-2">
               <button

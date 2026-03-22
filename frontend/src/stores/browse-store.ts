@@ -17,12 +17,6 @@ import {
 
 export { createRandomSeed };
 
-/**
- * Browse-page filter state.
- *
- * Note: the underlying filter structure is shared with other asset-query flows
- * (query text, per-page, etc.), so we alias the shared asset-query filter shape.
- */
 export type BrowseFilterState = AssetQueryFilters;
 export type BrowseFilterUpdater = AssetQueryFilterUpdater;
 export type BrowseFilterStoreState = AssetQueryFilterStoreState;
