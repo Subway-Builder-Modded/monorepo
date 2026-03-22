@@ -273,15 +273,15 @@
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.5 0 0);
   --local-install: #32e8b0;
-  --local-install-fg: #ddfbed;
+  --local-install-fg: var(--background);
   --local-uninstall: #b83a5d;
-  --local-uninstall-fg: #ffe5ee;
+  --local-uninstall-fg: var(--foreground);
   --local-update: #3a6bbf;
-  --local-update-fg: #f3ecff;
+  --local-update-fg: var(--foreground);
   --local-import: #32e8b0;
-  --local-import-fg: #eaf3ff;
+  --local-import-fg: var(--background);
   --local-files: #b58721;
-  --local-files-fg: #fff4d5;
+  --local-files-fg: var(--background);
 }
 
 .dark .railyard-accent {
@@ -327,15 +327,15 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: var(--ring);
   --local-install: #2bc69a;
-  --local-install-fg: #ddfbed;
+  --local-install-fg: var(--background);
   --local-uninstall: #c06883;
-  --local-uninstall-fg: #ffe4ed;
+  --local-uninstall-fg: var(--foreground);
   --local-update: #5f87b4;
-  --local-update-fg: #f5eeff;
+  --local-update-fg: var(--foreground);
   --local-import: #2bc69a;
-  --local-import-fg: #eaf3ff;
+  --local-import-fg: var(--background);
   --local-files: #c0a55a;
-  --local-files-fg: #fff5d6;
+  --local-files-fg: var(--background);
 }
 
 .dark.theme-dark_low .railyard-accent {
@@ -376,15 +376,15 @@
   --sidebar-border: oklch(1 0 0 / 35%);
   --sidebar-ring: var(--ring);
   --local-install: #32e8b0;
-  --local-install-fg: #e5fcf1;
+  --local-install-fg: var(--background);
   --local-uninstall: #ad3153;
-  --local-uninstall-fg: #ffe7ef;
+  --local-uninstall-fg: var(--foreground);
   --local-update: #3d7dff;
-  --local-update-fg: #f4eeff;
+  --local-update-fg: var(--foreground);
   --local-import: #32e8b0;
-  --local-import-fg: #edf4ff;
+  --local-import-fg: var(--background);
   --local-files: #a57d1f;
-  --local-files-fg: #fff5d8;
+  --local-files-fg: var(--background);
 }
 
 .dark.theme-dark_high .railyard-accent {

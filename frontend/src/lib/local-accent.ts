@@ -13,59 +13,60 @@ type LocalAccentVariantClasses = {
   dialogPanel: string;
 };
 
-type LocalAccentTokenName = `${LocalAccentTone}-primary`;
-type LocalAccentForegroundTokenName = `${LocalAccentTone}-foreground`;
+const SOLID_TONE_CLASS =
+  '!bg-[var(--local-tone-primary)] !text-[var(--local-tone-foreground)] hover:!brightness-90 hover:!text-[var(--local-tone-foreground)]';
+const OUTLINE_TONE_CLASS =
+  'border-[var(--local-tone-primary)] text-[var(--local-tone-primary)] hover:!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)] hover:!text-[var(--local-tone-primary)]';
+const ICON_TONE_CLASS =
+  'text-[var(--local-tone-primary)] hover:!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)] hover:!text-[var(--local-tone-primary)]';
+const DIALOG_CANCEL_TONE_CLASS =
+  'border-[color-mix(in_srgb,var(--local-tone-primary)_45%,transparent)] text-[var(--local-tone-primary)] hover:!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)] hover:!text-[var(--local-tone-primary)]';
+const DIALOG_PANEL_TONE_CLASS =
+  'border-[color-mix(in_srgb,var(--local-tone-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--local-tone-primary)_12%,transparent)]';
 
-type LocalAccentTokenPair = {
-  primary: LocalAccentTokenName;
-  foreground: LocalAccentForegroundTokenName;
-};
-
-function localAccentVar(token: string) {
-  return `var(--${token})`;
-}
-
-function localAccentMix(token: string, percent: number) {
-  return `color-mix(in_srgb,var(--${token})_${percent}%,transparent)`;
-}
-
-function buildToneClasses({
-  primary,
-  foreground,
-}: LocalAccentTokenPair): LocalAccentVariantClasses {
-  const primaryVar = localAccentVar(primary);
-  const foregroundVar = localAccentVar(foreground);
-  const hoverTone20 = localAccentMix(primary, 20);
-  const borderTone45 = localAccentMix(primary, 45);
-  const panelTone12 = localAccentMix(primary, 12);
+function buildToneClasses(toneVarsClass: string): LocalAccentVariantClasses {
+  const withToneVars = (className: string) => `${toneVarsClass} ${className}`;
 
   return {
-    solidButton: `!bg-[${primaryVar}] !text-[${foregroundVar}] hover:!brightness-90 hover:!text-[${foregroundVar}]`,
-    outlineButton: `border-[${primaryVar}] text-[${primaryVar}] hover:!bg-[${hoverTone20}] hover:!text-[${primaryVar}]`,
-    iconButton: `text-[${primaryVar}] hover:!bg-[${hoverTone20}] hover:!text-[${primaryVar}]`,
-    dialogCancel: `border-[${borderTone45}] text-[${primaryVar}] hover:!bg-[${hoverTone20}] hover:!text-[${primaryVar}]`,
-    dialogPanel: `border-[${borderTone45}] bg-[${panelTone12}]`,
+    solidButton: withToneVars(SOLID_TONE_CLASS),
+    outlineButton: withToneVars(OUTLINE_TONE_CLASS),
+    iconButton: withToneVars(ICON_TONE_CLASS),
+    dialogCancel: withToneVars(DIALOG_CANCEL_TONE_CLASS),
+    dialogPanel: withToneVars(DIALOG_PANEL_TONE_CLASS),
   };
 }
 
-const LOCAL_ACCENT_TOKEN_PAIRS: Record<LocalAccentTone, LocalAccentTokenPair> = {
-  install: { primary: 'install-primary', foreground: 'install-foreground' },
-  uninstall: {
-    primary: 'uninstall-primary',
-    foreground: 'uninstall-foreground',
-  },
-  update: { primary: 'update-primary', foreground: 'update-foreground' },
-  import: { primary: 'import-primary', foreground: 'import-foreground' },
-  files: { primary: 'files-primary', foreground: 'files-foreground' },
-};
+function buildLocalAccentToneClasses<TTone extends string>(
+  toneVarClasses: {
+    [Tone in TTone]: string;
+  }
+): {
+  [Tone in TTone]: LocalAccentVariantClasses;
+} {
+  const entries = Object.entries(toneVarClasses) as [TTone, string][];
 
-const LOCAL_ACCENT_TONE_CLASSES: Record<LocalAccentTone, LocalAccentVariantClasses> =
-  Object.fromEntries(
-    Object.entries(LOCAL_ACCENT_TOKEN_PAIRS).map(([tone, tokens]) => [
-      tone,
-      buildToneClasses(tokens),
-    ])
-  ) as Record<LocalAccentTone, LocalAccentVariantClasses>;
+  return Object.fromEntries(
+    entries.map(([tone, toneVarsClass]) => [tone, buildToneClasses(toneVarsClass)])
+  ) as {
+    [Tone in TTone]: LocalAccentVariantClasses;
+  };
+}
+
+const LOCAL_ACCENT_TONE_VARS = {
+  install:
+    '[--local-tone-primary:var(--install-primary)] [--local-tone-foreground:var(--install-foreground)]',
+  uninstall:
+    '[--local-tone-primary:var(--uninstall-primary)] [--local-tone-foreground:var(--uninstall-foreground)]',
+  update:
+    '[--local-tone-primary:var(--update-primary)] [--local-tone-foreground:var(--update-foreground)]',
+  import:
+    '[--local-tone-primary:var(--import-primary)] [--local-tone-foreground:var(--import-foreground)]',
+  files:
+    '[--local-tone-primary:var(--files-primary)] [--local-tone-foreground:var(--files-foreground)]',
+} satisfies Record<LocalAccentTone, string>;
+
+const LOCAL_ACCENT_TONE_CLASSES =
+  buildLocalAccentToneClasses(LOCAL_ACCENT_TONE_VARS);
 
 export function getLocalAccentClasses(tone: LocalAccentTone) {
   return LOCAL_ACCENT_TONE_CLASSES[tone];
