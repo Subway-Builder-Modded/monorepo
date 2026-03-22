@@ -165,9 +165,7 @@ export function Navbar() {
                     className={cn(
                       NAV_ITEM_BASE_CLASS,
                       NAV_ITEM_GREEN_HOVER_CLASS,
-                      current
-                        ? 'text-primary bg-accent/45'
-                        : undefined,
+                      current ? 'text-primary bg-accent/45' : undefined,
                     )}
                   >
                     <Icon className="h-[1.05em] w-[1.05em] shrink-0 text-white transition-colors group-hover:text-primary group-aria-[current=page]:text-primary" />
@@ -191,7 +189,7 @@ export function Navbar() {
                 onClick={handleStop}
                 className={cn(
                   NAV_ITEM_BASE_CLASS,
-                  'h-auto text-primary hover:!bg-destructive/20 hover:!text-destructive',
+                  'h-auto bg-accent/45 text-primary hover:!bg-destructive/20 hover:!text-destructive',
                 )}
               >
                 <Square className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
