@@ -1,5 +1,5 @@
 import { CheckCircle, Download, MapPin, Package, Users } from 'lucide-react';
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'wouter';
 
 import { Badge } from '@/components/ui/badge';
@@ -169,134 +169,33 @@ function ItemBadges({
   );
   const baseOverflowCount = Math.max(0, badges.length - badgesLimited.length);
 
+  const baseBadges = badgesLimited.map((badge) => (
+    <Badge key={badge} variant="secondary" className={badgeClassName}>
+      {badge}
+    </Badge>
+  ));
+
+  const overflowBadge =
+    baseOverflowCount > 0 ? (
+      <Badge variant="outline" className={badgeClassName}>
+        +{baseOverflowCount}
+      </Badge>
+    ) : null;
+
   if (wrap) {
     return (
       <div className={cn('flex flex-wrap gap-1', justifyClass)}>
-        {badgesLimited.map((badge) => (
-          <Badge key={badge} variant="secondary" className={badgeClassName}>
-            {badge}
-          </Badge>
-        ))}
-        {baseOverflowCount > 0 && (
-          <Badge variant="outline" className={badgeClassName}>
-            +{baseOverflowCount}
-          </Badge>
-        )}
+        {baseBadges}
+        {overflowBadge}
       </div>
     );
   }
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const measureRef = useRef<HTMLDivElement | null>(null);
-  const [visibleCount, setVisibleCount] = useState(() => badgesLimited.length);
-
-  useLayoutEffect(() => {
-    const container = containerRef.current;
-    const measure = measureRef.current;
-    if (!container || !measure) return;
-
-    const update = () => {
-      const availableWidth = container.clientWidth;
-      const gap = Number.parseFloat(getComputedStyle(container).columnGap) || 0;
-      const badgeEls = Array.from(
-        measure.querySelectorAll<HTMLElement>('[data-measure="badge"]'),
-      );
-      const badgeWidths = badgeEls.map(
-        (el) => el.getBoundingClientRect().width,
-      );
-
-      const overflowEl = measure.querySelector<HTMLElement>(
-        '[data-measure="overflow"]',
-      );
-
-      const measureOverflowWidth = (count: number) => {
-        if (!overflowEl) return 0;
-        overflowEl.textContent = `+${count}`;
-        return overflowEl.getBoundingClientRect().width;
-      };
-
-      const totalFor = (count: number) => {
-        const used = badgeWidths.slice(0, count).reduce((sum, w) => sum + w, 0);
-        return used + Math.max(0, count - 1) * gap;
-      };
-
-      let nextVisible = badgeWidths.length;
-      while (nextVisible > 0 && totalFor(nextVisible) > availableWidth) {
-        nextVisible -= 1;
-      }
-
-      const totalBadges = badgeWidths.length;
-      const totalOverflowCount =
-        baseOverflowCount + (totalBadges - nextVisible);
-      if (totalOverflowCount > 0) {
-        const overflowWidth = measureOverflowWidth(totalOverflowCount);
-
-        while (nextVisible >= 0) {
-          const widthWithoutOverflow = totalFor(nextVisible);
-          const hasSomeBadges = nextVisible > 0;
-          const widthWithOverflow =
-            widthWithoutOverflow + (hasSomeBadges ? gap : 0) + overflowWidth;
-
-          if (widthWithOverflow <= availableWidth) break;
-          nextVisible -= 1;
-        }
-      }
-
-      setVisibleCount(Math.max(0, Math.min(totalBadges, nextVisible)));
-    };
-
-    update();
-
-    const ro = new ResizeObserver(() => update());
-    ro.observe(container);
-    return () => ro.disconnect();
-  }, [badgesLimited, baseOverflowCount]);
-
-  const finalOverflowCount =
-    baseOverflowCount + (badgesLimited.length - visibleCount);
-
   return (
-    <>
-      <div
-        ref={containerRef}
-        className={cn('flex flex-nowrap gap-1 overflow-hidden', justifyClass)}
-      >
-        {badgesLimited.slice(0, visibleCount).map((badge) => (
-          <Badge key={badge} variant="secondary" className={badgeClassName}>
-            {badge}
-          </Badge>
-        ))}
-        {finalOverflowCount > 0 && (
-          <Badge variant="outline" className={badgeClassName}>
-            +{finalOverflowCount}
-          </Badge>
-        )}
-      </div>
-
-      <div
-        ref={measureRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-[99999px] -top-[99999px] flex gap-1 opacity-0"
-      >
-        {badgesLimited.map((badge) => (
-          <Badge
-            key={badge}
-            data-measure="badge"
-            variant="secondary"
-            className={badgeClassName}
-          >
-            {badge}
-          </Badge>
-        ))}
-        <Badge
-          data-measure="overflow"
-          variant="outline"
-          className={badgeClassName}
-        >
-          +{badges.length}
-        </Badge>
-      </div>
-    </>
+    <div className={cn('flex flex-nowrap gap-1 overflow-hidden', justifyClass)}>
+      {baseBadges}
+      {overflowBadge}
+    </div>
   );
 }
 
