@@ -16,7 +16,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 
-import { UpdateConfirmDialog } from '@/components/dialogs/UpdateConfirmDialog';
+import { AssetActionDialog } from '@/components/dialogs/AssetActionDialog';
 import { DiscoverSectionGrid } from '@/components/homepage/DiscoverSectionGrid';
 import { PendingUpdateRow } from '@/components/homepage/PendingUpdateRow';
 import { QuickNavCard } from '@/components/homepage/QuickNavCard';
@@ -327,11 +327,13 @@ export function HomePage() {
         </div>
       </div>
 
-      <UpdateConfirmDialog
+      <AssetActionDialog
         open={updateAllConfirmOpen}
         onOpenChange={setUpdateAllConfirmOpen}
         title="Update all?"
         description={`This will update ${pendingUpdateEntries.length} asset${pendingUpdateEntries.length === 1 ? '' : 's'}.`}
+        icon={CircleFadingArrowUp}
+        iconClassName="h-5 w-5 text-[var(--update-primary)]"
         entries={pendingUpdateEntries.map((entry) => ({
           key: entry.key,
           name: entry.name,
@@ -339,7 +341,9 @@ export function HomePage() {
           latestVersion: entry.latestVersion,
         }))}
         confirmLabel="Update All"
-        confirming={updatingAll}
+        tone="update"
+        confirmClassName={UPDATE_ACCENT.solidButton}
+        loading={updatingAll}
         onConfirm={() => void handleUpdateAll()}
       />
 
