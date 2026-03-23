@@ -1,4 +1,4 @@
-import { ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { ChevronRight, MapPin, Package, SlidersHorizontal } from 'lucide-react';
 import {
   type CSSProperties,
   type Dispatch,
@@ -16,7 +16,6 @@ import type { BrowseFilterState } from '@/stores/browse-store';
 
 const SIDEBAR_WIDTH_REM = 15.5;
 const SIDEBAR_GAP_REM = 1.5;
-
 const EDGE_GAP_PX = 24;
 
 export const SIDEBAR_CONTENT_OFFSET = `${SIDEBAR_WIDTH_REM + SIDEBAR_GAP_REM}rem`;
@@ -54,7 +53,7 @@ export function BrowseSidebar({
   ...filterProps
 }: BrowseSidebarProps) {
   const panelRef = useRef<HTMLElement>(null);
-  const toggleRef = useRef<HTMLButtonElement>(null);
+  const toggleRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [left, setLeft] = useState(0);
@@ -68,6 +67,15 @@ export function BrowseSidebar({
     const mainEl = document.querySelector<HTMLElement>('main');
     const footerEl = document.querySelector<HTMLElement>('footer');
 
+    let idealTop = getNavbarOffsetPx() + EDGE_GAP_PX;
+
+    const measureLayout = () => {
+      const panel = panelRef.current;
+      idealTop = getNavbarOffsetPx() + EDGE_GAP_PX;
+      const maxH = window.innerHeight - idealTop - EDGE_GAP_PX;
+      if (panel) panel.style.maxHeight = `${maxH}px`;
+    };
+
     const updateLeft = () => {
       if (!mainEl) return;
       const { left: l } = mainEl.getBoundingClientRect();
@@ -79,49 +87,37 @@ export function BrowseSidebar({
       const toggle = toggleRef.current;
       if (!panel) return;
 
-      const sH = panel.offsetHeight;
-      const vh = window.innerHeight;
-      const navOffset = getNavbarOffsetPx();
+      const footerTop = footerEl ? footerEl.getBoundingClientRect().top : Infinity;
+      const panelH = panel.offsetHeight;
 
-      const idealTop = navOffset + EDGE_GAP_PX;
-
-      const maxH = vh - idealTop - EDGE_GAP_PX;
-
-      let top = idealTop;
-
-      if (footerEl && sH > 0) {
-        const footerTopVp = footerEl.getBoundingClientRect().top;
-        const footerVisible = footerTopVp < vh;
-        if (footerVisible && idealTop + sH >= footerTopVp - EDGE_GAP_PX) {
-          top = Math.max(0, footerTopVp - sH - EDGE_GAP_PX);
-        }
-      }
+      const top = Math.min(idealTop, footerTop - panelH - EDGE_GAP_PX);
 
       panel.style.top = `${top}px`;
-      panel.style.maxHeight = `${maxH}px`;
-      if (toggle) toggle.style.top = `${top}px`;
+      if (toggle) toggle.style.top = `${idealTop}px`;
     };
 
-    const handleResize = () => {
-      updateLeft();
-      updatePosition();
-    };
-
+    measureLayout();
     updateLeft();
     updatePosition();
 
-    const mainRo = new ResizeObserver(updateLeft);
+    const panelRo = new ResizeObserver(() => { updatePosition(); });
+    if (panelRef.current) panelRo.observe(panelRef.current);
+
+    const mainRo = new ResizeObserver(() => { updateLeft(); measureLayout(); updatePosition(); });
     if (mainEl) mainRo.observe(mainEl);
 
-    const panelRo = new ResizeObserver(updatePosition);
-    if (panelRef.current) panelRo.observe(panelRef.current);
+    const footerRo = new ResizeObserver(() => { measureLayout(); updatePosition(); });
+    if (footerEl) footerRo.observe(footerEl);
+
+    const handleResize = () => { measureLayout(); updateLeft(); updatePosition(); };
 
     window.addEventListener('resize', handleResize);
     rootEl?.addEventListener('scroll', updatePosition, { passive: true });
 
     return () => {
-      mainRo.disconnect();
       panelRo.disconnect();
+      mainRo.disconnect();
+      footerRo.disconnect();
       window.removeEventListener('resize', handleResize);
       rootEl?.removeEventListener('scroll', updatePosition);
     };
@@ -177,17 +173,15 @@ export function BrowseSidebar({
     };
   }, [filterProps.filters, open]);
 
-  const panelStyle = {
-    position: 'fixed' as const,
-    left,
-    width: `${SIDEBAR_WIDTH_REM}rem`,
-  };
-  const toggleStyle = {
-    position: 'fixed' as const,
-    left,
-    width: '2.5rem',
-    height: '2.5rem',
-  };
+  const panelStyle = { position: 'fixed' as const, left, width: `${SIDEBAR_WIDTH_REM}rem` };
+  const toggleStyle = { position: 'fixed' as const, left, width: '2.5rem' };
+
+  const currentType = filterProps.filters.type;
+
+  const typeButtons: Array<{ type: AssetType; icon: typeof MapPin; label: string }> = [
+    { type: 'map', icon: MapPin, label: 'Show maps' },
+    { type: 'mod', icon: Package, label: 'Show mods' },
+  ];
 
   return (
     <>
@@ -232,36 +226,62 @@ export function BrowseSidebar({
             <div className="pointer-events-none absolute bottom-3 right-1 top-3 w-1 opacity-0 transition-opacity duration-150 group-hover/sidebar:opacity-100">
               <div
                 className="absolute left-0 w-full rounded-full bg-[color-mix(in_srgb,var(--foreground)_28%,transparent)]"
-                style={
-                  {
-                    height: thumbHeight,
-                    transform: `translateY(${thumbTop}px)`,
-                  } as CSSProperties
-                }
+                style={{ height: thumbHeight, transform: `translateY(${thumbTop}px)` } as CSSProperties}
               />
             </div>
           )}
         </div>
       </aside>
 
-      <button
+      <div
         ref={toggleRef}
-        type="button"
-        onClick={onToggle}
-        aria-label="Expand filters sidebar"
         className={cn(
-          'z-40 flex items-center justify-center',
+          'z-40 flex flex-col items-stretch overflow-hidden',
           'rounded-xl border border-border/70 bg-background/90 backdrop-blur-md shadow-sm',
           'text-muted-foreground transition-all duration-200 ease-out',
-          'hover:bg-accent/45 hover:text-primary',
           open
             ? 'opacity-0 pointer-events-none scale-90'
             : 'opacity-100 scale-100 pointer-events-auto',
         )}
         style={toggleStyle}
       >
-        <SlidersHorizontal className="h-4 w-4" />
-      </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label="Expand filters sidebar"
+          className="flex h-10 w-full items-center justify-center transition-colors hover:bg-accent/45 hover:text-primary"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+        </button>
+
+        <div className="h-px w-full shrink-0 bg-border/60" aria-hidden />
+
+        {typeButtons.map(({ type, icon: Icon, label }) => {
+          const isCurrent = currentType === type;
+          return (
+            <button
+              key={type}
+              type="button"
+              onClick={() => filterProps.onTypeChange(type)}
+              aria-label={label}
+              aria-current={isCurrent ? 'true' : undefined}
+              className={cn(
+                'relative flex h-10 w-full items-center justify-center transition-colors',
+                'hover:bg-accent/45 hover:text-primary',
+                isCurrent ? 'text-primary' : '',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {isCurrent && (
+                <span
+                  aria-hidden
+                  className="absolute right-0 top-1 bottom-1 w-[3px] rounded-full bg-primary"
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </>
   );
 }
