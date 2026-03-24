@@ -107,6 +107,19 @@ type ImportAssetRequest struct {
 	ReplaceOnConflict bool      `json:"replaceOnConflict"`
 }
 
+type CreateProfileRequest struct {
+	Name              string             `json:"name"`
+	UIPreferences     *UIPreferences     `json:"uiPreferences,omitempty"`
+	SystemPreferences *SystemPreferences `json:"systemPreferences,omitempty"`
+	Subscriptions     *Subscriptions     `json:"subscriptions,omitempty"`
+	Favorites         *Favorites         `json:"favorites,omitempty"`
+}
+
+type SwapProfileRequest struct {
+	ProfileID string `json:"profileId"`
+	ForceSwap bool   `json:"forceSwap"`
+}
+
 type UpdateSubscriptionsToLatestRequest struct {
 	ProfileID string                     `json:"profileId"`
 	Apply     bool                       `json:"apply"`
@@ -144,17 +157,26 @@ type PendingSubscriptionUpdate struct {
 type UserProfilesErrorType string
 
 const (
-	ErrorProfileNotFound   UserProfilesErrorType = "profile_not_found"
-	ErrorProfilesNotLoaded UserProfilesErrorType = "profiles_not_loaded"
-	ErrorInvalidAssetID    UserProfilesErrorType = "invalid_asset_id"
-	ErrorInvalidAssetType  UserProfilesErrorType = "invalid_asset_type"
-	ErrorInvalidVersion    UserProfilesErrorType = "invalid_version"
-	ErrorInvalidAction     UserProfilesErrorType = "invalid_action"
-	ErrorPersistFailed     UserProfilesErrorType = "persist_failed"
-	ErrorSyncFailed        UserProfilesErrorType = "sync_failed"
-	ErrorSyncSuperseded    UserProfilesErrorType = "sync_superseded"
-	ErrorLookupFailed      UserProfilesErrorType = "lookup_failed"
-	ErrorUnknown           UserProfilesErrorType = "unknown"
+	ErrorProfileNotFound    UserProfilesErrorType = "profile_not_found"
+	ErrorProfilesNotLoaded  UserProfilesErrorType = "profiles_not_loaded"
+	ErrorInvalidAssetID     UserProfilesErrorType = "invalid_asset_id"
+	ErrorInvalidAssetType   UserProfilesErrorType = "invalid_asset_type"
+	ErrorInvalidVersion     UserProfilesErrorType = "invalid_version"
+	ErrorInvalidAction      UserProfilesErrorType = "invalid_action"
+	ErrorInvalidProfileName UserProfilesErrorType = "invalid_profile_name"
+	ErrorDuplicateName      UserProfilesErrorType = "duplicate_profile_name"
+	ErrorDefaultProtected   UserProfilesErrorType = "default_profile_protected"
+	ErrorActiveProtected    UserProfilesErrorType = "active_profile_protected"
+	ErrorSwapConfirmation   UserProfilesErrorType = "swap_confirmation_required"
+	ErrorArchiveMissing     UserProfilesErrorType = "archive_missing"
+	ErrorArchiveStale       UserProfilesErrorType = "archive_stale"
+	ErrorArchiveUpdate      UserProfilesErrorType = "archive_update_failed"
+	ErrorArchiveRestore     UserProfilesErrorType = "archive_restore_failed"
+	ErrorPersistFailed      UserProfilesErrorType = "persist_failed"
+	ErrorSyncFailed         UserProfilesErrorType = "sync_failed"
+	ErrorSyncSuperseded     UserProfilesErrorType = "sync_superseded"
+	ErrorLookupFailed       UserProfilesErrorType = "lookup_failed"
+	ErrorUnknown            UserProfilesErrorType = "unknown"
 )
 
 type UserProfilesError struct {
