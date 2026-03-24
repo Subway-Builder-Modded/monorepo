@@ -247,7 +247,10 @@ function App() {
             <Route path="/library" component={LibraryPage} />
             <Route path="/browse" component={BrowsePage} />
             <Route path="/search" component={BrowsePage} />
-            <Route path="/project/:type/:id/changelog/:version" component={ChangelogPage} />
+            <Route
+              path="/project/:type/:id/changelog/:version"
+              component={ChangelogPage}
+            />
             <Route path="/project/:type/:id" component={ProjectPage} />
             <Route path="/logs" component={LogsPage} />
             <Route path="/settings" component={SettingsPage} />

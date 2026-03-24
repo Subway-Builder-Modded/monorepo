@@ -4,13 +4,12 @@ import { toast } from 'sonner';
 
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 
+import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import {
   TOAST_PROGRESS_FILL_CLASS,
   TOAST_PROGRESS_TRACK_CLASS,
   TOAST_QUEUE_LABEL_CLASS,
 } from './notification-classes';
-
-import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
 interface ExtractProgress {
   itemId: string;
@@ -44,9 +43,7 @@ export function ExtractNotification() {
                   </span>
                 </div>
                 {queueLabel && (
-                  <span className={TOAST_QUEUE_LABEL_CLASS}>
-                    {queueLabel}
-                  </span>
+                  <span className={TOAST_QUEUE_LABEL_CLASS}>{queueLabel}</span>
                 )}
               </div>
             </div>,
@@ -73,9 +70,7 @@ export function ExtractNotification() {
               </span>
             </div>
             {queueLabel && (
-              <span className={TOAST_QUEUE_LABEL_CLASS}>
-                {queueLabel}
-              </span>
+              <span className={TOAST_QUEUE_LABEL_CLASS}>{queueLabel}</span>
             )}
           </div>
           <div className="text-xs text-muted-foreground">{description}</div>

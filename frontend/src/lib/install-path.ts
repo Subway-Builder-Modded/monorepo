@@ -11,7 +11,8 @@ export function resolveInstallFolderPath(
   metroMakerDataPath: string | undefined,
 ): string | null {
   if (!metroMakerDataPath) return null;
-  if (entry.type === 'mod') return joinOsPath(metroMakerDataPath, 'mods', entry.item.id);
+  if (entry.type === 'mod')
+    return joinOsPath(metroMakerDataPath, 'mods', entry.item.id);
   const cityCode = ((entry.item as types.MapManifest).city_code ?? '').trim();
   return cityCode
     ? joinOsPath(metroMakerDataPath, 'cities', 'data', cityCode)

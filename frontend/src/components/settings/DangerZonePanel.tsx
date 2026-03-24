@@ -26,7 +26,9 @@ export function DangerZonePanel() {
   const { clearConfig } = useConfigStore();
   const resetProfile = useProfileStore((s) => s.resetProfile);
 
-  const [confirmAction, setConfirmAction] = useState<'config' | 'profile' | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    'config' | 'profile' | null
+  >(null);
 
   const handleConfirm = async () => {
     try {
@@ -49,7 +51,9 @@ export function DangerZonePanel() {
       <Card className="ring-destructive/35 bg-[color-mix(in_oklab,var(--color-destructive)_6%,transparent)]">
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>These actions are permanent and cannot be undone.</CardDescription>
+          <CardDescription>
+            These actions are permanent and cannot be undone.
+          </CardDescription>
         </CardHeader>
         <CardContent className="px-6 py-0">
           <div className="divide-y divide-destructive/15">

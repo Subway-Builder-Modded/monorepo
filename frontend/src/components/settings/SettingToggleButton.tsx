@@ -30,7 +30,10 @@ export function SettingToggleButton({
       variant="outline"
       size="sm"
       onClick={onToggle}
-      className={cn('min-w-[6rem] gap-1.5 transition-all', enabled && TOGGLE_ENABLED[accent])}
+      className={cn(
+        'min-w-[6rem] gap-1.5 transition-all',
+        enabled && TOGGLE_ENABLED[accent],
+      )}
     >
       {enabled ? (
         <ToggleRight className="size-3.5 shrink-0" />

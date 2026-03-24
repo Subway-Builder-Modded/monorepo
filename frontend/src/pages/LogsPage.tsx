@@ -118,7 +118,9 @@ export function LogsPage() {
 
   const handleDeleteSessionClick = () => {
     if (isSelectedSessionActive) {
-      toast.error('Cannot delete the active session while the game is running.');
+      toast.error(
+        'Cannot delete the active session while the game is running.',
+      );
       return;
     }
     setDeleteSessionOpen(true);
@@ -203,7 +205,10 @@ export function LogsPage() {
                   )}
                 >
                   <span className="flex min-w-0 items-center gap-2">
-                    <Calendar className="h-3.5 w-3.5 shrink-0 text-current" aria-hidden />
+                    <Calendar
+                      className="h-3.5 w-3.5 shrink-0 text-current"
+                      aria-hidden
+                    />
                     <SelectValue placeholder="Select session" />
                   </span>
                 </SelectTrigger>
@@ -226,7 +231,9 @@ export function LogsPage() {
                       )}
                     >
                       <span className="flex w-full items-center justify-between gap-3">
-                        <span>{new Date(session.startedAt).toLocaleString()}</span>
+                        <span>
+                          {new Date(session.startedAt).toLocaleString()}
+                        </span>
                         {session.id === latestSessionId && (
                           <Badge variant="success" size="sm">
                             {session.endedAt === null ? 'Active' : 'Latest'}
@@ -265,9 +272,7 @@ export function LogsPage() {
             disabled={!serverPort}
             onClick={() =>
               serverPort &&
-              BrowserOpenURL(
-                `http://127.0.0.1:${serverPort}/debug/thumbnails`,
-              )
+              BrowserOpenURL(`http://127.0.0.1:${serverPort}/debug/thumbnails`)
             }
           >
             <ExternalLink className="h-4 w-4 mr-1.5" />
@@ -294,9 +299,7 @@ export function LogsPage() {
           <EmptyState
             icon={Terminal}
             title={
-              sessions.length === 0
-                ? 'No game logs'
-                : 'No logs in this session'
+              sessions.length === 0 ? 'No game logs' : 'No logs in this session'
             }
             description={
               sessions.length === 0

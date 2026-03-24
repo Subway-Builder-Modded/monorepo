@@ -36,7 +36,9 @@ export function GalleryImage({
           className,
         )}
       >
-        <FallbackIcon className={cn('text-muted-foreground', fallbackIconClassName)} />
+        <FallbackIcon
+          className={cn('text-muted-foreground', fallbackIconClassName)}
+        />
       </div>
     );
   }

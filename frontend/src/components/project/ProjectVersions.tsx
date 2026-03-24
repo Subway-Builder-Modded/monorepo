@@ -9,16 +9,16 @@ import {
   Tag,
 } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'wouter';
 import { toast } from 'sonner';
+import { Link } from 'wouter';
 
 import { AssetActionDialog } from '@/components/dialogs/AssetActionDialog';
 import { InstallErrorDialog } from '@/components/dialogs/InstallErrorDialog';
 import { PrereleaseConfirmDialog } from '@/components/dialogs/PrereleaseConfirmDialog';
 import { SubscriptionSyncErrorDialog } from '@/components/dialogs/SubscriptionSyncErrorDialog';
-import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -38,12 +38,12 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import { cn } from '@/lib/utils';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
   useInstalledStore,
 } from '@/stores/installed-store';
-import { cn } from '@/lib/utils';
 
 import type { types } from '../../../wailsjs/go/models';
 
@@ -53,7 +53,7 @@ interface VersionSortState {
   direction: 'asc' | 'desc';
 }
 
-const VERSION_TEXT_FIELDS = new Set<string>(['version']);
+const VERSION_TEXT_FIELDS = new Set<string>();
 
 const DEFAULT_SORT: VersionSortState = { field: 'date', direction: 'desc' };
 
@@ -153,7 +153,8 @@ export function ProjectVersions({
           });
         } else if (!hasOnlySilentSyncWarnings(result.errors)) {
           toast.warning(
-            result.message || `Install for ${itemName} completed with warnings.`,
+            result.message ||
+              `Install for ${itemName} completed with warnings.`,
           );
         }
         return;
@@ -199,7 +200,7 @@ export function ProjectVersions({
     setSort((prev) =>
       prev.field === field
         ? { field, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-        : { field, direction: field === 'version' ? 'asc' : 'desc' },
+        : { field, direction: 'desc' },
     );
   };
 
@@ -248,7 +249,7 @@ export function ProjectVersions({
               onSort={handleSort}
             />
           </div>
-          <div className="w-[8rem] shrink-0 hidden sm:block">
+          <div className="w-[7rem] shrink-0 hidden sm:block">
             <SortableHeaderCell
               label="Date"
               field="date"
@@ -268,7 +269,8 @@ export function ProjectVersions({
               onSort={handleSort}
             />
           </div>
-          <div className="w-[2.5rem] shrink-0" aria-hidden />
+          <div className="hidden lg:block w-px self-stretch bg-border/50 mx-2" aria-hidden />
+          <div className="w-[7rem] shrink-0 flex items-center justify-center" aria-hidden />
         </div>
 
         <div className="divide-y divide-border/50">
@@ -298,14 +300,8 @@ export function ProjectVersions({
                         {v.version}
                       </span>
                       {v.prerelease && (
-                        <Badge variant="outline" size="sm">
+                        <Badge size="sm" className="border-amber-500/40 bg-amber-500/15 text-amber-600 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-400">
                           Beta
-                        </Badge>
-                      )}
-                      {isThisInstalled && (
-                        <Badge variant="success" size="sm" className="gap-1">
-                          <CheckCircle className="h-2.5 w-2.5" />
-                          Installed
                         </Badge>
                       )}
                     </span>
@@ -322,7 +318,7 @@ export function ProjectVersions({
                   )}
                 </div>
 
-                <div className="w-[8rem] shrink-0 hidden sm:block">
+                <div className="w-[7rem] shrink-0 hidden sm:block">
                   <span className="text-sm text-muted-foreground">
                     {formatDate(v.date)}
                   </span>
@@ -333,7 +329,8 @@ export function ProjectVersions({
                   {v.downloads.toLocaleString()}
                 </div>
 
-                <div className="w-[2.5rem] shrink-0 flex items-center justify-end">
+                <div className="hidden lg:block w-px self-stretch bg-border/50 mx-2" />
+                <div className="w-[7rem] shrink-0 flex items-center justify-center">
                   {uninstalling ? (
                     <Button variant="outline" size="icon-xs" disabled>
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -343,10 +340,13 @@ export function ProjectVersions({
                       <Button variant="outline" size="icon-xs" disabled>
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                       </Button>
-                    ) : (
-                      <span className="h-8 w-8 inline-flex" />
-                    )
-                  ) : isThisInstalled ? null : incompatible ? (
+                    ) : null
+                  ) : isThisInstalled ? (
+                    <Badge variant="success" size="sm" className="gap-1">
+                      <CheckCircle className="h-2.5 w-2.5" />
+                      Installed
+                    </Badge>
+                  ) : incompatible ? (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>

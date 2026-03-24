@@ -69,16 +69,25 @@ export function LibraryPage() {
   const [, navigate] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [pendingUpdatesByKey, setPendingUpdatesByKey] = useState<PendingUpdatesByKey>({});
+  const [pendingUpdatesByKey, setPendingUpdatesByKey] =
+    useState<PendingUpdatesByKey>({});
 
-  const { mods, maps, modDownloadTotals, mapDownloadTotals, ensureDownloadTotals } =
-    useRegistryStore();
-  const { installedMods, installedMaps, updateInstalledLists } = useInstalledStore();
+  const {
+    mods,
+    maps,
+    modDownloadTotals,
+    mapDownloadTotals,
+    ensureDownloadTotals,
+  } = useRegistryStore();
+  const { installedMods, installedMaps, updateInstalledLists } =
+    useInstalledStore();
 
   const refreshPendingSubscriptionUpdates = useCallback(async () => {
     let result;
     try {
-      result = await requestLatestSubscriptionUpdatesForActiveProfile({ apply: false });
+      result = await requestLatestSubscriptionUpdatesForActiveProfile({
+        apply: false,
+      });
     } catch (err) {
       setPendingUpdatesByKey({});
       console.warn(
@@ -95,9 +104,13 @@ export function LibraryPage() {
       return;
     }
 
-    setPendingUpdatesByKey(indexPendingSubscriptionUpdates(result.pendingUpdates));
+    setPendingUpdatesByKey(
+      indexPendingSubscriptionUpdates(result.pendingUpdates),
+    );
     if (result.status === 'warn') {
-      console.warn(`[library:latest_check] Completed with warnings: ${result.message}`);
+      console.warn(
+        `[library:latest_check] Completed with warnings: ${result.message}`,
+      );
     }
   }, []);
 
@@ -117,10 +130,14 @@ export function LibraryPage() {
 
   const missingInstalledItems = useMemo(() => {
     const missingMods = installedMods
-      .filter((installed) => !installed.isLocal && !modManifestById.has(installed.id))
+      .filter(
+        (installed) => !installed.isLocal && !modManifestById.has(installed.id),
+      )
       .map((installed) => `mod:${installed.id}`);
     const missingMaps = installedMaps
-      .filter((installed) => !installed.isLocal && !mapManifestById.has(installed.id))
+      .filter(
+        (installed) => !installed.isLocal && !mapManifestById.has(installed.id),
+      )
       .map((installed) => `map:${installed.id}`);
     return [...missingMods, ...missingMaps];
   }, [installedMaps, installedMods, mapManifestById, modManifestById]);
@@ -199,11 +216,17 @@ export function LibraryPage() {
   const mapCount = installedItems.filter((i) => i.type === 'map').length;
 
   const installedModItems = useMemo(
-    () => installedItems.filter((entry) => entry.type === 'mod').map((entry) => entry.item),
+    () =>
+      installedItems
+        .filter((entry) => entry.type === 'mod')
+        .map((entry) => entry.item),
     [installedItems],
   );
   const installedMapItems = useMemo(
-    () => installedItems.filter((entry) => entry.type === 'map').map((entry) => entry.item),
+    () =>
+      installedItems
+        .filter((entry) => entry.type === 'map')
+        .map((entry) => entry.item),
     [installedItems],
   );
 
@@ -276,7 +299,9 @@ export function LibraryPage() {
           <div className="flex-1">
             <SearchBar
               query={filters.query}
-              onQueryChange={(value) => setFilters((prev) => ({ ...prev, query: value }))}
+              onQueryChange={(value) =>
+                setFilters((prev) => ({ ...prev, query: value }))
+              }
             />
           </div>
           <Button
@@ -314,7 +339,9 @@ export function LibraryPage() {
           <div className="space-y-4">
             {/* Result count */}
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{totalResults}</span>{' '}
+              <span className="font-medium text-foreground">
+                {totalResults}
+              </span>{' '}
               result{totalResults !== 1 ? 's' : ''}
               {filters.query && (
                 <span className="ml-1">
@@ -327,7 +354,9 @@ export function LibraryPage() {
             {paginatedItems.length === 0 ? (
               <EmptyState
                 icon={SearchX}
-                title={filters.type === 'map' ? 'No maps found' : 'No mods found'}
+                title={
+                  filters.type === 'map' ? 'No maps found' : 'No mods found'
+                }
                 description={
                   filters.query
                     ? `No installed ${filters.type} match "${filters.query}"`
@@ -342,7 +371,9 @@ export function LibraryPage() {
                   pendingUpdatesByKey={pendingUpdatesByKey}
                   onRefreshPendingUpdates={refreshPendingSubscriptionUpdates}
                   sort={filters.sort}
-                  onSortChange={(value) => setFilters((prev) => ({ ...prev, sort: value }))}
+                  onSortChange={(value) =>
+                    setFilters((prev) => ({ ...prev, sort: value }))
+                  }
                 />
                 <Pagination
                   page={page}

@@ -247,5 +247,4 @@ export const useGameStore = create<GameState>((set) => ({
             : null,
       };
     }),
-
 }));

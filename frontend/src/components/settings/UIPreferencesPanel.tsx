@@ -78,18 +78,25 @@ export function UIPreferencesPanel() {
 
   const handleDefaultBrowseViewModeChange = async (value: string) => {
     if (!profile) {
-      console.warn('[settings] Cannot update default browse view mode: profile is not loaded.');
+      console.warn(
+        '[settings] Cannot update default browse view mode: profile is not loaded.',
+      );
       return;
     }
     if (!isSearchViewMode(value)) {
-      console.warn(`[settings] Ignoring invalid browse view mode value: ${String(value)}`);
+      console.warn(
+        `[settings] Ignoring invalid browse view mode value: ${String(value)}`,
+      );
       return;
     }
     try {
       await updateUIPreferences({ searchViewMode: value });
       toast.success('Default browse view mode updated.');
     } catch (error) {
-      console.warn('[settings] Failed to persist default browse view mode preference.', error);
+      console.warn(
+        '[settings] Failed to persist default browse view mode preference.',
+        error,
+      );
       toast.error('Failed to update default browse view mode.');
     }
   };
@@ -98,7 +105,9 @@ export function UIPreferencesPanel() {
     <Card>
       <CardHeader>
         <CardTitle>UI Preferences</CardTitle>
-        <CardDescription>Display and layout preferences saved to your profile.</CardDescription>
+        <CardDescription>
+          Display and layout preferences saved to your profile.
+        </CardDescription>
       </CardHeader>
       <CardContent className="px-6 py-0">
         <div className="divide-y divide-border">
@@ -112,10 +121,17 @@ export function UIPreferencesPanel() {
                   type="button"
                   onClick={() => setShowThemePreviews((c) => !c)}
                   aria-expanded={showThemePreviews}
-                  className={cn(BROWSE_TRIGGER_CN, 'flex w-28 items-center justify-between')}
+                  className={cn(
+                    BROWSE_TRIGGER_CN,
+                    'flex w-28 items-center justify-between',
+                  )}
                 >
                   <span>
-                    {THEME_LABELS[normalizeThemeValue(profile?.uiPreferences?.theme)]}
+                    {
+                      THEME_LABELS[
+                        normalizeThemeValue(profile?.uiPreferences?.theme)
+                      ]
+                    }
                   </span>
                   <ChevronDown
                     className={cn(
@@ -145,13 +161,22 @@ export function UIPreferencesPanel() {
                   value={String(profile?.uiPreferences?.defaultPerPage ?? 12)}
                   onValueChange={handleDefaultPerPageChange}
                 >
-                  <SelectTrigger size="sm" className={cn(BROWSE_TRIGGER_CN, 'w-24')}>
+                  <SelectTrigger
+                    size="sm"
+                    className={cn(BROWSE_TRIGGER_CN, 'w-24')}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className={BROWSE_CONTENT_CN}>
-                    <SelectItem value="12" className={BROWSE_ITEM_CN}>12</SelectItem>
-                    <SelectItem value="24" className={BROWSE_ITEM_CN}>24</SelectItem>
-                    <SelectItem value="48" className={BROWSE_ITEM_CN}>48</SelectItem>
+                    <SelectItem value="12" className={BROWSE_ITEM_CN}>
+                      12
+                    </SelectItem>
+                    <SelectItem value="24" className={BROWSE_ITEM_CN}>
+                      24
+                    </SelectItem>
+                    <SelectItem value="48" className={BROWSE_ITEM_CN}>
+                      48
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </ControlWrapper>
@@ -166,18 +191,30 @@ export function UIPreferencesPanel() {
               <ControlWrapper>
                 <Select
                   value={normalizeSearchViewMode(
-                    (profile?.uiPreferences as { searchViewMode?: unknown } | undefined)
-                      ?.searchViewMode,
+                    (
+                      profile?.uiPreferences as
+                        | { searchViewMode?: unknown }
+                        | undefined
+                    )?.searchViewMode,
                   )}
                   onValueChange={handleDefaultBrowseViewModeChange}
                 >
-                  <SelectTrigger size="sm" className={cn(BROWSE_TRIGGER_CN, 'w-28')}>
+                  <SelectTrigger
+                    size="sm"
+                    className={cn(BROWSE_TRIGGER_CN, 'w-28')}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className={BROWSE_CONTENT_CN}>
-                    <SelectItem value="full" className={BROWSE_ITEM_CN}>Full</SelectItem>
-                    <SelectItem value="compact" className={BROWSE_ITEM_CN}>Compact</SelectItem>
-                    <SelectItem value="list" className={BROWSE_ITEM_CN}>List</SelectItem>
+                    <SelectItem value="full" className={BROWSE_ITEM_CN}>
+                      Full
+                    </SelectItem>
+                    <SelectItem value="compact" className={BROWSE_ITEM_CN}>
+                      Compact
+                    </SelectItem>
+                    <SelectItem value="list" className={BROWSE_ITEM_CN}>
+                      List
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </ControlWrapper>

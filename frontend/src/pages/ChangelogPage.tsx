@@ -15,8 +15,8 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
-import { Link, useRoute } from 'wouter';
 import { toast } from 'sonner';
+import { Link, useRoute } from 'wouter';
 
 import { AssetActionDialog } from '@/components/dialogs/AssetActionDialog';
 import { InstallErrorDialog } from '@/components/dialogs/InstallErrorDialog';
@@ -43,6 +43,10 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import {
+  mergeVersionDownloads,
+  withZeroDownloads,
+} from '@/lib/version-downloads';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -56,10 +60,6 @@ import {
   GetVersionsResponse,
 } from '../../wailsjs/go/registry/Registry';
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
-import {
-  mergeVersionDownloads,
-  withZeroDownloads,
-} from '@/lib/version-downloads';
 
 const INSTALL_ACCENT = getLocalAccentClasses('install');
 const FILES_ACCENT = getLocalAccentClasses('files');
@@ -107,7 +107,9 @@ export function ChangelogPage() {
         ? maps.find((m) => m.id === id)
         : undefined;
 
-  const [versionInfo, setVersionInfo] = useState<types.VersionInfo | null>(null);
+  const [versionInfo, setVersionInfo] = useState<types.VersionInfo | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -141,7 +143,8 @@ export function ChangelogPage() {
   const uninstalling = item ? isUninstalling(item.id) : false;
   const cancellationToastId = `cancel-install-${type}-${id}`;
 
-  const projectHref = routeType && id ? `/project/${routeType}/${id}` : '/browse';
+  const projectHref =
+    routeType && id ? `/project/${routeType}/${id}` : '/browse';
 
   useEffect(() => {
     if (!item || !type || !versionParam) return;
@@ -178,18 +181,14 @@ export function ChangelogPage() {
             );
           }
         } catch {
-          // Non-critical; use zero downloads as fallback
         }
 
         if (!cancelled) {
-          const integrity =
-            type === 'mod' ? modIntegrity : mapIntegrity;
+          const integrity = type === 'mod' ? modIntegrity : mapIntegrity;
           const completeVersions =
             integrity && id ? integrity.listings[id]?.complete_versions : null;
           const filtered = completeVersions
-            ? mergedVersions.filter((v) =>
-                completeVersions.includes(v.version),
-              )
+            ? mergedVersions.filter((v) => completeVersions.includes(v.version))
             : mergedVersions;
 
           const found = filtered.find((v) => v.version === versionParam);
@@ -206,7 +205,14 @@ export function ChangelogPage() {
     return () => {
       cancelled = true;
     };
-  }, [type, item?.id, item?.update.type, item?.update.repo, item?.update.url, versionParam]);
+  }, [
+    type,
+    item?.id,
+    item?.update.type,
+    item?.update.repo,
+    item?.update.url,
+    versionParam,
+  ]);
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
     if (!item || !type) return;
@@ -320,9 +326,9 @@ export function ChangelogPage() {
     }
     if (installedVersion === versionInfo.version) {
       return (
-        <div className="flex items-center gap-2">
-          <Badge variant="success" className="gap-1">
-            <CheckCircle className="h-3 w-3" />
+        <div className="flex items-center gap-3">
+          <Badge variant="success" className="h-9 gap-1.5 rounded-lg px-3 text-sm">
+            <CheckCircle className="h-3.5 w-3.5" />
             Installed
           </Badge>
           <Button
@@ -342,7 +348,11 @@ export function ChangelogPage() {
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
-                <Button size="sm" disabled className={INSTALL_ACCENT.solidButton}>
+                <Button
+                  size="sm"
+                  disabled
+                  className={INSTALL_ACCENT.solidButton}
+                >
                   <Download className="h-4 w-4" />
                   Install {versionInfo.version}
                 </Button>
@@ -385,7 +395,10 @@ export function ChangelogPage() {
               Home
             </Link>
             <span>/</span>
-            <Link href="/browse" className="hover:text-foreground transition-colors">
+            <Link
+              href="/browse"
+              className="hover:text-foreground transition-colors"
+            >
               Browse
             </Link>
             <span>/</span>
@@ -426,16 +439,19 @@ export function ChangelogPage() {
         ) : (
           <>
             <div className="rounded-xl border border-border bg-card p-4">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h1 className="text-xl font-bold text-foreground">
-                      {versionInfo.name && versionInfo.name !== versionInfo.version
+                      {versionInfo.name &&
+                      versionInfo.name !== versionInfo.version
                         ? versionInfo.name
                         : `${item.name} ${versionInfo.version}`}
                     </h1>
                     {versionInfo.prerelease && (
-                      <Badge variant="outline">Beta</Badge>
+                      <Badge className="border-amber-500/40 bg-amber-500/15 text-amber-600 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-400">
+                        Beta
+                      </Badge>
                     )}
                   </div>
                   {formattedDate && (
@@ -489,7 +505,7 @@ export function ChangelogPage() {
 
               <div className="rounded-xl border border-border bg-card h-fit">
                 <div className="border-b border-border px-4 py-3">
-                  <h2 className="text-sm font-semibold">Metadata</h2>
+                  <h2 className="text-sm font-semibold">Information</h2>
                 </div>
                 <div className="px-4 divide-y divide-border/50">
                   <MetaRow icon={Tag} label="Version">
@@ -497,15 +513,13 @@ export function ChangelogPage() {
                   </MetaRow>
 
                   <MetaRow icon={CheckCircle} label="Release Type">
-                    <span
-                      className={
-                        versionInfo.prerelease
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-[var(--install-primary)]'
-                      }
-                    >
-                      {versionInfo.prerelease ? 'Beta' : 'Release'}
-                    </span>
+                    {versionInfo.prerelease ? (
+                      <Badge className="border-amber-500/40 bg-amber-500/15 text-amber-600 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-400">
+                        Beta
+                      </Badge>
+                    ) : (
+                      <Badge variant="success">Release</Badge>
+                    )}
                   </MetaRow>
 
                   {versionInfo.game_version && (

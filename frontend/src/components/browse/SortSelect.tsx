@@ -42,9 +42,11 @@ const FIELD_ICONS: Record<SortField, ComponentType<{ className?: string }>> = {
 function directionArrow(field: SortField, direction: 'asc' | 'desc') {
   const invert = TEXT_SORT_FIELDS.has(field);
   const showUp = invert ? direction === 'desc' : direction === 'asc';
-  return showUp
-    ? <ArrowUp className="h-3.5 w-3.5" aria-hidden />
-    : <ArrowDown className="h-3.5 w-3.5" aria-hidden />;
+  return showUp ? (
+    <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+  ) : (
+    <ArrowDown className="h-3.5 w-3.5" aria-hidden />
+  );
 }
 
 interface SortSelectProps {
@@ -56,15 +58,14 @@ interface SortSelectProps {
 export function SortSelect({ value, onChange, tab }: SortSelectProps) {
   const sortOptions = getSortOptionsForType(tab);
 
-  const fieldOptions = sortOptions.reduce<Array<{ field: SortField; label: string }>>(
-    (acc, opt) => {
-      if (!acc.some((f) => f.field === opt.sort.field)) {
-        acc.push({ field: opt.sort.field, label: opt.label });
-      }
-      return acc;
-    },
-    [],
-  );
+  const fieldOptions = sortOptions.reduce<
+    Array<{ field: SortField; label: string }>
+  >((acc, opt) => {
+    if (!acc.some((f) => f.field === opt.sort.field)) {
+      acc.push({ field: opt.sort.field, label: opt.label });
+    }
+    return acc;
+  }, []);
 
   const currentFieldValid = fieldOptions.some((f) => f.field === value.field);
   const currentField = currentFieldValid
@@ -87,7 +88,10 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
   };
 
   const handleDirectionToggle = () => {
-    onChange({ field: value.field, direction: value.direction === 'asc' ? 'desc' : 'asc' });
+    onChange({
+      field: value.field,
+      direction: value.direction === 'asc' ? 'desc' : 'asc',
+    });
   };
 
   return (
@@ -111,9 +115,13 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
             const Icon = FIELD_ICONS[currentField];
             return (
               <span className="flex min-w-0 items-center gap-2">
-                <Icon className="h-3.5 w-3.5 shrink-0 text-current" aria-hidden />
+                <Icon
+                  className="h-3.5 w-3.5 shrink-0 text-current"
+                  aria-hidden
+                />
                 <span className="min-w-0 truncate">
-                  {fieldOptions.find((f) => f.field === currentField)?.label ?? 'Sort'}
+                  {fieldOptions.find((f) => f.field === currentField)?.label ??
+                    'Sort'}
                 </span>
               </span>
             );

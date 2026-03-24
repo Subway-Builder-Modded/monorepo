@@ -20,7 +20,9 @@ export const SIDEBAR_CONTENT_OFFSET = `${SIDEBAR_WIDTH_REM + SIDEBAR_GAP_REM}rem
 function getNavbarOffsetPx(): number {
   return (
     parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--app-navbar-offset'),
+      getComputedStyle(document.documentElement).getPropertyValue(
+        '--app-navbar-offset',
+      ),
     ) - 48 || 72
   );
 }
@@ -75,7 +77,9 @@ export function SidebarPanel({
       const toggle = toggleRef.current;
       if (!panel) return;
 
-      const footerTop = footerEl ? footerEl.getBoundingClientRect().top : Infinity;
+      const footerTop = footerEl
+        ? footerEl.getBoundingClientRect().top
+        : Infinity;
       const panelH = panel.offsetHeight;
       const top = Math.min(idealTop, footerTop - panelH - EDGE_GAP_PX);
 
@@ -171,7 +175,11 @@ export function SidebarPanel({
     };
   }, [filters, open]);
 
-  const panelStyle = { position: 'fixed' as const, left, width: `${SIDEBAR_WIDTH_REM}rem` };
+  const panelStyle = {
+    position: 'fixed' as const,
+    left,
+    width: `${SIDEBAR_WIDTH_REM}rem`,
+  };
   const toggleStyle = { position: 'fixed' as const, left, width: '2.5rem' };
 
   return (
@@ -218,7 +226,10 @@ export function SidebarPanel({
               <div
                 className="absolute left-0 w-full rounded-full bg-[color-mix(in_srgb,var(--foreground)_28%,transparent)]"
                 style={
-                  { height: thumbHeight, transform: `translateY(${thumbTop}px)` } as CSSProperties
+                  {
+                    height: thumbHeight,
+                    transform: `translateY(${thumbTop}px)`,
+                  } as CSSProperties
                 }
               />
             </div>

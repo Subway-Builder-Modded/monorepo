@@ -11,10 +11,31 @@ const NAV_ITEMS: Array<{
   description: string;
   danger?: boolean;
 }> = [
-  { id: 'general', label: 'General', icon: Settings, description: 'General application settings' },
-  { id: 'ui', label: 'UI Preferences', icon: Palette, description: 'Theme & display' },
-  { id: 'system', label: 'System', icon: Cpu, description: 'Performance & tools' },
-  { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, description: 'Reset & clear', danger: true },
+  {
+    id: 'general',
+    label: 'General',
+    icon: Settings,
+    description: 'General application settings',
+  },
+  {
+    id: 'ui',
+    label: 'UI Preferences',
+    icon: Palette,
+    description: 'Theme & display',
+  },
+  {
+    id: 'system',
+    label: 'System',
+    icon: Cpu,
+    description: 'Performance & tools',
+  },
+  {
+    id: 'danger',
+    label: 'Danger Zone',
+    icon: AlertTriangle,
+    description: 'Reset & clear',
+    danger: true,
+  },
 ];
 
 interface SettingsNavProps {
@@ -58,7 +79,9 @@ export function SettingsNav({ activeTab, onTabChange }: SettingsNavProps) {
               <Icon className="h-3.5 w-3.5" />
             </span>
             <div className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] leading-snug">{item.label}</span>
+              <span className="block truncate text-[13px] leading-snug">
+                {item.label}
+              </span>
               <span
                 className={cn(
                   'mt-1 block text-[11px] leading-tight',

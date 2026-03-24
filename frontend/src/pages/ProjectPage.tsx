@@ -1,5 +1,5 @@
-import { CircleAlert, Globe, Images } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { AlignLeft, CircleAlert, History, Images } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { Link, useRoute } from 'wouter';
@@ -16,13 +16,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { listingPathToAssetType } from '@/lib/asset-types';
 import { isCompatible } from '@/lib/semver';
 import {
@@ -45,6 +39,9 @@ export function ProjectPage() {
   const maps = useRegistryStore((s) => s.maps);
   const mapIntegrity = useRegistryStore((s) => s.mapIntegrity);
   const modIntegrity = useRegistryStore((s) => s.modIntegrity);
+  const modDownloadTotals = useRegistryStore((s) => s.modDownloadTotals);
+  const mapDownloadTotals = useRegistryStore((s) => s.mapDownloadTotals);
+  const ensureDownloadTotals = useRegistryStore((s) => s.ensureDownloadTotals);
 
   const routeType = params?.type;
   const type = routeType ? listingPathToAssetType(routeType) : undefined;
@@ -74,6 +71,10 @@ export function ProjectPage() {
       );
     }
   };
+
+  useEffect(() => {
+    ensureDownloadTotals();
+  }, [ensureDownloadTotals]);
 
   useEffect(() => {
     GetGameVersion()
@@ -157,6 +158,12 @@ export function ProjectPage() {
     );
   }, [versions, gameVersion, latestVersion]);
 
+  const totalDownloads = id
+    ? type === 'mod'
+      ? (modDownloadTotals[id] ?? undefined)
+      : (mapDownloadTotals[id] ?? undefined)
+    : undefined;
+
   const gallery = useMemo(() => item?.gallery || [], [item?.gallery]);
   const hasGallery = gallery.length > 0;
 
@@ -199,54 +206,64 @@ export function ProjectPage() {
         latestCompatibleVersion={latestCompatibleVersion}
         versionsLoading={versionsLoading}
         gameVersion={gameVersion}
+        totalDownloads={totalDownloads}
       />
 
       <Tabs defaultValue="description">
-        <TabsList variant="line">
-          <TabsTrigger value="description">Description</TabsTrigger>
-          {hasGallery && (
-            <TabsTrigger value="gallery">
-              <Images className="h-3.5 w-3.5" />
-              Gallery
+        <TabsList
+          variant="default"
+          className="h-auto rounded-xl border border-border/70 bg-background/90 p-0.5 shadow-sm backdrop-blur-md"
+        >
+          {(
+            [
+              { value: 'description', label: 'Description', icon: AlignLeft },
+              ...(hasGallery
+                ? [{ value: 'gallery', label: 'Gallery', icon: Images }]
+                : []),
+              { value: 'versions', label: 'Versions', icon: History },
+            ] as {
+              value: string;
+              label: string;
+              icon: React.ComponentType<{ className?: string }>;
+            }[]
+          ).map(({ value, label, icon: Icon }) => (
+            <TabsTrigger
+              key={value}
+              value={value}
+              className="h-10 flex-none rounded-lg px-3 text-sm font-semibold text-muted-foreground hover:bg-accent/45 hover:text-primary dark:hover:text-primary data-[state=active]:bg-accent/45 data-[state=active]:text-primary data-[state=active]:shadow-none dark:data-[state=active]:bg-accent/45 dark:data-[state=active]:text-primary"
+            >
+              <Icon className="h-4 w-4" />
+              {label}
             </TabsTrigger>
-          )}
-          <TabsTrigger value="versions">Versions</TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="description" className="mt-5 space-y-4">
-          <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none text-sm leading-relaxed">
-            <Markdown
-              rehypePlugins={[rehypeRaw]}
-              components={{
-                a: ({ href, children, ...props }) => (
-                  <a
-                    {...props}
-                    href={href}
-                    onClick={(e) => {
-                      if (href) {
-                        e.preventDefault();
-                        BrowserOpenURL(href);
-                      }
-                    }}
-                  >
-                    {children}
-                  </a>
-                ),
-              }}
-            >
-              {item.description}
-            </Markdown>
+        <TabsContent value="description" className="mt-5">
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none text-sm leading-relaxed">
+              <Markdown
+                rehypePlugins={[rehypeRaw]}
+                components={{
+                  a: ({ href, children, ...props }) => (
+                    <a
+                      {...props}
+                      href={href}
+                      onClick={(e) => {
+                        if (href) {
+                          e.preventDefault();
+                          BrowserOpenURL(href);
+                        }
+                      }}
+                    >
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {item.description}
+              </Markdown>
+            </div>
           </div>
-          {item.source && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => BrowserOpenURL(item.source!)}
-            >
-              <Globe className="h-4 w-4" />
-              View Source
-            </Button>
-          )}
         </TabsContent>
 
         {hasGallery && (

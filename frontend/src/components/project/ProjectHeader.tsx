@@ -6,8 +6,6 @@ import {
   ExternalLink,
   Globe,
   Loader2,
-  MapPin,
-  Package,
   Trash2,
   Users,
   X,
@@ -30,6 +28,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { AssetType } from '@/lib/asset-types';
+import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
@@ -54,11 +53,13 @@ interface ProjectHeaderProps {
   latestCompatibleVersion?: types.VersionInfo;
   versionsLoading: boolean;
   gameVersion: string;
+  totalDownloads?: number;
 }
 
 const INSTALL_ACCENT = getLocalAccentClasses('install');
 const UPDATE_ACCENT = getLocalAccentClasses('update');
 const FILES_ACCENT = getLocalAccentClasses('files');
+
 
 function isMapManifest(
   item: types.ModManifest | types.MapManifest,
@@ -73,6 +74,7 @@ export function ProjectHeader({
   latestCompatibleVersion,
   versionsLoading,
   gameVersion,
+  totalDownloads,
 }: ProjectHeaderProps) {
   const mapItem = isMapManifest(item) ? item : null;
   const cancellationToastId = `cancel-install-${type}-${item.id}`;
@@ -218,14 +220,19 @@ export function ProjectHeader({
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <Button size="sm" disabled className={INSTALL_ACCENT.solidButton}>
+                  <Button
+                    size="sm"
+                    disabled
+                    className={INSTALL_ACCENT.solidButton}
+                  >
                     <Download className="h-4 w-4" />
                     Install {effectiveVersion.version}
                   </Button>
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                No version compatible with your installed game version ({gameVersion})
+                No version compatible with your installed game version (
+                {gameVersion})
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -236,7 +243,10 @@ export function ProjectHeader({
           size="sm"
           className={INSTALL_ACCENT.solidButton}
           onClick={() =>
-            handleInstallClick(effectiveVersion.version, effectiveVersion.prerelease)
+            handleInstallClick(
+              effectiveVersion.version,
+              effectiveVersion.prerelease,
+            )
           }
         >
           <Download className="h-4 w-4" />
@@ -251,7 +261,10 @@ export function ProjectHeader({
             size="sm"
             className={UPDATE_ACCENT.solidButton}
             onClick={() =>
-              handleInstallClick(effectiveVersion.version, effectiveVersion.prerelease)
+              handleInstallClick(
+                effectiveVersion.version,
+                effectiveVersion.prerelease,
+              )
             }
           >
             <CircleFadingArrowUp className="h-4 w-4" />
@@ -270,9 +283,12 @@ export function ProjectHeader({
     }
     if (installedVersion) {
       return (
-        <div className="flex items-center gap-2">
-          <Badge variant="success" className="gap-1">
-            <CheckCircle className="h-3 w-3" />
+        <div className="flex items-center gap-3">
+          <Badge
+            variant="success"
+            className="h-9 gap-1.5 rounded-lg px-3 text-sm"
+          >
+            <CheckCircle className="h-3.5 w-3.5" />
             Installed {installedVersion}
           </Badge>
           <Button
@@ -289,7 +305,7 @@ export function ProjectHeader({
     return null;
   };
 
-  const detailBadges = mapItem
+  const badges = mapItem
     ? [
         mapItem.location,
         formatSourceQuality(mapItem.source_quality),
@@ -298,90 +314,98 @@ export function ProjectHeader({
       ].filter((v): v is string => Boolean(v))
     : (item.tags ?? []);
 
+  const CountryFlag = mapItem?.country
+    ? getCountryFlagIcon(mapItem.country.trim().toUpperCase())
+    : null;
+
   return (
     <>
-      <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex gap-4">
-          <div className="h-24 w-36 shrink-0 overflow-hidden rounded-lg bg-muted">
-            <GalleryImage
-              type={type}
-              id={item.id}
-              imagePath={item.gallery?.[0]}
-              className="h-full w-full object-cover"
-              fallbackIconClassName="h-8 w-8"
-            />
-          </div>
+      <div className="flex gap-7">
+        <div className="relative h-[10.5rem] w-[10.5rem] shrink-0 overflow-hidden rounded-xl bg-muted border border-border/50">
+          <GalleryImage
+            type={type}
+            id={item.id}
+            imagePath={item.gallery?.[0]}
+            className="absolute inset-0 h-full w-full object-cover"
+            fallbackIconClassName="h-10 w-10"
+          />
+        </div>
 
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                    {type === 'mod' ? (
-                      <Package className="h-2.5 w-2.5" />
-                    ) : (
-                      <MapPin className="h-2.5 w-2.5" />
+        <div className="flex min-w-0 flex-1 flex-col gap-3 pt-1">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+<div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold leading-tight text-foreground">
+                  {item.name}
+                </h1>
+                {mapItem?.city_code && (
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <span className="font-mono font-bold text-foreground">
+                      {mapItem.city_code}
+                    </span>
+                    {mapItem.country && (
+                      <>
+                        {CountryFlag && (
+                          <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
+                        )}
+                        <span>{mapItem.country.trim().toUpperCase()}</span>
+                      </>
                     )}
-                    {type === 'mod' ? 'Mod' : 'Map'}
                   </span>
-                  <h1 className="text-xl font-bold leading-tight text-foreground">
-                    {item.name}
-                  </h1>
-                </div>
+                )}
+              </div>
+              <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+                by{' '}
                 <button
                   type="button"
                   onClick={() =>
                     BrowserOpenURL(`https://github.com/${item.author}`)
                   }
-                  className="mt-0.5 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-foreground hover:underline"
                 >
-                  by {item.author}
+                  {item.author}
                   <ExternalLink className="h-3 w-3" />
                 </button>
-              </div>
-              <div className="shrink-0">{renderActionButtons()}</div>
+              </p>
             </div>
+            <div className="shrink-0 pt-6">{renderActionButtons()}</div>
+          </div>
 
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+            {typeof totalDownloads === 'number' && (
+              <span className="flex items-center gap-1.5">
+                <Download className="h-3.5 w-3.5" />
+                {totalDownloads.toLocaleString()}
+              </span>
+            )}
+            {mapItem && (mapItem.population ?? 0) > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" />
+                {mapItem.population.toLocaleString()}
+              </span>
+            )}
+            {item.source && (
+              <button
+                type="button"
+                onClick={() => BrowserOpenURL(item.source!)}
+                className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+              >
+                <Globe className="h-3.5 w-3.5" />
+                Source
+                <ExternalLink className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+
+          {badges.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
-              {mapItem && (
-                <>
-                  {mapItem.city_code && (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground">
-                      <MapPin className="h-3 w-3 text-muted-foreground" />
-                      {mapItem.city_code}
-                      {mapItem.country && (
-                        <span className="font-normal text-muted-foreground">
-                          · {mapItem.country}
-                        </span>
-                      )}
-                    </span>
-                  )}
-                  {mapItem.population > 0 && (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <Users className="h-3 w-3" />
-                      {mapItem.population.toLocaleString()}
-                    </span>
-                  )}
-                </>
-              )}
-              {detailBadges.map((badge) => (
+              {badges.map((badge) => (
                 <Badge key={badge} variant="secondary" size="sm">
                   {badge}
                 </Badge>
               ))}
-              {item.source && (
-                <button
-                  type="button"
-                  onClick={() => BrowserOpenURL(item.source!)}
-                  className="ml-1 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  <Globe className="h-3 w-3" />
-                  Source
-                  <ExternalLink className="h-3 w-3" />
-                </button>
-              )}
             </div>
-          </div>
+          )}
         </div>
       </div>
 

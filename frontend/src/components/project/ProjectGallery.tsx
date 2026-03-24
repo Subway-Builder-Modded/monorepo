@@ -52,25 +52,21 @@ export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
   const validImages = images.filter((url): url is string => url !== null);
 
   if (validImages.length === 0) {
-    return (
-      <EmptyState icon={FileText} title="No gallery images" />
-    );
+    return <EmptyState icon={FileText} title="No gallery images" />;
   }
 
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {validImages.map((url, i) => (
-          <Button
+          <button
             key={i}
             type="button"
-            intent="plain"
-            size="sm"
             onClick={() => setSelectedIndex(i)}
-            className="h-auto aspect-video p-0 rounded-lg overflow-hidden transition-opacity hover:opacity-80 active:translate-y-0"
+            className="block aspect-video rounded-lg overflow-hidden cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <img src={url} alt="" className="w-full h-full object-cover" />
-          </Button>
+          </button>
         ))}
       </div>
 
@@ -106,9 +102,7 @@ export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
                     size="icon"
                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm"
                     onClick={() =>
-                      setSelectedIndex(
-                        (selectedIndex + 1) % validImages.length,
-                      )
+                      setSelectedIndex((selectedIndex + 1) % validImages.length)
                     }
                   >
                     <ChevronRight className="h-4 w-4" />

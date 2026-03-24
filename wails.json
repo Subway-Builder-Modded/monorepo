@@ -7,14 +7,14 @@
   "frontend:dev:watcher": "pnpm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Railyard Team",
-    "email": "contact@cal.engineer"
+    "name": "Subway Builder Modded",
+    "email": "admin@subwaybuildermodded.com"
   },
   "info": {
-    "companyName": "Railyard Team",
+    "companyName": "Subway Builder Modded",
     "productName": "Railyard",
-    "productVersion": "0.1.0",
-    "copyright": "Copyright (c) 2026 cal.engineer",
+    "productVersion": "v0.2.0",
+    "copyright": "Copyright (c) 2026 Subway Builder Modded",
     "comments": "A mod manager for Subway Builder",
     "protocols": [
       {

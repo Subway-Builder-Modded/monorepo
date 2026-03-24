@@ -3,7 +3,10 @@ import { useState } from 'react';
 
 import { DangerZonePanel } from '@/components/settings/DangerZonePanel';
 import { GeneralSettingsPanel } from '@/components/settings/GeneralSettingsPanel';
-import { SettingsNav, type SettingsTab } from '@/components/settings/SettingsNav';
+import {
+  SettingsNav,
+  type SettingsTab,
+} from '@/components/settings/SettingsNav';
 import { SystemPreferencesPanel } from '@/components/settings/SystemPreferencesPanel';
 import { UIPreferencesPanel } from '@/components/settings/UIPreferencesPanel';
 import { PageHeading } from '@/components/shared/PageHeading';

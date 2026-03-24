@@ -1,4 +1,10 @@
-import { FolderOpen, FolderSearch, Gamepad2, KeyRound, RefreshCw } from 'lucide-react';
+import {
+  FolderOpen,
+  FolderSearch,
+  Gamepad2,
+  KeyRound,
+  RefreshCw,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -25,7 +31,10 @@ import { Input } from '@/components/ui/input';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { useConfigStore } from '@/stores/config-store';
 
-import { ManuallyCheckForUpdates, OpenInFileExplorer } from '../../../wailsjs/go/main/App';
+import {
+  ManuallyCheckForUpdates,
+  OpenInFileExplorer,
+} from '../../../wailsjs/go/main/App';
 
 const FILES_ACCENT = getLocalAccentClasses('files');
 const UPDATE_ACCENT = getLocalAccentClasses('update');
@@ -52,7 +61,8 @@ export function GeneralSettingsPanel() {
     if (!path) return;
     try {
       const result = await OpenInFileExplorer(path);
-      if (result?.status === 'error') toast.error(result.message || 'Failed to open location.');
+      if (result?.status === 'error')
+        toast.error(result.message || 'Failed to open location.');
     } catch {
       toast.error('Failed to open location.');
     }
@@ -61,7 +71,8 @@ export function GeneralSettingsPanel() {
   const handleUpdatesCheck = async () => {
     try {
       const response = await ManuallyCheckForUpdates();
-      if (response.status === 'error') throw new Error(response.message || 'Failed to check for updates');
+      if (response.status === 'error')
+        throw new Error(response.message || 'Failed to check for updates');
       toast.success('No updates found, or installation was cancelled.');
     } catch {
       toast.error('Failed to check for updates.');
@@ -72,7 +83,9 @@ export function GeneralSettingsPanel() {
     try {
       const newValue = !config?.checkForUpdatesOnLaunch;
       await updateCheckForUpdatesOnLaunch(newValue);
-      toast.success(`Check for updates on launch ${newValue ? 'enabled' : 'disabled'}.`);
+      toast.success(
+        `Check for updates on launch ${newValue ? 'enabled' : 'disabled'}.`,
+      );
     } catch {
       toast.error('Failed to update check for updates on launch setting.');
     }
@@ -140,7 +153,9 @@ export function GeneralSettingsPanel() {
       <Card>
         <CardHeader>
           <CardTitle>General Settings</CardTitle>
-          <CardDescription>Configure game paths, tokens, and system integrations.</CardDescription>
+          <CardDescription>
+            Configure game paths, tokens, and system integrations.
+          </CardDescription>
         </CardHeader>
         <CardContent className="px-6 py-0">
           <div className="divide-y divide-border">
@@ -324,7 +339,8 @@ export function GeneralSettingsPanel() {
           <DialogHeader>
             <DialogTitle>Edit GitHub Token</DialogTitle>
             <DialogDescription>
-              Provide a GitHub token to avoid unauthorized GitHub API rate limits.
+              Provide a GitHub token to avoid unauthorized GitHub API rate
+              limits.
             </DialogDescription>
           </DialogHeader>
           <Input
@@ -335,13 +351,20 @@ export function GeneralSettingsPanel() {
             className="font-mono"
           />
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={handleClearGithubToken} disabled={!hasGithubToken}>
+            <Button
+              variant="outline"
+              onClick={handleClearGithubToken}
+              disabled={!hasGithubToken}
+            >
               Clear
             </Button>
             <Button variant="outline" onClick={handleCheckToken}>
               Check
             </Button>
-            <Button onClick={handleSaveGithubToken} disabled={githubTokenDraft.trim() === ''}>
+            <Button
+              onClick={handleSaveGithubToken}
+              disabled={githubTokenDraft.trim() === ''}
+            >
               Save
             </Button>
           </DialogFooter>

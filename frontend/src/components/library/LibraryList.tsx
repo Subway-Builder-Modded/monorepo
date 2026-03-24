@@ -2,8 +2,8 @@ import {
   CircleFadingArrowUp,
   FolderOpen,
   Globe,
-  Hash,
   HardDrive,
+  Hash,
   Trash2,
   Type,
 } from 'lucide-react';
@@ -13,14 +13,19 @@ import { Link } from 'wouter';
 import { UninstallDialog } from '@/components/dialogs/UninstallDialog';
 import { UpdateSubscriptionsDialog } from '@/components/dialogs/UpdateSubscriptionsDialog';
 import { GalleryImage } from '@/components/shared/GalleryImage';
+import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import type { AssetType } from '@/lib/asset-types';
 import { assetTypeToListingPath } from '@/lib/asset-types';
-import { type SortDirection, type SortField, type SortState, TEXT_SORT_FIELDS } from '@/lib/constants';
+import {
+  type SortDirection,
+  type SortField,
+  type SortState,
+  TEXT_SORT_FIELDS,
+} from '@/lib/constants';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
 import { LOCAL_ACCENTS } from '@/lib/local-accent';
@@ -101,7 +106,8 @@ export function LibraryList({
   );
 
   const allKeys = items.map((e) => composeAssetKey(e.type, e.item.id));
-  const allSelected = items.length > 0 && allKeys.every((k) => selectedIds.has(k));
+  const allSelected =
+    items.length > 0 && allKeys.every((k) => selectedIds.has(k));
   const someSelected = !allSelected && allKeys.some((k) => selectedIds.has(k));
 
   return (
@@ -114,7 +120,9 @@ export function LibraryList({
       >
         <Checkbox
           checked={allSelected ? true : someSelected ? 'indeterminate' : false}
-          onCheckedChange={() => (allSelected ? clearSelection() : selectAll(allKeys))}
+          onCheckedChange={() =>
+            allSelected ? clearSelection() : selectAll(allKeys)
+          }
           aria-label="Select all"
           className="h-4 w-4 shrink-0"
         />
@@ -193,7 +201,9 @@ function LibraryListRow({
   const [updateOpen, setUpdateOpen] = useState(false);
 
   const { selectedIds, toggleSelected, removeSelected } = useLibraryStore();
-  const metroMakerDataPath = useConfigStore((s) => s.config?.metroMakerDataPath);
+  const metroMakerDataPath = useConfigStore(
+    (s) => s.config?.metroMakerDataPath,
+  );
 
   const key = composeAssetKey(entry.type, entry.item.id);
   const isSelected = selectedIds.has(key);
@@ -216,7 +226,11 @@ function LibraryListRow({
 
   const pendingUpdate = isLocal
     ? undefined
-    : getPendingSubscriptionUpdate(pendingUpdatesByKey, entry.type, entry.item.id);
+    : getPendingSubscriptionUpdate(
+        pendingUpdatesByKey,
+        entry.type,
+        entry.item.id,
+      );
 
   const projectHref = `/project/${assetTypeToListingPath(entry.type)}/${entry.item.id}`;
 
@@ -275,7 +289,11 @@ function LibraryListRow({
             ) : (
               <>
                 {visibleBadges.map((badge) => (
-                  <Badge key={badge} variant="secondary" className="px-1.5 py-0 text-xs">
+                  <Badge
+                    key={badge}
+                    variant="secondary"
+                    className="px-1.5 py-0 text-xs"
+                  >
                     {badge}
                   </Badge>
                 ))}
@@ -292,16 +310,27 @@ function LibraryListRow({
         {showMapColumns && (
           <div className={cn(COL.city, 'hidden shrink-0 lg:block')}>
             {mapCityCode && (
-              <span className="text-sm font-semibold text-foreground">{mapCityCode}</span>
+              <span className="text-sm font-semibold text-foreground">
+                {mapCityCode}
+              </span>
             )}
           </div>
         )}
 
         {showMapColumns && (
-          <div className={cn(COL.country, 'hidden shrink-0 lg:flex items-center gap-1.5')}>
-            {CountryFlag && <CountryFlag className="h-3 w-4 shrink-0 rounded-[1px]" />}
+          <div
+            className={cn(
+              COL.country,
+              'hidden shrink-0 lg:flex items-center gap-1.5',
+            )}
+          >
+            {CountryFlag && (
+              <CountryFlag className="h-3 w-4 shrink-0 rounded-[1px]" />
+            )}
             {mapCountry && (
-              <span className="text-sm font-semibold text-foreground">{mapCountry}</span>
+              <span className="text-sm font-semibold text-foreground">
+                {mapCountry}
+              </span>
             )}
           </div>
         )}
@@ -312,7 +341,12 @@ function LibraryListRow({
           </span>
         </div>
 
-        <div className={cn(COL.actions, 'shrink-0 flex items-center justify-end gap-0.5')}>
+        <div
+          className={cn(
+            COL.actions,
+            'shrink-0 flex items-center justify-end gap-0.5',
+          )}
+        >
           {pendingUpdate && (
             <Button
               variant="ghost"

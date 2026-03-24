@@ -30,14 +30,16 @@ export function SystemPreferencesPanel() {
 
   useMemo(() => {
     GetPlatform().then((response) => {
-      if (response.status === 'success') setPlatform(response.platform || 'unknown');
+      if (response.status === 'success')
+        setPlatform(response.platform || 'unknown');
     });
   }, []);
 
   useMemo(() => {
     if (platform !== 'linux') return;
     SandboxIsInstalled().then((response) => {
-      if (response.status === 'success') setSandboxInstalled(response.installed);
+      if (response.status === 'success')
+        setSandboxInstalled(response.installed);
     });
   }, [platform]);
 
@@ -55,11 +57,14 @@ export function SystemPreferencesPanel() {
   const handleInstallSandbox = async () => {
     try {
       const response = await InstallLinuxSandbox();
-      if (response.status === 'error') throw new Error(response.message || 'Failed to install Linux sandbox');
+      if (response.status === 'error')
+        throw new Error(response.message || 'Failed to install Linux sandbox');
       setSandboxInstalled(true);
       toast.success('Linux sandbox installed successfully.');
     } catch {
-      toast.error('Failed to install Linux sandbox. Check the logs for details.');
+      toast.error(
+        'Failed to install Linux sandbox. Check the logs for details.',
+      );
     }
   };
 
@@ -67,7 +72,9 @@ export function SystemPreferencesPanel() {
     <Card>
       <CardHeader>
         <CardTitle>System Preferences</CardTitle>
-        <CardDescription>Performance, update behavior, and developer options.</CardDescription>
+        <CardDescription>
+          Performance, update behavior, and developer options.
+        </CardDescription>
       </CardHeader>
       <CardContent className="px-6 py-0">
         <div className="divide-y divide-border">
@@ -77,7 +84,10 @@ export function SystemPreferencesPanel() {
               iconClassName="bg-[color-mix(in_oklab,var(--install-primary)_12%,transparent)] text-[var(--install-primary)]"
               label="Linux Sandbox"
               badge={
-                <Badge size="sm" variant={sandboxInstalled ? 'success' : 'outline'}>
+                <Badge
+                  size="sm"
+                  variant={sandboxInstalled ? 'success' : 'outline'}
+                >
                   {sandboxInstalled ? 'Installed' : 'Not Installed'}
                 </Badge>
               }

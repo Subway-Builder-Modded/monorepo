@@ -5,13 +5,12 @@ import { toast } from 'sonner';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import { useInstalledStore } from '@/stores/installed-store';
 
+import { EventsOn } from '../../../wailsjs/runtime/runtime';
 import {
   TOAST_PROGRESS_FILL_CLASS,
   TOAST_PROGRESS_TRACK_CLASS,
   TOAST_QUEUE_LABEL_CLASS,
 } from './notification-classes';
-
-import { EventsOn } from '../../../wailsjs/runtime/runtime';
 
 interface DownloadProgress {
   itemId: string;
@@ -66,9 +65,7 @@ export function DownloadNotification() {
                   </span>
                 </div>
                 {queueLabel && (
-                  <span className={TOAST_QUEUE_LABEL_CLASS}>
-                    {queueLabel}
-                  </span>
+                  <span className={TOAST_QUEUE_LABEL_CLASS}>{queueLabel}</span>
                 )}
               </div>
             </div>,
@@ -98,9 +95,7 @@ export function DownloadNotification() {
               </span>
             </div>
             {queueLabel && (
-              <span className={TOAST_QUEUE_LABEL_CLASS}>
-                {queueLabel}
-              </span>
+              <span className={TOAST_QUEUE_LABEL_CLASS}>{queueLabel}</span>
             )}
           </div>
           <div className="text-xs text-muted-foreground">{description}</div>

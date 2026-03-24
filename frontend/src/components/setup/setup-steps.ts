@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { Gamepad2, Github, RefreshCw, TrainTrack } from 'lucide-react';
 
-import { types } from '../../../wailsjs/go/models';
+import type { types } from '../../../wailsjs/go/models';
 
 export interface SetupStepState {
   validation: types.ConfigPathValidation | null;
@@ -36,14 +36,16 @@ export const SETUP_STEPS: SetupStep[] = [
     icon: Github,
     title: 'GitHub Token',
     label: 'GitHub',
-    description: 'Enter a token for higher GitHub API rate limits. For more info, see the documentation.',
+    description:
+      'Enter a token for higher GitHub API rate limits. For more info, see the documentation.',
     canProceed: (s) => s.tokenState !== 'invalid',
   },
   {
     icon: RefreshCw,
     title: 'Automatic Updates',
     label: 'Updates',
-    description: 'Configure whether the app should check for updates automatically on launch.',
+    description:
+      'Configure whether the app should check for updates automatically on launch.',
     canProceed: (s) => s.checkForUpdates !== null,
   },
 ];

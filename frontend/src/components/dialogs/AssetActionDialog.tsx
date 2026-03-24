@@ -72,13 +72,14 @@ export function AssetActionDialog({
 
   const sortedEntries = useMemo(
     () =>
-      entries
-        ? [...entries].sort((a, b) => a.name.localeCompare(b.name))
-        : [],
+      entries ? [...entries].sort((a, b) => a.name.localeCompare(b.name)) : [],
     [entries],
   );
   const previewEntries = sortedEntries.slice(0, ENTRIES_PREVIEW_LIMIT);
-  const remainingCount = Math.max(0, sortedEntries.length - previewEntries.length);
+  const remainingCount = Math.max(
+    0,
+    sortedEntries.length - previewEntries.length,
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

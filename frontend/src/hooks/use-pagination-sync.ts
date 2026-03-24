@@ -1,7 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-import type { AssetQueryFilters, AssetQueryFilterUpdater } from '@/stores/asset-query-filter-store';
 import type { PerPage } from '@/lib/constants';
+import type {
+  AssetQueryFilters,
+  AssetQueryFilterUpdater,
+} from '@/stores/asset-query-filter-store';
 
 interface UsePaginationSyncParams {
   defaultPerPage: PerPage;
@@ -18,7 +21,9 @@ export function usePaginationSync({
 }: UsePaginationSyncParams): void {
   useEffect(() => {
     setFilters((prev) =>
-      prev.perPage === defaultPerPage ? prev : { ...prev, perPage: defaultPerPage },
+      prev.perPage === defaultPerPage
+        ? prev
+        : { ...prev, perPage: defaultPerPage },
     );
   }, [defaultPerPage, setFilters]);
 

@@ -1,7 +1,13 @@
 import { MapPin, Package } from 'lucide-react';
 
-import { SidebarFilters, type SidebarFiltersProps } from '@/components/shared/SidebarFilters';
-import { SidebarPanel, SIDEBAR_CONTENT_OFFSET } from '@/components/shared/SidebarPanel';
+import {
+  SidebarFilters,
+  type SidebarFiltersProps,
+} from '@/components/shared/SidebarFilters';
+import {
+  SIDEBAR_CONTENT_OFFSET,
+  SidebarPanel,
+} from '@/components/shared/SidebarPanel';
 import type { AssetType } from '@/lib/asset-types';
 import { cn } from '@/lib/utils';
 
@@ -13,12 +19,21 @@ export interface AssetSidebarPanelProps extends SidebarFiltersProps {
   ariaLabel: string;
 }
 
-const TYPE_BUTTONS: Array<{ type: AssetType; icon: typeof MapPin; label: string }> = [
+const TYPE_BUTTONS: Array<{
+  type: AssetType;
+  icon: typeof MapPin;
+  label: string;
+}> = [
   { type: 'map', icon: MapPin, label: 'Show maps' },
   { type: 'mod', icon: Package, label: 'Show mods' },
 ];
 
-export function AssetSidebarPanel({ open, onToggle, ariaLabel, ...filterProps }: AssetSidebarPanelProps) {
+export function AssetSidebarPanel({
+  open,
+  onToggle,
+  ariaLabel,
+  ...filterProps
+}: AssetSidebarPanelProps) {
   const currentType = filterProps.filters.type;
 
   const collapsedContent = (
