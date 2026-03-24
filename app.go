@@ -76,6 +76,21 @@ func (a *App) startup(ctx context.Context) {
 	a.setStartupReady(false)
 	a.ctx = ctx
 	a.Config.SetContext(ctx)
+	a.Downloader.OnDependencyInstalled = func(itemId string, itemType types.AssetType, version types.Version) {
+		a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
+			ProfileID: a.Profiles.GetActiveProfile().Profile.ID,
+			Action:    types.SubscriptionActionSubscribe,
+			ForceSync: true,
+			Assets: map[string]types.SubscriptionUpdateItem{
+				itemId: {
+					Version: version,
+					Type:    itemType,
+					IsLocal: false,
+				},
+			},
+		})
+	}
+
 	a.Downloader.OnExtractProgress = func(itemId string, extracted int64, total int64) {
 		wailsruntime.EventsEmit(ctx, "extract:progress", map[string]interface{}{
 			"itemId":          itemId,
@@ -220,32 +235,6 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		}
 	}
 
-	// Ensures that any dependencies needed are subscribed to without triggering an unnecessary dependency check
-	wailsruntime.EventsOn(a.ctx, "downloader:subscribeDependency", func(optionalData ...interface{}) {
-		if len(optionalData) != 3 {
-			return
-		}
-
-		itemId, ok1 := optionalData[0].(string)
-		itemVersion, ok2 := optionalData[1].(types.Version)
-		itemType, ok3 := optionalData[2].(types.AssetType)
-		if !ok1 || !ok2 || !ok3 {
-			return
-		}
-
-		a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
-			ProfileID: a.Profiles.GetActiveProfile().Profile.ID,
-			Action:    types.SubscriptionActionSubscribe,
-			ForceSync: true,
-			Assets: map[string]types.SubscriptionUpdateItem{
-				itemId: {
-					Version: itemVersion,
-					Type:    itemType,
-					IsLocal: false,
-				},
-			},
-		})
-	})
 	// Sync subscriptions for active profile on startup
 	// TODO: Make this configurable within the profile itself
 	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, false)

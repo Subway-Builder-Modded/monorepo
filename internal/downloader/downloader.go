@@ -25,27 +25,28 @@ import (
 	"railyard/internal/types"
 
 	semver "github.com/Masterminds/semver/v3"
-	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.yaml.in/yaml/v4"
 )
 
 type ExtractProgressFunc func(itemId string, extracted int64, total int64)
 type CancelledFunc func(itemID string, assetType types.AssetType, phase string)
+type DependencyInstalledFunc func(modID string, itemType types.AssetType, version types.Version)
 type RegistryUpdateFunc func()
 
 // TODO: Consider adding this as an injectable dependency for other services
 var downloaderHTTPClient = requests.NewDownloadClient()
 
 type Downloader struct {
-	tempPath          string
-	mapTilePath       string
-	Registry          *registry.Registry
-	Config            *config.Config
-	Logger            logger.Logger
-	OnProgress        types.ProgressFunc
-	OnExtractProgress ExtractProgressFunc
-	OnCancelled       CancelledFunc
-	OnRegistryUpdate  RegistryUpdateFunc
+	tempPath              string
+	mapTilePath           string
+	Registry              *registry.Registry
+	Config                *config.Config
+	Logger                logger.Logger
+	OnProgress            types.ProgressFunc
+	OnExtractProgress     ExtractProgressFunc
+	OnCancelled           CancelledFunc
+	OnRegistryUpdate      RegistryUpdateFunc
+	OnDependencyInstalled DependencyInstalledFunc
 
 	downloadMu   sync.Mutex
 	downloadCond *sync.Cond
@@ -919,7 +920,7 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 	d.Logger.Info("InstallMod completed", "mod_id", modId, "version", version)
 	if isDep {
 		// Deps need to be subscribed to avoid them being uninstalled, but ForceSyncing will trigger an unecessary deps check
-		wailsruntime.EventsEmit(ctx, "downloader:subscribeDependency", modId, types.AssetTypeMod, version)
+		d.OnDependencyInstalled(modId, types.AssetTypeMod, types.Version(version))
 	}
 	return d.installSuccess(types.AssetTypeMod, modId, version, types.ConfigData{}, "Mod installed successfully", "mod_id", modId, "version", version)
 }
