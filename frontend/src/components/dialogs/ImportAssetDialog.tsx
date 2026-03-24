@@ -66,7 +66,7 @@ export function ImportAssetDialog({
         setInvalidCodeMessage(err.message);
         return;
       }
-      toast.error(err instanceof Error ? err.message : String(err));
+      toast.error('Failed to import map.');
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ export function ImportAssetDialog({
     try {
       const selection = await OpenImportAssetDialog('map');
       if (selection.status === 'error') {
-        toast.error(selection.message || 'Failed to open import dialog');
+        toast.error('Failed to import map.');
         return;
       }
       if (selection.status === 'warn' || !selection.path?.trim()) {

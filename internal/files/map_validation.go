@@ -83,7 +83,7 @@ func ValidateMapArchive(filePath string) (types.ConfigData, types.DownloaderErro
 	filesFound := BuildMapArchiveFileIndex(reader.File)
 
 	if !requiredFilesPresent(filesFound) {
-		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{"map archive is missing one or more required files"}}
+		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{"The map archive is missing one or more required files."}}
 	}
 
 	configReader, err := filesFound[MapArchiveKeyConfig].FileObject.Open()
