@@ -96,7 +96,7 @@ func (r *Registry) RefreshResponse() types.GenericResponse {
 func (r *Registry) GetMods() []types.ModManifest {
 	NewMods := make([]types.ModManifest, 0)
 	for _, mod := range r.mods {
-		if mod.IsTest && !r.config.Cfg.ViewTestMods {
+		if mod.IsTest && !r.config.Cfg.ViewTestAssets {
 			continue // Skip test mods if the setting is disabled
 		}
 		NewMods = append(NewMods, mod)
@@ -116,7 +116,7 @@ func (r *Registry) GetModsResponse() types.ModsResponse {
 func (r *Registry) GetMaps() []types.MapManifest {
 	NewMaps := make([]types.MapManifest, 0)
 	for _, m := range r.maps {
-		if m.IsTest && !r.config.Cfg.ViewTestMods {
+		if m.IsTest && !r.config.Cfg.ViewTestAssets {
 			continue
 		}
 		NewMaps = append(NewMaps, m)

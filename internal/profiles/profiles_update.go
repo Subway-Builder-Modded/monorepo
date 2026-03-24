@@ -101,23 +101,6 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 	return result
 }
 
-func (s *UserProfiles) AddSubscriptionNoSync(profileID string, assetID string, assetType types.AssetType, version types.Version, isLocal bool) types.UpdateSubscriptionsResult {
-	req := types.UpdateSubscriptionsRequest{
-		ProfileID: profileID,
-		Assets: map[string]types.SubscriptionUpdateItem{
-			assetID: {
-				Type:    assetType,
-				Version: version,
-				IsLocal: isLocal,
-			},
-		},
-		Action:    types.SubscriptionActionSubscribe,
-		ForceSync: false,
-	}
-
-	return s.UpdateSubscriptions(req)
-}
-
 // UpdateSubscriptionsToLatest resolves the latest available registry versions for current profile subscriptions,
 // updates those that are behind, persists updates to disk, and runs sync/install-uninstall routines.
 func (s *UserProfiles) UpdateSubscriptionsToLatest(req types.UpdateSubscriptionsToLatestRequest) types.UpdateSubscriptionsResult {

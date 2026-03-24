@@ -151,16 +151,15 @@ func WarnResponse(msg string) GenericResponse {
 type AssetType string
 
 const (
-	AssetTypeMap    AssetType = "map"
-	AssetTypeMod    AssetType = "mod"
-	AssetTypeDepMod AssetType = "dependency_mod"
+	AssetTypeMap AssetType = "map"
+	AssetTypeMod AssetType = "mod"
 )
 
 var LocalMapCodePattern = regexp.MustCompile(`^[A-Z]{2,4}$`)
 
 func IsValidAssetType(assetType AssetType) bool {
 	switch assetType {
-	case AssetTypeMap, AssetTypeMod, AssetTypeDepMod:
+	case AssetTypeMap, AssetTypeMod:
 		return true
 	default:
 		return false

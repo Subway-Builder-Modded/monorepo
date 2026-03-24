@@ -26,7 +26,7 @@ export namespace types {
 	    checkForUpdatesOnLaunch: boolean;
 	    setupCompleted: boolean;
 	    chromeSandboxPath?: string;
-	    viewTestMods?: boolean;
+	    viewTestAssets?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -40,7 +40,7 @@ export namespace types {
 	        this.checkForUpdatesOnLaunch = source["checkForUpdatesOnLaunch"];
 	        this.setupCompleted = source["setupCompleted"];
 	        this.chromeSandboxPath = source["chromeSandboxPath"];
-	        this.viewTestMods = source["viewTestMods"];
+	        this.viewTestAssets = source["viewTestAssets"];
 	    }
 	}
 	export class AppVersionResponse {

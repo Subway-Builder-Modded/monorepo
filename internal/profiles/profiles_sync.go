@@ -195,9 +195,6 @@ func syncAssetSubscriptions[T any, U any](log logger.Logger, profileID string, a
 		return args.isStale != nil && args.isStale()
 	}
 	assetType := args.assetType
-	if assetType == types.AssetTypeDepMod {
-		assetType = types.AssetTypeMod // For logging and error purposes, treat dependency mods as mods since they are not a separate asset type from the registry's perspective
-	}
 	installedVersion := buildVersionIndexFromItems(args.installedArgs)
 	availableVersions := buildAvailableVersionIndex(args.availableArgs, profileID, args.subscriptions, assetType, &errs)
 

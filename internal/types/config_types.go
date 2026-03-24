@@ -17,7 +17,7 @@ type AppConfig struct {
 	CheckForUpdatesOnLaunch bool   `json:"checkForUpdatesOnLaunch"`
 	SetupCompleted          bool   `json:"setupCompleted"`
 	ChromeSandboxPath       string `json:"chromeSandboxPath,omitempty"`
-	ViewTestMods            bool   `json:"viewTestMods,omitempty"`
+	ViewTestAssets          bool   `json:"viewTestAssets,omitempty"`
 	// Other fields to be appended here
 }
 

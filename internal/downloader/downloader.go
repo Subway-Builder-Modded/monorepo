@@ -779,8 +779,6 @@ func (d *Downloader) InstallAsset(req types.InstallAssetRequest) types.AssetInst
 		defer cancel()
 		d.Logger.Info("Attempting to resolve installation method", "asset_type", req.AssetType, "asset_id", req.AssetID, "version", req.Version)
 		switch req.AssetType {
-		case types.AssetTypeDepMod:
-			return operationResult{assetInstallResponse: d.installModNow(opCtx, req.AssetID, req.Version, true)}
 		case types.AssetTypeMap:
 			return operationResult{assetInstallResponse: d.installMapNow(opCtx, req.AssetID, req.Version, replaceOnConflict)}
 		case types.AssetTypeMod:
