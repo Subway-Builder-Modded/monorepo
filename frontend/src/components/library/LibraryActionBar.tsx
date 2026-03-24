@@ -1,4 +1,9 @@
-import { CheckCircle, CircleFadingArrowUp, OctagonX, Trash2 } from 'lucide-react';
+import {
+  CheckCircle,
+  CircleFadingArrowUp,
+  OctagonX,
+  Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -122,7 +127,10 @@ export function LibraryActionBar({
   const sortedUninstallTargets = uninstallTargets
     ? [...uninstallTargets].sort((a, b) => a.name.localeCompare(b.name))
     : [];
-  const uninstallPreviewEntries = sortedUninstallTargets.slice(0, ENTRIES_PREVIEW_LIMIT);
+  const uninstallPreviewEntries = sortedUninstallTargets.slice(
+    0,
+    ENTRIES_PREVIEW_LIMIT,
+  );
   const uninstallRemainingCount = Math.max(
     0,
     sortedUninstallTargets.length - uninstallPreviewEntries.length,
@@ -131,7 +139,10 @@ export function LibraryActionBar({
   const sortedUpdateTargets = updateTargets
     ? [...updateTargets].sort((a, b) => a.name.localeCompare(b.name))
     : [];
-  const updatePreviewEntries = sortedUpdateTargets.slice(0, ENTRIES_PREVIEW_LIMIT);
+  const updatePreviewEntries = sortedUpdateTargets.slice(
+    0,
+    ENTRIES_PREVIEW_LIMIT,
+  );
   const updateRemainingCount = Math.max(
     0,
     sortedUpdateTargets.length - updatePreviewEntries.length,

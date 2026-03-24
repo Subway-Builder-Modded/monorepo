@@ -189,8 +189,7 @@ export function ChangelogPage() {
               `${type}:${item.id}`,
             );
           }
-        } catch {
-        }
+        } catch {}
 
         if (!cancelled) {
           const integrity = type === 'mod' ? modIntegrity : mapIntegrity;
@@ -357,7 +356,10 @@ export function ChangelogPage() {
     if (installedVersion === versionInfo.version) {
       return (
         <div className="flex items-center gap-3">
-          <Badge variant="success" className="h-9 gap-1.5 rounded-lg px-3 text-sm">
+          <Badge
+            variant="success"
+            className="h-9 gap-1.5 rounded-lg px-3 text-sm"
+          >
             <CheckCircle className="h-3.5 w-3.5" />
             Installed
           </Badge>

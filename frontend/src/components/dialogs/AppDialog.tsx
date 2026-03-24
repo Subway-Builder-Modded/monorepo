@@ -77,9 +77,7 @@ export function AppDialog({
               disabled={confirm.loading}
               className={`gap-1.5 ${accent.solidButton}`}
             >
-              {confirm.loading && (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              )}
+              {confirm.loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {confirm.label}
             </Button>
           )}

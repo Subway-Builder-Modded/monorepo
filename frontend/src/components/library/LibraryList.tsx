@@ -274,7 +274,9 @@ function LibraryListRow({
     if (!updateTarget) return;
     setUpdateLoading(true);
     try {
-      await updateAssetsToLatest([{ id: updateTarget.id, type: updateTarget.type }]);
+      await updateAssetsToLatest([
+        { id: updateTarget.id, type: updateTarget.type },
+      ]);
       toast.success(`${updateTarget.name} has been updated.`);
       void onRefreshPendingUpdates();
       setUpdateOpen(false);

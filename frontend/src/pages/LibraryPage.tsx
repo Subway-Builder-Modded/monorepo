@@ -100,8 +100,12 @@ export function LibraryPage() {
     mapDownloadTotals,
     ensureDownloadTotals,
   } = useRegistryStore();
-  const { installedMods, installedMaps, updateInstalledLists, importMapFromZip } =
-    useInstalledStore();
+  const {
+    installedMods,
+    installedMaps,
+    updateInstalledLists,
+    importMapFromZip,
+  } = useInstalledStore();
 
   const refreshPendingSubscriptionUpdates = useCallback(async () => {
     let result;
@@ -481,8 +485,7 @@ export function LibraryPage() {
         }}
       >
         <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-          Asset Type:{' '}
-          <span className="font-medium text-foreground">Map</span>
+          Asset Type: <span className="font-medium text-foreground">Map</span>
           {importSelectedPath ? (
             <p className="mt-1 truncate">
               Selected Archive:{' '}

@@ -13,6 +13,7 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { useState } from 'react';
+import semver from 'semver';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
@@ -29,8 +30,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import semver from 'semver';
-
 import type { AssetType } from '@/lib/asset-types';
 import { assetTypeToListingPath } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
@@ -290,8 +289,14 @@ export function ProjectVersions({
               onSort={handleSort}
             />
           </div>
-          <div className="hidden lg:block w-px self-stretch bg-border/50 mx-2" aria-hidden />
-          <div className="w-[7rem] shrink-0 flex items-center justify-center" aria-hidden />
+          <div
+            className="hidden lg:block w-px self-stretch bg-border/50 mx-2"
+            aria-hidden
+          />
+          <div
+            className="w-[7rem] shrink-0 flex items-center justify-center"
+            aria-hidden
+          />
         </div>
 
         <div className="divide-y divide-border/50">
@@ -321,7 +326,10 @@ export function ProjectVersions({
                         {v.version}
                       </span>
                       {v.prerelease && (
-                        <Badge size="sm" className="border-amber-500/40 bg-amber-500/15 text-amber-600 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-400">
+                        <Badge
+                          size="sm"
+                          className="border-amber-500/40 bg-amber-500/15 text-amber-600 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-400"
+                        >
                           Beta
                         </Badge>
                       )}
