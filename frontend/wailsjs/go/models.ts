@@ -278,6 +278,104 @@ export namespace types {
 		}
 	}
 	
+	export class VersionInfo {
+	    version: string;
+	    name: string;
+	    changelog: string;
+	    date: string;
+	    download_url: string;
+	    game_version: string;
+	    sha256: string;
+	    downloads: number;
+	    manifest?: string;
+	    prerelease: boolean;
+	    dependencies?: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new VersionInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.version = source["version"];
+	        this.name = source["name"];
+	        this.changelog = source["changelog"];
+	        this.date = source["date"];
+	        this.download_url = source["download_url"];
+	        this.game_version = source["game_version"];
+	        this.sha256 = source["sha256"];
+	        this.downloads = source["downloads"];
+	        this.manifest = source["manifest"];
+	        this.prerelease = source["prerelease"];
+	        this.dependencies = source["dependencies"];
+	    }
+	}
+	export class DependencyListEntry {
+	    ranges: string[];
+	    installCandidate: VersionInfo;
+	
+	    static createFrom(source: any = {}) {
+	        return new DependencyListEntry(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.ranges = source["ranges"];
+	        this.installCandidate = this.convertValues(source["installCandidate"], VersionInfo);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class DependencyListResponse {
+	    status: string;
+	    message: string;
+	    installList: Record<string, DependencyListEntry>;
+	
+	    static createFrom(source: any = {}) {
+	        return new DependencyListResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.message = source["message"];
+	        this.installList = this.convertValues(source["installList"], DependencyListEntry, true);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class DownloadCountsByAssetTypeResponse {
 	    status: string;
 	    message: string;
@@ -1259,6 +1357,7 @@ export namespace types {
 	    maps: Record<string, string>;
 	    localMaps: Record<string, string>;
 	    mods: Record<string, string>;
+	    modsDeps?: Record<string, string>;
 	
 	    static createFrom(source: any = {}) {
 	        return new Subscriptions(source);
@@ -1269,6 +1368,7 @@ export namespace types {
 	        this.maps = source["maps"];
 	        this.localMaps = source["localMaps"];
 	        this.mods = source["mods"];
+	        this.modsDeps = source["modsDeps"];
 	    }
 	}
 	export class UserProfilesError {
@@ -1568,36 +1668,7 @@ export namespace types {
 		}
 	}
 	
-	export class VersionInfo {
-	    version: string;
-	    name: string;
-	    changelog: string;
-	    date: string;
-	    download_url: string;
-	    game_version: string;
-	    sha256: string;
-	    downloads: number;
-	    manifest?: string;
-	    prerelease: boolean;
 	
-	    static createFrom(source: any = {}) {
-	        return new VersionInfo(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.version = source["version"];
-	        this.name = source["name"];
-	        this.changelog = source["changelog"];
-	        this.date = source["date"];
-	        this.download_url = source["download_url"];
-	        this.game_version = source["game_version"];
-	        this.sha256 = source["sha256"];
-	        this.downloads = source["downloads"];
-	        this.manifest = source["manifest"];
-	        this.prerelease = source["prerelease"];
-	    }
-	}
 	export class VersionsResponse {
 	    status: string;
 	    message: string;

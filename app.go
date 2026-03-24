@@ -220,6 +220,21 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		}
 	}
 
+	// Ensures that any dependencies needed are subscribed to without triggering an unnecessary dependency check
+	wailsruntime.EventsOn(a.ctx, "downloader:subscribeDependency", func(optionalData ...interface{}) {
+		if len(optionalData) != 3 {
+			return
+		}
+
+		itemId, ok1 := optionalData[0].(string)
+		itemVersion, ok2 := optionalData[1].(types.Version)
+		itemType, ok3 := optionalData[2].(types.AssetType)
+		if !ok1 || !ok2 || !ok3 {
+			return
+		}
+
+		a.Profiles.AddSubscriptionNoSync(a.Profiles.GetActiveProfile().Profile.ID, itemId, itemType, itemVersion, false)
+	})
 	// Sync subscriptions for active profile on startup
 	// TODO: Make this configurable within the profile itself
 	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, false)

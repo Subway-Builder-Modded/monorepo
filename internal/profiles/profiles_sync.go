@@ -22,6 +22,7 @@ func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict boo
 
 	mapArgs := s.buildMapSyncArgs(profile, func() bool { return s.isSnapshotStale(snapshotVersion) }, replaceOnConflict)
 	modArgs := s.buildModSyncArgs(profile, func() bool { return s.isSnapshotStale(snapshotVersion) })
+	depModArgs := s.buildDepModSyncArgs(profile, func() bool { return s.isSnapshotStale(snapshotVersion) })
 
 	syncErrors := make([]types.UserProfilesError, 0)
 	operations := make([]types.SubscriptionOperation, 0)
@@ -40,7 +41,13 @@ func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict boo
 	syncErrors = append(syncErrors, modErrors...)
 	assetsToPurge = append(assetsToPurge, invalidMods...)
 
-	if mapStale || modStale {
+	s.Logger.Info("Syncing mod dependency subscriptions", "profile_id", profileID, "subscription_count", len(profile.Subscriptions.ModsDeps))
+	depModOperations, depModErrors, invalidDepMods, depModStale := syncAssetSubscriptions(s.Logger, profileID, depModArgs)
+	operations = append(operations, depModOperations...)
+	syncErrors = append(syncErrors, depModErrors...)
+	assetsToPurge = append(assetsToPurge, invalidDepMods...)
+
+	if mapStale || modStale || depModStale {
 		s.Logger.Warn("Subscription sync cancelled due to newer profile update", "profile_id", profileID)
 		staleWarning := userProfilesError(
 			profileID,
@@ -182,6 +189,36 @@ func (s *UserProfiles) buildModSyncArgs(profile types.UserProfile, isStale func(
 	}
 }
 
+func (s *UserProfiles) buildDepModSyncArgs(profile types.UserProfile, isStale func() bool) assetSyncArgs[types.InstalledModInfo, types.ModManifest] {
+	return assetSyncArgs[types.InstalledModInfo, types.ModManifest]{
+		assetType:     types.AssetTypeDepMod,
+		subscriptions: profile.Subscriptions.ModsDeps,
+		isStale:       isStale,
+		installedArgs: installedVersionArgs[types.InstalledModInfo]{
+			getInstalledAssetsFn: s.Registry.GetInstalledMods, // Dependency mods are not tracked separately from subscribed mods in the registry, so we can use the same function to resolve installed versions
+			idFn:                 func(item types.InstalledModInfo) string { return item.ID },
+			versionFn:            func(item types.InstalledModInfo) string { return item.Version },
+		},
+		availableArgs: availableVersionArgs[types.ModManifest]{
+			getManifestsFn: s.Registry.GetMods, // Dependency mods are not tracked separately from subscribed mods in the registry, so we can use the same function to resolve available versions
+			idFn:           func(item types.ModManifest) string { return item.ID },
+			updateTypeFn:   func(item types.ModManifest) string { return item.Update.Type },
+			updateSourceFn: func(item types.ModManifest) string { return item.Update.Source() },
+			getVersionsFn:  s.Registry.GetVersions,
+		},
+		install: func(assetID string, version string) types.AssetInstallResponse {
+			return s.Downloader.InstallAsset(types.InstallAssetRequest{
+				AssetType: types.AssetTypeDepMod,
+				AssetID:   assetID,
+				Version:   version,
+			})
+		},
+		uninstall: func(assetID string) types.AssetUninstallResponse {
+			return s.Downloader.UninstallAsset(types.AssetTypeMod, assetID) // Dependency mods are not tracked separately from subscribed mods in the registry, so we can use the same function to uninstall them
+		},
+	}
+}
+
 // syncAssetSubscriptions is a generic type helper that performs the core logic of syncing subscriptions for a given asset type, with generic arguments corresponding to the asset's installed info type (T) and manifest type (U).
 func syncAssetSubscriptions[T any, U any](log logger.Logger, profileID string, args assetSyncArgs[T, U]) ([]types.SubscriptionOperation, []types.UserProfilesError, []assetPurgeArgs, bool) {
 	errs := make([]types.UserProfilesError, 0)
@@ -191,8 +228,12 @@ func syncAssetSubscriptions[T any, U any](log logger.Logger, profileID string, a
 		// If the snapshot is stale, we should stop processing immediately to avoid making unwanted changes based on an outdated profile state.
 		return args.isStale != nil && args.isStale()
 	}
+	assetType := args.assetType
+	if assetType == types.AssetTypeDepMod {
+		assetType = types.AssetTypeMod // For logging and error purposes, treat dependency mods as mods since they are not a separate asset type from the registry's perspective
+	}
 	installedVersion := buildVersionIndexFromItems(args.installedArgs)
-	availableVersions := buildAvailableVersionIndex(args.availableArgs, profileID, args.subscriptions, args.assetType, &errs)
+	availableVersions := buildAvailableVersionIndex(args.availableArgs, profileID, args.subscriptions, assetType, &errs)
 
 	log.Info("Built version indices for sync",
 		"asset_type", args.assetType,

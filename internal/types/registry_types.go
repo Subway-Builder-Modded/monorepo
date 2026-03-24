@@ -145,16 +145,17 @@ type GalleryImageResponse struct {
 
 // VersionInfo represents a single release version for a mod or map.
 type VersionInfo struct {
-	Version     string `json:"version"`
-	Name        string `json:"name"`
-	Changelog   string `json:"changelog"`
-	Date        string `json:"date"`
-	DownloadURL string `json:"download_url"`
-	GameVersion string `json:"game_version"`
-	SHA256      string `json:"sha256"`
-	Downloads   int    `json:"downloads"`
-	Manifest    string `json:"manifest,omitempty"`
-	Prerelease  bool   `json:"prerelease"`
+	Version      string            `json:"version"`
+	Name         string            `json:"name"`
+	Changelog    string            `json:"changelog"`
+	Date         string            `json:"date"`
+	DownloadURL  string            `json:"download_url"`
+	GameVersion  string            `json:"game_version"`
+	SHA256       string            `json:"sha256"`
+	Downloads    int               `json:"downloads"`
+	Manifest     string            `json:"manifest,omitempty"`
+	Prerelease   bool              `json:"prerelease"`
+	Dependencies map[string]string `json:"dependencies,omitempty"` // Map of dependency mod IDs to version constraints
 }
 
 // GithubRelease maps fields from the GitHub Releases API response.
@@ -180,13 +181,14 @@ type CustomUpdateFile struct {
 }
 
 type CustomUpdateVersion struct {
-	Version     string `json:"version"`
-	GameVersion string `json:"game_version"`
-	Date        string `json:"date"`
-	Changelog   string `json:"changelog"`
-	Download    string `json:"download"`
-	SHA256      string `json:"sha256"`
-	Manifest    string `json:"manifest,omitempty"`
+	Version      string            `json:"version"`
+	GameVersion  string            `json:"game_version"`
+	Date         string            `json:"date"`
+	Changelog    string            `json:"changelog"`
+	Download     string            `json:"download"`
+	SHA256       string            `json:"sha256"`
+	Manifest     string            `json:"manifest,omitempty"`
+	Dependencies map[string]string `json:"dependencies,omitempty"` // Map of dependency mod IDs to version constraints
 }
 
 // RegistryIntegrityReport represents the overall status report for the registry

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/mod/semver"
+	semver "github.com/Masterminds/semver/v3"
 )
 
 type Status string
@@ -46,24 +46,25 @@ type MapCodeConflict struct {
 type DownloaderErrorType string
 
 const (
-	InstallErrorInvalidAssetType   DownloaderErrorType = "install_invalid_asset_type"
-	InstallErrorInvalidConfig      DownloaderErrorType = "install_invalid_config"
-	InstallErrorInvalidMapCode     DownloaderErrorType = "install_invalid_map_code"
-	InstallErrorRegistryLookup     DownloaderErrorType = "install_registry_lookup_failed"
-	InstallErrorVersionLookup      DownloaderErrorType = "install_version_lookup_failed"
-	InstallErrorVersionNotFound    DownloaderErrorType = "install_version_not_found"
-	InstallErrorDownloadFailed     DownloaderErrorType = "install_download_failed"
-	InstallErrorChecksumFailed     DownloaderErrorType = "install_checksum_failed"
-	InstallErrorExtractFailed      DownloaderErrorType = "install_extract_failed"
-	InstallErrorInvalidManifest    DownloaderErrorType = "install_invalid_manifest"
-	InstallErrorInvalidArchive     DownloaderErrorType = "install_invalid_archive"
-	InstallErrorMapCodeConflict    DownloaderErrorType = "install_map_code_conflict"
-	InstallErrorFilesystem         DownloaderErrorType = "install_filesystem_error"
-	InstallErrorPersistStateFailed DownloaderErrorType = "install_persist_state_failed"
-	UninstallErrorInvalidAssetType DownloaderErrorType = "uninstall_invalid_asset_type"
-	UninstallErrorNotInstalled     DownloaderErrorType = "uninstall_not_installed"
-	UninstallErrorFilesystem       DownloaderErrorType = "uninstall_filesystem_error"
-	UninstallErrorPersistState     DownloaderErrorType = "uninstall_persist_state_failed"
+	InstallErrorInvalidAssetType           DownloaderErrorType = "install_invalid_asset_type"
+	InstallErrorInvalidConfig              DownloaderErrorType = "install_invalid_config"
+	InstallErrorInvalidMapCode             DownloaderErrorType = "install_invalid_map_code"
+	InstallErrorRegistryLookup             DownloaderErrorType = "install_registry_lookup_failed"
+	InstallErrorVersionLookup              DownloaderErrorType = "install_version_lookup_failed"
+	InstallErrorVersionNotFound            DownloaderErrorType = "install_version_not_found"
+	InstallErrorDownloadFailed             DownloaderErrorType = "install_download_failed"
+	InstallErrorChecksumFailed             DownloaderErrorType = "install_checksum_failed"
+	InstallErrorExtractFailed              DownloaderErrorType = "install_extract_failed"
+	InstallErrorInvalidManifest            DownloaderErrorType = "install_invalid_manifest"
+	InstallErrorInvalidArchive             DownloaderErrorType = "install_invalid_archive"
+	InstallErrorMapCodeConflict            DownloaderErrorType = "install_map_code_conflict"
+	InstallErrorFilesystem                 DownloaderErrorType = "install_filesystem_error"
+	InstallErrorPersistStateFailed         DownloaderErrorType = "install_persist_state_failed"
+	InstallErrorDependencyResolutionFailed DownloaderErrorType = "install_dependency_resolution_failed"
+	UninstallErrorInvalidAssetType         DownloaderErrorType = "uninstall_invalid_asset_type"
+	UninstallErrorNotInstalled             DownloaderErrorType = "uninstall_not_installed"
+	UninstallErrorFilesystem               DownloaderErrorType = "uninstall_filesystem_error"
+	UninstallErrorPersistState             DownloaderErrorType = "uninstall_persist_state_failed"
 )
 
 // List of deterministic install errors that should trigger automatic purge of the subscription without user confirmation, as they indicate the subscription is invalid/corrupt and cannot be resolved through retries.
@@ -87,6 +88,16 @@ type AssetInstallResponse struct {
 	Config          ConfigData          `json:"config,omitempty"`
 	ErrorType       DownloaderErrorType `json:"errorType,omitempty"`
 	MapCodeConflict *MapCodeConflict    `json:"mapCodeConflict,omitempty"`
+}
+
+type DependencyListResponse struct {
+	GenericResponse
+	InstallList map[string]DependencyListEntry `json:"installList"` // List of mod IDs and numbers to install
+}
+
+type DependencyListEntry struct {
+	Ranges           []string    `json:"ranges"`           // List of version ranges that require this dependency (e.g. [">=1.0.0 <2.0.0", ">=3.0.0 <4.0.0"])
+	InstallCandidate VersionInfo `json:"installCandidate"` // The specific version that will be installed to satisfy this dependency, after range resolution
 }
 
 type MapInstallOptions struct {
@@ -138,8 +149,9 @@ func WarnResponse(msg string) GenericResponse {
 type AssetType string
 
 const (
-	AssetTypeMap AssetType = "map"
-	AssetTypeMod AssetType = "mod"
+	AssetTypeMap    AssetType = "map"
+	AssetTypeMod    AssetType = "mod"
+	AssetTypeDepMod AssetType = "dependency_mod"
 )
 
 var LocalMapCodePattern = regexp.MustCompile(`^[A-Z]{2,4}$`)
@@ -173,16 +185,9 @@ func IsValidSemverVersion(version Version) bool {
 	if strings.ContainsAny(value, "-+") {
 		return false
 	}
-	if !strings.HasPrefix(value, "v") {
-		value = "v" + value
-	}
-	if !semver.IsValid(value) {
+	core := strings.TrimPrefix(value, "v")
+	if _, err := semver.NewVersion(core); err != nil {
 		return false
-	}
-
-	core := value[1:]
-	if idx := strings.IndexAny(core, "-+"); idx >= 0 {
-		core = core[:idx]
 	}
 	return strings.Count(core, ".") == 2
 }

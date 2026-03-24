@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 
@@ -23,6 +24,8 @@ import (
 	"railyard/internal/requests"
 	"railyard/internal/types"
 
+	semver "github.com/Masterminds/semver/v3"
+	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.yaml.in/yaml/v4"
 )
 
@@ -774,9 +777,52 @@ func (d *Downloader) InstallAsset(req types.InstallAssetRequest) types.AssetInst
 	result := d.enqueueOperation(operationActionInstall, assetKey, key, func() operationResult {
 		defer cancel()
 		switch req.AssetType {
+		case types.AssetTypeDepMod:
+			return operationResult{assetInstallResponse: d.installModNow(opCtx, req.AssetID, req.Version)}
 		case types.AssetTypeMap:
 			return operationResult{assetInstallResponse: d.installMapNow(opCtx, req.AssetID, req.Version, replaceOnConflict)}
 		case types.AssetTypeMod:
+			var version types.VersionInfo
+			// Initialize version info
+			var versions []types.VersionInfo
+			modInfo, err := d.Registry.GetMod(req.AssetID)
+			if err != nil {
+				return operationResult{assetInstallResponse: d.installError(types.AssetTypeMod, req.AssetID, req.Version, types.ConfigData{}, types.InstallErrorRegistryLookup, "Failed to get mod info from registry", err, "mod_id", req.AssetID)}
+			}
+			source := modInfo.Update.URL
+			if modInfo.Update.Type == "github" {
+				source = modInfo.Update.Repo
+			} else {
+				source = modInfo.Update.URL
+			}
+			versions, err = d.Registry.GetVersions(modInfo.Update.Type, source)
+			if err != nil {
+				return operationResult{assetInstallResponse: d.installError(types.AssetTypeMod, req.AssetID, req.Version, types.ConfigData{}, types.InstallErrorVersionLookup, "Failed to get mod versions from registry", err, "mod_id", req.AssetID)}
+			}
+			for _, v := range versions {
+				if v.Version == req.Version {
+					version = v
+					break
+				}
+			}
+			deps := d.ComputeDependencyList(req.AssetID, version)
+			if deps.Status == types.ResponseError {
+				return operationResult{assetInstallResponse: d.installError(types.AssetTypeMod, req.AssetID, req.Version, types.ConfigData{}, types.InstallErrorDependencyResolutionFailed, "Failed to resolve mod dependencies", nil, "mod_id", req.AssetID, "version", req.Version)}
+			}
+			for key, dep := range deps.InstallList {
+				if key == req.AssetID {
+					continue
+				} else {
+					d.InstallAsset(types.InstallAssetRequest{
+						AssetType: types.AssetTypeDepMod,
+						AssetID:   key,
+						Version:   dep.InstallCandidate.Version,
+					})
+
+					// Deps need to be subscribed to avoid them being uninstalled, but ForceSyncing will trigger an unecessary deps check
+					wailsruntime.EventsEmit(opCtx, "downloader:subscribeDependency", key, types.AssetTypeDepMod, dep.InstallCandidate.Version)
+				}
+			}
 			return operationResult{assetInstallResponse: d.installModNow(opCtx, req.AssetID, req.Version)}
 		default:
 			return operationResult{assetInstallResponse: d.installError(
@@ -1117,4 +1163,152 @@ func requiredFilesPresent(filesFound map[string]types.FileFoundStruct) bool {
 		}
 	}
 	return true
+}
+
+func (d *Downloader) ComputeDependencyList(modId string, version types.VersionInfo) types.DependencyListResponse {
+	deps := version.Dependencies
+	installList := map[string]types.DependencyListEntry{modId: {Ranges: []string{}, InstallCandidate: version}}
+	if len(deps) == 0 {
+		return types.DependencyListResponse{
+			GenericResponse: types.SuccessResponse("No dependencies to install."),
+			InstallList:     installList,
+		}
+	}
+	installList, err := d.recursivelyComputeDependencies(modId, version, installList, []string{})
+	if err != nil {
+		return types.DependencyListResponse{
+			GenericResponse: types.ErrorResponse("Failed to compute dependencies: " + err.Error()),
+			InstallList:     nil,
+		}
+	}
+	return types.DependencyListResponse{
+		GenericResponse: types.SuccessResponse("Successfully computed dependencies."),
+		InstallList:     installList,
+	}
+}
+
+func (d *Downloader) recursivelyComputeDependencies(modId string, version types.VersionInfo, installList map[string]types.DependencyListEntry, visited []string) (map[string]types.DependencyListEntry, error) {
+	if slices.Contains(visited, modId) {
+		cycle := append(slices.Clone(visited), modId)
+		return nil, fmt.Errorf("circular dependency detected: %s", strings.Join(cycle, " -> "))
+	}
+
+	visited = append(visited, modId)
+	if existing, ok := installList[modId]; ok {
+		existing.InstallCandidate = version
+		installList[modId] = existing
+	} else {
+		installList[modId] = types.DependencyListEntry{
+			Ranges:           []string{},
+			InstallCandidate: version,
+		}
+	}
+
+	if len(version.Dependencies) == 0 {
+		return installList, nil
+	}
+
+	for depModID, depRange := range version.Dependencies {
+		if slices.Contains(visited, depModID) {
+			cycle := append(slices.Clone(visited), depModID)
+			return nil, fmt.Errorf("circular dependency detected: %s", strings.Join(cycle, " -> "))
+		}
+
+		depInfo, err := d.Registry.GetMod(depModID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get mod info for dependency %s: %w", depModID, err)
+		}
+
+		var versions []types.VersionInfo
+		if depInfo.Update.Type == "github" {
+			versions, err = d.Registry.GetVersions("github", depInfo.Update.Repo)
+		} else {
+			versions, err = d.Registry.GetVersions(depInfo.Update.Type, depInfo.Update.URL)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to get versions for dependency %s: %w", depModID, err)
+		}
+
+		existingDep, exists := installList[depModID]
+		if !exists {
+			existingDep = types.DependencyListEntry{Ranges: []string{}}
+		}
+
+		normalizedRange := normalizeDependencyRange(depRange)
+		if !slices.Contains(existingDep.Ranges, normalizedRange) {
+			existingDep.Ranges = append(existingDep.Ranges, normalizedRange)
+		}
+
+		candidate, err := resolveDependencyCandidate(depModID, existingDep.Ranges, versions)
+		if err != nil {
+			return nil, err
+		}
+
+		candidateChanged := !exists || types.NormalizeSemver(existingDep.InstallCandidate.Version) != types.NormalizeSemver(candidate.Version)
+		existingDep.InstallCandidate = candidate
+		installList[depModID] = existingDep
+
+		if candidateChanged {
+			installList, err = d.recursivelyComputeDependencies(depModID, candidate, installList, visited)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return installList, nil
+}
+
+func normalizeDependencyRange(versionRange string) string {
+	trimmed := strings.TrimSpace(versionRange)
+	if trimmed == "" {
+		return "*"
+	}
+	return trimmed
+}
+
+func resolveDependencyCandidate(modID string, ranges []string, versions []types.VersionInfo) (types.VersionInfo, error) {
+	if len(versions) == 0 {
+		return types.VersionInfo{}, fmt.Errorf("no versions found for dependency %s", modID)
+	}
+
+	constraints := make([]*semver.Constraints, 0, len(ranges))
+	for _, versionRange := range ranges {
+		constraint, err := semver.NewConstraint(normalizeDependencyRange(versionRange))
+		if err != nil {
+			return types.VersionInfo{}, fmt.Errorf("invalid version range %q for dependency %s: %w", versionRange, modID, err)
+		}
+		constraints = append(constraints, constraint)
+	}
+
+	var candidate *types.VersionInfo
+	var candidateSemver *semver.Version
+	for i := range versions {
+		parsedVersion, err := semver.NewVersion(strings.TrimPrefix(types.NormalizeSemver(versions[i].Version), "v"))
+		if err != nil {
+			continue
+		}
+
+		compatible := true
+		for _, constraint := range constraints {
+			if !constraint.Check(parsedVersion) {
+				compatible = false
+				break
+			}
+		}
+		if !compatible {
+			continue
+		}
+
+		if candidate == nil || parsedVersion.GreaterThan(candidateSemver) {
+			candidate = &versions[i]
+			candidateSemver = parsedVersion
+		}
+	}
+
+	if candidate == nil {
+		return types.VersionInfo{}, fmt.Errorf("conflicting version requirements for dependency %s: %v", modID, ranges)
+	}
+
+	return *candidate, nil
 }

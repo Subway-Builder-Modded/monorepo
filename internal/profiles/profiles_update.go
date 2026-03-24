@@ -8,7 +8,7 @@ import (
 	"railyard/internal/types"
 	"railyard/internal/utils"
 
-	"golang.org/x/mod/semver"
+	semver "github.com/Masterminds/semver/v3"
 )
 
 // ===== Profile Mutations ===== //
@@ -99,6 +99,23 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 	}
 
 	return result
+}
+
+func (s *UserProfiles) AddSubscriptionNoSync(profileID string, assetID string, assetType types.AssetType, version types.Version, isLocal bool) types.UpdateSubscriptionsResult {
+	req := types.UpdateSubscriptionsRequest{
+		ProfileID: profileID,
+		Assets: map[string]types.SubscriptionUpdateItem{
+			assetID: {
+				Type:    assetType,
+				Version: version,
+				IsLocal: isLocal,
+			},
+		},
+		Action:    types.SubscriptionActionSubscribe,
+		ForceSync: false,
+	}
+
+	return s.UpdateSubscriptions(req)
 }
 
 // UpdateSubscriptionsToLatest resolves the latest available registry versions for current profile subscriptions,
@@ -358,10 +375,16 @@ func resolveLatestVersionForManifest(
 	}
 
 	best := versions[0].Version
-	current := normalize(best)
+	current, err := semver.NewVersion(strings.TrimPrefix(normalize(best), "v"))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse initial semver version %q: %w", best, err)
+	}
 	for _, version := range versions[1:] {
-		other := normalize(version.Version)
-		if semver.Compare(other, current) > 0 {
+		other, parseErr := semver.NewVersion(strings.TrimPrefix(normalize(version.Version), "v"))
+		if parseErr != nil {
+			return "", fmt.Errorf("failed to parse semver version %q: %w", version.Version, parseErr)
+		}
+		if other.GreaterThan(current) {
 			current = other
 			best = version.Version
 		}
@@ -699,6 +722,8 @@ func applySubscriptionMutation(
 		return mutateSubscriptionMap(target, action, assetID, item)
 	case types.AssetTypeMod:
 		return mutateSubscriptionMap(profile.Subscriptions.Mods, action, assetID, item)
+	case types.AssetTypeDepMod:
+		return mutateSubscriptionMap(profile.Subscriptions.ModsDeps, action, assetID, item)
 	default:
 		err := userProfilesError("", assetID, item.Type, types.ErrorInvalidAssetType, "", fmt.Sprintf("Invalid asset type: %q", item.Type))
 		return nil, &err
