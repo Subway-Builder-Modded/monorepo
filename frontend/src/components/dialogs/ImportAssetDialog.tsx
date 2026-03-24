@@ -66,6 +66,7 @@ export function ImportAssetDialog({
         setInvalidCodeMessage(err.message);
         return;
       }
+      setSelectedPath('');
       toast.error('Failed to import map.');
     } finally {
       setLoading(false);
