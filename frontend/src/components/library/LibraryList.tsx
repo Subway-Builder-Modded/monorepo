@@ -1,6 +1,4 @@
 import {
-  ArrowDown,
-  ArrowUp,
   CircleFadingArrowUp,
   FolderOpen,
   Globe,
@@ -9,7 +7,7 @@ import {
   Trash2,
   Type,
 } from 'lucide-react';
-import { type ComponentType, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'wouter';
 
 import { UninstallDialog } from '@/components/dialogs/UninstallDialog';
@@ -18,6 +16,7 @@ import { GalleryImage } from '@/components/shared/GalleryImage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import type { AssetType } from '@/lib/asset-types';
 import { assetTypeToListingPath } from '@/lib/asset-types';
@@ -52,41 +51,6 @@ export function LocalBadge({ className }: { className?: string }) {
       <HardDrive className="h-2.5 w-2.5 shrink-0" />
       Local
     </span>
-  );
-}
-
-interface SortableHeaderCellProps {
-  label: string;
-  field: Exclude<SortField, 'random'>;
-  icon: ComponentType<{ className?: string }>;
-  sort: SortState;
-  onSort: (field: Exclude<SortField, 'random'>) => void;
-  className?: string;
-}
-
-function SortableHeaderCell({ label, field, icon: Icon, sort, onSort, className }: SortableHeaderCellProps) {
-  const isActive = sort.field === field;
-  const invert = TEXT_SORT_FIELDS.has(field);
-  const showUp = isActive && (invert ? sort.direction === 'desc' : sort.direction === 'asc');
-  const SortIcon = showUp ? ArrowUp : ArrowDown;
-
-  return (
-    <button
-      type="button"
-      onClick={() => onSort(field)}
-      className={cn(
-        'inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide transition-colors',
-        isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
-        className,
-      )}
-      aria-label={`Sort by ${label} ${isActive && sort.direction === 'asc' ? 'descending' : 'ascending'}`}
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" />
-      {label}
-      <SortIcon
-        className={cn('h-3.5 w-3.5 shrink-0', isActive ? 'opacity-100' : 'opacity-30')}
-      />
-    </button>
   );
 }
 
@@ -161,6 +125,7 @@ export function LibraryList({
             field="name"
             icon={Type}
             sort={sort}
+            textFields={TEXT_SORT_FIELDS}
             onSort={handleColumnSort}
           />
         </div>
@@ -172,6 +137,7 @@ export function LibraryList({
                 field="city_code"
                 icon={Hash}
                 sort={sort}
+                textFields={TEXT_SORT_FIELDS}
                 onSort={handleColumnSort}
               />
             </div>
@@ -181,6 +147,7 @@ export function LibraryList({
                 field="country"
                 icon={Globe}
                 sort={sort}
+                textFields={TEXT_SORT_FIELDS}
                 onSort={handleColumnSort}
               />
             </div>

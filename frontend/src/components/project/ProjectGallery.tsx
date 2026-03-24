@@ -1,6 +1,7 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,13 +9,13 @@ import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 
 import { GetGalleryImageResponse } from '../../../wailsjs/go/registry/Registry';
 
-interface ProjectHeroProps {
+interface ProjectGalleryProps {
   type: AssetType;
   id: string;
   gallery: string[];
 }
 
-export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
+export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
   const [images, setImages] = useState<(string | null)[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -24,13 +25,10 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
       setLoading(false);
       return;
     }
-
     Promise.all(
       gallery.map((path) =>
         GetGalleryImageResponse(assetTypeToListingPath(type), id, path)
-          .then((response) =>
-            response.status === 'success' ? response.imageUrl : null,
-          )
+          .then((r) => (r.status === 'success' ? r.imageUrl : null))
           .catch(() => null),
       ),
     ).then((urls) => {
@@ -41,10 +39,10 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
 
   if (loading) {
     return (
-      <div className="flex gap-2 overflow-hidden">
-        {Array.from({ length: Math.min(gallery?.length || 3, 5) }).map(
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {Array.from({ length: Math.min(gallery?.length || 3, 6) }).map(
           (_, i) => (
-            <Skeleton key={i} className="h-24 w-40 rounded-md flex-shrink-0" />
+            <Skeleton key={i} className="aspect-video rounded-lg" />
           ),
         )}
       </div>
@@ -54,12 +52,14 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
   const validImages = images.filter((url): url is string => url !== null);
 
   if (validImages.length === 0) {
-    return null;
+    return (
+      <EmptyState icon={FileText} title="No gallery images" />
+    );
   }
 
   return (
     <>
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {validImages.map((url, i) => (
           <Button
             key={i}
@@ -67,7 +67,7 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
             intent="plain"
             size="sm"
             onClick={() => setSelectedIndex(i)}
-            className="h-24 w-40 flex-shrink-0 p-0 rounded-md overflow-hidden transition-opacity hover:opacity-80 active:translate-y-0"
+            className="h-auto aspect-video p-0 rounded-lg overflow-hidden transition-opacity hover:opacity-80 active:translate-y-0"
           >
             <img src={url} alt="" className="w-full h-full object-cover" />
           </Button>
@@ -106,7 +106,9 @@ export function ProjectHero({ type, id, gallery }: ProjectHeroProps) {
                     size="icon"
                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm"
                     onClick={() =>
-                      setSelectedIndex((selectedIndex + 1) % validImages.length)
+                      setSelectedIndex(
+                        (selectedIndex + 1) % validImages.length,
+                      )
                     }
                   >
                     <ChevronRight className="h-4 w-4" />

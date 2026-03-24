@@ -1,10 +1,12 @@
-import { CircleAlert } from 'lucide-react';
+import { CircleAlert, Globe, Images } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import { Link, useRoute } from 'wouter';
 
-import { ProjectHero } from '@/components/project/ProjectHero';
-import { ProjectInfo } from '@/components/project/ProjectInfo';
-import { VersionsTable } from '@/components/project/VersionsTable';
+import { ProjectGallery } from '@/components/project/ProjectGallery';
+import { ProjectHeader } from '@/components/project/ProjectHeader';
+import { ProjectVersions } from '@/components/project/ProjectVersions';
 import { EmptyState } from '@/components/shared/EmptyState';
 import {
   Breadcrumb,
@@ -14,7 +16,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { listingPathToAssetType } from '@/lib/asset-types';
 import { isCompatible } from '@/lib/semver';
 import {
@@ -29,6 +37,7 @@ import {
   GetAssetDownloadCounts,
   GetVersionsResponse,
 } from '../../wailsjs/go/registry/Registry';
+import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
 export function ProjectPage() {
   const [, params] = useRoute('/project/:type/:id');
@@ -53,14 +62,14 @@ export function ProjectPage() {
   const [versionsError, setVersionsError] = useState<string | null>(null);
   const [gameVersion, setGameVersion] = useState<string>('');
 
-  const filterInvalidVersions = (versions: types.VersionInfo[]) => {
+  const filterInvalidVersions = (vs: types.VersionInfo[]) => {
     if (type === 'mod' && modIntegrity && id) {
-      return versions.filter((v) =>
+      return vs.filter((v) =>
         modIntegrity.listings[id].complete_versions.includes(v.version),
       );
     }
     if (type === 'map' && mapIntegrity && id) {
-      return versions.filter((v) =>
+      return vs.filter((v) =>
         mapIntegrity.listings[id].complete_versions.includes(v.version),
       );
     }
@@ -147,7 +156,9 @@ export function ProjectPage() {
       ) ?? latestVersion
     );
   }, [versions, gameVersion, latestVersion]);
+
   const gallery = useMemo(() => item?.gallery || [], [item?.gallery]);
+  const hasGallery = gallery.length > 0;
 
   if (!item || !type) {
     return (
@@ -160,7 +171,7 @@ export function ProjectPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -181,9 +192,7 @@ export function ProjectPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <ProjectHero type={type} id={item.id} gallery={gallery} />
-
-      <ProjectInfo
+      <ProjectHeader
         type={type}
         item={item}
         latestVersion={latestVersion}
@@ -192,18 +201,72 @@ export function ProjectPage() {
         gameVersion={gameVersion}
       />
 
-      <Separator />
+      <Tabs defaultValue="description">
+        <TabsList variant="line">
+          <TabsTrigger value="description">Description</TabsTrigger>
+          {hasGallery && (
+            <TabsTrigger value="gallery">
+              <Images className="h-3.5 w-3.5" />
+              Gallery
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="versions">Versions</TabsTrigger>
+        </TabsList>
 
-      <VersionsTable
-        type={type}
-        itemId={item.id}
-        itemName={item.name}
-        update={item.update}
-        versions={versions}
-        loading={versionsLoading}
-        error={versionsError}
-        gameVersion={gameVersion}
-      />
+        <TabsContent value="description" className="mt-5 space-y-4">
+          <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none text-sm leading-relaxed">
+            <Markdown
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                a: ({ href, children, ...props }) => (
+                  <a
+                    {...props}
+                    href={href}
+                    onClick={(e) => {
+                      if (href) {
+                        e.preventDefault();
+                        BrowserOpenURL(href);
+                      }
+                    }}
+                  >
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {item.description}
+            </Markdown>
+          </div>
+          {item.source && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => BrowserOpenURL(item.source!)}
+            >
+              <Globe className="h-4 w-4" />
+              View Source
+            </Button>
+          )}
+        </TabsContent>
+
+        {hasGallery && (
+          <TabsContent value="gallery" className="mt-5">
+            <ProjectGallery type={type} id={item.id} gallery={gallery} />
+          </TabsContent>
+        )}
+
+        <TabsContent value="versions" className="mt-5">
+          <ProjectVersions
+            type={type}
+            itemId={item.id}
+            itemName={item.name}
+            versions={versions}
+            loading={versionsLoading}
+            error={versionsError}
+            gameVersion={gameVersion}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

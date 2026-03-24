@@ -7,13 +7,12 @@ import {
   Globe,
   Loader2,
   MapPin,
+  Package,
   Trash2,
   Users,
   X,
 } from 'lucide-react';
 import { useState } from 'react';
-import Markdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
 import { toast } from 'sonner';
 
 import { AssetActionDialog } from '@/components/dialogs/AssetActionDialog';
@@ -21,9 +20,9 @@ import { InstallErrorDialog } from '@/components/dialogs/InstallErrorDialog';
 import { PrereleaseConfirmDialog } from '@/components/dialogs/PrereleaseConfirmDialog';
 import { SubscriptionSyncErrorDialog } from '@/components/dialogs/SubscriptionSyncErrorDialog';
 import { UninstallDialog } from '@/components/dialogs/UninstallDialog';
+import { GalleryImage } from '@/components/shared/GalleryImage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -48,7 +47,7 @@ import {
 import type { types } from '../../../wailsjs/go/models';
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 
-interface ProjectInfoProps {
+interface ProjectHeaderProps {
   type: AssetType;
   item: types.ModManifest | types.MapManifest;
   latestVersion?: types.VersionInfo;
@@ -67,15 +66,17 @@ function isMapManifest(
   return 'city_code' in item;
 }
 
-export function ProjectInfo({
+export function ProjectHeader({
   type,
   item,
   latestVersion,
   latestCompatibleVersion,
   versionsLoading,
   gameVersion,
-}: ProjectInfoProps) {
+}: ProjectHeaderProps) {
+  const mapItem = isMapManifest(item) ? item : null;
   const cancellationToastId = `cancel-install-${type}-${item.id}`;
+
   const [uninstallOpen, setUninstallOpen] = useState(false);
   const [installError, setInstallError] = useState<{
     version: string;
@@ -91,6 +92,7 @@ export function ProjectInfo({
     version: string;
     conflict: types.MapCodeConflict;
   } | null>(null);
+
   const {
     installMod,
     installMap,
@@ -103,25 +105,15 @@ export function ProjectInfo({
   const installedVersion = getInstalledVersion(item.id);
   const installing = isInstalling(item.id);
   const uninstalling = isUninstalling(item.id);
-  const detailBadges = isMapManifest(item)
-    ? [
-        item.location,
-        formatSourceQuality(item.source_quality),
-        item.level_of_detail,
-        ...(item.special_demand ?? []),
-      ].filter((value): value is string => Boolean(value))
-    : (item.tags ?? []);
-  // Use the latest compatible version for install/update buttons
   const effectiveVersion = latestCompatibleVersion ?? latestVersion;
   const hasUpdate =
     installedVersion &&
     effectiveVersion &&
     installedVersion !== effectiveVersion.version;
-  // No compatible version exists at all
   const noCompatibleVersion =
     gameVersion && latestVersion && !latestCompatibleVersion;
 
-  const handleInstall = async (version: string, replaceOnConflict = false) => {
+  const doInstall = async (version: string, replaceOnConflict = false) => {
     try {
       let result: types.UpdateSubscriptionsResult;
       if (type === 'mod') {
@@ -139,8 +131,6 @@ export function ProjectInfo({
             result.message ||
               `Install for ${item.name} completed with warnings.`,
           );
-        } else {
-          // Suppress expected stale-sync warnings from burst queue updates.
         }
         return;
       }
@@ -154,7 +144,6 @@ export function ProjectInfo({
         setConflictState({ version, conflict: err.conflicts[0] });
         return;
       }
-
       const syncError = toSubscriptionSyncErrorState(err, version);
       if (syncError) {
         if (
@@ -176,201 +165,225 @@ export function ProjectInfo({
     }
   };
 
-  const handleCancelInstall = async () => {
-    try {
-      await cancelPendingInstall(type, item.id);
-      toast.success(`Cancelled pending install for ${item.name}.`, {
-        id: cancellationToastId,
-      });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
-    }
-  };
-
   const handleInstallClick = (version: string, prerelease?: boolean) => {
     if (prerelease) {
       setPrereleasePrompt(true);
     } else {
-      handleInstall(version);
+      doInstall(version);
     }
   };
 
-  const renderInstallButton = (v: types.VersionInfo, label: string) => {
-    const isUpdate = label.toLowerCase().includes('update');
-    if (noCompatibleVersion) {
+  const renderActionButtons = () => {
+    if (versionsLoading) {
       return (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button
-                  size="sm"
-                  disabled
-                  className={INSTALL_ACCENT.solidButton}
-                >
-                  <Download className="h-4 w-4 mr-1.5" />
-                  {label}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              No version compatible with your installed game version (
-              {gameVersion})
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Button size="sm" disabled>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading...
+        </Button>
       );
     }
-    return (
-      <>
+    if (uninstalling) {
+      return (
+        <Button size="sm" disabled>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Canceling...
+        </Button>
+      );
+    }
+    if (installing) {
+      return (
         <Button
           size="sm"
-          className={
-            isUpdate ? UPDATE_ACCENT.solidButton : INSTALL_ACCENT.solidButton
-          }
-          onClick={() => handleInstallClick(v.version, v.prerelease)}
+          variant="outline"
+          onClick={async () => {
+            try {
+              await cancelPendingInstall(type, item.id);
+              toast.success(`Cancelled pending install for ${item.name}.`, {
+                id: cancellationToastId,
+              });
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : String(err));
+            }
+          }}
         >
-          {isUpdate ? (
-            <CircleFadingArrowUp className="h-4 w-4 mr-1.5" />
-          ) : (
-            <Download className="h-4 w-4 mr-1.5" />
-          )}
-          {label}
+          <X className="h-4 w-4" />
+          Cancel Install
         </Button>
-        {isUpdate && (
+      );
+    }
+    if (!installedVersion && effectiveVersion) {
+      if (noCompatibleVersion) {
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button size="sm" disabled className={INSTALL_ACCENT.solidButton}>
+                    <Download className="h-4 w-4" />
+                    Install {effectiveVersion.version}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                No version compatible with your installed game version ({gameVersion})
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      }
+      return (
+        <Button
+          size="sm"
+          className={INSTALL_ACCENT.solidButton}
+          onClick={() =>
+            handleInstallClick(effectiveVersion.version, effectiveVersion.prerelease)
+          }
+        >
+          <Download className="h-4 w-4" />
+          Install {effectiveVersion.version}
+        </Button>
+      );
+    }
+    if (hasUpdate && effectiveVersion) {
+      return (
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            className={UPDATE_ACCENT.solidButton}
+            onClick={() =>
+              handleInstallClick(effectiveVersion.version, effectiveVersion.prerelease)
+            }
+          >
+            <CircleFadingArrowUp className="h-4 w-4" />
+            Update to {effectiveVersion.version}
+          </Button>
           <Button
             variant="destructive"
-            size="icon"
-            className="h-8 w-8"
+            size="icon-sm"
             onClick={() => setUninstallOpen(true)}
+            aria-label="Uninstall"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
-        )}
-      </>
-    );
+        </div>
+      );
+    }
+    if (installedVersion) {
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant="success" className="gap-1">
+            <CheckCircle className="h-3 w-3" />
+            Installed {installedVersion}
+          </Badge>
+          <Button
+            variant="destructive"
+            size="icon-sm"
+            onClick={() => setUninstallOpen(true)}
+            aria-label="Uninstall"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      );
+    }
+    return null;
   };
 
+  const detailBadges = mapItem
+    ? [
+        mapItem.location,
+        formatSourceQuality(mapItem.source_quality),
+        mapItem.level_of_detail,
+        ...(mapItem.special_demand ?? []),
+      ].filter((v): v is string => Boolean(v))
+    : (item.tags ?? []);
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{item.name}</h1>
-          <p className="text-muted-foreground mt-1">by {item.author}</p>
-        </div>
+    <>
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex gap-4">
+          <div className="h-24 w-36 shrink-0 overflow-hidden rounded-lg bg-muted">
+            <GalleryImage
+              type={type}
+              id={item.id}
+              imagePath={item.gallery?.[0]}
+              className="h-full w-full object-cover"
+              fallbackIconClassName="h-8 w-8"
+            />
+          </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {versionsLoading ? (
-            <Button size="sm" disabled>
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-              Loading...
-            </Button>
-          ) : uninstalling ? (
-            <Button size="sm" disabled>
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-              Canceling...
-            </Button>
-          ) : installing ? (
-            <Button size="sm" variant="outline" onClick={handleCancelInstall}>
-              <X className="h-4 w-4 mr-1.5" />
-              Cancel Install
-            </Button>
-          ) : !installedVersion && effectiveVersion ? (
-            renderInstallButton(
-              effectiveVersion,
-              `Install ${effectiveVersion.version}`,
-            )
-          ) : hasUpdate && effectiveVersion ? (
-            renderInstallButton(
-              effectiveVersion,
-              `Update to ${effectiveVersion.version}`,
-            )
-          ) : installedVersion ? (
-            <>
-              <Badge variant="success" className="gap-1">
-                <CheckCircle className="h-3 w-3" />
-                Installed {installedVersion}
-              </Badge>
-              <Button
-                variant="destructive"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setUninstallOpen(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </>
-          ) : null}
-        </div>
-      </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {type === 'mod' ? (
+                      <Package className="h-2.5 w-2.5" />
+                    ) : (
+                      <MapPin className="h-2.5 w-2.5" />
+                    )}
+                    {type === 'mod' ? 'Mod' : 'Map'}
+                  </span>
+                  <h1 className="text-xl font-bold leading-tight text-foreground">
+                    {item.name}
+                  </h1>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    BrowserOpenURL(`https://github.com/${item.author}`)
+                  }
+                  className="mt-0.5 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  by {item.author}
+                  <ExternalLink className="h-3 w-3" />
+                </button>
+              </div>
+              <div className="shrink-0">{renderActionButtons()}</div>
+            </div>
 
-      {isMapManifest(item) && (
-        <div className="flex items-center gap-4 text-sm">
-          {item.city_code && (
-            <div className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="font-mono font-bold">{item.city_code}</span>
-              {item.country && (
-                <span className="text-muted-foreground">{item.country}</span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {mapItem && (
+                <>
+                  {mapItem.city_code && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground">
+                      <MapPin className="h-3 w-3 text-muted-foreground" />
+                      {mapItem.city_code}
+                      {mapItem.country && (
+                        <span className="font-normal text-muted-foreground">
+                          · {mapItem.country}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {mapItem.population > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3" />
+                      {mapItem.population.toLocaleString()}
+                    </span>
+                  )}
+                </>
+              )}
+              {detailBadges.map((badge) => (
+                <Badge key={badge} variant="secondary" size="sm">
+                  {badge}
+                </Badge>
+              ))}
+              {item.source && (
+                <button
+                  type="button"
+                  onClick={() => BrowserOpenURL(item.source!)}
+                  className="ml-1 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Globe className="h-3 w-3" />
+                  Source
+                  <ExternalLink className="h-3 w-3" />
+                </button>
               )}
             </div>
-          )}
-          {item.population > 0 && (
-            <div className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span>{item.population.toLocaleString()}</span>
-            </div>
-          )}
+          </div>
         </div>
-      )}
-
-      <Separator />
-
-      <div className="text-sm leading-relaxed prose prose-sm prose-neutral dark:prose-invert max-w-none">
-        <Markdown
-          rehypePlugins={[rehypeRaw]}
-          components={{
-            a: ({ href, children, ...props }) => (
-              <a
-                {...props}
-                href={href}
-                onClick={(e) => {
-                  if (href) {
-                    e.preventDefault();
-                    BrowserOpenURL(href);
-                  }
-                }}
-              >
-                {children}
-              </a>
-            ),
-          }}
-        >
-          {item.description}
-        </Markdown>
       </div>
-
-      {detailBadges.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {detailBadges.map((badge) => (
-            <Badge key={badge} variant="secondary">
-              {badge}
-            </Badge>
-          ))}
-        </div>
-      )}
-
-      {item.source && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => BrowserOpenURL(item.source!)}
-        >
-          <Globe className="h-4 w-4 mr-1.5" />
-          View Source
-          <ExternalLink className="h-3 w-3 ml-1.5" />
-        </Button>
-      )}
 
       <UninstallDialog
         open={uninstallOpen}
@@ -388,7 +401,7 @@ export function ProjectInfo({
           }}
           itemName={item.name}
           version={effectiveVersion.version}
-          onConfirm={() => handleInstall(effectiveVersion.version)}
+          onConfirm={() => doInstall(effectiveVersion.version)}
         />
       )}
 
@@ -408,9 +421,7 @@ export function ProjectInfo({
         <SubscriptionSyncErrorDialog
           open={!!subscriptionSyncError}
           onOpenChange={(open) => {
-            if (!open) {
-              setSubscriptionSyncError(null);
-            }
+            if (!open) setSubscriptionSyncError(null);
           }}
           itemName={item.name}
           version={subscriptionSyncError.version}
@@ -423,9 +434,7 @@ export function ProjectInfo({
         <AssetActionDialog
           open={!!conflictState}
           onOpenChange={(open) => {
-            if (!open) {
-              setConflictState(null);
-            }
+            if (!open) setConflictState(null);
           }}
           loading={false}
           icon={AlertTriangle}
@@ -439,10 +448,10 @@ export function ProjectInfo({
           onConfirm={() => {
             const version = conflictState.version;
             setConflictState(null);
-            void handleInstall(version, true);
+            void doInstall(version, true);
           }}
         />
       )}
-    </div>
+    </>
   );
 }
