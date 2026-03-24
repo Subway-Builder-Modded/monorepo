@@ -443,8 +443,8 @@ function LibraryListRow({
       <AppDialog
         open={uninstallOpen}
         onOpenChange={setUninstallOpen}
-        title={`Uninstall`}
-        description={`This will remove all installed files for the selected ${entry.type === 'mod' ? 'mod' : 'map'}. You can reinstall it later from the Browse page.`}
+        title="Uninstall"
+        description="This will permanently remove all installed files. You can reinstall it later from the Browse page."
         icon={OctagonX}
         tone="uninstall"
         confirm={{
@@ -452,7 +452,11 @@ function LibraryListRow({
           onConfirm: handleUninstall,
           loading: uninstallLoading,
         }}
-      />
+      >
+        <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">{entry.item.name}</span>
+        </div>
+      </AppDialog>
 
       {updateOpen && updateTarget && (
         <AppDialog

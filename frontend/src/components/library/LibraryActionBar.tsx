@@ -75,7 +75,7 @@ export function LibraryActionBar({
       toast.success(
         count === 1
           ? `${uninstallTargets[0].name} has been uninstalled.`
-          : `${count} assets have been uninstalled.`,
+          : `${count} items have been uninstalled.`,
       );
       const removedKeys = uninstallTargets.map((t) =>
         composeAssetKey(t.type, t.id),
@@ -101,7 +101,7 @@ export function LibraryActionBar({
       toast.success(
         count === 1
           ? `${updateTargets[0].name} has been updated.`
-          : `${count} assets have been updated.`,
+          : `${count} items have been updated.`,
       );
       void onRefreshPendingUpdates();
       setUpdateTargets(null);
@@ -118,6 +118,15 @@ export function LibraryActionBar({
 
   const uninstallCount = uninstallTargets?.length ?? 0;
   const updateCount = updateTargets?.length ?? 0;
+
+  const sortedUninstallTargets = uninstallTargets
+    ? [...uninstallTargets].sort((a, b) => a.name.localeCompare(b.name))
+    : [];
+  const uninstallPreviewEntries = sortedUninstallTargets.slice(0, ENTRIES_PREVIEW_LIMIT);
+  const uninstallRemainingCount = Math.max(
+    0,
+    sortedUninstallTargets.length - uninstallPreviewEntries.length,
+  );
 
   const sortedUpdateTargets = updateTargets
     ? [...updateTargets].sort((a, b) => a.name.localeCompare(b.name))
@@ -156,7 +165,7 @@ export function LibraryActionBar({
           className="gap-1.5"
         >
           <Trash2 className="h-3.5 w-3.5" />
-          Remove
+          Uninstall
         </Button>
       </div>
 
@@ -166,11 +175,11 @@ export function LibraryActionBar({
           onOpenChange={(open) => {
             if (!open) setUninstallTargets(null);
           }}
-          title={`Uninstall`}
+          title="Uninstall"
           description={
             uninstallCount === 1
-              ? `This will remove all installed files for the selected ${uninstallTargets[0].type === 'mod' ? 'mod' : 'map'}. You can reinstall it later from the Browse page.`
-              : `This will remove all installed files for the selected ${uninstallTargets[0].type === 'mod' ? 'mods' : 'maps'}. You can reinstall them later from the Browse page.`
+              ? 'This will permanently remove all installed files. You can reinstall it later from the Browse page.'
+              : 'This will permanently remove all installed files for the selected items. You can reinstall them later from the Browse page.'
           }
           icon={OctagonX}
           tone="uninstall"
@@ -179,7 +188,22 @@ export function LibraryActionBar({
             onConfirm: handleConfirmUninstall,
             loading: uninstallLoading,
           }}
-        />
+        >
+          <div className="max-h-48 overflow-y-auto rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <ul className="space-y-1">
+              {uninstallPreviewEntries.map((t) => (
+                <li key={`${t.type}-${t.id}`}>
+                  <span className="font-medium text-foreground">{t.name}</span>
+                </li>
+              ))}
+              {uninstallRemainingCount > 0 && (
+                <li className="pt-1 text-right font-medium text-muted-foreground">
+                  +{uninstallRemainingCount} more
+                </li>
+              )}
+            </ul>
+          </div>
+        </AppDialog>
       )}
 
       {updateTargets && updateTargets.length > 0 && (
