@@ -1,5 +1,5 @@
 import { Compass, SearchX } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import {
   BrowseSidebar,
@@ -23,9 +23,11 @@ import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useRegistryStore } from '@/stores/registry-store';
+import { useUIStore } from '@/stores/ui-store';
 
 export function BrowsePage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebarOpen = useUIStore((s) => s.browseSidebarOpen);
+  const setSidebarOpen = useUIStore((s) => s.setBrowseSidebarOpen);
 
   const viewMode = useBrowseStore((s) => s.viewMode);
   const setViewMode = useBrowseStore((s) => s.setViewMode);
@@ -127,7 +129,7 @@ export function BrowsePage() {
     <div className="relative isolate">
       <BrowseSidebar
         open={sidebarOpen}
-        onToggle={() => setSidebarOpen((p) => !p)}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
         filters={filters}
         onFiltersChange={setFilters}
         onTypeChange={setType}

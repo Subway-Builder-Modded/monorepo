@@ -32,6 +32,7 @@ import {
   useInstalledStore,
 } from '@/stores/installed-store';
 import { useRegistryStore } from '@/stores/registry-store';
+import { useUIStore } from '@/stores/ui-store';
 
 import { OpenImportAssetDialog } from '../../wailsjs/go/main/App';
 import { types } from '../../wailsjs/go/models';
@@ -79,7 +80,8 @@ const FILES_ACCENT = getLocalAccentClasses('files');
 
 export function LibraryPage() {
   const [, navigate] = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebarOpen = useUIStore((s) => s.librarySidebarOpen);
+  const setSidebarOpen = useUIStore((s) => s.setLibrarySidebarOpen);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
   const [importSelectedPath, setImportSelectedPath] = useState('');
@@ -323,7 +325,7 @@ export function LibraryPage() {
     <>
       <LibrarySidebarPanel
         open={sidebarOpen}
-        onToggle={() => setSidebarOpen((p) => !p)}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
         filters={filters}
         onFiltersChange={setFilters}
         onTypeChange={setType}

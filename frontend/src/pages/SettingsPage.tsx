@@ -1,5 +1,4 @@
 import { Settings } from 'lucide-react';
-import { useState } from 'react';
 
 import { DangerZonePanel } from '@/components/settings/DangerZonePanel';
 import { GeneralSettingsPanel } from '@/components/settings/GeneralSettingsPanel';
@@ -10,9 +9,11 @@ import {
 import { SystemPreferencesPanel } from '@/components/settings/SystemPreferencesPanel';
 import { UIPreferencesPanel } from '@/components/settings/UIPreferencesPanel';
 import { PageHeading } from '@/components/shared/PageHeading';
+import { useUIStore } from '@/stores/ui-store';
 
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+  const activeTab = useUIStore((s) => s.settingsTab) as SettingsTab;
+  const setActiveTab = useUIStore((s) => s.setSettingsTab);
 
   return (
     <div className="space-y-6">

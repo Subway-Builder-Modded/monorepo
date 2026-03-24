@@ -24,6 +24,7 @@ import {
   withZeroDownloads,
 } from '@/lib/version-downloads';
 import { useRegistryStore } from '@/stores/registry-store';
+import { useUIStore } from '@/stores/ui-store';
 
 import { GetGameVersion } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
@@ -46,6 +47,9 @@ export function ProjectPage() {
   const routeType = params?.type;
   const type = routeType ? listingPathToAssetType(routeType) : undefined;
   const id = params?.id;
+  const projectKey = type && id ? `${type}:${id}` : '';
+  const activeTab = useUIStore((s) => (projectKey ? (s.projectTabs[projectKey] ?? 'description') : 'description'));
+  const setProjectTab = useUIStore((s) => s.setProjectTab);
 
   const item =
     type === 'mod'
@@ -209,7 +213,7 @@ export function ProjectPage() {
         totalDownloads={totalDownloads}
       />
 
-      <Tabs defaultValue="description">
+      <Tabs value={activeTab} onValueChange={(tab) => setProjectTab(projectKey, tab)}>
         <TabsList
           variant="default"
           className="h-auto rounded-xl border border-border/70 bg-background/90 p-0.5 shadow-sm backdrop-blur-md"

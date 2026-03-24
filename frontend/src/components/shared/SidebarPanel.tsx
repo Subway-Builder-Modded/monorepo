@@ -215,7 +215,7 @@ export function SidebarPanel({
         <div className="group/sidebar relative flex min-h-0 flex-1 flex-col">
           <div
             ref={scrollRef}
-            className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overflow-x-visible px-[clamp(0.65rem,1.4vw,1rem)] py-3"
+            className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overflow-x-clip px-[clamp(0.65rem,1.4vw,1rem)] py-3"
             onWheelCapture={(e) => e.stopPropagation()}
           >
             {children}
