@@ -34,9 +34,15 @@ Unicode true
 ####
 !include "wails_tools.nsh"
 
-# The version information for this two must consist of 4 parts
-VIProductVersion "${INFO_PRODUCTVERSION}.0"
-VIFileVersion    "${INFO_PRODUCTVERSION}.0"
+# Version is auto-generated based on wails.json productVersion
+# If it contains "+rc", version is used as-is; otherwise .0 is appended
+!include /NONFATAL "version.nsh"
+!ifndef FINAL_VERSION
+  !define FINAL_VERSION "${INFO_PRODUCTVERSION}.0"
+!endif
+
+VIProductVersion "${FINAL_VERSION}"
+VIFileVersion    "${FINAL_VERSION}"
 
 VIAddVersionKey "CompanyName"     "${INFO_COMPANYNAME}"
 VIAddVersionKey "FileDescription" "${INFO_PRODUCTNAME} Installer"

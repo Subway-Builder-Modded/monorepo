@@ -6,6 +6,9 @@
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",
   "frontend:dev:serverUrl": "auto",
+  "preBuildHooks": {
+    "windows/*": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $roots = @(); if ($env:WAILS_PROJECT_DIR) { $roots += $env:WAILS_PROJECT_DIR }; if ($env:WAILS_APPDIR) { $roots += $env:WAILS_APPDIR }; $roots += (Resolve-Path '.').Path; $c = @(); foreach ($r in $roots) { $c += (Join-Path $r 'scripts/generate-version.ps1') }; $c += @('scripts/generate-version.ps1','../scripts/generate-version.ps1','../../scripts/generate-version.ps1','../../../scripts/generate-version.ps1'); foreach ($p in $c) { if (Test-Path $p) { & $p; exit 0 } }; throw 'scripts/generate-version.ps1 not found. cwd=' + (Resolve-Path '.').Path }\""
+  },
   "author": {
     "name": "Subway Builder Modded",
     "email": "admin@subwaybuildermodded.com"
@@ -13,7 +16,7 @@
   "info": {
     "companyName": "Subway Builder Modded",
     "productName": "Railyard",
-    "productVersion": "v0.2.0",
+    "productVersion": "v0.2.0+rc.2",
     "copyright": "Copyright (c) 2026 Subway Builder Modded",
     "comments": "A mod manager for Subway Builder",
     "protocols": [
