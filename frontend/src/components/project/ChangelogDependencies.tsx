@@ -1,22 +1,23 @@
-import { ExternalLink, Gamepad2, Loader2, Package } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ExternalLink, Loader2, Package } from 'lucide-react';
+import { useMemo } from 'react';
 import { Link } from 'wouter';
 
 import { EmptyState } from '@/components/shared/EmptyState';
+import { GalleryImage } from '@/components/shared/GalleryImage';
+import { SubwayBuilderIcon } from '@/components/shared/SubwayBuilderIcon';
 import { Badge } from '@/components/ui/badge';
 import type { AssetType } from '@/lib/asset-types';
 import { assetTypeToListingPath } from '@/lib/asset-types';
 import { useRegistryStore } from '@/stores/registry-store';
 
-import { ComputeDependencyList } from '../../../wailsjs/go/downloader/Downloader';
 import type { types } from '../../../wailsjs/go/models';
-
-const GAME_DEP_KEY = 'subway-builder';
 
 interface ChangelogDependenciesProps {
   type: AssetType;
   itemId: string;
   versionInfo: types.VersionInfo;
+  resolvedDeps: Record<string, types.DependencyListEntry> | null;
+  resolving: boolean;
 }
 
 interface FlatDep {
@@ -27,69 +28,39 @@ interface FlatDep {
 
 export function ChangelogDependencies({
   type,
-  itemId,
+  itemId: _itemId,
   versionInfo,
+  resolvedDeps,
+  resolving,
 }: ChangelogDependenciesProps) {
   const mods = useRegistryStore((s) => s.mods);
-  const [resolvedDeps, setResolvedDeps] = useState<Record<
-    string,
-    types.DependencyListEntry
-  > | null>(null);
-  const [resolving, setResolving] = useState(false);
 
   const rawDeps = versionInfo.dependencies ?? {};
-  const hasModDeps = Object.keys(rawDeps).some((k) => k !== GAME_DEP_KEY);
+  const gameDep = versionInfo.game_version;
+  const directIds = useMemo(() => new Set(Object.keys(rawDeps)), [rawDeps]);
 
-  useEffect(() => {
-    if (type !== 'mod' || !hasModDeps) {
-      setResolvedDeps(null);
-      return;
-    }
-    let cancelled = false;
-    setResolving(true);
-    ComputeDependencyList(itemId, versionInfo)
-      .then((result) => {
-        if (cancelled) return;
-        const list = { ...(result.installList ?? {}) };
-        delete list[itemId];
-        setResolvedDeps(list);
-        setResolving(false);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setResolvedDeps(null);
-          setResolving(false);
+  const flatDeps = useMemo<FlatDep[]>(() => {
+    const result: FlatDep[] = [];
+    if (resolvedDeps !== null) {
+      for (const id of directIds) {
+        result.push({ id, range: rawDeps[id], kind: 'direct' });
+      }
+      for (const [id, entry] of Object.entries(resolvedDeps)) {
+        if (!directIds.has(id)) {
+          result.push({
+            id,
+            range: entry.installCandidate?.version ?? '?',
+            kind: 'indirect',
+          });
         }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [type, itemId, versionInfo.version]);
-
-  const gameDep = rawDeps[GAME_DEP_KEY];
-  const directIds = new Set(
-    Object.keys(rawDeps).filter((k) => k !== GAME_DEP_KEY),
-  );
-
-  const flatDeps: FlatDep[] = [];
-  if (resolvedDeps !== null) {
-    for (const id of directIds) {
-      flatDeps.push({ id, range: rawDeps[id], kind: 'direct' });
-    }
-    for (const [id, entry] of Object.entries(resolvedDeps)) {
-      if (!directIds.has(id)) {
-        flatDeps.push({
-          id,
-          range: entry.installCandidate.version,
-          kind: 'indirect',
-        });
+      }
+    } else if (type === 'mod') {
+      for (const id of directIds) {
+        result.push({ id, range: rawDeps[id], kind: 'direct' });
       }
     }
-  } else {
-    for (const id of directIds) {
-      flatDeps.push({ id, range: rawDeps[id], kind: 'direct' });
-    }
-  }
+    return result;
+  }, [resolvedDeps, directIds, rawDeps, type]);
 
   if (!gameDep && flatDeps.length === 0 && !resolving) {
     return (
@@ -107,7 +78,7 @@ export function ChangelogDependencies({
         <div className="flex items-center justify-between gap-3 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3.5">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10">
-              <Gamepad2 className="h-4 w-4 text-primary" />
+              <SubwayBuilderIcon className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -147,8 +118,14 @@ export function ChangelogDependencies({
                     className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-accent/30"
                   >
                     <div className="flex min-w-0 items-center gap-2.5">
-                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted">
-                        <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                      <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-md">
+                        <GalleryImage
+                          type="mod"
+                          id={id}
+                          imagePath={mod?.gallery?.[0]}
+                          className="absolute inset-0 h-full w-full object-cover"
+                          fallbackIconClassName="h-3.5 w-3.5"
+                        />
                       </div>
                       <div className="flex min-w-0 items-center gap-2">
                         <p className="min-w-0 truncate text-sm font-medium">

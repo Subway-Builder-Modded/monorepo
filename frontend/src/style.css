@@ -196,16 +196,21 @@
 }
 
 .crystal .railyard-accent {
-  --accent: color-mix(
-    in srgb,
-    var(--suite-accent-light) 18%,
-    oklch(0.96 0.028 192)
-  );
-  --accent-foreground: color-mix(in srgb, var(--suite-accent-light) 72%, black);
-  --ring: color-mix(in srgb, var(--suite-accent-light) 48%, transparent);
+  --primary: oklch(0.56 0.082 208);
+  --primary-foreground: oklch(0.98 0.018 192);
+  --secondary: oklch(0.89 0.032 192);
+  --secondary-foreground: oklch(0.2 0.06 200);
+  --muted: oklch(0.89 0.032 192);
+  --muted-foreground: oklch(0.48 0.042 196);
+  --accent: color-mix(in srgb, oklch(0.56 0.082 208) 22%, oklch(0.96 0.028 192));
+  --accent-foreground: color-mix(in srgb, oklch(0.56 0.082 208) 70%, black);
+  --ring: color-mix(in srgb, oklch(0.56 0.082 208) 52%, transparent);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: var(--accent);
   --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-ring: var(--ring);
+  --sidebar-hover: var(--sidebar-accent);
 }
 
 /* === Dark === */
@@ -377,19 +382,17 @@
 }
 
 .midnight .railyard-accent {
-  --primary: var(--suite-accent-dark);
-  --primary-foreground: var(--suite-text-inverted-dark);
+  --primary: oklch(0.74 0.092 250);
+  --primary-foreground: oklch(0.14 0.034 258);
   --secondary: oklch(0.21 0.036 258);
   --secondary-foreground: oklch(0.91 0.024 238);
   --muted: oklch(0.21 0.036 258);
   --muted-foreground: oklch(0.62 0.02 242);
-  --accent: color-mix(
-    in srgb,
-    var(--suite-accent-dark) 24%,
-    oklch(0.15 0.035 258)
-  );
-  --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 72%, white);
-  --ring: color-mix(in srgb, var(--suite-accent-dark) 52%, transparent);
+  --accent: color-mix(in srgb, oklch(0.74 0.092 250) 24%, oklch(0.15 0.035 258));
+  --accent-foreground: color-mix(in srgb, oklch(0.74 0.092 250) 72%, white);
+  --ring: color-mix(in srgb, oklch(0.74 0.092 250) 52%, transparent);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-hover: var(--sidebar-accent);
 }
 
@@ -435,19 +438,17 @@
 }
 
 .forest .railyard-accent {
-  --primary: var(--suite-accent-dark);
-  --primary-foreground: var(--suite-text-inverted-dark);
+  --primary: oklch(0.77 0.103 152);
+  --primary-foreground: oklch(0.14 0.028 152);
   --secondary: oklch(0.2 0.028 152);
   --secondary-foreground: oklch(0.88 0.018 145);
   --muted: oklch(0.2 0.028 152);
   --muted-foreground: oklch(0.58 0.018 148);
-  --accent: color-mix(
-    in srgb,
-    var(--suite-accent-dark) 25%,
-    oklch(0.16 0.028 152)
-  );
-  --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 72%, white);
-  --ring: color-mix(in srgb, var(--suite-accent-dark) 52%, transparent);
+  --accent: color-mix(in srgb, oklch(0.77 0.103 152) 25%, oklch(0.16 0.028 152));
+  --accent-foreground: color-mix(in srgb, oklch(0.77 0.103 152) 72%, white);
+  --ring: color-mix(in srgb, oklch(0.77 0.103 152) 52%, transparent);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-hover: var(--sidebar-accent);
 }
 

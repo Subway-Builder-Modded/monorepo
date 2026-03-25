@@ -31,7 +31,7 @@ import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Tooltip,
   TooltipContent,
@@ -58,6 +58,7 @@ import {
 } from '@/stores/installed-store';
 import { useRegistryStore } from '@/stores/registry-store';
 
+import { ComputeDependencyList } from '../../wailsjs/go/downloader/Downloader';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetAssetDownloadCounts,
@@ -68,8 +69,6 @@ import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 const INSTALL_ACCENT = getLocalAccentClasses('install');
 const FILES_ACCENT = getLocalAccentClasses('files');
 
-const TAB_TRIGGER_CLASS =
-  'h-10 flex-none rounded-lg px-3 text-sm font-semibold text-muted-foreground hover:bg-accent/45 hover:text-primary dark:hover:text-primary data-[state=active]:bg-accent/45 data-[state=active]:text-primary data-[state=active]:shadow-none dark:data-[state=active]:bg-accent/45 dark:data-[state=active]:text-primary';
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
@@ -126,6 +125,8 @@ export function ChangelogPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState('changelog');
+  const [resolvedDeps, setResolvedDeps] = useState<Record<string, types.DependencyListEntry> | null>(null);
+  const [resolvingDeps, setResolvingDeps] = useState(false);
   const [uninstallOpen, setUninstallOpen] = useState(false);
   const [uninstallLoading, setUninstallLoading] = useState(false);
   const [installError, setInstallError] = useState<{
@@ -228,6 +229,27 @@ export function ChangelogPage() {
     item?.update.url,
     versionParam,
   ]);
+
+  useEffect(() => {
+    setResolvedDeps(null);
+    if (!versionInfo || !item || type !== 'mod') return;
+    const directDeps = versionInfo.dependencies ?? {};
+    if (Object.keys(directDeps).length === 0) return;
+    let cancelled = false;
+    setResolvingDeps(true);
+    ComputeDependencyList(item.id, versionInfo)
+      .then((result) => {
+        if (cancelled) return;
+        const list = { ...(result.installList ?? {}) };
+        delete list[item.id];
+        setResolvedDeps(list);
+        setResolvingDeps(false);
+      })
+      .catch(() => {
+        if (!cancelled) setResolvingDeps(false);
+      });
+    return () => { cancelled = true; };
+  }, [type, item?.id, versionInfo?.version]);
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
     if (!item || !type) return;
@@ -504,29 +526,45 @@ export function ChangelogPage() {
               </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList
+            <div className="space-y-4">
+              <ToggleGroup
+                type="single"
+                value={activeTab}
                 variant="default"
-                className="h-auto rounded-xl border border-border/70 bg-background/90 p-0.5 shadow-sm backdrop-blur-md"
+                size="sm"
+                spacing={1}
+                onValueChange={(tab) => { if (tab) setActiveTab(tab); }}
+                className="rounded-xl border border-border/70 bg-background p-0.5 shadow-sm"
               >
-                <TabsTrigger value="changelog" className={TAB_TRIGGER_CLASS}>
+                <ToggleGroupItem
+                  value="changelog"
+                  className="h-9 rounded-lg px-3 text-sm font-semibold text-muted-foreground hover:bg-accent/45 hover:text-primary data-[state=on]:bg-accent/45 data-[state=on]:text-primary"
+                >
                   <FileText className="h-4 w-4" />
                   Changelog
-                </TabsTrigger>
-                <TabsTrigger value="dependencies" className={TAB_TRIGGER_CLASS}>
+                </ToggleGroupItem>
+                <ToggleGroupItem
+                  value="dependencies"
+                  className="h-9 rounded-lg px-3 text-sm font-semibold text-muted-foreground hover:bg-accent/45 hover:text-primary data-[state=on]:bg-accent/45 data-[state=on]:text-primary"
+                >
                   <Package className="h-4 w-4" />
                   Dependencies
-                  {Object.keys(versionInfo.dependencies ?? {}).length > 0 && (
-                    <Badge variant="secondary" size="sm" className="ml-0.5">
-                      {Object.keys(versionInfo.dependencies ?? {}).length}
-                    </Badge>
-                  )}
-                </TabsTrigger>
-              </TabsList>
+                  {(() => {
+                    const count = resolvedDeps !== null
+                      ? Object.keys(resolvedDeps).length
+                      : Object.keys(versionInfo.dependencies ?? {}).length;
+                    return count > 0 ? (
+                      <Badge variant="secondary" size="sm" className="ml-0.5">
+                        {count}
+                      </Badge>
+                    ) : null;
+                  })()}
+                </ToggleGroupItem>
+              </ToggleGroup>
 
-              <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
                 <div>
-                  <TabsContent value="changelog">
+                  {activeTab === 'changelog' && (
                     <div className="rounded-xl border border-border bg-card">
                       <div className="border-b border-border px-4 py-3">
                         <h2 className="text-sm font-semibold">Changelog</h2>
@@ -563,15 +601,17 @@ export function ChangelogPage() {
                         )}
                       </div>
                     </div>
-                  </TabsContent>
+                  )}
 
-                  <TabsContent value="dependencies">
+                  {activeTab === 'dependencies' && (
                     <ChangelogDependencies
                       type={type}
                       itemId={item.id}
                       versionInfo={versionInfo}
+                      resolvedDeps={resolvedDeps}
+                      resolving={resolvingDeps}
                     />
-                  </TabsContent>
+                  )}
                 </div>
 
                 <div className="rounded-xl border border-border bg-card h-fit">
@@ -611,7 +651,7 @@ export function ChangelogPage() {
                   </div>
                 </div>
               </div>
-            </Tabs>
+            </div>
           </>
         )}
       </div>
