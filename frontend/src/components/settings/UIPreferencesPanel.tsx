@@ -31,17 +31,42 @@ import {
 import { cn } from '@/lib/utils';
 import { useProfileStore } from '@/stores/profile-store';
 
-const VALID_THEMES = new Set<ThemeValue>(['dark', 'light', 'system']);
+const VALID_THEMES = new Set<ThemeValue>([
+  'dark',
+  'light',
+  'system',
+  'soft-dark',
+  'soft-light',
+  'hc-dark',
+  'hc-light',
+]);
 const THEME_LABELS: Record<ThemeValue, string> = {
   dark: 'Dark',
   light: 'Light',
   system: 'System',
+  'soft-dark': 'Soft Dark',
+  'soft-light': 'Soft Light',
+  'hc-dark': 'HC Dark',
+  'hc-light': 'HC Light',
 };
 
 function normalizeThemeValue(theme: unknown): ThemeValue {
-  if (theme === 'system' || theme === 'light' || theme === 'dark') return theme;
+  if (
+    theme === 'system' ||
+    theme === 'light' ||
+    theme === 'dark' ||
+    theme === 'soft-dark' ||
+    theme === 'soft-light' ||
+    theme === 'hc-dark' ||
+    theme === 'hc-light'
+  )
+    return theme;
   if (typeof theme === 'string') {
     const lowered = theme.toLowerCase();
+    if (lowered.startsWith('soft-dark') || lowered === 'softdark') return 'soft-dark';
+    if (lowered.startsWith('soft-light') || lowered === 'softlight') return 'soft-light';
+    if (lowered.startsWith('hc-dark') || lowered === 'hcdark') return 'hc-dark';
+    if (lowered.startsWith('hc-light') || lowered === 'hclight') return 'hc-light';
     if (lowered.startsWith('light')) return 'light';
     if (lowered.startsWith('dark')) return 'dark';
   }
@@ -123,7 +148,7 @@ export function UIPreferencesPanel() {
                   aria-expanded={showThemePreviews}
                   className={cn(
                     BROWSE_TRIGGER_CN,
-                    'flex w-28 items-center justify-between',
+                    'flex w-32 items-center justify-between',
                   )}
                 >
                   <span>

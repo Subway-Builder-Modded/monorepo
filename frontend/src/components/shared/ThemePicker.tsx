@@ -1,7 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export type ThemeValue = 'dark' | 'light' | 'system';
+export type ThemeValue =
+  | 'dark'
+  | 'light'
+  | 'system'
+  | 'soft-dark'
+  | 'soft-light'
+  | 'hc-dark'
+  | 'hc-light';
 
 interface ThemePreviewColors {
   bg: string;
@@ -44,6 +51,58 @@ const THEME_OPTIONS: ThemeOption[] = [
       primary: '#ebebeb',
       muted: '#383838',
       border: '#2e2e2e',
+    },
+  },
+  {
+    value: 'soft-light',
+    label: 'Soft Light',
+    colors: {
+      bg: '#f4ede3',
+      sidebar: '#ede6db',
+      card: '#f9f4ee',
+      bar: '#e8e0d5',
+      primary: '#38302a',
+      muted: '#e2d8cc',
+      border: '#cec4b6',
+    },
+  },
+  {
+    value: 'soft-dark',
+    label: 'Soft Dark',
+    colors: {
+      bg: '#302820',
+      sidebar: '#362e25',
+      card: '#3d342a',
+      bar: '#302820',
+      primary: '#e5ddd0',
+      muted: '#484036',
+      border: '#42382e',
+    },
+  },
+  {
+    value: 'hc-light',
+    label: 'HC Light',
+    colors: {
+      bg: '#ffffff',
+      sidebar: '#f5f5f5',
+      card: '#ffffff',
+      bar: '#f0f0f0',
+      primary: '#000000',
+      muted: '#e0e0e0',
+      border: '#7a7a7a',
+    },
+  },
+  {
+    value: 'hc-dark',
+    label: 'HC Dark',
+    colors: {
+      bg: '#0a0a0a',
+      sidebar: '#111111',
+      card: '#1a1a1a',
+      bar: '#0a0a0a',
+      primary: '#ffffff',
+      muted: '#252525',
+      border: '#4a4a4a',
     },
   },
 ];
