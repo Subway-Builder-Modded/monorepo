@@ -202,7 +202,11 @@
   --secondary-foreground: oklch(0.2 0.06 200);
   --muted: oklch(0.89 0.032 192);
   --muted-foreground: oklch(0.48 0.042 196);
-  --accent: color-mix(in srgb, oklch(0.56 0.082 208) 22%, oklch(0.96 0.028 192));
+  --accent: color-mix(
+    in srgb,
+    oklch(0.56 0.082 208) 22%,
+    oklch(0.96 0.028 192)
+  );
   --accent-foreground: color-mix(in srgb, oklch(0.56 0.082 208) 70%, black);
   --ring: color-mix(in srgb, oklch(0.56 0.082 208) 52%, transparent);
   --sidebar-primary: var(--primary);
@@ -388,7 +392,11 @@
   --secondary-foreground: oklch(0.91 0.024 238);
   --muted: oklch(0.21 0.036 258);
   --muted-foreground: oklch(0.62 0.02 242);
-  --accent: color-mix(in srgb, oklch(0.74 0.092 250) 24%, oklch(0.15 0.035 258));
+  --accent: color-mix(
+    in srgb,
+    oklch(0.74 0.092 250) 24%,
+    oklch(0.15 0.035 258)
+  );
   --accent-foreground: color-mix(in srgb, oklch(0.74 0.092 250) 72%, white);
   --ring: color-mix(in srgb, oklch(0.74 0.092 250) 52%, transparent);
   --sidebar-primary: var(--primary);
@@ -444,7 +452,11 @@
   --secondary-foreground: oklch(0.88 0.018 145);
   --muted: oklch(0.2 0.028 152);
   --muted-foreground: oklch(0.58 0.018 148);
-  --accent: color-mix(in srgb, oklch(0.77 0.103 152) 25%, oklch(0.16 0.028 152));
+  --accent: color-mix(
+    in srgb,
+    oklch(0.77 0.103 152) 25%,
+    oklch(0.16 0.028 152)
+  );
   --accent-foreground: color-mix(in srgb, oklch(0.77 0.103 152) 72%, white);
   --ring: color-mix(in srgb, oklch(0.77 0.103 152) 52%, transparent);
   --sidebar-primary: var(--primary);

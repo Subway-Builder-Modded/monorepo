@@ -73,7 +73,8 @@ const THEME_VARS: Record<PreviewTheme, ThemeVars> = {
     border: 'oklch(0.77 0.036 192)',
     muted: 'oklch(0.89 0.032 192)',
     mutedFg: 'oklch(0.48 0.042 196)',
-    accent: 'color-mix(in srgb, oklch(0.56 0.082 208) 22%, oklch(0.96 0.028 192))',
+    accent:
+      'color-mix(in srgb, oklch(0.56 0.082 208) 22%, oklch(0.96 0.028 192))',
     primary: 'oklch(0.56 0.082 208)',
     install: '#0a9070',
     uninstall: '#b82020',
@@ -86,7 +87,8 @@ const THEME_VARS: Record<PreviewTheme, ThemeVars> = {
     border: 'oklch(0.48 0.024 58 / 42%)',
     muted: 'oklch(0.31 0.028 56)',
     mutedFg: 'oklch(0.68 0.02 74)',
-    accent: 'color-mix(in srgb, oklch(0.76 0.066 74) 24%, oklch(0.22 0.024 54))',
+    accent:
+      'color-mix(in srgb, oklch(0.76 0.066 74) 24%, oklch(0.22 0.024 54))',
     primary: 'oklch(0.76 0.066 74)',
     install: '#58c89a',
     uninstall: '#ce6666',
@@ -99,7 +101,8 @@ const THEME_VARS: Record<PreviewTheme, ThemeVars> = {
     border: 'oklch(0.4 0.03 256 / 34%)',
     muted: 'oklch(0.21 0.036 258)',
     mutedFg: 'oklch(0.62 0.02 242)',
-    accent: 'color-mix(in srgb, oklch(0.74 0.092 250) 24%, oklch(0.15 0.035 258))',
+    accent:
+      'color-mix(in srgb, oklch(0.74 0.092 250) 24%, oklch(0.15 0.035 258))',
     primary: 'oklch(0.74 0.092 250)',
     install: '#28d8a8',
     uninstall: '#c83860',
@@ -112,7 +115,8 @@ const THEME_VARS: Record<PreviewTheme, ThemeVars> = {
     border: 'oklch(1 0 0 / 9%)',
     muted: 'oklch(0.2 0.028 152)',
     mutedFg: 'oklch(0.58 0.018 148)',
-    accent: 'color-mix(in srgb, oklch(0.77 0.103 152) 25%, oklch(0.16 0.028 152))',
+    accent:
+      'color-mix(in srgb, oklch(0.77 0.103 152) 25%, oklch(0.16 0.028 152))',
     primary: 'oklch(0.77 0.103 152)',
     install: '#32e8b0',
     uninstall: '#f07060',
@@ -148,14 +152,47 @@ function ThemePreview({ theme }: ThemePreviewProps) {
           }}
         >
           <div className="flex items-center gap-1">
-            <div className="rounded-[2px]" style={{ width: 9, height: 6, background: v.primary }} />
-            <div className="rounded-[2px]" style={{ width: 15, height: 3.5, background: v.muted }} />
-            <div className="rounded-[2px]" style={{ width: 12, height: 3.5, background: v.muted, opacity: 0.5 }} />
-            <div className="rounded-[2px]" style={{ width: 10, height: 3.5, background: v.muted, opacity: 0.5 }} />
+            <div
+              className="rounded-[2px]"
+              style={{ width: 9, height: 6, background: v.primary }}
+            />
+            <div
+              className="rounded-[2px]"
+              style={{ width: 15, height: 3.5, background: v.muted }}
+            />
+            <div
+              className="rounded-[2px]"
+              style={{
+                width: 12,
+                height: 3.5,
+                background: v.muted,
+                opacity: 0.5,
+              }}
+            />
+            <div
+              className="rounded-[2px]"
+              style={{
+                width: 10,
+                height: 3.5,
+                background: v.muted,
+                opacity: 0.5,
+              }}
+            />
           </div>
           <div className="flex items-center gap-1">
-            <div className="rounded-[2px]" style={{ width: 13, height: 5, background: v.install }} />
-            <div className="rounded-[2px]" style={{ width: 10, height: 5, background: v.muted, opacity: 0.4 }} />
+            <div
+              className="rounded-[2px]"
+              style={{ width: 13, height: 5, background: v.install }}
+            />
+            <div
+              className="rounded-[2px]"
+              style={{
+                width: 10,
+                height: 5,
+                background: v.muted,
+                opacity: 0.4,
+              }}
+            />
           </div>
         </div>
 
@@ -166,16 +203,40 @@ function ThemePreview({ theme }: ThemePreviewProps) {
             className="flex flex-[3] flex-col gap-[5%] rounded-[3px] p-[5%]"
             style={{ background: v.card, border: `1px solid ${v.border}` }}
           >
-            <div className="rounded-[1px]" style={{ width: '45%', height: 3, background: v.primary }} />
-            {([[85, 0.35], [70, 0.28], [55, 0.22]] as [number, number][]).map(([w, o], i) => (
+            <div
+              className="rounded-[1px]"
+              style={{ width: '45%', height: 3, background: v.primary }}
+            />
+            {(
+              [
+                [85, 0.35],
+                [70, 0.28],
+                [55, 0.22],
+              ] as [number, number][]
+            ).map(([w, o], i) => (
               <div key={i} className="flex items-center gap-1">
-                <div className="shrink-0 rounded-[1px]" style={{ width: 8, height: 8, background: v.muted }} />
-                <div className="rounded-[1px]" style={{ width: `${w}%`, height: 3, background: v.mutedFg, opacity: o }} />
+                <div
+                  className="shrink-0 rounded-[1px]"
+                  style={{ width: 8, height: 8, background: v.muted }}
+                />
+                <div
+                  className="rounded-[1px]"
+                  style={{
+                    width: `${w}%`,
+                    height: 3,
+                    background: v.mutedFg,
+                    opacity: o,
+                  }}
+                />
               </div>
             ))}
             <div className="mt-auto flex gap-0.5">
               {[v.install, v.update, v.files, v.uninstall].map((c, i) => (
-                <div key={i} className="rounded-[1px]" style={{ flex: 1, height: 4, background: c, opacity: 0.75 }} />
+                <div
+                  key={i}
+                  className="rounded-[1px]"
+                  style={{ flex: 1, height: 4, background: c, opacity: 0.75 }}
+                />
               ))}
             </div>
           </div>
@@ -185,8 +246,14 @@ function ThemePreview({ theme }: ThemePreviewProps) {
             className="flex flex-[2] flex-col gap-[5%] rounded-[3px] p-[5%]"
             style={{ background: v.card, border: `1px solid ${v.border}` }}
           >
-            <div className="rounded-[1px]" style={{ width: '65%', height: 3, background: v.primary }} />
-            <div className="flex-1 rounded-[2px]" style={{ background: v.accent }} />
+            <div
+              className="rounded-[1px]"
+              style={{ width: '65%', height: 3, background: v.primary }}
+            />
+            <div
+              className="flex-1 rounded-[2px]"
+              style={{ background: v.accent }}
+            />
           </div>
         </div>
       </div>

@@ -222,7 +222,9 @@ export function ProjectPage() {
           variant="default"
           size="sm"
           spacing={1}
-          onValueChange={(tab) => { if (tab) setProjectTab(projectKey, tab); }}
+          onValueChange={(tab) => {
+            if (tab) setProjectTab(projectKey, tab);
+          }}
           className="rounded-xl border border-border/70 bg-background p-0.5 shadow-sm"
         >
           {(

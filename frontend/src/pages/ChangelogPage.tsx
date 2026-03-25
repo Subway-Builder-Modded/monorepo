@@ -69,7 +69,6 @@ import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 const INSTALL_ACCENT = getLocalAccentClasses('install');
 const FILES_ACCENT = getLocalAccentClasses('files');
 
-
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
   return conflict.existingIsLocal ? 'Local' : 'Registry';
@@ -125,7 +124,10 @@ export function ChangelogPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState('changelog');
-  const [resolvedDeps, setResolvedDeps] = useState<Record<string, types.DependencyListEntry> | null>(null);
+  const [resolvedDeps, setResolvedDeps] = useState<Record<
+    string,
+    types.DependencyListEntry
+  > | null>(null);
   const [resolvingDeps, setResolvingDeps] = useState(false);
   const [uninstallOpen, setUninstallOpen] = useState(false);
   const [uninstallLoading, setUninstallLoading] = useState(false);
@@ -248,7 +250,9 @@ export function ChangelogPage() {
       .catch(() => {
         if (!cancelled) setResolvingDeps(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [type, item?.id, versionInfo?.version]);
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
@@ -533,7 +537,9 @@ export function ChangelogPage() {
                 variant="default"
                 size="sm"
                 spacing={1}
-                onValueChange={(tab) => { if (tab) setActiveTab(tab); }}
+                onValueChange={(tab) => {
+                  if (tab) setActiveTab(tab);
+                }}
                 className="rounded-xl border border-border/70 bg-background p-0.5 shadow-sm"
               >
                 <ToggleGroupItem
@@ -550,9 +556,10 @@ export function ChangelogPage() {
                   <Package className="h-4 w-4" />
                   Dependencies
                   {(() => {
-                    const count = resolvedDeps !== null
-                      ? Object.keys(resolvedDeps).length
-                      : Object.keys(versionInfo.dependencies ?? {}).length;
+                    const count =
+                      resolvedDeps !== null
+                        ? Object.keys(resolvedDeps).length
+                        : Object.keys(versionInfo.dependencies ?? {}).length;
                     return count > 0 ? (
                       <Badge variant="secondary" size="sm" className="ml-0.5">
                         {count}
