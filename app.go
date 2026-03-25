@@ -81,10 +81,16 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.Config.SetContext(ctx)
 	a.Downloader.InstallDependency = func(itemId string, itemType types.AssetType, version types.Version) {
-		a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
-			ProfileID:             a.Profiles.GetActiveProfile().Profile.ID,
+		activeProfileResult := a.Profiles.GetActiveProfile()
+		if activeProfileResult.Status != types.ResponseSuccess {
+			a.Logger.Warn("Failed to resolve active profile for dependency subscription", "item_id", itemId, "item_type", itemType, "version", version, "status", activeProfileResult.Status, "message", activeProfileResult.Message)
+			return
+		}
+
+		result := a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
+			ProfileID:             activeProfileResult.Profile.ID,
 			Action:                types.SubscriptionActionSubscribe,
-			ForceSync:             true,
+			ApplyMode:             types.UpdateSubscriptionsPersistOnly,
 			SkipDependencyInstall: true,
 			Assets: map[string]types.SubscriptionUpdateItem{
 				itemId: {
@@ -94,6 +100,9 @@ func (a *App) startup(ctx context.Context) {
 				},
 			},
 		})
+		if result.Status == types.ResponseError {
+			a.Logger.MultipleError("Failed to persist dependency subscription", logger.AsErrors(result.Errors), "item_id", itemId, "item_type", itemType, "version", version)
+		}
 	}
 
 	a.Downloader.OnExtractProgress = func(itemId string, extracted int64, total int64) {

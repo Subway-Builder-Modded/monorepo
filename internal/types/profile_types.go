@@ -91,11 +91,28 @@ type SubscriptionUpdateItem struct {
 	IsLocal bool      `json:"isLocal,omitempty"`
 }
 
+type UpdateSubscriptionsApplyMode string
+
+const (
+	UpdateSubscriptionsRuntimeOnly    UpdateSubscriptionsApplyMode = "runtime_only"
+	UpdateSubscriptionsPersistOnly    UpdateSubscriptionsApplyMode = "persist_only"
+	UpdateSubscriptionsPersistAndSync UpdateSubscriptionsApplyMode = "persist_and_sync"
+)
+
+func IsValidUpdateSubscriptionsApplyMode(mode UpdateSubscriptionsApplyMode) bool {
+	switch mode {
+	case UpdateSubscriptionsRuntimeOnly, UpdateSubscriptionsPersistOnly, UpdateSubscriptionsPersistAndSync:
+		return true
+	default:
+		return false
+	}
+}
+
 type UpdateSubscriptionsRequest struct {
 	ProfileID             string                            `json:"profileId"`
 	Assets                map[string]SubscriptionUpdateItem `json:"assets"`
 	Action                SubscriptionAction                `json:"action"`
-	ForceSync             bool                              `json:"forceSync"`
+	ApplyMode             UpdateSubscriptionsApplyMode      `json:"applyMode"`
 	ReplaceOnConflict     bool                              `json:"replaceOnConflict"`
 	SkipDependencyInstall bool                              `json:"skipDependencyInstall,omitempty"`
 }
@@ -163,6 +180,7 @@ const (
 	ErrorInvalidAssetType   UserProfilesErrorType = "invalid_asset_type"
 	ErrorInvalidVersion     UserProfilesErrorType = "invalid_version"
 	ErrorInvalidAction      UserProfilesErrorType = "invalid_action"
+	ErrorInvalidApplyMode   UserProfilesErrorType = "invalid_apply_mode"
 	ErrorInvalidProfileName UserProfilesErrorType = "invalid_profile_name"
 	ErrorDuplicateName      UserProfilesErrorType = "duplicate_profile_name"
 	ErrorDefaultProtected   UserProfilesErrorType = "default_profile_protected"

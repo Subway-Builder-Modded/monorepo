@@ -925,16 +925,16 @@ func (d *Downloader) installModDependencies(ctx context.Context, modID string, v
 			d.Logger.Info("Skipping installation of mod dependency that matches target mod", "mod_id", modID, "version", version)
 			continue
 		}
+		if d.InstallDependency != nil {
+			// Persist dependency subscription intent before installation so profile desired state is source-of-truth.
+			depVersion := types.Version(dep.InstallCandidate.Version)
+			d.InstallDependency(depID, types.AssetTypeMod, depVersion)
+		}
 
 		depInstallResp := d.installModNow(ctx, depID, dep.InstallCandidate.Version, &types.ModInstallOptions{SkipDependencies: true})
 		if depInstallResp.Status == types.ResponseError {
 			resp := d.installError(types.AssetTypeMod, modID, version, types.ConfigData{}, types.InstallErrorDependencyResolutionFailed, "Failed to install mod dependency", nil, "mod_id", modID, "dependency_id", depID, "dependency_version", dep.InstallCandidate.Version, "dependency_message", depInstallResp.Message)
 			return &resp
-		}
-
-		if d.InstallDependency != nil {
-			depVersion := types.Version(dep.InstallCandidate.Version)
-			go d.InstallDependency(depID, types.AssetTypeMod, depVersion)
 		}
 	}
 	return nil

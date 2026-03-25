@@ -22,7 +22,7 @@ func TestUpdateSubscriptionsSubscribeMapAddsOperationAndRuntimeOnlyByDefault(t *
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"map-a": {Type: types.AssetTypeMap, Version: types.Version("1.2.3")},
 		},
-		ForceSync: false,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 	}
 
 	result := svc.UpdateSubscriptions(req)
@@ -60,7 +60,7 @@ func TestUpdateSubscriptionsForceSyncPersistsStateAndSyncs(t *testing.T) {
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"mod-a": {Type: types.AssetTypeMod},
 		},
-		ForceSync: true,
+		ApplyMode: types.UpdateSubscriptionsPersistAndSync,
 	}
 
 	result := svc.UpdateSubscriptions(req)
@@ -255,6 +255,17 @@ func TestUpdateSubscriptionsRejectsInvalidRequests(t *testing.T) {
 	require.Equal(t, types.ErrorInvalidVersion, result.Errors[0].ErrorType)
 	require.Equal(t, "asset", result.Errors[0].AssetID)
 	require.Equal(t, types.AssetTypeMap, result.Errors[0].AssetType)
+
+	require.Panics(t, func() {
+		_ = svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
+			ProfileID: types.DefaultProfileID,
+			Action:    types.SubscriptionActionSubscribe,
+			ApplyMode: types.UpdateSubscriptionsApplyMode("bad-mode"),
+			Assets: map[string]types.SubscriptionUpdateItem{
+				"asset": {Type: types.AssetTypeMap, Version: types.Version("1.0.0")},
+			},
+		})
+	})
 }
 
 func TestUpdateSubscriptionsAcceptsSemverVersionString(t *testing.T) {
@@ -291,7 +302,7 @@ func TestUpdateSubscriptionsForceSyncErrors(t *testing.T) {
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"map-a": {Type: types.AssetTypeMap, Version: types.Version("1.1.0")},
 		},
-		ForceSync: true,
+		ApplyMode: types.UpdateSubscriptionsPersistAndSync,
 	})
 
 	require.Equal(t, types.ResponseError, result.Status)
@@ -345,7 +356,7 @@ func TestUpdateSubscriptionsMapConflictWarnsThenReplaces(t *testing.T) {
 				Version: types.Version("1.0.0"),
 			},
 		},
-		ForceSync:         true,
+		ApplyMode:         types.UpdateSubscriptionsPersistAndSync,
 		ReplaceOnConflict: false,
 	})
 	require.Equal(t, types.ResponseWarn, warnResult.Status)
@@ -363,7 +374,7 @@ func TestUpdateSubscriptionsMapConflictWarnsThenReplaces(t *testing.T) {
 				Version: types.Version("1.0.0"),
 			},
 		},
-		ForceSync:         true,
+		ApplyMode:         types.UpdateSubscriptionsPersistAndSync,
 		ReplaceOnConflict: true,
 	})
 	require.NotEqual(t, types.ResponseError, replaceResult.Status, replaceResult.Message)
