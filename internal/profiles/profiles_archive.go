@@ -2,7 +2,9 @@ package profiles
 
 import (
 	"archive/tar"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 
 	"railyard/internal/files"
@@ -279,7 +281,7 @@ func profileArchiveExists(profileUUID string) (bool, error) {
 	if err == nil {
 		return true, nil
 	}
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		return false, nil
 	}
 	return false, err

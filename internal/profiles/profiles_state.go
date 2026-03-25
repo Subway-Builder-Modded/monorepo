@@ -3,6 +3,7 @@ package profiles
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"railyard/internal/files"
 	"railyard/internal/logger"
@@ -341,7 +342,7 @@ func (s *UserProfiles) DeleteProfile(profileID string) types.UserProfileResult {
 
 	s.setState(validatedState)
 	archivePath := profileArchivePath(profile.UUID)
-	if removeErr := os.Remove(archivePath); removeErr != nil && !os.IsNotExist(removeErr) {
+	if removeErr := os.Remove(archivePath); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
 		return profileStateErrorResult(
 			"Profile deleted but failed to remove archive",
 			validatedState.Profiles[validatedState.ActiveProfileID],

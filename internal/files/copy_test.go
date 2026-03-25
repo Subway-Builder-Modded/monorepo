@@ -1,6 +1,8 @@
 package files
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -33,7 +35,7 @@ func TestCopyOptionalFile(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, types.GenericResponse{}, response)
 	_, statErr := os.Stat(dest)
-	require.True(t, os.IsNotExist(statErr))
+	require.True(t, errors.Is(statErr, fs.ErrNotExist))
 
 	require.NoError(t, os.WriteFile(source, []byte("file-data"), 0o644))
 	response, ok = CopyOptionalFile(source, dest, "profile-a", "map-a", "thumbnail", log)

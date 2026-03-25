@@ -2,7 +2,6 @@ package files
 
 import (
 	"archive/tar"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -158,10 +157,15 @@ func ReadJSONFromTarArchive[T any](archivePath string, targetFileName string) (T
 			continue
 		}
 
-		if decodeErr := json.NewDecoder(reader).Decode(&value); decodeErr != nil {
+		raw, readErr := io.ReadAll(reader)
+		if readErr != nil {
+			return value, false, readErr
+		}
+		decoded, decodeErr := ParseJSON[T](raw, targetFileName)
+		if decodeErr != nil {
 			return value, false, decodeErr
 		}
-		return value, true, nil
+		return decoded, true, nil
 	}
 }
 

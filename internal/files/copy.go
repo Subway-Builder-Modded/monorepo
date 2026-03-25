@@ -1,6 +1,7 @@
 package files
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -20,7 +21,7 @@ func CopyDirFromFS(destDir string, sourceFS fs.FS) error {
 // CopyOptionalFile copies a file if present; a missing source is treated as success.
 func CopyOptionalFile(src, dst, profileID, mapID, fileType string, logger logger.Logger) (types.GenericResponse, bool) {
 	if _, err := os.Stat(src); err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return types.GenericResponse{}, true
 		}
 		logger.Error(fmt.Sprintf("Failed to stat optional %s file", fileType), err, "profile_id", profileID, "map_id", mapID)

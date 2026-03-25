@@ -1,6 +1,8 @@
 package profiles
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -107,7 +109,7 @@ func TestDeleteProfileRemovesArchive(t *testing.T) {
 	result := svc.DeleteProfile(target.ID)
 	require.Equal(t, types.ResponseSuccess, result.Status)
 	_, statErr := os.Stat(archivePath)
-	require.True(t, os.IsNotExist(statErr))
+	require.True(t, errors.Is(statErr, fs.ErrNotExist))
 
 	persisted, err := ReadUserProfilesState()
 	require.NoError(t, err)
@@ -182,7 +184,7 @@ func TestSwapProfileUsesFreshArchiveRestorePath(t *testing.T) {
 
 	// Restore keeps existing behavior and deletes archive after successful restore.
 	_, statErr := os.Stat(profileArchivePath(target.UUID))
-	require.True(t, os.IsNotExist(statErr))
+	require.True(t, errors.Is(statErr, fs.ErrNotExist))
 }
 
 func TestProfileArchiveFreshnessMetadata(t *testing.T) {
