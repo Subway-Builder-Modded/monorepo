@@ -6,19 +6,19 @@ type FullTheme =
   | 'dark'
   | 'light'
   | 'system'
-  | 'dark_low'
-  | 'dark_high'
-  | 'light_low'
-  | 'light_high';
+  | 'midnight'
+  | 'coffee'
+  | 'forest'
+  | 'crystal';
 
 const VALID_THEMES = new Set<FullTheme>([
   'dark',
   'light',
   'system',
-  'dark_low',
-  'dark_high',
-  'light_low',
-  'light_high',
+  'midnight',
+  'coffee',
+  'forest',
+  'crystal',
 ]);
 
 function normalizeTheme(theme: string): FullTheme {
@@ -30,12 +30,12 @@ function normalizeTheme(theme: string): FullTheme {
 }
 
 function applyThemeClasses(root: HTMLElement, theme: Exclude<FullTheme, 'system'>) {
-  const isDark = theme === 'dark' || theme === 'dark_low' || theme === 'dark_high';
+  const isDark = theme === 'dark' || theme === 'midnight' || theme === 'forest' || theme === 'coffee';
   root.classList.toggle('dark', isDark);
-  root.classList.toggle('soft-light', theme === 'light_low');
-  root.classList.toggle('soft-dark', theme === 'dark_low');
-  root.classList.toggle('hc-light', theme === 'light_high');
-  root.classList.toggle('hc-dark', theme === 'dark_high');
+  root.classList.toggle('midnight', theme === 'midnight');
+  root.classList.toggle('coffee', theme === 'coffee');
+  root.classList.toggle('forest', theme === 'forest');
+  root.classList.toggle('crystal', theme === 'crystal');
 }
 
 export function useTheme() {

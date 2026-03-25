@@ -35,19 +35,19 @@ const VALID_THEMES = new Set<ThemeValue>([
   'dark',
   'light',
   'system',
-  'dark_low',
-  'dark_high',
-  'light_low',
-  'light_high',
+  'midnight',
+  'coffee',
+  'forest',
+  'crystal',
 ]);
 const THEME_LABELS: Record<ThemeValue, string> = {
   dark: 'Dark',
   light: 'Light',
   system: 'System',
-  dark_low: 'Soft Dark',
-  dark_high: 'HC Dark',
-  light_low: 'Soft Light',
-  light_high: 'HC Light',
+  midnight: 'Midnight',
+  coffee: 'Coffee',
+  forest: 'Forest',
+  crystal: 'Crystal',
 };
 
 function normalizeThemeValue(theme: unknown): ThemeValue {
@@ -55,10 +55,10 @@ function normalizeThemeValue(theme: unknown): ThemeValue {
     theme === 'system' ||
     theme === 'light' ||
     theme === 'dark' ||
-    theme === 'dark_low' ||
-    theme === 'dark_high' ||
-    theme === 'light_low' ||
-    theme === 'light_high'
+    theme === 'midnight' ||
+    theme === 'coffee' ||
+    theme === 'forest' ||
+    theme === 'crystal'
   )
     return theme;
   if (typeof theme === 'string') {

@@ -5,10 +5,10 @@ export type ThemeValue =
   | 'dark'
   | 'light'
   | 'system'
-  | 'dark_low'
-  | 'dark_high'
-  | 'light_low'
-  | 'light_high';
+  | 'midnight'
+  | 'coffee'
+  | 'forest'
+  | 'crystal';
 
 interface ThemePreviewColors {
   bg: string;
@@ -54,55 +54,55 @@ const THEME_OPTIONS: ThemeOption[] = [
     },
   },
   {
-    value: 'light_low',
-    label: 'Soft Light',
+    value: 'coffee',
+    label: 'Coffee',
     colors: {
-      bg: '#f4ede3',
-      sidebar: '#ede6db',
-      card: '#f9f4ee',
-      bar: '#e8e0d5',
-      primary: '#38302a',
-      muted: '#e2d8cc',
-      border: '#cec4b6',
+      bg: '#251508',
+      sidebar: '#2c1a0c',
+      card: '#332010',
+      bar: '#251508',
+      primary: '#f0e4d0',
+      muted: '#3e2818',
+      border: '#4a3020',
     },
   },
   {
-    value: 'dark_low',
-    label: 'Soft Dark',
+    value: 'midnight',
+    label: 'Midnight',
     colors: {
-      bg: '#302820',
-      sidebar: '#362e25',
-      card: '#3d342a',
-      bar: '#302820',
-      primary: '#e5ddd0',
-      muted: '#484036',
-      border: '#42382e',
+      bg: '#0d1120',
+      sidebar: '#111828',
+      card: '#161e30',
+      bar: '#0d1120',
+      primary: '#e8eaf0',
+      muted: '#1c2438',
+      border: '#1e2840',
     },
   },
   {
-    value: 'light_high',
-    label: 'HC Light',
+    value: 'crystal',
+    label: 'Crystal',
     colors: {
-      bg: '#ffffff',
-      sidebar: '#f5f5f5',
-      card: '#ffffff',
-      bar: '#f0f0f0',
-      primary: '#000000',
-      muted: '#e0e0e0',
-      border: '#7a7a7a',
+      bg: '#dff0ef',
+      sidebar: '#d0e8e8',
+      card: '#eaf6f6',
+      bar: '#c8e0e0',
+      primary: '#0c2830',
+      muted: '#b8d8da',
+      border: '#82b8bc',
     },
   },
   {
-    value: 'dark_high',
-    label: 'HC Dark',
+    value: 'forest',
+    label: 'Forest',
     colors: {
-      bg: '#0a0a0a',
-      sidebar: '#111111',
-      card: '#1a1a1a',
-      bar: '#0a0a0a',
-      primary: '#ffffff',
-      muted: '#252525',
-      border: '#4a4a4a',
+      bg: '#0d1a0f',
+      sidebar: '#112015',
+      card: '#15261a',
+      bar: '#0d1a0f',
+      primary: '#d8ede0',
+      muted: '#1a2e20',
+      border: '#1e3425',
     },
   },
 ];
