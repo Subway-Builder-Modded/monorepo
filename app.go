@@ -81,14 +81,8 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.Config.SetContext(ctx)
 	a.Downloader.InstallDependency = func(itemId string, itemType types.AssetType, version types.Version) {
-		activeProfileResult := a.Profiles.GetActiveProfile()
-		if activeProfileResult.Status != types.ResponseSuccess {
-			a.Logger.Warn("Failed to resolve active profile for dependency subscription", "item_id", itemId, "item_type", itemType, "version", version, "status", activeProfileResult.Status, "message", activeProfileResult.Message)
-			return
-		}
-
 		result := a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
-			ProfileID:             activeProfileResult.Profile.ID,
+			ProfileID:             a.Profiles.GetActiveProfile().Profile.ID,
 			Action:                types.SubscriptionActionSubscribe,
 			ApplyMode:             types.UpdateSubscriptionsPersistOnly,
 			SkipDependencyInstall: true,

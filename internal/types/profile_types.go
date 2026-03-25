@@ -180,7 +180,6 @@ const (
 	ErrorInvalidAssetType   UserProfilesErrorType = "invalid_asset_type"
 	ErrorInvalidVersion     UserProfilesErrorType = "invalid_version"
 	ErrorInvalidAction      UserProfilesErrorType = "invalid_action"
-	ErrorInvalidApplyMode   UserProfilesErrorType = "invalid_apply_mode"
 	ErrorInvalidProfileName UserProfilesErrorType = "invalid_profile_name"
 	ErrorDuplicateName      UserProfilesErrorType = "duplicate_profile_name"
 	ErrorDefaultProtected   UserProfilesErrorType = "default_profile_protected"

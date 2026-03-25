@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateSubscriptionsSubscribeMapAddsOperationAndRuntimeOnlyByDefault(t *testing.T) {
+func TestUpdateSubscriptionsSubscribeMapAddsOperationRuntimeOnly(t *testing.T) {
 	testutil.NewHarness(t)
 	svc := loadedUserProfilesService(t, types.InitialProfilesState())
 
@@ -90,6 +90,7 @@ func TestUpdateSubscriptionsRepeatedSubscribeSameVersionEmitsOperation(t *testin
 	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionSubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"map-a": {Type: types.AssetTypeMap, Version: types.Version("1.2.3")},
 		},
@@ -113,6 +114,7 @@ func TestUpdateSubscriptionsUnsubscribeRemovesAndEmitsOperation(t *testing.T) {
 	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionUnsubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"mod-a": {Type: types.AssetTypeMod},
 		},
@@ -133,6 +135,7 @@ func TestUpdateSubscriptionsUnsubscribeMissingEntryIsNoOp(t *testing.T) {
 	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionUnsubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"missing": {Type: types.AssetTypeMap},
 		},
@@ -154,6 +157,7 @@ func TestUpdateSubscriptionsUnsubscribeLocalMap(t *testing.T) {
 	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionUnsubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"AAA": {Type: types.AssetTypeMap},
 		},
@@ -178,6 +182,7 @@ func TestUpdateSubscriptionsSubscribeLocalMap(t *testing.T) {
 	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionSubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"AAA": {
 				Type:    types.AssetTypeMap,
@@ -207,6 +212,7 @@ func TestUpdateSubscriptionsRejectsInvalidRequests(t *testing.T) {
 	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: "missing",
 		Action:    types.SubscriptionActionSubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 	})
 	requireProfileErrorType(t, result.Errors, types.ErrorProfileNotFound)
 	require.Equal(t, types.ResponseError, result.Status)
@@ -217,6 +223,7 @@ func TestUpdateSubscriptionsRejectsInvalidRequests(t *testing.T) {
 	result = svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionAction("bad-action"),
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"asset": {Type: types.AssetTypeMap, Version: types.Version("1.0.0")},
 		},
@@ -231,6 +238,7 @@ func TestUpdateSubscriptionsRejectsInvalidRequests(t *testing.T) {
 	result = svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionSubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"asset": {Type: types.AssetType("bad-type"), Version: types.Version("1.0.0")},
 		},
@@ -245,6 +253,7 @@ func TestUpdateSubscriptionsRejectsInvalidRequests(t *testing.T) {
 	result = svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionSubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"asset": {Type: types.AssetTypeMap, Version: types.Version("not-semver")},
 		},
@@ -275,6 +284,7 @@ func TestUpdateSubscriptionsAcceptsSemverVersionString(t *testing.T) {
 	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 		ProfileID: types.DefaultProfileID,
 		Action:    types.SubscriptionActionSubscribe,
+		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
 		Assets: map[string]types.SubscriptionUpdateItem{
 			"map-x": {Type: types.AssetTypeMap, Version: types.Version("1.2.3")},
 		},
