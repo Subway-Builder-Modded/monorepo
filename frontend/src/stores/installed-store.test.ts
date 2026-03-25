@@ -235,7 +235,13 @@ describe('useInstalledStore', () => {
     );
     mockUpdateSubscriptions.mockResolvedValue(
       updateSubscriptionsWithConflicts('Map code conflict', [
-        { existingAssetId: 'map-other', existingAssetType: 'map', existingVersion: '1.0.0', existingIsLocal: true, cityCode: 'ABC' },
+        {
+          existingAssetId: 'map-other',
+          existingAssetType: 'map',
+          existingVersion: '1.0.0',
+          existingIsLocal: false,
+          cityCode: 'ABC',
+        },
       ]),
     );
 
@@ -434,7 +440,13 @@ describe('useInstalledStore', () => {
       status: 'warn',
       message: 'conflict detected',
       conflicts: [
-        { existingAssetId: 'map-other', existingAssetType: 'map', existingVersion: '1.0.0', existingIsLocal: true, cityCode: 'ABC' },
+        {
+          existingAssetId: 'map-other',
+          existingAssetType: 'map',
+          existingVersion: '1.0.0',
+          existingIsLocal: false,
+          cityCode: 'ABC',
+        },
       ],
       errors: [],
     });
