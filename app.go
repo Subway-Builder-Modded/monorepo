@@ -412,7 +412,7 @@ func (a *App) LaunchGame() types.GenericResponse {
 		cmd = exec.Command("/bin/sh", args...)
 		if profile.Status == types.ResponseSuccess {
 			if profile.Profile.SystemPreferences.UseDevTools {
-				cmd.Env = append(cmd.Env, "DEBUG_PROD=TRUE")
+				cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
 			}
 		}
 	} else if runtime.GOOS == "linux" {
@@ -436,15 +436,16 @@ func (a *App) LaunchGame() types.GenericResponse {
 		}
 		if profile.Status == types.ResponseSuccess {
 			if profile.Profile.SystemPreferences.UseDevTools {
-				cmd.Env = append(cmd.Env, "DEBUG_PROD=TRUE")
+				cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
 			}
 		}
 	} else {
 		cmd = exec.Command(exePath, extraSplitArgs...)
 		cmd.Dir = filepath.Dir(exePath)
+
 		if profile.Status == types.ResponseSuccess {
 			if profile.Profile.SystemPreferences.UseDevTools {
-				cmd.Env = append(cmd.Env, "DEBUG_PROD=TRUE")
+				cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
 			}
 		}
 	}
