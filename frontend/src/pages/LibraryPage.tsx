@@ -1,5 +1,5 @@
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 
@@ -72,6 +72,23 @@ function localMapManifestFromInstalled(
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
   return conflict.existingIsLocal ? 'Local' : 'Registry';
+}
+
+function renderPathWithSoftBreaks(path: string) {
+  // We want strict bounds in the dialog without breaking mid-segment.
+  // Insert optional break points after path separators.
+  const parts = path.split(/([\\/])/g);
+  return parts.map((part, idx) => {
+    if (part === '/' || part === '\\') {
+      return (
+        <Fragment key={`${idx}-sep`}>
+          {part}
+          <wbr />
+        </Fragment>
+      );
+    }
+    return <Fragment key={`${idx}-txt`}>{part}</Fragment>;
+  });
 }
 
 const INSTALL_ACCENT = getLocalAccentClasses('install');
@@ -484,12 +501,14 @@ export function LibraryPage() {
           loading: importLoading,
         }}
       >
-        <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        <div className="min-w-0 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
           Asset Type: <span className="font-medium text-foreground">Map</span>
           {importSelectedPath ? (
-            <p className="mt-1 truncate">
+            <p className="mt-1 min-w-0 max-w-full overflow-hidden whitespace-normal">
               Selected Archive:{' '}
-              <span className="text-foreground">{importSelectedPath}</span>
+              <span className="text-foreground font-mono">
+                {renderPathWithSoftBreaks(importSelectedPath)}
+              </span>
             </p>
           ) : null}
         </div>
