@@ -49,10 +49,10 @@ git config core.hooksPath .githooks
 ```
 
 The pre-push check includes:
-- `gofmt` validation for all tracked Go files
+- `gofmt -w` auto-apply for all tracked Go files (then validation)
 - `go test ./...`
-- `go test` coverage gate (`scripts/check-go-coverage.ps1`, default minimum: `45%`)
-- frontend `pnpm run lint`, `pnpm run format:check`, and `pnpm run test`
+- `go test` coverage gate (`scripts/check-go-coverage.ps1`, default minimum: `60%`)
+- frontend `pnpm run format`, `pnpm run lint:fix`, then `pnpm run check` (`lint`, `format:check`, `test`, `test:coverage`)
 
 ## How It Works
 
