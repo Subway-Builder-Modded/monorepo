@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"railyard/internal/constants"
 	"railyard/internal/files"
 	"railyard/internal/logger"
 	"railyard/internal/paths"
 	"railyard/internal/types"
 	"railyard/internal/utils"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -111,11 +111,9 @@ func (s *UserProfiles) ListProfiles() types.UserProfilesListResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.logRequest("ListProfiles")
-
 	if !s.loaded {
 		return types.UserProfilesListResult{
 			GenericResponse: types.ErrorResponse("Profiles state not loaded"),
-			ActiveProfileID: "",
 			Profiles:        []types.UserProfile{},
 			ArchiveSizes:    map[string]int64{},
 			Errors: []types.UserProfilesError{
@@ -128,18 +126,11 @@ func (s *UserProfiles) ListProfiles() types.UserProfilesListResult {
 	for _, profile := range s.state.Profiles {
 		profiles = append(profiles, profile)
 	}
-	sort.Slice(profiles, func(i, j int) bool {
-		if profiles[i].ID == types.DefaultProfileID {
-			return true
-		}
-		if profiles[j].ID == types.DefaultProfileID {
-			return false
-		}
-		return strings.ToLower(profiles[i].Name) < strings.ToLower(profiles[j].Name)
-	})
 
 	archiveSizes := make(map[string]int64, len(profiles))
+	subscriptionSizes := map[string]int64{}
 	for _, profile := range profiles {
+		// check the archive path of the profile if it exists
 		info, err := os.Stat(profileArchivePath(profile.UUID))
 		if err == nil {
 			archiveSizes[profile.ID] = info.Size()
@@ -155,14 +146,64 @@ func (s *UserProfiles) ListProfiles() types.UserProfilesListResult {
 			"error", err,
 		)
 	}
+	// active profile generally does not have an archive path as it is written on profile swap, so we instead resolve the size of all installed subscriptions in their respective folders to give an estimate of the profile size on disk
+	activeProfile, ok := s.state.Profiles[s.state.ActiveProfileID]
+	if ok {
+		size, err := s.activeProfileSubscriptionsSize(activeProfile)
+		if err != nil {
+			s.Logger.Warn(
+				"Failed to resolve active profile subscriptions size while listing profiles",
+				"profile_id", activeProfile.ID,
+				"error", err,
+			)
+		} else {
+			subscriptionSizes[activeProfile.ID] = size
+		}
+	}
 
 	return types.UserProfilesListResult{
-		GenericResponse: types.SuccessResponse("Profiles resolved"),
-		ActiveProfileID: s.state.ActiveProfileID,
-		Profiles:        profiles,
-		ArchiveSizes:    archiveSizes,
-		Errors:          []types.UserProfilesError{},
+		GenericResponse:   types.SuccessResponse("Profiles resolved"),
+		ActiveProfileID:   s.state.ActiveProfileID,
+		Profiles:          profiles,
+		ArchiveSizes:      archiveSizes,
+		SubscriptionSizes: subscriptionSizes,
+		Errors:            []types.UserProfilesError{},
 	}
+}
+
+func (s *UserProfiles) activeProfileSubscriptionsSize(profile types.UserProfile) (int64, error) {
+	metroMakerDataPath := s.Config.Cfg.MetroMakerDataPath
+	if metroMakerDataPath == "" {
+		return 0, nil
+	}
+
+	mapCodeByID := map[string]string{}
+	for _, installed := range s.Registry.GetInstalledMaps() {
+		mapCodeByID[installed.ID] = installed.MapConfig.Code
+	}
+	resolvers := types.SubscriptionTypeResolvers(metroMakerDataPath, mapCodeByID)
+
+	var total int64
+	var sizeErr error
+	// Iterate over each subscription type and sum the sizes of their respective subscription directories on disk, if they exist.
+	profile.Subscriptions.ForEachSubscriptionType(func(subscriptionType string, entries map[string]string) bool {
+		for subscriptionID := range entries {
+			size, handled, err := managedSubscriptionDirectorySize(subscriptionType, subscriptionID, resolvers)
+			if err != nil {
+				sizeErr = err
+				return false
+			}
+			if handled {
+				total += size
+			}
+		}
+		return true
+	})
+	if sizeErr != nil {
+		return 0, sizeErr
+	}
+
+	return total, nil
 }
 
 func (s *UserProfiles) resolveActiveProfile() types.UserProfileResult {
@@ -496,9 +537,10 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 			)
 		}
 	}
-	shouldHydrateTarget := profileHasSubscriptions(targetProfile)
+	// Profiles with no subscriptions can simply be restored from the profiles JSON in memory without needing to worry about archive freshness
+	shouldRestoreArchive := profileHasSubscriptions(targetProfile)
 	isTargetArchiveFresh := false
-	if shouldHydrateTarget {
+	if shouldRestoreArchive {
 		// Validate target profile archive status
 		targetArchiveFresh, targetErrResult := s.resolveProfileArchiveFreshness(targetProfile, currentProfile, "target")
 		if targetErrResult != nil {
@@ -541,8 +583,8 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 		)
 	}
 
-	// Profiles with no subscriptions need no restore/sync hydration.
-	if !shouldHydrateTarget {
+	// Profiles with no subscriptions need no restore/sync.
+	if !shouldRestoreArchive {
 		return types.UserProfileResult{
 			GenericResponse: types.SuccessResponse("Profile swapped successfully"),
 			Profile:         swappedProfile,
@@ -708,6 +750,7 @@ func nextGeneratedProfileID(profiles map[string]types.UserProfile) string {
 	return fmt.Sprintf("profile_%d", maxID+1)
 }
 
+// hasDuplicateProfileName checks if there is another profile with the same name (case-insensitive) in the provided profiles map, excluding the profile with excludeProfileID (usually the profile being updated/renamed)
 func hasDuplicateProfileName(profiles map[string]types.UserProfile, name string, excludeProfileID string) bool {
 	for profileID, profile := range profiles {
 		if excludeProfileID != "" && profileID == excludeProfileID {
@@ -720,10 +763,26 @@ func hasDuplicateProfileName(profiles map[string]types.UserProfile, name string,
 	return false
 }
 
-func profileHasSubscriptions(profile types.UserProfile) bool {
-	return len(profile.Subscriptions.Maps) > 0 ||
-		len(profile.Subscriptions.LocalMaps) > 0 ||
-		len(profile.Subscriptions.Mods) > 0
+// profileHasSubscriptions checks if the given profile has any subscriptions
+func profileHasSubscriptions(profile types.UserProfile) bool { return profile.Subscriptions.HasAny() }
+
+func managedSubscriptionDirectorySize(subscriptionType string, subscriptionID string, bucketSpecs map[string]types.SubscriptionTypeResolver) (int64, bool, error) {
+	spec, ok := bucketSpecs[subscriptionType]
+	if !ok {
+		return 0, false, nil
+	}
+
+	subPath, ok := spec.ResolveSubPath(subscriptionID)
+	if !ok || subPath == "" {
+		return 0, false, nil
+	}
+
+	assetPath := paths.JoinLocalPath(spec.BasePath, subPath)
+	size, err := files.ManagedDirectorySize(assetPath, constants.RailyardAssetMarker)
+	if err != nil {
+		return 0, true, fmt.Errorf("failed to resolve managed size for %s %q: %w", spec.Label, subscriptionID, err)
+	}
+	return size, true, nil
 }
 
 func (s *UserProfiles) swapProfilesSnapshot(profileID string) (types.UserProfile, types.UserProfile, types.UserProfileResult, bool) {

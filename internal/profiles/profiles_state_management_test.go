@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"railyard/internal/constants"
+	"railyard/internal/paths"
 	"railyard/internal/testutil"
 	"railyard/internal/types"
 
@@ -264,7 +266,7 @@ func TestProfileArchiveFreshnessMetadata(t *testing.T) {
 	require.False(t, stale)
 }
 
-func TestListProfilesReturnsProfilesWithDefaultFirst(t *testing.T) {
+func TestListProfilesReturnsAllProfiles(t *testing.T) {
 	testutil.NewHarness(t)
 
 	state := types.InitialProfilesState()
@@ -277,9 +279,13 @@ func TestListProfilesReturnsProfilesWithDefaultFirst(t *testing.T) {
 	require.Equal(t, types.ResponseSuccess, result.Status)
 	require.Equal(t, types.DefaultProfileID, result.ActiveProfileID)
 	require.Len(t, result.Profiles, 3)
-	require.Equal(t, types.DefaultProfileID, result.Profiles[0].ID)
-	require.Equal(t, "Alpha", result.Profiles[1].Name)
-	require.Equal(t, "Zulu", result.Profiles[2].Name)
+	ids := map[string]bool{}
+	for _, profile := range result.Profiles {
+		ids[profile.ID] = true
+	}
+	require.True(t, ids[types.DefaultProfileID])
+	require.True(t, ids["profile_0"])
+	require.True(t, ids["profile_1"])
 }
 
 func TestListProfilesErrorsWhenStateNotLoaded(t *testing.T) {
@@ -307,4 +313,36 @@ func TestListProfilesIncludesArchiveSizeWhenArchiveExists(t *testing.T) {
 	result := svc.ListProfiles()
 	require.Equal(t, types.ResponseSuccess, result.Status)
 	require.Equal(t, int64(10), result.ArchiveSizes[target.ID])
+}
+
+func TestListProfilesIncludesActiveSubscriptionSizeWhenArchiveMissing(t *testing.T) {
+	testutil.NewHarness(t)
+
+	state := types.InitialProfilesState()
+	active := state.Profiles[state.ActiveProfileID]
+	active.Subscriptions.Mods["mod-a"] = "1.0.0"
+	active.Subscriptions.Maps["map-a"] = "1.0.0"
+	state.Profiles[active.ID] = active
+
+	svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, state)
+	configureConfig(t, cfg)
+
+	reg.AddInstalledMod("mod-a", "1.0.0", false)
+	reg.AddInstalledMap("map-a", "1.0.0", false, types.ConfigData{Code: "AAA"})
+
+	modDir := paths.JoinLocalPath(paths.MetroMakerModsPath(cfg.Cfg.MetroMakerDataPath), "mod-a")
+	require.NoError(t, os.MkdirAll(modDir, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modDir, constants.RailyardAssetMarker), []byte(""), 0o644))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modDir, "mod.bin"), []byte("12345"), 0o644))
+
+	mapDir := paths.JoinLocalPath(paths.MetroMakerMapsDataPath(cfg.Cfg.MetroMakerDataPath), "AAA")
+	require.NoError(t, os.MkdirAll(mapDir, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapDir, constants.RailyardAssetMarker), []byte(""), 0o644))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapDir, "roads.geojson.gz"), []byte("1234567"), 0o644))
+
+	result := svc.ListProfiles()
+	require.Equal(t, types.ResponseSuccess, result.Status)
+	_, hasArchiveSize := result.ArchiveSizes[active.ID]
+	require.False(t, hasArchiveSize)
+	require.Equal(t, int64(12), result.SubscriptionSizes[active.ID])
 }

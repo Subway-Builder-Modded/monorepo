@@ -8,14 +8,14 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useProfileDialogs } from '@/hooks/use-profile-dialogs';
+import { useProfilesState } from '@/hooks/use-profile-dialogs';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isProfileSwapUnavailable } from '@/lib/profile-swap';
 import { cn } from '@/lib/utils';
@@ -26,6 +26,7 @@ import { useProfilesStore } from '@/stores/profiles-store';
 import type { types } from '../../wailsjs/go/models';
 
 const MAX_PROFILES = 5;
+const DEFAULT_PROFILE_ID = '__default__';
 const UPDATE_ACCENT = getLocalAccentClasses('update');
 const FILES_ACCENT = getLocalAccentClasses('files');
 const UNINSTALL_ACCENT = getLocalAccentClasses('uninstall');
@@ -35,6 +36,14 @@ function profileCounts(profile: types.UserProfile) {
     maps: Object.keys(profile.subscriptions?.maps ?? {}).length,
     mods: Object.keys(profile.subscriptions?.mods ?? {}).length,
   };
+}
+
+function sortProfilesForDisplay(profiles: types.UserProfile[]) {
+  return [...profiles].sort((a, b) => {
+    if (a.id === DEFAULT_PROFILE_ID) return -1;
+    if (b.id === DEFAULT_PROFILE_ID) return 1;
+    return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+  });
 }
 
 function ProfileStat({
@@ -55,38 +64,37 @@ function ProfileStat({
 }
 
 export function ProfilesPage() {
-  const gameRunning = useGameStore((s) => s.running);
-  const refreshActiveProfile = useProfileStore((s) => s.refreshActiveProfile);
-  const profiles = useProfilesStore((s) => s.profiles);
-  const archiveSizes = useProfilesStore((s) => s.archiveSizes);
-  const activeProfileID = useProfilesStore((s) => s.activeProfileID);
-  const loading = useProfilesStore((s) => s.loading);
-  const loadProfiles = useProfilesStore((s) => s.loadProfiles);
-  const createProfile = useProfilesStore((s) => s.createProfile);
-  const renameProfile = useProfilesStore((s) => s.renameProfile);
-  const deleteProfile = useProfilesStore((s) => s.deleteProfile);
-  const swapProfile = useProfilesStore((s) => s.swapProfile);
-  const { dialogs, create, rename, remove, swap } = useProfileDialogs();
+  const gameStore = useGameStore();
+  const profileStore = useProfileStore();
+  const profilesStore = useProfilesStore();
+  const { dialogs, create, rename, remove, swap } = useProfilesState();
   const [expandedProfileID, setExpandedProfileID] = useState<string | null>(
     null,
   );
 
-  const canCreate = profiles.length < MAX_PROFILES;
+  const canCreate = profilesStore.profiles.length < MAX_PROFILES;
 
   useEffect(() => {
-    loadProfiles().catch((err) => {
+    profilesStore.loadProfiles().catch((err) => {
       toast.error(
         err instanceof Error ? err.message : 'Failed to load profiles',
       );
     });
-  }, [loadProfiles]);
+  }, [profilesStore.loadProfiles]);
 
   useEffect(() => {
     setExpandedProfileID((current) => {
       if (!current) return current;
-      return profiles.some((profile) => profile.id === current) ? current : null;
+      return profilesStore.profiles.some((profile) => profile.id === current)
+        ? current
+        : null;
     });
-  }, [profiles]);
+  }, [profilesStore.profiles]);
+
+  const sortedProfiles = useMemo(
+    () => sortProfilesForDisplay(profilesStore.profiles),
+    [profilesStore.profiles],
+  );
 
   const handleCreate = useCallback(async () => {
     const name = dialogs.create.name.trim();
@@ -97,13 +105,13 @@ export function ProfilesPage() {
     }
     create.setLoading(true);
     try {
-      const result = await createProfile(name);
+      const result = await profilesStore.createProfile(name);
       if (result.status !== 'success') {
         throw new Error(result.message || 'Failed to create profile');
       }
       create.reset();
       toast.success(`Created profile "${result.profile?.name ?? name}"`);
-      await loadProfiles();
+      await profilesStore.loadProfiles();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : 'Failed to create profile',
@@ -111,19 +119,21 @@ export function ProfilesPage() {
     } finally {
       create.setLoading(false);
     }
-  }, [canCreate, create, dialogs.create.name, createProfile, loadProfiles]);
+  }, [canCreate, create, dialogs.create.name, profilesStore]);
 
   const handleDelete = useCallback(async () => {
     if (!dialogs.remove.target) return;
     remove.setLoading(true);
     try {
-      const result = await deleteProfile(dialogs.remove.target.id);
+      const result = await profilesStore.deleteProfile(
+        dialogs.remove.target.id,
+      );
       if (result.status !== 'success') {
         throw new Error(result.message || 'Failed to delete profile');
       }
       toast.success(`Deleted profile "${dialogs.remove.target.name}"`);
       remove.close();
-      await loadProfiles();
+      await profilesStore.loadProfiles();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : 'Failed to delete profile',
@@ -131,7 +141,7 @@ export function ProfilesPage() {
     } finally {
       remove.setLoading(false);
     }
-  }, [deleteProfile, dialogs.remove.target, loadProfiles, remove]);
+  }, [dialogs.remove.target, profilesStore, remove]);
 
   const handleRename = useCallback(async () => {
     if (!dialogs.rename.target) return;
@@ -140,13 +150,16 @@ export function ProfilesPage() {
 
     rename.setLoading(true);
     try {
-      const result = await renameProfile(dialogs.rename.target.id, name);
+      const result = await profilesStore.renameProfile(
+        dialogs.rename.target.id,
+        name,
+      );
       if (result.status !== 'success') {
         throw new Error(result.message || 'Failed to rename profile');
       }
       toast.success(`Renamed profile to "${result.profile?.name ?? name}"`);
       rename.close();
-      await loadProfiles();
+      await profilesStore.loadProfiles();
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : 'Failed to rename profile',
@@ -154,13 +167,7 @@ export function ProfilesPage() {
     } finally {
       rename.setLoading(false);
     }
-  }, [
-    dialogs.rename.name,
-    dialogs.rename.target,
-    loadProfiles,
-    rename,
-    renameProfile,
-  ]);
+  }, [dialogs.rename.name, dialogs.rename.target, rename, profilesStore]);
 
   const hasArchiveConflictError = useCallback(
     (result: types.UserProfileResult) =>
@@ -175,19 +182,22 @@ export function ProfilesPage() {
   const handleSwap = useCallback(
     async (forceSwap: boolean) => {
       if (!dialogs.swap.target) return;
-      if (gameRunning) {
+      if (gameStore.running) {
         toast.warning('Cannot switch profiles while the game is running.');
         return;
       }
       swap.setLoading(true);
       try {
-        const result = await swapProfile(dialogs.swap.target.id, forceSwap);
+        const result = await profilesStore.swapProfile(
+          dialogs.swap.target.id,
+          forceSwap,
+        );
 
         if (result.status === 'success') {
           toast.success(`Switched to "${dialogs.swap.target.name}"`);
           swap.close();
-          await refreshActiveProfile();
-          await loadProfiles();
+          await profileStore.refreshActiveProfile();
+          await profilesStore.loadProfiles();
           return;
         }
 
@@ -198,8 +208,8 @@ export function ProfilesPage() {
           }
           toast.warning(result.message || 'Profile switched with warnings');
           swap.close();
-          await refreshActiveProfile();
-          await loadProfiles();
+          await profileStore.refreshActiveProfile();
+          await profilesStore.loadProfiles();
           return;
         }
 
@@ -207,8 +217,8 @@ export function ProfilesPage() {
           // Backend may have switched active profile before a restore/sync error.
           // Refresh UI state so swap controls reflect the new active profile.
           swap.close();
-          await refreshActiveProfile();
-          await loadProfiles();
+          await profileStore.refreshActiveProfile();
+          await profilesStore.loadProfiles();
         }
 
         throw new Error(result.message || 'Failed to switch profile');
@@ -222,15 +232,15 @@ export function ProfilesPage() {
     },
     [
       dialogs.swap.target,
-      loadProfiles,
       hasArchiveConflictError,
-      gameRunning,
-      refreshActiveProfile,
+      gameStore.running,
+      profileStore.refreshActiveProfile,
+      profilesStore,
       swap,
-      swapProfile,
     ],
   );
 
+  // Dialog for creating a new profile. Currently limited to just entering a name for the new profile, but this could be extended in the future to include preset options.
   const createDialogProps = {
     open: dialogs.create.open,
     onOpenChange: create.setOpen,
@@ -245,6 +255,7 @@ export function ProfilesPage() {
     },
   };
 
+  // Initial dialog for switching from the active profile to a different profile
   const switchDialogProps = {
     open: dialogs.swap.target !== null && !dialogs.swap.archiveWarningOpen,
     onOpenChange: (open: boolean) => {
@@ -265,6 +276,7 @@ export function ProfilesPage() {
     },
   };
 
+  // Dialog for swap confirmation. When archives are missing or stale, the backend forces a confirmation step before switching profiles since a restore and/or sync may be required which could result in a long tail of download operations.
   const switchWarningDialogProps = {
     open: dialogs.swap.target !== null && dialogs.swap.archiveWarningOpen,
     onOpenChange: (open: boolean) => {
@@ -285,6 +297,7 @@ export function ProfilesPage() {
     },
   };
 
+  // Dialog for renaming an existing profile. Other profile mutations are done indirectly either from the settings menu or from the library/listing pages.
   const renameDialogProps = {
     open: dialogs.rename.target !== null,
     onOpenChange: (open: boolean) => {
@@ -305,6 +318,7 @@ export function ProfilesPage() {
     },
   };
 
+  // Dialog for confirming profile deletion, which requires explicit confirmation since it's a destructive action that cannot be undeone.
   const deleteDialogProps = {
     open: dialogs.remove.target !== null,
     onOpenChange: (open: boolean) => {
@@ -330,29 +344,39 @@ export function ProfilesPage() {
       <PageHeading
         icon={CircleUser}
         title="Profiles"
-        description="Manage user profiles and subscriptions."
+        description="Manage user profiles."
       />
 
       <div className="mx-auto max-w-4xl space-y-3">
-        {loading ? (
+        {profilesStore.loading ? (
           <div className="flex items-center justify-center rounded-xl border border-border bg-card p-8 text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Loading profiles...
           </div>
         ) : null}
 
-        {!loading &&
-          profiles.map((profile) => {
-            const isActive = profile.id === activeProfileID;
+        {!profilesStore.loading &&
+          sortedProfiles.map((profile) => {
+            const isActive = profile.id === profilesStore.activeProfileID;
             const isExpanded = expandedProfileID === profile.id;
             const counts = profileCounts(profile);
-            const archiveSizeBytes = archiveSizes[profile.id];
-            const archiveSizeDisplay =
-              archiveSizeBytes === undefined
+            const archiveSizeBytes = profilesStore.archiveSizes[profile.id];
+            const subscriptionSizeBytes =
+              profilesStore.subscriptionSizes[profile.id];
+            const showSubscriptionSize =
+              isActive &&
+              archiveSizeBytes === undefined &&
+              subscriptionSizeBytes !== undefined;
+            const sizeLabel = showSubscriptionSize
+              ? 'Subscriptions Size'
+              : 'Archive Size';
+            const sizeValue = showSubscriptionSize
+              ? `${(subscriptionSizeBytes / (1024 * 1024)).toFixed(2)} MB`
+              : archiveSizeBytes === undefined
                 ? 'Unknown'
                 : `${(archiveSizeBytes / (1024 * 1024)).toFixed(2)} MB`;
             const swapUnavailable = isProfileSwapUnavailable({
-              gameRunning,
+              gameRunning: gameStore.running,
               targetIsActive: isActive,
               swapLoading: dialogs.swap.loading,
             });
@@ -432,7 +456,10 @@ export function ProfilesPage() {
                           type="button"
                           size="icon"
                           variant="ghost"
-                          className={cn('shrink-0', UNINSTALL_ACCENT.iconButton)}
+                          className={cn(
+                            'shrink-0',
+                            UNINSTALL_ACCENT.iconButton,
+                          )}
                           onClick={(event) => {
                             event.stopPropagation();
                             remove.open(profile);
@@ -447,10 +474,7 @@ export function ProfilesPage() {
                     <div className="col-start-2 col-end-3 mt-1 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
                       <ProfileStat label="Maps" value={counts.maps} />
                       <ProfileStat label="Mods" value={counts.mods} />
-                      <ProfileStat
-                        label="Archive Size"
-                        value={archiveSizeDisplay}
-                      />
+                      <ProfileStat label={sizeLabel} value={sizeValue} />
                     </div>
                   </div>
                 </button>

@@ -9,9 +9,11 @@ import {
   SwapProfile,
 } from '../../wailsjs/go/profiles/UserProfiles';
 
+// ProfilesStoreState wraps around the backend profiles API and manages the state of user profiles for the frontend.
 interface ProfilesStoreState {
   profiles: types.UserProfile[];
   archiveSizes: Record<string, number>;
+  subscriptionSizes: Record<string, number>;
   activeProfileID: string;
   loading: boolean;
   loadProfiles: () => Promise<void>;
@@ -30,6 +32,7 @@ interface ProfilesStoreState {
 export const useProfilesStore = create<ProfilesStoreState>((set) => ({
   profiles: [],
   archiveSizes: {},
+  subscriptionSizes: {},
   activeProfileID: '',
   loading: false,
 
@@ -43,6 +46,7 @@ export const useProfilesStore = create<ProfilesStoreState>((set) => ({
       set({
         profiles: result.profiles ?? [],
         archiveSizes: result.archiveSizes ?? {},
+        subscriptionSizes: result.subscriptionSizes ?? {},
         activeProfileID: result.activeProfileId ?? '',
       });
     } finally {

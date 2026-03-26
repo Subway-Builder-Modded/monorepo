@@ -130,15 +130,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   searchViewMode: () => resolveUIPreferences(get().profile).searchViewMode,
 
   updateUIPreferences: async (updates) => {
-    const activeResult = await GetActiveProfile();
-    if (activeResult.status !== 'success') {
-      throw new Error(
-        activeResult.message || 'Failed to resolve active profile',
-      );
-    }
-    const activeProfile = activeResult.profile;
     const nextPreferences: UIPreferencesPayload = {
-      ...resolveUIPreferences(activeProfile),
+      ...resolveUIPreferences(get().profile),
       ...updates,
     };
 
@@ -153,16 +146,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
   updateSubscription: async (type, id, action, version) => {
     // Always resolve a fresh profile to avoid stale IDs from cached state
-    const activeResult = await GetActiveProfile();
-    if (activeResult.status !== 'success') {
-      throw new Error(
-        activeResult.message || 'Failed to resolve active profile',
-      );
-    }
-    const freshProfile = activeResult.profile;
-
     const request = new types.UpdateSubscriptionsRequest({
-      profileId: freshProfile.id,
+      profileId: get().profile?.id,
       assets: { [id]: new types.SubscriptionUpdateItem({ version, type }) },
       action,
       applyMode: 'persist_and_sync',
@@ -189,15 +174,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   updateCommandLineArgs: async (preferences) => {
     set({ loading: true, error: null });
     try {
-      const activeResult = await GetActiveProfile();
-      if (activeResult.status !== 'success') {
-        throw new Error(
-          activeResult.message || 'Failed to resolve active profile',
-        );
-      }
-      const activeProfile = activeResult.profile;
       const payload = {
-        ...resolveSystemPreferences(activeProfile),
+        ...resolveSystemPreferences(get().profile),
         ...preferences,
       };
       const result = await UpdateSystemPreferences(payload);

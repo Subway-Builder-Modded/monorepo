@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import type { types } from '../../wailsjs/go/models';
 
-type ProfileDialogsState = {
+type ProfilesState = {
   create: {
     open: boolean;
     name: string;
@@ -24,7 +24,7 @@ type ProfileDialogsState = {
   };
 };
 
-const INITIAL_PROFILE_DIALOGS_STATE: ProfileDialogsState = {
+const INITIAL_PROFILES_STATE: ProfilesState = {
   create: {
     open: false,
     name: '',
@@ -46,13 +46,14 @@ const INITIAL_PROFILE_DIALOGS_STATE: ProfileDialogsState = {
   },
 };
 
-export function useProfileDialogs() {
-  const [dialogs, setDialogs] = useState(INITIAL_PROFILE_DIALOGS_STATE);
+export function useProfilesState() {
+  const [dialogs, setDialogs] = useState(INITIAL_PROFILES_STATE);
 
-  const patchSection = useCallback(
-    <K extends keyof ProfileDialogsState>(
+  // update a specific state section by merging the existing state with the provided partial update.
+  const updateProfilesState = useCallback(
+    <K extends keyof ProfilesState>(
       key: K,
-      patch: Partial<ProfileDialogsState[K]>,
+      patch: Partial<ProfilesState[K]>,
     ) => {
       setDialogs((state) => ({
         ...state,
@@ -65,22 +66,27 @@ export function useProfileDialogs() {
     [],
   );
 
-  const resetSection = useCallback(<K extends keyof ProfileDialogsState>(key: K) => {
-    setDialogs((state) => ({
-      ...state,
-      [key]: INITIAL_PROFILE_DIALOGS_STATE[key],
-    }));
-  }, []);
+  // resetState resets a specific state section to its initial state (e.g. when closing a dialog).
+  const resetProfilesState = useCallback(
+    <K extends keyof ProfilesState>(key: K) => {
+      setDialogs((state) => ({
+        ...state,
+        [key]: INITIAL_PROFILES_STATE[key],
+      }));
+    },
+    [],
+  );
 
   const create = useMemo(
     () => ({
-      open: () => patchSection('create', { open: true }),
-      setOpen: (open: boolean) => patchSection('create', { open }),
-      setName: (name: string) => patchSection('create', { name }),
-      setLoading: (loading: boolean) => patchSection('create', { loading }),
-      reset: () => resetSection('create'),
+      open: () => updateProfilesState('create', { open: true }),
+      setOpen: (open: boolean) => updateProfilesState('create', { open }),
+      setName: (name: string) => updateProfilesState('create', { name }),
+      setLoading: (loading: boolean) =>
+        updateProfilesState('create', { loading }),
+      reset: () => resetProfilesState('create'),
     }),
-    [patchSection, resetSection],
+    [updateProfilesState, resetProfilesState],
   );
 
   const rename = useMemo(
@@ -94,11 +100,12 @@ export function useProfileDialogs() {
             loading: false,
           },
         })),
-      close: () => resetSection('rename'),
-      setName: (name: string) => patchSection('rename', { name }),
-      setLoading: (loading: boolean) => patchSection('rename', { loading }),
+      close: () => resetProfilesState('rename'),
+      setName: (name: string) => updateProfilesState('rename', { name }),
+      setLoading: (loading: boolean) =>
+        updateProfilesState('rename', { loading }),
     }),
-    [patchSection, resetSection],
+    [updateProfilesState, resetProfilesState],
   );
 
   const remove = useMemo(
@@ -111,10 +118,11 @@ export function useProfileDialogs() {
             loading: false,
           },
         })),
-      close: () => resetSection('remove'),
-      setLoading: (loading: boolean) => patchSection('remove', { loading }),
+      close: () => resetProfilesState('remove'),
+      setLoading: (loading: boolean) =>
+        updateProfilesState('remove', { loading }),
     }),
-    [patchSection, resetSection],
+    [updateProfilesState, resetProfilesState],
   );
 
   const swap = useMemo(
@@ -128,12 +136,13 @@ export function useProfileDialogs() {
             archiveWarningOpen: false,
           },
         })),
-      close: () => resetSection('swap'),
-      setLoading: (loading: boolean) => patchSection('swap', { loading }),
+      close: () => resetProfilesState('swap'),
+      setLoading: (loading: boolean) =>
+        updateProfilesState('swap', { loading }),
       setArchiveWarningOpen: (open: boolean) =>
-        patchSection('swap', { archiveWarningOpen: open }),
+        updateProfilesState('swap', { archiveWarningOpen: open }),
     }),
-    [patchSection, resetSection],
+    [updateProfilesState, resetProfilesState],
   );
 
   return { dialogs, create, rename, remove, swap };

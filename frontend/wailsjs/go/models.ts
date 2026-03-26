@@ -1730,6 +1730,7 @@ export namespace types {
 	    activeProfileId: string;
 	    profiles: UserProfile[];
 	    archiveSizes: Record<string, number>;
+	    subscriptionSizes: Record<string, number>;
 	    errors: UserProfilesError[];
 	
 	    static createFrom(source: any = {}) {
@@ -1743,6 +1744,7 @@ export namespace types {
 	        this.activeProfileId = source["activeProfileId"];
 	        this.profiles = this.convertValues(source["profiles"], UserProfile);
 	        this.archiveSizes = source["archiveSizes"];
+	        this.subscriptionSizes = source["subscriptionSizes"];
 	        this.errors = this.convertValues(source["errors"], UserProfilesError);
 	    }
 	

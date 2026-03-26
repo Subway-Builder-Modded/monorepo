@@ -96,7 +96,7 @@ func (s *UserProfiles) copyMapsToArchive(tempDir, profileID string) (types.Gener
 		}
 
 		// Copy map data
-		dataPath := paths.JoinLocalPath(s.Config.Cfg.MetroMakerDataPath, "cities", "data", code)
+		dataPath := paths.JoinLocalPath(paths.MetroMakerMapsDataPath(s.Config.Cfg.MetroMakerDataPath), code)
 		if err := files.CopyDirFromFS(paths.JoinLocalPath(mapDir, "data"), os.DirFS(dataPath)); err != nil {
 			return s.archiveError("Failed to copy map data", "failed to copy map data", err, "profile_id", profileID, "map_id", code)
 		}
@@ -235,7 +235,7 @@ func (s *UserProfiles) restoreMapsFromArchive(tempDir, profileID string) (types.
 		code := mapInfo.MapConfig.Code
 
 		// Create city data directory
-		cityDataPath := paths.JoinLocalPath(s.Config.Cfg.MetroMakerDataPath, "cities", "data", code)
+		cityDataPath := paths.JoinLocalPath(paths.MetroMakerMapsDataPath(s.Config.Cfg.MetroMakerDataPath), code)
 		if err := clearRestoreDestination(cityDataPath); err != nil {
 			return s.archiveError("Failed to clear city data before restore", "failed to clear city data before restore", err, "profile_id", profileID, "map_id", code)
 		}
@@ -320,6 +320,7 @@ func areSubscriptionsEqual(left types.Subscriptions, right types.Subscriptions) 
 		utils.MapEqual(left.Mods, right.Mods)
 }
 
+// clearRestoreDestination removes the existing directory at the destination path to prepare for restoring data from the archive to avoid file conflicts/collisions.
 func clearRestoreDestination(dirPath string) error {
 	if err := os.RemoveAll(dirPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
