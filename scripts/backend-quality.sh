@@ -4,6 +4,13 @@ set -eu
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+DIST_DIR="$ROOT_DIR/frontend/dist"
+PLACEHOLDER_FILE="$DIST_DIR/.embed-placeholder"
+mkdir -p "$DIST_DIR"
+if [ ! -f "$PLACEHOLDER_FILE" ]; then
+  echo "placeholder" > "$PLACEHOLDER_FILE"
+fi
+
 echo "[backend] checking Go formatting..."
 GO_FILES="$(git ls-files '*.go')"
 if [ -n "$GO_FILES" ]; then

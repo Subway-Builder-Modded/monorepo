@@ -3,6 +3,13 @@ $ErrorActionPreference = "Stop"
 $rootDir = Split-Path -Parent $PSScriptRoot
 Set-Location $rootDir
 
+$distDir = Join-Path $rootDir "frontend/dist"
+$placeholderFile = Join-Path $distDir ".embed-placeholder"
+New-Item -ItemType Directory -Path $distDir -Force | Out-Null
+if (-not (Test-Path $placeholderFile)) {
+    Set-Content -Path $placeholderFile -Value "placeholder"
+}
+
 function Invoke-CheckedCommand {
     param(
         [scriptblock]$Command,
