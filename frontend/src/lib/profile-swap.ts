@@ -11,4 +11,3 @@ export function isProfileSwapUnavailable({
 }: SwapAvailabilityInput): boolean {
   return gameRunning || targetIsActive || swapLoading;
 }
-

@@ -43,4 +43,3 @@ describe('isProfileSwapUnavailable', () => {
     ).toBe(false);
   });
 });
-
