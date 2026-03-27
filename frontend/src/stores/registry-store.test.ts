@@ -129,6 +129,12 @@ describe('useRegistryStore download totals', () => {
   });
 
   it('recomputes totals during refresh', async () => {
+    useRegistryStore.setState({
+      downloadTotalsLoaded: true,
+      modDownloadTotals: { mod_old: 1 },
+      mapDownloadTotals: { map_old: 2 },
+    });
+
     mockRefreshResponse.mockResolvedValue({ status: 'success', message: 'ok' });
     mockGetModsResponse.mockResolvedValue({
       status: 'success',
