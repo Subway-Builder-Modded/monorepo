@@ -59,7 +59,9 @@ function sortProfilesForDisplay(profiles: types.UserProfile[]) {
 
 function formatStorageSize(bytes: number | undefined): string {
   const safeBytes =
-    typeof bytes === 'number' && Number.isFinite(bytes) && bytes > 0 ? bytes : 0;
+    typeof bytes === 'number' && Number.isFinite(bytes) && bytes > 0
+      ? bytes
+      : 0;
 
   if (safeBytes < 1024) return `${safeBytes} B`;
   if (safeBytes < 1024 ** 2) return `${(safeBytes / 1024).toFixed(1)} KB`;
@@ -608,7 +610,9 @@ export function ProfilesPage() {
                           </span>
                         </div>
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-muted-foreground">Per Page</span>
+                          <span className="text-muted-foreground">
+                            Per Page
+                          </span>
                           <span className="font-semibold">
                             {uiDefaultPerPage}
                           </span>
