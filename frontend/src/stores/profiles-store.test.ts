@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { types } from '../../wailsjs/go/models';
-
 import { useProfilesStore } from './profiles-store';
 
 const {
