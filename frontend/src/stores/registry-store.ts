@@ -24,12 +24,13 @@ interface RegistryState {
   refreshing: boolean;
   error: string | null;
   initialized: boolean;
-  ensureDownloadTotals: () => Promise<void>;
+  ensureDownloadTotals: (options?: { force?: boolean }) => Promise<void>;
   initialize: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 let downloadTotalsRequest: Promise<void> | null = null;
+let downloadTotalsGeneration = 0;
 
 function emptyRecordByAssetType<T>(factory: () => T): Record<AssetType, T> {
   return Object.fromEntries(
@@ -75,6 +76,51 @@ function filterMapsAndModsByIntegrity(
   return { finalMaps, finalMods };
 }
 
+async function loadRegistryData() {
+  const [
+    modsResponse,
+    mapsResponse,
+    mapIntegrityResponse,
+    modIntegrityResponse,
+  ] = await Promise.all([
+    GetModsResponse(),
+    GetMapsResponse(),
+    GetIntegrityReportResponse('map'),
+    GetIntegrityReportResponse('mod'),
+  ]);
+
+  if (modsResponse.status !== 'success') {
+    throw new Error(modsResponse.message || 'Failed to load mods');
+  }
+  if (mapsResponse.status !== 'success') {
+    throw new Error(mapsResponse.message || 'Failed to load maps');
+  }
+  if (mapIntegrityResponse.status !== 'success') {
+    throw new Error(
+      mapIntegrityResponse.message || 'Failed to load map integrity',
+    );
+  }
+  if (modIntegrityResponse.status !== 'success') {
+    throw new Error(
+      modIntegrityResponse.message || 'Failed to load mod integrity',
+    );
+  }
+
+  const { finalMaps, finalMods } = filterMapsAndModsByIntegrity(
+    mapsResponse.maps,
+    modsResponse.mods,
+    mapIntegrityResponse.report,
+    modIntegrityResponse.report,
+  );
+
+  return {
+    mods: finalMods || [],
+    maps: finalMaps || [],
+    mapIntegrity: mapIntegrityResponse.report || null,
+    modIntegrity: modIntegrityResponse.report || null,
+  };
+}
+
 export const useRegistryStore = create<RegistryState>((set, get) => ({
   mods: [],
   maps: [],
@@ -88,14 +134,21 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
   error: null,
   initialized: false,
 
-  ensureDownloadTotals: async () => {
-    if (get().downloadTotalsLoaded) return;
-    if (downloadTotalsRequest) {
+  ensureDownloadTotals: async (options) => {
+    const force = options?.force ?? false;
+    if (!force && get().downloadTotalsLoaded) return;
+
+    if (!force && downloadTotalsRequest) {
       await downloadTotalsRequest;
       return;
     }
 
-    downloadTotalsRequest = (async () => {
+    const requestGeneration = ++downloadTotalsGeneration;
+    if (force) {
+      set({ downloadTotalsLoaded: false });
+    }
+
+    const request = (async () => {
       try {
         const results = await Promise.all(
           ASSET_TYPES.map((assetType) =>
@@ -120,6 +173,7 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
           );
         });
 
+        if (requestGeneration !== downloadTotalsGeneration) return;
         set({
           modDownloadTotals: totalsByAsset.mod,
           mapDownloadTotals: totalsByAsset.map,
@@ -128,61 +182,36 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         console.warn(`[downloads] Failed to load download counts: ${message}`);
+        if (requestGeneration !== downloadTotalsGeneration) return;
         set({
           modDownloadTotals: {},
           mapDownloadTotals: {},
           downloadTotalsLoaded: true,
         });
-      } finally {
-        downloadTotalsRequest = null;
       }
     })();
 
-    await downloadTotalsRequest;
+    downloadTotalsRequest = request;
+    try {
+      await request;
+    } finally {
+      if (downloadTotalsRequest === request) {
+        downloadTotalsRequest = null;
+      }
+    }
   },
 
   initialize: async () => {
     if (get().initialized) return;
     set({ loading: true, error: null });
     try {
-      const [
-        modsResponse,
-        mapsResponse,
-        mapIntegrityResponse,
-        modIntegrityResponse,
-      ] = await Promise.all([
-        GetModsResponse(),
-        GetMapsResponse(),
-        GetIntegrityReportResponse('map'),
-        GetIntegrityReportResponse('mod'),
-      ]);
-      if (modsResponse.status !== 'success') {
-        throw new Error(modsResponse.message || 'Failed to load mods');
-      }
-      if (mapsResponse.status !== 'success') {
-        throw new Error(mapsResponse.message || 'Failed to load maps');
-      }
-      if (mapIntegrityResponse.status !== 'success') {
-        throw new Error(
-          mapIntegrityResponse.message || 'Failed to load map integrity',
-        );
-      }
-      if (modIntegrityResponse.status !== 'success') {
-        throw new Error(
-          modIntegrityResponse.message || 'Failed to load mod integrity',
-        );
-      }
-      const { finalMaps, finalMods } = filterMapsAndModsByIntegrity(
-        mapsResponse.maps,
-        modsResponse.mods,
-        mapIntegrityResponse.report,
-        modIntegrityResponse.report,
-      );
+      const { mods, maps, mapIntegrity, modIntegrity } =
+        await loadRegistryData();
       set({
-        mods: finalMods || [],
-        maps: finalMaps || [],
-        mapIntegrity: mapIntegrityResponse.report || null,
-        modIntegrity: modIntegrityResponse.report || null,
+        mods,
+        maps,
+        mapIntegrity,
+        modIntegrity,
         initialized: true,
         loading: false,
       });
@@ -203,48 +232,17 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
           refreshResponse.message || 'Failed to refresh registry',
         );
       }
-      const [
-        modsResponse,
-        mapsResponse,
-        mapIntegrityResponse,
-        modIntegrityResponse,
-      ] = await Promise.all([
-        GetModsResponse(),
-        GetMapsResponse(),
-        GetIntegrityReportResponse('map'),
-        GetIntegrityReportResponse('mod'),
-      ]);
-      if (modsResponse.status !== 'success') {
-        throw new Error(modsResponse.message || 'Failed to load mods');
-      }
-      if (mapsResponse.status !== 'success') {
-        throw new Error(mapsResponse.message || 'Failed to load maps');
-      }
-      if (mapIntegrityResponse.status !== 'success') {
-        throw new Error(
-          mapIntegrityResponse.message || 'Failed to load map integrity',
-        );
-      }
-      if (modIntegrityResponse.status !== 'success') {
-        throw new Error(
-          modIntegrityResponse.message || 'Failed to load mod integrity',
-        );
-      }
-      const { finalMaps, finalMods } = filterMapsAndModsByIntegrity(
-        mapsResponse.maps,
-        modsResponse.mods,
-        mapIntegrityResponse.report,
-        modIntegrityResponse.report,
-      );
+      const { mods, maps, mapIntegrity, modIntegrity } =
+        await loadRegistryData();
       set({
-        mods: finalMods || [],
-        maps: finalMaps || [],
-        mapIntegrity: mapIntegrityResponse.report || null,
-        modIntegrity: modIntegrityResponse.report || null,
+        mods,
+        maps,
+        mapIntegrity,
+        modIntegrity,
         initialized: true,
         loading: false,
       });
-      await get().ensureDownloadTotals();
+      await get().ensureDownloadTotals({ force: true });
       set({ refreshing: false });
     } catch (err) {
       set({
