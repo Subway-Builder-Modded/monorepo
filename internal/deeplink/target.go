@@ -11,7 +11,7 @@ type Target struct {
 }
 
 func (t Target) Valid() bool {
-	if t.ID == "" {
+	if t.ID == "" && t.Type != "GameStart" {
 		return false
 	}
 	return t.Type == "mods" || t.Type == "maps" || t.Type == "GameStart"

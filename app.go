@@ -239,12 +239,6 @@ func (a *App) recoverProfiles(cause types.UserProfileResult) types.UserProfile {
 }
 
 func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
-	wailsruntime.EventsOn(a.ctx, "deeplink:start-game", func(optionalData ...interface{}) {
-		if a.gameCmd != nil && a.gameCmd.ProcessState == nil {
-			return
-		}
-		a.LaunchGame()
-	})
 	wailsruntime.WindowMaximise(a.ctx)
 	if activeProfile.SystemPreferences.RefreshRegistryOnStartup {
 		if err := a.Registry.Refresh(); err != nil {

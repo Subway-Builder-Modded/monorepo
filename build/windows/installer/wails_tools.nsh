@@ -14,7 +14,7 @@
     !define INFO_PRODUCTNAME "Railyard"
 !endif
 !ifndef INFO_PRODUCTVERSION
-    !define INFO_PRODUCTVERSION "v0.2.0"
+    !define INFO_PRODUCTVERSION "v0.2.0+rc.2"
 !endif
 !ifndef INFO_COPYRIGHT
     !define INFO_COPYRIGHT "Copyright (c) 2026 Subway Builder Modded"
