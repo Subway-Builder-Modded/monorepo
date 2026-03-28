@@ -217,6 +217,100 @@ func (s *UserProfiles) resolveLatestUpdatesForProfile(
 
 // ===== Registry Helpers ===== //
 
+// ReconcileLocalMapSubscriptions removes local-map subscriptions that are no longer recoverable from installed state.
+// Primarily used after bootstrap/swap fallback paths where local maps cannot be restored from archive.
+func (s *UserProfiles) ReconcileLocalMapSubscriptions(profileID string) types.UpdateSubscriptionsResult {
+	s.logRequest("ReconcileLocalMapSubscriptions", "profile_id", profileID)
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	stateCopy, profile, profileErr := s.resolveProfileFromCopy(profileID)
+	if profileErr != nil {
+		s.Logger.Error("Profile not found", profileErr, "profile_id", profileID)
+		return profileNotFoundUpdateResult(profileErr, types.UpdateSubscriptions, "profile not found")
+	}
+
+	// Compile a list of currently installed local maps to determine which local map subscriptions are still recoverable (if any)
+	currentLocalMapIDs := make(map[string]struct{})
+	for _, installedMap := range s.Registry.GetInstalledMaps() {
+		if !installedMap.IsLocal {
+			continue
+		}
+		currentLocalMapIDs[installedMap.ID] = struct{}{}
+	}
+
+	cloneProfileSubscriptions(&profile)
+	assetsToRemove := make(map[string]types.SubscriptionUpdateItem)
+	for localMapID := range profile.Subscriptions.LocalMaps {
+		if _, exists := currentLocalMapIDs[localMapID]; exists {
+			continue
+		}
+		// Append unrecoverable local map subscription to removal list
+		assetsToRemove[localMapID] = types.SubscriptionUpdateItem{
+			Type:    types.AssetTypeMap,
+			IsLocal: true,
+		}
+	}
+
+	if len(assetsToRemove) == 0 {
+		s.Logger.Info("Local map subscription reconciliation completed with no removals", "profile_id", profileID)
+		result := updateResultBase(types.UpdateSubscriptions, types.ResponseSuccess, "Local map subscriptions reconciled")
+		result.Profile = profile
+		return result
+	}
+
+	// Apply mutations to remove unrecoverable local map subscriptions from the profile state so that it no longer erroneously references missing installed data
+	operations := make([]types.SubscriptionOperation, 0, len(assetsToRemove))
+	for assetID, item := range assetsToRemove {
+		operation, opErr := applySubscriptionMutation(&profile, types.SubscriptionActionUnsubscribe, strings.TrimSpace(assetID), item)
+		if opErr != nil {
+			s.Logger.Error("Failed to reconcile local map subscription", *opErr, "asset_id", assetID, "profile_id", profileID)
+			result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to reconcile local map subscriptions")
+			result.Profile = profile
+			result.Errors = []types.UserProfilesError{*opErr}
+			return result
+		}
+		operations = appendOperation(operations, operation)
+	}
+
+	if err := s.commitProfileMutation(&stateCopy, profileID, profile, true); err != nil {
+		persistErr := updateSubscriptionError(
+			profileID,
+			"",
+			types.AssetTypeMap,
+			types.ErrorPersistFailed,
+			fmt.Errorf("failed to persist reconciled local map subscriptions: %w", err),
+		)
+		result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to persist local map subscription reconciliation")
+		result.Profile = profile
+		result.Operations = operations
+		result.Errors = []types.UserProfilesError{persistErr}
+		return result
+	}
+
+	result := updateResultBase(
+		types.UpdateSubscriptions,
+		types.ResponseWarn,
+		fmt.Sprintf("Removed %d unrecoverable local map subscription(s)", len(operations)),
+	)
+	result.Applied = true
+	result.Profile = profile
+	result.Persisted = true
+	result.Operations = operations
+	for _, operation := range operations {
+		result.Errors = append(result.Errors, userProfilesError(
+			profileID,
+			operation.AssetID,
+			types.AssetTypeMap,
+			types.ErrorArchiveMissing,
+			"",
+			fmt.Sprintf("Removed local map subscription %q because installed data is unavailable", operation.AssetID),
+		))
+	}
+	return result
+}
+
 func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 	profileID string,
 	profile types.UserProfile,

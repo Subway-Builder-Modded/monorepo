@@ -610,6 +610,36 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 	}
 
 	// Otherwise, if the target archive is not fresh, we will need to run a new subscriptions sync to ensure that the profile is up to date post-swap
+	// First we need to bootstrap the registry state from the target profile
+	if err := s.Registry.BootstrapInstalledStateFromProfile(swappedProfile); err != nil {
+		s.Logger.Error("Active profile changed, but failed to bootstrap installed state", err, "profile_id", targetProfile.ID)
+		return profileStateErrorResult(
+			"Active profile changed, but failed to bootstrap installed state",
+			swappedProfile,
+			userProfilesError(
+				req.ProfileID,
+				"",
+				"",
+				types.ErrorSyncFailed,
+				"",
+				"Active profile changed, but failed to bootstrap installed state: "+err.Error(),
+			),
+		)
+	}
+
+	// After bootstrapping the registry state from the profile, we should attempt to reconcile any local map subscriptions that may be out of sync due to the profile swap before running a full sync to update any remaining subscriptions
+	reconcileResult := s.ReconcileLocalMapSubscriptions(targetProfile.ID)
+	if reconcileResult.Status == types.ResponseError {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Active profile changed, but failed to reconcile local map subscriptions"),
+			Profile:         swappedProfile,
+			Errors:          reconcileResult.Errors,
+		}
+	}
+	if reconcileResult.Profile.ID != "" {
+		swappedProfile = reconcileResult.Profile
+	}
+
 	syncResult := s.SyncSubscriptions(targetProfile.ID, false, false)
 	if syncResult.Status == types.ResponseError {
 		return types.UserProfileResult{
@@ -618,11 +648,13 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 			Errors:          syncResult.Errors,
 		}
 	}
-	if syncResult.Status == types.ResponseWarn {
+	if syncResult.Status == types.ResponseWarn || reconcileResult.Status == types.ResponseWarn {
+		warnErrors := append([]types.UserProfilesError{}, reconcileResult.Errors...)
+		warnErrors = append(warnErrors, syncResult.Errors...)
 		return types.UserProfileResult{
-			GenericResponse: types.WarnResponse("Profile swapped with subscription sync warnings"),
+			GenericResponse: types.WarnResponse("Profile swapped with reconciliation or sync warnings"),
 			Profile:         swappedProfile,
-			Errors:          syncResult.Errors,
+			Errors:          warnErrors,
 		}
 	}
 

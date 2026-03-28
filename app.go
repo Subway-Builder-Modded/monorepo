@@ -268,6 +268,13 @@ func (a *App) bootstrapInstalledState(activeProfile types.UserProfile) {
 	if err != nil {
 		// This should not be blocking as we are already in an error state
 		a.Logger.Error("Failed to bootstrap installed asset state on startup", err, "profile_id", activeProfile.ID)
+		return
+	}
+
+	// Reconcile local map subscriptions after bootstrap to remove any entries that can no longer be fulfilled with the current installed state.
+	reconcileResult := a.Profiles.ReconcileLocalMapSubscriptions(activeProfile.ID)
+	if reconcileResult.Status == types.ResponseError {
+		return
 	}
 }
 

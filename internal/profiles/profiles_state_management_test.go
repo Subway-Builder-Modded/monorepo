@@ -222,6 +222,69 @@ func TestSwapProfileForceWithoutArchiveSwapsAndSyncs(t *testing.T) {
 	require.Equal(t, target.ID, activeAfter.Profile.ID)
 }
 
+func TestReconcileLocalMapSubscriptionsRemovesUnrecoverableEntries(t *testing.T) {
+	testutil.NewHarness(t)
+
+	state := types.InitialProfilesState()
+	active := state.Profiles[state.ActiveProfileID]
+	active.Subscriptions.LocalMaps["local-map-a"] = "1.0.0"
+	state.Profiles[active.ID] = active
+
+	svc := loadedUserProfilesService(t, state)
+	result := svc.ReconcileLocalMapSubscriptions(active.ID)
+	require.Equal(t, types.ResponseWarn, result.Status)
+	require.Len(t, result.Operations, 1)
+	require.Equal(t, "local-map-a", result.Operations[0].AssetID)
+	require.Equal(t, types.SubscriptionActionUnsubscribe, result.Operations[0].Action)
+	require.True(t, findProfileErrorType(result.Errors, types.ErrorArchiveMissing))
+	require.NotContains(t, result.Profile.Subscriptions.LocalMaps, "local-map-a")
+
+	persisted, err := ReadUserProfilesState()
+	require.NoError(t, err)
+	require.NotContains(t, persisted.Profiles[active.ID].Subscriptions.LocalMaps, "local-map-a")
+}
+
+func TestReconcileLocalMapSubscriptionsKeepsRecoverableEntries(t *testing.T) {
+	testutil.NewHarness(t)
+
+	state := types.InitialProfilesState()
+	active := state.Profiles[state.ActiveProfileID]
+	active.Subscriptions.LocalMaps["local-map-a"] = "1.0.0"
+	state.Profiles[active.ID] = active
+
+	svc, _, reg := loadedUserProfilesServiceWithDependencies(t, state)
+	reg.AddInstalledMap("local-map-a", "1.0.0", true, types.ConfigData{Code: "LMA"})
+
+	result := svc.ReconcileLocalMapSubscriptions(active.ID)
+	require.Equal(t, types.ResponseSuccess, result.Status)
+	require.Empty(t, result.Operations)
+	require.Contains(t, result.Profile.Subscriptions.LocalMaps, "local-map-a")
+}
+
+func TestSwapProfileForceWithoutArchiveReconcilesStaleLocalSubscriptions(t *testing.T) {
+	testutil.NewHarness(t)
+
+	state := types.InitialProfilesState()
+	target := newTestUserProfile("profile_0", "Target")
+	target.Subscriptions.LocalMaps["local-map-a"] = "1.0.0"
+	state.Profiles[target.ID] = target
+	svc := loadedUserProfilesService(t, state)
+
+	result := svc.SwapProfile(types.SwapProfileRequest{
+		ProfileID: target.ID,
+		ForceSwap: true,
+	})
+	require.Equal(t, types.ResponseWarn, result.Status)
+	require.Equal(t, target.ID, result.Profile.ID)
+	require.True(t, findProfileErrorType(result.Errors, types.ErrorArchiveMissing))
+	require.NotContains(t, result.Profile.Subscriptions.LocalMaps, "local-map-a")
+
+	activeAfter := svc.GetActiveProfile()
+	require.Equal(t, types.ResponseSuccess, activeAfter.Status)
+	require.Equal(t, target.ID, activeAfter.Profile.ID)
+	require.NotContains(t, activeAfter.Profile.Subscriptions.LocalMaps, "local-map-a")
+}
+
 func TestSwapProfileUsesFreshArchiveRestorePath(t *testing.T) {
 	testutil.NewHarness(t)
 

@@ -186,7 +186,9 @@ func (r *Registry) validateMapData(
 			"is_local", isLocal)
 		return types.ConfigData{}, false
 	}
-
+	// TODO: Enforce map config version equality against the subscribed version during bootstrap validation.
+	// We should fail bootstrap for map entries where config.version does not match the target subscription version.
+	// This must be delayed until widespread adoption of 0.2.0 because older installs may will not have config present on disk.
 	return configFromDisk, true
 }
 
