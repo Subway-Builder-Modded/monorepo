@@ -22,7 +22,11 @@ import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';
 import { useRegistryStore } from '@/stores/registry-store';
 
-import { ConsumePendingDeepLink, IsStartupReady } from '../wailsjs/go/main/App';
+import {
+  ConsumePendingDeepLink,
+  IsStartupReady,
+  LaunchGame,
+} from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { ExtractNotification } from './components/layout/ExtractNotification';
 
@@ -185,6 +189,10 @@ function App() {
     ConsumePendingDeepLink()
       .then((response) => {
         if (response.status !== 'success') {
+          return;
+        }
+        if (response.target?.type === 'GameStart') {
+          LaunchGame().catch(() => {});
           return;
         }
         const routeType = response.target?.type;
