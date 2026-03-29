@@ -252,17 +252,17 @@ export function ProjectHeader({
           variant="outline"
           onClick={async () => {
             try {
-                await cancelPendingInstall(type, item.id);
-                toast.success(`Cancelled pending install for ${item.name}.`, {
-                  id: cancellationToastId,
-                });
-              } catch (err) {
-                if (isSubscriptionMutationLockedError(err)) {
-                  toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
-                } else {
-                  toast.error(err instanceof Error ? err.message : String(err));
-                }
+              await cancelPendingInstall(type, item.id);
+              toast.success(`Cancelled pending install for ${item.name}.`, {
+                id: cancellationToastId,
+              });
+            } catch (err) {
+              if (isSubscriptionMutationLockedError(err)) {
+                toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+              } else {
+                toast.error(err instanceof Error ? err.message : String(err));
               }
+            }
           }}
           disabled={mutationLocked}
         >

@@ -562,7 +562,9 @@ describe('useInstalledStore', () => {
     useGameStore.setState({ running: true });
 
     await expect(
-      useInstalledStore.getState().uninstallAssets([{ id: 'map-1', type: 'map' }]),
+      useInstalledStore
+        .getState()
+        .uninstallAssets([{ id: 'map-1', type: 'map' }]),
     ).rejects.toBeInstanceOf(SubscriptionMutationLockedError);
 
     expect(mockUpdateSubscriptions).not.toHaveBeenCalled();

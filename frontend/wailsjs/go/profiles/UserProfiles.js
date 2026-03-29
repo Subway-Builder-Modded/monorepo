@@ -34,6 +34,10 @@ export function QuarantineUserProfiles() {
   return window['go']['profiles']['UserProfiles']['QuarantineUserProfiles']();
 }
 
+export function ReconcileLocalMapSubscriptions(arg1) {
+  return window['go']['profiles']['UserProfiles']['ReconcileLocalMapSubscriptions'](arg1);
+}
+
 export function RenameProfile(arg1, arg2) {
   return window['go']['profiles']['UserProfiles']['RenameProfile'](arg1, arg2);
 }
