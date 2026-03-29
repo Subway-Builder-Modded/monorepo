@@ -35,6 +35,11 @@ import { assetTypeToListingPath } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {
+  isSubscriptionMutationLocked,
+  isSubscriptionMutationLockedError,
+  SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
+} from '@/lib/subscription-mutation-lock';
+import {
   hasCancellationSyncErrors,
   hasOnlySilentSyncWarnings,
   isCancellationSyncError,
@@ -42,6 +47,7 @@ import {
 } from '@/lib/subscription-sync-error';
 import { cn } from '@/lib/utils';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
+import { useGameStore } from '@/stores/game-store';
 import {
   AssetConflictError,
   useInstalledStore,
@@ -150,8 +156,15 @@ export function ProjectVersions({
 
   const cancellationToastId = `cancel-install-${type}-${itemId}`;
   const installedVersion = getInstalledVersion(itemId);
+  const gameRunning = useGameStore((s) => s.running);
+  const mutationLocked = isSubscriptionMutationLocked(gameRunning);
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
+    if (mutationLocked) {
+      toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      return;
+    }
+
     try {
       let result: types.UpdateSubscriptionsResult;
       if (type === 'mod') {
@@ -176,6 +189,10 @@ export function ProjectVersions({
       const queueText = total > 1 ? ` (${completed}/${total} Downloaded)` : '';
       toast.success(`Installed ${version} successfully.${queueText}`);
     } catch (err) {
+      if (isSubscriptionMutationLockedError(err)) {
+        toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+        return;
+      }
       if (err instanceof AssetConflictError && err.conflicts.length > 0) {
         setConflictState({ version, conflict: err.conflicts[0] });
         return;
@@ -402,6 +419,7 @@ export function ProjectVersions({
                       size="icon-xs"
                       className={INSTALL_ACCENT.outlineButton}
                       onClick={() => handleInstall(v.version, v.prerelease)}
+                      disabled={mutationLocked}
                     >
                       <Download className="h-3.5 w-3.5" />
                     </Button>
@@ -436,6 +454,10 @@ export function ProjectVersions({
               setPrereleasePrompt(null);
               doInstall(version);
             },
+            disabled: mutationLocked,
+            disabledReason: mutationLocked
+              ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+              : undefined,
           }}
         />
       )}
@@ -545,6 +567,10 @@ export function ProjectVersions({
               setConflictState(null);
               void doInstall(version, true);
             },
+            disabled: mutationLocked,
+            disabledReason: mutationLocked
+              ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+              : undefined,
           }}
         >
           <div

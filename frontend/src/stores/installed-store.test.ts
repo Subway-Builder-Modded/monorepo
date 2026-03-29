@@ -10,9 +10,11 @@ import {
 } from '@/test/helpers/profileMutationFixtures';
 
 import { useDownloadQueueStore } from './download-queue-store';
+import { useGameStore } from './game-store';
 import {
   AssetConflictError,
   InvalidMapCodeError,
+  SubscriptionMutationLockedError,
   SubscriptionSyncError,
   useInstalledStore,
 } from './installed-store';
@@ -109,6 +111,7 @@ describe('useInstalledStore', () => {
       initialized: false,
     });
     useDownloadQueueStore.setState({ total: 0, completed: 0 });
+    useGameStore.setState({ running: false });
     mockUpdateSubscriptionsToLatest.mockResolvedValue(
       updateSubscriptionsSuccess('latest apply ok'),
     );
@@ -543,5 +546,57 @@ describe('useInstalledStore', () => {
     expect(
       useInstalledStore.getState().getInstallingVersion('mod-5'),
     ).toBeNull();
+  });
+
+  it('blocks install while game is running', async () => {
+    useGameStore.setState({ running: true });
+
+    await expect(
+      useInstalledStore.getState().installMod('mod-1', '1.0.0'),
+    ).rejects.toBeInstanceOf(SubscriptionMutationLockedError);
+
+    expect(mockUpdateSubscriptions).not.toHaveBeenCalled();
+  });
+
+  it('blocks uninstall while game is running', async () => {
+    useGameStore.setState({ running: true });
+
+    await expect(
+      useInstalledStore.getState().uninstallAssets([{ id: 'map-1', type: 'map' }]),
+    ).rejects.toBeInstanceOf(SubscriptionMutationLockedError);
+
+    expect(mockUpdateSubscriptions).not.toHaveBeenCalled();
+  });
+
+  it('blocks latest updates while game is running', async () => {
+    useGameStore.setState({ running: true });
+
+    await expect(
+      useInstalledStore
+        .getState()
+        .updateAssetsToLatest([{ id: 'mod-1', type: 'mod' }]),
+    ).rejects.toBeInstanceOf(SubscriptionMutationLockedError);
+
+    expect(mockUpdateSubscriptionsToLatest).not.toHaveBeenCalled();
+  });
+
+  it('blocks local import while game is running', async () => {
+    useGameStore.setState({ running: true });
+
+    await expect(
+      useInstalledStore.getState().importMapFromZip('/tmp/map.zip'),
+    ).rejects.toBeInstanceOf(SubscriptionMutationLockedError);
+
+    expect(mockImportAsset).not.toHaveBeenCalled();
+  });
+
+  it('blocks cancel-pending while game is running', async () => {
+    useGameStore.setState({ running: true });
+
+    await expect(
+      useInstalledStore.getState().cancelPendingInstall('mod', 'mod-2'),
+    ).rejects.toBeInstanceOf(SubscriptionMutationLockedError);
+
+    expect(mockUpdateSubscriptions).not.toHaveBeenCalled();
   });
 });

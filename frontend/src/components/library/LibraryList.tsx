@@ -32,6 +32,10 @@ import { openInstallFolder } from '@/lib/install-path';
 import { LOCAL_ACCENTS } from '@/lib/local-accent';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
+  isSubscriptionMutationLockedError,
+  SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
+} from '@/lib/subscription-mutation-lock';
+import {
   composeAssetKey,
   getPendingSubscriptionUpdate,
   type PendingUpdatesByKey,
@@ -39,6 +43,7 @@ import {
 } from '@/lib/subscription-updates';
 import { cn } from '@/lib/utils';
 import { useConfigStore } from '@/stores/config-store';
+import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useLibraryStore } from '@/stores/library-store';
 
@@ -90,6 +95,7 @@ export function LibraryList({
   onSortChange,
 }: LibraryListProps) {
   const { selectedIds, selectAll, clearSelection } = useLibraryStore();
+  const gameRunning = useGameStore((s) => s.running);
   const showMapColumns = activeType === 'map';
 
   const [columnDirections, setColumnDirections] = useState<
@@ -182,6 +188,7 @@ export function LibraryList({
             showMapColumns={showMapColumns}
             pendingUpdatesByKey={pendingUpdatesByKey}
             onRefreshPendingUpdates={onRefreshPendingUpdates}
+            mutationLocked={gameRunning}
           />
         ))}
       </div>
@@ -194,6 +201,7 @@ interface LibraryListRowProps {
   showMapColumns: boolean;
   pendingUpdatesByKey: PendingUpdatesByKey;
   onRefreshPendingUpdates: () => Promise<void>;
+  mutationLocked: boolean;
 }
 
 function LibraryListRow({
@@ -201,6 +209,7 @@ function LibraryListRow({
   showMapColumns,
   pendingUpdatesByKey,
   onRefreshPendingUpdates,
+  mutationLocked,
 }: LibraryListRowProps) {
   const [uninstallOpen, setUninstallOpen] = useState(false);
   const [uninstallLoading, setUninstallLoading] = useState(false);
@@ -246,6 +255,10 @@ function LibraryListRow({
   const overflowCount = badges.length - visibleBadges.length;
 
   const handleUninstall = async () => {
+    if (mutationLocked) {
+      toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      return;
+    }
     setUninstallLoading(true);
     try {
       await uninstallAssets([{ id: entry.item.id, type: entry.type }]);
@@ -253,8 +266,12 @@ function LibraryListRow({
       removeSelected([key]);
       void onRefreshPendingUpdates();
       setUninstallOpen(false);
-    } catch {
-      toast.error(`Failed to uninstall ${entry.item.name}.`);
+    } catch (err) {
+      if (isSubscriptionMutationLockedError(err)) {
+        toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      } else {
+        toast.error(`Failed to uninstall ${entry.item.name}.`);
+      }
     } finally {
       setUninstallLoading(false);
     }
@@ -272,6 +289,10 @@ function LibraryListRow({
 
   const handleUpdate = async () => {
     if (!updateTarget) return;
+    if (mutationLocked) {
+      toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      return;
+    }
     setUpdateLoading(true);
     try {
       await updateAssetsToLatest([
@@ -280,8 +301,12 @@ function LibraryListRow({
       toast.success(`${updateTarget.name} has been updated.`);
       void onRefreshPendingUpdates();
       setUpdateOpen(false);
-    } catch {
-      toast.error(`Failed to update ${updateTarget.name}.`);
+    } catch (err) {
+      if (isSubscriptionMutationLockedError(err)) {
+        toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      } else {
+        toast.error(`Failed to update ${updateTarget.name}.`);
+      }
     } finally {
       setUpdateLoading(false);
     }
@@ -416,6 +441,7 @@ function LibraryListRow({
               className={cn('h-7 w-7', UPDATE_ICON_ACCENT)}
               onClick={() => setUpdateOpen(true)}
               aria-label="Update to latest"
+              disabled={mutationLocked}
             >
               <CircleFadingArrowUp className="h-3.5 w-3.5" />
             </Button>
@@ -436,6 +462,7 @@ function LibraryListRow({
             className={cn('h-7 w-7', UNINSTALL_ICON_ACCENT)}
             onClick={() => setUninstallOpen(true)}
             aria-label="Uninstall"
+            disabled={mutationLocked}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -453,6 +480,10 @@ function LibraryListRow({
           label: 'Uninstall',
           onConfirm: handleUninstall,
           loading: uninstallLoading,
+          disabled: mutationLocked,
+          disabledReason: mutationLocked
+            ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+            : undefined,
         }}
       >
         <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
@@ -472,6 +503,10 @@ function LibraryListRow({
             label: 'Update',
             onConfirm: handleUpdate,
             loading: updateLoading,
+            disabled: mutationLocked,
+            disabledReason: mutationLocked
+              ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+              : undefined,
           }}
         >
           {previewEntries.length > 0 && (

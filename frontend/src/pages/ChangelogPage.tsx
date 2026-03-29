@@ -42,6 +42,11 @@ import { listingPathToAssetType } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {
+  isSubscriptionMutationLocked,
+  isSubscriptionMutationLockedError,
+  SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
+} from '@/lib/subscription-mutation-lock';
+import {
   hasCancellationSyncErrors,
   hasOnlySilentSyncWarnings,
   isCancellationSyncError,
@@ -52,6 +57,7 @@ import {
   withZeroDownloads,
 } from '@/lib/version-downloads';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
+import { useGameStore } from '@/stores/game-store';
 import {
   AssetConflictError,
   useInstalledStore,
@@ -161,6 +167,8 @@ export function ChangelogPage() {
   const installing = item ? isInstalling(item.id) : false;
   const uninstalling = item ? isUninstalling(item.id) : false;
   const cancellationToastId = `cancel-install-${type}-${id}`;
+  const gameRunning = useGameStore((s) => s.running);
+  const mutationLocked = isSubscriptionMutationLocked(gameRunning);
 
   const projectHref =
     routeType && id ? `/project/${routeType}/${id}` : '/browse';
@@ -257,6 +265,10 @@ export function ChangelogPage() {
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
     if (!item || !type) return;
+    if (mutationLocked) {
+      toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      return;
+    }
     try {
       let result: types.UpdateSubscriptionsResult;
       if (type === 'mod') {
@@ -283,6 +295,10 @@ export function ChangelogPage() {
         `${item.name} ${version} installed successfully.${queueText}`,
       );
     } catch (err) {
+      if (isSubscriptionMutationLockedError(err)) {
+        toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+        return;
+      }
       if (err instanceof AssetConflictError && err.conflicts.length > 0) {
         setConflictState({ version, conflict: err.conflicts[0] });
         return;
@@ -310,13 +326,21 @@ export function ChangelogPage() {
 
   const handleUninstall = async () => {
     if (!item || !type) return;
+    if (mutationLocked) {
+      toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      return;
+    }
     setUninstallLoading(true);
     try {
       await uninstallAssets([{ id: item.id, type }]);
       toast.success(`${item.name} has been uninstalled.`);
       setUninstallOpen(false);
-    } catch {
-      toast.error(`Failed to uninstall ${item.name}.`);
+    } catch (err) {
+      if (isSubscriptionMutationLockedError(err)) {
+        toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      } else {
+        toast.error(`Failed to uninstall ${item.name}.`);
+      }
     } finally {
       setUninstallLoading(false);
     }
@@ -377,9 +401,14 @@ export function ChangelogPage() {
                 id: cancellationToastId,
               });
             } catch (err) {
-              toast.error(err instanceof Error ? err.message : String(err));
+              if (isSubscriptionMutationLockedError(err)) {
+                toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+              } else {
+                toast.error(err instanceof Error ? err.message : String(err));
+              }
             }
           }}
+          disabled={mutationLocked}
         >
           <X className="h-4 w-4" />
           Cancel Install
@@ -401,6 +430,7 @@ export function ChangelogPage() {
             size="icon-sm"
             onClick={() => setUninstallOpen(true)}
             aria-label="Uninstall"
+            disabled={mutationLocked}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -439,6 +469,7 @@ export function ChangelogPage() {
             doInstall(versionInfo.version);
           }
         }}
+        disabled={mutationLocked}
       >
         <Download className="h-4 w-4" />
         Install {versionInfo.version}
@@ -674,6 +705,10 @@ export function ChangelogPage() {
           label: 'Uninstall',
           onConfirm: handleUninstall,
           loading: uninstallLoading,
+          disabled: mutationLocked,
+          disabledReason: mutationLocked
+            ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+            : undefined,
         }}
       >
         <div className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
@@ -703,6 +738,10 @@ export function ChangelogPage() {
               setPrereleasePrompt(false);
               doInstall(versionInfo.version);
             },
+            disabled: mutationLocked,
+            disabledReason: mutationLocked
+              ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+              : undefined,
           }}
         />
       )}
@@ -812,6 +851,10 @@ export function ChangelogPage() {
               setConflictState(null);
               void doInstall(version, true);
             },
+            disabled: mutationLocked,
+            disabledReason: mutationLocked
+              ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+              : undefined,
           }}
         >
           <div

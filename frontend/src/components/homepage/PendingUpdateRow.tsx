@@ -13,6 +13,7 @@ interface PendingUpdateRowProps {
   isUpdating: boolean;
   onUpdate: () => void;
   updateButtonClassName: string;
+  disabled?: boolean;
 }
 
 export function PendingUpdateRow({
@@ -23,6 +24,7 @@ export function PendingUpdateRow({
   isUpdating,
   onUpdate,
   updateButtonClassName,
+  disabled = false,
 }: PendingUpdateRowProps) {
   return (
     <div className="group flex items-center gap-3 rounded-lg border border-border bg-background/60 px-3.5 py-2.5 transition-colors duration-150 hover:border-foreground/15">
@@ -58,7 +60,7 @@ export function PendingUpdateRow({
         </span>
         <Button
           size="sm"
-          disabled={isUpdating}
+          disabled={isUpdating || disabled}
           onClick={onUpdate}
           className={cn(
             'h-7 min-w-[4.5rem] px-3 text-xs',

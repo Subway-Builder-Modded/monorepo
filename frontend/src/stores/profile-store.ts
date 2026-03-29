@@ -5,6 +5,10 @@ import {
   normalizeSearchViewMode,
   type SearchViewMode,
 } from '@/lib/search-view-mode';
+import {
+  isSubscriptionMutationLocked,
+  SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
+} from '@/lib/subscription-mutation-lock';
 
 import { types } from '../../wailsjs/go/models';
 import {
@@ -14,6 +18,7 @@ import {
   UpdateSystemPreferences,
   UpdateUIPreferences,
 } from '../../wailsjs/go/profiles/UserProfiles';
+import { useGameStore } from './game-store';
 
 interface UIPreferencesPayload {
   theme: string;
@@ -150,6 +155,10 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   updateSubscription: async (type, id, action, version) => {
+    if (isSubscriptionMutationLocked(useGameStore.getState().running)) {
+      throw new Error(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+    }
+
     // Always resolve a fresh profile to avoid stale IDs from cached state
     const request = new types.UpdateSubscriptionsRequest({
       profileId: get().profile?.id,

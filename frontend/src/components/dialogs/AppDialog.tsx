@@ -21,6 +21,8 @@ interface AppDialogConfirm {
   cancelLabel?: string;
   onConfirm: () => void;
   loading?: boolean;
+  disabled?: boolean;
+  disabledReason?: ReactNode;
 }
 
 interface AppDialogProps {
@@ -72,14 +74,23 @@ export function AppDialog({
             {confirm ? (confirm.cancelLabel ?? 'Cancel') : 'Close'}
           </Button>
           {confirm && (
-            <Button
-              onClick={confirm.onConfirm}
-              disabled={confirm.loading}
-              className={`gap-1.5 ${accent.solidButton}`}
-            >
-              {confirm.loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {confirm.label}
-            </Button>
+            <div className="flex flex-col items-end gap-1">
+              {confirm.disabledReason ? (
+                <span className="text-[11px] text-muted-foreground">
+                  {confirm.disabledReason}
+                </span>
+              ) : null}
+              <Button
+                onClick={confirm.onConfirm}
+                disabled={confirm.loading || confirm.disabled}
+                className={`gap-1.5 ${accent.solidButton}`}
+              >
+                {confirm.loading && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
+                {confirm.label}
+              </Button>
+            </div>
           )}
         </DialogFooter>
       </DialogContent>

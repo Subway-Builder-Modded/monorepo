@@ -21,11 +21,17 @@ import { buildAssetListingCounts } from '@/lib/listing-counts';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { buildSpecialDemandValues } from '@/lib/map-filter-values';
 import {
+  isSubscriptionMutationLocked,
+  isSubscriptionMutationLockedError,
+  SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
+} from '@/lib/subscription-mutation-lock';
+import {
   indexPendingSubscriptionUpdates,
   type PendingUpdatesByKey,
   requestLatestSubscriptionUpdatesForActiveProfile,
 } from '@/lib/subscription-updates';
 import { useBrowseStore } from '@/stores/browse-store';
+import { useGameStore } from '@/stores/game-store';
 import {
   AssetConflictError,
   InvalidMapCodeError,
@@ -97,6 +103,7 @@ const FILES_ACCENT = getLocalAccentClasses('files');
 
 export function LibraryPage() {
   const [, navigate] = useLocation();
+  const gameRunning = useGameStore((s) => s.running);
   const sidebarOpen = useUIStore((s) => s.librarySidebarOpen);
   const setSidebarOpen = useUIStore((s) => s.setLibrarySidebarOpen);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
@@ -294,6 +301,10 @@ export function LibraryPage() {
   );
 
   const runImport = async (zipPath: string, replaceOnConflict: boolean) => {
+    if (isSubscriptionMutationLocked(gameRunning)) {
+      toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      return;
+    }
     setImportLoading(true);
     try {
       const result = await importMapFromZip(zipPath, replaceOnConflict);
@@ -316,6 +327,10 @@ export function LibraryPage() {
         setImportInvalidCode(err.message);
         return;
       }
+      if (isSubscriptionMutationLockedError(err)) {
+        toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+        return;
+      }
       setImportSelectedPath('');
       toast.error('Failed to import map.');
     } finally {
@@ -324,6 +339,10 @@ export function LibraryPage() {
   };
 
   const handlePickArchive = async () => {
+    if (isSubscriptionMutationLocked(gameRunning)) {
+      toast.warning(SUBSCRIPTION_MUTATION_LOCK_MESSAGE);
+      return;
+    }
     if (importLoading) return;
     setImportLoading(true);
     try {
@@ -405,6 +424,7 @@ export function LibraryPage() {
             variant="outline"
             className={`shrink-0 gap-1.5 ${IMPORT_ACCENT.outlineButton}`}
             onClick={() => setImportDialogOpen(true)}
+            disabled={gameRunning}
           >
             <Inbox className="h-4 w-4" />
             Import Asset
@@ -499,6 +519,10 @@ export function LibraryPage() {
           cancelLabel: 'Close',
           onConfirm: handlePickArchive,
           loading: importLoading,
+          disabled: gameRunning,
+          disabledReason: gameRunning
+            ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+            : undefined,
         }}
       >
         <div className="min-w-0 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
@@ -531,6 +555,10 @@ export function LibraryPage() {
               void runImport(importSelectedPath, true);
             },
             loading: importLoading,
+            disabled: gameRunning,
+            disabledReason: gameRunning
+              ? SUBSCRIPTION_MUTATION_LOCK_MESSAGE
+              : undefined,
           }}
         >
           <div
