@@ -20,8 +20,8 @@ import {
 } from '../../wailsjs/go/profiles/UserProfiles';
 
 /**
- * This module provides a thin wrapper over the Wails-generated client functions for subscription mutations, adding error handling for mutation locks and ensuring that the active profile ID is resolved before making requests. 
- * 
+ * This module provides a thin wrapper over the Wails-generated client functions for subscription mutations, adding error handling for mutation locks and ensuring that the active profile ID is resolved before making requests.
+ *
  * This wrapper exists to centralize gating of subscription mutations based on the current game state. Direct calls to UserProfiles wails functions will be considered invalid as part of the ESLint rules.
  */
 
@@ -49,7 +49,7 @@ export function isSubscriptionMutationLockedError(
   return isSubscriptionMutationLockedErrorLike(error);
 }
 
-// ensureSubscriptionMutationUnlocked checks if subscription mutations are currently locked based on the game state, and throws a SubscriptionMutationLockedError if the game is currently running. 
+// ensureSubscriptionMutationUnlocked checks if subscription mutations are currently locked based on the game state, and throws a SubscriptionMutationLockedError if the game is currently running.
 // This is used to prevent destructive subscription mutations that may adversely affect game state
 function ensureSubscriptionMutationUnlocked() {
   if (isSubscriptionMutationLocked(useGameStore.getState().running)) {
