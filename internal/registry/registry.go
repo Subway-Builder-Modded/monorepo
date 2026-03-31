@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -46,6 +47,7 @@ type Registry struct {
 	installedMaps  []types.InstalledMapInfo
 	integrityMaps  types.RegistryIntegrityReport
 	integrityMods  types.RegistryIntegrityReport
+	context        context.Context
 }
 
 // NewRegistry creates a new Registry instance with the platform-appropriate
@@ -62,6 +64,10 @@ func NewRegistry(l logSink, cfg *config.Config) *Registry {
 		},
 		versionsCache: map[string][]types.VersionInfo{},
 	}
+}
+
+func (r *Registry) SetContext(ctx context.Context) {
+	r.context = ctx
 }
 
 // Initialize ensures a valid local registry repo exists.

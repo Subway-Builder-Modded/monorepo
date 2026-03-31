@@ -94,7 +94,7 @@ func TestPullReleasesParsesResponse(t *testing.T) {
 	})
 
 	log := logger.LoggerAtPath(filepath.Join(t.TempDir(), "updater_test.log"))
-	versions, err := pullReleases(log, "")
+	versions, err := pullReleases(log, "", context.Background())
 	require.NoError(t, err)
 	require.Len(t, versions, 1)
 	require.Equal(t, "v1.2.3", versions[0].Version)
@@ -139,7 +139,7 @@ func TestPullReleasesRetriesWithoutTokenWhenRejected(t *testing.T) {
 	})
 
 	log := logger.LoggerAtPath(filepath.Join(t.TempDir(), "updater_token_test.log"))
-	versions, err := pullReleases(log, "bad-token")
+	versions, err := pullReleases(log, "bad-token", context.Background())
 	require.NoError(t, err)
 	require.Len(t, versions, 1)
 	require.True(t, sawAuth)
@@ -162,7 +162,7 @@ func TestPullReleasesReturnsErrorOnBadStatus(t *testing.T) {
 	})
 
 	log := logger.LoggerAtPath(filepath.Join(t.TempDir(), "updater_bad_status.log"))
-	_, err := pullReleases(log, "")
+	_, err := pullReleases(log, "", context.Background())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), fmt.Sprintf("status %d", http.StatusBadGateway))
 }
@@ -184,7 +184,7 @@ func TestPullReleasesReturnsErrorOnInvalidJSON(t *testing.T) {
 	})
 
 	log := logger.LoggerAtPath(filepath.Join(t.TempDir(), "updater_bad_json.log"))
-	_, err := pullReleases(log, "")
+	_, err := pullReleases(log, "", context.Background())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to parse GitHub releases JSON")
 }
@@ -247,7 +247,7 @@ func TestPullReleasesPropagatesFetchError(t *testing.T) {
 	})
 
 	log := logger.LoggerAtPath(filepath.Join(t.TempDir(), "updater_check_error.log"))
-	_, err := pullReleases(log, "")
+	_, err := pullReleases(log, "", context.Background())
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "GitHub API returned status")
 }

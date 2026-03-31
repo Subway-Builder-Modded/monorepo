@@ -4,6 +4,7 @@ import { Route, Switch, useLocation } from 'wouter';
 import { DownloadNotification } from '@/components/layout/DownloadNotification';
 import { Layout } from '@/components/layout/Layout';
 import { MultiStepLoader } from '@/components/layout/MultiStepLoader';
+import { RequestErrorNotification } from '@/components/layout/RequestErrorNotification';
 import { SetupScreen } from '@/components/setup/SetupScreen';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -268,6 +269,7 @@ function App() {
         </Layout>
         <DownloadNotification />
         <ExtractNotification />
+        <RequestErrorNotification />
         <Toaster />
       </TooltipProvider>
     </div>
