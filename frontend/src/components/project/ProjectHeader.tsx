@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  ChartLine,
   Check,
   CheckCircle,
   CircleFadingArrowUp,
@@ -28,7 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { AssetType } from '@/lib/asset-types';
+import { assetTypeToListingPath, type AssetType } from '@/lib/asset-types';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { formatSourceQuality } from '@/lib/map-filter-values';
@@ -65,6 +66,7 @@ interface ProjectHeaderProps {
 const INSTALL_ACCENT = getLocalAccentClasses('install');
 const UPDATE_ACCENT = getLocalAccentClasses('update');
 const FILES_ACCENT = getLocalAccentClasses('files');
+const ANALYTICS_ACCENT = getLocalAccentClasses('profiles');
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
@@ -259,51 +261,47 @@ export function ProjectHeader({
     if (!installedVersion && effectiveVersion) {
       if (noCompatibleVersion) {
         return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button
-                    size="sm"
-                    disabled
-                    className={INSTALL_ACCENT.solidButton}
-                  >
-                    <Download className="h-4 w-4" />
-                    Install {effectiveVersion.version}
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                No version compatible with your installed game version (
-                {gameVersion})
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="flex flex-col gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      size="sm"
+                      disabled
+                      className={INSTALL_ACCENT.solidButton}
+                    >
+                      <Download className="h-4 w-4" />
+                      Install {effectiveVersion.version}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  No version compatible with your installed game version (
+                  {gameVersion})
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Button
+              size="sm"
+              className={ANALYTICS_ACCENT.solidButton}
+              onClick={() =>
+                BrowserOpenURL(
+                  `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`,
+                )
+              }
+            >
+              <ChartLine className="h-4 w-4" />
+              View Analytics
+            </Button>
+          </div>
         );
       }
       return (
-        <Button
-          size="sm"
-          className={INSTALL_ACCENT.solidButton}
-          onClick={() =>
-            handleInstallClick(
-              effectiveVersion.version,
-              effectiveVersion.prerelease,
-            )
-          }
-          disabled={mutationLocked}
-        >
-          <Download className="h-4 w-4" />
-          Install {effectiveVersion.version}
-        </Button>
-      );
-    }
-    if (hasUpdate && effectiveVersion) {
-      return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2">
           <Button
             size="sm"
-            className={UPDATE_ACCENT.solidButton}
+            className={INSTALL_ACCENT.solidButton}
             onClick={() =>
               handleInstallClick(
                 effectiveVersion.version,
@@ -312,39 +310,99 @@ export function ProjectHeader({
             }
             disabled={mutationLocked}
           >
-            <CircleFadingArrowUp className="h-4 w-4" />
-            Update to {effectiveVersion.version}
+            <Download className="h-4 w-4" />
+            Install {effectiveVersion.version}
           </Button>
           <Button
-            variant="destructive"
-            size="icon-sm"
-            onClick={() => setUninstallOpen(true)}
-            aria-label="Uninstall"
-            disabled={mutationLocked}
+            size="sm"
+            className={ANALYTICS_ACCENT.solidButton}
+            onClick={() =>
+              BrowserOpenURL(
+                `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`,
+              )
+            }
           >
-            <Trash2 className="h-4 w-4" />
+            <ChartLine className="h-4 w-4" />
+            View Analytics
+          </Button>
+        </div>
+      );
+    }
+    if (hasUpdate && effectiveVersion) {
+      return (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className={UPDATE_ACCENT.solidButton}
+              onClick={() =>
+                handleInstallClick(
+                  effectiveVersion.version,
+                  effectiveVersion.prerelease,
+                )
+              }
+              disabled={mutationLocked}
+            >
+              <CircleFadingArrowUp className="h-4 w-4" />
+              Update to {effectiveVersion.version}
+            </Button>
+            <Button
+              variant="destructive"
+              size="icon-sm"
+              onClick={() => setUninstallOpen(true)}
+              aria-label="Uninstall"
+              disabled={mutationLocked}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <Button
+            size="sm"
+            className={ANALYTICS_ACCENT.solidButton}
+            onClick={() =>
+              BrowserOpenURL(
+                `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`,
+              )
+            }
+          >
+            <ChartLine className="h-4 w-4" />
+            View Analytics
           </Button>
         </div>
       );
     }
     if (installedVersion) {
       return (
-        <div className="flex items-center gap-3">
-          <Badge
-            variant="success"
-            className="h-9 gap-1.5 rounded-lg px-3 text-sm"
-          >
-            <CheckCircle className="h-3.5 w-3.5" />
-            Installed {installedVersion}
-          </Badge>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <Badge
+              variant="success"
+              className="h-9 gap-1.5 rounded-lg px-3 text-sm"
+            >
+              <CheckCircle className="h-3.5 w-3.5" />
+              Installed {installedVersion}
+            </Badge>
+            <Button
+              variant="destructive"
+              size="icon-sm"
+              onClick={() => setUninstallOpen(true)}
+              aria-label="Uninstall"
+              disabled={mutationLocked}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
           <Button
-            variant="destructive"
-            size="icon-sm"
-            onClick={() => setUninstallOpen(true)}
-            aria-label="Uninstall"
-            disabled={mutationLocked}
+            size="sm"
+            className={ANALYTICS_ACCENT.solidButton}
+            onClick={() =>
+              BrowserOpenURL(
+                `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`,
+              )
+            }
           >
-            <Trash2 className="h-4 w-4" />
+            <ChartLine className="h-4 w-4" />
+            View Analytics
           </Button>
         </div>
       );
