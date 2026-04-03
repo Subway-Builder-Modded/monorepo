@@ -29,7 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { type AssetType,assetTypeToListingPath } from '@/lib/asset-types';
+import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { formatSourceQuality } from '@/lib/map-filter-values';
