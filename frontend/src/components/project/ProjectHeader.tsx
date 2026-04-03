@@ -8,12 +8,10 @@ import {
   Download,
   ExternalLink,
   Globe,
-  Loader2,
   OctagonX,
   Trash2,
   TriangleAlert,
   Users,
-  X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -31,6 +29,7 @@ import {
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
+import { cn } from '@/lib/utils';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
   handleSubscriptionMutationError,
@@ -63,15 +62,12 @@ interface ProjectHeaderProps {
 }
 
 const FILES_ACCENT = getLocalAccentClasses('files');
+const INSTALL_ACCENT = getLocalAccentClasses('install');
+const UPDATE_ACCENT = getLocalAccentClasses('update');
+const UNINSTALL_ACCENT = getLocalAccentClasses('uninstall');
+const ANALYTICS_ACCENT = getLocalAccentClasses('profiles');
 
-const INSTALL_GHOST =
-  'hover:text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--install-primary)_12%,transparent)]';
-const UPDATE_GHOST =
-  'hover:text-[var(--update-primary)] hover:!bg-[color-mix(in_srgb,var(--update-primary)_12%,transparent)]';
-const UNINSTALL_GHOST =
-  'hover:text-[var(--uninstall-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_12%,transparent)]';
-const ANALYTICS_GHOST =
-  'hover:text-[var(--profiles-primary)] hover:!bg-[color-mix(in_srgb,var(--profiles-primary)_12%,transparent)]';
+const ACTION_ICON_BASE = 'disabled:opacity-40 disabled:saturate-0';
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
@@ -119,7 +115,6 @@ export function ProjectHeader({
   const {
     installMod,
     installMap,
-    cancelPendingInstall,
     getInstalledVersion,
     isInstalling,
     isUninstalling,
@@ -223,196 +218,111 @@ export function ProjectHeader({
   };
 
   const renderActionButtons = () => {
-    if (versionsLoading) {
-      return (
-        <Button size="sm" disabled>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Loading...
-        </Button>
-      );
-    }
-    if (uninstalling) {
-      return (
-        <Button size="sm" disabled>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Canceling...
-        </Button>
-      );
-    }
-    if (installing) {
-      return (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={async () => {
-            try {
-              await cancelPendingInstall(type, item.id);
-              toast.success(`Cancelled pending install for ${item.name}.`, {
-                id: cancellationToastId,
-              });
-            } catch (err) {
-              if (!handleSubscriptionMutationError(err, () => {})) {
-                toast.error(err instanceof Error ? err.message : String(err));
-              }
-            }
-          }}
-          disabled={mutationLocked}
-        >
-          <X className="h-4 w-4" />
-          Cancel Install
-        </Button>
-      );
-    }
-    if (!installedVersion && effectiveVersion) {
-      return (
-        <TooltipProvider>
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className={INSTALL_GHOST}
-                    onClick={() =>
-                      handleInstallClick(
-                        effectiveVersion.version,
-                        effectiveVersion.prerelease,
-                      )
-                    }
-                    disabled={mutationLocked || !!noCompatibleVersion}
-                  >
-                    <Download />
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                {noCompatibleVersion
-                  ? `No version compatible with your game version (${gameVersion})`
-                  : `Install ${effectiveVersion.version}`}
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={ANALYTICS_GHOST}
-                  onClick={() =>
-                    BrowserOpenURL(
-                      `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`,
-                    )
-                  }
-                >
-                  <ChartLine />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View Analytics</TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
-      );
-    }
-    if (hasUpdate && effectiveVersion) {
-      return (
-        <TooltipProvider>
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={UPDATE_GHOST}
-                  onClick={() =>
-                    handleInstallClick(
-                      effectiveVersion.version,
-                      effectiveVersion.prerelease,
-                    )
-                  }
-                  disabled={mutationLocked}
-                >
-                  <CircleFadingArrowUp />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Update to {effectiveVersion.version}
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={UNINSTALL_GHOST}
-                  onClick={() => setUninstallOpen(true)}
-                  disabled={mutationLocked}
-                >
-                  <Trash2 />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Uninstall {installedVersion}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={ANALYTICS_GHOST}
-                  onClick={() =>
-                    BrowserOpenURL(
-                      `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`,
-                    )
-                  }
-                >
-                  <ChartLine />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View Analytics</TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
-      );
-    }
-    if (installedVersion) {
-      return (
-        <TooltipProvider>
-          <div className="flex items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={UNINSTALL_GHOST}
-                  onClick={() => setUninstallOpen(true)}
-                  disabled={mutationLocked}
-                >
-                  <Trash2 />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Uninstall {installedVersion}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className={ANALYTICS_GHOST}
-                  onClick={() =>
-                    BrowserOpenURL(
-                      `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`,
-                    )
-                  }
-                >
-                  <ChartLine />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View Analytics</TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
-      );
-    }
-    return null;
+    const isTransient = versionsLoading || installing || uninstalling;
+    const analyticsUrl = `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`;
+
+    const installDisabled =
+      isTransient || !!installedVersion || !effectiveVersion || !!noCompatibleVersion || mutationLocked;
+    const updateDisabled =
+      isTransient || !hasUpdate || !effectiveVersion || mutationLocked;
+    const uninstallDisabled = isTransient || !installedVersion || mutationLocked;
+
+    const installTooltip = versionsLoading
+      ? 'Loading...'
+      : installing
+        ? 'Installing...'
+        : uninstalling
+          ? 'Uninstalling...'
+          : !!noCompatibleVersion
+            ? `No compatible version (game ${gameVersion})`
+            : installedVersion
+              ? 'Already installed'
+              : effectiveVersion
+                ? `Install ${effectiveVersion.version}`
+                : 'No version available';
+
+    const updateTooltip =
+      hasUpdate && effectiveVersion
+        ? `Update to ${effectiveVersion.version}`
+        : 'Up to date';
+
+    const uninstallTooltip = installedVersion
+      ? `Uninstall ${installedVersion}`
+      : 'Not installed';
+
+    return (
+      <TooltipProvider>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={cn(INSTALL_ACCENT.iconButton, ACTION_ICON_BASE)}
+                disabled={installDisabled}
+                onClick={() =>
+                  effectiveVersion &&
+                  handleInstallClick(
+                    effectiveVersion.version,
+                    effectiveVersion.prerelease,
+                  )
+                }
+              >
+                <Download />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{installTooltip}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={cn(UPDATE_ACCENT.iconButton, ACTION_ICON_BASE)}
+                disabled={updateDisabled}
+                onClick={() =>
+                  effectiveVersion &&
+                  handleInstallClick(
+                    effectiveVersion.version,
+                    effectiveVersion.prerelease,
+                  )
+                }
+              >
+                <CircleFadingArrowUp />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{updateTooltip}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={cn(UNINSTALL_ACCENT.iconButton, ACTION_ICON_BASE)}
+                disabled={uninstallDisabled}
+                onClick={() => setUninstallOpen(true)}
+              >
+                <Trash2 />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{uninstallTooltip}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={ANALYTICS_ACCENT.iconButton}
+                onClick={() => BrowserOpenURL(analyticsUrl)}
+              >
+                <ChartLine />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View Analytics</TooltipContent>
+          </Tooltip>
+        </div>
+      </TooltipProvider>
+    );
   };
 
   const badges = mapItem
