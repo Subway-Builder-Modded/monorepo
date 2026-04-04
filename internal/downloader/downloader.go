@@ -730,26 +730,32 @@ func (d *Downloader) uninstallMapNow(mapId string) types.AssetUninstallResponse 
 		)
 	}
 	mapConfig := installedMap.mapConfig
-	mapCodes := d.resolveMapUninstallCodes(mapId, mapConfig.Code)
+	mapCode := strings.TrimSpace(mapConfig.Code)
+	if mapCode == "" {
+		return d.uninstallError(
+			types.AssetTypeMap,
+			mapId,
+			types.UninstallErrorFilesystem,
+			"Cannot uninstall map: installed map code is missing",
+			nil,
+			"asset_type", types.AssetTypeMap,
+			"asset_id", mapId,
+		)
+	}
 
 	markerFound := false
-	for _, code := range mapCodes {
-		if _, err := os.Stat(paths.JoinLocalPath(d.getMapDataPath(), code, constants.RailyardAssetMarker)); err == nil {
-			markerFound = true
-			break
-		}
+	if _, err := os.Stat(paths.JoinLocalPath(d.getMapDataPath(), mapCode, constants.RailyardAssetMarker)); err == nil {
+		markerFound = true
 	}
-	for _, code := range mapCodes {
-		mapDataPath := paths.JoinLocalPath(d.getMapDataPath(), code)
-		if err := os.RemoveAll(mapDataPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map data files", err, "map_id", mapId, "map_code", code)
-		}
-		tilePath := paths.JoinLocalPath(d.getMapTilePath(), code+files.MapTileFileExt)
-		if err := os.Remove(tilePath); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map tile files", err, "map_id", mapId, "map_code", code)
-		}
-		_ = os.Remove(paths.JoinLocalPath(d.getMapThumbnailPath(), code+".svg")) // Thumbnail is optional and may not exist.
+	mapDataPath := paths.JoinLocalPath(d.getMapDataPath(), mapCode)
+	if err := os.RemoveAll(mapDataPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map data files", err, "map_id", mapId, "map_code", mapCode)
 	}
+	tilePath := paths.JoinLocalPath(d.getMapTilePath(), mapCode+files.MapTileFileExt)
+	if err := os.Remove(tilePath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map tile files", err, "map_id", mapId, "map_code", mapCode)
+	}
+	_ = os.Remove(paths.JoinLocalPath(d.getMapThumbnailPath(), mapCode+".svg")) // Thumbnail is optional and may not exist.
 	d.Registry.RemoveInstalledMap(mapId)
 	if err := d.Registry.WriteInstalledToDisk(); err != nil {
 		d.Logger.Warn("Failed to persist installed state after uninstalling map", "error", err)
@@ -765,32 +771,6 @@ func (d *Downloader) uninstallMapNow(mapId string) types.AssetUninstallResponse 
 		)
 	}
 	return d.uninstallSuccess(types.AssetTypeMap, mapId, "Map uninstalled successfully", "map_id", mapId)
-}
-
-func (d *Downloader) resolveMapUninstallCodes(mapID string, installedCode string) []string {
-	codes := make([]string, 0, 3)
-	seen := make(map[string]struct{}, 3)
-	addCode := func(code string) {
-		code = strings.TrimSpace(code)
-		if code == "" {
-			return
-		}
-		if _, ok := seen[code]; ok {
-			return
-		}
-		seen[code] = struct{}{}
-		codes = append(codes, code)
-	}
-
-	addCode(installedCode)
-	if manifest, err := d.Registry.GetMap(mapID); err == nil {
-		addCode(manifest.CityCode)
-	}
-	if types.LocalMapCodePattern.MatchString(mapID) {
-		addCode(mapID)
-	}
-
-	return codes
 }
 
 // InstallAsset handles installation for all supported asset types using a structured request.

@@ -591,7 +591,7 @@ func TestUninstallMapRemovesTileArtifactWhenMarkerMissing(t *testing.T) {
 	d := NewDownloader(cfg, reg, logger.LoggerAtPath(""))
 	d.mapTilePath = t.TempDir()
 
-	reg.AddInstalledMap("AAA", "1.0.0", true, types.ConfigData{})
+	reg.AddInstalledMap("AAA", "1.0.0", true, types.ConfigData{Code: "AAA"})
 
 	tilePath := filepath.Join(d.getMapTilePath(), "AAA.pmtiles")
 	require.NoError(t, os.MkdirAll(filepath.Dir(tilePath), 0o755))
