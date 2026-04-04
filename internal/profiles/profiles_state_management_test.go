@@ -306,7 +306,7 @@ func TestSwapProfileUsesFreshArchiveRestorePath(t *testing.T) {
 	require.True(t, errors.Is(statErr, fs.ErrNotExist))
 }
 
-func TestSwapProfileFreshArchiveRemovesOldMapTileArtifacts(t *testing.T) {
+func TestSwapProfileFreshArchiveKeepsNonTargetMapTileArtifacts(t *testing.T) {
 	testutil.NewHarness(t)
 
 	state := types.InitialProfilesState()
@@ -337,7 +337,7 @@ func TestSwapProfileFreshArchiveRemovesOldMapTileArtifacts(t *testing.T) {
 	require.Equal(t, types.ResponseSuccess, result.Status)
 
 	_, err = os.Stat(tilePath)
-	require.True(t, errors.Is(err, fs.ErrNotExist))
+	require.NoError(t, err)
 }
 
 func TestUpdateSystemPreferencesPersistsAutoUpdateSubscriptions(t *testing.T) {
