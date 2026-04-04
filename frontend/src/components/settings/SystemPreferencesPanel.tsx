@@ -113,7 +113,6 @@ export function SystemPreferencesPanel() {
             description="Refresh the registry repository when Railyard starts"
             action={
               <SettingToggleButton
-                accent="profiles"
                 enabled={!!profile?.systemPreferences?.refreshRegistryOnStartup}
                 onToggle={handleToggleRefreshRegistryOnStartup}
                 enabledLabel="Enabled"
@@ -128,7 +127,6 @@ export function SystemPreferencesPanel() {
             description="Automatically update subscribed assets to latest after startup sync"
             action={
               <SettingToggleButton
-                accent="update"
                 enabled={!!profile?.systemPreferences?.autoUpdateSubscriptions}
                 onToggle={handleToggleAutoUpdateSubscriptions}
                 enabledLabel="Enabled"

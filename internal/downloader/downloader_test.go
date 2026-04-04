@@ -585,6 +585,27 @@ func TestCancelDuringExtractRemovesInstalledFiles(t *testing.T) {
 	require.True(t, errors.Is(err, fs.ErrNotExist), "expected thumbnail path removed: %s", thumbnailPath)
 }
 
+func TestUninstallMapRemovesTileArtifactWhenMarkerMissing(t *testing.T) {
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	d := NewDownloader(cfg, reg, logger.LoggerAtPath(""))
+	d.mapTilePath = t.TempDir()
+
+	reg.AddInstalledMap("AAA", "1.0.0", true, types.ConfigData{})
+
+	tilePath := filepath.Join(d.getMapTilePath(), "AAA.pmtiles")
+	require.NoError(t, os.MkdirAll(filepath.Dir(tilePath), 0o755))
+	require.NoError(t, os.WriteFile(tilePath, []byte("tile"), 0o644))
+
+	resp := d.UninstallAsset(types.AssetTypeMap, "AAA")
+	require.Equal(t, types.ResponseWarn, resp.Status)
+	require.Equal(t, types.UninstallErrorNotInstalled, resp.ErrorType)
+
+	_, err := os.Stat(tilePath)
+	require.True(t, errors.Is(err, fs.ErrNotExist), "expected tile path removed: %s", tilePath)
+	require.Empty(t, reg.GetInstalledMaps())
+}
+
 func TestDownloadTempZipCancelledCleansUpArtifact(t *testing.T) {
 	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		<-r.Context().Done()

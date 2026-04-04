@@ -306,6 +306,40 @@ func TestSwapProfileUsesFreshArchiveRestorePath(t *testing.T) {
 	require.True(t, errors.Is(statErr, fs.ErrNotExist))
 }
 
+func TestSwapProfileFreshArchiveRemovesOldMapTileArtifacts(t *testing.T) {
+	testutil.NewHarness(t)
+
+	state := types.InitialProfilesState()
+	current := state.Profiles[state.ActiveProfileID]
+	current.Subscriptions.Maps["map-old"] = "1.0.0"
+	state.Profiles[current.ID] = current
+
+	target := newTestUserProfile("profile_0", "Target")
+	state.Profiles[target.ID] = target
+
+	svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, state)
+	configureConfig(t, cfg)
+
+	reg.AddInstalledMap("map-old", "1.0.0", false, types.ConfigData{Code: "OLD"})
+	materializeInstalledAssets(t, cfg, nil, []types.InstalledMapInfo{
+		{
+			ID:        "map-old",
+			Version:   "1.0.0",
+			MapConfig: types.ConfigData{Code: "OLD"},
+		},
+	})
+
+	tilePath := paths.JoinLocalPath(paths.TilesPath(), "OLD.pmtiles")
+	_, err := os.Stat(tilePath)
+	require.NoError(t, err)
+
+	result := svc.SwapProfile(types.SwapProfileRequest{ProfileID: target.ID})
+	require.Equal(t, types.ResponseSuccess, result.Status)
+
+	_, err = os.Stat(tilePath)
+	require.True(t, errors.Is(err, fs.ErrNotExist))
+}
+
 func TestUpdateSystemPreferencesPersistsAutoUpdateSubscriptions(t *testing.T) {
 	testutil.NewHarness(t)
 

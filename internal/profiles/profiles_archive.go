@@ -227,6 +227,11 @@ func (s *UserProfiles) RestoreProfileArchive(profileID string) types.GenericResp
 		return resp
 	}
 
+	previouslyInstalledMaps := s.Registry.GetInstalledMaps()
+	if clearErr, ok := s.clearMapArtifactsForRestore(profileID, previouslyInstalledMaps); !ok {
+		return clearErr
+	}
+
 	// Load installed maps and mods from archive
 	if loadErr, ok := s.loadInstalledFromArchive(tempDir, profileID); !ok {
 		return loadErr
@@ -364,4 +369,28 @@ func clearRestoreDestination(dirPath string) error {
 		return err
 	}
 	return nil
+}
+
+// clearRestoreFile removes the existing file at the destination path to prepare for restoring data from the archive to avoid file conflicts/collisions. 
+func clearRestoreFile(filePath string) error {
+	if err := os.Remove(filePath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
+func (s *UserProfiles) clearMapArtifactsForRestore(profileID string, maps []types.InstalledMapInfo) (types.GenericResponse, bool) {
+	for _, mapInfo := range maps {
+		code :=  mapInfo.MapConfig.Code
+		tilePath := paths.JoinLocalPath(paths.TilesPath(), fmt.Sprintf("%s.pmtiles", code))
+		if err := clearRestoreFile(tilePath); err != nil {
+			return s.archiveError("Failed to clear map tiles before restore", "failed to clear map tiles before restore", err, "profile_id", profileID, "map_id", code)
+		}
+
+		thumbnailPath := paths.JoinLocalPath(s.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps", fmt.Sprintf("%s.svg", code))
+		if err := clearRestoreFile(thumbnailPath); err != nil {
+			return s.archiveError("Failed to clear map thumbnail before restore", "failed to clear map thumbnail before restore", err, "profile_id", profileID, "map_id", code)
+		}
+	}
+	return types.GenericResponse{}, true
 }
