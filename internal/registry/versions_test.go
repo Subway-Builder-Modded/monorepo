@@ -85,6 +85,7 @@ func TestClearVersionsCache(t *testing.T) {
 	require.False(t, ok)
 }
 
+// Explicit regression test for Custom JSON versions to ensure that semver sorting is working and that higher semver versions are recorded as "higher" than lower ones, even if they are recorded after in the JSON file.
 func TestGetCustomVersionsSortsSemverDescending(t *testing.T) {
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
 

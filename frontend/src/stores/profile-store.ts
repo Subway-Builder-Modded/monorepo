@@ -57,7 +57,7 @@ function resolveSystemPreferences(
 ): types.SystemPreferences {
   return {
     refreshRegistryOnStartup:
-      profile?.systemPreferences?.refreshRegistryOnStartup ?? true,
+      profile?.systemPreferences?.refreshRegistryOnStartup ?? false,
     autoUpdateSubscriptions:
       profile?.systemPreferences?.autoUpdateSubscriptions ?? false,
     extraMemorySize: profile?.systemPreferences?.extraMemorySize ?? 0,

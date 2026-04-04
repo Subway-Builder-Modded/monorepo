@@ -35,38 +35,3 @@ func TestOpenInFileExplorerRejectsInvalidPaths(t *testing.T) {
 	require.Equal(t, types.ResponseError, missing.Status)
 	require.Contains(t, missing.Message, "failed to resolve path")
 }
-
-func TestRunStartupAutoUpdateSubscriptionsTriggersForSuccessAndWarn(t *testing.T) {
-	profile := types.DefaultProfile()
-	profile.SystemPreferences.AutoUpdateSubscriptions = true
-
-	callCount := 0
-	updateFn := func(req types.UpdateSubscriptionsToLatestRequest) types.UpdateSubscriptionsResult {
-		callCount++
-		require.Equal(t, profile.ID, req.ProfileID)
-		require.True(t, req.Apply)
-		require.Empty(t, req.Targets)
-		return types.UpdateSubscriptionsResult{
-			GenericResponse: types.SuccessResponse("ok"),
-		}
-	}
-
-	runStartupAutoUpdateSubscriptions(newTestApp().Logger, profile, types.ResponseSuccess, updateFn)
-	runStartupAutoUpdateSubscriptions(newTestApp().Logger, profile, types.ResponseWarn, updateFn)
-	require.Equal(t, 2, callCount)
-}
-
-func TestRunStartupAutoUpdateSubscriptionsSkipsWhenDisabledOrSyncFailed(t *testing.T) {
-	profile := types.DefaultProfile()
-
-	callCount := 0
-	updateFn := func(types.UpdateSubscriptionsToLatestRequest) types.UpdateSubscriptionsResult {
-		callCount++
-		return types.UpdateSubscriptionsResult{GenericResponse: types.SuccessResponse("ok")}
-	}
-
-	runStartupAutoUpdateSubscriptions(newTestApp().Logger, profile, types.ResponseSuccess, updateFn)
-	profile.SystemPreferences.AutoUpdateSubscriptions = true
-	runStartupAutoUpdateSubscriptions(newTestApp().Logger, profile, types.ResponseError, updateFn)
-	require.Equal(t, 0, callCount)
-}

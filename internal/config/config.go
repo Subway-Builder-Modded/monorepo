@@ -334,6 +334,7 @@ func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.
 					},
 				},
 			}
+			// For MacOS, allow .app bundles to be selected as executables, even though they may be directories to support the .app bundle format.
 			if runtime.GOOS == "darwin" {
 				dialogOptions.Filters = []wruntime.FileFilter{
 					{

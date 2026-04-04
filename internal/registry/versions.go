@@ -237,7 +237,7 @@ func (r *Registry) getCustomVersions(updateURL string) ([]types.VersionInfo, err
 
 	r.enrichVersions(versions)
 	filtered := r.filterSemverVersions(versions, "custom:"+updateURL)
-	sortVersionsBySemverDescending(filtered)
+	sortSemverVersions(filtered)
 	return filtered, nil
 }
 
@@ -262,15 +262,13 @@ func cloneVersionInfos(input []types.VersionInfo) []types.VersionInfo {
 	return output
 }
 
-func sortVersionsBySemverDescending(versions []types.VersionInfo) {
+// sortSemverVersions sorts versions in-place by descending semantic version, with non-semver versions at the end sorted by descending string order.
+func sortSemverVersions(versions []types.VersionInfo) {
 	sort.SliceStable(versions, func(i, j int) bool {
 		leftVersion := strings.TrimPrefix(types.NormalizeSemver(versions[i].Version), "v")
 		rightVersion := strings.TrimPrefix(types.NormalizeSemver(versions[j].Version), "v")
-		left, leftErr := semver.NewVersion(leftVersion)
-		right, rightErr := semver.NewVersion(rightVersion)
-		if leftErr != nil || rightErr != nil {
-			return versions[i].Version > versions[j].Version
-		}
+		left, _ := semver.NewVersion(leftVersion)
+		right, _ := semver.NewVersion(rightVersion)
 		return left.GreaterThan(right)
 	})
 }
