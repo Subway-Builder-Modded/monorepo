@@ -4,7 +4,8 @@ import { formatListingDescriptionPreview } from './description-preview';
 
 describe('formatListingDescriptionPreview', () => {
   it('strips HTML tags and decodes common entities', () => {
-    const input = '<p>Best &amp; newest <strong>map</strong><br/>for all players</p>';
+    const input =
+      '<p>Best &amp; newest <strong>map</strong><br/>for all players</p>';
 
     expect(formatListingDescriptionPreview(input)).toBe(
       'Best & newest map for all players',
