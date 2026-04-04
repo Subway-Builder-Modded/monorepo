@@ -1,9 +1,10 @@
 import { CheckCircle, Download, MapPin, Package, Users } from 'lucide-react';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
 
 import { Badge } from '@/components/ui/badge';
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
+import { formatListingDescriptionPreview } from '@/lib/description-preview';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import type { SearchViewMode } from '@/lib/search-view-mode';
@@ -28,6 +29,7 @@ interface ItemCardProps {
   installedVersion?: string;
   totalDownloads?: number;
   viewMode?: SearchViewMode;
+  descriptionMode?: 'raw' | 'preview';
 }
 
 interface ItemCardPresentation {
@@ -332,8 +334,17 @@ export function ItemCard({
   installedVersion,
   totalDownloads,
   viewMode = 'full',
+  descriptionMode = 'raw',
 }: ItemCardProps) {
   const presentation = buildItemCardPresentation(item, totalDownloads);
+  const description = useMemo(() => {
+    const normalized =
+      descriptionMode === 'preview'
+        ? formatListingDescriptionPreview(item.description ?? '')
+        : (item.description ?? '').trim();
+
+    return normalized || 'No description provided.';
+  }, [descriptionMode, item.description]);
 
   if (viewMode === 'list') {
     return (
@@ -390,8 +401,8 @@ export function ItemCard({
                 )}
               </div>
 
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-1">
-                {item.description}
+              <p className="relative pl-2 text-xs text-muted-foreground/90 leading-relaxed line-clamp-1 before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-px before:bg-border/80">
+                {description}
               </p>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-auto">
@@ -479,8 +490,8 @@ export function ItemCard({
               )}
             </div>
 
-            <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
-              {item.description}
+            <p className="relative flex-1 pl-2 text-[11px] text-muted-foreground/90 leading-relaxed line-clamp-2 before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-px before:bg-border/80">
+              {description}
             </p>
 
             {(hasDownloads || hasMapPopulation) && (
@@ -560,8 +571,8 @@ export function ItemCard({
             )}
           </div>
 
-          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">
-            {item.description}
+          <p className="relative flex-1 pl-2 text-xs text-muted-foreground/90 leading-relaxed line-clamp-2 before:absolute before:left-0 before:top-0.5 before:bottom-0.5 before:w-px before:bg-border/80">
+            {description}
           </p>
 
           <div className="flex items-end justify-between gap-2 mt-auto">
