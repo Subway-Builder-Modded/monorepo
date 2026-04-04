@@ -288,21 +288,32 @@ export function ProjectHeader({
           uninstalling ||
           versionsLoading;
 
-    const installUpdateTooltip = installing
-      ? 'Cancel'
-      : isInstalled
-        ? hasUpdate && updateTargetVersion
-          ? `Update to ${updateTargetVersion}`
-          : 'Up to date'
-        : versionsLoading
-          ? 'Loading...'
-          : uninstalling
-            ? 'Uninstalling...'
-            : !!noCompatibleVersion
-              ? `No compatible version (game ${gameVersion})`
-              : effectiveVersion
-                ? `Install ${effectiveVersion.version}`
-                : 'No version available';
+    let installUpdateTooltip: string;
+    switch (true) {
+      case installing:
+        installUpdateTooltip = 'Cancel';
+        break;
+      case isInstalled:
+        installUpdateTooltip =
+          hasUpdate && updateTargetVersion
+            ? `Update to ${updateTargetVersion}`
+            : 'Up to date';
+        break;
+      case versionsLoading:
+        installUpdateTooltip = 'Loading...';
+        break;
+      case uninstalling:
+        installUpdateTooltip = 'Uninstalling...';
+        break;
+      case !!noCompatibleVersion:
+        installUpdateTooltip = `No compatible version (game ${gameVersion})`;
+        break;
+      case !!effectiveVersion:
+        installUpdateTooltip = `Install ${effectiveVersion!.version}`;
+        break;
+      default:
+        installUpdateTooltip = 'No version available';
+    }
 
     const handleInstallUpdateClick = () => {
       if (installing) {
