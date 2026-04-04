@@ -261,10 +261,7 @@ function BrowsePageContent({
 
         {error && <ErrorBanner message={error} />}
 
-        <SearchBar
-          query={filters.query}
-          onQueryChange={handleQueryChange}
-        />
+        <SearchBar query={filters.query} onQueryChange={handleQueryChange} />
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3">
