@@ -57,8 +57,13 @@ func TestAreValidSystemPreferences(t *testing.T) {
 	require.True(t, areValidSystemPreferences(SystemPreferences{}))
 	require.True(t, areValidSystemPreferences(SystemPreferences{
 		RefreshRegistryOnStartup: true,
-		// AutoUpdateSubscriptions:  true,
+		AutoUpdateSubscriptions:  true,
 	}))
+}
+
+func TestDefaultSystemPreferencesDisablesAutoUpdateSubscriptions(t *testing.T) {
+	profile := DefaultProfile()
+	require.False(t, profile.SystemPreferences.AutoUpdateSubscriptions)
 }
 
 func TestValidateStateAcceptsInitialProfilesState(t *testing.T) {

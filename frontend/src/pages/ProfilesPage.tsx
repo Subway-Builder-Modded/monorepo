@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { useProfilesState } from '@/hooks/use-profile-dialogs';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isProfileSwapUnavailable } from '@/lib/profile-swap';
+import { formatStorageSize } from '@/lib/size-format';
 import { cn } from '@/lib/utils';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -55,18 +56,6 @@ function sortProfilesForDisplay(profiles: types.UserProfile[]) {
     if (b.id === DEFAULT_PROFILE_ID) return 1;
     return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
   });
-}
-
-function formatStorageSize(bytes: number | undefined): string {
-  const safeBytes =
-    typeof bytes === 'number' && Number.isFinite(bytes) && bytes > 0
-      ? bytes
-      : 0;
-
-  if (safeBytes < 1024) return `${safeBytes} B`;
-  if (safeBytes < 1024 ** 2) return `${(safeBytes / 1024).toFixed(1)} KB`;
-  if (safeBytes < 1024 ** 3) return `${(safeBytes / 1024 ** 2).toFixed(1)} MB`;
-  return `${(safeBytes / 1024 ** 3).toFixed(1)} GB`;
 }
 
 function formatPreference(value: boolean | undefined): string {

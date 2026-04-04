@@ -39,48 +39,6 @@ func (r *Registry) refreshRepo() error {
 	return nil
 }
 
-// getCredentials uses the system's git credential helper to resolve
-// credentials for the registry repo URL. Returns nil auth if no
-// credentials are found (for public repos).
-//func (r *Registry) getCredentials() *githttp.BasicAuth {
-//	parsed, err := url.Parse(RegistryRepoURL)
-//	if err != nil {
-//		return nil
-//	}
-//
-//	input := fmt.Sprintf("protocol=%s\nhost=%s\npath=%s\n\n", parsed.Scheme, parsed.Host, strings.TrimPrefix(parsed.Path, "/"))
-//
-//	cmd := exec.Command("git", "credential", "fill")
-//	cmd.Stdin = strings.NewReader(input)
-//	var out bytes.Buffer
-//	cmd.Stdout = &out
-//	if err := cmd.Run(); err != nil {
-//		return nil
-//	}
-//
-//	var username, password string
-//	scanner := bufio.NewScanner(&out)
-//	for scanner.Scan() {
-//		line := scanner.Text()
-//		if k, v, ok := strings.Cut(line, "="); ok {
-//			switch k {
-//			case "username":
-//				username = v
-//			case "password":
-//				password = v
-//			}
-//		}
-//	}
-//
-//	if username != "" && password != "" {
-//		return &githttp.BasicAuth{
-//			Username: username,
-//			Password: password,
-//		}
-//	}
-//	return nil
-//}
-
 // forceClone removes any existing directory and performs a fresh clone.
 func (r *Registry) forceClone() error {
 	cloneErrors := make([]string, 0, len(RegistryRepoURLs))

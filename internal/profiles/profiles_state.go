@@ -262,7 +262,13 @@ func (s *UserProfiles) ResetUserProfiles() types.UserProfileResult {
 func (s *UserProfiles) UpdateSystemPreferences(prefs types.SystemPreferences) types.UserProfileResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.logRequest("UpdateSystemPreferences", "refresh_registry_on_startup", prefs.RefreshRegistryOnStartup, "extra_heap_size", prefs.ExtraHeapSize, "use_dev_tools", prefs.UseDevTools)
+	s.logRequest(
+		"UpdateSystemPreferences",
+		"refresh_registry_on_startup", prefs.RefreshRegistryOnStartup,
+		"auto_update_subscriptions", prefs.AutoUpdateSubscriptions,
+		"extra_heap_size", prefs.ExtraHeapSize,
+		"use_dev_tools", prefs.UseDevTools,
+	)
 
 	nextState := types.UserProfilesState{
 		ActiveProfileID: s.state.ActiveProfileID,
@@ -809,32 +815,20 @@ func managedSubscriptionDirectorySize(subscriptionType string, subscriptionID st
 		return 0, false, nil
 	}
 
-	assetPath := paths.JoinLocalPath(spec.BasePath, subPath)
-	size, err := files.ManagedDirectorySize(assetPath, constants.RailyardAssetMarker)
-	if err != nil {
-		return 0, true, fmt.Errorf("failed to resolve managed size for %s %q: %w", spec.Label, subscriptionID, err)
-	}
-
-	if subscriptionType == "maps" || subscriptionType == "localMaps" {
-		tilePath := paths.JoinLocalPath(paths.TilesPath(), subPath+".pmtiles")
-		tileSize, tileErr := optionalFileSize(tilePath)
-		if tileErr != nil {
-			return 0, true, fmt.Errorf("failed to resolve managed size for map tiles %q: %w", subscriptionID, tileErr)
+	switch subscriptionType {
+	case "maps", "localMaps":
+		size, err := files.InstalledMapSize(spec.BasePath, paths.TilesPath(), subPath, constants.RailyardAssetMarker)
+		if err != nil {
+			return 0, true, fmt.Errorf("failed to resolve managed size for %s %q: %w", spec.Label, subscriptionID, err)
 		}
-		size += tileSize
+		return size, true, nil
+	default:
+		size, err := files.InstalledModSize(spec.BasePath, subPath, constants.RailyardAssetMarker)
+		if err != nil {
+			return 0, true, fmt.Errorf("failed to resolve managed size for %s %q: %w", spec.Label, subscriptionID, err)
+		}
+		return size, true, nil
 	}
-	return size, true, nil
-}
-
-func optionalFileSize(filePath string) (int64, error) {
-	info, err := os.Stat(filePath)
-	if err == nil {
-		return info.Size(), nil
-	}
-	if errors.Is(err, fs.ErrNotExist) {
-		return 0, nil
-	}
-	return 0, err
 }
 
 func (s *UserProfiles) swapProfilesSnapshot(profileID string) (types.UserProfile, types.UserProfile, types.UserProfileResult, bool) {

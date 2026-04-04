@@ -7,12 +7,15 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"sort"
 	"strings"
 	"sync"
 
 	"railyard/internal/constants"
 	"railyard/internal/requests"
 	"railyard/internal/types"
+
+	semver "github.com/Masterminds/semver/v3"
 )
 
 // modManifestDeps is the minimal schema needed to extract dependencies from a mod's manifest.json.
@@ -233,8 +236,9 @@ func (r *Registry) getCustomVersions(updateURL string) ([]types.VersionInfo, err
 	}
 
 	r.enrichVersions(versions)
-
-	return r.filterSemverVersions(versions, "custom:"+updateURL), nil
+	filtered := r.filterSemverVersions(versions, "custom:"+updateURL)
+	sortSemverVersions(filtered)
+	return filtered, nil
 }
 
 func (r *Registry) filterSemverVersions(
@@ -256,6 +260,17 @@ func cloneVersionInfos(input []types.VersionInfo) []types.VersionInfo {
 	output := make([]types.VersionInfo, len(input))
 	copy(output, input)
 	return output
+}
+
+// sortSemverVersions sorts versions in-place by descending semantic version, with non-semver versions at the end sorted by descending string order.
+func sortSemverVersions(versions []types.VersionInfo) {
+	sort.SliceStable(versions, func(i, j int) bool {
+		leftVersion := strings.TrimPrefix(types.NormalizeSemver(versions[i].Version), "v")
+		rightVersion := strings.TrimPrefix(types.NormalizeSemver(versions[j].Version), "v")
+		left, _ := semver.NewVersion(leftVersion)
+		right, _ := semver.NewVersion(rightVersion)
+		return left.GreaterThan(right)
+	})
 }
 
 func (r *Registry) getCachedVersions(key string) ([]types.VersionInfo, bool) {

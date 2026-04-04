@@ -286,6 +286,9 @@ func (s *UserProfiles) restoreMapsFromArchive(tempDir, profileID string) (types.
 		// Restore thumbnail if exists
 		archiveThumbnailPath := paths.JoinLocalPath(tempDir, "maps", code, "thumbnail.svg")
 		destThumbnailPath := paths.JoinLocalPath(s.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps", fmt.Sprintf("%s.svg", code))
+		if err := clearRestoreFile(destThumbnailPath); err != nil {
+			return s.archiveError("Failed to clear map thumbnail before restore", "failed to clear map thumbnail before restore", err, "profile_id", profileID, "map_id", code)
+		}
 		if errResp, ok := files.CopyOptionalFile(archiveThumbnailPath, destThumbnailPath, profileID, code, "thumbnail", s.Logger); !ok {
 			return errResp, false
 		}
@@ -293,6 +296,9 @@ func (s *UserProfiles) restoreMapsFromArchive(tempDir, profileID string) (types.
 		// Restore tiles if exists
 		archiveTilePath := paths.JoinLocalPath(tempDir, "maps", code, "tiles.pmtiles")
 		destTilePath := paths.JoinLocalPath(paths.TilesPath(), fmt.Sprintf("%s.pmtiles", code))
+		if err := clearRestoreFile(destTilePath); err != nil {
+			return s.archiveError("Failed to clear map tiles before restore", "failed to clear map tiles before restore", err, "profile_id", profileID, "map_id", code)
+		}
 		if errResp, ok := files.CopyOptionalFile(archiveTilePath, destTilePath, profileID, code, "tiles", s.Logger); !ok {
 			return errResp, false
 		}
@@ -361,6 +367,14 @@ func areSubscriptionsEqual(left types.Subscriptions, right types.Subscriptions) 
 // clearRestoreDestination removes the existing directory at the destination path to prepare for restoring data from the archive to avoid file conflicts/collisions.
 func clearRestoreDestination(dirPath string) error {
 	if err := os.RemoveAll(dirPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
+// clearRestoreFile removes the existing file at the destination path to prepare for restoring data from the archive to avoid file conflicts/collisions.
+func clearRestoreFile(filePath string) error {
+	if err := os.Remove(filePath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
 	return nil

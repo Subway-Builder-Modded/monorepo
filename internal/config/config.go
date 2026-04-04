@@ -324,7 +324,7 @@ func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.
 			)
 		},
 		func(ctx context.Context) (string, error) {
-			return wruntime.OpenFileDialog(ctx, wruntime.OpenDialogOptions{
+			dialogOptions := wruntime.OpenDialogOptions{
 				Title:            "Select Executable",
 				DefaultDirectory: DefaultExecutableDialogDirectory(),
 				Filters: []wruntime.FileFilter{
@@ -333,7 +333,24 @@ func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.
 						Pattern:     "*",
 					},
 				},
-			})
+			}
+			// For MacOS, allow .app bundles to be selected as executables, even though they may be directories to support the .app bundle format.
+			if runtime.GOOS == "darwin" {
+				dialogOptions.Filters = []wruntime.FileFilter{
+					{
+						DisplayName: "Applications",
+						Pattern:     "*.app",
+					},
+					{
+						DisplayName: "All Files",
+						Pattern:     "*",
+					},
+				}
+				// Ensure .app bundles can be selected as launch targets.
+				dialogOptions.TreatPackagesAsDirectories = false
+			}
+
+			return wruntime.OpenFileDialog(ctx, dialogOptions)
 		},
 		s.UpdateExecutable,
 	)

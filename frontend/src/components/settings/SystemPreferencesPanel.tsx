@@ -1,4 +1,4 @@
-import { Shield, Terminal } from 'lucide-react';
+import { CircleFadingArrowUp, Database, Shield, Terminal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -23,7 +23,9 @@ import {
 
 export function SystemPreferencesPanel() {
   const profile = useProfileStore((s) => s.profile);
-  const updateCommandLineArgs = useProfileStore((s) => s.updateCommandLineArgs);
+  const updateSystemPreferences = useProfileStore(
+    (s) => s.updateSystemPreferences,
+  );
 
   const [platform, setPlatform] = useState<string>('unknown');
   const [sandboxInstalled, setSandboxInstalled] = useState(false);
@@ -43,11 +45,37 @@ export function SystemPreferencesPanel() {
     });
   }, [platform]);
 
+  const handleToggleRefreshRegistryOnStartup = async () => {
+    if (!profile) return;
+    const newValue = !profile.systemPreferences?.refreshRegistryOnStartup;
+    try {
+      await updateSystemPreferences({ refreshRegistryOnStartup: newValue });
+      toast.success(
+        `Refresh registry on startup ${newValue ? 'enabled' : 'disabled'}.`,
+      );
+    } catch {
+      toast.error('Failed to update registry startup refresh setting.');
+    }
+  };
+
+  const handleToggleAutoUpdateSubscriptions = async () => {
+    if (!profile) return;
+    const newValue = !profile.systemPreferences?.autoUpdateSubscriptions;
+    try {
+      await updateSystemPreferences({ autoUpdateSubscriptions: newValue });
+      toast.success(
+        `Auto-update subscriptions on startup ${newValue ? 'enabled' : 'disabled'}.`,
+      );
+    } catch {
+      toast.error('Failed to update auto-update subscriptions setting.');
+    }
+  };
+
   const handleToggleDevTools = async () => {
     if (!profile) return;
     const newValue = !profile.systemPreferences?.useDevTools;
     try {
-      await updateCommandLineArgs({ useDevTools: newValue });
+      await updateSystemPreferences({ useDevTools: newValue });
       toast.success(`Developer tools ${newValue ? 'enabled' : 'disabled'}.`);
     } catch {
       toast.error('Failed to update developer tools setting.');
@@ -78,6 +106,47 @@ export function SystemPreferencesPanel() {
       </CardHeader>
       <CardContent className="px-6 py-0">
         <div className="divide-y divide-border">
+          <SettingRow
+            icon={<Database className="h-4 w-4" />}
+            iconClassName="bg-[color-mix(in_oklab,var(--profiles-primary)_12%,transparent)] text-[var(--profiles-primary)]"
+            label="Refresh Registry on Startup"
+            description="Refresh the registry repository when Railyard starts"
+            action={
+              <SettingToggleButton
+                enabled={!!profile?.systemPreferences?.refreshRegistryOnStartup}
+                onToggle={handleToggleRefreshRegistryOnStartup}
+                enabledLabel="Enabled"
+                disabledLabel="Disabled"
+              />
+            }
+          />
+          <SettingRow
+            icon={<CircleFadingArrowUp className="h-4 w-4" />}
+            iconClassName="bg-[color-mix(in_oklab,var(--update-primary)_12%,transparent)] text-[var(--update-primary)]"
+            label="Auto Update Subscriptions"
+            description="Automatically update subscribed assets to latest after startup sync"
+            action={
+              <SettingToggleButton
+                enabled={!!profile?.systemPreferences?.autoUpdateSubscriptions}
+                onToggle={handleToggleAutoUpdateSubscriptions}
+                enabledLabel="Enabled"
+                disabledLabel="Disabled"
+              />
+            }
+          />
+          <SettingRow
+            icon={<Terminal className="h-4 w-4" />}
+            label="Developer Tools"
+            description="Enable Chromium DevTools for inspecting the app interface"
+            action={
+              <SettingToggleButton
+                enabled={!!profile?.systemPreferences?.useDevTools}
+                onToggle={handleToggleDevTools}
+                enabledLabel="Enabled"
+                disabledLabel="Disabled"
+              />
+            }
+          />
           {platform === 'linux' && (
             <SettingRow
               icon={<Shield className="h-4 w-4" />}
@@ -104,54 +173,6 @@ export function SystemPreferencesPanel() {
               }
             />
           )}
-          {/* Fix your game devs :/
-          <SettingRow
-            icon={<Database className="h-4 w-4" />}
-            label="Extra Memory for Game"
-            description={
-              MAX_MEMORY_MB !== null
-                ? `Allowed range: ${MIN_MEMORY_MB.toLocaleString()} – ${MAX_MEMORY_MB.toLocaleString()} MB`
-                : 'Additional memory allocation passed to the game process'
-            }
-            action={
-              <div className="flex items-center gap-1.5">
-                <Input
-                  type="number"
-                  min={MIN_MEMORY_MB}
-                  max={MAX_MEMORY_MB ?? undefined}
-                  placeholder={MAX_MEMORY_MB !== null ? MAX_MEMORY_MB.toString() : '8192'}
-                  value={extraMemoryDraft}
-                  onChange={(event) => setExtraMemoryDraft(event.target.value)}
-                  className="h-8 w-24 text-sm"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={UNINSTALL_ACCENT.solidButton}
-                  onClick={handleClearExtraMemory}
-                >
-                  Clear
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleSaveExtraMemory}>
-                  Save
-                </Button>
-              </div>
-            }
-          />
-          */}
-          <SettingRow
-            icon={<Terminal className="h-4 w-4" />}
-            label="Developer Tools"
-            description="Enable Chromium DevTools for inspecting the app interface"
-            action={
-              <SettingToggleButton
-                enabled={!!profile?.systemPreferences?.useDevTools}
-                onToggle={handleToggleDevTools}
-                enabledLabel="Enabled"
-                disabledLabel="Disabled"
-              />
-            }
-          />
         </div>
       </CardContent>
     </Card>

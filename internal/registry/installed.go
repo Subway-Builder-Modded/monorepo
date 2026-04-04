@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 
+	"railyard/internal/constants"
 	"railyard/internal/files"
 	"railyard/internal/paths"
 	"railyard/internal/types"
@@ -108,7 +109,7 @@ func (r *Registry) GetInstalledMods() []types.InstalledModInfo {
 func (r *Registry) GetInstalledModsResponse() types.InstalledModsResponse {
 	return types.InstalledModsResponse{
 		GenericResponse: types.SuccessResponse("Installed mods loaded"),
-		Mods:            r.installedMods,
+		Mods:            r.enrichModInfoWithFileSizes(r.installedMods),
 	}
 }
 
@@ -133,7 +134,7 @@ func (r *Registry) GetRemoteInstalledMaps() []types.InstalledMapInfo {
 func (r *Registry) GetInstalledMapsResponse() types.InstalledMapsResponse {
 	return types.InstalledMapsResponse{
 		GenericResponse: types.SuccessResponse("Installed maps loaded"),
-		Maps:            r.installedMaps,
+		Maps:            r.enrichMapInfoWithFileSizes(r.installedMaps),
 	}
 }
 
@@ -144,4 +145,39 @@ func (r *Registry) GetInstalledMapCodes() []string {
 		codes = append(codes, m.MapConfig.Code)
 	}
 	return codes
+}
+
+// enrichModInfoWithFileSizes enriches installed mod info with on-disk size metadata.
+func (r *Registry) enrichModInfoWithFileSizes(mods []types.InstalledModInfo) []types.InstalledModInfo {
+	updated := make([]types.InstalledModInfo, 0, len(mods))
+	modsRoot := r.config.Cfg.GetModsFolderPath()
+	for _, item := range mods {
+		copyItem := item
+		size, err := files.InstalledModSize(modsRoot, item.ID, constants.RailyardAssetMarker)
+		if err != nil {
+			r.logger.Warn("Failed to resolve installed mod size", "mod_id", item.ID, "error", err)
+			size = 0
+		}
+		copyItem.InstalledSizeBytes = size
+		updated = append(updated, copyItem)
+	}
+	return updated
+}
+
+// enrichMapInfoWithFileSizes enriches installed map info with on-disk size metadata.
+func (r *Registry) enrichMapInfoWithFileSizes(maps []types.InstalledMapInfo) []types.InstalledMapInfo {
+	updated := make([]types.InstalledMapInfo, 0, len(maps))
+	mapsRoot := r.config.Cfg.GetMapsFolderPath()
+	tilesRoot := paths.TilesPath()
+	for _, item := range maps {
+		copyItem := item
+		size, err := files.InstalledMapSize(mapsRoot, tilesRoot, item.MapConfig.Code, constants.RailyardAssetMarker)
+		if err != nil {
+			r.logger.Warn("Failed to resolve installed map size", "map_id", item.ID, "map_code", item.MapConfig.Code, "error", err)
+			size = 0
+		}
+		copyItem.InstalledSizeBytes = size
+		updated = append(updated, copyItem)
+	}
+	return updated
 }

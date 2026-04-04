@@ -247,13 +247,36 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 	}
 
 	// Sync subscriptions for active profile on startup
-	// TODO: Make this configurable within the profile itself
 	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, false, false)
+	shouldRunAutoUpdate := activeProfile.SystemPreferences.AutoUpdateSubscriptions && syncResult.Status != types.ResponseError
 	switch syncResult.Status {
 	case types.ResponseError:
 		a.Logger.MultipleError("Failed to sync profile subscriptions on startup", logger.AsErrors(syncResult.Errors), "profile_id", activeProfile.ID)
 	case types.ResponseWarn:
 		a.Logger.Warn("Profile subscriptions synced with warnings on startup", "message", syncResult.Message, "profile_id", activeProfile.ID, "error_count", len(syncResult.Errors))
+	}
+
+	if shouldRunAutoUpdate {
+		updateResult := a.Profiles.UpdateSubscriptionsToLatest(types.UpdateSubscriptionsToLatestRequest{
+			ProfileID: activeProfile.ID,
+			Apply:     true,
+			Targets:   []types.SubscriptionUpdateTarget{},
+		})
+		switch updateResult.Status {
+		case types.ResponseError:
+			a.Logger.MultipleError(
+				"Failed to auto-update subscriptions on startup",
+				logger.AsErrors(updateResult.Errors),
+				"profile_id", activeProfile.ID,
+			)
+		case types.ResponseWarn:
+			a.Logger.Warn(
+				"Auto-updated subscriptions on startup with warnings",
+				"profile_id", activeProfile.ID,
+				"message", updateResult.Message,
+				"warning_count", len(updateResult.Errors),
+			)
+		}
 	}
 }
 

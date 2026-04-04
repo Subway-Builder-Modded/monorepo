@@ -84,3 +84,40 @@ func TestClearVersionsCache(t *testing.T) {
 	_, ok = reg.getCachedVersions("github|owner/repo")
 	require.False(t, ok)
 }
+
+// Explicit regression test for Custom JSON versions to ensure that semver sorting is working and that higher semver versions are recorded as "higher" than lower ones, even if they are recorded after in the JSON file.
+func TestGetCustomVersionsSortsSemverDescending(t *testing.T) {
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+
+	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{
+  "schema_version": 1,
+  "versions": [
+    {
+      "version": "v1.0.0",
+      "game_version": "v1.0.0",
+      "date": "2026-01-01",
+      "changelog": "first",
+      "download": "https://example.com/v1.0.0.zip",
+      "sha256": "sha-a"
+    },
+    {
+      "version": "v1.0.1",
+      "game_version": "v1.0.0",
+      "date": "2026-01-02",
+      "changelog": "second",
+      "download": "https://example.com/v1.0.1.zip",
+      "sha256": "sha-b"
+    }
+  ]
+}`)
+	}))
+	defer server.Close()
+
+	versions, err := reg.GetVersions("custom", server.URL+"/updates.json")
+	require.NoError(t, err)
+	require.Len(t, versions, 2)
+	require.Equal(t, "v1.0.1", versions[0].Version)
+	require.Equal(t, "v1.0.0", versions[1].Version)
+}

@@ -21,7 +21,9 @@ interface UIPreferencesPayload {
   searchViewMode: SearchViewMode;
 }
 
-interface UpdateCommandLineArgsPayload {
+interface UpdateSystemPreferencesPayload {
+  refreshRegistryOnStartup?: boolean;
+  autoUpdateSubscriptions?: boolean;
   extraMemorySize?: number;
   useDevTools?: boolean;
 }
@@ -56,6 +58,8 @@ function resolveSystemPreferences(
   return {
     refreshRegistryOnStartup:
       profile?.systemPreferences?.refreshRegistryOnStartup ?? false,
+    autoUpdateSubscriptions:
+      profile?.systemPreferences?.autoUpdateSubscriptions ?? false,
     extraMemorySize: profile?.systemPreferences?.extraMemorySize ?? 0,
     useDevTools: profile?.systemPreferences?.useDevTools ?? false,
   };
@@ -83,8 +87,8 @@ interface ProfileState {
     version: string,
   ) => Promise<void>;
   resetProfile: () => Promise<void>;
-  updateCommandLineArgs: (
-    preferences: Partial<UpdateCommandLineArgsPayload>,
+  updateSystemPreferences: (
+    preferences: Partial<UpdateSystemPreferencesPayload>,
   ) => Promise<void>;
 }
 
@@ -174,7 +178,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
-  updateCommandLineArgs: async (preferences) => {
+  updateSystemPreferences: async (preferences) => {
     set({ loading: true, error: null });
     try {
       const payload = {
