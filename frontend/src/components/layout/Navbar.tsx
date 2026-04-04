@@ -92,9 +92,13 @@ const NAVBAR_BOTTOM_GAP_PX = 12;
 export function Navbar() {
   const headerRef = useRef<HTMLElement>(null);
   const [location] = useLocation();
-  const { refresh, loading, refreshing } = useRegistryStore();
+  const refresh = useRegistryStore((s) => s.refresh);
+  const loading = useRegistryStore((s) => s.loading);
+  const refreshing = useRegistryStore((s) => s.refreshing);
   const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
-  const { running, launch, stop } = useGameStore();
+  const running = useGameStore((s) => s.running);
+  const launch = useGameStore((s) => s.launch);
+  const stop = useGameStore((s) => s.stop);
   const installedMaps = useInstalledStore((s) => s.installedMaps);
   const [showModReminder, setShowModReminder] = useState(false);
 

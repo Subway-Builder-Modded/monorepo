@@ -40,8 +40,10 @@ export function LibraryActionBar({
   pendingUpdatesByKey,
   onRefreshPendingUpdates,
 }: LibraryActionBarProps) {
-  const { selectedIds, removeSelected } = useLibraryStore();
-  const { uninstallAssets, updateAssetsToLatest } = useInstalledStore();
+  const selectedIds = useLibraryStore((s) => s.selectedIds);
+  const removeSelected = useLibraryStore((s) => s.removeSelected);
+  const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
+  const updateAssetsToLatest = useInstalledStore((s) => s.updateAssetsToLatest);
   const { locked: mutationLocked, reason: mutationLockedReason } =
     useSubscriptionMutationLockState();
   const [uninstallTargets, setUninstallTargets] = useState<

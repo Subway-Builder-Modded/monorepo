@@ -43,18 +43,26 @@ function BrowsePageContent({
   const viewMode = useBrowseStore((s) => s.viewMode);
   const setViewMode = useBrowseStore((s) => s.setViewMode);
   const initializeViewMode = useBrowseStore((s) => s.initializeViewMode);
-  const defaultBrowseViewMode = useProfileStore((s) => s.searchViewMode)();
+  const defaultBrowseViewMode = useProfileStore((s) => s.searchViewMode());
 
-  const {
-    mods,
-    maps,
-    loading,
-    error,
-    modDownloadTotals,
-    mapDownloadTotals,
-    ensureDownloadTotals,
-  } = useRegistryStore();
-  const { installedMaps, installedMods } = useInstalledStore();
+  const mods = useRegistryStore((s) => s.mods);
+  const maps = useRegistryStore((s) => s.maps);
+  const loading = useRegistryStore((s) => s.loading);
+  const error = useRegistryStore((s) => s.error);
+  const modDownloadTotals = useRegistryStore((s) => s.modDownloadTotals);
+  const mapDownloadTotals = useRegistryStore((s) => s.mapDownloadTotals);
+  const ensureDownloadTotals = useRegistryStore((s) => s.ensureDownloadTotals);
+  const installedMaps = useInstalledStore((s) => s.installedMaps);
+  const installedMods = useInstalledStore((s) => s.installedMods);
+
+  const modManifestById = useMemo(
+    () => new Map(mods.map((manifest) => [manifest.id, manifest])),
+    [mods],
+  );
+  const mapManifestById = useMemo(
+    () => new Map(maps.map((manifest) => [manifest.id, manifest])),
+    [maps],
+  );
 
   const installedItems = useMemo(() => {
     const items: Array<{
@@ -63,7 +71,7 @@ function BrowsePageContent({
       installedVersion: string;
     }> = [];
     for (const installed of installedMods) {
-      const manifest = mods.find((m) => m.id === installed.id);
+      const manifest = modManifestById.get(installed.id);
       if (manifest)
         items.push({
           type: 'mod',
@@ -72,7 +80,7 @@ function BrowsePageContent({
         });
     }
     for (const installed of installedMaps) {
-      const manifest = maps.find((m) => m.id === installed.id);
+      const manifest = mapManifestById.get(installed.id);
       if (manifest)
         items.push({
           type: 'map',
@@ -81,7 +89,7 @@ function BrowsePageContent({
         });
     }
     return items;
-  }, [mods, maps, installedMods, installedMaps]);
+  }, [installedMaps, installedMods, mapManifestById, modManifestById]);
 
   const installedVersionByItemKey = useMemo(
     () =>
@@ -134,6 +142,36 @@ function BrowsePageContent({
   const cardGridPreset = useMemo(
     () => (viewMode === 'compact' ? 'compact' : 'default'),
     [viewMode],
+  );
+
+  const handleSidebarToggle = useCallback(() => {
+    setSidebarOpen(!sidebarOpen);
+  }, [setSidebarOpen, sidebarOpen]);
+
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setFilters((prev) => ({ ...prev, query: value }));
+    },
+    [setFilters],
+  );
+
+  const handleSortChange = useCallback(
+    (value: (typeof filters)['sort']) => {
+      setFilters((prev) => ({
+        ...prev,
+        sort: value,
+        randomSeed:
+          value.field === 'random' ? createRandomSeed() : prev.randomSeed,
+      }));
+    },
+    [setFilters],
+  );
+
+  const handlePerPageChange = useCallback(
+    (value: (typeof filters)['perPage']) => {
+      setFilters((prev) => ({ ...prev, perPage: value }));
+    },
+    [setFilters],
   );
 
   useEffect(() => {
@@ -192,7 +230,7 @@ function BrowsePageContent({
     <div className="relative isolate">
       <BrowseSidebar
         open={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        onToggle={handleSidebarToggle}
         filters={filters}
         onFiltersChange={setFilters}
         onTypeChange={setType}
@@ -225,9 +263,7 @@ function BrowsePageContent({
 
         <SearchBar
           query={filters.query}
-          onQueryChange={(value) =>
-            setFilters((prev) => ({ ...prev, query: value }))
-          }
+          onQueryChange={handleQueryChange}
         />
 
         <div className="space-y-4">
@@ -253,16 +289,7 @@ function BrowsePageContent({
               <ViewModeToggle value={viewMode} onChange={setViewMode} />
               <SortSelect
                 value={filters.sort}
-                onChange={(value) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    sort: value,
-                    randomSeed:
-                      value.field === 'random'
-                        ? createRandomSeed()
-                        : prev.randomSeed,
-                  }))
-                }
+                onChange={handleSortChange}
                 tab={filters.type}
               />
             </div>
@@ -327,9 +354,7 @@ function BrowsePageContent({
                 totalResults={totalResults}
                 perPage={filters.perPage}
                 onPageChange={setPage}
-                onPerPageChange={(value) =>
-                  setFilters((prev) => ({ ...prev, perPage: value }))
-                }
+                onPerPageChange={handlePerPageChange}
               />
             </>
           )}
