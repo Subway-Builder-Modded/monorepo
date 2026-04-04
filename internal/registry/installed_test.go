@@ -636,3 +636,66 @@ func TestGetRemoteInstalledMaps(t *testing.T) {
 		},
 	}, remote)
 }
+
+func TestGetInstalledMapsResponseIncludesInstalledSizeBytes(t *testing.T) {
+	testutil.NewHarness(t)
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	testutil.SetValidConfigPaths(t, &cfg.Cfg)
+	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+
+	cityCode := "AAA"
+	mapPath := paths.JoinLocalPath(cfg.Cfg.GetMapsFolderPath(), cityCode)
+	require.NoError(t, os.MkdirAll(mapPath, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, constants.RailyardAssetMarker), []byte("x"), 0o644))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "roads.geojson.gz"), []byte("12345"), 0o644))
+	require.NoError(t, os.MkdirAll(paths.TilesPath(), 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(paths.TilesPath(), cityCode+".pmtiles"), []byte("123"), 0o644))
+
+	reg.AddInstalledMap("map-a", "1.0.0", false, types.ConfigData{Code: cityCode})
+	resp := reg.GetInstalledMapsResponse()
+	require.Equal(t, types.ResponseSuccess, resp.Status)
+	require.Len(t, resp.Maps, 1)
+	require.Greater(t, resp.Maps[0].InstalledSizeBytes, int64(0))
+	// Response enrichment should not mutate in-memory installed state.
+	require.Equal(t, int64(0), reg.GetInstalledMaps()[0].InstalledSizeBytes)
+}
+
+func TestGetInstalledModsResponseIncludesInstalledSizeBytes(t *testing.T) {
+	testutil.NewHarness(t)
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	testutil.SetValidConfigPaths(t, &cfg.Cfg)
+	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+
+	modPath := paths.JoinLocalPath(cfg.Cfg.GetModsFolderPath(), "mod-a")
+	require.NoError(t, os.MkdirAll(modPath, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modPath, constants.RailyardAssetMarker), []byte("x"), 0o644))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modPath, "mod.bin"), []byte("12345"), 0o644))
+
+	reg.AddInstalledMod("mod-a", "1.0.0", false)
+	resp := reg.GetInstalledModsResponse()
+	require.Equal(t, types.ResponseSuccess, resp.Status)
+	require.Len(t, resp.Mods, 1)
+	require.Greater(t, resp.Mods[0].InstalledSizeBytes, int64(0))
+	// Response enrichment should not mutate in-memory installed state.
+	require.Equal(t, int64(0), reg.GetInstalledMods()[0].InstalledSizeBytes)
+}
+
+func TestGetInstalledResponseSizeErrorsAreNonFatal(t *testing.T) {
+	testutil.NewHarness(t)
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	testutil.SetValidConfigPaths(t, &cfg.Cfg)
+	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+
+	reg.AddInstalledMap("map-a", "1.0.0", false, types.ConfigData{Code: "AAA"})
+	reg.AddInstalledMod("mod-a", "1.0.0", false)
+	// Remove base roots so size computation cannot resolve managed paths.
+	require.NoError(t, os.RemoveAll(cfg.Cfg.GetMapsFolderPath()))
+	require.NoError(t, os.RemoveAll(cfg.Cfg.GetModsFolderPath()))
+
+	mapsResp := reg.GetInstalledMapsResponse()
+	modsResp := reg.GetInstalledModsResponse()
+	require.Equal(t, types.ResponseSuccess, mapsResp.Status)
+	require.Equal(t, types.ResponseSuccess, modsResp.Status)
+	require.Equal(t, int64(0), mapsResp.Maps[0].InstalledSizeBytes)
+	require.Equal(t, int64(0), modsResp.Mods[0].InstalledSizeBytes)
+}

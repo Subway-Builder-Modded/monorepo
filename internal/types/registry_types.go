@@ -39,9 +39,10 @@ type ModsResponse struct {
 
 // InstalledModInfo represents the information stored about an installed mod in the registry's installed_mods.json file.
 type InstalledModInfo struct {
-	ID      string `json:"id"`
-	Version string `json:"version"`
-	IsLocal bool   `json:"isLocal"` // Unused for now
+	ID                 string `json:"id"`
+	Version            string `json:"version"`
+	IsLocal            bool   `json:"isLocal"`                      // Unused for now
+	InstalledSizeBytes int64  `json:"installedSizeBytes,omitempty"` // Populated in response payloads only
 }
 
 type InstalledModsResponse struct {
@@ -51,10 +52,11 @@ type InstalledModsResponse struct {
 
 // InstalledMapInfo represents the information stored about an installed map in the registry's installed_maps.json file.
 type InstalledMapInfo struct {
-	ID        string     `json:"id"`
-	Version   string     `json:"version"`
-	IsLocal   bool       `json:"isLocal"` // Indicates whether or not the map was installed from a local file rather than downloaded via the registry
-	MapConfig ConfigData `json:"config"`
+	ID                 string     `json:"id"`
+	Version            string     `json:"version"`
+	IsLocal            bool       `json:"isLocal"` // Indicates whether or not the map was installed from a local file rather than downloaded via the registry
+	MapConfig          ConfigData `json:"config"`
+	InstalledSizeBytes int64      `json:"installedSizeBytes,omitempty"` // Populated in response payloads only
 }
 
 type InstalledMapsResponse struct {
