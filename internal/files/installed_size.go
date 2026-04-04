@@ -39,7 +39,7 @@ func InstalledMapSize(mapsRoot string, tilesRoot string, cityCode string, marker
 	return size + tileSize, nil
 }
 
-// FileSizeIfExists returns the size of the target file when it exists. 
+// FileSizeIfExists returns the size of the target file when it exists.
 // Missing files are treated as zero-size and non-fatal to the method.
 func FileSizeIfExists(filePath string) (int64, error) {
 	if strings.TrimSpace(filePath) == "" {
