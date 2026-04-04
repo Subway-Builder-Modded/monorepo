@@ -12,8 +12,9 @@ import {
   Trash2,
   TriangleAlert,
   Users,
+  X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
@@ -41,6 +42,7 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
 import { cn } from '@/lib/utils';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
@@ -67,7 +69,8 @@ const UPDATE_ACCENT = getLocalAccentClasses('update');
 const UNINSTALL_ACCENT = getLocalAccentClasses('uninstall');
 const ANALYTICS_ACCENT = getLocalAccentClasses('profiles');
 
-const ACTION_ICON_BASE = 'disabled:opacity-40 disabled:saturate-0';
+const ACTION_ICON_BASE =
+  'disabled:!text-muted-foreground disabled:opacity-100 disabled:saturate-100';
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
@@ -119,16 +122,55 @@ export function ProjectHeader({
     isInstalling,
     isUninstalling,
     uninstallAssets,
+    updateAssetsToLatest,
+    cancelPendingInstall,
   } = useInstalledStore();
 
   const installedVersion = getInstalledVersion(item.id);
   const installing = isInstalling(item.id);
   const uninstalling = isUninstalling(item.id);
   const effectiveVersion = latestCompatibleVersion ?? latestVersion;
+  const [pendingLatestVersion, setPendingLatestVersion] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    if (!installedVersion) {
+      setPendingLatestVersion(null);
+      return;
+    }
+
+    let cancelled = false;
+    requestLatestSubscriptionUpdatesForActiveProfile({
+      apply: false,
+      targets: [{ id: item.id, type }],
+    })
+      .then((result) => {
+        if (cancelled || result.status === 'error') {
+          return;
+        }
+
+        const pending = result.pendingUpdates?.find(
+          (update) => update.assetId === item.id && update.type === type,
+        );
+        setPendingLatestVersion(pending?.latestVersion ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPendingLatestVersion(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [installedVersion, item.id, type, installing, uninstalling]);
+
+  const updateTargetVersion = pendingLatestVersion ?? effectiveVersion?.version;
   const hasUpdate =
     installedVersion &&
-    effectiveVersion &&
-    installedVersion !== effectiveVersion.version;
+    updateTargetVersion &&
+    installedVersion !== updateTargetVersion;
   const noCompatibleVersion =
     gameVersion && latestVersion && !latestCompatibleVersion;
 
@@ -210,6 +252,18 @@ export function ProjectHeader({
     }
   };
 
+  const handleUpdate = async () => {
+    if (!installedVersion || !hasUpdate) return;
+
+    try {
+      await updateAssetsToLatest([{ id: item.id, type }]);
+      toast.success(`${item.name} has been updated.`);
+      setPendingLatestVersion(null);
+    } catch (err) {
+      handleSubscriptionMutationError(err, `Failed to update ${item.name}.`);
+    }
+  };
+
   const handleCopyError = async () => {
     if (!installError) return;
     await navigator.clipboard.writeText(installError.message);
@@ -217,41 +271,62 @@ export function ProjectHeader({
     setTimeout(() => setErrorCopied(false), 2000);
   };
 
+  // Captures the accent (green/blue) at the moment the user clicks install or update,
+  // so the cancel button keeps the right color even if the store updates mid-operation.
+  const cancelAccentRef = useRef(INSTALL_ACCENT);
+
   const renderActionButtons = () => {
-    const isTransient = versionsLoading || installing || uninstalling;
     const analyticsUrl = `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`;
 
-    const installDisabled =
-      isTransient ||
-      !!installedVersion ||
-      !effectiveVersion ||
-      !!noCompatibleVersion ||
-      mutationLocked;
-    const updateDisabled =
-      isTransient || !hasUpdate || !effectiveVersion || mutationLocked;
-    const uninstallDisabled =
-      isTransient || !installedVersion || mutationLocked;
+    // Combined install / update / cancel button
+    const isInstalled = !!installedVersion;
+    // Active accent: green before install, blue when already installed.
+    const installUpdateAccent = isInstalled ? UPDATE_ACCENT : INSTALL_ACCENT;
+    // While cancellable, use the accent that was captured at click time.
+    const activeAccent = installing ? cancelAccentRef.current : installUpdateAccent;
 
-    const installTooltip = versionsLoading
-      ? 'Loading...'
-      : installing
-        ? 'Installing...'
-        : uninstalling
-          ? 'Uninstalling...'
-          : !!noCompatibleVersion
-            ? `No compatible version (game ${gameVersion})`
-            : installedVersion
-              ? 'Already installed'
+    const installUpdateDisabled = installing
+      ? false // cancel is always enabled
+      : isInstalled
+        ? !hasUpdate || mutationLocked || uninstalling || versionsLoading
+        : !effectiveVersion ||
+          !!noCompatibleVersion ||
+          mutationLocked ||
+          uninstalling ||
+          versionsLoading;
+
+    const installUpdateTooltip = installing
+      ? 'Cancel'
+      : isInstalled
+        ? hasUpdate && updateTargetVersion
+          ? `Update to ${updateTargetVersion}`
+          : 'Up to date'
+        : versionsLoading
+          ? 'Loading...'
+          : uninstalling
+            ? 'Uninstalling...'
+            : !!noCompatibleVersion
+              ? `No compatible version (game ${gameVersion})`
               : effectiveVersion
                 ? `Install ${effectiveVersion.version}`
                 : 'No version available';
 
-    const updateTooltip =
-      hasUpdate && effectiveVersion
-        ? `Update to ${effectiveVersion.version}`
-        : 'Up to date';
+    const handleInstallUpdateClick = () => {
+      if (installing) {
+        void cancelPendingInstall(type, item.id);
+        return;
+      }
+      // Capture accent NOW, before the store mutation changes isInstalled.
+      cancelAccentRef.current = installUpdateAccent;
+      if (isInstalled) {
+        void handleUpdate();
+      } else if (effectiveVersion) {
+        handleInstallClick(effectiveVersion.version, effectiveVersion.prerelease);
+      }
+    };
 
-    const uninstallTooltip = installedVersion
+    const uninstallDisabled = installing || uninstalling || !isInstalled || mutationLocked;
+    const uninstallTooltip = isInstalled
       ? `Uninstall ${installedVersion}`
       : 'Not installed';
 
@@ -263,40 +338,25 @@ export function ProjectHeader({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className={cn(INSTALL_ACCENT.iconButton, ACTION_ICON_BASE)}
-                disabled={installDisabled}
-                onClick={() =>
-                  effectiveVersion &&
-                  handleInstallClick(
-                    effectiveVersion.version,
-                    effectiveVersion.prerelease,
-                  )
-                }
+                className={cn(
+                  activeAccent.iconButton,
+                  installing
+                    ? '!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)]'
+                    : ACTION_ICON_BASE,
+                )}
+                disabled={installUpdateDisabled}
+                onClick={handleInstallUpdateClick}
               >
-                <Download />
+                {installing ? (
+                  <X />
+                ) : isInstalled ? (
+                  <CircleFadingArrowUp />
+                ) : (
+                  <Download />
+                )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{installTooltip}</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className={cn(UPDATE_ACCENT.iconButton, ACTION_ICON_BASE)}
-                disabled={updateDisabled}
-                onClick={() =>
-                  effectiveVersion &&
-                  handleInstallClick(
-                    effectiveVersion.version,
-                    effectiveVersion.prerelease,
-                  )
-                }
-              >
-                <CircleFadingArrowUp />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{updateTooltip}</TooltipContent>
+            <TooltipContent>{installUpdateTooltip}</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -317,7 +377,7 @@ export function ProjectHeader({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                className={ANALYTICS_ACCENT.iconButton}
+                className={cn(ANALYTICS_ACCENT.iconButton, ACTION_ICON_BASE)}
                 onClick={() => BrowserOpenURL(analyticsUrl)}
               >
                 <ChartLine />
