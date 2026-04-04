@@ -283,7 +283,9 @@ export function ProjectHeader({
     // Active accent: green before install, blue when already installed.
     const installUpdateAccent = isInstalled ? UPDATE_ACCENT : INSTALL_ACCENT;
     // While cancellable, use the accent that was captured at click time.
-    const activeAccent = installing ? cancelAccentRef.current : installUpdateAccent;
+    const activeAccent = installing
+      ? cancelAccentRef.current
+      : installUpdateAccent;
 
     const installUpdateDisabled = installing
       ? false // cancel is always enabled
@@ -321,11 +323,15 @@ export function ProjectHeader({
       if (isInstalled) {
         void handleUpdate();
       } else if (effectiveVersion) {
-        handleInstallClick(effectiveVersion.version, effectiveVersion.prerelease);
+        handleInstallClick(
+          effectiveVersion.version,
+          effectiveVersion.prerelease,
+        );
       }
     };
 
-    const uninstallDisabled = installing || uninstalling || !isInstalled || mutationLocked;
+    const uninstallDisabled =
+      installing || uninstalling || !isInstalled || mutationLocked;
     const uninstallTooltip = isInstalled
       ? `Uninstall ${installedVersion}`
       : 'Not installed';
