@@ -14,7 +14,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
@@ -271,21 +271,12 @@ export function ProjectHeader({
     setTimeout(() => setErrorCopied(false), 2000);
   };
 
-  // Captures the accent (green/blue) at the moment the user clicks install or update,
-  // so the cancel button keeps the right color even if the store updates mid-operation.
-  const cancelAccentRef = useRef(INSTALL_ACCENT);
-
   const renderActionButtons = () => {
     const analyticsUrl = `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`;
 
     // Combined install / update / cancel button
     const isInstalled = !!installedVersion;
-    // Active accent: green before install, blue when already installed.
     const installUpdateAccent = isInstalled ? UPDATE_ACCENT : INSTALL_ACCENT;
-    // While cancellable, use the accent that was captured at click time.
-    const activeAccent = installing
-      ? cancelAccentRef.current
-      : installUpdateAccent;
 
     const installUpdateDisabled = installing
       ? false // cancel is always enabled
@@ -318,8 +309,6 @@ export function ProjectHeader({
         void cancelPendingInstall(type, item.id);
         return;
       }
-      // Capture accent NOW, before the store mutation changes isInstalled.
-      cancelAccentRef.current = installUpdateAccent;
       if (isInstalled) {
         void handleUpdate();
       } else if (effectiveVersion) {
@@ -345,10 +334,12 @@ export function ProjectHeader({
                 variant="ghost"
                 size="icon-sm"
                 className={cn(
-                  activeAccent.iconButton,
                   installing
-                    ? '!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)]'
-                    : ACTION_ICON_BASE,
+                    ? cn(
+                        UNINSTALL_ACCENT.iconButton,
+                        '!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)]',
+                      )
+                    : cn(installUpdateAccent.iconButton, ACTION_ICON_BASE),
                 )}
                 disabled={installUpdateDisabled}
                 onClick={handleInstallUpdateClick}
