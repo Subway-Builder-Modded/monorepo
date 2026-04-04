@@ -676,6 +676,7 @@ export namespace types {
 	    version: string;
 	    isLocal: boolean;
 	    config: ConfigData;
+	    installedSizeBytes?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new InstalledMapInfo(source);
@@ -687,6 +688,7 @@ export namespace types {
 	        this.version = source["version"];
 	        this.isLocal = source["isLocal"];
 	        this.config = this.convertValues(source["config"], ConfigData);
+	        this.installedSizeBytes = source["installedSizeBytes"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -745,6 +747,7 @@ export namespace types {
 	    id: string;
 	    version: string;
 	    isLocal: boolean;
+	    installedSizeBytes?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new InstalledModInfo(source);
@@ -755,6 +758,7 @@ export namespace types {
 	        this.id = source["id"];
 	        this.version = source["version"];
 	        this.isLocal = source["isLocal"];
+	        this.installedSizeBytes = source["installedSizeBytes"];
 	    }
 	}
 	export class InstalledModsResponse {

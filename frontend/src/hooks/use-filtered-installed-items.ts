@@ -16,12 +16,14 @@ export type InstalledTaggedItem =
       type: 'mod';
       item: types.ModManifest;
       installedVersion: string;
+      installedSizeBytes: number;
       isLocal: boolean;
     }
   | {
       type: 'map';
       item: types.MapManifest;
       installedVersion: string;
+      installedSizeBytes: number;
       isLocal: boolean;
     };
 

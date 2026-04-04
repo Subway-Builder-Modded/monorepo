@@ -28,6 +28,7 @@ import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
 import { LOCAL_ACCENTS } from '@/lib/local-accent';
 import { formatSourceQuality } from '@/lib/map-filter-values';
+import { formatStorageSize } from '@/lib/size-format';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -70,6 +71,7 @@ const COL = {
   gap: 'gap-3',
   city: 'w-[5.5rem]',
   country: 'w-[9rem]',
+  size: 'w-[6.5rem]',
   version: 'w-[6rem]',
   actions: 'w-[5.5rem]',
 } as const;
@@ -177,6 +179,11 @@ export function LibraryList({
             </div>
           </>
         )}
+        <div className={cn(COL.size, 'flex shrink-0 items-center')}>
+          <span className="inline-flex h-5 translate-y-px items-center text-xs leading-none font-semibold uppercase tracking-wide text-muted-foreground">
+            Size
+          </span>
+        </div>
         <div className={cn(COL.version, 'flex shrink-0 items-center')}>
           <span className="inline-flex h-5 translate-y-px items-center text-xs leading-none font-semibold uppercase tracking-wide text-muted-foreground">
             Version
@@ -423,6 +430,12 @@ function LibraryListRow({
             )}
           </div>
         )}
+
+        <div className={cn(COL.size, 'shrink-0 flex items-center')}>
+          <span className="inline-flex h-5 items-center text-sm leading-none font-semibold text-foreground">
+            {formatStorageSize(entry.installedSizeBytes)}
+          </span>
+        </div>
 
         <div className={cn(COL.version, 'shrink-0 flex items-center')}>
           <span className="inline-flex h-5 items-center text-sm leading-none font-semibold text-foreground">

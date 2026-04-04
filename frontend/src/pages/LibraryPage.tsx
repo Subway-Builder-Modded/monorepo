@@ -200,6 +200,7 @@ export function LibraryPage() {
               type: 'mod' as const,
               item: manifest,
               installedVersion: installed.version,
+              installedSizeBytes: installed.installedSizeBytes ?? 0,
               isLocal: installed.isLocal,
             },
           ]
@@ -213,6 +214,7 @@ export function LibraryPage() {
             type: 'map' as const,
             item: manifest,
             installedVersion: installed.version,
+            installedSizeBytes: installed.installedSizeBytes ?? 0,
             isLocal: installed.isLocal,
           },
         ];
@@ -232,6 +234,7 @@ export function LibraryPage() {
           type: 'map' as const,
           item: localManifest,
           installedVersion: installed.version,
+          installedSizeBytes: installed.installedSizeBytes ?? 0,
           isLocal: true,
         },
       ];
