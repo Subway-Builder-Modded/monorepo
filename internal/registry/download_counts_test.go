@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
@@ -39,6 +40,7 @@ func loadedRegistryWithDownloads(t *testing.T) *Registry {
 	})
 
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 	return reg
 }
@@ -141,6 +143,7 @@ func TestFetchFromDiskFiltersOutAssetsMissingIntegrityListings(t *testing.T) {
 	))
 
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	require.Len(t, reg.GetMods(), 1)

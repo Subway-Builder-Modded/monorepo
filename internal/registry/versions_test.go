@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sync/atomic"
@@ -35,6 +36,7 @@ func TestGetGitHubVersionsAuthFallbackAndCache(t *testing.T) {
 	updated := cfg.UpdateGithubToken("github_pat_test_token")
 	require.Equal(t, types.ResponseSuccess, updated.Status)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	originalBaseURL := registryGitHubAPIBaseURL
 	t.Cleanup(func() {
 		registryGitHubAPIBaseURL = originalBaseURL

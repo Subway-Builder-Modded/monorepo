@@ -225,7 +225,9 @@ func pullReleases(log logger.Logger, githubToken string, ctx context.Context) ([
 		OnTokenRejected: func(statusCode int) {
 			log.Warn("GitHub token rejected during updater check; retrying unauthenticated request", "status", statusCode)
 			errorType := types.GetErrorTypeForStatus(statusCode)
-			wailsruntime.EventsEmit(ctx, "requests:request-error", errorType)
+			if ctx.Value("test") != "true" {
+				wailsruntime.EventsEmit(ctx, "requests:request-error", errorType)
+			}
 		},
 	})
 	if err != nil {

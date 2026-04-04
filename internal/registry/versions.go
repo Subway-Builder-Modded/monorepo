@@ -95,7 +95,9 @@ func (r *Registry) getGitHubVersions(repo string) ([]types.VersionInfo, error) {
 		OnTokenRejected: func(statusCode int) {
 			r.logger.Warn("GitHub token rejected; retrying unauthenticated request", "repo", repo, "status", statusCode)
 			requestErrType := types.GetErrorTypeForStatus(statusCode)
-			wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+			if r.context.Value("test") != "true" {
+				wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+			}
 		},
 	})
 	if err != nil {
@@ -166,7 +168,9 @@ func (r *Registry) enrichVersions(versions []types.VersionInfo) {
 				OnTokenRejected: func(statusCode int) {
 					r.logger.Warn("GitHub token rejected; retrying unauthenticated request", "status", statusCode)
 					requestErrType := types.GetErrorTypeForStatus(statusCode)
-					wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+					if r.context.Value("test") != "true" {
+						wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+					}
 				},
 			})
 			if err != nil {
@@ -211,7 +215,9 @@ func (r *Registry) getCustomVersions(updateURL string) ([]types.VersionInfo, err
 		OnTokenRejected: func(statusCode int) {
 			r.logger.Warn("GitHub token rejected on custom update URL; retrying unauthenticated request", "url", updateURL, "status", statusCode)
 			requestErrType := types.GetErrorTypeForStatus(statusCode)
-			wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+			if r.context.Value("test") != "true" {
+				wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+			}
 		},
 	})
 	if err != nil {

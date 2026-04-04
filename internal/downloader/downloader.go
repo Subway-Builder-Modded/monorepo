@@ -1109,7 +1109,10 @@ func (d *Downloader) downloadRequest(ctx context.Context, downloadURL, githubTok
 		OnTokenRejected: func(statusCode int) {
 			d.Logger.Warn("Github token rejected during download request", "url", downloadURL, "status_code", statusCode)
 			requestErrType := types.GetErrorTypeForStatus(statusCode)
-			wailsruntime.EventsEmit(ctx, "requests:request-error", requestErrType)
+			// dont emit if passed ctx.TODO() for tests
+			if ctx.Value("test") != "true" {
+				wailsruntime.EventsEmit(ctx, "requests:request-error", requestErrType)
+			}
 		},
 	})
 }

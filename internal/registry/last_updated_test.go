@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"net/http"
 	"testing"
 	"time"
@@ -21,6 +22,7 @@ func mustUnix(t *testing.T, value string) int64 {
 }
 func TestResolveLastUpdated(t *testing.T) {
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	closeServer := registrytest.MockLastUpdatedServer(t, reg, []registrytest.LastUpdatedFixture{
 		{
 			AssetID:   "mod-a",
@@ -89,6 +91,7 @@ func TestDetermineLatestTimestampRejectsWrongLayout(t *testing.T) {
 
 func TestLoadLastUpdatedFallsBackToEpochOnFailures(t *testing.T) {
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	closeServer := registrytest.MockLastUpdatedServer(t, reg, []registrytest.LastUpdatedFixture{
 		{
 			AssetID:   "mod-bad",
