@@ -29,7 +29,6 @@ import {
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
-import { cn } from '@/lib/utils';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
   handleSubscriptionMutationError,
@@ -42,6 +41,7 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import { cn } from '@/lib/utils';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -222,10 +222,15 @@ export function ProjectHeader({
     const analyticsUrl = `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`;
 
     const installDisabled =
-      isTransient || !!installedVersion || !effectiveVersion || !!noCompatibleVersion || mutationLocked;
+      isTransient ||
+      !!installedVersion ||
+      !effectiveVersion ||
+      !!noCompatibleVersion ||
+      mutationLocked;
     const updateDisabled =
       isTransient || !hasUpdate || !effectiveVersion || mutationLocked;
-    const uninstallDisabled = isTransient || !installedVersion || mutationLocked;
+    const uninstallDisabled =
+      isTransient || !installedVersion || mutationLocked;
 
     const installTooltip = versionsLoading
       ? 'Loading...'
