@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// InstalledModSize returns the managed on-disk size for a mod installation, including all files and subdirectories under the mod's root directory.
+// InstalledModSize returns the managed on-disk size for a mod installation.
 func InstalledModSize(modsRoot string, modID string, markerFileName string) (int64, error) {
 	if strings.TrimSpace(modsRoot) == "" || strings.TrimSpace(modID) == "" {
 		return 0, nil
