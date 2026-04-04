@@ -109,7 +109,7 @@ func (r *Registry) GetInstalledMods() []types.InstalledModInfo {
 func (r *Registry) GetInstalledModsResponse() types.InstalledModsResponse {
 	return types.InstalledModsResponse{
 		GenericResponse: types.SuccessResponse("Installed mods loaded"),
-		Mods:            r.withInstalledModSizes(r.installedMods),
+		Mods:            r.enrichModInfoWithFileSizes(r.installedMods),
 	}
 }
 
@@ -134,7 +134,7 @@ func (r *Registry) GetRemoteInstalledMaps() []types.InstalledMapInfo {
 func (r *Registry) GetInstalledMapsResponse() types.InstalledMapsResponse {
 	return types.InstalledMapsResponse{
 		GenericResponse: types.SuccessResponse("Installed maps loaded"),
-		Maps:            r.withInstalledMapSizes(r.installedMaps),
+		Maps:            r.enrichMapInfoWithFileSizes(r.installedMaps),
 	}
 }
 
@@ -147,8 +147,9 @@ func (r *Registry) GetInstalledMapCodes() []string {
 	return codes
 }
 
-func (r *Registry) withInstalledModSizes(mods []types.InstalledModInfo) []types.InstalledModInfo {
-	enriched := make([]types.InstalledModInfo, 0, len(mods))
+// enrichModInfoWithFileSizes enriches installed mod info with on-disk size metadata.
+func (r *Registry) enrichModInfoWithFileSizes(mods []types.InstalledModInfo) []types.InstalledModInfo {
+	updated := make([]types.InstalledModInfo, 0, len(mods))
 	modsRoot := r.config.Cfg.GetModsFolderPath()
 	for _, item := range mods {
 		copyItem := item
@@ -158,13 +159,14 @@ func (r *Registry) withInstalledModSizes(mods []types.InstalledModInfo) []types.
 			size = 0
 		}
 		copyItem.InstalledSizeBytes = size
-		enriched = append(enriched, copyItem)
+		updated = append(updated, copyItem)
 	}
-	return enriched
+	return updated
 }
 
-func (r *Registry) withInstalledMapSizes(maps []types.InstalledMapInfo) []types.InstalledMapInfo {
-	enriched := make([]types.InstalledMapInfo, 0, len(maps))
+// enrichMapInfoWithFileSizes enriches installed map info with on-disk size metadata.
+func (r *Registry) enrichMapInfoWithFileSizes(maps []types.InstalledMapInfo) []types.InstalledMapInfo {
+	updated := make([]types.InstalledMapInfo, 0, len(maps))
 	mapsRoot := r.config.Cfg.GetMapsFolderPath()
 	tilesRoot := paths.TilesPath()
 	for _, item := range maps {
@@ -175,7 +177,7 @@ func (r *Registry) withInstalledMapSizes(maps []types.InstalledMapInfo) []types.
 			size = 0
 		}
 		copyItem.InstalledSizeBytes = size
-		enriched = append(enriched, copyItem)
+		updated = append(updated, copyItem)
 	}
-	return enriched
+	return updated
 }

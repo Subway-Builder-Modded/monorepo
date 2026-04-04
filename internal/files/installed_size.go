@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// InstalledModSize returns the managed on-disk size for a mod installation.
+// InstalledModSize returns the managed on-disk size for a mod installation, including all files and subdirectories under the mod's root directory.
 func InstalledModSize(modsRoot string, modID string, markerFileName string) (int64, error) {
 	if strings.TrimSpace(modsRoot) == "" || strings.TrimSpace(modID) == "" {
 		return 0, nil
@@ -18,8 +18,7 @@ func InstalledModSize(modsRoot string, modID string, markerFileName string) (int
 	return ManagedDirectorySize(modPath, markerFileName)
 }
 
-// InstalledMapSize returns the managed on-disk size for a map installation,
-// including an optional .pmtiles file when present.
+// InstalledMapSize returns the managed on-disk size for a map installation, including the .pmtiles object which lies in a separate directory under the Appdata folder.
 func InstalledMapSize(mapsRoot string, tilesRoot string, cityCode string, markerFileName string) (int64, error) {
 	if strings.TrimSpace(mapsRoot) == "" || strings.TrimSpace(cityCode) == "" {
 		return 0, nil
@@ -40,8 +39,8 @@ func InstalledMapSize(mapsRoot string, tilesRoot string, cityCode string, marker
 	return size + tileSize, nil
 }
 
-// FileSizeIfExists returns the size of the target file when it exists;
-// missing files are treated as zero-size and non-fatal.
+// FileSizeIfExists returns the size of the target file when it exists. 
+// Missing files are treated as zero-size and non-fatal to the method.
 func FileSizeIfExists(filePath string) (int64, error) {
 	if strings.TrimSpace(filePath) == "" {
 		return 0, nil
