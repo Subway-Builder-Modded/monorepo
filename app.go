@@ -247,13 +247,91 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 	}
 
 	// Sync subscriptions for active profile on startup
-	// TODO: Make this configurable within the profile itself
 	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, false, false)
 	switch syncResult.Status {
 	case types.ResponseError:
 		a.Logger.MultipleError("Failed to sync profile subscriptions on startup", logger.AsErrors(syncResult.Errors), "profile_id", activeProfile.ID)
 	case types.ResponseWarn:
 		a.Logger.Warn("Profile subscriptions synced with warnings on startup", "message", syncResult.Message, "profile_id", activeProfile.ID, "error_count", len(syncResult.Errors))
+	}
+
+	runStartupAutoUpdateSubscriptions(
+		a.Logger,
+		activeProfile,
+		syncResult.Status,
+		a.Profiles.UpdateSubscriptionsToLatest,
+	)
+}
+
+func runStartupAutoUpdateSubscriptions(
+	logSink *logger.AppLogger,
+	activeProfile types.UserProfile,
+	syncStatus types.Status,
+	updateToLatestFn func(types.UpdateSubscriptionsToLatestRequest) types.UpdateSubscriptionsResult,
+) {
+	if !activeProfile.SystemPreferences.AutoUpdateSubscriptions {
+		return
+	}
+	if syncStatus == types.ResponseError {
+		if logSink != nil {
+			logSink.Warn(
+				"Skipping automatic subscription updates on startup because sync failed",
+				"profile_id", activeProfile.ID,
+			)
+		}
+		return
+	}
+	if syncStatus != types.ResponseSuccess && syncStatus != types.ResponseWarn {
+		if logSink != nil {
+			logSink.Warn(
+				"Skipping automatic subscription updates on startup because sync status is unsupported",
+				"profile_id", activeProfile.ID,
+				"sync_status", syncStatus,
+			)
+		}
+		return
+	}
+	if updateToLatestFn == nil {
+		if logSink != nil {
+			logSink.Warn(
+				"Skipping automatic subscription updates on startup because update callback is missing",
+				"profile_id", activeProfile.ID,
+			)
+		}
+		return
+	}
+
+	updateResult := updateToLatestFn(types.UpdateSubscriptionsToLatestRequest{
+		ProfileID: activeProfile.ID,
+		Apply:     true,
+		Targets:   []types.SubscriptionUpdateTarget{},
+	})
+	switch updateResult.Status {
+	case types.ResponseError:
+		if logSink != nil {
+			logSink.MultipleError(
+				"Failed to auto-update subscriptions on startup",
+				logger.AsErrors(updateResult.Errors),
+				"profile_id", activeProfile.ID,
+			)
+		}
+	case types.ResponseWarn:
+		if logSink != nil {
+			logSink.Warn(
+				"Auto-updated subscriptions on startup with warnings",
+				"profile_id", activeProfile.ID,
+				"message", updateResult.Message,
+				"warning_count", len(updateResult.Errors),
+			)
+		}
+	default:
+		if logSink != nil {
+			logSink.Info(
+				"Auto-updated subscriptions on startup",
+				"profile_id", activeProfile.ID,
+				"message", updateResult.Message,
+			)
+		}
 	}
 }
 

@@ -149,6 +149,9 @@ func (c AppConfig) GetMapsFolderPath() string {
 // isExecutable is a stricter validation than checking if a particular path is a file
 // It checks if the file is a regular file and has executable permissions (or .exe extension on Windows)
 func isExecutable(path string, info os.FileInfo) bool {
+	if runtime.GOOS == "darwin" && info.IsDir() && strings.EqualFold(filepath.Ext(path), ".app") {
+		return true
+	}
 	if info.IsDir() || !info.Mode().IsRegular() {
 		return false
 	}

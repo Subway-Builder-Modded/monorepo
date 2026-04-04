@@ -306,6 +306,28 @@ func TestSwapProfileUsesFreshArchiveRestorePath(t *testing.T) {
 	require.True(t, errors.Is(statErr, fs.ErrNotExist))
 }
 
+func TestUpdateSystemPreferencesPersistsAutoUpdateSubscriptions(t *testing.T) {
+	testutil.NewHarness(t)
+
+	svc := loadedUserProfilesService(t, types.InitialProfilesState())
+	result := svc.UpdateSystemPreferences(types.SystemPreferences{
+		RefreshRegistryOnStartup: true,
+		AutoUpdateSubscriptions:  true,
+		ExtraHeapSize:            -1,
+		UseDevTools:              false,
+	})
+
+	require.Equal(t, types.ResponseSuccess, result.Status)
+	require.True(t, result.Profile.SystemPreferences.AutoUpdateSubscriptions)
+
+	persisted, err := ReadUserProfilesState()
+	require.NoError(t, err)
+	require.True(
+		t,
+		persisted.Profiles[persisted.ActiveProfileID].SystemPreferences.AutoUpdateSubscriptions,
+	)
+}
+
 func TestProfileArchiveFreshnessMetadata(t *testing.T) {
 	testutil.NewHarness(t)
 

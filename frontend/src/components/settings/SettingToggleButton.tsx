@@ -3,17 +3,19 @@ import { ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const TOGGLE_ENABLED: Record<'install' | 'update', string> = {
+const TOGGLE_ENABLED: Record<'install' | 'update' | 'profiles', string> = {
   install:
     'border-[color-mix(in_oklab,var(--install-primary)_40%,transparent)] text-[var(--install-primary)] hover:bg-[color-mix(in_oklab,var(--install-primary)_8%,transparent)] hover:text-[var(--install-primary)]',
   update:
     'border-[color-mix(in_oklab,var(--update-primary)_40%,transparent)] text-[var(--update-primary)] hover:bg-[color-mix(in_oklab,var(--update-primary)_8%,transparent)] hover:text-[var(--update-primary)]',
+  profiles:
+    'border-[color-mix(in_oklab,var(--profiles-primary)_40%,transparent)] text-[var(--profiles-primary)] hover:bg-[color-mix(in_oklab,var(--profiles-primary)_8%,transparent)] hover:text-[var(--profiles-primary)]',
 };
 
 interface SettingToggleButtonProps {
   enabled: boolean;
   onToggle: () => void;
-  accent?: 'install' | 'update';
+  accent?: 'install' | 'update' | 'profiles';
   enabledLabel?: string;
   disabledLabel?: string;
 }

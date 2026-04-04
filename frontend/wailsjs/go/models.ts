@@ -263,6 +263,7 @@ export namespace types {
 	}
 	export class SystemPreferences {
 	    refreshRegistryOnStartup: boolean;
+	    autoUpdateSubscriptions: boolean;
 	    extraMemorySize?: number;
 	    useDevTools?: boolean;
 	
@@ -273,6 +274,7 @@ export namespace types {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.refreshRegistryOnStartup = source["refreshRegistryOnStartup"];
+	        this.autoUpdateSubscriptions = source["autoUpdateSubscriptions"];
 	        this.extraMemorySize = source["extraMemorySize"];
 	        this.useDevTools = source["useDevTools"];
 	    }

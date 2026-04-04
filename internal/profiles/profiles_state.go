@@ -262,7 +262,13 @@ func (s *UserProfiles) ResetUserProfiles() types.UserProfileResult {
 func (s *UserProfiles) UpdateSystemPreferences(prefs types.SystemPreferences) types.UserProfileResult {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.logRequest("UpdateSystemPreferences", "refresh_registry_on_startup", prefs.RefreshRegistryOnStartup, "extra_heap_size", prefs.ExtraHeapSize, "use_dev_tools", prefs.UseDevTools)
+	s.logRequest(
+		"UpdateSystemPreferences",
+		"refresh_registry_on_startup", prefs.RefreshRegistryOnStartup,
+		"auto_update_subscriptions", prefs.AutoUpdateSubscriptions,
+		"extra_heap_size", prefs.ExtraHeapSize,
+		"use_dev_tools", prefs.UseDevTools,
+	)
 
 	nextState := types.UserProfilesState{
 		ActiveProfileID: s.state.ActiveProfileID,

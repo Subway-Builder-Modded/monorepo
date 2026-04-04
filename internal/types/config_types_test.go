@@ -72,3 +72,22 @@ func TestAppConfigFolderPathGetters(t *testing.T) {
 	require.Equal(t, filepath.Join(metroMakerDir, "public", "data", "city-maps"), cfg.GetThumbnailFolderPath())
 	require.Equal(t, filepath.Join(metroMakerDir, "cities", "data"), cfg.GetMapsFolderPath())
 }
+
+func TestValidateConfigPathsAllowsAppBundleOnDarwin(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("darwin-only behavior")
+	}
+
+	metroMakerDir := t.TempDir()
+	appBundlePath := filepath.Join(t.TempDir(), "Subway Builder.app")
+	require.NoError(t, os.MkdirAll(appBundlePath, 0o755))
+
+	cfg := AppConfig{
+		MetroMakerDataPath: metroMakerDir,
+		ExecutablePath:     appBundlePath,
+	}
+	valid, result := cfg.ValidateConfigPaths()
+	require.True(t, valid)
+	require.True(t, result.MetroMakerDataPathValid)
+	require.True(t, result.ExecutablePathValid)
+}
