@@ -5,7 +5,7 @@ export function formatStorageSize(bytes: number | undefined): string {
       : 0;
 
   if (safeBytes < 1024) return `${safeBytes} B`;
-  if (safeBytes < 1024 ** 2) return `${(safeBytes / 1024).toFixed(1)} KB`;
-  if (safeBytes < 1024 ** 3) return `${(safeBytes / 1024 ** 2).toFixed(1)} MB`;
+  if (safeBytes < 1024 ** 2) return `${(safeBytes / 1024).toFixed(2)} KB`;
+  if (safeBytes < 1024 ** 3) return `${(safeBytes / 1024 ** 2).toFixed(2)} MB`;
   return `${(safeBytes / 1024 ** 3).toFixed(1)} GB`;
 }
