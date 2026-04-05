@@ -270,6 +270,7 @@ func writeInstalledDownloadedMapFixture(t *testing.T, mapRoot, tilesRoot, cityCo
 	cityPath := paths.JoinLocalPath(mapRoot, cityCode)
 	require.NoError(t, os.MkdirAll(cityPath, 0o755))
 	require.NoError(t, os.MkdirAll(tilesRoot, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(cityPath, MapConfigFileName), mustMapConfigJSON(t, cityCode), 0o644))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(cityPath, MapDemandFileName+".gz"), []byte("{}"), 0o644))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(cityPath, MapRoadsFileName+".gz"), []byte("{}"), 0o644))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(cityPath, MapRunwaysFileName+".gz"), []byte("{}"), 0o644))

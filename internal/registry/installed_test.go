@@ -405,6 +405,10 @@ func TestBootstrapInstalledStateFromProfileKeepsRemoteMapWhenDownloadedDataFiles
 	mapPath := paths.JoinLocalPath(paths.MetroMakerMapsDataPath(cfg.Cfg.MetroMakerDataPath), "AAA")
 	require.NoError(t, os.MkdirAll(mapPath, 0o755))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, constants.RailyardAssetMarker), []byte(""), 0o644))
+	require.NoError(t, files.WriteJSON(paths.JoinLocalPath(mapPath, "config.json"), "installed map config", types.ConfigData{
+		Code:    "AAA",
+		Version: "2.0.0",
+	}))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "buildings_index.json.gz"), []byte("{}"), 0o644))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "demand_data.json.gz"), []byte("{}"), 0o644))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "roads.geojson.gz"), []byte("{}"), 0o644))
@@ -447,6 +451,10 @@ func TestBootstrapInstalledStateFromProfilePreservesExistingRemoteMapConfigAndBa
 	mapPath := paths.JoinLocalPath(cfg.Cfg.GetMapsFolderPath(), "AAA")
 	require.NoError(t, os.MkdirAll(mapPath, 0o755))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, constants.RailyardAssetMarker), []byte(""), 0o644))
+	require.NoError(t, files.WriteJSON(paths.JoinLocalPath(mapPath, "config.json"), "installed map config", types.ConfigData{
+		Code:    "AAA",
+		Version: "2.0.0",
+	}))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "buildings_index.json.gz"), []byte("{}"), 0o644))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "demand_data.json.gz"), []byte("{}"), 0o644))
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "roads.geojson.gz"), []byte("{}"), 0o644))
