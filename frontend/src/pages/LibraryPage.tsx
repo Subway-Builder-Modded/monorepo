@@ -117,19 +117,15 @@ export function LibraryPage() {
   const [pendingUpdatesByKey, setPendingUpdatesByKey] =
     useState<PendingUpdatesByKey>({});
 
-  const {
-    mods,
-    maps,
-    modDownloadTotals,
-    mapDownloadTotals,
-    ensureDownloadTotals,
-  } = useRegistryStore();
-  const {
-    installedMods,
-    installedMaps,
-    updateInstalledLists,
-    importMapFromZip,
-  } = useInstalledStore();
+  const mods = useRegistryStore((s) => s.mods);
+  const maps = useRegistryStore((s) => s.maps);
+  const modDownloadTotals = useRegistryStore((s) => s.modDownloadTotals);
+  const mapDownloadTotals = useRegistryStore((s) => s.mapDownloadTotals);
+  const ensureDownloadTotals = useRegistryStore((s) => s.ensureDownloadTotals);
+  const installedMods = useInstalledStore((s) => s.installedMods);
+  const installedMaps = useInstalledStore((s) => s.installedMaps);
+  const updateInstalledLists = useInstalledStore((s) => s.updateInstalledLists);
+  const importMapFromZip = useInstalledStore((s) => s.importMapFromZip);
 
   const refreshPendingSubscriptionUpdates = useCallback(async () => {
     let result;

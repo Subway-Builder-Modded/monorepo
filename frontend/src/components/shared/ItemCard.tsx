@@ -1,4 +1,5 @@
 import { CheckCircle, Download, MapPin, Package, Users } from 'lucide-react';
+import { memo } from 'react';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
 
@@ -328,7 +329,7 @@ function ItemBadges({
   );
 }
 
-export function ItemCard({
+export const ItemCard = memo(function ItemCard({
   type,
   item,
   installedVersion,
@@ -591,4 +592,4 @@ export function ItemCard({
       </article>
     </Link>
   );
-}
+});

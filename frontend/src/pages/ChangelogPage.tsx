@@ -152,15 +152,13 @@ export function ChangelogPage() {
     conflict: types.MapCodeConflict;
   } | null>(null);
 
-  const {
-    installMod,
-    installMap,
-    cancelPendingInstall,
-    getInstalledVersion,
-    isInstalling,
-    isUninstalling,
-    uninstallAssets,
-  } = useInstalledStore();
+  const installMod = useInstalledStore((s) => s.installMod);
+  const installMap = useInstalledStore((s) => s.installMap);
+  const cancelPendingInstall = useInstalledStore((s) => s.cancelPendingInstall);
+  const getInstalledVersion = useInstalledStore((s) => s.getInstalledVersion);
+  const isInstalling = useInstalledStore((s) => s.isInstalling);
+  const isUninstalling = useInstalledStore((s) => s.isUninstalling);
+  const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
 
   const installedVersion = item ? getInstalledVersion(item.id) : undefined;
   const installing = item ? isInstalling(item.id) : false;

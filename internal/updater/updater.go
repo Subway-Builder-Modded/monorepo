@@ -47,7 +47,7 @@ func CheckForUpdates(ctx context.Context, progressFunc types.ProgressFunc, log l
 	if err != nil {
 		log.Error("Failed to delete old temp installers", err)
 	}
-	versions, err := pullReleases(log, githubToken)
+	versions, err := pullReleases(log, githubToken, ctx)
 	if err != nil {
 		log.Error("Error checking for updates", err)
 		return err
@@ -211,7 +211,7 @@ func VersionIsNewerThanInstalled(version string) bool {
 	return false
 }
 
-func pullReleases(log logger.Logger, githubToken string) ([]types.RailyardVersionInfo, error) {
+func pullReleases(log logger.Logger, githubToken string, ctx context.Context) ([]types.RailyardVersionInfo, error) {
 	log.Info("Fetching releases from GitHub")
 	baseURL := strings.TrimRight(updaterGitHubAPIBaseURL, "/")
 	apiURL := fmt.Sprintf("%s/repos/%s/releases", baseURL, constants.RAILYARD_REPO)
@@ -224,6 +224,10 @@ func pullReleases(log logger.Logger, githubToken string) ([]types.RailyardVersio
 		},
 		OnTokenRejected: func(statusCode int) {
 			log.Warn("GitHub token rejected during updater check; retrying unauthenticated request", "status", statusCode)
+			errorType := types.GetErrorTypeForStatus(statusCode)
+			if ctx.Value("test") != "true" {
+				wailsruntime.EventsEmit(ctx, "requests:request-error", errorType)
+			}
 		},
 	})
 	if err != nil {

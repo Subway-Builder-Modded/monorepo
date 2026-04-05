@@ -93,7 +93,9 @@ export function LibraryList({
   sort,
   onSortChange,
 }: LibraryListProps) {
-  const { selectedIds, selectAll, clearSelection } = useLibraryStore();
+  const selectedIds = useLibraryStore((s) => s.selectedIds);
+  const selectAll = useLibraryStore((s) => s.selectAll);
+  const clearSelection = useLibraryStore((s) => s.clearSelection);
   const { locked: mutationLocked, reason: mutationLockedReason } =
     useSubscriptionMutationLockState();
   const showMapColumns = activeType === 'map';
@@ -231,8 +233,11 @@ function LibraryListRow({
   const [updateOpen, setUpdateOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
 
-  const { selectedIds, toggleSelected, removeSelected } = useLibraryStore();
-  const { uninstallAssets, updateAssetsToLatest } = useInstalledStore();
+  const selectedIds = useLibraryStore((s) => s.selectedIds);
+  const toggleSelected = useLibraryStore((s) => s.toggleSelected);
+  const removeSelected = useLibraryStore((s) => s.removeSelected);
+  const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
+  const updateAssetsToLatest = useInstalledStore((s) => s.updateAssetsToLatest);
   const metroMakerDataPath = useConfigStore(
     (s) => s.config?.metroMakerDataPath,
   );

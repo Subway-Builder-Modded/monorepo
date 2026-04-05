@@ -46,22 +46,18 @@ const UPDATE_ACCENT = getLocalAccentClasses('update');
 const DISCOVER_SECTION_ITEM_LIMIT = 8;
 
 export function HomePage() {
-  const {
-    mods,
-    maps,
-    loading: registryLoading,
-    error: registryError,
-    modDownloadTotals,
-    mapDownloadTotals,
-    ensureDownloadTotals,
-  } = useRegistryStore();
-  const {
-    installedMods,
-    installedMaps,
-    updateAssetsToLatest,
-    isOperating,
-    getInstalledVersion,
-  } = useInstalledStore();
+  const mods = useRegistryStore((s) => s.mods);
+  const maps = useRegistryStore((s) => s.maps);
+  const registryLoading = useRegistryStore((s) => s.loading);
+  const registryError = useRegistryStore((s) => s.error);
+  const modDownloadTotals = useRegistryStore((s) => s.modDownloadTotals);
+  const mapDownloadTotals = useRegistryStore((s) => s.mapDownloadTotals);
+  const ensureDownloadTotals = useRegistryStore((s) => s.ensureDownloadTotals);
+  const installedMods = useInstalledStore((s) => s.installedMods);
+  const installedMaps = useInstalledStore((s) => s.installedMaps);
+  const updateAssetsToLatest = useInstalledStore((s) => s.updateAssetsToLatest);
+  const isOperating = useInstalledStore((s) => s.isOperating);
+  const getInstalledVersion = useInstalledStore((s) => s.getInstalledVersion);
   const { locked: mutationLocked, reason: mutationLockedReason } =
     useSubscriptionMutationLockState();
 
