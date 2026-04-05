@@ -442,7 +442,7 @@ func TestSyncAssetSubscriptionsInstallDecisionsMaps(t *testing.T) {
 				},
 			},
 			expectedInstalls:   1,
-			expectedUninstalls: 1,
+			expectedUninstalls: 0,
 			expectedErrors:     nil,
 		},
 		{
@@ -528,7 +528,7 @@ func TestSyncAssetSubscriptionsPropagatesInstallErrors(t *testing.T) {
 	require.Len(t, errs, 1)
 	require.Contains(t, errs[0].Error(), "Failed to extract map zip")
 	require.Equal(t, 1, installCalls)
-	require.Equal(t, 1, uninstallCalls)
+	require.Equal(t, 0, uninstallCalls)
 	require.Empty(t, assetsToPurge)
 }
 
@@ -711,7 +711,7 @@ func TestSyncAssetSubscriptionsInstallDecisionsMods(t *testing.T) {
 
 	require.Empty(t, errs)
 	require.Equal(t, 1, installCalls)
-	require.Equal(t, 1, uninstallCalls)
+	require.Equal(t, 0, uninstallCalls)
 }
 
 func TestSyncAssetSubscriptionsStopsWhenSnapshotIsStale(t *testing.T) {

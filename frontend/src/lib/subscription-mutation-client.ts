@@ -58,12 +58,17 @@ function ensureSubscriptionMutationUnlocked() {
   }
 }
 
-// mutateSubscriptionsForActiveProfile is a wrapper around the UpdateSubscriptions Wails function
+type SubscriptionMutationAction = 'subscribe' | 'unsubscribe';
+type SubscriptionMutationApplyMode =
+  | 'runtime_only'
+  | 'persist_only'
+  | 'persist_and_sync';
+
 export async function mutateSubscriptionsForActiveProfile(args: {
   assets: Record<string, types.SubscriptionUpdateItem>;
-  action: 'subscribe' | 'unsubscribe';
+  action: SubscriptionMutationAction;
+  applyMode: SubscriptionMutationApplyMode;
   replaceOnConflict?: boolean;
-  applyMode?: 'runtime_only' | 'persist_only' | 'persist_and_sync';
 }): Promise<types.UpdateSubscriptionsResult> {
   ensureSubscriptionMutationUnlocked();
 
@@ -73,7 +78,7 @@ export async function mutateSubscriptionsForActiveProfile(args: {
       profileId,
       assets: args.assets,
       action: args.action,
-      applyMode: args.applyMode ?? 'persist_and_sync',
+      applyMode: args.applyMode,
       replaceOnConflict: args.replaceOnConflict ?? false,
     }),
   );

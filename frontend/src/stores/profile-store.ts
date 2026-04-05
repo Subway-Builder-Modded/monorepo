@@ -5,9 +5,8 @@ import {
   normalizeSearchViewMode,
   type SearchViewMode,
 } from '@/lib/search-view-mode';
-import { mutateSubscriptionsForActiveProfile } from '@/lib/subscription-mutation-client';
 
-import { types } from '../../wailsjs/go/models';
+import type { types } from '../../wailsjs/go/models';
 import {
   GetActiveProfile,
   ResetUserProfiles,
@@ -80,12 +79,6 @@ interface ProfileState {
   updateUIPreferences: (
     updates: Partial<UIPreferencesPayload>,
   ) => Promise<void>;
-  updateSubscription: (
-    type: AssetType,
-    id: string,
-    action: 'subscribe' | 'unsubscribe',
-    version: string,
-  ) => Promise<void>;
   resetProfile: () => Promise<void>;
   updateSystemPreferences: (
     preferences: Partial<UpdateSystemPreferencesPayload>,
@@ -150,18 +143,6 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     if (result.status !== 'success') {
       throw new Error(result.message || 'Failed to update UI preferences');
     }
-    set({ profile: result.profile });
-  },
-
-  updateSubscription: async (type, id, action, version) => {
-    const result = await mutateSubscriptionsForActiveProfile({
-      assets: {
-        [id]: new types.SubscriptionUpdateItem({ version, type }),
-      },
-      action,
-      replaceOnConflict: false,
-    });
-    if (result.status === 'error') throw new Error(result.message);
     set({ profile: result.profile });
   },
 

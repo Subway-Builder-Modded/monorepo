@@ -112,7 +112,7 @@ describe('useInstalledStore', () => {
       installedMods: [],
       installedMaps: [],
       installing: new Set<string>(),
-      installingVersionById: {},
+      installOperationsById: {},
       uninstalling: new Set<string>(),
       loading: false,
       error: null,
@@ -336,10 +336,93 @@ describe('useInstalledStore', () => {
       assetId: 'map-42',
       assetType: 'map',
       version: '1.0.0',
-      applyMode: 'persist_only',
+      applyMode: 'persist_and_sync',
     });
     validateInstallationRefreshes(1);
     validateFinalState('installing', 'map-42', null);
+    expect(result.status).toBe('success');
+  });
+
+  it('cancelPendingInstall restores from rollback snapshot when installed list is already empty', async () => {
+    useInstalledStore.setState((state) => ({
+      ...state,
+      installOperationsById: {
+        'map-42': { requestedVersion: null, rollbackVersion: '1.0.0' },
+      },
+      installedMaps: [],
+    }));
+
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockCancelInstall.mockResolvedValue({
+      status: 'warn',
+      message: 'cancelled pending install',
+    });
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsSuccess('rollback applied'),
+    );
+    mockGetInstalledModsResponse.mockResolvedValue({
+      status: 'success',
+      message: 'ok',
+      mods: [],
+    });
+    mockGetInstalledMapsResponse.mockResolvedValue({
+      status: 'success',
+      message: 'ok',
+      maps: [],
+    });
+
+    const result = await useInstalledStore
+      .getState()
+      .cancelPendingInstall('map', 'map-42');
+
+    validateProfilesRequest({
+      profileId: 'profile-a',
+      action: 'subscribe',
+      assetId: 'map-42',
+      assetType: 'map',
+      version: '1.0.0',
+      applyMode: 'persist_and_sync',
+    });
+    expect(result.status).toBe('success');
+  });
+
+  it('cancelPendingInstall persists unsubscribe without sync when no installed version exists', async () => {
+    mockGetActiveProfile.mockResolvedValue(
+      activeProfileResultSuccess('profile-a'),
+    );
+    mockCancelInstall.mockResolvedValue({
+      status: 'warn',
+      message: 'cancelled pending install',
+    });
+    mockUpdateSubscriptions.mockResolvedValue(
+      updateSubscriptionsSuccess('rollback applied'),
+    );
+    mockGetInstalledModsResponse.mockResolvedValue({
+      status: 'success',
+      message: 'ok',
+      mods: [],
+    });
+    mockGetInstalledMapsResponse.mockResolvedValue({
+      status: 'success',
+      message: 'ok',
+      maps: [],
+    });
+
+    const result = await useInstalledStore
+      .getState()
+      .cancelPendingInstall('map', 'map-new');
+
+    expect(mockCancelInstall).toHaveBeenCalledWith('map', 'map-new');
+    validateProfilesRequest({
+      profileId: 'profile-a',
+      action: 'unsubscribe',
+      assetId: 'map-new',
+      assetType: 'map',
+      version: '',
+      applyMode: 'persist_only',
+    });
     expect(result.status).toBe('success');
   });
 
@@ -347,7 +430,10 @@ describe('useInstalledStore', () => {
     useInstalledStore.setState((state) => ({
       ...state,
       installing: new Set(['map-1', 'map-2']),
-      installingVersionById: { 'map-1': '1.0.0', 'map-2': '2.0.0' },
+      installOperationsById: {
+        'map-1': { requestedVersion: '1.0.0', rollbackVersion: '0.9.0' },
+        'map-2': { requestedVersion: '2.0.0', rollbackVersion: null },
+      },
     }));
 
     useInstalledStore.getState().acknowledgeCancelledInstall('map-1');
@@ -358,6 +444,9 @@ describe('useInstalledStore', () => {
     expect(useInstalledStore.getState().installing.has('map-2')).toBe(true);
     expect(useInstalledStore.getState().getInstallingVersion('map-2')).toBe(
       '2.0.0',
+    );
+    expect(useInstalledStore.getState().installOperationsById['map-1']).toBe(
+      undefined,
     );
 
     useInstalledStore.getState().acknowledgeCancelledInstall('missing-map');

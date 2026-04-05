@@ -48,7 +48,6 @@ type MapCodeConflict struct {
 type DownloaderErrorType string
 
 const (
-	InstallErrorInvalidAssetType           DownloaderErrorType = "install_invalid_asset_type"
 	InstallErrorInvalidConfig              DownloaderErrorType = "install_invalid_config"
 	InstallErrorInvalidMapCode             DownloaderErrorType = "install_invalid_map_code"
 	InstallErrorRegistryLookup             DownloaderErrorType = "install_registry_lookup_failed"
@@ -64,7 +63,6 @@ const (
 	InstallErrorPersistStateFailed         DownloaderErrorType = "install_persist_state_failed"
 	InstallErrorDependencyResolutionFailed DownloaderErrorType = "install_dependency_resolution_failed"
 	InstallErrorIncompatibleGameVersion    DownloaderErrorType = "install_incompatible_game_version"
-	UninstallErrorInvalidAssetType         DownloaderErrorType = "uninstall_invalid_asset_type"
 	UninstallErrorNotInstalled             DownloaderErrorType = "uninstall_not_installed"
 	UninstallErrorFilesystem               DownloaderErrorType = "uninstall_filesystem_error"
 	UninstallErrorPersistState             DownloaderErrorType = "uninstall_persist_state_failed"

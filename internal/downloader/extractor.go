@@ -170,7 +170,8 @@ func extractMod(d *Downloader, filePath string, modId string, version string) ty
 }
 
 // extractMap processes map zip files for downloaded/local installs and writes only the expected city-data artifacts.
-func extractMap(d *Downloader, filePath string, mapId string, version string) types.AssetInstallResponse {
+// TODO: Implement cancellation-aware extraction in a dedicated feature branch so cancellation during extract can safely short-circuit before commit without regressing current extraction behavior.
+func extractMap(d *Downloader, filePath string, mapId string, version string, skipConflictCheck bool) types.AssetInstallResponse {
 	configData, errorType, inspectErr := files.ValidateMapArchive(filePath)
 	if inspectErr != nil {
 		return d.installError(types.AssetTypeMap, mapId, version, configData, errorType, "Failed map archive inspection", inspectErr, "file_path", filePath)
@@ -196,19 +197,23 @@ func extractMap(d *Downloader, filePath string, mapId string, version string) ty
 		}
 	}
 
-	if conflict, hasConflict := d.FindMapCodeConflict(mapId, configData.Code, true); hasConflict {
-		return d.installError(
-			types.AssetTypeMap,
-			mapId,
-			version,
-			configData,
-			types.InstallErrorMapCodeConflict,
-			"Cannot install map because its code matches a vanilla map included with the game or an already installed map.",
-			nil,
-			"map_code", conflict.CityCode,
-			"conflicting_asset_id", conflict.ExistingAssetID,
-			"conflicting_is_local", conflict.ExistingIsLocal,
-		)
+	// If there is no explicit flag to skip conflict check, perform conflict check against vanilla maps and installed maps to prevent overwriting existing map data.
+	if !skipConflictCheck {
+		// If there exists a conflict with an existing map code, propagate an error with details about the conflict to enable the user to make a decision on whether or not to proceed with the installation.
+		if conflict, hasConflict := d.FindMapCodeConflict(mapId, configData.Code, true); hasConflict {
+			return d.installError(
+				types.AssetTypeMap,
+				mapId,
+				version,
+				configData,
+				types.InstallErrorMapCodeConflict,
+				"Cannot install map because its code matches a vanilla map included with the game or an already installed map.",
+				nil,
+				"map_code", conflict.CityCode,
+				"conflicting_asset_id", conflict.ExistingAssetID,
+				"conflicting_is_local", conflict.ExistingIsLocal,
+			)
+		}
 	}
 
 	// Create necessary directories first

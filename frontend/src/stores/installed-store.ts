@@ -89,7 +89,10 @@ interface InstalledState {
   installedMods: types.InstalledModInfo[];
   installedMaps: types.InstalledMapInfo[];
   installing: Set<string>;
-  installingVersionById: Record<string, string>;
+  installOperationsById: Record<
+    string,
+    { requestedVersion: string | null; rollbackVersion: string | null }
+  >;
   uninstalling: Set<string>;
   loading: boolean;
   error: string | null;
@@ -132,6 +135,10 @@ interface InstalledState {
 }
 
 export const useInstalledStore = create<InstalledState>((set, get) => {
+  const setErrorFromUnknown = (err: unknown) => {
+    set({ error: err instanceof Error ? err.message : String(err) });
+  };
+
   const getInstalledLists = async () => {
     const [modsResponse, mapsResponse] = await Promise.all([
       GetInstalledModsResponse(),
@@ -148,23 +155,6 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       installedMods: modsResponse.mods || [],
       installedMaps: mapsResponse.maps || [],
     };
-  };
-
-  const setOperationState = (
-    key: 'installing' | 'uninstalling',
-    id: string,
-    active: boolean,
-  ) => {
-    set((state) => {
-      const next = new Set(state[key]);
-      if (active) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-
-      return { [key]: next } as Pick<InstalledState, typeof key>;
-    });
   };
 
   const setOperationStateForIds = (
@@ -186,9 +176,52 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     });
   };
 
-  const applySubscriptionMutation = async (
+  const startInstallOperations = (
+    operations: Array<{ id: string; requestedVersion: string | null }>,
+  ) => {
+    if (operations.length === 0) {
+      return;
+    }
+
+    useDownloadQueueStore.getState().enqueue();
+    const ids = operations.map((operation) => operation.id);
+
+    set((state) => {
+      // Store requested version and rollback version for each pending install operation
+      const newInstallOperations = { ...state.installOperationsById };
+      for (const operation of operations) {
+        // Rollback version is the currently installed version
+        newInstallOperations[operation.id] = {
+          requestedVersion: operation.requestedVersion,
+          rollbackVersion: get().getInstalledVersion(operation.id),
+        };
+      }
+      return { installOperationsById: newInstallOperations };
+    });
+
+    setOperationStateForIds('installing', ids, true);
+    set({ error: null });
+  };
+
+  const finalizeInstallOperations = (ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+
+    // Clear pending install state / operations for the provided IDs
+    setOperationStateForIds('installing', ids, false);
+    set((state) => {
+      const newInstallOperations = { ...state.installOperationsById };
+      for (const id of ids) {
+        delete newInstallOperations[id];
+      }
+      return { installOperationsById: newInstallOperations };
+    });
+    useDownloadQueueStore.getState().complete();
+  };
+
+  const applySubscribeSubscriptionMutation = async (
     assets: Record<string, types.SubscriptionUpdateItem>,
-    action: 'subscribe' | 'unsubscribe',
     replaceOnConflict = false,
   ) => {
     if (Object.keys(assets).length === 0) {
@@ -197,7 +230,8 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
 
     const result = await mutateSubscriptionsForActiveProfile({
       assets,
-      action,
+      action: 'subscribe',
+      applyMode: 'persist_and_sync',
       replaceOnConflict,
     });
     if (result.status === 'warn' && (result.conflicts?.length ?? 0) > 0) {
@@ -217,46 +251,53 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     return result;
   };
 
+  const applyUnsubscribeSubscriptionMutation = async (
+    assets: Record<string, types.SubscriptionUpdateItem>,
+  ) => {
+    if (Object.keys(assets).length === 0) {
+      throw new Error('No assets provided for subscription update');
+    }
+
+    const result = await mutateSubscriptionsForActiveProfile({
+      assets,
+      action: 'unsubscribe',
+      applyMode: 'persist_and_sync',
+    });
+    if (result.status === 'error') {
+      throw new SubscriptionSyncError(
+        resolveSubscriptionSyncMessage(result, 'Subscription update failed'),
+        result.status,
+        result.errors ?? [],
+      );
+    }
+    return result;
+  };
+
   const installAsset = async (
     id: string,
     version: string,
     assetType: AssetType,
     replaceOnConflict = false,
   ) => {
-    useDownloadQueueStore.getState().enqueue();
-    set((state) => ({
-      installingVersionById: {
-        ...state.installingVersionById,
-        [id]: version,
-      },
-    }));
-    setOperationState('installing', id, true);
-    set({ error: null });
+    startInstallOperations([{ id, requestedVersion: version }]);
 
     try {
-      const response = await applySubscriptionMutation(
+      const response = await applySubscribeSubscriptionMutation(
         {
           [id]: new types.SubscriptionUpdateItem({
             version,
             type: assetType,
           }),
         },
-        'subscribe',
         replaceOnConflict,
       );
       set({ ...(await getInstalledLists()) });
       return response;
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err) });
+      setErrorFromUnknown(err);
       throw err;
     } finally {
-      setOperationState('installing', id, false);
-      set((state) => {
-        const next = { ...state.installingVersionById };
-        delete next[id];
-        return { installingVersionById: next };
-      });
-      useDownloadQueueStore.getState().complete();
+      finalizeInstallOperations([id]);
     }
   };
 
@@ -282,14 +323,12 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     set({ error: null });
 
     try {
-      const response = await applySubscriptionMutation(
-        subscriptionAssets,
-        'unsubscribe',
-      );
+      const response =
+        await applyUnsubscribeSubscriptionMutation(subscriptionAssets);
       set({ ...(await getInstalledLists()) });
       return response;
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err) });
+      setErrorFromUnknown(err);
       throw err;
     } finally {
       setOperationStateForIds('uninstalling', ids, false);
@@ -304,9 +343,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     }
 
     const ids = assets.map((asset) => asset.id);
-    useDownloadQueueStore.getState().enqueue();
-    setOperationStateForIds('installing', ids, true);
-    set({ error: null });
+    startInstallOperations(ids.map((id) => ({ id, requestedVersion: null })));
 
     try {
       const result = await applyLatestSubscriptionUpdatesForActiveProfile({
@@ -323,18 +360,10 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       set({ ...(await getInstalledLists()) });
       return result;
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err) });
+      setErrorFromUnknown(err);
       throw err;
     } finally {
-      setOperationStateForIds('installing', ids, false);
-      set((state) => {
-        const next = { ...state.installingVersionById };
-        for (const id of ids) {
-          delete next[id];
-        }
-        return { installingVersionById: next };
-      });
-      useDownloadQueueStore.getState().complete();
+      finalizeInstallOperations(ids);
     }
   };
 
@@ -374,7 +403,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       set({ ...(await getInstalledLists()) });
       return result;
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err) });
+      setErrorFromUnknown(err);
       throw err;
     }
   };
@@ -383,7 +412,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     installedMods: [],
     installedMaps: [],
     installing: new Set<string>(),
-    installingVersionById: {},
+    installOperationsById: {},
     uninstalling: new Set<string>(),
     loading: false,
     error: null,
@@ -399,10 +428,8 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
           loading: false,
         });
       } catch (err) {
-        set({
-          error: err instanceof Error ? err.message : String(err),
-          loading: false,
-        });
+        setErrorFromUnknown(err);
+        set({ loading: false });
       }
     },
 
@@ -411,10 +438,8 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       try {
         set({ ...(await getInstalledLists()), loading: false });
       } catch (err) {
-        set({
-          error: err instanceof Error ? err.message : String(err),
-          loading: false,
-        });
+        setErrorFromUnknown(err);
+        set({ loading: false });
       }
     },
 
@@ -437,38 +462,37 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     cancelPendingInstall: async (type: AssetType, id: string) => {
       set({ error: null });
 
-      const installedVersion = get().getInstalledVersion(id);
+      const operation = get().installOperationsById[id];
+      const rollbackVersion = operation
+        ? operation.rollbackVersion
+        : get().getInstalledVersion(id);
 
       try {
-        const cancelResponse = await cancelInstallForAsset({
+        // Attempt to cancel pending install or uninstall
+        const cancelResult = await cancelInstallForAsset({
           assetType: type,
           assetId: id,
         });
-
-        if (cancelResponse.status === 'error') {
-          throw new SubscriptionSyncError(
-            cancelResponse.message?.trim() || 'Failed to cancel pending install',
-            cancelResponse.status,
-            [],
+        if (cancelResult.status === 'error') {
+          throw new Error(
+            cancelResult.message || 'Failed to cancel pending install',
           );
         }
 
-        const assets: Record<string, types.SubscriptionUpdateItem> = {
-          [id]: new types.SubscriptionUpdateItem({
-            type,
-            version: installedVersion ?? '',
-          }),
-        };
-
-        const action =
-          installedVersion && installedVersion.trim().length > 0
-            ? 'subscribe'
-            : 'unsubscribe';
-
+        // If cancellation was successful but the asset was already installed, attempt to restore the subscription to maintain the installed state.
+        const shouldRestoreInstalledVersion = rollbackVersion !== null;
+        const applyMode = shouldRestoreInstalledVersion
+          ? 'persist_and_sync'
+          : 'persist_only';
         const mutationResult = await mutateSubscriptionsForActiveProfile({
-          assets,
-          action,
-          applyMode: 'persist_only',
+          assets: {
+            [id]: new types.SubscriptionUpdateItem({
+              type,
+              version: rollbackVersion ?? '',
+            }),
+          },
+          action: shouldRestoreInstalledVersion ? 'subscribe' : 'unsubscribe',
+          applyMode,
         });
 
         if (mutationResult.status === 'error') {
@@ -478,14 +502,14 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
               'Failed to persist cancellation state',
             ),
             mutationResult.status,
-            mutationResult.errors ?? [],
+            mutationResult.errors,
           );
         }
 
         set({ ...(await getInstalledLists()) });
         return mutationResult;
       } catch (err) {
-        set({ error: err instanceof Error ? err.message : String(err) });
+        setErrorFromUnknown(err);
         throw err;
       }
     },
@@ -497,11 +521,11 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
         }
         const nextInstalling = new Set(state.installing);
         nextInstalling.delete(id);
-        const nextInstallingVersionById = { ...state.installingVersionById };
-        delete nextInstallingVersionById[id];
+        const nextInstallOperationsById = { ...state.installOperationsById };
+        delete nextInstallOperationsById[id];
         return {
           installing: nextInstalling,
-          installingVersionById: nextInstallingVersionById,
+          installOperationsById: nextInstallOperationsById,
         };
       });
     },
@@ -530,7 +554,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     isInstalling: (id: string) => get().installing.has(id),
 
     getInstallingVersion: (id: string) =>
-      get().installingVersionById[id] ?? null,
+      get().installOperationsById[id]?.requestedVersion ?? null,
 
     isUninstalling: (id: string) => get().uninstalling.has(id),
   };

@@ -1,6 +1,7 @@
 package downloader
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -96,6 +97,27 @@ func newTestDownloader() *Downloader {
 	return &Downloader{}
 }
 
+func newConfiguredDownloader(t *testing.T, withValidConfig bool) (*Downloader, *registry.Registry, *config.Config) {
+	t.Helper()
+
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	if withValidConfig {
+		configureDownloaderConfig(t, cfg)
+	}
+
+	d := &Downloader{
+		Registry:    reg,
+		Config:      cfg,
+		Logger:      logger.LoggerAtPath(""),
+		OnCancelled: func(string, types.AssetType, string) {},
+	}
+	d.tempPath = t.TempDir()
+	d.mapTilePath = t.TempDir()
+
+	return d, reg, cfg
+}
+
 func configureDownloaderConfig(t *testing.T, cfg *config.Config) {
 	t.Helper()
 	cfg.Cfg.MetroMakerDataPath = t.TempDir()
@@ -153,6 +175,27 @@ func enqueueOperation(d *Downloader, action operationAction, assetType types.Ass
 	)
 }
 
+func enqueueBlockingInstall(t *testing.T, d *Downloader, assetType types.AssetType, assetID string, version string) (func(), <-chan operationResult) {
+	t.Helper()
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	blockerResultCh := make(chan operationResult, 1)
+
+	go func() {
+		blockerResultCh <- enqueueOperation(d, operationActionInstall, assetType, assetID, version, func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{
+				genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"},
+			}
+		})
+	}()
+
+	<-blockerStarted
+	return func() { close(releaseBlocker) }, blockerResultCh
+}
+
 type cancelledEvent struct {
 	itemID    string
 	assetType string
@@ -165,6 +208,29 @@ func captureCancelledEvents(d *Downloader) <-chan cancelledEvent {
 		events <- cancelledEvent{itemID: itemID, assetType: string(assetType), phase: phase}
 	}
 	return events
+}
+
+func seedInstalledLocalMap(t *testing.T, d *Downloader, reg *registry.Registry, mapID string, version string, code string) {
+	t.Helper()
+
+	configData := types.ConfigData{
+		Code:    code,
+		Version: version,
+		Name:    "Local " + code,
+	}
+	reg.AddInstalledMap(mapID, version, true, configData)
+
+	localMapDir := filepath.Join(d.getMapDataPath(), code)
+	require.NoError(t, os.MkdirAll(localMapDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(localMapDir, constants.RailyardAssetMarker), []byte("marker"), 0o644))
+}
+
+func assertFilesExist(t *testing.T, basePath string, names []string, messagePrefix string) {
+	t.Helper()
+	for _, name := range names {
+		_, err := os.Stat(filepath.Join(basePath, name))
+		require.NoError(t, err, "%s %s", messagePrefix, name)
+	}
 }
 
 // waitForPendingOperation is a helper function that waits until the specified asset key is present in the downloader's pending map, or fails the test if it times out.
@@ -332,17 +398,7 @@ func TestEnqueueOperationPreservesPendingQueuePosition(t *testing.T) {
 func TestEnqueueOperationUsesLatestRequestForPendingAsset(t *testing.T) {
 	d := newTestDownloader()
 
-	blockerStarted := make(chan struct{})
-	releaseBlocker := make(chan struct{})
-
-	go func() {
-		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
-			close(blockerStarted)
-			<-releaseBlocker
-			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
-		})
-	}()
-	<-blockerStarted
+	releaseBlocker, _ := enqueueBlockingInstall(t, d, types.AssetTypeMod, "blocker-mod", "1.0.0")
 
 	var installRunCount int32
 	installResultCh := make(chan operationResult, 1)
@@ -367,7 +423,7 @@ func TestEnqueueOperationUsesLatestRequestForPendingAsset(t *testing.T) {
 	require.Equal(t, int32(0), atomic.LoadInt32(&installRunCount))
 
 	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
-	close(releaseBlocker)
+	releaseBlocker()
 
 	uninstallResult := <-uninstallResultCh
 	require.Equal(t, types.ResponseSuccess, uninstallResult.genericResponse.Status)
@@ -377,29 +433,11 @@ func TestEnqueueOperationUsesLatestRequestForPendingAsset(t *testing.T) {
 
 func TestUninstallAssetCancelsQueuedInstall(t *testing.T) {
 	testutil.SetEnv(t)
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	d := &Downloader{
-		Registry:    reg,
-		Config:      cfg,
-		Logger:      logger.LoggerAtPath(""),
-		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
-	}
+	d, _, _ := newConfiguredDownloader(t, false)
 	cancelledEvents := captureCancelledEvents(d)
 
-	blockerStarted := make(chan struct{})
-	releaseBlocker := make(chan struct{})
-	blockerResultCh := make(chan operationResult, 1)
-
-	go func() {
-		// enqueue a blocking operation (mimicing a long-running install) to ensure the uninstall is queued behind it, then enqueue the uninstall which should cancel the pending install for the same asset
-		blockerResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
-			close(blockerStarted)
-			<-releaseBlocker
-			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
-		})
-	}()
-	<-blockerStarted
+	// enqueue a blocking operation (mimicing a long-running install) to ensure the uninstall is queued behind it, then enqueue the uninstall which should cancel the pending install for the same asset
+	releaseBlocker, blockerResultCh := enqueueBlockingInstall(t, d, types.AssetTypeMod, "blocker-mod", "1.0.0")
 
 	var installRunCount int32
 	// Enqueue an install for map-a that will be superseded by the uninstall
@@ -432,7 +470,7 @@ func TestUninstallAssetCancelsQueuedInstall(t *testing.T) {
 	require.Contains(t, strings.ToLower(pendingInstallResult.genericResponse.Message), "superseded")
 	require.Equal(t, int32(0), atomic.LoadInt32(&installRunCount))
 
-	close(releaseBlocker)
+	releaseBlocker()
 	blockerResult := <-blockerResultCh
 	require.Equal(t, types.ResponseSuccess, blockerResult.genericResponse.Status)
 }
@@ -500,28 +538,10 @@ func TestUninstallCancelsRunningInstall(t *testing.T) {
 
 func TestCancelInstallCancelsQueuedInstallWithoutUninstall(t *testing.T) {
 	testutil.SetEnv(t)
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	d := &Downloader{
-		Registry:    reg,
-		Config:      cfg,
-		Logger:      logger.LoggerAtPath(""),
-		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
-	}
+	d, _, _ := newConfiguredDownloader(t, false)
 	cancelledEvents := captureCancelledEvents(d)
 
-	blockerStarted := make(chan struct{})
-	releaseBlocker := make(chan struct{})
-	blockerResultCh := make(chan operationResult, 1)
-
-	go func() {
-		blockerResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
-			close(blockerStarted)
-			<-releaseBlocker
-			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
-		})
-	}()
-	<-blockerStarted
+	releaseBlocker, blockerResultCh := enqueueBlockingInstall(t, d, types.AssetTypeMod, "blocker-mod", "1.0.0")
 
 	var installRunCount int32
 	pendingInstallResultCh := make(chan operationResult, 1)
@@ -549,7 +569,7 @@ func TestCancelInstallCancelsQueuedInstallWithoutUninstall(t *testing.T) {
 	require.Contains(t, strings.ToLower(pendingInstallResult.genericResponse.Message), "superseded")
 	require.Equal(t, int32(0), atomic.LoadInt32(&installRunCount))
 
-	close(releaseBlocker)
+	releaseBlocker()
 	blockerResult := <-blockerResultCh
 	require.Equal(t, types.ResponseSuccess, blockerResult.genericResponse.Status)
 }
@@ -827,14 +847,6 @@ func TestInstallAssetError(t *testing.T) {
 		expectedErrorCode types.DownloaderErrorType
 	}{
 		{
-			name:              "Invalid asset type",
-			assetType:         types.AssetType("bad"),
-			assetID:           "asset-a",
-			version:           "1.0.0",
-			expectedStatus:    types.ResponseError,
-			expectedErrorCode: types.InstallErrorInvalidAssetType,
-		},
-		{
 			name:              "Invalid config",
 			assetType:         types.AssetTypeMod,
 			assetID:           "mod-a",
@@ -889,15 +901,7 @@ func TestInstallAssetError(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := config.NewConfig(testutil.TestLogSink{})
-			reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-			d := &Downloader{
-				Registry: reg,
-				Config:   cfg,
-				Logger:   logger.LoggerAtPath(""),
-			}
-			d.tempPath = t.TempDir()
-			d.mapTilePath = t.TempDir()
+			d, reg, _ := newConfiguredDownloader(t, false)
 
 			var cleanup func()
 			if tc.setup != nil {
@@ -916,6 +920,31 @@ func TestInstallAssetError(t *testing.T) {
 			require.Equal(t, tc.expectedErrorCode, response.ErrorType)
 		})
 	}
+}
+
+func TestInstallAssetPanicsOnInvalidAssetType(t *testing.T) {
+	d := newTestDownloader()
+	require.PanicsWithValue(t, `invalid asset type for install: "bad"`, func() {
+		_ = d.InstallAsset(types.InstallAssetRequest{
+			AssetType: types.AssetType("bad"),
+			AssetID:   "asset-a",
+			Version:   "1.0.0",
+		})
+	})
+}
+
+func TestUninstallAssetPanicsOnInvalidAssetType(t *testing.T) {
+	d := newTestDownloader()
+	require.PanicsWithValue(t, `invalid asset type for uninstall: "bad"`, func() {
+		_ = d.UninstallAsset(types.AssetType("bad"), "asset-a")
+	})
+}
+
+func TestCancelInstallPanicsOnInvalidAssetType(t *testing.T) {
+	d := newTestDownloader()
+	require.PanicsWithValue(t, `invalid asset type for cancel_install: "bad"`, func() {
+		_ = d.CancelInstall(types.AssetType("bad"), "asset-a")
+	})
 }
 
 func TestInstallAssetSuccess(t *testing.T) {
@@ -954,16 +983,7 @@ func TestInstallAssetSuccess(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := config.NewConfig(testutil.TestLogSink{})
-			reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-			configureDownloaderConfig(t, cfg)
-			d := &Downloader{
-				Registry: reg,
-				Config:   cfg,
-				Logger:   logger.LoggerAtPath(""),
-			}
-			d.tempPath = t.TempDir()
-			d.mapTilePath = t.TempDir()
+			d, reg, _ := newConfiguredDownloader(t, true)
 
 			cleanup := registrytest.MockRegistryServer(t, reg, tc.fixtures)
 			defer cleanup()
@@ -984,33 +1004,40 @@ func TestInstallAssetSuccess(t *testing.T) {
 	}
 }
 
-func TestInstallMapWritesDownloadedContractFiles(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
+func TestMapContractFilesWritten(t *testing.T) {
+	testCases := []struct {
+		name          string
+		runInstall    func(t *testing.T, d *Downloader, reg *registry.Registry) types.AssetInstallResponse
+		absentMapData []string
+	}{
+		{
+			name: "downloaded map install",
+			runInstall: func(t *testing.T, d *Downloader, reg *registry.Registry) types.AssetInstallResponse {
+				t.Helper()
+				cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
+					{AssetID: "map-a", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
+				})
+				defer cleanup()
+				return d.InstallAsset(types.InstallAssetRequest{
+					AssetType: types.AssetTypeMap,
+					AssetID:   "map-a",
+					Version:   "1.0.0",
+				})
+			},
+			absentMapData: []string{"config.json.gz"},
+		},
+		{
+			name: "local map import",
+			runInstall: func(t *testing.T, d *Downloader, _ *registry.Registry) types.AssetInstallResponse {
+				t.Helper()
+				zipPath := filepath.Join(t.TempDir(), "local-map.zip")
+				require.NoError(t, os.WriteFile(zipPath, registrytest.MockMapZip(t, "AAA"), 0o644))
+				return d.ImportAsset(types.AssetTypeMap, zipPath, false)
+			},
+		},
 	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
 
-	cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
-		{AssetID: "map-a", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
-	})
-	defer cleanup()
-
-	resp := d.InstallAsset(types.InstallAssetRequest{
-		AssetType: types.AssetTypeMap,
-		AssetID:   "map-a",
-		Version:   "1.0.0",
-	})
-	require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
-
-	mapDir := filepath.Join(d.getMapDataPath(), "AAA")
-	requiredDownloadedFiles := []string{
+	requiredMapFiles := []string{
 		"config.json",
 		"buildings_index.json.gz",
 		"demand_data.json.gz",
@@ -1018,161 +1045,96 @@ func TestInstallMapWritesDownloadedContractFiles(t *testing.T) {
 		"runways_taxiways.geojson.gz",
 		constants.RailyardAssetMarker,
 	}
-	for _, name := range requiredDownloadedFiles {
-		_, err := os.Stat(filepath.Join(mapDir, name))
-		require.NoError(t, err, "expected downloaded map file %s", name)
-	}
 
-	_, err := os.Stat(filepath.Join(mapDir, "config.json.gz"))
-	require.True(t, errors.Is(err, fs.ErrNotExist), "downloaded map should not write config.json.gz")
-	_, err = os.Stat(filepath.Join(d.getMapTilePath(), "AAA.pmtiles"))
-	require.NoError(t, err, "downloaded map should write pmtiles")
-	_, err = os.Stat(filepath.Join(d.getMapThumbnailPath(), "AAA.svg"))
-	require.NoError(t, err, "downloaded map should write thumbnail when present")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			d, reg, _ := newConfiguredDownloader(t, true)
+
+			resp := tc.runInstall(t, d, reg)
+			require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
+
+			mapDir := filepath.Join(d.getMapDataPath(), "AAA")
+			assertFilesExist(t, mapDir, requiredMapFiles, "expected map file")
+			assertFilesExist(t, d.getMapTilePath(), []string{"AAA.pmtiles"}, "expected map tile file")
+			assertFilesExist(t, d.getMapThumbnailPath(), []string{"AAA.svg"}, "expected map thumbnail file")
+
+			for _, fileName := range tc.absentMapData {
+				_, err := os.Stat(filepath.Join(mapDir, fileName))
+				require.True(t, errors.Is(err, fs.ErrNotExist), "expected map data file to be absent: %s", fileName)
+			}
+		})
+	}
 }
 
-func TestUpdateMapIsAtomic(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
-	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
-
-	cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
-		{AssetID: "map-a", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
-	})
-	defer cleanup()
-
-	firstResp := d.InstallAsset(types.InstallAssetRequest{
-		AssetType: types.AssetTypeMap,
-		AssetID:   "map-a",
-		Version:   "1.0.0",
-	})
-	require.Equal(t, types.ResponseSuccess, firstResp.Status, firstResp.Message)
-
-	mapDir := filepath.Join(d.getMapDataPath(), "AAA")
-	stalePath := filepath.Join(mapDir, "stale.tmp")
-	require.NoError(t, os.WriteFile(stalePath, []byte("stale"), 0o644))
-
-	reg.RemoveInstalledMap("map-a")
-	secondResp := d.InstallAsset(types.InstallAssetRequest{
-		AssetType: types.AssetTypeMap,
-		AssetID:   "map-a",
-		Version:   "1.0.0",
-	})
-	require.Equal(t, types.ResponseSuccess, secondResp.Status, secondResp.Message)
-
-	// Validate that the stale file written before the second install is removed, indicating that the directory replace during install was atomic
-	_, staleErr := os.Stat(stalePath)
-	require.True(t, errors.Is(staleErr, fs.ErrNotExist), "stale map file should be removed during atomic directory replace")
-}
-
-func TestUpdateModIsAtomic(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
-	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
-
-	cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
-		{AssetID: "mod-a", AssetType: types.AssetTypeMod, Versions: []string{"1.0.0"}},
-	})
-	defer cleanup()
-
-	firstResp := d.InstallAsset(types.InstallAssetRequest{
-		AssetType: types.AssetTypeMod,
-		AssetID:   "mod-a",
-		Version:   "1.0.0",
-	})
-	require.Equal(t, types.ResponseSuccess, firstResp.Status, firstResp.Message)
-
-	modDir := filepath.Join(d.getModPath(), "mod-a")
-	stalePath := filepath.Join(modDir, "stale.tmp")
-	require.NoError(t, os.WriteFile(stalePath, []byte("stale"), 0o644))
-
-	reg.RemoveInstalledMod("mod-a")
-	secondResp := d.InstallAsset(types.InstallAssetRequest{
-		AssetType: types.AssetTypeMod,
-		AssetID:   "mod-a",
-		Version:   "1.0.0",
-	})
-	require.Equal(t, types.ResponseSuccess, secondResp.Status, secondResp.Message)
-
-	// Validate that the stale file written before the second install is removed, indicating that the directory replace during install was atomic
-	_, staleErr := os.Stat(stalePath)
-	require.True(t, errors.Is(staleErr, fs.ErrNotExist), "stale mod file should be removed during atomic directory replace")
-}
-
-func TestImportMapWritesLocalContractFiles(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
-	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
-
-	zipPath := filepath.Join(t.TempDir(), "local-map.zip")
-	require.NoError(t, os.WriteFile(zipPath, registrytest.MockMapZip(t, "AAA"), 0o644))
-
-	resp := d.ImportAsset(types.AssetTypeMap, zipPath, false)
-	require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
-
-	mapDir := filepath.Join(d.getMapDataPath(), "AAA")
-	requiredLocalFiles := []string{
-		"config.json",
-		"buildings_index.json.gz",
-		"demand_data.json.gz",
-		"roads.geojson.gz",
-		"runways_taxiways.geojson.gz",
-		constants.RailyardAssetMarker,
-	}
-	for _, name := range requiredLocalFiles {
-		_, err := os.Stat(filepath.Join(mapDir, name))
-		require.NoError(t, err, "expected local map file %s", name)
+func TestUpdateAssetIsAtomic(t *testing.T) {
+	testCases := []struct {
+		name             string
+		fixtures         []registrytest.UpdateFixture
+		request          types.InstallAssetRequest
+		removeInstalled  func(reg *registry.Registry)
+		stalePathForTest func(d *Downloader) string
+		assertMessage    string
+	}{
+		{
+			name: "map",
+			fixtures: []registrytest.UpdateFixture{
+				{AssetID: "map-a", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
+			},
+			request: types.InstallAssetRequest{
+				AssetType: types.AssetTypeMap,
+				AssetID:   "map-a",
+				Version:   "1.0.0",
+			},
+			removeInstalled: func(reg *registry.Registry) { reg.RemoveInstalledMap("map-a") },
+			stalePathForTest: func(d *Downloader) string {
+				return filepath.Join(d.getMapDataPath(), "AAA", "stale.tmp")
+			},
+			assertMessage: "stale map file should be removed during atomic directory replace",
+		},
+		{
+			name: "mod",
+			fixtures: []registrytest.UpdateFixture{
+				{AssetID: "mod-a", AssetType: types.AssetTypeMod, Versions: []string{"1.0.0"}},
+			},
+			request: types.InstallAssetRequest{
+				AssetType: types.AssetTypeMod,
+				AssetID:   "mod-a",
+				Version:   "1.0.0",
+			},
+			removeInstalled: func(reg *registry.Registry) { reg.RemoveInstalledMod("mod-a") },
+			stalePathForTest: func(d *Downloader) string {
+				return filepath.Join(d.getModPath(), "mod-a", "stale.tmp")
+			},
+			assertMessage: "stale mod file should be removed during atomic directory replace",
+		},
 	}
 
-	_, err := os.Stat(filepath.Join(d.getMapTilePath(), "AAA.pmtiles"))
-	require.NoError(t, err, "local map should write pmtiles")
-	_, err = os.Stat(filepath.Join(d.getMapThumbnailPath(), "AAA.svg"))
-	require.NoError(t, err, "local map should write thumbnail when present")
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			d, reg, _ := newConfiguredDownloader(t, true)
+			cleanup := registrytest.MockRegistryServer(t, reg, tc.fixtures)
+			defer cleanup()
+
+			firstResp := d.InstallAsset(tc.request)
+			require.Equal(t, types.ResponseSuccess, firstResp.Status, firstResp.Message)
+
+			stalePath := tc.stalePathForTest(d)
+			require.NoError(t, os.WriteFile(stalePath, []byte("stale"), 0o644))
+
+			tc.removeInstalled(reg)
+			secondResp := d.InstallAsset(tc.request)
+			require.Equal(t, types.ResponseSuccess, secondResp.Status, secondResp.Message)
+
+			_, staleErr := os.Stat(stalePath)
+			require.True(t, errors.Is(staleErr, fs.ErrNotExist), tc.assertMessage)
+		})
+	}
 }
 
 func TestImportAssetWarnsOnLocalToLocalConflict(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
-	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
-
+	d, reg, _ := newConfiguredDownloader(t, true)
 	localID := "AAA"
-	reg.AddInstalledMap(localID, "1.0.0", true, types.ConfigData{
-		Code:    "AAA",
-		Version: "1.0.0",
-		Name:    "Local AAA",
-	})
+	seedInstalledLocalMap(t, d, reg, localID, "1.0.0", "AAA")
 
 	zipPath := filepath.Join(t.TempDir(), "local-map.zip")
 	require.NoError(t, os.WriteFile(zipPath, registrytest.MockMapZip(t, "AAA"), 0o644))
@@ -1186,17 +1148,7 @@ func TestImportAssetWarnsOnLocalToLocalConflict(t *testing.T) {
 }
 
 func TestImportAssetRejectsNonUppercaseMapCode(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
-	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
+	d, _, _ := newConfiguredDownloader(t, true)
 
 	zipPath := filepath.Join(t.TempDir(), "local-map-invalid-code.zip")
 	require.NoError(t, os.WriteFile(zipPath, registrytest.MockMapZip(t, "dca"), 0o644))
@@ -1207,135 +1159,70 @@ func TestImportAssetRejectsNonUppercaseMapCode(t *testing.T) {
 	require.Contains(t, resp.Message, "invalid map code")
 }
 
-func TestInstallMapQueuedConflictWarnsWithoutReplace(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
-	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
-
-	// Seed an installed local map that conflicts by city code.
-	localInstalled := types.InstalledMapInfo{
-		ID:      "AAA",
-		Version: "1.0.0",
-		IsLocal: true,
-		MapConfig: types.ConfigData{
-			Code:    "AAA",
-			Version: "1.0.0",
-			Name:    "Local AAA",
+func TestInstallMapQueuedConflictLocalMap(t *testing.T) {
+	testCases := []struct {
+		name              string
+		replaceOnConflict bool
+		expectedStatus    types.Status
+	}{
+		{
+			name:              "warns without replace",
+			replaceOnConflict: false,
+			expectedStatus:    types.ResponseWarn,
+		},
+		{
+			name:              "replaces conflicting local map",
+			replaceOnConflict: true,
+			expectedStatus:    types.ResponseSuccess,
 		},
 	}
-	reg.AddInstalledMap(localInstalled.ID, localInstalled.Version, true, localInstalled.MapConfig)
-	localMapDir := filepath.Join(d.getMapDataPath(), "AAA")
-	require.NoError(t, os.MkdirAll(localMapDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(localMapDir, constants.RailyardAssetMarker), []byte("marker"), 0o644))
 
-	cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
-		{AssetID: "map-b", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
-	})
-	defer cleanup()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			d, reg, _ := newConfiguredDownloader(t, true)
+			seedInstalledLocalMap(t, d, reg, "AAA", "1.0.0", "AAA")
 
-	blockerStarted := make(chan struct{})
-	releaseBlocker := make(chan struct{})
-	go func() {
-		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
-			close(blockerStarted)
-			<-releaseBlocker
-			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+			cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
+				{AssetID: "map-b", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
+			})
+			defer cleanup()
+
+			releaseBlocker, _ := enqueueBlockingInstall(t, d, types.AssetTypeMod, "blocker-mod", "1.0.0")
+			respCh := make(chan types.AssetInstallResponse, 1)
+			go func() {
+				respCh <- d.InstallAsset(types.InstallAssetRequest{
+					AssetType: types.AssetTypeMap,
+					AssetID:   "map-b",
+					Version:   "1.0.0",
+					Map:       &types.MapInstallOptions{ReplaceOnConflict: tc.replaceOnConflict},
+				})
+			}()
+
+			releaseBlocker()
+			resp := <-respCh
+			require.Equal(t, tc.expectedStatus, resp.Status, resp.Message)
+
+			if !tc.replaceOnConflict {
+				require.NotNil(t, resp.MapCodeConflict)
+				require.Equal(t, "AAA", resp.MapCodeConflict.CityCode)
+				require.Equal(t, "AAA", resp.MapCodeConflict.ExistingAssetID)
+				require.True(t, resp.MapCodeConflict.ExistingIsLocal)
+				installedByID := make(map[string]types.InstalledMapInfo)
+				for _, installed := range reg.GetInstalledMaps() {
+					installedByID[installed.ID] = installed
+				}
+				require.Equal(t, "1.0.0", installedByID["AAA"].Version)
+				return
+			}
+
+			installedByID := make(map[string]types.InstalledMapInfo)
+			for _, installed := range reg.GetInstalledMaps() {
+				installedByID[installed.ID] = installed
+			}
+			require.NotContains(t, installedByID, "AAA")
+			require.Equal(t, "1.0.0", installedByID["map-b"].Version)
 		})
-	}()
-	<-blockerStarted
-
-	respCh := make(chan types.AssetInstallResponse, 1)
-	go func() {
-		respCh <- d.InstallAsset(types.InstallAssetRequest{
-			AssetType: types.AssetTypeMap,
-			AssetID:   "map-b",
-			Version:   "1.0.0",
-			Map:       &types.MapInstallOptions{ReplaceOnConflict: false},
-		})
-	}()
-
-	close(releaseBlocker)
-	resp := <-respCh
-	require.Equal(t, types.ResponseWarn, resp.Status)
-	require.NotNil(t, resp.MapCodeConflict)
-	require.Equal(t, "AAA", resp.MapCodeConflict.CityCode)
-	require.Equal(t, "AAA", resp.MapCodeConflict.ExistingAssetID)
-	require.True(t, resp.MapCodeConflict.ExistingIsLocal)
-}
-
-func TestInstallMapQueuedConflictReplaceRemovesConflictingLocalMap(t *testing.T) {
-	cfg := config.NewConfig(testutil.TestLogSink{})
-	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
-	configureDownloaderConfig(t, cfg)
-
-	d := &Downloader{
-		Registry: reg,
-		Config:   cfg,
-		Logger:   logger.LoggerAtPath(""),
 	}
-	d.tempPath = t.TempDir()
-	d.mapTilePath = t.TempDir()
-
-	// Seed an installed local map that conflicts by city code.
-	localInstalled := types.InstalledMapInfo{
-		ID:      "AAA",
-		Version: "1.0.0",
-		IsLocal: true,
-		MapConfig: types.ConfigData{
-			Code:    "AAA",
-			Version: "1.0.0",
-			Name:    "Local AAA",
-		},
-	}
-	reg.AddInstalledMap(localInstalled.ID, localInstalled.Version, true, localInstalled.MapConfig)
-	localMapDir := filepath.Join(d.getMapDataPath(), "AAA")
-	require.NoError(t, os.MkdirAll(localMapDir, 0o755))
-	require.NoError(t, os.WriteFile(filepath.Join(localMapDir, constants.RailyardAssetMarker), []byte("marker"), 0o644))
-
-	cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
-		{AssetID: "map-b", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
-	})
-	defer cleanup()
-
-	blockerStarted := make(chan struct{})
-	releaseBlocker := make(chan struct{})
-	go func() {
-		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
-			close(blockerStarted)
-			<-releaseBlocker
-			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
-		})
-	}()
-	<-blockerStarted
-
-	respCh := make(chan types.AssetInstallResponse, 1)
-	go func() {
-		respCh <- d.InstallAsset(types.InstallAssetRequest{
-			AssetType: types.AssetTypeMap,
-			AssetID:   "map-b",
-			Version:   "1.0.0",
-			Map:       &types.MapInstallOptions{ReplaceOnConflict: true},
-		})
-	}()
-
-	close(releaseBlocker)
-	resp := <-respCh
-	require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
-
-	installedByID := make(map[string]types.InstalledMapInfo)
-	for _, installed := range reg.GetInstalledMaps() {
-		installedByID[installed.ID] = installed
-	}
-	require.NotContains(t, installedByID, "AAA")
-	require.Equal(t, "1.0.0", installedByID["map-b"].Version)
 }
 
 func TestIsValidOperationAction(t *testing.T) {
@@ -1384,6 +1271,44 @@ func TestDownloadTempZipGithubAuthFallback(t *testing.T) {
 	require.Equal(t, types.ResponseSuccess, resp.Status)
 	require.NotEmpty(t, resp.Path)
 	require.Equal(t, 2, requestCount)
+}
+
+func TestDownloadTempZipCancellationDuringSaveReturnsWarn(t *testing.T) {
+	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		chunk := bytes.Repeat([]byte("a"), 32*1024)
+		flusher, _ := w.(http.Flusher)
+		for i := 0; i < 128; i++ {
+			_, err := w.Write(chunk)
+			if err != nil {
+				return
+			}
+			if flusher != nil {
+				flusher.Flush()
+			}
+			time.Sleep(2 * time.Millisecond)
+		}
+	}))
+	defer server.Close()
+
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	d := &Downloader{
+		Config:   cfg,
+		Logger:   logger.LoggerAtPath(""),
+		tempPath: t.TempDir(),
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	var cancelOnce sync.Once
+	d.OnProgress = func(string, int64, int64) {
+		cancelOnce.Do(cancel)
+	}
+
+	resp := d.downloadTempZip(ctx, server.URL+"/asset.zip", "asset-a")
+	require.Equal(t, types.ResponseWarn, resp.Status)
+	require.Contains(t, strings.ToLower(resp.Message), "cancelled")
+	require.Empty(t, strings.TrimSpace(resp.Path))
 }
 
 func TestComputeDependencyListResolvesTransitiveDependencies(t *testing.T) {

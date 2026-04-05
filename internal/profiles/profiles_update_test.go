@@ -393,6 +393,61 @@ func TestUpdateSubscriptionsMapConflictWarnsThenReplaces(t *testing.T) {
 	require.False(t, exists)
 }
 
+func TestUpdateSubscriptionsMapConflictSyncFailureKeepsConflictingSubscription(t *testing.T) {
+	testutil.NewHarness(t)
+
+	localAssetID := "AAA"
+	state := types.InitialProfilesState()
+	profile := state.Profiles[types.DefaultProfileID]
+	profile.Subscriptions.LocalMaps[localAssetID] = "1.0.0"
+	state.Profiles[types.DefaultProfileID] = profile
+
+	svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, state)
+	configureConfig(t, cfg)
+
+	localInstalled := types.InstalledMapInfo{
+		ID:      localAssetID,
+		Version: "1.0.0",
+		IsLocal: true,
+		MapConfig: types.ConfigData{
+			Code:    "AAA",
+			Version: "1.0.0",
+			Name:    "Local AAA",
+		},
+	}
+	reg.AddInstalledMap(localInstalled.ID, localInstalled.Version, true, localInstalled.MapConfig)
+	materializeInstalledAssets(t, cfg, nil, []types.InstalledMapInfo{localInstalled})
+
+	cleanup := mockRegistry(t, reg, []registryFixture{
+		{
+			assetID:   "map-b",
+			assetType: types.AssetTypeMap,
+			versions:  []string{"1.0.0"},
+			mapCode:   "AAA",
+		},
+	})
+	defer cleanup()
+
+	replaceResult := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
+		ProfileID: types.DefaultProfileID,
+		Action:    types.SubscriptionActionSubscribe,
+		Assets: map[string]types.SubscriptionUpdateItem{
+			"map-b": {
+				Type:    types.AssetTypeMap,
+				Version: types.Version("9.9.9"),
+			},
+		},
+		ApplyMode:         types.UpdateSubscriptionsPersistAndSync,
+		ReplaceOnConflict: true,
+	})
+
+	require.Equal(t, types.ResponseError, replaceResult.Status)
+	require.Contains(t, replaceResult.Message, "Failed to sync subscriptions")
+
+	active := svc.GetActiveProfile().Profile
+	require.Equal(t, "1.0.0", active.Subscriptions.LocalMaps[localAssetID])
+}
+
 func TestUpdateSubscriptionsToLatest(t *testing.T) {
 	type expectation struct {
 		expectedStatus          types.Status

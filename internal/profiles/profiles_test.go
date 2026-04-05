@@ -37,6 +37,7 @@ func userProfilesService(t *testing.T) *UserProfiles {
 
 func loadedUserProfilesService(t *testing.T, state types.UserProfilesState) *UserProfiles {
 	t.Helper()
+	testutil.NewHarness(t)
 	require.NoError(t, WriteUserProfilesState(state))
 
 	svc, _, _ := userProfilesServiceWithDependencies(t)
@@ -56,6 +57,7 @@ func userProfilesServiceWithDependencies(t *testing.T) (*UserProfiles, *config.C
 
 func loadedUserProfilesServiceWithDependencies(t *testing.T, state types.UserProfilesState) (*UserProfiles, *config.Config, *registry.Registry) {
 	t.Helper()
+	testutil.NewHarness(t)
 	require.NoError(t, WriteUserProfilesState(state))
 
 	svc, cfg, reg := userProfilesServiceWithDependencies(t)

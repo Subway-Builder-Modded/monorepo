@@ -66,6 +66,7 @@ describe('subscription-mutation-client', () => {
           }),
         },
         action: 'subscribe',
+        applyMode: 'persist_and_sync',
       }),
     ).rejects.toBeInstanceOf(SubscriptionMutationLockedError);
 
@@ -87,16 +88,42 @@ describe('subscription-mutation-client', () => {
         }),
       },
       action: 'subscribe',
+      applyMode: 'persist_and_sync',
       replaceOnConflict: true,
     });
+    await mutateSubscriptionsForActiveProfile({
+      assets: {
+        'mod-1': new types.SubscriptionUpdateItem({
+          type: 'mod',
+          version: '',
+        }),
+      },
+      action: 'unsubscribe',
+      applyMode: 'persist_and_sync',
+    });
+    await mutateSubscriptionsForActiveProfile({
+      assets: {
+        'map-2': new types.SubscriptionUpdateItem({
+          type: 'map',
+          version: 'v2.0.0',
+        }),
+      },
+      action: 'subscribe',
+      applyMode: 'persist_only',
+    });
 
-    expect(mockResolveActiveProfileID).toHaveBeenCalledTimes(1);
-    expect(mockUpdateSubscriptions).toHaveBeenCalledTimes(1);
-    const request = mockUpdateSubscriptions.mock.calls[0][0];
-    expect(request.profileId).toBe('profile-a');
-    expect(request.action).toBe('subscribe');
-    expect(request.applyMode).toBe('persist_and_sync');
-    expect(request.replaceOnConflict).toBe(true);
+    expect(mockResolveActiveProfileID).toHaveBeenCalledTimes(3);
+    expect(mockUpdateSubscriptions).toHaveBeenCalledTimes(3);
+    const [subscribeRequest, unsubscribeRequest, persistRequest] =
+      mockUpdateSubscriptions.mock.calls.map((call) => call[0]);
+    expect(subscribeRequest.profileId).toBe('profile-a');
+    expect(subscribeRequest.action).toBe('subscribe');
+    expect(subscribeRequest.applyMode).toBe('persist_and_sync');
+    expect(subscribeRequest.replaceOnConflict).toBe(true);
+    expect(unsubscribeRequest.action).toBe('unsubscribe');
+    expect(unsubscribeRequest.applyMode).toBe('persist_and_sync');
+    expect(persistRequest.action).toBe('subscribe');
+    expect(persistRequest.applyMode).toBe('persist_only');
   });
 
   it('delegates unlocked latest apply and import calls', async () => {

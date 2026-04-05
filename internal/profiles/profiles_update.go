@@ -103,6 +103,20 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 			}
 			result.Errors = append(result.Errors, syncResult.Errors...)
 		}
+
+		// For replace-on-conflict subscribe operations, defer conflict subscription cleanup until after sync succeeds so cancellations/failures keep prior conflicting subscriptions.
+		if req.Action == types.SubscriptionActionSubscribe && req.ReplaceOnConflict && len(result.Conflicts) > 0 {
+			// Defer conflict subscription removal until after sync succeeds so cancel/failure paths  preserve the pre-existing conflicting subscription state.
+			updatedProfile, conflictOps, conflictErr := s.applyAndPersistConflictReplacements(req.ProfileID, result.Conflicts)
+			if conflictErr != nil {
+				result.Status = types.ResponseError
+				result.Message = "Failed to finalize map conflict replacement"
+				result.Errors = append(result.Errors, *conflictErr)
+				return result
+			}
+			result.Profile = updatedProfile
+			result.Operations = appendOperations(result.Operations, conflictOps)
+		}
 	}
 
 	return result
@@ -500,20 +514,9 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 				mapCodeConflicts,
 			)
 		}
+		// Conflict subscriptions are intentionally not removed here.
+		// They are removed only after a successful sync in UpdateSubscriptions.
 		conflicts = mapCodeConflicts
-
-		conflictOps, conflictErr := s.applyConflictReplacement(req.ProfileID, &profile, conflicts)
-		if conflictErr != nil {
-			message := "Failed to apply map conflict replacement"
-			if conflictErr.DownloaderErrorType == types.InstallErrorMapCodeConflict {
-				message = conflictErr.Message
-			}
-			result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, message)
-			result.Profile = profile
-			result.Errors = []types.UserProfilesError{*conflictErr}
-			return result
-		}
-		operations = appendOperations(operations, conflictOps)
 	}
 
 	for assetID, item := range req.Assets {
@@ -613,7 +616,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 	operations := make([]types.SubscriptionOperation, 0, 2)
 	appliedConflicts := make([]types.MapCodeConflict, 0)
 	if importResp.MapCodeConflict != nil && req.ReplaceOnConflict {
-		conflictOperations, conflictErr := s.applyConflictReplacement(req.ProfileID, &nextProfile, []types.MapCodeConflict{*importResp.MapCodeConflict})
+		conflictOperations, conflictErr := s.applyConflictReplacementMutations(req.ProfileID, &nextProfile, []types.MapCodeConflict{*importResp.MapCodeConflict})
 		if conflictErr != nil {
 			message := "Failed to replace conflicting subscription"
 			if conflictErr.DownloaderErrorType == types.InstallErrorMapCodeConflict {
@@ -764,8 +767,8 @@ func appendOperations(operations []types.SubscriptionOperation, additional []typ
 	return append(operations, additional...)
 }
 
-// applyConflictReplacement applies the necessary subscription mutations to resolve map code conflicts.
-func (s *UserProfiles) applyConflictReplacement(
+// applyConflictReplacementMutations applies in-memory subscription mutations to resolve map code conflicts.
+func (s *UserProfiles) applyConflictReplacementMutations(
 	profileID string,
 	profile *types.UserProfile,
 	conflicts []types.MapCodeConflict,
@@ -785,6 +788,7 @@ func (s *UserProfiles) applyConflictReplacement(
 			)
 			return nil, &err
 		}
+		// For map code conflicts, remove the existing conflicting subscription before adding the new one.
 		removedOperation, removeErr := removeMapConflictSubscription(profile, conflict)
 		if removeErr != nil {
 			return nil, removeErr
@@ -792,6 +796,53 @@ func (s *UserProfiles) applyConflictReplacement(
 		operations = appendOperation(operations, removedOperation)
 	}
 	return operations, nil
+}
+
+// applyAndPersistConflictReplacements applies in-memory subscription mutations to resolve map code conflicts and persists the updated profile state if mutations were applied.
+func (s *UserProfiles) applyAndPersistConflictReplacements(
+	profileID string,
+	conflicts []types.MapCodeConflict,
+) (types.UserProfile, []types.SubscriptionOperation, *types.UserProfilesError) {
+	// If there are no conflicts to resolve, skip the mutation and commit steps and return the current profile snapshot to avoid an unnecessary write to disk.
+	if len(conflicts) == 0 {
+		profile, _, profileErr := s.profileSnapshot(profileID)
+		if profileErr != nil {
+			return types.UserProfile{}, nil, profileErr
+		}
+		return profile, []types.SubscriptionOperation{}, nil
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	stateCopy, profile, profileErr := s.resolveProfileFromCopy(profileID)
+	if profileErr != nil {
+		return types.UserProfile{}, nil, profileErr
+	}
+
+	// Apply conflict mutations against a fresh snapshot of the profile.
+	cloneProfileSubscriptions(&profile)
+	operations, conflictErr := s.applyConflictReplacementMutations(profileID, &profile, conflicts)
+	if conflictErr != nil {
+		return types.UserProfile{}, nil, conflictErr
+	}
+	if len(operations) == 0 {
+		return profile, operations, nil
+	}
+
+	// If conflict mutations were applied successfully, commit the profile mutation to persist the updated subscriptions state.
+	if err := s.commitProfileMutation(&stateCopy, profileID, profile, true); err != nil {
+		persistErr := updateSubscriptionError(
+			profileID,
+			"",
+			types.AssetTypeMap,
+			types.ErrorPersistFailed,
+			fmt.Errorf("failed to persist deferred map conflict replacement: %w", err),
+		)
+		return types.UserProfile{}, nil, &persistErr
+	}
+
+	return profile, operations, nil
 }
 
 func applySubscriptionMutation(

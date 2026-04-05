@@ -63,6 +63,15 @@ func (r *Registry) getInstalledMapsFromDisk() ([]types.InstalledMapInfo, error) 
 
 // AddInstalledMod adds a mod to the in-memory list of installed mods. Remember to call WriteInstalledToDisk() to persist changes.
 func (r *Registry) AddInstalledMod(modID string, version string, isLocal bool) {
+	// Upsert by ID so install-first updates replace metadata instead of accumulating duplicates.
+	for i := range r.installedMods {
+		if r.installedMods[i].ID != modID {
+			continue
+		}
+		r.installedMods[i].Version = version
+		r.installedMods[i].IsLocal = isLocal
+		return
+	}
 	r.installedMods = append(r.installedMods, types.InstalledModInfo{
 		ID:      modID,
 		Version: version,
@@ -72,6 +81,16 @@ func (r *Registry) AddInstalledMod(modID string, version string, isLocal bool) {
 
 // AddInstalledMap adds a map to the in-memory list of installed maps. Remember to call WriteInstalledToDisk() to persist changes.
 func (r *Registry) AddInstalledMap(mapID string, version string, isLocal bool, config types.ConfigData) {
+	// Upsert by ID so install-first updates replace metadata instead of accumulating duplicates.
+	for i := range r.installedMaps {
+		if r.installedMaps[i].ID != mapID {
+			continue
+		}
+		r.installedMaps[i].Version = version
+		r.installedMaps[i].IsLocal = isLocal
+		r.installedMaps[i].MapConfig = config
+		return
+	}
 	r.installedMaps = append(r.installedMaps, types.InstalledMapInfo{
 		ID:        mapID,
 		Version:   version,

@@ -638,6 +638,32 @@ func TestInstalledStatePersistsMutations(t *testing.T) {
 	}, reg.GetInstalledMaps())
 }
 
+func TestAddInstalledAssetUpsertsExistingEntry(t *testing.T) {
+	testutil.NewHarness(t)
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+
+	reg.AddInstalledMap("map-a", "1.0.0", false, types.ConfigData{Code: "AAA"})
+	reg.AddInstalledMap("map-a", "2.0.0", true, types.ConfigData{Code: "BBB"})
+	require.Equal(t, []types.InstalledMapInfo{
+		{
+			ID:        "map-a",
+			Version:   "2.0.0",
+			IsLocal:   true,
+			MapConfig: types.ConfigData{Code: "BBB"},
+		},
+	}, reg.GetInstalledMaps())
+
+	reg.AddInstalledMod("mod-a", "1.0.0", false)
+	reg.AddInstalledMod("mod-a", "3.0.0", true)
+	require.Equal(t, []types.InstalledModInfo{
+		{
+			ID:      "mod-a",
+			Version: "3.0.0",
+			IsLocal: true,
+		},
+	}, reg.GetInstalledMods())
+}
+
 func TestGetRemoteInstalledMaps(t *testing.T) {
 	testutil.NewHarness(t)
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))

@@ -315,9 +315,32 @@ export function ProjectHeader({
         installUpdateTooltip = 'No version available';
     }
 
-    const handleInstallUpdateClick = () => {
+    const handleInstallUpdateClick = async () => {
       if (installing) {
-        void cancelPendingInstall(type, item.id);
+        try {
+          const result = await cancelPendingInstall(type, item.id);
+          if (
+            result.status === 'warn' &&
+            !hasOnlySilentSyncWarnings(result.errors)
+          ) {
+            toast.warning(
+              result.message ||
+                `Cancel for ${item.name} completed with warnings.`,
+            );
+          } else {
+            toast.success(`Cancelled pending install for ${item.name}.`, {
+              id: cancellationToastId,
+            });
+          }
+        } catch (err) {
+          if (!handleSubscriptionMutationError(err, () => {})) {
+            toast.error(
+              err instanceof Error
+                ? err.message
+                : `Failed to cancel pending install for ${item.name}.`,
+            );
+          }
+        }
         return;
       }
       if (isInstalled) {
@@ -353,7 +376,9 @@ export function ProjectHeader({
                     : cn(installUpdateAccent.iconButton, ACTION_ICON_BASE),
                 )}
                 disabled={installUpdateDisabled}
-                onClick={handleInstallUpdateClick}
+                onClick={() => {
+                  void handleInstallUpdateClick();
+                }}
               >
                 {installing ? (
                   <X />

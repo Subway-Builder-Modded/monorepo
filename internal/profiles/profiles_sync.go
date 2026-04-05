@@ -233,23 +233,7 @@ func syncAssetSubscriptions[T any, U any](log logger.Logger, profileID string, a
 			continue
 		}
 
-		// If a different version is installed for this asset ID, uninstall it first.
-		if current, ok := installedVersion[assetID]; ok && current != versionText {
-			log.Info("Uninstalling previous version before update", "asset_type", args.assetType, "asset_id", assetID, "current_version", current, "target_version", versionText)
-			uninstallResp := args.uninstall(assetID)
-			if err := syncUninstallActionError(types.SubscriptionActionUnsubscribe, args.assetType, assetID, uninstallResp); err != nil {
-				errs = append(errs, syncUninstallFailedError(profileID, assetID, args.assetType, uninstallResp, err))
-				continue
-			}
-			operations = append(operations, types.SubscriptionOperation{
-				AssetID: assetID,
-				Type:    args.assetType,
-				Action:  types.SubscriptionActionUnsubscribe,
-				Version: types.Version(current),
-			})
-			delete(installedVersion, assetID)
-		}
-
+		// Do not uninstall the existing version first. Install the desired version directly and let downloader/registry upsert installed metadata on success.
 		log.Info("Installing asset", "asset_type", args.assetType, "asset_id", assetID, "version", versionText)
 		response := args.install(assetID, versionText)
 		if response.Status == types.ResponseWarn {
