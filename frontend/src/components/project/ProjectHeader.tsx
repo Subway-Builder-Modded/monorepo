@@ -1,21 +1,20 @@
 import {
   AlertTriangle,
+  ChartLine,
   Check,
-  CheckCircle,
   CircleFadingArrowUp,
   CircleX,
   Copy,
   Download,
   ExternalLink,
   Globe,
-  Loader2,
   OctagonX,
   Trash2,
   TriangleAlert,
   Users,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
@@ -28,7 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { AssetType } from '@/lib/asset-types';
+import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { formatSourceQuality } from '@/lib/map-filter-values';
@@ -43,6 +42,8 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
+import { cn } from '@/lib/utils';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -62,9 +63,14 @@ interface ProjectHeaderProps {
   totalDownloads?: number;
 }
 
+const FILES_ACCENT = getLocalAccentClasses('files');
 const INSTALL_ACCENT = getLocalAccentClasses('install');
 const UPDATE_ACCENT = getLocalAccentClasses('update');
-const FILES_ACCENT = getLocalAccentClasses('files');
+const UNINSTALL_ACCENT = getLocalAccentClasses('uninstall');
+const ANALYTICS_ACCENT = getLocalAccentClasses('profiles');
+
+const ACTION_ICON_BASE =
+  'disabled:!text-muted-foreground disabled:opacity-100 disabled:saturate-100';
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
@@ -112,21 +118,59 @@ export function ProjectHeader({
   const {
     installMod,
     installMap,
-    cancelPendingInstall,
     getInstalledVersion,
     isInstalling,
     isUninstalling,
     uninstallAssets,
+    updateAssetsToLatest,
+    cancelPendingInstall,
   } = useInstalledStore();
 
   const installedVersion = getInstalledVersion(item.id);
   const installing = isInstalling(item.id);
   const uninstalling = isUninstalling(item.id);
   const effectiveVersion = latestCompatibleVersion ?? latestVersion;
+  const [pendingLatestVersion, setPendingLatestVersion] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    if (!installedVersion) {
+      setPendingLatestVersion(null);
+      return;
+    }
+
+    let cancelled = false;
+    requestLatestSubscriptionUpdatesForActiveProfile({
+      apply: false,
+      targets: [{ id: item.id, type }],
+    })
+      .then((result) => {
+        if (cancelled || result.status === 'error') {
+          return;
+        }
+
+        const pending = result.pendingUpdates?.find(
+          (update) => update.assetId === item.id && update.type === type,
+        );
+        setPendingLatestVersion(pending?.latestVersion ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPendingLatestVersion(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [installedVersion, item.id, type, installing, uninstalling]);
+
+  const updateTargetVersion = pendingLatestVersion ?? effectiveVersion?.version;
   const hasUpdate =
     installedVersion &&
-    effectiveVersion &&
-    installedVersion !== effectiveVersion.version;
+    updateTargetVersion &&
+    installedVersion !== updateTargetVersion;
   const noCompatibleVersion =
     gameVersion && latestVersion && !latestCompatibleVersion;
 
@@ -208,6 +252,18 @@ export function ProjectHeader({
     }
   };
 
+  const handleUpdate = async () => {
+    if (!installedVersion || !hasUpdate) return;
+
+    try {
+      await updateAssetsToLatest([{ id: item.id, type }]);
+      toast.success(`${item.name} has been updated.`);
+      setPendingLatestVersion(null);
+    } catch (err) {
+      handleSubscriptionMutationError(err, `Failed to update ${item.name}.`);
+    }
+  };
+
   const handleCopyError = async () => {
     if (!installError) return;
     await navigator.clipboard.writeText(installError.message);
@@ -216,140 +272,130 @@ export function ProjectHeader({
   };
 
   const renderActionButtons = () => {
-    if (versionsLoading) {
-      return (
-        <Button size="sm" disabled>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Loading...
-        </Button>
-      );
+    const analyticsUrl = `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`;
+
+    // Combined install / update / cancel button
+    const isInstalled = !!installedVersion;
+    const installUpdateAccent = isInstalled ? UPDATE_ACCENT : INSTALL_ACCENT;
+
+    const installUpdateDisabled = installing
+      ? false // cancel is always enabled
+      : isInstalled
+        ? !hasUpdate || mutationLocked || uninstalling || versionsLoading
+        : !effectiveVersion ||
+          !!noCompatibleVersion ||
+          mutationLocked ||
+          uninstalling ||
+          versionsLoading;
+
+    let installUpdateTooltip: string;
+    switch (true) {
+      case installing:
+        installUpdateTooltip = 'Cancel';
+        break;
+      case isInstalled:
+        installUpdateTooltip =
+          hasUpdate && updateTargetVersion
+            ? `Update to ${updateTargetVersion}`
+            : 'Up to date';
+        break;
+      case versionsLoading:
+        installUpdateTooltip = 'Loading...';
+        break;
+      case uninstalling:
+        installUpdateTooltip = 'Uninstalling...';
+        break;
+      case !!noCompatibleVersion:
+        installUpdateTooltip = `No compatible version (game ${gameVersion})`;
+        break;
+      case !!effectiveVersion:
+        installUpdateTooltip = `Install ${effectiveVersion!.version}`;
+        break;
+      default:
+        installUpdateTooltip = 'No version available';
     }
-    if (uninstalling) {
-      return (
-        <Button size="sm" disabled>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Canceling...
-        </Button>
-      );
-    }
-    if (installing) {
-      return (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={async () => {
-            try {
-              await cancelPendingInstall(type, item.id);
-              toast.success(`Cancelled pending install for ${item.name}.`, {
-                id: cancellationToastId,
-              });
-            } catch (err) {
-              if (!handleSubscriptionMutationError(err, () => {})) {
-                toast.error(err instanceof Error ? err.message : String(err));
-              }
-            }
-          }}
-          disabled={mutationLocked}
-        >
-          <X className="h-4 w-4" />
-          Cancel Install
-        </Button>
-      );
-    }
-    if (!installedVersion && effectiveVersion) {
-      if (noCompatibleVersion) {
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button
-                    size="sm"
-                    disabled
-                    className={INSTALL_ACCENT.solidButton}
-                  >
-                    <Download className="h-4 w-4" />
-                    Install {effectiveVersion.version}
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                No version compatible with your installed game version (
-                {gameVersion})
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+
+    const handleInstallUpdateClick = () => {
+      if (installing) {
+        void cancelPendingInstall(type, item.id);
+        return;
+      }
+      if (isInstalled) {
+        void handleUpdate();
+      } else if (effectiveVersion) {
+        handleInstallClick(
+          effectiveVersion.version,
+          effectiveVersion.prerelease,
         );
       }
-      return (
-        <Button
-          size="sm"
-          className={INSTALL_ACCENT.solidButton}
-          onClick={() =>
-            handleInstallClick(
-              effectiveVersion.version,
-              effectiveVersion.prerelease,
-            )
-          }
-          disabled={mutationLocked}
-        >
-          <Download className="h-4 w-4" />
-          Install {effectiveVersion.version}
-        </Button>
-      );
-    }
-    if (hasUpdate && effectiveVersion) {
-      return (
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            className={UPDATE_ACCENT.solidButton}
-            onClick={() =>
-              handleInstallClick(
-                effectiveVersion.version,
-                effectiveVersion.prerelease,
-              )
-            }
-            disabled={mutationLocked}
-          >
-            <CircleFadingArrowUp className="h-4 w-4" />
-            Update to {effectiveVersion.version}
-          </Button>
-          <Button
-            variant="destructive"
-            size="icon-sm"
-            onClick={() => setUninstallOpen(true)}
-            aria-label="Uninstall"
-            disabled={mutationLocked}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+    };
+
+    const uninstallDisabled =
+      installing || uninstalling || !isInstalled || mutationLocked;
+    const uninstallTooltip = isInstalled
+      ? `Uninstall ${installedVersion}`
+      : 'Not installed';
+
+    return (
+      <TooltipProvider>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={cn(
+                  installing
+                    ? cn(
+                        UNINSTALL_ACCENT.iconButton,
+                        '!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)]',
+                      )
+                    : cn(installUpdateAccent.iconButton, ACTION_ICON_BASE),
+                )}
+                disabled={installUpdateDisabled}
+                onClick={handleInstallUpdateClick}
+              >
+                {installing ? (
+                  <X />
+                ) : isInstalled ? (
+                  <CircleFadingArrowUp />
+                ) : (
+                  <Download />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{installUpdateTooltip}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={cn(UNINSTALL_ACCENT.iconButton, ACTION_ICON_BASE)}
+                disabled={uninstallDisabled}
+                onClick={() => setUninstallOpen(true)}
+              >
+                <Trash2 />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{uninstallTooltip}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className={cn(ANALYTICS_ACCENT.iconButton, ACTION_ICON_BASE)}
+                onClick={() => BrowserOpenURL(analyticsUrl)}
+              >
+                <ChartLine />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View Analytics</TooltipContent>
+          </Tooltip>
         </div>
-      );
-    }
-    if (installedVersion) {
-      return (
-        <div className="flex items-center gap-3">
-          <Badge
-            variant="success"
-            className="h-9 gap-1.5 rounded-lg px-3 text-sm"
-          >
-            <CheckCircle className="h-3.5 w-3.5" />
-            Installed {installedVersion}
-          </Badge>
-          <Button
-            variant="destructive"
-            size="icon-sm"
-            onClick={() => setUninstallOpen(true)}
-            aria-label="Uninstall"
-            disabled={mutationLocked}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      );
-    }
-    return null;
+      </TooltipProvider>
+    );
   };
 
   const badges = mapItem

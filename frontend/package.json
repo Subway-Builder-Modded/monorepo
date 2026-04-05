@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0 --fix",
-    "check": "pnpm run lint && pnpm run format:check && pnpm run test && pnpm run test:coverage"
+    "check": "pnpm run lint && pnpm run format:check && pnpm run test && pnpm run test:coverage",
+    "ci": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.1",
