@@ -182,9 +182,12 @@ export function LibraryList({
           </>
         )}
         <div className={cn(COL.size, 'flex shrink-0 items-center')}>
-          <span className="inline-flex h-5 translate-y-px items-center text-xs leading-none font-semibold uppercase tracking-wide text-muted-foreground">
-            Size
-          </span>
+          <SortableHeaderCell
+            label="Size"
+            field="size"
+            sort={sort}
+            onSort={handleColumnSort}
+          />
         </div>
         <div className={cn(COL.version, 'flex shrink-0 items-center')}>
           <span className="inline-flex h-5 translate-y-px items-center text-xs leading-none font-semibold uppercase tracking-wide text-muted-foreground">

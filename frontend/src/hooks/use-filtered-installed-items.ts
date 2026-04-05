@@ -48,12 +48,21 @@ export function useFilteredInstalledItems({
   usePaginationSync({ defaultPerPage, filters, setFilters, setPage });
 
   const filtered = useMemo(() => {
-    return filterAndSortTaggedItems(
+    const result = filterAndSortTaggedItems(
       items,
       filters as TaggedItemFilterState,
       modDownloadTotals,
       mapDownloadTotals,
     );
+    if (filters.sort.field === 'size') {
+      const dir = filters.sort.direction;
+      return [...result].sort((a, b) => {
+        const sizeA = (a as InstalledTaggedItem).installedSizeBytes ?? 0;
+        const sizeB = (b as InstalledTaggedItem).installedSizeBytes ?? 0;
+        return dir === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+      });
+    }
+    return result;
   }, [items, filters, mapDownloadTotals, modDownloadTotals]);
 
   const totalResults = filtered.length;

@@ -4,6 +4,7 @@ import {
   Calendar,
   Download,
   Globe,
+  HardDrive,
   Hash,
   Shuffle,
   Type,
@@ -36,6 +37,7 @@ const FIELD_ICONS: Record<SortField, ComponentType<{ className?: string }>> = {
   population: Users,
   downloads: Download,
   last_updated: Calendar,
+  size: HardDrive,
   random: Shuffle,
 };
 

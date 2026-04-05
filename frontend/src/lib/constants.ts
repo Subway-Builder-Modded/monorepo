@@ -11,6 +11,7 @@ export type SortField =
   | 'population'
   | 'downloads'
   | 'last_updated'
+  | 'size'
   | 'random';
 export type SortDirection = 'asc' | 'desc';
 export type SortKey = `${SortField}:${SortDirection}`;
