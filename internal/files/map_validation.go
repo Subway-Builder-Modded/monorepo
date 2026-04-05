@@ -134,8 +134,7 @@ func readInstalledMapConfig(mapInstallRoot string, cityCode string) (types.Confi
 	return configData, "", nil
 }
 
-// ValidateInstalledMapData validates installed map files under a city-code folder.
-// For local maps (isLocal=true), config.json is required and parsed.
+// ValidateInstalledMapData validates installed map files under a city-code folder, and parses config.json.
 // For downloaded maps (isLocal=false), only the compressed city-data files are required.
 func ValidateInstalledMapData(mapInstallRoot string, mapTilesRoot string, cityCode string, isLocal bool) (types.ConfigData, types.DownloaderErrorType, error) {
 	if isLocal {
@@ -150,10 +149,6 @@ func ValidateInstalledMapData(mapInstallRoot string, mapTilesRoot string, cityCo
 
 	if errorType, err := validateRequiredInstalledMapFiles(mapInstallRoot, mapTilesRoot, cityCode); err != nil {
 		return types.ConfigData{}, errorType, err
-	}
-
-	if !isLocal {
-		return types.ConfigData{}, "", nil
 	}
 
 	return readInstalledMapConfig(mapInstallRoot, cityCode)

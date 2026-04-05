@@ -151,8 +151,33 @@ func (s *Config) UpdateExecutable(executablePath string) (types.ResolveConfigRes
 	}, false)
 }
 
+func (s *Config) verifyMetroMakerDataFolder(path string) error {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return fmt.Errorf("failed to read metro maker data folder: %w", err)
+	}
+
+	expectedEntries := []string{"cities", "Local Storage"}
+	for _, expected := range expectedEntries {
+		found := false
+		for _, entry := range entries {
+			if entry.Name() == expected && entry.IsDir() {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("invalid metro maker data folder: missing expected entry '%s'", expected)
+		}
+	}
+	return nil
+}
+
 // UpdateMetroMakerDataFolder updates and persists metroMakerDataPath to the runtime app config.
 func (s *Config) UpdateMetroMakerDataFolder(metroMakerDataPath string) (types.ResolveConfigResult, error) {
+	if err := s.verifyMetroMakerDataFolder(metroMakerDataPath); err != nil {
+		return types.ResolveConfigResult{}, fmt.Errorf("invalid metro maker data folder: %w", err)
+	}
 	return s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.MetroMakerDataPath = strings.TrimSpace(metroMakerDataPath)
 	}, false)

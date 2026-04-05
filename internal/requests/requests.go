@@ -2,6 +2,7 @@ package requests
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
@@ -94,7 +95,7 @@ func GetWithGithubToken(client *http.Client, opts GithubTokenRequestArgs) (*http
 		return nil, err
 	}
 
-	if tokenApplied && (resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests) {
+	if tokenApplied && (resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden) {
 		// If the first authenticated requests with 401/403, assume the token is invalid/has permission issues
 		if opts.OnTokenRejected != nil {
 			// Callback to notify about token rejection
@@ -108,6 +109,17 @@ func GetWithGithubToken(client *http.Client, opts GithubTokenRequestArgs) (*http
 			return nil, reqErr
 		}
 		return client.Do(reqNoAuth)
+	}
+	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusForbidden {
+		if opts.OnTokenRejected != nil {
+			opts.OnTokenRejected(resp.StatusCode)
+		}
+		resp.Body.Close()
+		return nil, &url.Error{
+			Op:  "Get",
+			URL: opts.URL,
+			Err: fmt.Errorf("rate limited by GitHub API"),
+		}
 	}
 
 	return resp, nil

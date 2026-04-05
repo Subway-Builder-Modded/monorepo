@@ -2,6 +2,7 @@ package registry
 
 import (
 	"fmt"
+	"strings"
 
 	"railyard/internal/constants"
 	"railyard/internal/files"
@@ -111,7 +112,7 @@ func (r *Registry) bootstrapMapSubscription(
 
 	if isLocal {
 		// Local maps require config to be present on disk since fields are not available from remote manifest
-		cfg, ok := r.validateMapData(mapID, mapInstallRoot, cityCode, true)
+		cfg, ok := r.validateMapData(mapID, version, mapInstallRoot, cityCode, true)
 		if !ok {
 			return types.InstalledMapInfo{}, false
 		}
@@ -128,7 +129,7 @@ func (r *Registry) bootstrapMapSubscription(
 			}
 			cityCode = installed.MapConfig.Code
 		}
-		if _, ok := r.validateMapData(mapID, mapInstallRoot, cityCode, false); !ok {
+		if _, ok := r.validateMapData(mapID, version, mapInstallRoot, cityCode, false); !ok {
 			return types.InstalledMapInfo{}, false
 		}
 	}
@@ -170,6 +171,7 @@ func (r *Registry) resolveConfig(
 
 func (r *Registry) validateMapData(
 	assetID string,
+	assetVersion string,
 	mapInstallRoot string,
 	cityCode string,
 	isLocal bool,
@@ -186,9 +188,10 @@ func (r *Registry) validateMapData(
 			"is_local", isLocal)
 		return types.ConfigData{}, false
 	}
-	// TODO: Enforce map config version equality against the subscribed version during bootstrap validation.
-	// We should fail bootstrap for map entries where config.version does not match the target subscription version.
-	// This must be delayed until widespread adoption of 0.2.0 because older installs may will not have config present on disk.
+	if strings.TrimPrefix(assetVersion, "v") != strings.TrimPrefix(configFromDisk.Version, "v") {
+		r.logger.Warn("Skipping subscribed map during installed-state bootstrap: installed version does not match subscribed version", "map_id", assetID, "map_code", cityCode, "installed_version", configFromDisk.Version, "subscribed_version", assetVersion)
+		return types.ConfigData{}, false
+	}
 	return configFromDisk, true
 }
 
