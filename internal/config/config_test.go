@@ -179,7 +179,7 @@ func mockGithubTokenValidationResponse(t *testing.T, apiKey string) func() (bool
 		httpserver := http.NewServeMux()
 		httpserver.HandleFunc("/rate_limit", func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
-			expectedAuth := "token " + apiKey
+			expectedAuth := "Bearer " + apiKey
 			if authHeader != expectedAuth {
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
@@ -192,7 +192,7 @@ func mockGithubTokenValidationResponse(t *testing.T, apiKey string) func() (bool
 		testServer := testutil.NewLocalhostServer(t, httpserver)
 		request, err := http.NewRequest("GET", testServer.URL+"/rate_limit", nil)
 		require.NoError(t, err)
-		request.Header.Add("Authorization", "token "+apiKey)
+		request.Header.Add("Authorization", "Bearer "+apiKey)
 
 		req, err := testServer.Client().Do(request)
 
@@ -306,7 +306,8 @@ func createWritableCandidateDir(t *testing.T, candidates []string) string {
 		return ""
 	}
 
-	require.NoError(t, os.MkdirAll(candidate, 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(candidate, "cities"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(candidate, "Local Storage"), 0o755))
 	return candidate
 }
 
