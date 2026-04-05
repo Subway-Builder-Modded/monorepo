@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import type { AssetType } from '@/lib/asset-types';
 import {
   applyLatestSubscriptionUpdatesForActiveProfile,
+  cancelInstallForAsset,
   importAssetForActiveProfile,
   mutateSubscriptionsForActiveProfile,
 } from '@/lib/subscription-mutation-client';
@@ -434,7 +435,59 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     importMapFromZip,
 
     cancelPendingInstall: async (type: AssetType, id: string) => {
-      return uninstallAssets([{ id, type }]);
+      set({ error: null });
+
+      const installedVersion = get().getInstalledVersion(id);
+
+      try {
+        const cancelResponse = await cancelInstallForAsset({
+          assetType: type,
+          assetId: id,
+        });
+
+        if (cancelResponse.status === 'error') {
+          throw new SubscriptionSyncError(
+            cancelResponse.message?.trim() || 'Failed to cancel pending install',
+            cancelResponse.status,
+            [],
+          );
+        }
+
+        const assets: Record<string, types.SubscriptionUpdateItem> = {
+          [id]: new types.SubscriptionUpdateItem({
+            type,
+            version: installedVersion ?? '',
+          }),
+        };
+
+        const action =
+          installedVersion && installedVersion.trim().length > 0
+            ? 'subscribe'
+            : 'unsubscribe';
+
+        const mutationResult = await mutateSubscriptionsForActiveProfile({
+          assets,
+          action,
+          applyMode: 'persist_only',
+        });
+
+        if (mutationResult.status === 'error') {
+          throw new SubscriptionSyncError(
+            resolveSubscriptionSyncMessage(
+              mutationResult,
+              'Failed to persist cancellation state',
+            ),
+            mutationResult.status,
+            mutationResult.errors ?? [],
+          );
+        }
+
+        set({ ...(await getInstalledLists()) });
+        return mutationResult;
+      } catch (err) {
+        set({ error: err instanceof Error ? err.message : String(err) });
+        throw err;
+      }
     },
 
     acknowledgeCancelledInstall: (id: string) => {

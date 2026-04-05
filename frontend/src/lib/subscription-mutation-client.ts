@@ -12,6 +12,7 @@ import {
 } from '@/lib/subscription-updates';
 import { useGameStore } from '@/stores/game-store';
 
+import { CancelInstall } from '../../wailsjs/go/downloader/Downloader';
 import { types } from '../../wailsjs/go/models';
 import {
   ImportAsset,
@@ -62,6 +63,7 @@ export async function mutateSubscriptionsForActiveProfile(args: {
   assets: Record<string, types.SubscriptionUpdateItem>;
   action: 'subscribe' | 'unsubscribe';
   replaceOnConflict?: boolean;
+  applyMode?: 'runtime_only' | 'persist_only' | 'persist_and_sync';
 }): Promise<types.UpdateSubscriptionsResult> {
   ensureSubscriptionMutationUnlocked();
 
@@ -71,7 +73,7 @@ export async function mutateSubscriptionsForActiveProfile(args: {
       profileId,
       assets: args.assets,
       action: args.action,
-      applyMode: 'persist_and_sync',
+      applyMode: args.applyMode ?? 'persist_and_sync',
       replaceOnConflict: args.replaceOnConflict ?? false,
     }),
   );
@@ -110,4 +112,14 @@ export async function importAssetForActiveProfile(args: {
       replaceOnConflict: args.replaceOnConflict ?? false,
     }),
   );
+}
+
+// cancelInstallForAsset is a wrapper around Downloader.CancelInstall and only cancels
+// queued/running installs without uninstalling currently installed content.
+export async function cancelInstallForAsset(args: {
+  assetType: AssetType;
+  assetId: string;
+}): Promise<types.AssetUninstallResponse> {
+  ensureSubscriptionMutationUnlocked();
+  return CancelInstall(args.assetType, args.assetId);
 }

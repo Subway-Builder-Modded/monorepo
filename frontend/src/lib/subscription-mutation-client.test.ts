@@ -6,12 +6,14 @@ const {
   mockUpdateSubscriptions,
   mockUpdateSubscriptionsToLatest,
   mockImportAsset,
+  mockCancelInstall,
   mockResolveActiveProfileID,
   mockToLatestUpdateRequestTargets,
 } = vi.hoisted(() => ({
   mockUpdateSubscriptions: vi.fn(),
   mockUpdateSubscriptionsToLatest: vi.fn(),
   mockImportAsset: vi.fn(),
+  mockCancelInstall: vi.fn(),
   mockResolveActiveProfileID: vi.fn(),
   mockToLatestUpdateRequestTargets: vi.fn(),
 }));
@@ -22,6 +24,10 @@ vi.mock('../../wailsjs/go/profiles/UserProfiles', () => ({
   ImportAsset: mockImportAsset,
 }));
 
+vi.mock('../../wailsjs/go/downloader/Downloader', () => ({
+  CancelInstall: mockCancelInstall,
+}));
+
 vi.mock('@/lib/subscription-updates', () => ({
   resolveActiveProfileID: mockResolveActiveProfileID,
   toLatestUpdateRequestTargets: mockToLatestUpdateRequestTargets,
@@ -29,6 +35,7 @@ vi.mock('@/lib/subscription-updates', () => ({
 
 import {
   applyLatestSubscriptionUpdatesForActiveProfile,
+  cancelInstallForAsset,
   importAssetForActiveProfile,
   isSubscriptionMutationLockedError,
   mutateSubscriptionsForActiveProfile,
@@ -101,6 +108,10 @@ describe('subscription-mutation-client', () => {
       status: 'success',
       message: 'ok',
     });
+    mockCancelInstall.mockResolvedValue({
+      status: 'warn',
+      message: 'cancelled',
+    });
 
     await applyLatestSubscriptionUpdatesForActiveProfile({
       targets: [{ id: 'map-1', type: 'map' }],
@@ -109,6 +120,10 @@ describe('subscription-mutation-client', () => {
       assetType: 'map',
       zipPath: '/tmp/map.zip',
       replaceOnConflict: false,
+    });
+    await cancelInstallForAsset({
+      assetType: 'map',
+      assetId: 'map-1',
     });
 
     expect(mockUpdateSubscriptionsToLatest).toHaveBeenCalledTimes(1);
@@ -122,6 +137,9 @@ describe('subscription-mutation-client', () => {
     expect(importRequest.profileId).toBe('profile-a');
     expect(importRequest.assetType).toBe('map');
     expect(importRequest.zipPath).toBe('/tmp/map.zip');
+
+    expect(mockCancelInstall).toHaveBeenCalledTimes(1);
+    expect(mockCancelInstall).toHaveBeenCalledWith('map', 'map-1');
   });
 
   it('detects typed lock errors by class and code shape', () => {

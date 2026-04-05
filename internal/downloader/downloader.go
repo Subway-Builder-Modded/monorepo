@@ -188,12 +188,8 @@ func (d *Downloader) removeQueuedOperation(target *downloadOperation) bool {
 	return false
 }
 
-// cancelPendingQueuedInstall removes a queued install for the same asset when an uninstall arrives, but only when that asset is not already installed
-func (d *Downloader) cancelPendingQueuedInstall(assetType types.AssetType, assetID string, assetKey downloadQueueKey) bool {
-	if _, installed := d.getInstalledState(assetType, assetID); installed {
-		return false
-	}
-
+// cancelPendingQueuedInstall removes a queued install for the same asset.
+func (d *Downloader) cancelPendingQueuedInstall(assetID string, assetType types.AssetType, assetKey downloadQueueKey) bool {
 	d.downloadMu.Lock()
 	defer d.downloadMu.Unlock()
 
@@ -213,6 +209,20 @@ func (d *Downloader) cancelPendingQueuedInstall(assetType types.AssetType, asset
 	close(pending.completed)
 	d.OnCancelled(assetID, assetType, cancelledPhaseQueued)
 
+	return true
+}
+
+// cancelRunningInstall requests cancellation for an in-flight install operation for the same asset.
+func (d *Downloader) cancelRunningInstall(assetID string, assetType types.AssetType, assetKey downloadQueueKey) bool {
+	d.downloadMu.Lock()
+	defer d.downloadMu.Unlock()
+
+	running, ok := d.running[assetKey]
+	if !ok || running.action != operationActionInstall || running.cancel == nil {
+		return false
+	}
+	running.cancel()
+	d.OnCancelled(assetID, assetType, cancelledPhaseRunning)
 	return true
 }
 
@@ -577,7 +587,7 @@ func (d *Downloader) UninstallAsset(assetType types.AssetType, assetID string) t
 
 	key := d.operationKey(operationActionUninstall, assetType, assetID, "")
 	assetKey := downloadQueueKey{assetType: assetType, assetID: assetID}
-	if d.cancelPendingQueuedInstall(assetType, assetID, assetKey) {
+	if _, installed := d.getInstalledState(assetType, assetID); !installed && d.cancelPendingQueuedInstall(assetID, assetType, assetKey) {
 		return d.uninstallWarn(
 			assetType,
 			assetID,
@@ -605,6 +615,52 @@ func (d *Downloader) UninstallAsset(assetType types.AssetType, assetID string) t
 		}
 	}, d.supersededOperationResult(operationActionUninstall, assetType, assetID, ""), nil)
 	return result.assetUninstallResponse
+}
+
+// CancelInstall cancels a queued/running install operation for an asset without uninstalling currently installed content.
+func (d *Downloader) CancelInstall(assetType types.AssetType, assetID string) types.AssetUninstallResponse {
+	if !types.IsValidAssetType(assetType) {
+		return d.uninstallError(
+			assetType,
+			assetID,
+			types.UninstallErrorInvalidAssetType,
+			"Invalid asset type",
+			nil,
+			"asset_type", assetType, "asset_id", assetID,
+		)
+	}
+
+	assetKey := downloadQueueKey{assetType: assetType, assetID: assetID}
+	if d.cancelPendingQueuedInstall(assetID, assetType, assetKey) {
+		return d.uninstallWarn(
+			assetType,
+			assetID,
+			types.UninstallErrorNotInstalled,
+			"Cancelled pending install. No uninstall required.",
+			"asset_type", assetType,
+			"asset_id", assetID,
+		)
+	}
+
+	if d.cancelRunningInstall(assetID, assetType, assetKey) {
+		return d.uninstallWarn(
+			assetType,
+			assetID,
+			types.UninstallErrorNotInstalled,
+			"Cancelled running install. Existing installed content was preserved.",
+			"asset_type", assetType,
+			"asset_id", assetID,
+		)
+	}
+
+	return d.uninstallWarn(
+		assetType,
+		assetID,
+		types.UninstallErrorNotInstalled,
+		"No pending install found. No action taken.",
+		"asset_type", assetType,
+		"asset_id", assetID,
+	)
 }
 
 func (d *Downloader) ImportAsset(assetType types.AssetType, zipPath string, replaceOnConflict bool) types.AssetInstallResponse {

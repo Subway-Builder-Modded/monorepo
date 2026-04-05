@@ -9,6 +9,7 @@ import {
   updateSubscriptionsWithConflicts,
 } from '@/test/helpers/profileMutationFixtures';
 
+import { types } from '../../wailsjs/go/models';
 import { useDownloadQueueStore } from './download-queue-store';
 import { useGameStore } from './game-store';
 import {
@@ -26,6 +27,7 @@ const {
   mockUpdateSubscriptions,
   mockImportAsset,
   mockUpdateSubscriptionsToLatest,
+  mockCancelInstall,
 } = vi.hoisted(() => ({
   mockGetInstalledModsResponse: vi.fn(),
   mockGetInstalledMapsResponse: vi.fn(),
@@ -33,6 +35,7 @@ const {
   mockUpdateSubscriptions: vi.fn(),
   mockImportAsset: vi.fn(),
   mockUpdateSubscriptionsToLatest: vi.fn(),
+  mockCancelInstall: vi.fn(),
 }));
 
 vi.mock('../../wailsjs/go/registry/Registry', () => ({
@@ -47,12 +50,17 @@ vi.mock('../../wailsjs/go/profiles/UserProfiles', () => ({
   UpdateSubscriptionsToLatest: mockUpdateSubscriptionsToLatest,
 }));
 
+vi.mock('../../wailsjs/go/downloader/Downloader', () => ({
+  CancelInstall: mockCancelInstall,
+}));
+
 type ProfilesRequest = {
   profileId: string;
   action: 'subscribe' | 'unsubscribe';
   assetId: string;
   assetType: AssetType;
   version: string;
+  applyMode?: string;
 };
 
 function validateProfilesRequest(expected: ProfilesRequest) {
@@ -60,7 +68,7 @@ function validateProfilesRequest(expected: ProfilesRequest) {
   const request = mockUpdateSubscriptions.mock.calls[0][0];
   expect(request.profileId).toBe(expected.profileId);
   expect(request.action).toBe(expected.action);
-  expect(request.applyMode).toBe('persist_and_sync');
+  expect(request.applyMode).toBe(expected.applyMode ?? 'persist_and_sync');
   expect(request.assets[expected.assetId].type).toBe(expected.assetType);
   expect(request.assets[expected.assetId].version).toBe(expected.version);
 }
@@ -115,6 +123,10 @@ describe('useInstalledStore', () => {
     mockUpdateSubscriptionsToLatest.mockResolvedValue(
       updateSubscriptionsSuccess('latest apply ok'),
     );
+    mockCancelInstall.mockResolvedValue({
+      status: 'warn',
+      message: 'cancelled pending install',
+    });
   });
 
   it('installMap correctly updates subscriptions and refreshes installed lists', async () => {
@@ -278,12 +290,28 @@ describe('useInstalledStore', () => {
     validateFinalState('uninstalling', 'mod-9', 'Uninstall failed');
   });
 
-  it('cancelPendingInstall routes through unsubscribe and tolerates warn', async () => {
+  it('cancelPendingInstall cancels downloader install and restores installed version in profile state', async () => {
+    useInstalledStore.setState((state) => ({
+      ...state,
+      installedMaps: [
+        new types.InstalledMapInfo({
+          id: 'map-42',
+          version: '1.0.0',
+          isLocal: false,
+          config: { code: 'QAZ' },
+        }),
+      ],
+    }));
+
     mockGetActiveProfile.mockResolvedValue(
       activeProfileResultSuccess('profile-a'),
     );
+    mockCancelInstall.mockResolvedValue({
+      status: 'warn',
+      message: 'cancelled pending install',
+    });
     mockUpdateSubscriptions.mockResolvedValue(
-      updateSubscriptionsWarn('not installed; nothing to do'),
+      updateSubscriptionsSuccess('rollback applied'),
     );
     mockGetInstalledModsResponse.mockResolvedValue({
       status: 'success',
@@ -300,16 +328,19 @@ describe('useInstalledStore', () => {
       .getState()
       .cancelPendingInstall('map', 'map-42');
 
+    expect(mockCancelInstall).toHaveBeenCalledTimes(1);
+    expect(mockCancelInstall).toHaveBeenCalledWith('map', 'map-42');
     validateProfilesRequest({
       profileId: 'profile-a',
-      action: 'unsubscribe',
+      action: 'subscribe',
       assetId: 'map-42',
       assetType: 'map',
-      version: '',
+      version: '1.0.0',
+      applyMode: 'persist_only',
     });
     validateInstallationRefreshes(1);
-    validateFinalState('uninstalling', 'map-42', null);
-    expect(result.status).toBe('warn');
+    validateFinalState('installing', 'map-42', null);
+    expect(result.status).toBe('success');
   });
 
   it('acknowledgeCancelledInstall removes item from installing lane idempotently', () => {

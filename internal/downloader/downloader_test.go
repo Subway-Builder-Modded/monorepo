@@ -498,6 +498,111 @@ func TestUninstallCancelsRunningInstall(t *testing.T) {
 	require.Equal(t, "uninstall ran", uninstallResult.genericResponse.Message)
 }
 
+func TestCancelInstallCancelsQueuedInstallWithoutUninstall(t *testing.T) {
+	testutil.SetEnv(t)
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	d := &Downloader{
+		Registry:    reg,
+		Config:      cfg,
+		Logger:      logger.LoggerAtPath(""),
+		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
+	}
+	cancelledEvents := captureCancelledEvents(d)
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	blockerResultCh := make(chan operationResult, 1)
+
+	go func() {
+		blockerResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+		})
+	}()
+	<-blockerStarted
+
+	var installRunCount int32
+	pendingInstallResultCh := make(chan operationResult, 1)
+	go func() {
+		pendingInstallResultCh <- enqueueOperation(d, operationActionInstall, types.AssetTypeMap, "map-a", "2.0.0", operationSuccess("install ran", 0, func() {
+			atomic.AddInt32(&installRunCount, 1)
+		}))
+	}()
+	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
+
+	cancelResp := d.CancelInstall(types.AssetTypeMap, "map-a")
+	require.Equal(t, types.ResponseWarn, cancelResp.Status)
+	require.Contains(t, strings.ToLower(cancelResp.Message), "cancelled pending install")
+	select {
+	case event := <-cancelledEvents:
+		require.Equal(t, "map-a", event.itemID)
+		require.Equal(t, string(types.AssetTypeMap), event.assetType)
+		require.Equal(t, cancelledPhaseQueued, event.phase)
+	case <-time.After(time.Second):
+		t.Fatal("expected download:cancelled queued event")
+	}
+
+	pendingInstallResult := <-pendingInstallResultCh
+	require.Equal(t, types.ResponseSuccess, pendingInstallResult.genericResponse.Status)
+	require.Contains(t, strings.ToLower(pendingInstallResult.genericResponse.Message), "superseded")
+	require.Equal(t, int32(0), atomic.LoadInt32(&installRunCount))
+
+	close(releaseBlocker)
+	blockerResult := <-blockerResultCh
+	require.Equal(t, types.ResponseSuccess, blockerResult.genericResponse.Status)
+}
+
+func TestCancelInstallCancelsRunningInstallWithoutUninstall(t *testing.T) {
+	d := newTestDownloader()
+	cancelledEvents := captureCancelledEvents(d)
+
+	releaseInstall := make(chan struct{})
+	cancelCalled := make(chan struct{}, 1)
+	installResultCh := make(chan operationResult, 1)
+
+	go func() {
+		installResultCh <- d.enqueueOperation(
+			operationActionInstall,
+			downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"},
+			d.operationKey(operationActionInstall, types.AssetTypeMap, "map-a", "2.0.0"),
+			func() operationResult {
+				<-releaseInstall
+				return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "install cancelled and exited"}}
+			},
+			supersededSuccess("Operation superseded by newer queued request. No action taken."),
+			func() {
+				cancelCalled <- struct{}{}
+				close(releaseInstall)
+			},
+		)
+	}()
+
+	waitForRunningOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"})
+
+	cancelResp := d.CancelInstall(types.AssetTypeMap, "map-a")
+	require.Equal(t, types.ResponseWarn, cancelResp.Status)
+	require.Contains(t, strings.ToLower(cancelResp.Message), "cancelled running install")
+
+	select {
+	case <-cancelCalled:
+	case <-time.After(2 * time.Second):
+		t.Fatal("expected running install cancel func to be called")
+	}
+	select {
+	case event := <-cancelledEvents:
+		require.Equal(t, "map-a", event.itemID)
+		require.Equal(t, string(types.AssetTypeMap), event.assetType)
+		require.Equal(t, cancelledPhaseRunning, event.phase)
+	case <-time.After(time.Second):
+		t.Fatal("expected download:cancelled running event")
+	}
+
+	installResult := <-installResultCh
+	require.Equal(t, types.ResponseSuccess, installResult.genericResponse.Status)
+}
+
 func TestCancelDuringExtractRemovesInstalledFiles(t *testing.T) {
 	testutil.SetEnv(t)
 
@@ -1100,6 +1205,137 @@ func TestImportAssetRejectsNonUppercaseMapCode(t *testing.T) {
 	require.Equal(t, types.ResponseError, resp.Status)
 	require.Equal(t, types.InstallErrorInvalidMapCode, resp.ErrorType)
 	require.Contains(t, resp.Message, "invalid map code")
+}
+
+func TestInstallMapQueuedConflictWarnsWithoutReplace(t *testing.T) {
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	configureDownloaderConfig(t, cfg)
+
+	d := &Downloader{
+		Registry: reg,
+		Config:   cfg,
+		Logger:   logger.LoggerAtPath(""),
+	}
+	d.tempPath = t.TempDir()
+	d.mapTilePath = t.TempDir()
+
+	// Seed an installed local map that conflicts by city code.
+	localInstalled := types.InstalledMapInfo{
+		ID:      "AAA",
+		Version: "1.0.0",
+		IsLocal: true,
+		MapConfig: types.ConfigData{
+			Code:    "AAA",
+			Version: "1.0.0",
+			Name:    "Local AAA",
+		},
+	}
+	reg.AddInstalledMap(localInstalled.ID, localInstalled.Version, true, localInstalled.MapConfig)
+	localMapDir := filepath.Join(d.getMapDataPath(), "AAA")
+	require.NoError(t, os.MkdirAll(localMapDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(localMapDir, constants.RailyardAssetMarker), []byte("marker"), 0o644))
+
+	cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
+		{AssetID: "map-b", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
+	})
+	defer cleanup()
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	go func() {
+		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+		})
+	}()
+	<-blockerStarted
+
+	respCh := make(chan types.AssetInstallResponse, 1)
+	go func() {
+		respCh <- d.InstallAsset(types.InstallAssetRequest{
+			AssetType: types.AssetTypeMap,
+			AssetID:   "map-b",
+			Version:   "1.0.0",
+			Map:       &types.MapInstallOptions{ReplaceOnConflict: false},
+		})
+	}()
+
+	close(releaseBlocker)
+	resp := <-respCh
+	require.Equal(t, types.ResponseWarn, resp.Status)
+	require.NotNil(t, resp.MapCodeConflict)
+	require.Equal(t, "AAA", resp.MapCodeConflict.CityCode)
+	require.Equal(t, "AAA", resp.MapCodeConflict.ExistingAssetID)
+	require.True(t, resp.MapCodeConflict.ExistingIsLocal)
+}
+
+func TestInstallMapQueuedConflictReplaceRemovesConflictingLocalMap(t *testing.T) {
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	configureDownloaderConfig(t, cfg)
+
+	d := &Downloader{
+		Registry: reg,
+		Config:   cfg,
+		Logger:   logger.LoggerAtPath(""),
+	}
+	d.tempPath = t.TempDir()
+	d.mapTilePath = t.TempDir()
+
+	// Seed an installed local map that conflicts by city code.
+	localInstalled := types.InstalledMapInfo{
+		ID:      "AAA",
+		Version: "1.0.0",
+		IsLocal: true,
+		MapConfig: types.ConfigData{
+			Code:    "AAA",
+			Version: "1.0.0",
+			Name:    "Local AAA",
+		},
+	}
+	reg.AddInstalledMap(localInstalled.ID, localInstalled.Version, true, localInstalled.MapConfig)
+	localMapDir := filepath.Join(d.getMapDataPath(), "AAA")
+	require.NoError(t, os.MkdirAll(localMapDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(localMapDir, constants.RailyardAssetMarker), []byte("marker"), 0o644))
+
+	cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
+		{AssetID: "map-b", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
+	})
+	defer cleanup()
+
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	go func() {
+		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+		})
+	}()
+	<-blockerStarted
+
+	respCh := make(chan types.AssetInstallResponse, 1)
+	go func() {
+		respCh <- d.InstallAsset(types.InstallAssetRequest{
+			AssetType: types.AssetTypeMap,
+			AssetID:   "map-b",
+			Version:   "1.0.0",
+			Map:       &types.MapInstallOptions{ReplaceOnConflict: true},
+		})
+	}()
+
+	close(releaseBlocker)
+	resp := <-respCh
+	require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
+
+	installedByID := make(map[string]types.InstalledMapInfo)
+	for _, installed := range reg.GetInstalledMaps() {
+		installedByID[installed.ID] = installed
+	}
+	require.NotContains(t, installedByID, "AAA")
+	require.Equal(t, "1.0.0", installedByID["map-b"].Version)
 }
 
 func TestIsValidOperationAction(t *testing.T) {
