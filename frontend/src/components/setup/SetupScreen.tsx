@@ -190,11 +190,15 @@ export function SetupScreen() {
     try {
       const result = await openDataFolderDialog(autoDetect);
       if (result.source === 'cancelled') return;
-    } catch(error: any) {
-      if(error.message.indexOf("invalid") !== -1) {
-        toast.error("Selected folder is not a valid Metro Maker data folder. Please select a valid folder and try again.");
+    } catch (error: any) {
+      if (error.message.indexOf('invalid') !== -1) {
+        toast.error(
+          'Selected folder is not a valid Metro Maker data folder. Please select a valid folder and try again.',
+        );
       } else {
-        toast.error("An unexpected error occurred while setting the Metro Maker data folder. Please try again.");
+        toast.error(
+          'An unexpected error occurred while setting the Metro Maker data folder. Please try again.',
+        );
       }
     }
   };

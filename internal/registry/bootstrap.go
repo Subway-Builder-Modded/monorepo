@@ -188,7 +188,7 @@ func (r *Registry) validateMapData(
 			"is_local", isLocal)
 		return types.ConfigData{}, false
 	}
-	if strings.TrimPrefix(assetVersion, "v") != strings.TrimPrefix(configFromDisk.Version, "v") {
+	if !isLocal && configFromDisk.Version != "" && strings.TrimPrefix(assetVersion, "v") != strings.TrimPrefix(configFromDisk.Version, "v") {
 		r.logger.Warn("Skipping subscribed map during installed-state bootstrap: installed version does not match subscribed version", "map_id", assetID, "map_code", cityCode, "installed_version", configFromDisk.Version, "subscribed_version", assetVersion)
 		return types.ConfigData{}, false
 	}

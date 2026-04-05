@@ -322,6 +322,8 @@ func firstValidCandidate(candidates []string) (string, bool) {
 func TestOpenExecutableDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 	h := setup(t, types.AppConfig{})
 	metroMakerPath := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(metroMakerPath, "cities"), 0o755))
+	require.NoError(t, os.MkdirAll(filepath.Join(metroMakerPath, "Local Storage"), 0o755))
 
 	_, err := h.cfg.UpdateMetroMakerDataFolder(metroMakerPath)
 	require.NoError(t, err)
