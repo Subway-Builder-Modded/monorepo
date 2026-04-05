@@ -94,7 +94,7 @@ func GetWithGithubToken(client *http.Client, opts GithubTokenRequestArgs) (*http
 		return nil, err
 	}
 
-	if tokenApplied && (resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden) {
+	if tokenApplied && (resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests) {
 		// If the first authenticated requests with 401/403, assume the token is invalid/has permission issues
 		if opts.OnTokenRejected != nil {
 			// Callback to notify about token rejection

@@ -2,7 +2,9 @@ package types
 
 import (
 	"io"
+	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -67,6 +69,27 @@ const (
 	UninstallErrorFilesystem               DownloaderErrorType = "uninstall_filesystem_error"
 	UninstallErrorPersistState             DownloaderErrorType = "uninstall_persist_state_failed"
 )
+
+type RequestErrorType string
+
+const (
+	RequestErrorTooMany      RequestErrorType = "You are being rate limited. You may benefit from setting a GitHub token, as shown $HERE."
+	RequestErrorUnauthorized RequestErrorType = "GitHub indicated an authorization error. Your GitHub token may be invalid or lack necessary permissions."
+	RequestErrorForbidden    RequestErrorType = "GitHub indicated a permission error. Your GitHub token may be invalid or lack necessary permissions."
+)
+
+func GetErrorTypeForStatus(statusCode int) RequestErrorType {
+	switch statusCode {
+	case http.StatusUnauthorized:
+		return RequestErrorUnauthorized
+	case http.StatusForbidden:
+		return RequestErrorForbidden
+	case http.StatusTooManyRequests:
+		return RequestErrorTooMany
+	default:
+		return RequestErrorType("GitHub request failed with status code " + strconv.Itoa(statusCode) + ".")
+	}
+}
 
 // List of deterministic install errors that should trigger automatic purge of the subscription without user confirmation, as they indicate the subscription is invalid/corrupt and cannot be resolved through retries.
 var autoPurgeDownloadErrorTypes = map[DownloaderErrorType]struct{}{

@@ -81,6 +81,7 @@ func (a *App) startup(ctx context.Context) {
 	a.setStartupReady(false)
 	a.ctx = ctx
 	a.Config.SetContext(ctx)
+	a.Registry.SetContext(ctx)
 	a.Downloader.InstallDependency = func(itemId string, itemType types.AssetType, version types.Version) {
 		result := a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 			ProfileID:             a.Profiles.GetActiveProfile().Profile.ID,

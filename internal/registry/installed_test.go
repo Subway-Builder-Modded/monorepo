@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -33,6 +34,7 @@ func writeInstalledMapFiles(t *testing.T, mapInstallRoot string, tilesRoot strin
 func TestWriteInstalledToDiskPersistsMapsAndMods(t *testing.T) {
 	testutil.NewHarness(t)
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	reg.installedMods = []types.InstalledModInfo{
 		{ID: "mod-a", Version: "1.0.0"},
 	}
@@ -54,6 +56,7 @@ func TestWriteInstalledToDiskPersistsMapsAndMods(t *testing.T) {
 func TestWriteInstalledToDiskRollsBackWhenOnePathFails(t *testing.T) {
 	testutil.NewHarness(t)
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 
 	originalMods := []types.InstalledModInfo{
 		{ID: "mod-old", Version: "0.9.0"},
@@ -94,6 +97,7 @@ func TestFetchFromDiskRecoversFromCorruptedInstalledState(t *testing.T) {
 	require.NoError(t, os.WriteFile(paths.InstalledMapsPath(), []byte("{invalid"), 0o644))
 
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 	require.Empty(t, reg.GetInstalledMods())
 	require.Empty(t, reg.GetInstalledMaps())
@@ -110,6 +114,7 @@ func TestBootstrapInstalledStateFromProfileSkipsModOnVersionMismatch(t *testing.
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	modPath := paths.JoinLocalPath(paths.MetroMakerModsPath(cfg.Cfg.MetroMakerDataPath), "mod-a")
@@ -141,6 +146,7 @@ func TestBootstrapInstalledStateFromProfileSkipsMissingRequiredData(t *testing.T
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	profile := types.DefaultProfile()
@@ -189,6 +195,7 @@ func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	modPath := paths.JoinLocalPath(paths.MetroMakerModsPath(cfg.Cfg.MetroMakerDataPath), "mod-a")
@@ -267,6 +274,7 @@ func TestBootstrapInstalledStateFromProfilePreservesExistingRemoteMapWhenManifes
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	reg.installedMaps = []types.InstalledMapInfo{
 		{
 			ID:      "missing-map",
@@ -309,6 +317,7 @@ func TestBootstrapInstalledStateFromProfileHydratesLocalMapConfigFromDisk(t *tes
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	country := "JP"
@@ -390,6 +399,7 @@ func TestBootstrapInstalledStateFromProfileKeepsRemoteMapWhenDownloadedDataFiles
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	mapPath := paths.JoinLocalPath(paths.MetroMakerMapsDataPath(cfg.Cfg.MetroMakerDataPath), "AAA")
@@ -431,6 +441,7 @@ func TestBootstrapInstalledStateFromProfilePreservesExistingRemoteMapConfigAndBa
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	mapPath := paths.JoinLocalPath(cfg.Cfg.GetMapsFolderPath(), "AAA")
@@ -485,6 +496,7 @@ func TestBootstrapInstalledStateFromProfileKeepsLocalMap(t *testing.T) {
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	cityCode := "KCZ"
@@ -525,6 +537,7 @@ func TestBootstrapInstalledStateFromProfilePrefersExistingInstalledConfigForLoca
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	testutil.SetValidConfigPaths(t, &cfg.Cfg)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
 	cityCode := "KCZ"
@@ -620,6 +633,7 @@ func TestInstalledStatePersistsMutations(t *testing.T) {
 func TestGetRemoteInstalledMaps(t *testing.T) {
 	testutil.NewHarness(t)
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 
 	reg.AddInstalledMap("map-remote", "1.0.0", false, types.ConfigData{Code: "AAA"})
 	reg.AddInstalledMap("map-local", "1.2.0", true, types.ConfigData{Code: "BBB"})

@@ -1144,7 +1144,7 @@ func TestDownloadTempZipGithubAuthFallback(t *testing.T) {
 		tempPath: t.TempDir(),
 	}
 
-	resp := d.downloadTempZip(context.Background(), server.URL+"/asset.zip", "asset-a")
+	resp := d.downloadTempZip(context.WithValue(context.Background(), "test", "true"), server.URL+"/asset.zip", "asset-a")
 	require.Equal(t, types.ResponseSuccess, resp.Status)
 	require.NotEmpty(t, resp.Path)
 	require.Equal(t, 2, requestCount)

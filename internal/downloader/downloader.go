@@ -25,6 +25,7 @@ import (
 	"railyard/internal/types"
 
 	semver "github.com/Masterminds/semver/v3"
+	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.yaml.in/yaml/v4"
 )
 
@@ -1105,6 +1106,14 @@ func (d *Downloader) downloadRequest(ctx context.Context, downloadURL, githubTok
 		GitHubToken:            githubToken,
 		Context:                ctx,
 		ShouldAuthenticateHost: isGitHubDownloadHost,
+		OnTokenRejected: func(statusCode int) {
+			d.Logger.Warn("Github token rejected during download request", "url", downloadURL, "status_code", statusCode)
+			requestErrType := types.GetErrorTypeForStatus(statusCode)
+			// dont emit if passed ctx.TODO() for tests
+			if ctx.Value("test") != "true" {
+				wailsruntime.EventsEmit(ctx, "requests:request-error", requestErrType)
+			}
+		},
 	})
 }
 

@@ -16,6 +16,7 @@ import (
 	"railyard/internal/types"
 
 	semver "github.com/Masterminds/semver/v3"
+	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // modManifestDeps is the minimal schema needed to extract dependencies from a mod's manifest.json.
@@ -93,6 +94,10 @@ func (r *Registry) getGitHubVersions(repo string) ([]types.VersionInfo, error) {
 		},
 		OnTokenRejected: func(statusCode int) {
 			r.logger.Warn("GitHub token rejected; retrying unauthenticated request", "repo", repo, "status", statusCode)
+			requestErrType := types.GetErrorTypeForStatus(statusCode)
+			if r.context.Value("test") != "true" {
+				wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+			}
 		},
 	})
 	if err != nil {
@@ -160,6 +165,13 @@ func (r *Registry) enrichVersions(versions []types.VersionInfo) {
 				Headers: map[string]string{
 					"Accept": "application/octet-stream",
 				},
+				OnTokenRejected: func(statusCode int) {
+					r.logger.Warn("GitHub token rejected; retrying unauthenticated request", "status", statusCode)
+					requestErrType := types.GetErrorTypeForStatus(statusCode)
+					if r.context.Value("test") != "true" {
+						wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+					}
+				},
 			})
 			if err != nil {
 				return
@@ -200,6 +212,13 @@ func (r *Registry) getCustomVersions(updateURL string) ([]types.VersionInfo, err
 
 	resp, err := requests.GetWithGithubToken(r.httpClient, requests.GithubTokenRequestArgs{
 		URL: updateURL,
+		OnTokenRejected: func(statusCode int) {
+			r.logger.Warn("GitHub token rejected on custom update URL; retrying unauthenticated request", "url", updateURL, "status", statusCode)
+			requestErrType := types.GetErrorTypeForStatus(statusCode)
+			if r.context.Value("test") != "true" {
+				wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
+			}
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch custom update from %q: %w", updateURL, err)
