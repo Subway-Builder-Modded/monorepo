@@ -20,6 +20,7 @@ export namespace deeplink {
 export namespace types {
 	
 	export class AppConfig {
+	    railyardPath?: string;
 	    metroMakerDataPath?: string;
 	    executablePath?: string;
 	    githubToken?: string;
@@ -34,6 +35,7 @@ export namespace types {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.railyardPath = source["railyardPath"];
 	        this.metroMakerDataPath = source["metroMakerDataPath"];
 	        this.executablePath = source["executablePath"];
 	        this.githubToken = source["githubToken"];

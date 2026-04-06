@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"railyard/internal/paths"
 	"railyard/internal/testutil"
 	"railyard/internal/types"
 	"testing"
@@ -71,13 +72,18 @@ func TestUpdateConfigWithPersist(t *testing.T) {
 	h := setup(t, types.AppConfig{
 		ExecutablePath: "dir/executable.exe",
 	})
+	railyardPath := h.runtime().Config.RailyardPath
 
 	updated, err := h.cfg.UpdateConfig(func(c *types.AppConfig) {
 		c.MetroMakerDataPath = "dir/"
 	}, true) // Write through to disk
 
 	require.NoError(t, err)
-	require.Equal(t, testConfig(), updated.Config)
+	require.Equal(t, types.AppConfig{
+		RailyardPath:       railyardPath,
+		ExecutablePath:     "dir/executable.exe",
+		MetroMakerDataPath: "dir/",
+	}, updated.Config)
 	require.False(t, updated.HasGithubToken)
 	require.Equal(t, updated.Config, h.persisted())
 }
@@ -85,6 +91,7 @@ func TestUpdateConfigWithPersist(t *testing.T) {
 func TestUpdateConfigWithoutPersist(t *testing.T) {
 	original := testConfig()
 	h := setup(t, original)
+	railyardPath := h.runtime().Config.RailyardPath
 
 	updated, err := h.cfg.UpdateConfig(func(c *types.AppConfig) {
 		c.ExecutablePath = "updated/executable.exe"
@@ -94,7 +101,11 @@ func TestUpdateConfigWithoutPersist(t *testing.T) {
 	require.Equal(t, "updated/executable.exe", updated.Config.ExecutablePath)
 	require.Equal(t, "updated/executable.exe", h.runtime().Config.ExecutablePath)
 
-	require.Equal(t, original, h.persisted())
+	require.Equal(t, types.AppConfig{
+		RailyardPath:       railyardPath,
+		ExecutablePath:     original.ExecutablePath,
+		MetroMakerDataPath: original.MetroMakerDataPath,
+	}, h.persisted())
 }
 
 func TestSaveConfigPersistsRuntimeState(t *testing.T) {
@@ -116,10 +127,12 @@ func TestSaveConfigPersistsRuntimeState(t *testing.T) {
 func TestResolveConfigOverridesRuntimeState(t *testing.T) {
 	testutil.NewHarness(t)
 	initial := types.AppConfig{
+		RailyardPath:       paths.AppDataRoot(),
 		MetroMakerDataPath: "first/metro",
 		ExecutablePath:     "first.exe",
 	}
 	updated := types.AppConfig{
+		RailyardPath:       paths.AppDataRoot(),
 		MetroMakerDataPath: "second/metro",
 		ExecutablePath:     "second.exe",
 	}
@@ -152,6 +165,7 @@ func TestHasGithubTokenFlag(t *testing.T) {
 
 func TestUpdateAndClearGithubToken(t *testing.T) {
 	h := setup(t, types.AppConfig{})
+	railyardPath := h.runtime().Config.RailyardPath
 
 	updated := h.cfg.UpdateGithubToken("  mrao_token  ")
 	require.Equal(t, types.ResponseSuccess, updated.Status)
@@ -160,7 +174,7 @@ func TestUpdateAndClearGithubToken(t *testing.T) {
 	require.Equal(t, "  mrao_token  ", h.cfg.GetGithubToken())
 
 	// Runtime-only update should not mutate persisted config until SaveConfig.
-	require.Equal(t, types.AppConfig{}, h.persisted())
+	require.Equal(t, types.AppConfig{RailyardPath: railyardPath}, h.persisted())
 
 	saved := h.cfg.SaveConfig()
 	require.Equal(t, types.ResponseSuccess, saved.Status)
@@ -227,35 +241,54 @@ func TestGithubTokenIsValid(t *testing.T) {
 func TestSetConfigOverwritesRuntime(t *testing.T) {
 	original := testConfig()
 	h := setup(t, original)
+	railyardPath := h.runtime().Config.RailyardPath
 
 	next := types.AppConfig{
+		RailyardPath:       "should-not-overwrite",
 		ExecutablePath:     "new/executable.exe",
 		MetroMakerDataPath: "new/",
 	}
 	updated, err := h.cfg.SetConfig(next)
 	require.NoError(t, err)
-	require.Equal(t, next, updated)
+	require.Equal(t, types.AppConfig{
+		RailyardPath:       railyardPath,
+		ExecutablePath:     "new/executable.exe",
+		MetroMakerDataPath: "new/",
+	}, updated)
 
 	runtimeConfig := h.runtime()
-	require.Equal(t, next, runtimeConfig.Config)
+	require.Equal(t, types.AppConfig{
+		RailyardPath:       railyardPath,
+		ExecutablePath:     "new/executable.exe",
+		MetroMakerDataPath: "new/",
+	}, runtimeConfig.Config)
 
 	// SetConfig should only affect the runtime config; no mutation should occur to the persisted config
-	require.Equal(t, original, h.persisted())
+	require.Equal(t, types.AppConfig{
+		RailyardPath:       railyardPath,
+		ExecutablePath:     original.ExecutablePath,
+		MetroMakerDataPath: original.MetroMakerDataPath,
+	}, h.persisted())
 }
 
 func TestClearConfigOverwritesRuntimeWithEmptyConfig(t *testing.T) {
 	original := testConfig()
 	h := setup(t, original)
+	railyardPath := h.runtime().Config.RailyardPath
 
 	updated := h.cfg.ClearConfig()
 	require.Equal(t, types.ResponseSuccess, updated.Status)
-	require.Equal(t, types.AppConfig{}, updated.Config)
+	require.Equal(t, types.AppConfig{RailyardPath: railyardPath}, updated.Config)
 
 	runtimeConfig := h.runtime()
-	require.Equal(t, types.AppConfig{}, runtimeConfig.Config)
+	require.Equal(t, types.AppConfig{RailyardPath: railyardPath}, runtimeConfig.Config)
 
 	// ClearConfig should only affect the runtime config; no mutation should occur to the persisted config
-	require.Equal(t, original, h.persisted())
+	require.Equal(t, types.AppConfig{
+		RailyardPath:       railyardPath,
+		ExecutablePath:     original.ExecutablePath,
+		MetroMakerDataPath: original.MetroMakerDataPath,
+	}, h.persisted())
 }
 
 func TestFindDefaultPathReturnsFirstMatchingDirectory(t *testing.T) {
@@ -322,6 +355,7 @@ func firstValidCandidate(candidates []string) (string, bool) {
 
 func TestOpenExecutableDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 	h := setup(t, types.AppConfig{})
+	railyardPath := h.runtime().Config.RailyardPath
 	metroMakerPath := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(metroMakerPath, "cities"), 0o755))
 	require.NoError(t, os.MkdirAll(filepath.Join(metroMakerPath, "Local Storage"), 0o755))
@@ -342,12 +376,14 @@ func TestOpenExecutableDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 	require.Equal(t, detectedPath, runtimeCfg.Config.ExecutablePath)
 
 	require.Equal(t, types.AppConfig{
+		RailyardPath:       railyardPath,
 		MetroMakerDataPath: metroMakerPath,
 	}, h.persisted())
 }
 
 func TestOpenMetroMakerDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 	h := setup(t, types.AppConfig{})
+	railyardPath := h.runtime().Config.RailyardPath
 	executablePath := createWritableCandidateFile(t, DefaultExecutableCandidates())
 
 	_, err := h.cfg.UpdateExecutable(executablePath)
@@ -366,8 +402,37 @@ func TestOpenMetroMakerDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 	require.Equal(t, detectedPath, runtimeCfg.Config.MetroMakerDataPath)
 
 	require.Equal(t, types.AppConfig{
+		RailyardPath:   railyardPath,
 		ExecutablePath: executablePath,
 	}, h.persisted())
+}
+
+func TestResolveConfigBackfillsRailyardPathAndPersists(t *testing.T) {
+	testutil.NewHarness(t)
+	require.NoError(t, WriteAppConfig(types.AppConfig{
+		MetroMakerDataPath: "metro",
+		ExecutablePath:     "exe",
+	}))
+
+	cfg := NewConfig(testutil.TestLogSink{})
+	result, err := cfg.ResolveConfig()
+	require.NoError(t, err)
+	require.Equal(t, paths.AppDataRoot(), result.Config.RailyardPath)
+
+	persisted, err := ReadAppConfig()
+	require.NoError(t, err)
+	require.Equal(t, paths.AppDataRoot(), persisted.RailyardPath)
+}
+
+func TestUpdateConfigCannotMutateRailyardPath(t *testing.T) {
+	h := setup(t, testConfig())
+	railyardPath := h.runtime().Config.RailyardPath
+
+	updated, err := h.cfg.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.RailyardPath = "unexpected/path"
+	}, false)
+	require.NoError(t, err)
+	require.Equal(t, railyardPath, updated.Config.RailyardPath)
 }
 
 func TestTryAutoDetectExecutableSucceedsWhenExecutablePathIsValid(t *testing.T) {

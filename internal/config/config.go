@@ -77,9 +77,20 @@ func (s *Config) ResolveConfig() (types.ResolveConfigResult, error) {
 		return types.ResolveConfigResult{}, err
 	}
 
+	isConfigBootstrapped := false
+	// On first launch, set the default RailyardPath to the app data root.
+	if diskCfg.RailyardPath == "" {
+		diskCfg.RailyardPath = paths.AppDataRoot()
+		isConfigBootstrapped = true
+	}
+
 	s.Cfg = diskCfg
 	s.loaded = true
-
+	if isConfigBootstrapped {
+	if err := WriteAppConfig(s.Cfg); err != nil {
+		return types.ResolveConfigResult{}, err
+	}
+}
 	return resolveConfigResultFromAppConfig(s.Cfg), nil
 }
 
@@ -99,7 +110,9 @@ func (s *Config) UpdateConfig(mutator func(*types.AppConfig), persist bool) (typ
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	railyardPath := s.Cfg.RailyardPath
 	mutator(&s.Cfg)
+	s.Cfg.RailyardPath = railyardPath
 	s.loaded = true
 
 	if persist {
@@ -187,6 +200,7 @@ func (s *Config) UpdateMetroMakerDataFolder(metroMakerDataPath string) (types.Re
 func (s *Config) SetConfig(next types.AppConfig) (types.AppConfig, error) {
 	updated, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		*cfg = types.AppConfig{
+			RailyardPath:            cfg.RailyardPath,
 			MetroMakerDataPath:      strings.TrimSpace(next.MetroMakerDataPath),
 			ExecutablePath:          strings.TrimSpace(next.ExecutablePath),
 			GithubToken:             next.GithubToken,
