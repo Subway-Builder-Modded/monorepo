@@ -3,6 +3,7 @@ package registrytest
 import (
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"unsafe"
 
@@ -21,6 +22,29 @@ type RepositoryFixture struct {
 	MapDownloadEntries map[string]map[string]int
 }
 
+type fixtureAuthorIndexEntry struct {
+	AuthorID        string `json:"author_id"`
+	AuthorAlias     string `json:"author_alias"`
+	AttributionLink string `json:"attribution_link"`
+}
+
+type fixtureAuthorIndexFile struct {
+	SchemaVersion int                       `json:"schema_version"`
+	Authors       []fixtureAuthorIndexEntry `json:"authors"`
+}
+
+func fixtureAuthorID(details types.AuthorDetails, fallback string) string {
+	authorID := strings.TrimSpace(details.AuthorID)
+	if authorID != "" {
+		return authorID
+	}
+	authorAlias := strings.TrimSpace(details.AuthorAlias)
+	if authorAlias != "" {
+		return authorAlias
+	}
+	return strings.TrimSpace(fallback)
+}
+
 func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	t.Helper()
 
@@ -31,12 +55,95 @@ func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	for _, mod := range fixture.Mods {
 		modIDs = append(modIDs, mod.ID)
 		modPath := filepath.Join(repoPath, "mods", mod.ID, "manifest.json")
-		require.NoError(t, files.WriteJSON(modPath, "mod manifest", mod))
+		require.NoError(t, files.WriteJSON(modPath, "mod manifest", types.RawModManifest{
+			RawManifest: types.RawManifest{
+				SchemaVersion: mod.SchemaVersion,
+				ID:            mod.ID,
+				Name:          mod.Name,
+				AuthorID:      fixtureAuthorID(mod.Author, mod.ID+"-author"),
+				GithubID:      mod.GithubID,
+				LastUpdated:   mod.LastUpdated,
+				Description:   mod.Description,
+				Tags:          mod.Tags,
+				Gallery:       mod.Gallery,
+				Source:        mod.Source,
+				Update:        mod.Update,
+				IsTest:        mod.IsTest,
+			},
+		}))
 	}
 	for _, m := range fixture.Maps {
 		mapIDs = append(mapIDs, m.ID)
 		mapPath := filepath.Join(repoPath, "maps", m.ID, "manifest.json")
-		require.NoError(t, files.WriteJSON(mapPath, "map manifest", m))
+		require.NoError(t, files.WriteJSON(mapPath, "map manifest", types.RawMapManifest{
+			RawManifest: types.RawManifest{
+				SchemaVersion: m.SchemaVersion,
+				ID:            m.ID,
+				Name:          m.Name,
+				AuthorID:      fixtureAuthorID(m.Author, m.ID+"-author"),
+				GithubID:      m.GithubID,
+				LastUpdated:   m.LastUpdated,
+				Description:   m.Description,
+				Tags:          m.Tags,
+				Gallery:       m.Gallery,
+				Source:        m.Source,
+				Update:        m.Update,
+				IsTest:        m.IsTest,
+			},
+			CityCode:         m.CityCode,
+			Country:          m.Country,
+			Location:         m.Location,
+			Population:       m.Population,
+			DataSource:       m.DataSource,
+			SourceQuality:    m.SourceQuality,
+			LevelOfDetail:    m.LevelOfDetail,
+			SpecialDemand:    m.SpecialDemand,
+			InitialViewState: m.InitialViewState,
+		}))
+	}
+
+	authorsByID := make(map[string]fixtureAuthorIndexEntry)
+	for _, mod := range fixture.Mods {
+		authorID := fixtureAuthorID(mod.Author, mod.ID+"-author")
+		if authorID == "" {
+			continue
+		}
+		alias := strings.TrimSpace(mod.Author.AuthorAlias)
+		if alias == "" {
+			alias = authorID
+		}
+		attributionLink := strings.TrimSpace(mod.Author.AttributionLink)
+		if attributionLink == "" {
+			attributionLink = "https://github.com/" + authorID
+		}
+		authorsByID[authorID] = fixtureAuthorIndexEntry{
+			AuthorID:        authorID,
+			AuthorAlias:     alias,
+			AttributionLink: attributionLink,
+		}
+	}
+	for _, m := range fixture.Maps {
+		authorID := fixtureAuthorID(m.Author, m.ID+"-author")
+		if authorID == "" {
+			continue
+		}
+		alias := strings.TrimSpace(m.Author.AuthorAlias)
+		if alias == "" {
+			alias = authorID
+		}
+		attributionLink := strings.TrimSpace(m.Author.AttributionLink)
+		if attributionLink == "" {
+			attributionLink = "https://github.com/" + authorID
+		}
+		authorsByID[authorID] = fixtureAuthorIndexEntry{
+			AuthorID:        authorID,
+			AuthorAlias:     alias,
+			AttributionLink: attributionLink,
+		}
+	}
+	authors := make([]fixtureAuthorIndexEntry, 0, len(authorsByID))
+	for _, author := range authorsByID {
+		authors = append(authors, author)
 	}
 
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "mods", "index.json"), "mods index", types.IndexFile{
@@ -59,6 +166,10 @@ func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "maps", "downloads.json"), "map downloads", types.DownloadsFile(fixture.MapDownloadEntries)))
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "mods", constants.INTEGRITY_JSON), "mods integrity report", buildIntegrityReport(modIDs)))
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "maps", constants.INTEGRITY_JSON), "maps integrity report", buildIntegrityReport(mapIDs)))
+	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "authors", "index.json"), "authors index", fixtureAuthorIndexFile{
+		SchemaVersion: 1,
+		Authors:       authors,
+	}))
 }
 
 func buildIntegrityReport(ids []string) types.RegistryIntegrityReport {

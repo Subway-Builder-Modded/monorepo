@@ -379,7 +379,7 @@ function LibraryListRow({
               </Link>
             )}
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              by {entry.item.author}
+              by {entry.item.author.author_alias}
             </p>
           </div>
 

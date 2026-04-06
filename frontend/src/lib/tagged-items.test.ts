@@ -18,7 +18,11 @@ function makeMod(overrides: Record<string, unknown> = {}): TaggedItem {
     item: {
       id: 'mod-1',
       name: 'Test Mod',
-      author: 'Author',
+      author: {
+        author_id: 'author',
+        author_alias: 'Author',
+        attribution_link: 'https://example.com/author',
+      },
       last_updated: 1000,
       ...overrides,
     } as never,
@@ -31,7 +35,11 @@ function makeMap(overrides: Record<string, unknown> = {}): TaggedItem {
     item: {
       id: 'map-1',
       name: 'Test Map',
-      author: 'Author',
+      author: {
+        author_id: 'author',
+        author_alias: 'Author',
+        attribution_link: 'https://example.com/author',
+      },
       last_updated: 2000,
       city_code: 'TST',
       country: 'testland',
@@ -114,8 +122,20 @@ describe('compareItems', () => {
   });
 
   it('sorts by author alphabetically', () => {
-    const a = makeMod({ author: 'Alice' });
-    const b = makeMod({ author: 'Zara' });
+    const a = makeMod({
+      author: {
+        author_id: 'alice',
+        author_alias: 'Alice',
+        attribution_link: 'https://example.com/alice',
+      },
+    });
+    const b = makeMod({
+      author: {
+        author_id: 'zara',
+        author_alias: 'Zara',
+        attribution_link: 'https://example.com/zara',
+      },
+    });
     expect(
       compareItems(a, b, { field: 'author', direction: 'asc' }, {}, {}),
     ).toBeLessThan(0);

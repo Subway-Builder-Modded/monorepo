@@ -43,10 +43,9 @@ func setupDependencyResolverServer(t *testing.T, reg *registry.Registry, fixture
 		currentVersions := versions
 		updatePath := "/updates/" + currentModID + ".json"
 
-		mods = append(mods, types.ModManifest{
-			ID:     currentModID,
-			Update: types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
-		})
+		modManifest := registrytest.MockModManifestWithID(currentModID)
+		modManifest.Update = types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath}
+		mods = append(mods, modManifest)
 
 		handler.HandleFunc(updatePath, func(w http.ResponseWriter, r *http.Request) {
 			payload := types.CustomUpdateFile{

@@ -919,29 +919,49 @@ export namespace types {
 	        this.url = source["url"];
 	    }
 	}
+	export class AuthorDetails {
+	    author_id: string;
+	    author_alias: string;
+	    attribution_link: string;
+	    contributor_tier?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AuthorDetails(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.author_id = source["author_id"];
+	        this.author_alias = source["author_alias"];
+	        this.attribution_link = source["attribution_link"];
+	        this.contributor_tier = source["contributor_tier"];
+	    }
+	}
 	export class MapManifest {
 	    schema_version: number;
 	    id: string;
 	    name: string;
-	    author: string;
+	    // Go type: AuthorDetails
+	    author: any;
 	    github_id: number;
 	    last_updated: number;
+	    description: string;
+	    tags: string[];
+	    gallery: string[];
+	    source: string;
+	    // Go type: UpdateConfig
+	    update: any;
+	    is_test?: boolean;
 	    city_code: string;
 	    country: string;
 	    location: string;
 	    population: number;
-	    description: string;
 	    data_source: string;
 	    source_quality: string;
 	    level_of_detail: string;
 	    special_demand: string[];
 	    // Go type: struct { Latitude float64 "json:\"latitude\""; Longitude float64 "json:\"longitude\""; Zoom float64 "json:\"zoom\""; Pitch *float64 "json:\"pitch,omitempty\""; Bearing float64 "json:\"bearing\"" }
 	    initial_view_state: any;
-	    tags: string[];
-	    gallery: string[];
-	    source: string;
-	    update: UpdateConfig;
-	    is_test?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new MapManifest(source);
@@ -952,24 +972,24 @@ export namespace types {
 	        this.schema_version = source["schema_version"];
 	        this.id = source["id"];
 	        this.name = source["name"];
-	        this.author = source["author"];
+	        this.author = this.convertValues(source["author"], null);
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
+	        this.description = source["description"];
+	        this.tags = source["tags"];
+	        this.gallery = source["gallery"];
+	        this.source = source["source"];
+	        this.update = this.convertValues(source["update"], null);
+	        this.is_test = source["is_test"];
 	        this.city_code = source["city_code"];
 	        this.country = source["country"];
 	        this.location = source["location"];
 	        this.population = source["population"];
-	        this.description = source["description"];
 	        this.data_source = source["data_source"];
 	        this.source_quality = source["source_quality"];
 	        this.level_of_detail = source["level_of_detail"];
 	        this.special_demand = source["special_demand"];
 	        this.initial_view_state = this.convertValues(source["initial_view_state"], Object);
-	        this.tags = source["tags"];
-	        this.gallery = source["gallery"];
-	        this.source = source["source"];
-	        this.update = this.convertValues(source["update"], UpdateConfig);
-	        this.is_test = source["is_test"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1029,14 +1049,16 @@ export namespace types {
 	    schema_version: number;
 	    id: string;
 	    name: string;
-	    author: string;
+	    // Go type: AuthorDetails
+	    author: any;
 	    github_id: number;
 	    last_updated: number;
 	    description: string;
 	    tags: string[];
 	    gallery: string[];
 	    source: string;
-	    update: UpdateConfig;
+	    // Go type: UpdateConfig
+	    update: any;
 	    is_test?: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -1048,14 +1070,14 @@ export namespace types {
 	        this.schema_version = source["schema_version"];
 	        this.id = source["id"];
 	        this.name = source["name"];
-	        this.author = source["author"];
+	        this.author = this.convertValues(source["author"], null);
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
 	        this.description = source["description"];
 	        this.tags = source["tags"];
 	        this.gallery = source["gallery"];
 	        this.source = source["source"];
-	        this.update = this.convertValues(source["update"], UpdateConfig);
+	        this.update = this.convertValues(source["update"], null);
 	        this.is_test = source["is_test"];
 	    }
 	
@@ -1521,7 +1543,6 @@ export namespace types {
 		    return a;
 		}
 	}
-	
 	
 	
 	export class UpdateSubscriptionsRequest {

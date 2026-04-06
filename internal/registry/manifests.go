@@ -12,15 +12,23 @@ import (
 
 // fetchFromDisk loads all registry data (mods, maps, installed mods, installed maps) from disk into memory.
 func (r *Registry) fetchFromDisk() error {
-	mods, err := r.getModsFromDisk()
+	rawMods, err := r.getModsFromDisk()
 	if err != nil {
 		return fmt.Errorf("failed to load mods from disk: %w", err)
 	}
 
-	maps, err := r.getMapsFromDisk()
+	rawMaps, err := r.getMapsFromDisk()
 	if err != nil {
 		return fmt.Errorf("failed to load maps from disk: %w", err)
 	}
+
+	authorsByID, err := r.getAuthorsFromIndex()
+	if err != nil {
+		return fmt.Errorf("failed to load authors from index: %w", err)
+	}
+
+	mods := r.convertModManifests(rawMods, authorsByID)
+	maps := r.convertMapManifests(rawMaps, authorsByID)
 
 	downloadCounts, err := r.loadDownloadCounts([]types.AssetType{
 		types.AssetTypeMap,
@@ -77,6 +85,77 @@ func (r *Registry) fetchFromDisk() error {
 	return nil
 }
 
+// toAssetManifest converts a raw disk manifest to an enriched AssetManifest.
+func toAssetManifest(raw types.RawManifest, author types.AuthorDetails) types.AssetManifest {
+	return types.AssetManifest{
+		SchemaVersion: raw.SchemaVersion,
+		ID:            raw.ID,
+		Name:          raw.Name,
+		Author:        author,
+		GithubID:      raw.GithubID,
+		LastUpdated:   raw.LastUpdated,
+		Description:   raw.Description,
+		Tags:          raw.Tags,
+		Gallery:       raw.Gallery,
+		Source:        raw.Source,
+		Update:        raw.Update,
+		IsTest:        raw.IsTest,
+	}
+}
+
+func convertManifests[T any, O any](
+	rawManifests []T,
+	authorsByID map[string]authorIndexEntry,
+	assetType types.AssetType,
+	baseManifestFn func(T) types.RawManifest,
+	resolveAuthor func(authorID string, assetType types.AssetType, assetID string, authorsByID map[string]authorIndexEntry) (types.AuthorDetails, bool),
+	build func(T, types.AssetManifest) O,
+) []O {
+	manifests := make([]O, 0, len(rawManifests))
+	for _, raw := range rawManifests {
+		base := baseManifestFn(raw)
+		author, ok := resolveAuthor(base.AuthorID, assetType, base.ID, authorsByID)
+		if !ok {
+			continue
+		}
+		manifests = append(manifests, build(raw, toAssetManifest(base, author)))
+	}
+	return manifests
+}
+
+func (r *Registry) convertModManifests(
+	rawMods []types.RawModManifest,
+	authorsByID map[string]authorIndexEntry,
+) []types.ModManifest {
+	return convertManifests(rawMods, authorsByID, types.AssetTypeMod, func(raw types.RawModManifest) types.RawManifest {
+		return raw.RawManifest
+	}, r.resolveManifestAuthor, func(_ types.RawModManifest, manifest types.AssetManifest) types.ModManifest {
+		return types.ModManifest{AssetManifest: manifest}
+	})
+}
+
+func (r *Registry) convertMapManifests(
+	rawMaps []types.RawMapManifest,
+	authorsByID map[string]authorIndexEntry,
+) []types.MapManifest {
+	return convertManifests(rawMaps, authorsByID, types.AssetTypeMap, func(raw types.RawMapManifest) types.RawManifest {
+		return raw.RawManifest
+	}, r.resolveManifestAuthor, func(raw types.RawMapManifest, manifest types.AssetManifest) types.MapManifest {
+		return types.MapManifest{
+			AssetManifest:    manifest,
+			CityCode:         raw.CityCode,
+			Country:          raw.Country,
+			Location:         raw.Location,
+			Population:       raw.Population,
+			DataSource:       raw.DataSource,
+			SourceQuality:    raw.SourceQuality,
+			LevelOfDetail:    raw.LevelOfDetail,
+			SpecialDemand:    raw.SpecialDemand,
+			InitialViewState: raw.InitialViewState,
+		}
+	})
+}
+
 func filterManifestsByIntegrity[T any](
 	manifests []T,
 	listings map[string]types.IntegrityListing,
@@ -102,13 +181,13 @@ func filterManifestsByIntegrity[T any](
 }
 
 // getModsFromDisk reads the mods index and returns all mod manifests.
-func (r *Registry) getModsFromDisk() ([]types.ModManifest, error) {
+func (r *Registry) getModsFromDisk() ([]types.RawModManifest, error) {
 	indexPath := filepath.Join(r.repoPath, "mods", constants.INDEX_JSON)
 	index, err := files.ReadJSON[types.IndexFile](indexPath, "mods index", files.JSONReadOptions{})
 	if err != nil {
 		return nil, err
 	}
-	return readManifestsFromDisk[types.ModManifest](r.repoPath, "mods", "mod", index.Mods)
+	return readManifestsFromDisk[types.RawModManifest](r.repoPath, "mods", "mod", index.Mods)
 }
 
 func (r *Registry) SetInstalledMapsFromPath(path string) error {
@@ -130,13 +209,13 @@ func (r *Registry) SetInstalledModsFromPath(path string) error {
 }
 
 // getMapsFromDisk reads the maps index and returns all map manifests.
-func (r *Registry) getMapsFromDisk() ([]types.MapManifest, error) {
+func (r *Registry) getMapsFromDisk() ([]types.RawMapManifest, error) {
 	indexPath := filepath.Join(r.repoPath, "maps", constants.INDEX_JSON)
 	index, indexErr := files.ReadJSON[types.IndexFile](indexPath, "maps index", files.JSONReadOptions{})
 	if indexErr != nil {
 		return nil, indexErr
 	}
-	return readManifestsFromDisk[types.MapManifest](r.repoPath, "maps", "map", index.Maps)
+	return readManifestsFromDisk[types.RawMapManifest](r.repoPath, "maps", "map", index.Maps)
 }
 
 func (r *Registry) getDownloadCountsFromDisk(assetType types.AssetType) (map[string]map[string]int, error) {

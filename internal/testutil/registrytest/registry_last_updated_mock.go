@@ -54,9 +54,19 @@ func MockLastUpdatedServer(t *testing.T, reg any, fixtures []LastUpdatedFixture)
 		}
 		switch fixture.AssetType {
 		case types.AssetTypeMap:
-			maps = append(maps, types.MapManifest{ID: fixture.AssetID, Update: update})
+			maps = append(maps, types.MapManifest{
+				AssetManifest: types.AssetManifest{
+					ID:     fixture.AssetID,
+					Update: update,
+				},
+			})
 		case types.AssetTypeMod:
-			mods = append(mods, types.ModManifest{ID: fixture.AssetID, Update: update})
+			mods = append(mods, types.ModManifest{
+				AssetManifest: types.AssetManifest{
+					ID:     fixture.AssetID,
+					Update: update,
+				},
+			})
 		}
 	}
 

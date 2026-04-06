@@ -171,6 +171,8 @@ export function ProjectHeader({
     installedVersion &&
     updateTargetVersion &&
     installedVersion !== updateTargetVersion;
+  const authorAlias = item.author.author_alias;
+  const authorAttributionLink = item.author.attribution_link;
   const noCompatibleVersion =
     gameVersion && latestVersion && !latestCompatibleVersion;
 
@@ -478,11 +480,9 @@ export function ProjectHeader({
                 <Button
                   variant="link"
                   className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1"
-                  onClick={() =>
-                    BrowserOpenURL(`https://github.com/${item.author}`)
-                  }
+                  onClick={() => BrowserOpenURL(authorAttributionLink)}
                 >
-                  {item.author}
+                  {authorAlias}
                   <ExternalLink className="h-3 w-3" />
                 </Button>
               </p>

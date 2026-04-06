@@ -73,8 +73,8 @@ export function compareItems(
     }
     case 'author':
       return compareText(
-        a.item.author ?? '',
-        b.item.author ?? '',
+        a.item.author.author_alias,
+        b.item.author.author_alias,
         sort.direction,
       );
     case 'population': {
