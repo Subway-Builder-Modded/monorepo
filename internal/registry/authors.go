@@ -22,9 +22,10 @@ type authorIndexFile struct {
 }
 
 func (r *Registry) getAuthorsFromIndex() (map[string]authorIndexEntry, error) {
-	authorsPath := filepath.Join(r.repoPath, "authors", constants.INDEX_JSON)
+	authorsPath := filepath.Join(r.repoPath, constants.AUTHORS_DIR, constants.INDEX_JSON)
 	index, err := files.ReadJSON[authorIndexFile](authorsPath, "authors index", files.JSONReadOptions{})
 	if err != nil {
+		r.logger.Error("Failed to read authors index file", err, "path", authorsPath)
 		return nil, err
 	}
 
@@ -42,6 +43,9 @@ func (r *Registry) resolveManifestAuthor(
 	authorsByID map[string]authorIndexEntry,
 ) (types.AuthorDetails, bool) {
 	author, ok := authorsByID[authorID]
+	
+	// If the author ID from the manifest doesn't exist in the authors index, log an error and return an empty AuthorDetails.
+	// This shouldn't happen if the registry data is correctly maintained, but that is a data ingestion issue rather than an application error, so we can soft-fail here.
 	if !ok {
 		r.logger.Error(
 			"Skipping asset with missing author metadata",
@@ -52,7 +56,7 @@ func (r *Registry) resolveManifestAuthor(
 		)
 		return types.AuthorDetails{}, false
 	}
-	
+
 	return types.AuthorDetails{
 		AuthorID:        author.AuthorID,
 		AuthorAlias:     author.AuthorAlias,

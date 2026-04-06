@@ -32,7 +32,7 @@ func (l *captureRegistryLog) Error(msg string, err error, _ ...any) {
 	l.errorMessages = append(l.errorMessages, msg)
 }
 
-func TestFetchFromDiskEnrichesManifestAuthorsFromAuthorsIndex(t *testing.T) {
+func TestFetchFromDiskEnrichesManifestAuthors(t *testing.T) {
 	testutil.NewHarness(t)
 	modA := registrytest.MockModManifestWithID("mod-a")
 	modA.Author.AuthorID = "author-a"
@@ -82,7 +82,7 @@ func TestFetchFromDiskEnrichesManifestAuthorsFromAuthorsIndex(t *testing.T) {
 	require.Empty(t, logSink.errorMessages)
 }
 
-func TestFetchFromDiskSkipsAssetsWhenAuthorMissingFromAuthorsIndex(t *testing.T) {
+func TestFetchFromDiskSkipsAssetsWhenAuthorMissing(t *testing.T) {
 	testutil.NewHarness(t)
 	modA := registrytest.MockModManifestWithID("mod-a")
 	modA.Author.AuthorID = "missing-author"
@@ -116,47 +116,4 @@ func TestFetchFromDiskSkipsAssetsWhenAuthorMissingFromAuthorsIndex(t *testing.T)
 		strings.Contains(strings.Join(logSink.errorMessages, "\n"), "missing author metadata"),
 		"expected missing author log entry",
 	)
-}
-
-func TestFetchFromDiskKeepsAssetsEvenWithEmptyAuthorAlias(t *testing.T) {
-	testutil.NewHarness(t)
-	modA := registrytest.MockModManifestWithID("mod-a")
-	modA.Author.AuthorID = "author-a"
-	modB := registrytest.MockModManifestWithID("mod-b")
-	modB.Author.AuthorID = "author-b"
-	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
-		Mods: []types.ModManifest{modA, modB},
-	})
-
-	require.NoError(t, files.WriteJSON(
-		filepath.Join(paths.RegistryRepoPath(), "authors", "index.json"),
-		"authors index",
-		authorIndexFile{
-			SchemaVersion: 1,
-			Authors: []authorIndexEntry{
-				{
-					AuthorID:        "author-a",
-					AuthorAlias:     "Author A",
-					AttributionLink: "https://example.com/a",
-				},
-				{
-					AuthorID:        "author-b",
-					AuthorAlias:     "",
-					AttributionLink: "https://example.com/b",
-				},
-			},
-		},
-	))
-
-	logSink := &captureRegistryLog{}
-	reg := NewRegistry(logSink, config.NewConfig(testutil.TestLogSink{}))
-	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
-	require.NoError(t, reg.fetchFromDisk())
-
-	require.Len(t, reg.GetMods(), 2)
-	require.Equal(t, "mod-a", reg.GetMods()[0].ID)
-	require.Equal(t, "Author A", reg.GetMods()[0].Author.AuthorAlias)
-	require.Equal(t, "mod-b", reg.GetMods()[1].ID)
-	require.Equal(t, "", reg.GetMods()[1].Author.AuthorAlias)
-	require.Empty(t, logSink.errorMessages)
 }

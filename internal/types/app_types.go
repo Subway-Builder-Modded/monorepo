@@ -77,22 +77,16 @@ type MetroMakerModManifest struct {
 
 // ConfigData represents the structure of the config.json file found within a map zip file, containing metadata about the map and its initial view state.
 type ConfigData struct {
-	Name             string      `json:"name"`
-	Code             string      `json:"code"`
-	Description      string      `json:"description"`
-	Population       int         `json:"population"`
-	Country          *string     `json:"country,omitempty"`
-	ThumbnailBbox    *[4]float64 `json:"thumbnailBbox,omitempty"`
-	Bbox             *[4]float64 `json:"bbox,omitempty"`
-	Creator          string      `json:"creator"`
-	Version          string      `json:"version"`
-	InitialViewState struct {
-		Latitude  float64  `json:"latitude"`
-		Longitude float64  `json:"longitude"`
-		Zoom      float64  `json:"zoom"`
-		Pitch     *float64 `json:"pitch,omitempty"`
-		Bearing   float64  `json:"bearing"`
-	} `json:"initialViewState"`
+	Name             string           `json:"name"`
+	Code             string           `json:"code"`
+	Description      string           `json:"description"`
+	Population       int              `json:"population"`
+	Country          *string          `json:"country,omitempty"`
+	ThumbnailBbox    *[4]float64      `json:"thumbnailBbox,omitempty"`
+	Bbox             *[4]float64      `json:"bbox,omitempty"`
+	Creator          string           `json:"creator"`
+	Version          string           `json:"version"`
+	InitialViewState InitialViewState `json:"initialViewState"`
 }
 
 // CityInfo represents the metadata information about a city as defined in the cities.yaml file, including its code, name, version, hash, size, last modified time, and the file name of the map zip.

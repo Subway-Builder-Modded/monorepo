@@ -180,13 +180,7 @@ func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 	mapA.Author = registrytest.MockAuthor()
 	mapA.Country = country
 	mapA.Population = 123456
-	mapA.InitialViewState = struct {
-		Latitude  float64  `json:"latitude"`
-		Longitude float64  `json:"longitude"`
-		Zoom      float64  `json:"zoom"`
-		Pitch     *float64 `json:"pitch,omitempty"`
-		Bearing   float64  `json:"bearing"`
-	}{
+	mapA.InitialViewState = types.InitialViewState{
 		Latitude:  40.8518,
 		Longitude: 14.2681,
 		Zoom:      13,
@@ -248,13 +242,7 @@ func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 				Creator:     "Author A",
 				Country:     &country,
 				Version:     "2.0.0",
-				InitialViewState: struct {
-					Latitude  float64  `json:"latitude"`
-					Longitude float64  `json:"longitude"`
-					Zoom      float64  `json:"zoom"`
-					Pitch     *float64 `json:"pitch,omitempty"`
-					Bearing   float64  `json:"bearing"`
-				}{
+				InitialViewState: types.InitialViewState{
 					Latitude:  40.8518,
 					Longitude: 14.2681,
 					Zoom:      13,
@@ -336,13 +324,7 @@ func TestBootstrapInstalledStateFromProfileHydratesLocalMapConfigFromDisk(t *tes
 		Creator:     "suscat",
 		Country:     &country,
 		Version:     "0.9.0",
-		InitialViewState: struct {
-			Latitude  float64  `json:"latitude"`
-			Longitude float64  `json:"longitude"`
-			Zoom      float64  `json:"zoom"`
-			Pitch     *float64 `json:"pitch,omitempty"`
-			Bearing   float64  `json:"bearing"`
-		}{
+		InitialViewState: types.InitialViewState{
 			Latitude:  33.5597,
 			Longitude: 133.5311,
 			Zoom:      11.5,

@@ -84,21 +84,15 @@ type InstalledMapFile []InstalledMapInfo
 // MapManifest is the manifest schema for a map entry in the registry.
 type MapManifest struct {
 	AssetManifest
-	CityCode         string   `json:"city_code"`
-	Country          string   `json:"country"`
-	Location         string   `json:"location"`
-	Population       int      `json:"population"`
-	DataSource       string   `json:"data_source"`
-	SourceQuality    string   `json:"source_quality"`
-	LevelOfDetail    string   `json:"level_of_detail"`
-	SpecialDemand    []string `json:"special_demand"`
-	InitialViewState struct {
-		Latitude  float64  `json:"latitude"`
-		Longitude float64  `json:"longitude"`
-		Zoom      float64  `json:"zoom"`
-		Pitch     *float64 `json:"pitch,omitempty"`
-		Bearing   float64  `json:"bearing"`
-	} `json:"initial_view_state"`
+	CityCode         string           `json:"city_code"`
+	Country          string           `json:"country"`
+	Location         string           `json:"location"`
+	Population       int              `json:"population"`
+	DataSource       string           `json:"data_source"`
+	SourceQuality    string           `json:"source_quality"`
+	LevelOfDetail    string           `json:"level_of_detail"`
+	SpecialDemand    []string         `json:"special_demand"`
+	InitialViewState InitialViewState `json:"initial_view_state"`
 }
 
 type MapsResponse struct {

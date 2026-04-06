@@ -49,33 +49,27 @@ type fixtureModManifestFile struct {
 }
 
 type fixtureMapManifestFile struct {
-	SchemaVersion    int      `json:"schema_version"`
-	ID               string   `json:"id"`
-	Name             string   `json:"name"`
-	Author           string   `json:"author"`
-	GithubID         int      `json:"github_id"`
-	LastUpdated      int64    `json:"last_updated"`
-	CityCode         string   `json:"city_code"`
-	Country          string   `json:"country"`
-	Location         string   `json:"location"`
-	Population       int      `json:"population"`
-	Description      string   `json:"description"`
-	DataSource       string   `json:"data_source"`
-	SourceQuality    string   `json:"source_quality"`
-	LevelOfDetail    string   `json:"level_of_detail"`
-	SpecialDemand    []string `json:"special_demand"`
-	InitialViewState struct {
-		Latitude  float64  `json:"latitude"`
-		Longitude float64  `json:"longitude"`
-		Zoom      float64  `json:"zoom"`
-		Pitch     *float64 `json:"pitch,omitempty"`
-		Bearing   float64  `json:"bearing"`
-	} `json:"initial_view_state"`
-	Tags    []string           `json:"tags"`
-	Gallery []string           `json:"gallery"`
-	Source  string             `json:"source"`
-	Update  types.UpdateConfig `json:"update"`
-	IsTest  bool               `json:"is_test,omitempty"`
+	SchemaVersion    int                    `json:"schema_version"`
+	ID               string                 `json:"id"`
+	Name             string                 `json:"name"`
+	Author           string                 `json:"author"`
+	GithubID         int                    `json:"github_id"`
+	LastUpdated      int64                  `json:"last_updated"`
+	CityCode         string                 `json:"city_code"`
+	Country          string                 `json:"country"`
+	Location         string                 `json:"location"`
+	Population       int                    `json:"population"`
+	Description      string                 `json:"description"`
+	DataSource       string                 `json:"data_source"`
+	SourceQuality    string                 `json:"source_quality"`
+	LevelOfDetail    string                 `json:"level_of_detail"`
+	SpecialDemand    []string               `json:"special_demand"`
+	InitialViewState types.InitialViewState `json:"initial_view_state"`
+	Tags             []string               `json:"tags"`
+	Gallery          []string               `json:"gallery"`
+	Source           string                 `json:"source"`
+	Update           types.UpdateConfig     `json:"update"`
+	IsTest           bool                   `json:"is_test,omitempty"`
 }
 
 func fixtureAuthorID(details types.AuthorDetails, fallback string) string {

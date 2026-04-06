@@ -85,15 +85,8 @@ func (r *Registry) fetchFromDisk() error {
 	return nil
 }
 
-type rawInitialViewState struct {
-	Latitude  float64  `json:"latitude"`
-	Longitude float64  `json:"longitude"`
-	Zoom      float64  `json:"zoom"`
-	Pitch     *float64 `json:"pitch,omitempty"`
-	Bearing   float64  `json:"bearing"`
-}
-
-type modManifestFile struct {
+// rawManifest is the shared structure of all asset manifests as would be read directly from disk
+type rawManifest struct {
 	SchemaVersion int                `json:"schema_version"`
 	ID            string             `json:"id"`
 	Name          string             `json:"name"`
@@ -108,87 +101,89 @@ type modManifestFile struct {
 	IsTest        bool               `json:"is_test,omitempty"`
 }
 
+// toAssetManifest converts a rawManifest to an AssetManifest, enriching it with author details (and potentially other information in the future)
+func (raw rawManifest) toAssetManifest(author types.AuthorDetails) types.AssetManifest {
+	return types.AssetManifest{
+		SchemaVersion: raw.SchemaVersion,
+		ID:            raw.ID,
+		Name:          raw.Name,
+		Author:        author,
+		GithubID:      raw.GithubID,
+		LastUpdated:   raw.LastUpdated,
+		Description:   raw.Description,
+		Tags:          raw.Tags,
+		Gallery:       raw.Gallery,
+		Source:        raw.Source,
+		Update:        raw.Update,
+		IsTest:        raw.IsTest,
+	}
+}
+
+type modManifestFile struct {
+	rawManifest
+}
+
 type mapManifestFile struct {
-	SchemaVersion    int                 `json:"schema_version"`
-	ID               string              `json:"id"`
-	Name             string              `json:"name"`
-	AuthorID         string              `json:"author"`
-	GithubID         int                 `json:"github_id"`
-	LastUpdated      int64               `json:"last_updated"`
-	CityCode         string              `json:"city_code"`
-	Country          string              `json:"country"`
-	Location         string              `json:"location"`
-	Population       int                 `json:"population"`
-	Description      string              `json:"description"`
-	DataSource       string              `json:"data_source"`
-	SourceQuality    string              `json:"source_quality"`
-	LevelOfDetail    string              `json:"level_of_detail"`
-	SpecialDemand    []string            `json:"special_demand"`
-	InitialViewState rawInitialViewState `json:"initial_view_state"`
-	Tags             []string            `json:"tags"`
-	Gallery          []string            `json:"gallery"`
-	Source           string              `json:"source"`
-	Update           types.UpdateConfig  `json:"update"`
-	IsTest           bool                `json:"is_test,omitempty"`
+	rawManifest
+	CityCode         string                 `json:"city_code"`
+	Country          string                 `json:"country"`
+	Location         string                 `json:"location"`
+	Population       int                    `json:"population"`
+	DataSource       string                 `json:"data_source"`
+	SourceQuality    string                 `json:"source_quality"`
+	LevelOfDetail    string                 `json:"level_of_detail"`
+	SpecialDemand    []string               `json:"special_demand"`
+	InitialViewState types.InitialViewState `json:"initial_view_state"`
+}
+
+// manifestWithBase is an interface that all asset manifests implement to allow for generic processing of manifests
+type manifestWithBase interface {
+	baseManifest() rawManifest
+}
+
+func (raw modManifestFile) baseManifest() rawManifest {
+	return raw.rawManifest
+}
+
+func (raw mapManifestFile) baseManifest() rawManifest {
+	return raw.rawManifest
+}
+
+func convertManifests[T manifestWithBase, O any](
+	rawManifests []T,
+	authorsByID map[string]authorIndexEntry,
+	assetType types.AssetType,
+	resolveAuthor func(authorID string, assetType types.AssetType, assetID string, authorsByID map[string]authorIndexEntry) (types.AuthorDetails, bool),
+	build func(T, types.AssetManifest) O,
+) []O {
+	manifests := make([]O, 0, len(rawManifests))
+	for _, raw := range rawManifests {
+		base := raw.baseManifest()
+		author, ok := resolveAuthor(base.AuthorID, assetType, base.ID, authorsByID)
+		if !ok {
+			continue
+		}
+		manifests = append(manifests, build(raw, base.toAssetManifest(author)))
+	}
+	return manifests
 }
 
 func (r *Registry) convertModManifests(
 	rawMods []modManifestFile,
 	authorsByID map[string]authorIndexEntry,
 ) []types.ModManifest {
-	mods := make([]types.ModManifest, 0, len(rawMods))
-	for _, raw := range rawMods {
-		author, ok := r.resolveManifestAuthor(raw.AuthorID, types.AssetTypeMod, raw.ID, authorsByID)
-		if !ok {
-			continue
-		}
-
-		mods = append(mods, types.ModManifest{
-			AssetManifest: types.AssetManifest{
-				SchemaVersion: raw.SchemaVersion,
-				ID:            raw.ID,
-				Name:          raw.Name,
-				Author:        author,
-				GithubID:      raw.GithubID,
-				LastUpdated:   raw.LastUpdated,
-				Description:   raw.Description,
-				Tags:          raw.Tags,
-				Gallery:       raw.Gallery,
-				Source:        raw.Source,
-				Update:        raw.Update,
-				IsTest:        raw.IsTest,
-			},
-		})
-	}
-	return mods
+	return convertManifests(rawMods, authorsByID, types.AssetTypeMod, r.resolveManifestAuthor, func(_ modManifestFile, manifest types.AssetManifest) types.ModManifest {
+		return types.ModManifest{AssetManifest: manifest}
+	})
 }
 
 func (r *Registry) convertMapManifests(
 	rawMaps []mapManifestFile,
 	authorsByID map[string]authorIndexEntry,
 ) []types.MapManifest {
-	maps := make([]types.MapManifest, 0, len(rawMaps))
-	for _, raw := range rawMaps {
-		author, ok := r.resolveManifestAuthor(raw.AuthorID, types.AssetTypeMap, raw.ID, authorsByID)
-		if !ok {
-			continue
-		}
-
-		maps = append(maps, types.MapManifest{
-			AssetManifest: types.AssetManifest{
-				SchemaVersion: raw.SchemaVersion,
-				ID:            raw.ID,
-				Name:          raw.Name,
-				Author:        author,
-				GithubID:      raw.GithubID,
-				LastUpdated:   raw.LastUpdated,
-				Description:   raw.Description,
-				Tags:          raw.Tags,
-				Gallery:       raw.Gallery,
-				Source:        raw.Source,
-				Update:        raw.Update,
-				IsTest:        raw.IsTest,
-			},
+	return convertManifests(rawMaps, authorsByID, types.AssetTypeMap, r.resolveManifestAuthor, func(raw mapManifestFile, manifest types.AssetManifest) types.MapManifest {
+		return types.MapManifest{
+			AssetManifest:    manifest,
 			CityCode:         raw.CityCode,
 			Country:          raw.Country,
 			Location:         raw.Location,
@@ -198,9 +193,8 @@ func (r *Registry) convertMapManifests(
 			LevelOfDetail:    raw.LevelOfDetail,
 			SpecialDemand:    raw.SpecialDemand,
 			InitialViewState: raw.InitialViewState,
-		})
-	}
-	return maps
+		}
+	})
 }
 
 func filterManifestsByIntegrity[T any](
