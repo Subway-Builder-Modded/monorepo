@@ -21,6 +21,17 @@ type RepositoryFixture struct {
 	MapDownloadEntries map[string]map[string]int
 }
 
+type fixtureAuthorIndexEntry struct {
+	AuthorID        string `json:"author_id"`
+	AuthorAlias     string `json:"author_alias"`
+	AttributionLink string `json:"attribution_link"`
+}
+
+type fixtureAuthorIndexFile struct {
+	SchemaVersion int                       `json:"schema_version"`
+	Authors       []fixtureAuthorIndexEntry `json:"authors"`
+}
+
 func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	t.Helper()
 
@@ -37,6 +48,32 @@ func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 		mapIDs = append(mapIDs, m.ID)
 		mapPath := filepath.Join(repoPath, "maps", m.ID, "manifest.json")
 		require.NoError(t, files.WriteJSON(mapPath, "map manifest", m))
+	}
+
+	authorsByID := make(map[string]fixtureAuthorIndexEntry)
+	for _, mod := range fixture.Mods {
+		if mod.Author == "" {
+			continue
+		}
+		authorsByID[mod.Author] = fixtureAuthorIndexEntry{
+			AuthorID:        mod.Author,
+			AuthorAlias:     mod.Author,
+			AttributionLink: "https://github.com/" + mod.Author,
+		}
+	}
+	for _, m := range fixture.Maps {
+		if m.Author == "" {
+			continue
+		}
+		authorsByID[m.Author] = fixtureAuthorIndexEntry{
+			AuthorID:        m.Author,
+			AuthorAlias:     m.Author,
+			AttributionLink: "https://github.com/" + m.Author,
+		}
+	}
+	authors := make([]fixtureAuthorIndexEntry, 0, len(authorsByID))
+	for _, author := range authorsByID {
+		authors = append(authors, author)
 	}
 
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "mods", "index.json"), "mods index", types.IndexFile{
@@ -59,6 +96,10 @@ func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "maps", "downloads.json"), "map downloads", types.DownloadsFile(fixture.MapDownloadEntries)))
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "mods", constants.INTEGRITY_JSON), "mods integrity report", buildIntegrityReport(modIDs)))
 	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "maps", constants.INTEGRITY_JSON), "maps integrity report", buildIntegrityReport(mapIDs)))
+	require.NoError(t, files.WriteJSON(filepath.Join(repoPath, "authors", "index.json"), "authors index", fixtureAuthorIndexFile{
+		SchemaVersion: 1,
+		Authors:       authors,
+	}))
 }
 
 func buildIntegrityReport(ids []string) types.RegistryIntegrityReport {

@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"railyard/internal/constants"
 	"railyard/internal/files"
@@ -21,6 +22,14 @@ func (r *Registry) fetchFromDisk() error {
 	if err != nil {
 		return fmt.Errorf("failed to load maps from disk: %w", err)
 	}
+
+	authorsByID, err := r.getAuthorsFromDisk()
+	if err != nil {
+		return fmt.Errorf("failed to load authors from disk: %w", err)
+	}
+
+	r.enrichModAuthors(mods, authorsByID)
+	r.enrichMapAuthors(maps, authorsByID)
 
 	downloadCounts, err := r.loadDownloadCounts([]types.AssetType{
 		types.AssetTypeMap,
@@ -75,6 +84,86 @@ func (r *Registry) fetchFromDisk() error {
 	r.integrityMods = modIntegrity
 
 	return nil
+}
+
+type authorIndexEntry struct {
+	AuthorID        string  `json:"author_id"`
+	AuthorAlias     string  `json:"author_alias"`
+	AttributionLink string  `json:"attribution_link"`
+	ContributorTier *string `json:"contributor_tier,omitempty"`
+}
+
+type authorIndexFile struct {
+	SchemaVersion int                `json:"schema_version"`
+	Authors       []authorIndexEntry `json:"authors"`
+}
+
+func normalizeAuthorID(authorID string) string {
+	return strings.ToLower(strings.TrimSpace(authorID))
+}
+
+func fallbackAuthorAttributionLink(authorID string) string {
+	return "https://github.com/" + strings.TrimSpace(authorID)
+}
+
+func (r *Registry) getAuthorsFromDisk() (map[string]authorIndexEntry, error) {
+	authorsPath := filepath.Join(r.repoPath, "authors", constants.INDEX_JSON)
+	index, err := files.ReadJSON[authorIndexFile](authorsPath, "authors index", files.JSONReadOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	authorsByID := make(map[string]authorIndexEntry, len(index.Authors))
+	for _, author := range index.Authors {
+		authorsByID[normalizeAuthorID(author.AuthorID)] = author
+	}
+	return authorsByID, nil
+}
+
+func (r *Registry) enrichModAuthors(mods []types.ModManifest, authorsByID map[string]authorIndexEntry) {
+	for i := range mods {
+		mod := &mods[i]
+		author, ok := authorsByID[normalizeAuthorID(mod.Author)]
+		if !ok {
+			r.logger.Error(
+				"Missing author metadata for mod manifest; falling back to manifest author",
+				fmt.Errorf("author %q not found in authors index", mod.Author),
+				"asset_type", types.AssetTypeMod,
+				"asset_id", mod.ID,
+				"author_id", mod.Author,
+			)
+			mod.AuthorAttributionLink = fallbackAuthorAttributionLink(mod.Author)
+			mod.ContributorTier = nil
+			continue
+		}
+
+		mod.Author = author.AuthorAlias
+		mod.AuthorAttributionLink = author.AttributionLink
+		mod.ContributorTier = author.ContributorTier
+	}
+}
+
+func (r *Registry) enrichMapAuthors(maps []types.MapManifest, authorsByID map[string]authorIndexEntry) {
+	for i := range maps {
+		m := &maps[i]
+		author, ok := authorsByID[normalizeAuthorID(m.Author)]
+		if !ok {
+			r.logger.Error(
+				"Missing author metadata for map manifest; falling back to manifest author",
+				fmt.Errorf("author %q not found in authors index", m.Author),
+				"asset_type", types.AssetTypeMap,
+				"asset_id", m.ID,
+				"author_id", m.Author,
+			)
+			m.AuthorAttributionLink = fallbackAuthorAttributionLink(m.Author)
+			m.ContributorTier = nil
+			continue
+		}
+
+		m.Author = author.AuthorAlias
+		m.AuthorAttributionLink = author.AttributionLink
+		m.ContributorTier = author.ContributorTier
+	}
 }
 
 func filterManifestsByIntegrity[T any](

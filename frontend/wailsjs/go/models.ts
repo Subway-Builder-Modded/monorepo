@@ -924,6 +924,8 @@ export namespace types {
 	    id: string;
 	    name: string;
 	    author: string;
+	    author_attribution_link: string;
+	    contributor_tier?: string;
 	    github_id: number;
 	    last_updated: number;
 	    city_code: string;
@@ -953,6 +955,8 @@ export namespace types {
 	        this.id = source["id"];
 	        this.name = source["name"];
 	        this.author = source["author"];
+	        this.author_attribution_link = source["author_attribution_link"];
+	        this.contributor_tier = source["contributor_tier"];
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
 	        this.city_code = source["city_code"];
@@ -1030,6 +1034,8 @@ export namespace types {
 	    id: string;
 	    name: string;
 	    author: string;
+	    author_attribution_link: string;
+	    contributor_tier?: string;
 	    github_id: number;
 	    last_updated: number;
 	    description: string;
@@ -1049,6 +1055,8 @@ export namespace types {
 	        this.id = source["id"];
 	        this.name = source["name"];
 	        this.author = source["author"];
+	        this.author_attribution_link = source["author_attribution_link"];
+	        this.contributor_tier = source["contributor_tier"];
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
 	        this.description = source["description"];
