@@ -16,22 +16,31 @@ func (u UpdateConfig) Source() string {
 	return u.URL
 }
 
+type AuthorDetails struct {
+	AuthorID        string  `json:"author_id"`
+	AuthorAlias     string  `json:"author_alias"`
+	AttributionLink string  `json:"attribution_link"`
+	ContributorTier *string `json:"contributor_tier,omitempty"`
+}
+
+type AssetManifest struct {
+	SchemaVersion int           `json:"schema_version"`
+	ID            string        `json:"id"`
+	Name          string        `json:"name"`
+	Author        AuthorDetails `json:"author"`
+	GithubID      int           `json:"github_id"`
+	LastUpdated   int64         `json:"last_updated"`
+	Description   string        `json:"description"`
+	Tags          []string      `json:"tags"`
+	Gallery       []string      `json:"gallery"`
+	Source        string        `json:"source"`
+	Update        UpdateConfig  `json:"update"`
+	IsTest        bool          `json:"is_test,omitempty"` // Indicates whether this asset is a test asset that should only be shown when "View Test Mods" is enabled in settings
+}
+
 // ModManifest is the manifest schema for a mod entry in the registry.
 type ModManifest struct {
-	SchemaVersion         int          `json:"schema_version"`
-	ID                    string       `json:"id"`
-	Name                  string       `json:"name"`
-	Author                string       `json:"author"`
-	AuthorAttributionLink string       `json:"author_attribution_link"`
-	ContributorTier       *string      `json:"contributor_tier,omitempty"`
-	GithubID              int          `json:"github_id"`
-	LastUpdated           int64        `json:"last_updated"`
-	Description           string       `json:"description"`
-	Tags                  []string     `json:"tags"`
-	Gallery               []string     `json:"gallery"`
-	Source                string       `json:"source"`
-	Update                UpdateConfig `json:"update"`
-	IsTest                bool         `json:"is_test,omitempty"` // Indicates whether this mod is a test mod that should only be shown when "View Test Mods" is enabled in settings
+	AssetManifest
 }
 
 type ModsResponse struct {
@@ -74,35 +83,22 @@ type InstalledMapFile []InstalledMapInfo
 
 // MapManifest is the manifest schema for a map entry in the registry.
 type MapManifest struct {
-	SchemaVersion         int      `json:"schema_version"`
-	ID                    string   `json:"id"`
-	Name                  string   `json:"name"`
-	Author                string   `json:"author"`
-	AuthorAttributionLink string   `json:"author_attribution_link"`
-	ContributorTier       *string  `json:"contributor_tier,omitempty"`
-	GithubID              int      `json:"github_id"`
-	LastUpdated           int64    `json:"last_updated"`
-	CityCode              string   `json:"city_code"`
-	Country               string   `json:"country"`
-	Location              string   `json:"location"`
-	Population            int      `json:"population"`
-	Description           string   `json:"description"`
-	DataSource            string   `json:"data_source"`
-	SourceQuality         string   `json:"source_quality"`
-	LevelOfDetail         string   `json:"level_of_detail"`
-	SpecialDemand         []string `json:"special_demand"`
-	InitialViewState      struct {
+	AssetManifest
+	CityCode         string   `json:"city_code"`
+	Country          string   `json:"country"`
+	Location         string   `json:"location"`
+	Population       int      `json:"population"`
+	DataSource       string   `json:"data_source"`
+	SourceQuality    string   `json:"source_quality"`
+	LevelOfDetail    string   `json:"level_of_detail"`
+	SpecialDemand    []string `json:"special_demand"`
+	InitialViewState struct {
 		Latitude  float64  `json:"latitude"`
 		Longitude float64  `json:"longitude"`
 		Zoom      float64  `json:"zoom"`
 		Pitch     *float64 `json:"pitch,omitempty"`
 		Bearing   float64  `json:"bearing"`
 	} `json:"initial_view_state"`
-	Tags    []string     `json:"tags"`
-	Gallery []string     `json:"gallery"`
-	Source  string       `json:"source"`
-	Update  UpdateConfig `json:"update"`
-	IsTest  bool         `json:"is_test,omitempty"` // Indicates whether this map is a test map that should only be shown when "View Test Mods" is enabled in settings
 }
 
 type MapsResponse struct {

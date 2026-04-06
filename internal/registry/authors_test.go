@@ -36,10 +36,24 @@ func TestFetchFromDiskEnrichesManifestAuthorsFromAuthorsIndex(t *testing.T) {
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a", Author: "author-a"},
+			{
+				AssetManifest: types.AssetManifest{
+					ID: "mod-a",
+					Author: types.AuthorDetails{
+						AuthorID: "author-a",
+					},
+				},
+			},
 		},
 		Maps: []types.MapManifest{
-			{ID: "map-a", Author: "author-a"},
+			{
+				AssetManifest: types.AssetManifest{
+					ID: "map-a",
+					Author: types.AuthorDetails{
+						AuthorID: "author-a",
+					},
+				},
+			},
 		},
 	})
 
@@ -66,28 +80,44 @@ func TestFetchFromDiskEnrichesManifestAuthorsFromAuthorsIndex(t *testing.T) {
 	require.NoError(t, reg.fetchFromDisk())
 
 	require.Len(t, reg.GetMods(), 1)
-	require.Equal(t, "Alias A", reg.GetMods()[0].Author)
-	require.Equal(t, "https://example.com/alias-a", reg.GetMods()[0].AuthorAttributionLink)
-	require.NotNil(t, reg.GetMods()[0].ContributorTier)
-	require.Equal(t, "developer", *reg.GetMods()[0].ContributorTier)
+	require.Equal(t, "author-a", reg.GetMods()[0].Author.AuthorID)
+	require.Equal(t, "Alias A", reg.GetMods()[0].Author.AuthorAlias)
+	require.Equal(t, "https://example.com/alias-a", reg.GetMods()[0].Author.AttributionLink)
+	require.NotNil(t, reg.GetMods()[0].Author.ContributorTier)
+	require.Equal(t, "developer", *reg.GetMods()[0].Author.ContributorTier)
 
 	require.Len(t, reg.GetMaps(), 1)
-	require.Equal(t, "Alias A", reg.GetMaps()[0].Author)
-	require.Equal(t, "https://example.com/alias-a", reg.GetMaps()[0].AuthorAttributionLink)
-	require.NotNil(t, reg.GetMaps()[0].ContributorTier)
-	require.Equal(t, "developer", *reg.GetMaps()[0].ContributorTier)
+	require.Equal(t, "author-a", reg.GetMaps()[0].Author.AuthorID)
+	require.Equal(t, "Alias A", reg.GetMaps()[0].Author.AuthorAlias)
+	require.Equal(t, "https://example.com/alias-a", reg.GetMaps()[0].Author.AttributionLink)
+	require.NotNil(t, reg.GetMaps()[0].Author.ContributorTier)
+	require.Equal(t, "developer", *reg.GetMaps()[0].Author.ContributorTier)
 
 	require.Empty(t, logSink.errorMessages)
 }
 
-func TestFetchFromDiskFallsBackWhenAuthorMissingFromAuthorsIndex(t *testing.T) {
+func TestFetchFromDiskSkipsAssetsWhenAuthorMissingFromAuthorsIndex(t *testing.T) {
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a", Author: "missing-author"},
+			{
+				AssetManifest: types.AssetManifest{
+					ID: "mod-a",
+					Author: types.AuthorDetails{
+						AuthorID: "missing-author",
+					},
+				},
+			},
 		},
 		Maps: []types.MapManifest{
-			{ID: "map-a", Author: "missing-author"},
+			{
+				AssetManifest: types.AssetManifest{
+					ID: "map-a",
+					Author: types.AuthorDetails{
+						AuthorID: "missing-author",
+					},
+				},
+			},
 		},
 	})
 
@@ -105,20 +135,71 @@ func TestFetchFromDiskFallsBackWhenAuthorMissingFromAuthorsIndex(t *testing.T) {
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
-	require.Len(t, reg.GetMods(), 1)
-	require.Equal(t, "missing-author", reg.GetMods()[0].Author)
-	require.Equal(t, "https://github.com/missing-author", reg.GetMods()[0].AuthorAttributionLink)
-	require.Nil(t, reg.GetMods()[0].ContributorTier)
+	require.Empty(t, reg.GetMods())
+	require.Empty(t, reg.GetMaps())
 
-	require.Len(t, reg.GetMaps(), 1)
-	require.Equal(t, "missing-author", reg.GetMaps()[0].Author)
-	require.Equal(t, "https://github.com/missing-author", reg.GetMaps()[0].AuthorAttributionLink)
-	require.Nil(t, reg.GetMaps()[0].ContributorTier)
-
-	require.GreaterOrEqual(t, len(logSink.errorMessages), 2)
+	require.GreaterOrEqual(t, len(logSink.errorMessages), 1)
 	require.True(
 		t,
-		strings.Contains(strings.Join(logSink.errorMessages, "\n"), "falling back to manifest author"),
-		"expected fallback author log entry",
+		strings.Contains(strings.Join(logSink.errorMessages, "\n"), "missing author metadata"),
+		"expected missing author log entry",
+	)
+}
+
+func TestFetchFromDiskSkipsOnlyAssetsWithBrokenAuthorContract(t *testing.T) {
+	testutil.NewHarness(t)
+	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
+		Mods: []types.ModManifest{
+			{
+				AssetManifest: types.AssetManifest{
+					ID: "mod-a",
+					Author: types.AuthorDetails{
+						AuthorID: "author-a",
+					},
+				},
+			},
+			{
+				AssetManifest: types.AssetManifest{
+					ID: "mod-b",
+					Author: types.AuthorDetails{
+						AuthorID: "author-b",
+					},
+				},
+			},
+		},
+	})
+
+	require.NoError(t, files.WriteJSON(
+		filepath.Join(paths.RegistryRepoPath(), "authors", "index.json"),
+		"authors index",
+		authorIndexFile{
+			SchemaVersion: 1,
+			Authors: []authorIndexEntry{
+				{
+					AuthorID:        "author-a",
+					AuthorAlias:     "Author A",
+					AttributionLink: "https://example.com/a",
+				},
+				{
+					AuthorID:        "author-b",
+					AuthorAlias:     "",
+					AttributionLink: "https://example.com/b",
+				},
+			},
+		},
+	))
+
+	logSink := &captureRegistryLog{}
+	reg := NewRegistry(logSink, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
+	require.NoError(t, reg.fetchFromDisk())
+
+	require.Len(t, reg.GetMods(), 1)
+	require.Equal(t, "mod-a", reg.GetMods()[0].ID)
+	require.Equal(t, "Author A", reg.GetMods()[0].Author.AuthorAlias)
+	require.True(
+		t,
+		strings.Contains(strings.Join(logSink.errorMessages, "\n"), "invalid author contract"),
+		"expected invalid author contract log entry",
 	)
 }

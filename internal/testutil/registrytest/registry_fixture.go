@@ -3,6 +3,7 @@ package registrytest
 import (
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"unsafe"
 
@@ -32,6 +33,63 @@ type fixtureAuthorIndexFile struct {
 	Authors       []fixtureAuthorIndexEntry `json:"authors"`
 }
 
+type fixtureModManifestFile struct {
+	SchemaVersion int                `json:"schema_version"`
+	ID            string             `json:"id"`
+	Name          string             `json:"name"`
+	Author        string             `json:"author"`
+	GithubID      int                `json:"github_id"`
+	LastUpdated   int64              `json:"last_updated"`
+	Description   string             `json:"description"`
+	Tags          []string           `json:"tags"`
+	Gallery       []string           `json:"gallery"`
+	Source        string             `json:"source"`
+	Update        types.UpdateConfig `json:"update"`
+	IsTest        bool               `json:"is_test,omitempty"`
+}
+
+type fixtureMapManifestFile struct {
+	SchemaVersion    int      `json:"schema_version"`
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	Author           string   `json:"author"`
+	GithubID         int      `json:"github_id"`
+	LastUpdated      int64    `json:"last_updated"`
+	CityCode         string   `json:"city_code"`
+	Country          string   `json:"country"`
+	Location         string   `json:"location"`
+	Population       int      `json:"population"`
+	Description      string   `json:"description"`
+	DataSource       string   `json:"data_source"`
+	SourceQuality    string   `json:"source_quality"`
+	LevelOfDetail    string   `json:"level_of_detail"`
+	SpecialDemand    []string `json:"special_demand"`
+	InitialViewState struct {
+		Latitude  float64  `json:"latitude"`
+		Longitude float64  `json:"longitude"`
+		Zoom      float64  `json:"zoom"`
+		Pitch     *float64 `json:"pitch,omitempty"`
+		Bearing   float64  `json:"bearing"`
+	} `json:"initial_view_state"`
+	Tags    []string           `json:"tags"`
+	Gallery []string           `json:"gallery"`
+	Source  string             `json:"source"`
+	Update  types.UpdateConfig `json:"update"`
+	IsTest  bool               `json:"is_test,omitempty"`
+}
+
+func fixtureAuthorID(details types.AuthorDetails, fallback string) string {
+	authorID := strings.TrimSpace(details.AuthorID)
+	if authorID != "" {
+		return authorID
+	}
+	authorAlias := strings.TrimSpace(details.AuthorAlias)
+	if authorAlias != "" {
+		return authorAlias
+	}
+	return strings.TrimSpace(fallback)
+}
+
 func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	t.Helper()
 
@@ -42,33 +100,86 @@ func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	for _, mod := range fixture.Mods {
 		modIDs = append(modIDs, mod.ID)
 		modPath := filepath.Join(repoPath, "mods", mod.ID, "manifest.json")
-		require.NoError(t, files.WriteJSON(modPath, "mod manifest", mod))
+		require.NoError(t, files.WriteJSON(modPath, "mod manifest", fixtureModManifestFile{
+			SchemaVersion: mod.SchemaVersion,
+			ID:            mod.ID,
+			Name:          mod.Name,
+			Author:        fixtureAuthorID(mod.Author, mod.ID+"-author"),
+			GithubID:      mod.GithubID,
+			LastUpdated:   mod.LastUpdated,
+			Description:   mod.Description,
+			Tags:          mod.Tags,
+			Gallery:       mod.Gallery,
+			Source:        mod.Source,
+			Update:        mod.Update,
+			IsTest:        mod.IsTest,
+		}))
 	}
 	for _, m := range fixture.Maps {
 		mapIDs = append(mapIDs, m.ID)
 		mapPath := filepath.Join(repoPath, "maps", m.ID, "manifest.json")
-		require.NoError(t, files.WriteJSON(mapPath, "map manifest", m))
+		require.NoError(t, files.WriteJSON(mapPath, "map manifest", fixtureMapManifestFile{
+			SchemaVersion:    m.SchemaVersion,
+			ID:               m.ID,
+			Name:             m.Name,
+			Author:           fixtureAuthorID(m.Author, m.ID+"-author"),
+			GithubID:         m.GithubID,
+			LastUpdated:      m.LastUpdated,
+			CityCode:         m.CityCode,
+			Country:          m.Country,
+			Location:         m.Location,
+			Population:       m.Population,
+			Description:      m.Description,
+			DataSource:       m.DataSource,
+			SourceQuality:    m.SourceQuality,
+			LevelOfDetail:    m.LevelOfDetail,
+			SpecialDemand:    m.SpecialDemand,
+			InitialViewState: m.InitialViewState,
+			Tags:             m.Tags,
+			Gallery:          m.Gallery,
+			Source:           m.Source,
+			Update:           m.Update,
+			IsTest:           m.IsTest,
+		}))
 	}
 
 	authorsByID := make(map[string]fixtureAuthorIndexEntry)
 	for _, mod := range fixture.Mods {
-		if mod.Author == "" {
+		authorID := fixtureAuthorID(mod.Author, mod.ID+"-author")
+		if authorID == "" {
 			continue
 		}
-		authorsByID[mod.Author] = fixtureAuthorIndexEntry{
-			AuthorID:        mod.Author,
-			AuthorAlias:     mod.Author,
-			AttributionLink: "https://github.com/" + mod.Author,
+		alias := strings.TrimSpace(mod.Author.AuthorAlias)
+		if alias == "" {
+			alias = authorID
+		}
+		attributionLink := strings.TrimSpace(mod.Author.AttributionLink)
+		if attributionLink == "" {
+			attributionLink = "https://github.com/" + authorID
+		}
+		authorsByID[authorID] = fixtureAuthorIndexEntry{
+			AuthorID:        authorID,
+			AuthorAlias:     alias,
+			AttributionLink: attributionLink,
 		}
 	}
 	for _, m := range fixture.Maps {
-		if m.Author == "" {
+		authorID := fixtureAuthorID(m.Author, m.ID+"-author")
+		if authorID == "" {
 			continue
 		}
-		authorsByID[m.Author] = fixtureAuthorIndexEntry{
-			AuthorID:        m.Author,
-			AuthorAlias:     m.Author,
-			AttributionLink: "https://github.com/" + m.Author,
+		alias := strings.TrimSpace(m.Author.AuthorAlias)
+		if alias == "" {
+			alias = authorID
+		}
+		attributionLink := strings.TrimSpace(m.Author.AttributionLink)
+		if attributionLink == "" {
+			attributionLink = "https://github.com/" + authorID
+		}
+		authorsByID[authorID] = fixtureAuthorIndexEntry{
+			AuthorID:        authorID,
+			AuthorAlias:     alias,
+			AttributionLink: attributionLink,
 		}
 	}
 	authors := make([]fixtureAuthorIndexEntry, 0, len(authorsByID))

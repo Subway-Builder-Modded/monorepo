@@ -44,8 +44,15 @@ func setupDependencyResolverServer(t *testing.T, reg *registry.Registry, fixture
 		updatePath := "/updates/" + currentModID + ".json"
 
 		mods = append(mods, types.ModManifest{
-			ID:     currentModID,
-			Update: types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
+			AssetManifest: types.AssetManifest{
+				ID: currentModID,
+				Author: types.AuthorDetails{
+					AuthorID:        currentModID + "-author",
+					AuthorAlias:     currentModID + "-author",
+					AttributionLink: "https://example.com/" + currentModID + "-author",
+				},
+				Update: types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
+			},
 		})
 
 		handler.HandleFunc(updatePath, func(w http.ResponseWriter, r *http.Request) {

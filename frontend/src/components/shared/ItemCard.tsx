@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { formatListingDescriptionPreview } from '@/lib/description-preview';
 import { getCountryFlagIcon } from '@/lib/flags';
+import { manifestAuthorAlias } from '@/lib/manifest-author';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import type { SearchViewMode } from '@/lib/search-view-mode';
 import { cn } from '@/lib/utils';
@@ -391,7 +392,7 @@ export const ItemCard = memo(function ItemCard({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
-                  <p className={CARD_AUTHOR_CLASS}>by {item.author}</p>
+                  <p className={CARD_AUTHOR_CLASS}>by {manifestAuthorAlias(item)}</p>
                 </div>
                 {presentation.isMap && (
                   <MapLocationMeta
@@ -479,7 +480,7 @@ export const ItemCard = memo(function ItemCard({
               <div className="min-w-0 flex-1">
                 <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
                 <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                  by {item.author}
+                  by {manifestAuthorAlias(item)}
                 </p>
               </div>
               {presentation.isMap && (
@@ -561,7 +562,7 @@ export const ItemCard = memo(function ItemCard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
-              <p className={CARD_AUTHOR_CLASS}>by {item.author}</p>
+              <p className={CARD_AUTHOR_CLASS}>by {manifestAuthorAlias(item)}</p>
             </div>
             {presentation.isMap && (
               <MapLocationMeta

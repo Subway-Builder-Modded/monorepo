@@ -16,15 +16,41 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func testModManifest(id string) types.ModManifest {
+	return types.ModManifest{
+		AssetManifest: types.AssetManifest{
+			ID: id,
+			Author: types.AuthorDetails{
+				AuthorID:        id + "-author",
+				AuthorAlias:     id + "-author",
+				AttributionLink: "https://example.com/" + id + "-author",
+			},
+		},
+	}
+}
+
+func testMapManifest(id string) types.MapManifest {
+	return types.MapManifest{
+		AssetManifest: types.AssetManifest{
+			ID: id,
+			Author: types.AuthorDetails{
+				AuthorID:        id + "-author",
+				AuthorAlias:     id + "-author",
+				AttributionLink: "https://example.com/" + id + "-author",
+			},
+		},
+	}
+}
+
 func loadedRegistryWithDownloads(t *testing.T) *Registry {
 	t.Helper()
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a"},
+			testModManifest("mod-a"),
 		},
 		Maps: []types.MapManifest{
-			{ID: "map-a"},
+			testMapManifest("map-a"),
 		},
 		ModDownloadEntries: map[string]map[string]int{
 			"mod-a": {
@@ -110,12 +136,12 @@ func TestFetchFromDiskFiltersOutAssetsMissingIntegrityListings(t *testing.T) {
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a"},
-			{ID: "mod-b"},
+			testModManifest("mod-a"),
+			testModManifest("mod-b"),
 		},
 		Maps: []types.MapManifest{
-			{ID: "map-a"},
-			{ID: "map-b"},
+			testMapManifest("map-a"),
+			testMapManifest("map-b"),
 		},
 	})
 

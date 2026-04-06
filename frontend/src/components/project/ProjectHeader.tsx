@@ -30,6 +30,10 @@ import {
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
+import {
+  manifestAuthorAlias,
+  manifestAuthorAttributionLink,
+} from '@/lib/manifest-author';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
   handleSubscriptionMutationError,
@@ -171,8 +175,10 @@ export function ProjectHeader({
     installedVersion &&
     updateTargetVersion &&
     installedVersion !== updateTargetVersion;
+  const authorAlias = manifestAuthorAlias(item);
   const authorAttributionLink =
-    item.author_attribution_link || `https://github.com/${item.author}`;
+    manifestAuthorAttributionLink(item) ||
+    `https://github.com/${encodeURIComponent(authorAlias)}`;
   const noCompatibleVersion =
     gameVersion && latestVersion && !latestCompatibleVersion;
 
@@ -482,7 +488,7 @@ export function ProjectHeader({
                   className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1"
                   onClick={() => BrowserOpenURL(authorAttributionLink)}
                 >
-                  {item.author}
+                  {authorAlias}
                   <ExternalLink className="h-3 w-3" />
                 </Button>
               </p>

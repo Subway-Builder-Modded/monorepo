@@ -27,6 +27,7 @@ import {
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
 import { LOCAL_ACCENTS } from '@/lib/local-accent';
+import { manifestAuthorAlias } from '@/lib/manifest-author';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import { formatStorageSize } from '@/lib/size-format';
 import {
@@ -379,7 +380,7 @@ function LibraryListRow({
               </Link>
             )}
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              by {entry.item.author}
+              by {manifestAuthorAlias(entry.item)}
             </p>
           </div>
 

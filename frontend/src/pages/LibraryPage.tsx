@@ -54,7 +54,11 @@ function localMapManifestFromInstalled(
     schema_version: 1,
     id: installed.id,
     name: config.name,
-    author: config.creator,
+    author: {
+      author_id: config.creator || 'local',
+      author_alias: config.creator || 'Local Author',
+      attribution_link: '',
+    },
     github_id: 0,
     last_updated: 0,
     city_code: config.code,

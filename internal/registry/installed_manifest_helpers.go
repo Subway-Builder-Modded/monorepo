@@ -15,7 +15,7 @@ func mapConfigFromManifest(manifest *types.MapManifest, version string) types.Co
 	config.Name = manifest.Name
 	config.Description = manifest.Description
 	config.Population = manifest.Population
-	config.Creator = manifest.Author
+	config.Creator = manifest.Author.AuthorAlias
 	config.Version = version
 	config.Country = &manifest.Country
 	config.InitialViewState = manifest.InitialViewState

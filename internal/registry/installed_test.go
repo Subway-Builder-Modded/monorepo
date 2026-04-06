@@ -31,6 +31,33 @@ func writeInstalledMapFiles(t *testing.T, mapInstallRoot string, tilesRoot strin
 	require.NoError(t, os.WriteFile(paths.JoinLocalPath(tilesRoot, code+".pmtiles"), []byte("tiles"), 0o644))
 }
 
+func fixtureRegistryModManifest(id string) types.ModManifest {
+	return types.ModManifest{
+		AssetManifest: types.AssetManifest{
+			ID: id,
+			Author: types.AuthorDetails{
+				AuthorID:        id + "-author",
+				AuthorAlias:     id + "-author",
+				AttributionLink: "https://example.com/" + id + "-author",
+			},
+		},
+	}
+}
+
+func fixtureRegistryMapManifest(id string, cityCode string) types.MapManifest {
+	return types.MapManifest{
+		AssetManifest: types.AssetManifest{
+			ID: id,
+			Author: types.AuthorDetails{
+				AuthorID:        id + "-author",
+				AuthorAlias:     id + "-author",
+				AttributionLink: "https://example.com/" + id + "-author",
+			},
+		},
+		CityCode: cityCode,
+	}
+}
+
 func TestWriteInstalledToDiskPersistsMapsAndMods(t *testing.T) {
 	testutil.NewHarness(t)
 	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
@@ -85,10 +112,10 @@ func TestFetchFromDiskRecoversFromCorruptedInstalledState(t *testing.T) {
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a"},
+			fixtureRegistryModManifest("mod-a"),
 		},
 		Maps: []types.MapManifest{
-			{ID: "map-a", CityCode: "AAA"},
+			fixtureRegistryMapManifest("map-a", "AAA"),
 		},
 	})
 
@@ -107,7 +134,7 @@ func TestBootstrapInstalledStateFromProfileSkipsModOnVersionMismatch(t *testing.
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a"},
+			fixtureRegistryModManifest("mod-a"),
 		},
 	})
 
@@ -138,8 +165,8 @@ func TestBootstrapInstalledStateFromProfileSkipsMissingRequiredData(t *testing.T
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Maps: []types.MapManifest{
-			{ID: "map-a", CityCode: "AAA"},
-			{ID: "map-empty", CityCode: ""}, // No city code
+			fixtureRegistryMapManifest("map-a", "AAA"),
+			fixtureRegistryMapManifest("map-empty", ""), // No city code
 		},
 	})
 
@@ -165,17 +192,33 @@ func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 	country := "IT"
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Mods: []types.ModManifest{
-			{ID: "mod-a", Name: "Mod A"},
+			{
+				AssetManifest: types.AssetManifest{
+					ID:   "mod-a",
+					Name: "Mod A",
+					Author: types.AuthorDetails{
+						AuthorID:        "author-a",
+						AuthorAlias:     "Author A",
+						AttributionLink: "https://example.com/author-a",
+					},
+				},
+			},
 		},
 		Maps: []types.MapManifest{
 			{
-				ID:          "map-a",
-				CityCode:    "AAA",
-				Name:        "Map A",
-				Description: "Map Description",
-				Author:      "Author A",
-				Country:     country,
-				Population:  123456,
+				AssetManifest: types.AssetManifest{
+					ID:          "map-a",
+					Name:        "Map A",
+					Description: "Map Description",
+					Author: types.AuthorDetails{
+						AuthorID:        "author-a",
+						AuthorAlias:     "Author A",
+						AttributionLink: "https://example.com/author-a",
+					},
+				},
+				CityCode:   "AAA",
+				Country:    country,
+				Population: 123456,
 				InitialViewState: struct {
 					Latitude  float64  `json:"latitude"`
 					Longitude float64  `json:"longitude"`
@@ -385,13 +428,19 @@ func TestBootstrapInstalledStateFromProfileKeepsRemoteMapWhenDownloadedDataFiles
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Maps: []types.MapManifest{
 			{
-				ID:          "map-a",
-				CityCode:    "AAA",
-				Name:        "Map A",
-				Description: "Map Description",
-				Author:      "Author A",
-				Country:     country,
-				Population:  123456,
+				AssetManifest: types.AssetManifest{
+					ID:          "map-a",
+					Name:        "Map A",
+					Description: "Map Description",
+					Author: types.AuthorDetails{
+						AuthorID:        "author-a",
+						AuthorAlias:     "Author A",
+						AttributionLink: "https://example.com/author-a",
+					},
+				},
+				CityCode:   "AAA",
+				Country:    country,
+				Population: 123456,
 			},
 		},
 	})
@@ -431,13 +480,19 @@ func TestBootstrapInstalledStateFromProfilePreservesExistingRemoteMapConfigAndBa
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Maps: []types.MapManifest{
 			{
-				ID:          "map-a",
-				CityCode:    "AAA",
-				Name:        "Registry Name",
-				Description: "Registry Description",
-				Author:      "Registry Author",
-				Country:     country,
-				Population:  123456,
+				AssetManifest: types.AssetManifest{
+					ID:          "map-a",
+					Name:        "Registry Name",
+					Description: "Registry Description",
+					Author: types.AuthorDetails{
+						AuthorID:        "registry-author",
+						AuthorAlias:     "Registry Author",
+						AttributionLink: "https://example.com/registry-author",
+					},
+				},
+				CityCode:   "AAA",
+				Country:    country,
+				Population: 123456,
 			},
 		},
 	})

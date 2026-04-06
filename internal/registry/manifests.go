@@ -3,7 +3,6 @@ package registry
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"railyard/internal/constants"
 	"railyard/internal/files"
@@ -13,23 +12,23 @@ import (
 
 // fetchFromDisk loads all registry data (mods, maps, installed mods, installed maps) from disk into memory.
 func (r *Registry) fetchFromDisk() error {
-	mods, err := r.getModsFromDisk()
+	rawMods, err := r.getModsFromDisk()
 	if err != nil {
 		return fmt.Errorf("failed to load mods from disk: %w", err)
 	}
 
-	maps, err := r.getMapsFromDisk()
+	rawMaps, err := r.getMapsFromDisk()
 	if err != nil {
 		return fmt.Errorf("failed to load maps from disk: %w", err)
 	}
 
-	authorsByID, err := r.getAuthorsFromDisk()
+	authorsByID, err := r.getAuthorsFromIndex()
 	if err != nil {
-		return fmt.Errorf("failed to load authors from disk: %w", err)
+		return fmt.Errorf("failed to load authors from index: %w", err)
 	}
 
-	r.enrichModAuthors(mods, authorsByID)
-	r.enrichMapAuthors(maps, authorsByID)
+	mods := r.convertModManifests(rawMods, authorsByID)
+	maps := r.convertMapManifests(rawMaps, authorsByID)
 
 	downloadCounts, err := r.loadDownloadCounts([]types.AssetType{
 		types.AssetTypeMap,
@@ -86,84 +85,122 @@ func (r *Registry) fetchFromDisk() error {
 	return nil
 }
 
-type authorIndexEntry struct {
-	AuthorID        string  `json:"author_id"`
-	AuthorAlias     string  `json:"author_alias"`
-	AttributionLink string  `json:"attribution_link"`
-	ContributorTier *string `json:"contributor_tier,omitempty"`
+type rawInitialViewState struct {
+	Latitude  float64  `json:"latitude"`
+	Longitude float64  `json:"longitude"`
+	Zoom      float64  `json:"zoom"`
+	Pitch     *float64 `json:"pitch,omitempty"`
+	Bearing   float64  `json:"bearing"`
 }
 
-type authorIndexFile struct {
+type modManifestFile struct {
 	SchemaVersion int                `json:"schema_version"`
-	Authors       []authorIndexEntry `json:"authors"`
+	ID            string             `json:"id"`
+	Name          string             `json:"name"`
+	AuthorID      string             `json:"author"`
+	GithubID      int                `json:"github_id"`
+	LastUpdated   int64              `json:"last_updated"`
+	Description   string             `json:"description"`
+	Tags          []string           `json:"tags"`
+	Gallery       []string           `json:"gallery"`
+	Source        string             `json:"source"`
+	Update        types.UpdateConfig `json:"update"`
+	IsTest        bool               `json:"is_test,omitempty"`
 }
 
-func normalizeAuthorID(authorID string) string {
-	return strings.ToLower(strings.TrimSpace(authorID))
+type mapManifestFile struct {
+	SchemaVersion    int                 `json:"schema_version"`
+	ID               string              `json:"id"`
+	Name             string              `json:"name"`
+	AuthorID         string              `json:"author"`
+	GithubID         int                 `json:"github_id"`
+	LastUpdated      int64               `json:"last_updated"`
+	CityCode         string              `json:"city_code"`
+	Country          string              `json:"country"`
+	Location         string              `json:"location"`
+	Population       int                 `json:"population"`
+	Description      string              `json:"description"`
+	DataSource       string              `json:"data_source"`
+	SourceQuality    string              `json:"source_quality"`
+	LevelOfDetail    string              `json:"level_of_detail"`
+	SpecialDemand    []string            `json:"special_demand"`
+	InitialViewState rawInitialViewState `json:"initial_view_state"`
+	Tags             []string            `json:"tags"`
+	Gallery          []string            `json:"gallery"`
+	Source           string              `json:"source"`
+	Update           types.UpdateConfig  `json:"update"`
+	IsTest           bool                `json:"is_test,omitempty"`
 }
 
-func fallbackAuthorAttributionLink(authorID string) string {
-	return "https://github.com/" + strings.TrimSpace(authorID)
-}
-
-func (r *Registry) getAuthorsFromDisk() (map[string]authorIndexEntry, error) {
-	authorsPath := filepath.Join(r.repoPath, "authors", constants.INDEX_JSON)
-	index, err := files.ReadJSON[authorIndexFile](authorsPath, "authors index", files.JSONReadOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	authorsByID := make(map[string]authorIndexEntry, len(index.Authors))
-	for _, author := range index.Authors {
-		authorsByID[normalizeAuthorID(author.AuthorID)] = author
-	}
-	return authorsByID, nil
-}
-
-func (r *Registry) enrichModAuthors(mods []types.ModManifest, authorsByID map[string]authorIndexEntry) {
-	for i := range mods {
-		mod := &mods[i]
-		author, ok := authorsByID[normalizeAuthorID(mod.Author)]
+func (r *Registry) convertModManifests(
+	rawMods []modManifestFile,
+	authorsByID map[string]authorIndexEntry,
+) []types.ModManifest {
+	mods := make([]types.ModManifest, 0, len(rawMods))
+	for _, raw := range rawMods {
+		author, ok := r.resolveManifestAuthor(raw.AuthorID, types.AssetTypeMod, raw.ID, authorsByID)
 		if !ok {
-			r.logger.Error(
-				"Missing author metadata for mod manifest; falling back to manifest author",
-				fmt.Errorf("author %q not found in authors index", mod.Author),
-				"asset_type", types.AssetTypeMod,
-				"asset_id", mod.ID,
-				"author_id", mod.Author,
-			)
-			mod.AuthorAttributionLink = fallbackAuthorAttributionLink(mod.Author)
-			mod.ContributorTier = nil
 			continue
 		}
 
-		mod.Author = author.AuthorAlias
-		mod.AuthorAttributionLink = author.AttributionLink
-		mod.ContributorTier = author.ContributorTier
+		mods = append(mods, types.ModManifest{
+			AssetManifest: types.AssetManifest{
+				SchemaVersion: raw.SchemaVersion,
+				ID:            raw.ID,
+				Name:          raw.Name,
+				Author:        author,
+				GithubID:      raw.GithubID,
+				LastUpdated:   raw.LastUpdated,
+				Description:   raw.Description,
+				Tags:          raw.Tags,
+				Gallery:       raw.Gallery,
+				Source:        raw.Source,
+				Update:        raw.Update,
+				IsTest:        raw.IsTest,
+			},
+		})
 	}
+	return mods
 }
 
-func (r *Registry) enrichMapAuthors(maps []types.MapManifest, authorsByID map[string]authorIndexEntry) {
-	for i := range maps {
-		m := &maps[i]
-		author, ok := authorsByID[normalizeAuthorID(m.Author)]
+func (r *Registry) convertMapManifests(
+	rawMaps []mapManifestFile,
+	authorsByID map[string]authorIndexEntry,
+) []types.MapManifest {
+	maps := make([]types.MapManifest, 0, len(rawMaps))
+	for _, raw := range rawMaps {
+		author, ok := r.resolveManifestAuthor(raw.AuthorID, types.AssetTypeMap, raw.ID, authorsByID)
 		if !ok {
-			r.logger.Error(
-				"Missing author metadata for map manifest; falling back to manifest author",
-				fmt.Errorf("author %q not found in authors index", m.Author),
-				"asset_type", types.AssetTypeMap,
-				"asset_id", m.ID,
-				"author_id", m.Author,
-			)
-			m.AuthorAttributionLink = fallbackAuthorAttributionLink(m.Author)
-			m.ContributorTier = nil
 			continue
 		}
 
-		m.Author = author.AuthorAlias
-		m.AuthorAttributionLink = author.AttributionLink
-		m.ContributorTier = author.ContributorTier
+		maps = append(maps, types.MapManifest{
+			AssetManifest: types.AssetManifest{
+				SchemaVersion: raw.SchemaVersion,
+				ID:            raw.ID,
+				Name:          raw.Name,
+				Author:        author,
+				GithubID:      raw.GithubID,
+				LastUpdated:   raw.LastUpdated,
+				Description:   raw.Description,
+				Tags:          raw.Tags,
+				Gallery:       raw.Gallery,
+				Source:        raw.Source,
+				Update:        raw.Update,
+				IsTest:        raw.IsTest,
+			},
+			CityCode:         raw.CityCode,
+			Country:          raw.Country,
+			Location:         raw.Location,
+			Population:       raw.Population,
+			DataSource:       raw.DataSource,
+			SourceQuality:    raw.SourceQuality,
+			LevelOfDetail:    raw.LevelOfDetail,
+			SpecialDemand:    raw.SpecialDemand,
+			InitialViewState: raw.InitialViewState,
+		})
 	}
+	return maps
 }
 
 func filterManifestsByIntegrity[T any](
@@ -191,13 +228,13 @@ func filterManifestsByIntegrity[T any](
 }
 
 // getModsFromDisk reads the mods index and returns all mod manifests.
-func (r *Registry) getModsFromDisk() ([]types.ModManifest, error) {
+func (r *Registry) getModsFromDisk() ([]modManifestFile, error) {
 	indexPath := filepath.Join(r.repoPath, "mods", constants.INDEX_JSON)
 	index, err := files.ReadJSON[types.IndexFile](indexPath, "mods index", files.JSONReadOptions{})
 	if err != nil {
 		return nil, err
 	}
-	return readManifestsFromDisk[types.ModManifest](r.repoPath, "mods", "mod", index.Mods)
+	return readManifestsFromDisk[modManifestFile](r.repoPath, "mods", "mod", index.Mods)
 }
 
 func (r *Registry) SetInstalledMapsFromPath(path string) error {
@@ -219,13 +256,13 @@ func (r *Registry) SetInstalledModsFromPath(path string) error {
 }
 
 // getMapsFromDisk reads the maps index and returns all map manifests.
-func (r *Registry) getMapsFromDisk() ([]types.MapManifest, error) {
+func (r *Registry) getMapsFromDisk() ([]mapManifestFile, error) {
 	indexPath := filepath.Join(r.repoPath, "maps", constants.INDEX_JSON)
 	index, indexErr := files.ReadJSON[types.IndexFile](indexPath, "maps index", files.JSONReadOptions{})
 	if indexErr != nil {
 		return nil, indexErr
 	}
-	return readManifestsFromDisk[types.MapManifest](r.repoPath, "maps", "map", index.Maps)
+	return readManifestsFromDisk[mapManifestFile](r.repoPath, "maps", "map", index.Maps)
 }
 
 func (r *Registry) getDownloadCountsFromDisk(assetType types.AssetType) (map[string]map[string]int, error) {

@@ -2,6 +2,7 @@ import Fuse from 'fuse.js';
 import { useMemo } from 'react';
 
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
+import { manifestAuthorAlias } from '@/lib/manifest-author';
 import { FUSE_SEARCH_OPTIONS } from '@/lib/search';
 import {
   buildTaggedItems,
@@ -41,7 +42,7 @@ export interface TaggedItemFilterState {
 
 export function buildSearchText(item: TaggedItem): string {
   const base = item.item;
-  const values: string[] = [base.name ?? '', base.author ?? ''];
+  const values: string[] = [base.name ?? '', manifestAuthorAlias(base)];
 
   if (item.type === 'map') {
     const map = base as types.MapManifest;

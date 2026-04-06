@@ -226,8 +226,15 @@ func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 				manifests := make([]types.MapManifest, 0, len(fixture.availableVersions))
 				for assetID := range fixture.availableVersions {
 					manifests = append(manifests, types.MapManifest{
-						ID:     assetID,
-						Update: types.UpdateConfig{Type: "custom", URL: assetID},
+						AssetManifest: types.AssetManifest{
+							ID: assetID,
+							Author: types.AuthorDetails{
+								AuthorID:        assetID + "-author",
+								AuthorAlias:     assetID + "-author",
+								AttributionLink: "https://example.com/" + assetID + "-author",
+							},
+							Update: types.UpdateConfig{Type: "custom", URL: assetID},
+						},
 					})
 				}
 				return manifests
@@ -270,8 +277,15 @@ func mockModAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 				manifests := make([]types.ModManifest, 0, len(fixture.availableVersions))
 				for assetID := range fixture.availableVersions {
 					manifests = append(manifests, types.ModManifest{
-						ID:     assetID,
-						Update: types.UpdateConfig{Type: "custom", URL: assetID},
+						AssetManifest: types.AssetManifest{
+							ID: assetID,
+							Author: types.AuthorDetails{
+								AuthorID:        assetID + "-author",
+								AuthorAlias:     assetID + "-author",
+								AttributionLink: "https://example.com/" + assetID + "-author",
+							},
+							Update: types.UpdateConfig{Type: "custom", URL: assetID},
+						},
 					})
 				}
 				return manifests
