@@ -32,30 +32,11 @@ func writeInstalledMapFiles(t *testing.T, mapInstallRoot string, tilesRoot strin
 }
 
 func fixtureRegistryModManifest(id string) types.ModManifest {
-	return types.ModManifest{
-		AssetManifest: types.AssetManifest{
-			ID: id,
-			Author: types.AuthorDetails{
-				AuthorID:        id + "-author",
-				AuthorAlias:     id + "-author",
-				AttributionLink: "https://example.com/" + id + "-author",
-			},
-		},
-	}
+	return registrytest.MockModManifestWithID(id)
 }
 
 func fixtureRegistryMapManifest(id string, cityCode string) types.MapManifest {
-	return types.MapManifest{
-		AssetManifest: types.AssetManifest{
-			ID: id,
-			Author: types.AuthorDetails{
-				AuthorID:        id + "-author",
-				AuthorAlias:     id + "-author",
-				AttributionLink: "https://example.com/" + id + "-author",
-			},
-		},
-		CityCode: cityCode,
-	}
+	return registrytest.MockMapManifestWithIDAndCode(id, cityCode)
 }
 
 func TestWriteInstalledToDiskPersistsMapsAndMods(t *testing.T) {
@@ -190,49 +171,30 @@ func TestBootstrapInstalledStateFromProfileSkipsMissingRequiredData(t *testing.T
 func TestBootstrapInstalledStateFromProfileSuccessOnEmptyState(t *testing.T) {
 	testutil.NewHarness(t)
 	country := "IT"
+	modA := registrytest.MockModManifestWithID("mod-a")
+	modA.Name = "Mod A"
+	modA.Author = registrytest.MockAuthor()
+	mapA := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+	mapA.Name = "Map A"
+	mapA.Description = "Map Description"
+	mapA.Author = registrytest.MockAuthor()
+	mapA.Country = country
+	mapA.Population = 123456
+	mapA.InitialViewState = struct {
+		Latitude  float64  `json:"latitude"`
+		Longitude float64  `json:"longitude"`
+		Zoom      float64  `json:"zoom"`
+		Pitch     *float64 `json:"pitch,omitempty"`
+		Bearing   float64  `json:"bearing"`
+	}{
+		Latitude:  40.8518,
+		Longitude: 14.2681,
+		Zoom:      13,
+		Bearing:   0,
+	}
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
-		Mods: []types.ModManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID:   "mod-a",
-					Name: "Mod A",
-					Author: types.AuthorDetails{
-						AuthorID:        "author-a",
-						AuthorAlias:     "Author A",
-						AttributionLink: "https://example.com/author-a",
-					},
-				},
-			},
-		},
-		Maps: []types.MapManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID:          "map-a",
-					Name:        "Map A",
-					Description: "Map Description",
-					Author: types.AuthorDetails{
-						AuthorID:        "author-a",
-						AuthorAlias:     "Author A",
-						AttributionLink: "https://example.com/author-a",
-					},
-				},
-				CityCode:   "AAA",
-				Country:    country,
-				Population: 123456,
-				InitialViewState: struct {
-					Latitude  float64  `json:"latitude"`
-					Longitude float64  `json:"longitude"`
-					Zoom      float64  `json:"zoom"`
-					Pitch     *float64 `json:"pitch,omitempty"`
-					Bearing   float64  `json:"bearing"`
-				}{
-					Latitude:  40.8518,
-					Longitude: 14.2681,
-					Zoom:      13,
-					Bearing:   0,
-				},
-			},
-		},
+		Mods: []types.ModManifest{modA},
+		Maps: []types.MapManifest{mapA},
 	})
 
 	cfg := config.NewConfig(testutil.TestLogSink{})
@@ -425,24 +387,14 @@ func TestBootstrapInstalledStateFromProfileHydratesLocalMapConfigFromDisk(t *tes
 func TestBootstrapInstalledStateFromProfileKeepsRemoteMapWhenDownloadedDataFilesExist(t *testing.T) {
 	testutil.NewHarness(t)
 	country := "IT"
+	mapA := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+	mapA.Name = "Map A"
+	mapA.Description = "Map Description"
+	mapA.Author = registrytest.MockAuthor()
+	mapA.Country = country
+	mapA.Population = 123456
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
-		Maps: []types.MapManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID:          "map-a",
-					Name:        "Map A",
-					Description: "Map Description",
-					Author: types.AuthorDetails{
-						AuthorID:        "author-a",
-						AuthorAlias:     "Author A",
-						AttributionLink: "https://example.com/author-a",
-					},
-				},
-				CityCode:   "AAA",
-				Country:    country,
-				Population: 123456,
-			},
-		},
+		Maps: []types.MapManifest{mapA},
 	})
 
 	cfg := config.NewConfig(testutil.TestLogSink{})
@@ -477,24 +429,15 @@ func TestBootstrapInstalledStateFromProfileKeepsRemoteMapWhenDownloadedDataFiles
 func TestBootstrapInstalledStateFromProfilePreservesExistingRemoteMapConfigAndBackfillsCountry(t *testing.T) {
 	testutil.NewHarness(t)
 	country := "IT"
+	mapA := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+	mapA.Name = "Registry Name"
+	mapA.Description = "Registry Description"
+	mapA.Author = registrytest.MockAuthorWithID("registry-author")
+	mapA.Author.AuthorAlias = "Registry Author"
+	mapA.Country = country
+	mapA.Population = 123456
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
-		Maps: []types.MapManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID:          "map-a",
-					Name:        "Registry Name",
-					Description: "Registry Description",
-					Author: types.AuthorDetails{
-						AuthorID:        "registry-author",
-						AuthorAlias:     "Registry Author",
-						AttributionLink: "https://example.com/registry-author",
-					},
-				},
-				CityCode:   "AAA",
-				Country:    country,
-				Population: 123456,
-			},
-		},
+		Maps: []types.MapManifest{mapA},
 	})
 
 	cfg := config.NewConfig(testutil.TestLogSink{})

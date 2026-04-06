@@ -55,8 +55,8 @@ function localMapManifestFromInstalled(
     id: installed.id,
     name: config.name,
     author: {
-      author_id: config.creator || 'local',
-      author_alias: config.creator || 'Local Author',
+      author_id: config.creator,
+      author_alias: config.creator,
       attribution_link: '',
     },
     github_id: 0,

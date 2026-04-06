@@ -30,10 +30,6 @@ import {
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { getLocalAccentClasses } from '@/lib/local-accent';
-import {
-  manifestAuthorAlias,
-  manifestAuthorAttributionLink,
-} from '@/lib/manifest-author';
 import { formatSourceQuality } from '@/lib/map-filter-values';
 import {
   handleSubscriptionMutationError,
@@ -175,10 +171,8 @@ export function ProjectHeader({
     installedVersion &&
     updateTargetVersion &&
     installedVersion !== updateTargetVersion;
-  const authorAlias = manifestAuthorAlias(item);
-  const authorAttributionLink =
-    manifestAuthorAttributionLink(item) ||
-    `https://github.com/${encodeURIComponent(authorAlias)}`;
+  const authorAlias = item.author.author_alias;
+  const authorAttributionLink = item.author.attribution_link;
   const noCompatibleVersion =
     gameVersion && latestVersion && !latestCompatibleVersion;
 

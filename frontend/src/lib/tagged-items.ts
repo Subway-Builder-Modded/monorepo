@@ -1,5 +1,4 @@
 import type { SortDirection, SortState } from '@/lib/constants';
-import { manifestAuthorAlias } from '@/lib/manifest-author';
 
 import type { types } from '../../wailsjs/go/models';
 
@@ -74,8 +73,8 @@ export function compareItems(
     }
     case 'author':
       return compareText(
-        manifestAuthorAlias(a.item),
-        manifestAuthorAlias(b.item),
+        a.item.author.author_alias,
+        b.item.author.author_alias,
         sort.direction,
       );
     case 'population': {

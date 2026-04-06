@@ -3,7 +3,6 @@ package registry
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"railyard/internal/constants"
 	"railyard/internal/files"
@@ -22,10 +21,6 @@ type authorIndexFile struct {
 	Authors       []authorIndexEntry `json:"authors"`
 }
 
-func normalizeAuthorID(authorID string) string {
-	return strings.ToLower(strings.TrimSpace(authorID))
-}
-
 func (r *Registry) getAuthorsFromIndex() (map[string]authorIndexEntry, error) {
 	authorsPath := filepath.Join(r.repoPath, "authors", constants.INDEX_JSON)
 	index, err := files.ReadJSON[authorIndexFile](authorsPath, "authors index", files.JSONReadOptions{})
@@ -35,15 +30,7 @@ func (r *Registry) getAuthorsFromIndex() (map[string]authorIndexEntry, error) {
 
 	authorsByID := make(map[string]authorIndexEntry, len(index.Authors))
 	for _, author := range index.Authors {
-		normalizedAuthorID := normalizeAuthorID(author.AuthorID)
-		if normalizedAuthorID == "" {
-			r.logger.Error(
-				"Skipping invalid author entry in authors index",
-				fmt.Errorf("author_id is empty"),
-			)
-			continue
-		}
-		authorsByID[normalizedAuthorID] = author
+		authorsByID[author.AuthorID] = author
 	}
 	return authorsByID, nil
 }
@@ -54,19 +41,7 @@ func (r *Registry) resolveManifestAuthor(
 	assetID string,
 	authorsByID map[string]authorIndexEntry,
 ) (types.AuthorDetails, bool) {
-	normalizedAuthorID := normalizeAuthorID(authorID)
-	if normalizedAuthorID == "" {
-		r.logger.Error(
-			"Skipping asset with invalid manifest author id",
-			fmt.Errorf("manifest author id is empty"),
-			"asset_type", assetType,
-			"asset_id", assetID,
-			"author_id", authorID,
-		)
-		return types.AuthorDetails{}, false
-	}
-
-	author, ok := authorsByID[normalizedAuthorID]
+	author, ok := authorsByID[authorID]
 	if !ok {
 		r.logger.Error(
 			"Skipping asset with missing author metadata",
@@ -77,25 +52,11 @@ func (r *Registry) resolveManifestAuthor(
 		)
 		return types.AuthorDetails{}, false
 	}
-
-	alias := strings.TrimSpace(author.AuthorAlias)
-	attributionLink := strings.TrimSpace(author.AttributionLink)
-	indexAuthorID := strings.TrimSpace(author.AuthorID)
-	if alias == "" || attributionLink == "" || indexAuthorID == "" {
-		r.logger.Error(
-			"Skipping asset with invalid author contract in authors index",
-			fmt.Errorf("author metadata missing required fields"),
-			"asset_type", assetType,
-			"asset_id", assetID,
-			"author_id", authorID,
-		)
-		return types.AuthorDetails{}, false
-	}
-
+	
 	return types.AuthorDetails{
-		AuthorID:        indexAuthorID,
-		AuthorAlias:     alias,
-		AttributionLink: attributionLink,
+		AuthorID:        author.AuthorID,
+		AuthorAlias:     author.AuthorAlias,
+		AttributionLink: author.AttributionLink,
 		ContributorTier: author.ContributorTier,
 	}, true
 }

@@ -34,27 +34,13 @@ func (l *captureRegistryLog) Error(msg string, err error, _ ...any) {
 
 func TestFetchFromDiskEnrichesManifestAuthorsFromAuthorsIndex(t *testing.T) {
 	testutil.NewHarness(t)
+	modA := registrytest.MockModManifestWithID("mod-a")
+	modA.Author.AuthorID = "author-a"
+	mapA := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+	mapA.Author.AuthorID = "author-a"
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
-		Mods: []types.ModManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID: "mod-a",
-					Author: types.AuthorDetails{
-						AuthorID: "author-a",
-					},
-				},
-			},
-		},
-		Maps: []types.MapManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID: "map-a",
-					Author: types.AuthorDetails{
-						AuthorID: "author-a",
-					},
-				},
-			},
-		},
+		Mods: []types.ModManifest{modA},
+		Maps: []types.MapManifest{mapA},
 	})
 
 	contributorTier := "developer"
@@ -98,27 +84,13 @@ func TestFetchFromDiskEnrichesManifestAuthorsFromAuthorsIndex(t *testing.T) {
 
 func TestFetchFromDiskSkipsAssetsWhenAuthorMissingFromAuthorsIndex(t *testing.T) {
 	testutil.NewHarness(t)
+	modA := registrytest.MockModManifestWithID("mod-a")
+	modA.Author.AuthorID = "missing-author"
+	mapA := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+	mapA.Author.AuthorID = "missing-author"
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
-		Mods: []types.ModManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID: "mod-a",
-					Author: types.AuthorDetails{
-						AuthorID: "missing-author",
-					},
-				},
-			},
-		},
-		Maps: []types.MapManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID: "map-a",
-					Author: types.AuthorDetails{
-						AuthorID: "missing-author",
-					},
-				},
-			},
-		},
+		Mods: []types.ModManifest{modA},
+		Maps: []types.MapManifest{mapA},
 	})
 
 	require.NoError(t, files.WriteJSON(
@@ -146,27 +118,14 @@ func TestFetchFromDiskSkipsAssetsWhenAuthorMissingFromAuthorsIndex(t *testing.T)
 	)
 }
 
-func TestFetchFromDiskSkipsOnlyAssetsWithBrokenAuthorContract(t *testing.T) {
+func TestFetchFromDiskKeepsAssetsEvenWithEmptyAuthorAlias(t *testing.T) {
 	testutil.NewHarness(t)
+	modA := registrytest.MockModManifestWithID("mod-a")
+	modA.Author.AuthorID = "author-a"
+	modB := registrytest.MockModManifestWithID("mod-b")
+	modB.Author.AuthorID = "author-b"
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
-		Mods: []types.ModManifest{
-			{
-				AssetManifest: types.AssetManifest{
-					ID: "mod-a",
-					Author: types.AuthorDetails{
-						AuthorID: "author-a",
-					},
-				},
-			},
-			{
-				AssetManifest: types.AssetManifest{
-					ID: "mod-b",
-					Author: types.AuthorDetails{
-						AuthorID: "author-b",
-					},
-				},
-			},
-		},
+		Mods: []types.ModManifest{modA, modB},
 	})
 
 	require.NoError(t, files.WriteJSON(
@@ -194,12 +153,10 @@ func TestFetchFromDiskSkipsOnlyAssetsWithBrokenAuthorContract(t *testing.T) {
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
-	require.Len(t, reg.GetMods(), 1)
+	require.Len(t, reg.GetMods(), 2)
 	require.Equal(t, "mod-a", reg.GetMods()[0].ID)
 	require.Equal(t, "Author A", reg.GetMods()[0].Author.AuthorAlias)
-	require.True(
-		t,
-		strings.Contains(strings.Join(logSink.errorMessages, "\n"), "invalid author contract"),
-		"expected invalid author contract log entry",
-	)
+	require.Equal(t, "mod-b", reg.GetMods()[1].ID)
+	require.Equal(t, "", reg.GetMods()[1].Author.AuthorAlias)
+	require.Empty(t, logSink.errorMessages)
 }

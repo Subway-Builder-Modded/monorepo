@@ -225,17 +225,9 @@ func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 			getManifestsFn: func() []types.MapManifest {
 				manifests := make([]types.MapManifest, 0, len(fixture.availableVersions))
 				for assetID := range fixture.availableVersions {
-					manifests = append(manifests, types.MapManifest{
-						AssetManifest: types.AssetManifest{
-							ID: assetID,
-							Author: types.AuthorDetails{
-								AuthorID:        assetID + "-author",
-								AuthorAlias:     assetID + "-author",
-								AttributionLink: "https://example.com/" + assetID + "-author",
-							},
-							Update: types.UpdateConfig{Type: "custom", URL: assetID},
-						},
-					})
+					manifest := registrytest.MockMapManifestWithIDAndCode(assetID, "AAA")
+					manifest.Update = types.UpdateConfig{Type: "custom", URL: assetID}
+					manifests = append(manifests, manifest)
 				}
 				return manifests
 			},
@@ -276,17 +268,9 @@ func mockModAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 			getManifestsFn: func() []types.ModManifest {
 				manifests := make([]types.ModManifest, 0, len(fixture.availableVersions))
 				for assetID := range fixture.availableVersions {
-					manifests = append(manifests, types.ModManifest{
-						AssetManifest: types.AssetManifest{
-							ID: assetID,
-							Author: types.AuthorDetails{
-								AuthorID:        assetID + "-author",
-								AuthorAlias:     assetID + "-author",
-								AttributionLink: "https://example.com/" + assetID + "-author",
-							},
-							Update: types.UpdateConfig{Type: "custom", URL: assetID},
-						},
-					})
+					manifest := registrytest.MockModManifestWithID(assetID)
+					manifest.Update = types.UpdateConfig{Type: "custom", URL: assetID}
+					manifests = append(manifests, manifest)
 				}
 				return manifests
 			},

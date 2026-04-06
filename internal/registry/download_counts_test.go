@@ -17,29 +17,11 @@ import (
 )
 
 func testModManifest(id string) types.ModManifest {
-	return types.ModManifest{
-		AssetManifest: types.AssetManifest{
-			ID: id,
-			Author: types.AuthorDetails{
-				AuthorID:        id + "-author",
-				AuthorAlias:     id + "-author",
-				AttributionLink: "https://example.com/" + id + "-author",
-			},
-		},
-	}
+	return registrytest.MockModManifestWithID(id)
 }
 
 func testMapManifest(id string) types.MapManifest {
-	return types.MapManifest{
-		AssetManifest: types.AssetManifest{
-			ID: id,
-			Author: types.AuthorDetails{
-				AuthorID:        id + "-author",
-				AuthorAlias:     id + "-author",
-				AttributionLink: "https://example.com/" + id + "-author",
-			},
-		},
-	}
+	return registrytest.MockMapManifestWithIDAndCode(id, "AAA")
 }
 
 func loadedRegistryWithDownloads(t *testing.T) *Registry {
