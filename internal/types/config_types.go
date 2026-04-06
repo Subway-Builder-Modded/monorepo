@@ -11,6 +11,7 @@ import (
 
 // AppConfig is persisted at ConfigPath() and is used for global configuration
 type AppConfig struct {
+	RailyardPath            string `json:"railyardPath,omitempty"`
 	MetroMakerDataPath      string `json:"metroMakerDataPath,omitempty"`
 	ExecutablePath          string `json:"executablePath,omitempty"`
 	GithubToken             string `json:"githubToken,omitempty"`

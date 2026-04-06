@@ -289,6 +289,49 @@ export function GeneralSettingsPanel() {
             />
 
             <SettingRow
+              icon={<FolderOpen className="h-4 w-4" />}
+              iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
+              label="Railyard Path"
+              badge={
+                <Badge size="sm" variant="outline">
+                  Managed
+                </Badge>
+              }
+              description={
+                <span className="block max-w-xs truncate font-mono">
+                  {config?.railyardPath || 'Not configured'}
+                </span>
+              }
+              action={
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!config?.railyardPath}
+                    className={FILES_ACCENT.solidButton}
+                    onClick={() => handleRevealPath(config?.railyardPath)}
+                  >
+                    <FolderSearch className="size-3.5" />
+                    Reveal
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={true}
+                    className={FILES_ACCENT.outlineButton}
+                    onClick={() =>
+                      toast(
+                        'Railyard path is managed automatically and cannot be changed.',
+                      )
+                    }
+                  >
+                    Change
+                  </Button>
+                </>
+              }
+            />
+
+            <SettingRow
               icon={<KeyRound className="h-4 w-4" />}
               label="Token"
               badge={
