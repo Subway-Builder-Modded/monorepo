@@ -99,6 +99,26 @@ export namespace types {
 	        this.cityCode = source["cityCode"];
 	    }
 	}
+	export class InitialViewState {
+	    latitude: number;
+	    longitude: number;
+	    zoom: number;
+	    pitch?: number;
+	    bearing: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new InitialViewState(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.latitude = source["latitude"];
+	        this.longitude = source["longitude"];
+	        this.zoom = source["zoom"];
+	        this.pitch = source["pitch"];
+	        this.bearing = source["bearing"];
+	    }
+	}
 	export class ConfigData {
 	    name: string;
 	    code: string;
@@ -109,8 +129,7 @@ export namespace types {
 	    bbox?: number[];
 	    creator: string;
 	    version: string;
-	    // Go type: struct { Latitude float64 "json:\"latitude\""; Longitude float64 "json:\"longitude\""; Zoom float64 "json:\"zoom\""; Pitch *float64 "json:\"pitch,omitempty\""; Bearing float64 "json:\"bearing\"" }
-	    initialViewState: any;
+	    initialViewState: InitialViewState;
 	
 	    static createFrom(source: any = {}) {
 	        return new ConfigData(source);
@@ -127,7 +146,7 @@ export namespace types {
 	        this.bbox = source["bbox"];
 	        this.creator = source["creator"];
 	        this.version = source["version"];
-	        this.initialViewState = this.convertValues(source["initialViewState"], Object);
+	        this.initialViewState = this.convertValues(source["initialViewState"], InitialViewState);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -611,6 +630,7 @@ export namespace types {
 	        this.replaceOnConflict = source["replaceOnConflict"];
 	    }
 	}
+	
 	export class ModInstallOptions {
 	    skipDependencies?: boolean;
 	
@@ -960,8 +980,7 @@ export namespace types {
 	    source_quality: string;
 	    level_of_detail: string;
 	    special_demand: string[];
-	    // Go type: struct { Latitude float64 "json:\"latitude\""; Longitude float64 "json:\"longitude\""; Zoom float64 "json:\"zoom\""; Pitch *float64 "json:\"pitch,omitempty\""; Bearing float64 "json:\"bearing\"" }
-	    initial_view_state: any;
+	    initial_view_state: InitialViewState;
 	
 	    static createFrom(source: any = {}) {
 	        return new MapManifest(source);
@@ -989,7 +1008,7 @@ export namespace types {
 	        this.source_quality = source["source_quality"];
 	        this.level_of_detail = source["level_of_detail"];
 	        this.special_demand = source["special_demand"];
-	        this.initial_view_state = this.convertValues(source["initial_view_state"], Object);
+	        this.initial_view_state = this.convertValues(source["initial_view_state"], InitialViewState);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

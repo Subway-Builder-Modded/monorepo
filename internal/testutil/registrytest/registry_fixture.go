@@ -44,7 +44,6 @@ func fixtureAuthorID(details types.AuthorDetails, fallback string) string {
 	}
 	return strings.TrimSpace(fallback)
 }
-
 func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 	t.Helper()
 
