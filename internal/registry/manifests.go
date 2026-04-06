@@ -85,24 +85,8 @@ func (r *Registry) fetchFromDisk() error {
 	return nil
 }
 
-// rawManifest is the shared structure of all asset manifests as would be read directly from disk
-type rawManifest struct {
-	SchemaVersion int                `json:"schema_version"`
-	ID            string             `json:"id"`
-	Name          string             `json:"name"`
-	AuthorID      string             `json:"author"`
-	GithubID      int                `json:"github_id"`
-	LastUpdated   int64              `json:"last_updated"`
-	Description   string             `json:"description"`
-	Tags          []string           `json:"tags"`
-	Gallery       []string           `json:"gallery"`
-	Source        string             `json:"source"`
-	Update        types.UpdateConfig `json:"update"`
-	IsTest        bool               `json:"is_test,omitempty"`
-}
-
-// toAssetManifest converts a rawManifest to an AssetManifest, enriching it with author details (and potentially other information in the future)
-func (raw rawManifest) toAssetManifest(author types.AuthorDetails) types.AssetManifest {
+// toAssetManifest converts a raw disk manifest to an enriched AssetManifest.
+func toAssetManifest(raw types.RawManifest, author types.AuthorDetails) types.AssetManifest {
 	return types.AssetManifest{
 		SchemaVersion: raw.SchemaVersion,
 		ID:            raw.ID,
@@ -119,69 +103,44 @@ func (raw rawManifest) toAssetManifest(author types.AuthorDetails) types.AssetMa
 	}
 }
 
-type modManifestFile struct {
-	rawManifest
-}
-
-type mapManifestFile struct {
-	rawManifest
-	CityCode         string                 `json:"city_code"`
-	Country          string                 `json:"country"`
-	Location         string                 `json:"location"`
-	Population       int                    `json:"population"`
-	DataSource       string                 `json:"data_source"`
-	SourceQuality    string                 `json:"source_quality"`
-	LevelOfDetail    string                 `json:"level_of_detail"`
-	SpecialDemand    []string               `json:"special_demand"`
-	InitialViewState types.InitialViewState `json:"initial_view_state"`
-}
-
-// manifestWithBase is an interface that all asset manifests implement to allow for generic processing of manifests
-type manifestWithBase interface {
-	baseManifest() rawManifest
-}
-
-func (raw modManifestFile) baseManifest() rawManifest {
-	return raw.rawManifest
-}
-
-func (raw mapManifestFile) baseManifest() rawManifest {
-	return raw.rawManifest
-}
-
-func convertManifests[T manifestWithBase, O any](
+func convertManifests[T any, O any](
 	rawManifests []T,
 	authorsByID map[string]authorIndexEntry,
 	assetType types.AssetType,
+	baseManifestFn func(T) types.RawManifest,
 	resolveAuthor func(authorID string, assetType types.AssetType, assetID string, authorsByID map[string]authorIndexEntry) (types.AuthorDetails, bool),
 	build func(T, types.AssetManifest) O,
 ) []O {
 	manifests := make([]O, 0, len(rawManifests))
 	for _, raw := range rawManifests {
-		base := raw.baseManifest()
+		base := baseManifestFn(raw)
 		author, ok := resolveAuthor(base.AuthorID, assetType, base.ID, authorsByID)
 		if !ok {
 			continue
 		}
-		manifests = append(manifests, build(raw, base.toAssetManifest(author)))
+		manifests = append(manifests, build(raw, toAssetManifest(base, author)))
 	}
 	return manifests
 }
 
 func (r *Registry) convertModManifests(
-	rawMods []modManifestFile,
+	rawMods []types.RawModManifest,
 	authorsByID map[string]authorIndexEntry,
 ) []types.ModManifest {
-	return convertManifests(rawMods, authorsByID, types.AssetTypeMod, r.resolveManifestAuthor, func(_ modManifestFile, manifest types.AssetManifest) types.ModManifest {
+	return convertManifests(rawMods, authorsByID, types.AssetTypeMod, func(raw types.RawModManifest) types.RawManifest {
+		return raw.RawManifest
+	}, r.resolveManifestAuthor, func(_ types.RawModManifest, manifest types.AssetManifest) types.ModManifest {
 		return types.ModManifest{AssetManifest: manifest}
 	})
 }
 
 func (r *Registry) convertMapManifests(
-	rawMaps []mapManifestFile,
+	rawMaps []types.RawMapManifest,
 	authorsByID map[string]authorIndexEntry,
 ) []types.MapManifest {
-	return convertManifests(rawMaps, authorsByID, types.AssetTypeMap, r.resolveManifestAuthor, func(raw mapManifestFile, manifest types.AssetManifest) types.MapManifest {
+	return convertManifests(rawMaps, authorsByID, types.AssetTypeMap, func(raw types.RawMapManifest) types.RawManifest {
+		return raw.RawManifest
+	}, r.resolveManifestAuthor, func(raw types.RawMapManifest, manifest types.AssetManifest) types.MapManifest {
 		return types.MapManifest{
 			AssetManifest:    manifest,
 			CityCode:         raw.CityCode,
@@ -222,13 +181,13 @@ func filterManifestsByIntegrity[T any](
 }
 
 // getModsFromDisk reads the mods index and returns all mod manifests.
-func (r *Registry) getModsFromDisk() ([]modManifestFile, error) {
+func (r *Registry) getModsFromDisk() ([]types.RawModManifest, error) {
 	indexPath := filepath.Join(r.repoPath, "mods", constants.INDEX_JSON)
 	index, err := files.ReadJSON[types.IndexFile](indexPath, "mods index", files.JSONReadOptions{})
 	if err != nil {
 		return nil, err
 	}
-	return readManifestsFromDisk[modManifestFile](r.repoPath, "mods", "mod", index.Mods)
+	return readManifestsFromDisk[types.RawModManifest](r.repoPath, "mods", "mod", index.Mods)
 }
 
 func (r *Registry) SetInstalledMapsFromPath(path string) error {
@@ -250,13 +209,13 @@ func (r *Registry) SetInstalledModsFromPath(path string) error {
 }
 
 // getMapsFromDisk reads the maps index and returns all map manifests.
-func (r *Registry) getMapsFromDisk() ([]mapManifestFile, error) {
+func (r *Registry) getMapsFromDisk() ([]types.RawMapManifest, error) {
 	indexPath := filepath.Join(r.repoPath, "maps", constants.INDEX_JSON)
 	index, indexErr := files.ReadJSON[types.IndexFile](indexPath, "maps index", files.JSONReadOptions{})
 	if indexErr != nil {
 		return nil, indexErr
 	}
-	return readManifestsFromDisk[mapManifestFile](r.repoPath, "maps", "map", index.Maps)
+	return readManifestsFromDisk[types.RawMapManifest](r.repoPath, "maps", "map", index.Maps)
 }
 
 func (r *Registry) getDownloadCountsFromDisk(assetType types.AssetType) (map[string]map[string]int, error) {

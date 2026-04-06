@@ -43,7 +43,7 @@ func (r *Registry) resolveManifestAuthor(
 	authorsByID map[string]authorIndexEntry,
 ) (types.AuthorDetails, bool) {
 	author, ok := authorsByID[authorID]
-	
+
 	// If the author ID from the manifest doesn't exist in the authors index, log an error and return an empty AuthorDetails.
 	// This shouldn't happen if the registry data is correctly maintained, but that is a data ingestion issue rather than an application error, so we can soft-fail here.
 	if !ok {
