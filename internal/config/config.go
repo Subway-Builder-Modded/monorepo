@@ -87,10 +87,10 @@ func (s *Config) ResolveConfig() (types.ResolveConfigResult, error) {
 	s.Cfg = diskCfg
 	s.loaded = true
 	if isConfigBootstrapped {
-	if err := WriteAppConfig(s.Cfg); err != nil {
-		return types.ResolveConfigResult{}, err
+		if err := WriteAppConfig(s.Cfg); err != nil {
+			return types.ResolveConfigResult{}, err
+		}
 	}
-}
 	return resolveConfigResultFromAppConfig(s.Cfg), nil
 }
 
