@@ -9,4 +9,3 @@ export function manifestAuthorAlias(item: AssetManifest): string {
 export function manifestAuthorAttributionLink(item: AssetManifest): string {
   return item.author?.attribution_link ?? '';
 }
-

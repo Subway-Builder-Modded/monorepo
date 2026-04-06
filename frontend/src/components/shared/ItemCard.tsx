@@ -392,7 +392,9 @@ export const ItemCard = memo(function ItemCard({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
-                  <p className={CARD_AUTHOR_CLASS}>by {manifestAuthorAlias(item)}</p>
+                  <p className={CARD_AUTHOR_CLASS}>
+                    by {manifestAuthorAlias(item)}
+                  </p>
                 </div>
                 {presentation.isMap && (
                   <MapLocationMeta
@@ -562,7 +564,9 @@ export const ItemCard = memo(function ItemCard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
-              <p className={CARD_AUTHOR_CLASS}>by {manifestAuthorAlias(item)}</p>
+              <p className={CARD_AUTHOR_CLASS}>
+                by {manifestAuthorAlias(item)}
+              </p>
             </div>
             {presentation.isMap && (
               <MapLocationMeta
