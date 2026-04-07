@@ -105,7 +105,7 @@ class RegistryService:
         except KeyError:
             logger.error("Author index file has an unexpected structure in registry repository")
             raise
-    
+
     @staticmethod
     async def get_author_info_with_assets(author_id: str) -> registry_types.AuthorResponse:
         author_details = await RegistryService.get_author_info(author_id)
@@ -144,8 +144,8 @@ class RegistryService:
             author_alias=author_details.author_alias,
             attribution_link=author_details.attribution_link,
             contributor_tier=author_details.contributor_tier,
-            map_ids=map_ids, 
-            mod_ids=mod_ids
+            map_ids=map_ids,
+            mod_ids=mod_ids,
         )
 
     @staticmethod

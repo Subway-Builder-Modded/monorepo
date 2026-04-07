@@ -2,8 +2,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import Response
 
 from ..registry import RegistryService
-from ..types import AssetManifest, IntegrityVersionInfo, MapManifest
 from ..shared import limiter
+from ..types import AssetManifest, IntegrityVersionInfo, MapManifest
 
 router = APIRouter(prefix="/registry", tags=["registry"])
 
@@ -74,7 +74,7 @@ async def get_mod_gallery_image(mod: str, image: str):
         return {"error": "Image not found"}
     except Exception as e:
         return {"error": str(e)}
-    
+
 
 @router.get("/authors/{author_id}", tags=["registry"])
 async def get_author_info(author_id: str, request: Request):
