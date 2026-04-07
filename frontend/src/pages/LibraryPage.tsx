@@ -50,7 +50,10 @@ function localMapManifestFromInstalled(
     return null;
   }
 
-  return new types.MapManifest({
+  // Return a plain object — consistent with how Wails data is handled at runtime.
+  // Do NOT use `new types.MapManifest({...})`: the auto-generated constructor calls
+  // `convertValues(source["author"], null)` which crashes when author is an object.
+  return {
     schema_version: 1,
     id: installed.id,
     name: config.name,
@@ -62,7 +65,7 @@ function localMapManifestFromInstalled(
     github_id: 0,
     last_updated: 0,
     city_code: config.code,
-    country: config.country,
+    country: config.country ?? '',
     location: '',
     population: config.population,
     description: config.description,
@@ -70,12 +73,17 @@ function localMapManifestFromInstalled(
     source_quality: '',
     level_of_detail: '',
     special_demand: [],
-    initial_view_state: config.initialViewState || {},
+    initial_view_state: config.initialViewState ?? {
+      latitude: 0,
+      longitude: 0,
+      zoom: 0,
+      bearing: 0,
+    },
     tags: [],
     gallery: [],
     source: '',
     update: { type: 'local' },
-  });
+  } as unknown as types.MapManifest;
 }
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
