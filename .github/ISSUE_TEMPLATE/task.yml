@@ -1,0 +1,36 @@
+name: Task
+description: A task or action item that needs to be completed.
+title: "[Task]: "
+labels:
+  - task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Task
+
+        Please provide as much detail as possible. Include the task or action item that needs to be completed and any relevant context or examples.
+
+  - type: checkboxes
+    id: projects
+    attributes:
+      label: Projects
+      description: Select the project(s) that the task pertains to.
+      options:
+        - label: General
+        - label: Railyard
+        - label: Website
+        - label: Foundry
+        - label: Locomotive
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide a detailed description of the task.
+      placeholder: |
+        Provide a detailed description of the task, including any relevant context, examples, and the steps needed to complete it.
+    validations:
+      required: true

@@ -1,0 +1,36 @@
+name: Feature
+description: Request for a new feature or enhancement.
+title: "[Feature]: "
+labels:
+  - feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+
+        Please provide as much detail as possible. Include the feature or enhancement that should be added, the problem it aims to solve, and any relevant context or examples.
+
+  - type: checkboxes
+    id: projects
+    attributes:
+      label: Projects
+      description: Select the project(s) that the feature request pertains to.
+      options:
+        - label: General
+        - label: Railyard
+        - label: Website
+        - label: Foundry
+        - label: Locomotive
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide a detailed description of the feature request.
+      placeholder: |
+        Provide a detailed description of the feature request, including any relevant context, examples, and the problem it aims to solve.
+    validations:
+      required: true

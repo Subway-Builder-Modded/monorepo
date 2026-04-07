@@ -1,0 +1,86 @@
+name: Apply Project Labels
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+
+permissions:
+  issues: write
+
+jobs:
+  apply-project-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply labels from issue form
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            if (!issue || !issue.body) {
+              core.info("No issue body found. Skipping.");
+              return;
+            }
+
+            const allowedProjectLabels = new Set([
+              "general",
+              "railyard",
+              "website",
+              "foundry",
+              "locomotive",
+            ]);
+
+            const projectsSectionMatch = issue.body.match(/###\s+Projects\s*([\s\S]*?)(?:\n###\s+|$)/i);
+            if (!projectsSectionMatch) {
+              core.info("No Projects section found. Skipping.");
+              return;
+            }
+
+            const projectsSection = projectsSectionMatch[1];
+            const checkedMatches = [...projectsSection.matchAll(/^\s*-\s*\[[xX]\]\s*(.+?)\s*$/gm)];
+            const selectedProjectLabels = [...new Set(
+              checkedMatches
+                .map((match) => match[1].trim())
+                .map((name) => name.toLowerCase())
+                .filter((name) => allowedProjectLabels.has(name))
+                .filter(Boolean)
+            )];
+
+            const { data: currentIssueLabels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+            });
+
+            const currentProjectLabels = currentIssueLabels
+              .map((label) => label.name)
+              .filter((name) => allowedProjectLabels.has(name.toLowerCase()));
+
+            const labelsToAdd = selectedProjectLabels
+              .filter((name) => !currentProjectLabels.some((current) => current.toLowerCase() === name));
+
+            const labelsToRemove = currentProjectLabels
+              .filter((name) => !selectedProjectLabels.includes(name.toLowerCase()));
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labelsToAdd,
+              });
+            }
+
+            for (const labelName of labelsToRemove) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: labelName,
+              });
+            }
+
+            core.info(
+              `Added labels: ${labelsToAdd.join(", ") || "none"}; removed labels: ${labelsToRemove.join(", ") || "none"}`
+            );

@@ -1,0 +1,36 @@
+name: Bug
+description: Something is broken or behaving unexpectedly.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug
+
+        Please provide as much detail as possible. Include steps to reproduce, expected vs. actual behavior, and any relevant logs or screenshots.
+
+  - type: checkboxes
+    id: projects
+    attributes:
+      label: Projects
+      description: Select the project(s) that the bug or issue pertains to.
+      options:
+        - label: General
+        - label: Railyard
+        - label: Website
+        - label: Foundry
+        - label: Locomotive
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide a detailed description of the bug or issue.
+      placeholder: |
+        Provide a detailed description of the bug or issue, including any relevant context, steps to reproduce, and observed behavior.
+    validations:
+      required: true
