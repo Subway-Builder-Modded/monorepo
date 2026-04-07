@@ -26,7 +26,7 @@ jobs:
       - name: Checkout source repo
         uses: actions/checkout@v4
         with:
-          ref: website
+          ref: main
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -60,7 +60,7 @@ jobs:
       - name: Checkout source repo
         uses: actions/checkout@v4
         with:
-          ref: website
+          ref: main
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
