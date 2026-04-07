@@ -1,31 +1,28 @@
 from fastapi import APIRouter
 
-from ..types import AssetManifest
+from ..registry import get_asset_manifest
+from ..types import AssetManifest, MapManifest
 
 router = APIRouter(prefix="/registry", tags=["registry"])
 
+
 @router.get("/mods/{mod}", tags=["registry"])
-async def get_mod(mod: str) -> AssetManifest:
+async def get_mod(mod: str) -> AssetManifest | dict:
     """Fetches mod information from the registry."""
-    return AssetManifest(
-        SchemaVersion=1,
-        ID="example-mod",
-        Name="Example Mod",
-        Author={
-            "AuthorID": "example-author",
-            "AuthorAlias": "Example Author",
-            "AttributionLink": "https://example.com/author",
-            "ContributorTier": "Gold"
-        },
-        GithubID=123456,
-        LastUpdated=1700000000,
-        Description="This is an example mod.",
-        Tags=["example", "mod"],
-        Gallery=["https://example.com/image1.png", "https://example.com/image2.png"],
-        Source="",
-        Update={
-            "Type": "github",
-            "Repo": "example/example-repo",
-        },
-        IsTest=False
-    )
+    try:
+        return await get_asset_manifest(mod, "mod")
+    except FileNotFoundError:
+        return {"error": "Mod not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/maps/{map}", tags=["registry"])
+async def get_map(map: str) -> MapManifest | dict:
+    """Fetches map information from the registry."""
+    try:
+        return await get_asset_manifest(map, "map")
+    except FileNotFoundError:
+        return {"error": "Map not found"}
+    except Exception as e:
+        return {"error": str(e)}

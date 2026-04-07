@@ -1,72 +1,102 @@
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+
 
 class AuthorDetails(BaseModel):
-    AuthorID: str
-    AuthorAlias: str
-    AttributionLink: str
-    ContributorTier: Optional[str] = None
+    author_id: str
+    author_alias: Optional[str] = None
+    attribution_link: Optional[str] = None
+    contributor_tier: Optional[str] = None
+
 
 class UpdateConfig(BaseModel):
-    Type: str
-    Repo: Optional[str] = None
-    URL: Optional[str] = None
+    type: str
+    repo: Optional[str] = None
+    url: Optional[str] = None
+
 
 class AssetManifest(BaseModel):
-    SchemaVersion: int
-    ID: str
-    Name: str
-    Author: AuthorDetails
-    GithubID: int
-    LastUpdated: int
-    Description: str
-    Tags: List[str]
-    Gallery: List[str]
-    Source: str
-    Update: UpdateConfig
-    IsTest: bool
+    schema_version: int
+    id: str
+    name: str
+    author: AuthorDetails | str
+    github_id: int
+    last_updated: Optional[int] = None
+    description: str
+    tags: List[str]
+    gallery: List[str]
+    source: str
+    update: UpdateConfig
+    is_test: bool
+
 
 class InitialViewState(BaseModel):
-    Latitude: float
-    Longitude: float
-    Zoom: float
-    Pitch: Optional[float] = None
-    Bearing: float
+    latitude: float
+    longitude: float
+    zoom: float
+    pitch: Optional[float] = None
+    bearing: float
 
-class MapManifest(BaseModel, AssetManifest):
-    CityCode: str
-    Country: str
-    Location: str
-    Population: int
-    DataSource: str
-    SourceQuality: str
-    LevelOfDetail: str
-    SpecialDemand: List[str]
-    InitialViewState: InitialViewState
+
+class MapManifest(AssetManifest):
+    city_code: str
+    country: str
+    location: str
+    population: int
+    data_source: str
+    source_quality: str
+    level_of_detail: str
+    special_demand: List[str]
+    initial_view_state: InitialViewState
+    residents_total: int
+    points_count: int
+    population_count: int
+    file_sizes: dict[str, float]
+    grid_statistics: dict[str, dict[str, float] | object]
+
 
 class VersionInfo(BaseModel):
-    Version: str
-    Name: str
-    Changelog: str
-    Date: str
-    DownloadURL: str
-    GameVersion: str
-    SHA256: str
-    Downloads: int
-    Manifest: str
-    Prerelease: bool
-    Dependencies: Dict[str, str]
+    version: str
+    name: str
+    changelog: str
+    date: str
+    download_url: str
+    game_version: str
+    sha256: str
+    downloads: int
+    manifest: str
+    prerelease: bool
+    dependencies: Dict[str, str]
+
 
 class GithubAsset(BaseModel):
-    Name: str
-    BrowserDownloadURL: str
-    DownloadCount: int
+    name: str
+    browser_download_url: str
+    download_count: int
+
 
 class GithubRelease(BaseModel):
-    TagName: str
-    Name: str
-    Body: str
-    Prerelease: bool
-    PublishedAt: str
-    Assets: List[GithubAsset]
+    tag_name: str
+    name: str
+    body: str
+    prerelease: bool
+    published_at: str
+    assets: List[GithubAsset]
 
+
+class AuthorIndexEntry(BaseModel):
+    github_id: int
+    author_id: str
+    author_alias: Optional[str] = None
+    attribution_method: Optional[str] = None
+    attribution_link: Optional[str] = None
+    ko_fi_username: Optional[str] = None
+    contributor_tier: Optional[str] = None
+    discord_id: Optional[str] = None
+    discord_username: Optional[str] = None
+
+
+class AuthorIndex(BaseModel):
+    schema_version: int
+    authors: List[AuthorIndexEntry]

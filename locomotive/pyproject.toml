@@ -9,13 +9,16 @@ license = "GPLv3"
 requires-python = ">=3.14,<4.0"
 dependencies = [
     "fastapi[standard] (>=0.135.3,<0.136.0)",
-    "gitpython (>=3.1.46,<4.0.0)"
+    "gitpython (>=3.1.46,<4.0.0)",
+    "loguru (>=0.7.3,<0.8.0)",
+    "aiofiles (>=25.1.0,<26.0.0)"
 ]
 
 [dependency-groups]
 dev = [
     "black (>=26.3.1,<27.0.0)",
-    "taskipy (>=1.14.1,<2.0.0)"
+    "taskipy (>=1.14.1,<2.0.0)",
+    "isort (>=8.0.1,<9.0.0)"
 ]
 
 [tool.poetry]
