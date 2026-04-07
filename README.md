@@ -1,31 +1,53 @@
 <p align="center">
-  <img src="build/appicon.png" width="128" height="128" alt="Railyard">
+  <img src="https://subwaybuildermodded.com/logo.png" width="128" height="128" alt="Railyard">
 </p>
 
-<h1 align="center">Railyard</h1>
+<h1 align="center">Subway Builder Modded Monorepo</h1>
 
 <p align="center">
-  A mod and map manager for <a href="https://subwaybuilder.com">Subway Builder</a>.
+  Welcome to the Subway Builder Modded monorepo! This monorepo includes all of the shared code for our projects and tools.
 </p>
 
-## Features
+<br/>
+<br/>
 
-- **Map Browser**: Search and install community-made maps from the Railyard registry.
-- **Mod Management**: Install, enable, and disable mods for Subway Builder.
-- **Game Launcher**: Launch Subway Builder directly from Railyard with mods and maps loaded automatically.
-- **Map Thumbnails**: Auto-generated SVG thumbnails rendered from PMTiles vector data.
-- **Live Logs**: Stream and view game console output in real time.
+---
 
-To download and install Railyard, visit the [download page](https://subwaybuildermodded.com/railyard).
+<p align="center">
+  <img width="128" height="128" alt="train-track" src="https://github.com/user-attachments/assets/914ab1b4-d5f7-47a6-91dd-58304ac45970" />
+  <img width="128" height="128" alt="globe" src="https://github.com/user-attachments/assets/ff2b1eee-91d1-4621-965e-e8e75eef29c5" />
+  <img width="128" height="128" alt="anvil" src="https://github.com/user-attachments/assets/a48d734f-c48b-4645-a07b-33b01a94ad1a" />
+  <img width="128" height="128" alt="anvil" src="https://github.com/user-attachments/assets/074178b6-018b-4e5e-9155-a195c5540b55" />
+</p>
 
-## Development prerequisites
+---
+
+<br/>
+<br/>
+
+<a href="https://subwaybuildermodded.com/railyard">
+  <h1 align="center">
+    <img width="24" alt="train-track"   src="https://github.com/user-attachments/assets/914ab1b4-d5f7-47a6-91dd-58304ac45970" />
+    Railyard
+  </h1>
+</a>
+
+### Features
+
+- **Custom Cities**: Browse community-made maps of cities from around the world and install them at the press of a button.
+- **Mod Browser**: Discover and install gameplay mods to enhance your Subway Builder experience.
+- **Intuitive Interface**: A clean, friendly UI designed to make managing your Subway Builder content effortless.
+- **Content Management**: Manage your installed content and keep everything organized.
+- **Fully Configurable**: Fully configure every aspect of Railyard to your liking.
+
+### Development Prerequisites
 
 - [Go 1.25+](https://go.dev/dl/)
 - [Node.js](https://nodejs.org/) (LTS recommended)
 - [pnpm](https://pnpm.io/)
 - [Wails CLI](https://wails.io/docs/gettingstarted/installation)
 
-## Getting Started
+### Getting Started
 
 ```bash
 # Install frontend dependencies
@@ -38,7 +60,7 @@ wails dev
 wails build
 ```
 
-## Quality Checks
+### Quality Checks
 
 ```bash
 # Run full pre-push checks manually (backend + frontend)
@@ -54,7 +76,7 @@ The pre-push check includes:
 - `go test` coverage gate (`scripts/check-go-coverage.ps1`, default minimum: `60%`)
 - frontend `pnpm run format`, `pnpm run lint:fix`, then `pnpm run check` (`lint`, `format:check`, `test`, `test:coverage`)
 
-## How It Works
+### How It Works
 
 1. **Registry** — Railyard clones a Git-based registry of available maps and mods.
 2. **Installation** — Maps are downloaded as zip archives containing PMTiles, config, and GeoJSON data files. These are extracted to the Railyard data directory.
@@ -62,6 +84,33 @@ The pre-push check includes:
 4. **Tile Serving** — A local PMTiles server starts on a random port to serve vector tiles to the game at runtime.
 5. **Thumbnails** — SVG thumbnails are generated from water layer features in the map's vector tiles and cached for display in the UI.
 
-## License
+<br/>
+<br/>
 
-See [LICENSE](LICENSE) for details.
+---
+
+<p align="center">
+  <a href="https://subwaybuildermodded.com/">
+    <b>
+      Website
+    </b>
+  </a>
+  |
+  <a href="https://subwaybuildermodded.com/railyard">
+    <b>
+      License
+    </b>
+  </a>
+  |
+  <a href="https://subwaybuildermodded.com/credits">
+    <b>
+      Credits
+    </b>
+  </a>
+  |
+  <a href="https://subwaybuildermodded.com/contribute">
+    <b>
+      Contribute
+    </b>
+  </a>
+</p>
