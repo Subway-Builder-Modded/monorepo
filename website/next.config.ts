@@ -8,12 +8,14 @@ const withMDX = createMDX({
 });
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
+const workspaceRoot = dirname(projectRoot);
 
 const nextConfig: NextConfig = {
   output: 'export',
   trailingSlash: true,
+  transpilePackages: ['@sbm/railyard-core', '@sbm/railyard-ui'],
   turbopack: {
-    root: projectRoot,
+    root: workspaceRoot,
   },
   images: {
     unoptimized: true,

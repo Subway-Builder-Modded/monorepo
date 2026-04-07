@@ -1,42 +1,28 @@
-import type { SortDirection, SortState } from '@/lib/railyard/constants';
+import {
+  buildTaggedItems as buildSharedTaggedItems,
+  compareByDirection,
+  compareItems as compareSharedItems,
+  getLastUpdated,
+  getTotalDownloads,
+  type TaggedItem as SharedTaggedItem,
+} from '@sbm/railyard-core/tagged-items';
+
+import type { SortState } from '@/lib/railyard/constants';
 import type { MapManifest, ModManifest } from '@/types/registry';
 
-export type TaggedItem =
-  | { type: 'mod'; item: ModManifest }
-  | { type: 'map'; item: MapManifest };
+export type TaggedItem = SharedTaggedItem<ModManifest, MapManifest>;
+
+function getAuthorName(item: ModManifest | MapManifest): string {
+  return item.author_alias ?? item.author ?? '';
+}
+
+export { compareByDirection, getLastUpdated, getTotalDownloads };
 
 export function buildTaggedItems(
   mods: ModManifest[],
   maps: MapManifest[],
 ): TaggedItem[] {
-  const modItems: TaggedItem[] = mods.map((item) => ({ type: 'mod', item }));
-  const mapItems: TaggedItem[] = maps.map((item) => ({ type: 'map', item }));
-  return [...modItems, ...mapItems];
-}
-
-export function compareByDirection(
-  a: number,
-  b: number,
-  direction: SortDirection,
-): number {
-  return direction === 'asc' ? a - b : b - a;
-}
-
-export function getTotalDownloads(
-  item: TaggedItem,
-  modDownloadTotals: Record<string, number>,
-  mapDownloadTotals: Record<string, number>,
-): number {
-  return item.type === 'mod'
-    ? (modDownloadTotals[item.item.id] ?? 0)
-    : (mapDownloadTotals[item.item.id] ?? 0);
-}
-
-export function getLastUpdated(item: TaggedItem): number {
-  const timestamp = item.item.last_updated;
-  return typeof timestamp === 'number' && Number.isFinite(timestamp)
-    ? timestamp
-    : 0;
+  return buildSharedTaggedItems(mods, maps);
 }
 
 export function compareItems(
@@ -46,51 +32,12 @@ export function compareItems(
   modDownloadTotals: Record<string, number>,
   mapDownloadTotals: Record<string, number>,
 ): number {
-  const compareText = (
-    left: string,
-    right: string,
-    direction: SortDirection,
-  ) =>
-    direction === 'asc' ? left.localeCompare(right) : right.localeCompare(left);
-
-  switch (sort.field) {
-    case 'name':
-      return compareText(a.item.name ?? '', b.item.name ?? '', sort.direction);
-    case 'country': {
-      const countryA = a.type === 'map' ? (a.item.country ?? '') : '';
-      const countryB = b.type === 'map' ? (b.item.country ?? '') : '';
-      return compareText(countryA, countryB, sort.direction);
-    }
-    case 'author':
-      return compareText(
-        a.item.author ?? '',
-        b.item.author ?? '',
-        sort.direction,
-      );
-    case 'population': {
-      const popA = a.type === 'map' ? (a.item.population ?? 0) : 0;
-      const popB = b.type === 'map' ? (b.item.population ?? 0) : 0;
-      return compareByDirection(popA, popB, sort.direction);
-    }
-    case 'downloads': {
-      const downloadsA = getTotalDownloads(
-        a,
-        modDownloadTotals,
-        mapDownloadTotals,
-      );
-      const downloadsB = getTotalDownloads(
-        b,
-        modDownloadTotals,
-        mapDownloadTotals,
-      );
-      return compareByDirection(downloadsA, downloadsB, sort.direction);
-    }
-    case 'last_updated': {
-      const updatedA = getLastUpdated(a);
-      const updatedB = getLastUpdated(b);
-      return compareByDirection(updatedA, updatedB, sort.direction);
-    }
-    default:
-      return 0;
-  }
+  return compareSharedItems(
+    a,
+    b,
+    sort,
+    modDownloadTotals,
+    mapDownloadTotals,
+    getAuthorName,
+  );
 }

@@ -1,0 +1,24 @@
+{
+  "name": "@sbm/railyard-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "peerDependencies": {
+    "lucide-react": ">=0.575.0",
+    "react": ">=18"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./shared/pagination": "./src/shared/pagination.tsx",
+    "./shared/search-bar": "./src/shared/search-bar.tsx",
+    "./shared/sort-select": "./src/shared/sort-select.tsx",
+    "./shared/sortable-header-cell": "./src/shared/sortable-header-cell.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "lucide-react": "^0.577.0",
+    "react": "^19.2.0",
+    "typescript": "^5.9.3"
+  }
+}

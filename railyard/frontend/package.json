@@ -19,6 +19,8 @@
     "ci": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
+    "@sbm/railyard-core": "workspace:*",
+    "@sbm/railyard-ui": "workspace:*",
     "@tailwindcss/vite": "^4.2.1",
     "@types/semver": "^7.7.1",
     "class-variance-authority": "^0.7.1",

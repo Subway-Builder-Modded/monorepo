@@ -1,19 +1,23 @@
-import type { AssetType } from '@/lib/asset-types';
+import type { AssetType } from '@sbm/railyard-core/asset-types';
+import {
+  DEFAULT_SORT_STATE as SHARED_DEFAULT_SORT_STATE,
+  getSortOptionsForType as getSharedSortOptionsForType,
+  normalizeSortStateForType as normalizeSharedSortStateForType,
+  PER_PAGE_OPTIONS,
+  type PerPage,
+  SORT_OPTIONS as SHARED_SORT_OPTIONS,
+  type SortDirection,
+  type SortField as SharedSortField,
+  SortKey as SharedSortKey,
+  type SortState as SharedSortState,
+  type SortOption as SharedSortOption,
+  sortStateToOptionKey as sharedSortStateToOptionKey,
+  TEXT_SORT_FIELDS as SHARED_TEXT_SORT_FIELDS,
+} from '@sbm/railyard-core/browse-sort';
 
-export const PER_PAGE_OPTIONS = [12, 24, 48] as const;
-export type PerPage = (typeof PER_PAGE_OPTIONS)[number];
+export { PER_PAGE_OPTIONS, type PerPage, type SortDirection };
 
-export type SortField =
-  | 'name'
-  | 'city_code'
-  | 'country'
-  | 'author'
-  | 'population'
-  | 'downloads'
-  | 'last_updated'
-  | 'size'
-  | 'random';
-export type SortDirection = 'asc' | 'desc';
+export type SortField = SharedSortField | 'size';
 export type SortKey = `${SortField}:${SortDirection}`;
 
 export interface SortState {
@@ -21,83 +25,18 @@ export interface SortState {
   direction: SortDirection;
 }
 
-export interface SortOption {
+export interface SortOption extends Omit<SharedSortOption, 'value' | 'sort'> {
   value: SortKey;
-  label: string;
   sort: SortState;
-  mapOnly?: boolean;
 }
 
-const SORT_FIELDS = [
-  'last_updated',
-  'downloads',
-  'population',
-  'name',
-  'city_code',
-  'country',
-  'author',
-  'random',
-] as const;
-const DESC_ASC_DIRECTIONS = ['desc', 'asc'] as const;
+export const SORT_OPTIONS = SHARED_SORT_OPTIONS as SortOption[];
 
-function directionsForField(field: SortField): readonly SortDirection[] {
-  if (field === 'random') return ['asc'] as const;
-  if (
-    field === 'name' ||
-    field === 'city_code' ||
-    field === 'country' ||
-    field === 'author'
-  ) {
-    return ['asc', 'desc'] as const;
-  }
-  return DESC_ASC_DIRECTIONS;
-}
-
-function sortOptionLabel(field: SortField): string {
-  switch (field) {
-    case 'name':
-      return 'Name';
-    case 'city_code':
-      return 'City Code';
-    case 'country':
-      return 'Country';
-    case 'author':
-      return 'Author';
-    case 'population':
-      return 'Population';
-    case 'downloads':
-      return 'Downloads';
-    case 'last_updated':
-      return 'Last Updated';
-    case 'random':
-      return 'Random';
-    default:
-      throw new Error(`Unhandled sort field: ${String(field)}`);
-  }
-}
-
-export const SORT_OPTIONS = SORT_FIELDS.flatMap((field) =>
-  directionsForField(field).map((direction) => ({
-    value: `${field}:${direction}` as SortKey,
-    label: sortOptionLabel(field),
-    sort: { field, direction },
-    mapOnly:
-      field === 'population' || field === 'city_code' || field === 'country',
-  })),
-) satisfies SortOption[];
-
-export const DEFAULT_SORT_STATE: SortState = {
-  field: 'last_updated',
-  direction: 'desc',
-};
+export const DEFAULT_SORT_STATE: SortState = SHARED_DEFAULT_SORT_STATE;
 
 export function getSortOptionsForType(type: AssetType): SortOption[] {
-  return SORT_OPTIONS.filter((opt) => !opt.mapOnly || type === 'map');
+  return getSharedSortOptionsForType(type) as SortOption[];
 }
-
-const SORT_STATE_BY_KEY = Object.fromEntries(
-  SORT_OPTIONS.map((option) => [option.value, option.sort]),
-) as Record<SortKey, SortState>;
 
 export const SortKey = {
   equals(left: SortKey, right: SortKey): boolean {
@@ -107,7 +46,9 @@ export const SortKey = {
     return `${state.field}:${state.direction}`;
   },
   toState(value: string): SortState | undefined {
-    return SORT_STATE_BY_KEY[value as SortKey];
+    if (value === 'size:asc') return { field: 'size', direction: 'asc' };
+    if (value === 'size:desc') return { field: 'size', direction: 'desc' };
+    return SharedSortKey.toState(value) as SortState | undefined;
   },
 } as const;
 
@@ -119,19 +60,16 @@ export function sortStateToOptionKey(
   state: SortState,
   type: AssetType,
 ): SortKey {
-  const options = getSortOptionsForType(type);
-  const requestedKey = SortKey.fromState(state);
-  const defaultKey = SortKey.fromState(DEFAULT_SORT_STATE);
-  const defaultOption =
-    options.find((opt) => SortKey.equals(opt.value, defaultKey)) ??
-    options[0] ??
-    SORT_OPTIONS[0];
-  const option =
-    options.find((opt) => SortKey.equals(opt.value, requestedKey)) ??
-    options.find((opt) => opt.sort.field === state.field) ??
-    defaultOption;
+  if (state.field === 'size') {
+    return SortKey.fromState(DEFAULT_SORT_STATE);
+  }
 
-  return option.value;
+  const sharedState: SharedSortState = {
+    field: state.field,
+    direction: state.direction,
+  };
+
+  return sharedSortStateToOptionKey(sharedState, type) as SortKey;
 }
 
 export function toggleSortField(
@@ -151,29 +89,20 @@ export function toggleSortField(
   };
 }
 
-export const TEXT_SORT_FIELDS = new Set<SortField>([
-  'name',
-  'city_code',
-  'country',
-  'author',
-]);
+export const TEXT_SORT_FIELDS = SHARED_TEXT_SORT_FIELDS as ReadonlySet<SortField>;
 
 export function normalizeSortStateForType(
   state: SortState,
   type: AssetType,
 ): SortState {
-  const options = getSortOptionsForType(type);
-  const requestedKey = SortKey.fromState(state);
-  const requested = options.find((option) =>
-    SortKey.equals(option.value, requestedKey),
-  );
-  if (requested) {
-    return requested.sort;
+  if (state.field === 'size') {
+    return DEFAULT_SORT_STATE;
   }
 
-  const fallbackField = type === 'map' ? 'name' : 'name';
-  const fallback = options.find(
-    (option) => option.sort.field === fallbackField,
-  );
-  return fallback?.sort ?? options[0]?.sort ?? DEFAULT_SORT_STATE;
+  const sharedState: SharedSortState = {
+    field: state.field,
+    direction: state.direction,
+  };
+
+  return normalizeSharedSortStateForType(sharedState, type) as SortState;
 }

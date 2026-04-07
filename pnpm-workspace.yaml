@@ -1,0 +1,8 @@
+packages:
+  - website
+  - railyard/frontend
+  - packages/*
+
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
