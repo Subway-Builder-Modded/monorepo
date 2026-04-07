@@ -100,3 +100,36 @@ class AuthorIndexEntry(BaseModel):
 class AuthorIndex(BaseModel):
     schema_version: int
     authors: List[AuthorIndexEntry]
+
+class IntegrityVersionSource(BaseModel):
+    update_type: str
+    repo: str
+    tag: str
+    asset_name: Optional[str] = None
+    download_url: Optional[str] = None
+
+class IntegrityVersionInfo(BaseModel):
+    is_complete: bool
+    errors: Optional[List[str]] = None
+    required_checks: dict[str, bool]
+    matched_files: dict[str, str | None]
+    release_size: Optional[float] = None
+    file_sizes: Optional[dict[str, float]] = None
+    fingerprint: str
+    checked_at: str
+    source: IntegrityVersionSource
+
+
+class IntegrityListing(BaseModel):
+    has_complete_version: bool
+    latest_semver_version: Optional[str] = None
+    latest_semver_complete: Optional[bool] = None
+    complete_versions: List[str]
+    incomplete_versions: List[str]
+    versions: dict[str, IntegrityVersionInfo]
+
+class IntegrityReport(BaseModel):
+    schema_version: int
+    generated_at: str
+    listings: dict[str, IntegrityListing]
+
