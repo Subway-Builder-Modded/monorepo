@@ -40,7 +40,7 @@ import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
 import { OpenImportAssetDialog } from '../../wailsjs/go/main/App';
-import { types } from '../../wailsjs/go/models';
+import type { types } from '../../wailsjs/go/models';
 
 function localMapManifestFromInstalled(
   installed: types.InstalledMapInfo,
@@ -49,10 +49,7 @@ function localMapManifestFromInstalled(
   if (!config || !config.code) {
     return null;
   }
-
-  // Return a plain object — consistent with how Wails data is handled at runtime.
-  // Do NOT use `new types.MapManifest({...})`: the auto-generated constructor calls
-  // `convertValues(source["author"], null)` which crashes when author is an object.
+  
   return {
     schema_version: 1,
     id: installed.id,
