@@ -31,7 +31,7 @@ echo "[backend] running Go coverage gate..."
 
 echo "[backend] running Python formatting check..."
 cd ./locomotive
-poetry run black --line-length=120 check .
+poetry run black --line-length=120 --check .
 poetry run isort --check .
 cd ..
 
