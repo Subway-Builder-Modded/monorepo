@@ -1,6 +1,6 @@
-build/bin
+railyard/build/bin
 node_modules
-frontend/dist
+railyard/frontend/dist
 .claude/
 .gocache/
 .pnpm-store/

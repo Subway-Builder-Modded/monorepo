@@ -14,6 +14,9 @@ env:
 jobs:
   build-macos:
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: railyard
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +24,7 @@ jobs:
         with:
           go-version: "1.25"
           cache: true
+          cache-dependency-path: railyard/go.sum
 
       - uses: actions/setup-node@v4
         with:
@@ -34,7 +38,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/Library/pnpm/store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('railyard/frontend/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install Wails
@@ -65,11 +69,14 @@ jobs:
         with:
           name: macos-artifacts
           path: |
-            build/bin/railyard-${{ env.VERSION }}-macos-universal.dmg
-            build/bin/railyard-${{ env.VERSION }}-macos-universal.zip
+            railyard/build/bin/railyard-${{ env.VERSION }}-macos-universal.dmg
+            railyard/build/bin/railyard-${{ env.VERSION }}-macos-universal.zip
 
   build-linux:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: railyard
     steps:
       - uses: actions/checkout@v4
 
@@ -77,6 +84,7 @@ jobs:
         with:
           go-version: "1.25"
           cache: true
+          cache-dependency-path: railyard/go.sum
 
       - uses: actions/setup-node@v4
         with:
@@ -90,10 +98,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/pnpm/store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('railyard/frontend/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install Linux dependencies
+        working-directory: .
         run: |
           sudo add-apt-repository -y ppa:flatpak/stable
           sudo apt-get update
@@ -108,7 +117,7 @@ jobs:
 
       - name: Install frontend dependencies
         run: cd frontend && pnpm install
-      
+
       - name: Update version in wails.json
         run: node scripts/update_wails_json.js
 
@@ -123,10 +132,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: linux-artifacts-${{matrix.type}}
-          path: build/bin/railyard-${{ env.VERSION }}-current-linux-amd64.flatpak
+          path: railyard/build/bin/railyard-${{ env.VERSION }}-current-linux-amd64.flatpak
 
   build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: railyard
     strategy:
       matrix:
         arch: [amd64, arm64]
@@ -137,6 +149,7 @@ jobs:
         with:
           go-version: "1.25"
           cache: true
+          cache-dependency-path: railyard/go.sum
 
       - uses: actions/setup-node@v4
         with:
@@ -150,10 +163,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: $HOME/AppData/Local/pnpm/store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('railyard/frontend/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install NSIS
+        working-directory: .
         run: |
           choco install nsis -y
           echo "C:\Program Files (x86)\NSIS" >> $env:GITHUB_PATH
@@ -182,8 +196,8 @@ jobs:
         with:
           name: windows-${{ matrix.arch }}-artifacts
           path: |
-            build/bin/railyard-${{ env.VERSION }}-windows-${{ matrix.arch }}-installer.exe
-            build/bin/railyard-${{ env.VERSION }}-windows-${{ matrix.arch }}-portable.zip
+            railyard/build/bin/railyard-${{ env.VERSION }}-windows-${{ matrix.arch }}-installer.exe
+            railyard/build/bin/railyard-${{ env.VERSION }}-windows-${{ matrix.arch }}-portable.zip
 
   release:
     needs: [build-macos, build-linux, build-windows]
