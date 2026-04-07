@@ -1,0 +1,40 @@
+name: Locomotive CI
+on:
+  pull_request:
+    paths:
+      - "locomotive/**"
+      - ".githooks/pre-push"
+      - ".github/workflows/locomotive-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "locomotive/**"
+      - ".githooks/pre-push"
+      - ".github/workflows/locomotive-ci.yml"
+
+jobs:
+  backend_quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: locomotive
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install --no-root --no-ansi --no-interaction --with dev
+
+      - name: Run backend quality checks
+        run: |
+          poetry run black --check --line-length=120 .
+          poetry run isort --check .
