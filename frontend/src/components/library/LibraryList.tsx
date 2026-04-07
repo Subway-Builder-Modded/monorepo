@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Link } from 'wouter';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
+import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
 import { Badge } from '@/components/ui/badge';
@@ -378,8 +379,13 @@ function LibraryListRow({
                 {entry.item.name}
               </Link>
             )}
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              by {entry.item.author.author_alias}
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground min-w-0">
+              <span className="shrink-0">by</span>
+              <AuthorName
+                name={entry.item.author.author_alias}
+                contributorTier={entry.item.author.contributor_tier}
+                size="sm"
+              />
             </p>
           </div>
 

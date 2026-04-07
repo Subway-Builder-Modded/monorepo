@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
+import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -476,13 +477,16 @@ export function ProjectHeader({
                 </div>
               )}
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                by{' '}
+                <span className="shrink-0">by</span>
                 <Button
                   variant="link"
                   className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1"
                   onClick={() => BrowserOpenURL(authorAttributionLink)}
                 >
-                  {authorAlias}
+                  <AuthorName
+                    name={authorAlias}
+                    contributorTier={item.author.contributor_tier}
+                  />
                   <ExternalLink className="h-3 w-3" />
                 </Button>
               </p>

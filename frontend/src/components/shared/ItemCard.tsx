@@ -12,6 +12,7 @@ import type { SearchViewMode } from '@/lib/search-view-mode';
 import { cn } from '@/lib/utils';
 
 import type { types } from '../../../wailsjs/go/models';
+import { AuthorName } from './AuthorName';
 import { GalleryImage } from './GalleryImage';
 
 const TYPE_PILL_CLASS =
@@ -20,7 +21,8 @@ const CARD_IMAGE_CLASS =
   'h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]';
 const CARD_TITLE_CLASS =
   'font-semibold text-sm leading-snug text-foreground truncate';
-const CARD_AUTHOR_CLASS = 'text-xs text-muted-foreground mt-0.5 truncate';
+const CARD_AUTHOR_CLASS =
+  'flex items-center gap-1 text-xs text-muted-foreground mt-0.5 min-w-0';
 const CARD_ARTICLE_BASE =
   'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm';
 
@@ -392,7 +394,12 @@ export const ItemCard = memo(function ItemCard({
                 <div className="min-w-0 flex-1">
                   <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
                   <p className={CARD_AUTHOR_CLASS}>
-                    by {item.author.author_alias}
+                    <span className="shrink-0">by</span>
+                    <AuthorName
+                      name={item.author.author_alias}
+                      contributorTier={item.author.contributor_tier}
+                      size="sm"
+                    />
                   </p>
                 </div>
                 {presentation.isMap && (
@@ -480,8 +487,12 @@ export const ItemCard = memo(function ItemCard({
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
                 <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                  by {item.author.author_alias}
+                <p className="flex items-center gap-1 text-[11px] text-muted-foreground mt-0.5 min-w-0">
+                  <span className="shrink-0">by</span>
+                  <AuthorName
+                    name={item.author.author_alias}
+                    contributorTier={item.author.contributor_tier}
+                  />
                 </p>
               </div>
               {presentation.isMap && (
@@ -563,7 +574,14 @@ export const ItemCard = memo(function ItemCard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <h3 className={CARD_TITLE_CLASS}>{item.name}</h3>
-              <p className={CARD_AUTHOR_CLASS}>by {item.author.author_alias}</p>
+              <p className={CARD_AUTHOR_CLASS}>
+                <span className="shrink-0">by</span>
+                <AuthorName
+                  name={item.author.author_alias}
+                  contributorTier={item.author.contributor_tier}
+                  size="sm"
+                />
+              </p>
             </div>
             {presentation.isMap && (
               <MapLocationMeta
