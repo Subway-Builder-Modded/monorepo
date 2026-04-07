@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi.responses import Response
 
 from ..registry import RegistryService
-from ..types import AssetManifest, MapManifest, IntegrityVersionInfo
+from ..types import AssetManifest, IntegrityVersionInfo, MapManifest
 
 router = APIRouter(prefix="/registry", tags=["registry"])
 
@@ -27,7 +27,8 @@ async def get_map(map: str) -> MapManifest | dict:
         return {"error": "Map not found"}
     except Exception as e:
         return {"error": str(e)}
-    
+
+
 @router.get("/maps/{map}/versions", tags=["registry"])
 async def get_map_versions(map: str) -> dict[str, IntegrityVersionInfo] | dict:
     """Fetches available versions for a specific map."""
@@ -37,6 +38,7 @@ async def get_map_versions(map: str) -> dict[str, IntegrityVersionInfo] | dict:
         return {"error": "Map not found"}
     except Exception as e:
         return {"error": str(e)}
+
 
 @router.get("/mods/{mod}/versions", tags=["registry"])
 async def get_mod_versions(mod: str) -> dict[str, IntegrityVersionInfo] | dict:
@@ -48,6 +50,7 @@ async def get_mod_versions(mod: str) -> dict[str, IntegrityVersionInfo] | dict:
     except Exception as e:
         return {"error": str(e)}
 
+
 @router.get("/maps/{map}/gallery/{image}", tags=["registry"])
 async def get_gallery_image(map: str, image: str):
     """Fetches a gallery image for a specific map."""
@@ -58,6 +61,7 @@ async def get_gallery_image(map: str, image: str):
         return {"error": "Image not found"}
     except Exception as e:
         return {"error": str(e)}
+
 
 @router.get("/mods/{mod}/gallery/{image}", tags=["registry"])
 async def get_mod_gallery_image(mod: str, image: str):

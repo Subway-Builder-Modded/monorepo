@@ -12,7 +12,6 @@ async def lifespan(app: FastAPI):
     process.daemon = True
     process.start()
     yield
-    
 
 
 app = FastAPI(lifespan=lifespan)

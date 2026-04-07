@@ -101,12 +101,14 @@ class AuthorIndex(BaseModel):
     schema_version: int
     authors: List[AuthorIndexEntry]
 
+
 class IntegrityVersionSource(BaseModel):
     update_type: str
     repo: str
     tag: str
     asset_name: Optional[str] = None
     download_url: Optional[str] = None
+
 
 class IntegrityVersionInfo(BaseModel):
     is_complete: bool
@@ -128,8 +130,8 @@ class IntegrityListing(BaseModel):
     incomplete_versions: List[str]
     versions: dict[str, IntegrityVersionInfo]
 
+
 class IntegrityReport(BaseModel):
     schema_version: int
     generated_at: str
     listings: dict[str, IntegrityListing]
-

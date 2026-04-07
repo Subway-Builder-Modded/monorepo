@@ -9,6 +9,7 @@ from loguru import logger
 from ..types import registry_types
 from ..utils import files
 
+
 class RegistryService:
     _author_details_cache: dict[str, registry_types.AuthorDetails] | None = None
     _author_details_hash: str | None = None
@@ -28,7 +29,9 @@ class RegistryService:
             return RegistryService._author_details_cache
 
         author_index_path = os.path.join(RegistryService.get_repository_path(), "authors", "index.json")
-        content, hash_value = await files.read_and_validate_schema_with_hash(author_index_path, registry_types.AuthorIndex)
+        content, hash_value = await files.read_and_validate_schema_with_hash(
+            author_index_path, registry_types.AuthorIndex
+        )
         if hash_value == RegistryService._author_details_hash and RegistryService._author_details_cache is not None:
             return RegistryService._author_details_cache
 
@@ -62,7 +65,9 @@ class RegistryService:
 
         integrity_index_path = os.path.join(RegistryService.get_repository_path(), f"{asset_type}s", "integrity.json")
         try:
-            integrity_report = await files.read_and_validate_schema(integrity_index_path, registry_types.IntegrityReport)
+            integrity_report = await files.read_and_validate_schema(
+                integrity_index_path, registry_types.IntegrityReport
+            )
             if asset_type == "map":
                 RegistryService._map_integrity_index = integrity_report
                 RegistryService._map_integrity_index_changed = False
@@ -77,7 +82,9 @@ class RegistryService:
             logger.error(f"Invalid JSON in integrity index file for asset type {asset_type} in registry repository")
             raise
         except Exception as error:
-            logger.error(f"Error loading integrity index for asset type {asset_type} in registry repository: {str(error)}")
+            logger.error(
+                f"Error loading integrity index for asset type {asset_type} in registry repository: {str(error)}"
+            )
             raise
 
     @staticmethod
@@ -129,7 +136,9 @@ class RegistryService:
                 time.sleep(60 * 60)  # Check for updates every hour
 
     @staticmethod
-    def _build_update_config(manifest_data: registry_types.MapManifest | registry_types.AssetManifest) -> registry_types.UpdateConfig:
+    def _build_update_config(
+        manifest_data: registry_types.MapManifest | registry_types.AssetManifest,
+    ) -> registry_types.UpdateConfig:
         update_data = manifest_data.update
         return registry_types.UpdateConfig(
             type=update_data.type,
@@ -152,7 +161,9 @@ class RegistryService:
 
     @staticmethod
     async def get_asset_manifest(asset_id: str, asset_type: str) -> registry_types.AssetManifest:
-        manifest_path = os.path.join(RegistryService.get_repository_path(), f"{asset_type}s", f"{asset_id}", "manifest.json")
+        manifest_path = os.path.join(
+            RegistryService.get_repository_path(), f"{asset_type}s", f"{asset_id}", "manifest.json"
+        )
         try:
             type_to_use = registry_types.MapManifest if asset_type == "map" else registry_types.AssetManifest
             manifest_data = await files.read_and_validate_schema(manifest_path, type_to_use)
@@ -221,10 +232,12 @@ class RegistryService:
     async def get_asset_versions(asset_id: str, asset_type: str) -> dict[str, registry_types.IntegrityVersionInfo]:
         manifest = await RegistryService._get_integrity_index(asset_type)
         return manifest.listings[asset_id].versions
-    
+
     @staticmethod
     async def get_gallery_image(asset_type: str, asset_id: str, image_name: str) -> bytes:
-        image_path = os.path.join(RegistryService.get_repository_path(), f"{asset_type}s", f"{asset_id}", "gallery", image_name)
+        image_path = os.path.join(
+            RegistryService.get_repository_path(), f"{asset_type}s", f"{asset_id}", "gallery", image_name
+        )
         try:
             async with aiofiles.open(image_path, "rb") as image_file:
                 return await image_file.read()
@@ -232,5 +245,7 @@ class RegistryService:
             logger.error(f"Gallery image {image_name} not found for asset {asset_id} of type {asset_type}")
             raise
         except Exception as error:
-            logger.error(f"Error loading gallery image {image_name} for asset {asset_id} of type {asset_type}: {str(error)}")
+            logger.error(
+                f"Error loading gallery image {image_name} for asset {asset_id} of type {asset_type}: {str(error)}"
+            )
             raise
