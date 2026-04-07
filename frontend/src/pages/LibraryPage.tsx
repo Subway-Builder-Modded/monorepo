@@ -49,7 +49,7 @@ function localMapManifestFromInstalled(
   if (!config || !config.code) {
     return null;
   }
-  
+
   return {
     schema_version: 1,
     id: installed.id,
