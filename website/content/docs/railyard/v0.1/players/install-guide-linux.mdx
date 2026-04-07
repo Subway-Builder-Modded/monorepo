@@ -1,0 +1,54 @@
+---
+id: install-guide-linux
+title: Install Guide (Linux)
+---
+
+This guide will walk you through installing and setting up Railyard on Linux.
+
+## Step 1 - Downloading Railyard {#downloading-railyard}
+
+To install Railyard on Linux, navigate to the [download page](https://subwaybuildermodded.com/railyard). You should see a button with the auto-detected download for your operating system.
+
+Install Flatpak if you do not have it already. You can find instructions for doing so [here](https://flatpak.org/setup/).
+
+Once you have Flatpak installed, run the following command:
+
+```bash
+flatpak --user install <Railyard Flatpak Path>
+```
+
+This will install Railyard on your system.
+
+## Step 2 - Setting Up Railyard {#setting-up-railyard}
+
+When you first launch Railyard, you will be asked to select your `metro-maker4` folder.
+
+<p align="center">
+  <Image
+    width="400"
+    alt="image"
+    src="/images/docs/railyard/v0.1/railyard-setup-mm4.png"
+  />
+</p>
+
+If you did not manually modify this, click "Auto-Detect". Otherwise, select the location of this folder. Railyard will automatically validate it.
+
+After, you will be asked to select your game executable. Once again, click "Auto-Detect" if you have not modified this. Otherwise, select the location of your game executable.
+
+<p align="center">
+  <Image
+    width="400"
+    alt="image"
+    src="/images/docs/railyard/v0.1/railyard-setup-exec.png"
+  />
+</p>
+
+The next prompt will ask you to input your GitHub token. This is optional, but recommended to avoid hitting GitHub's API rate limits when using Railyard. If you do not have a token or do not wish to use one, simply click "Next" to continue with the setup process. You can always add a token later via the settings menu. To set up a GitHub token, see the [GitHub Token guide](https://subwaybuildermodded.com/railyard/docs/v0.1/players/github-token).
+
+The final prompt will ask you whether you want to enable automatic updates. This will allow Railyard to prompt you every time a new version is released, allowing you to easily stay up to date with the latest features and bug fixes.
+
+:::note
+It is recommended to keep this enabled to ensure you have the latest features and bug fixes. This can be toggled at any time via the settings menu.
+:::
+
+After that, you're ready to play! If you have any questions or run into any issues, feel free to ask questions in the [Discord](https://discord.gg/jrNQpbytUQ) or [raise an issue on GitHub](https://github.com/Subway-Builder-Modded/railyard/issues).

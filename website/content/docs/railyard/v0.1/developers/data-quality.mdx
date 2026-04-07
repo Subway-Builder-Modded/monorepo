@@ -1,0 +1,50 @@
+---
+id: data-quality
+title: Data Quality
+---
+
+To determine your map's data quality, you must first determine the source of your data. As per Railyard's guidelines, 2 dimensions of data quality are considered: source quality and level of detail.
+
+## Data Source {#data-source}
+
+Data source refers to where you got your data from. For example, if you are making a map of the US, you could get your data from official US Census data, or you could get it from OpenStreetMap (OSM). The source of your data will determine the quality of the data in your map.
+
+## Methodology {#methodology}
+
+Methodology refers to how you processed your data. For example, if you are using OSM data, did you use the population counts/positions as is, or did you augment that data with government data to distribute the population more accurately? The methodology you used will also help determine the quality of the data in your map.
+
+## Source Quality {#source-quality}
+
+The standard for quality of data sources is that of the vanilla Subway Builder game. Subway Builder uses real US Census data from 2023. The classifications for source quality are as follows:
+
+| **Source Quality**    | **Description**                                        | **Examples**                                                                                  |
+| --------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `high-data-quality`   | Official government sources (on par with vanilla maps) | LODES, INSEE                                                                                  |
+| `medium-data-quality` | OSM data augmented by government or official data      | Using municipal level gov't data but augmenting that with OSM density to distribute residents |
+| `low-data-quality`    | Pure OSM unvetted source data                          | Using OSM population counts/positions as is                                                   |
+
+:::success[Examples of Government Sources]
+
+- **LODES** (USA) (https://lehd.ces.census.gov/)
+- **INSEE** (France) (https://www.insee.fr/)
+- **ONS** (UK) (https://www.ons.gov.uk/)
+- **統計局** (Japan) (https://www.stat.go.jp/)
+- **국가데이터처** (South Korea) (https://www.mods.go.kr/)
+
+:::
+
+:::note
+
+If you are using a tool that pulls from real government sources such as [rslurry's US Demand Data Generator](https://github.com/rslurry/subwaybuilder-US-demand-data), your data will be considered `high-quality` as the tool uses official US LODES data.
+
+:::
+
+## Level of Detail {#level-of-detail}
+
+The level of detail of your data is determined by the density of the dots on your map (how spread out they are). The classifications for level of detail are as follows:
+
+| **Level of Detail** | **Description**                                              | **Examples**                |
+| ------------------- | ------------------------------------------------------------ | --------------------------- |
+| `high-detail`       | Dots at the density of the minimal official statistical area | Census blocks               |
+| `medium-detail`     | Dots at the density of higher level statistical areas        | Census tracts, broad meshes |
+| `low-detail`        | Dots at the density of entire neighborhoods/municipalities   | Low-resolution OSM data     |

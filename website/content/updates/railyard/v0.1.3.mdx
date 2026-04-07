@@ -1,0 +1,74 @@
+---
+title: 'Railyard - v0.1.3'
+date: 'March 10, 2026'
+tag: 'beta'
+githubUrl: 'https://github.com/Subway-Builder-Modded/railyard/releases/tag/v0.1.3'
+description: Changelogs and release notes for Railyard v0.1.3.
+---
+
+**Full Changelog**: [`v0.1.2...v0.1.3`](https://github.com/Subway-Builder-Modded/railyard/compare/v0.1.2...v0.1.3)
+
+<br />
+
+<UpdateSection type="features">
+  <IconList>
+    <IconItem icon="Plus" color="#48A54B">
+      Added loading screen on app startup
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Added light mode support
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Added persistent search filters (search state will remain even if you
+      visit another page, including tags and search query)
+    </IconItem>
+  </IconList>
+</UpdateSection>
+
+<UpdateSection type="upgrades">
+	<IconList>
+		<IconItem icon="Wrench" color="#EEB03D">
+			Fixed an issue where Railyard wouldn't work on some distros due to them not supporting `libwebkit2gtk-4.0` 
+            
+            :::warning
+
+            This means there are now two builds for Linux. `current` is built targeting `libwebkit2gtk-4.1`, whereas `legacy` is built targeting `libwebkit2gtk-4.0`. Make sure you install the correct one!
+
+            :::
+    	</IconItem>
+    	<IconItem icon="Wrench" color="#EEB03D">
+    		Added an auto-update check (toggleable in settings)
+    	</IconItem>
+    	<IconItem icon="Wrench" color="#EEB03D">
+    		Removed GitHub authentication, as [The-Railyard](https://github.com/Subway-Builder-Modded/registry) is now a public repository
+    	</IconItem>
+    	<IconItem icon="Wrench" color="#EEB03D">
+    		Added static download counts to the registry. Download counts within Railyard will now utilize that as a more reliable source of data
+    	</IconItem>
+    	<IconItem icon="Wrench" color="#EEB03D">
+    		Updated tagging for maps (Level of Detail / Source Quality) to replace ambiguous high/medium/low-detail (see the [Data Quality](/railyard/docs/latest/data-quality) guide) and updated UI to reflect that change
+    	</IconItem>
+    </IconList>
+
+</UpdateSection>
+
+<UpdateSection type="bugfixes">
+  <IconList>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed no installed maps/mods being displayed on initial load-in
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed multiple parallel downloads sometimes leading to crashes
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed download counts displaying total downloads for all assets for a
+      release (rather than just the map/mod .ZIP)
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed maps having a download count of 0
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed an issue where updating Railyard would delete all installed maps
+    </IconItem>
+  </IconList>
+</UpdateSection>

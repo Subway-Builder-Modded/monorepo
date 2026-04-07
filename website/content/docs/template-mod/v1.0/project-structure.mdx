@@ -1,0 +1,165 @@
+---
+id: project-structure
+title: Project Structure
+description: Learn how to organize your project when creating a custom mod.
+---
+
+Here's what each file in the template does.
+
+```
+├── src/
+│   ├── main.ts               # Your mod's entry point
+│   ├── ui/
+│   │   └── ExamplePanel.tsx   # Example React component
+│   └── types/
+│       ├── react.ts           # React shim (pulls React from game API)
+│       ├── index.d.ts         # Re-exports + global Window declarations
+│       ├── api.d.ts           # Main ModdingAPI interface
+│       ├── core.d.ts          # Coordinate, BoundingBox, GameSpeed
+│       ├── game-state.d.ts    # Station, Track, Train, Route types
+│       ├── game-constants.d.ts# GameConstants, ConstructionCosts
+│       ├── game-actions.d.ts  # Bond, BondType types
+│       ├── build.d.ts         # Build automation types
+│       ├── ui.d.ts            # UI placements & option types
+│       ├── cities.d.ts        # City, CityConfig types
+│       ├── trains.d.ts        # TrainTypeConfig, TrainTypeStats
+│       ├── stations.d.ts      # StationTypeConfig
+│       ├── map.d.ts           # Map sources, layers, overrides
+│       ├── career.d.ts        # MissionConfig, StarConfig
+│       ├── content-templates.d.ts # Newspaper & tweet templates
+│       ├── pop-timing.d.ts    # CommuteTimeRange
+│       ├── i18n.d.ts          # I18nAPI
+│       ├── utils.d.ts         # RechartsComponents
+│       ├── schemas.d.ts       # Zod validation schemas
+│       ├── electron.d.ts      # ElectronAPI types
+│       └── manifest.d.ts      # ModManifest type
+├── scripts/
+│   ├── run.ts                 # Game launcher with logging
+│   └── link.ts                # Symlink management
+├── manifest.json              # Mod metadata (loaded by the game)
+├── vite.config.ts             # Build configuration
+├── tsconfig.json              # TypeScript configuration
+└── package.json               # Dependencies and scripts
+```
+
+## Key Files {#key-files}
+
+### manifest.json {#manifest.json}
+
+The game reads this to identify your mod. Required fields:
+
+```json
+{
+  "id": "com.author.modname",
+  "name": "My Mod",
+  "description": "Description of your mod",
+  "version": "1.0.0",
+  "author": { "name": "Your Name" },
+  "main": "index.js"
+}
+```
+
+- `id` — unique identifier in reverse-domain notation
+- `main` — always `"index.js"` (the Vite build output)
+
+### src/main.ts {#main.ts}
+
+Your mod's entry point. This is where you register hooks, add UI elements, and set up your mod's
+logic. The template comes with a working example:
+
+```ts
+const api = window.SubwayBuilderAPI;
+
+if (!api) {
+  console.error('SubwayBuilderAPI not found!');
+} else {
+  let initialized = false;
+
+  api.hooks.onMapReady((_map) => {
+    if (initialized) return;
+    initialized = true;
+
+    // Set up your mod here
+    api.ui.addFloatingPanel({
+      id: 'my-mod-panel',
+      title: 'My Mod',
+      icon: 'Puzzle',
+      render: ExamplePanel,
+    });
+  });
+}
+```
+
+### src/ui/ExamplePanel.tsx {#examplepanel.tsx}
+
+A sample React component that demonstrates how to use game UI components and hooks inside a floating
+panel:
+
+```tsx
+import { useState } from 'react';
+
+const api = window.SubwayBuilderAPI;
+const { Button } = api.utils.components as Record<
+  string,
+  React.ComponentType<any>
+>;
+
+export function ExamplePanel() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div className="flex flex-col gap-3 p-3">
+      <p className="text-sm text-muted-foreground">Click count: {count}</p>
+      <Button onClick={() => setCount((c) => c + 1)}>Increment</Button>
+    </div>
+  );
+}
+```
+
+### src/types/react.ts {#react.ts}
+
+The React shim. This is how JSX works in mods — instead of bundling React, the shim pulls React from
+the game's API at runtime:
+
+```ts
+const React = window.SubwayBuilderAPI.utils.React;
+
+export default React;
+export const { useState, useEffect, useCallback, useMemo, useRef /* ... */ } =
+  React;
+
+// JSX runtime exports
+export const jsx = React.createElement;
+export const jsxs = React.createElement;
+```
+
+Vite is configured to alias `react` and `react/jsx-runtime` imports to this file, so you can write
+standard `import { useState } from 'react'` and it just works.
+
+### vite.config.ts {#vite.config.ts}
+
+The build configuration. Key points:
+
+- **Output format**: IIFE (immediately-invoked function expression) — the game expects a single
+  script, not ES modules
+- **React aliasing**: Routes `react` imports through the shim
+- **Static copy**: Copies `manifest.json` into `dist/` alongside the built JS
+- **No minification**: Keeps the output readable for debugging
+
+### tsconfig.json {#tsconfig.json}
+
+Standard TypeScript config with:
+
+- `strict: true` — full type safety
+- `jsx: "react-jsx"` — automatic JSX transform
+- `noEmit: true` — TypeScript is only used for type checking, Vite handles the actual build
+
+### scripts/link.ts {#link.ts}
+
+Creates a symlink from `dist/` to the game's mods folder. It reads the mod ID from `manifest.json`
+and uses the last segment as the folder name (e.g., `com.author.mymod` becomes `mymod/`).
+
+### scripts/run.ts {#run.ts}
+
+Finds the Subway Builder executable on your system and launches it with `ELECTRON_ENABLE_LOGGING=1`.
+Captures stdout/stderr to `debug/latest.log` so you can review console output after the session.

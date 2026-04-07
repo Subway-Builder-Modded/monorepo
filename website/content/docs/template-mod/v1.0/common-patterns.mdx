@@ -1,0 +1,385 @@
+---
+id: common-patterns
+title: Common Patterns
+description: Learn about common patterns that may be useful.
+---
+
+Practical recipes for the things you'll do most often when writing mods.
+
+## Accessing the API {#accessing-the-api}
+
+Every mod starts with the global API object:
+
+```ts
+const api = window.SubwayBuilderAPI;
+```
+
+Always check that it exists before using it:
+
+```ts
+if (!api) {
+  console.error('[MyMod] SubwayBuilderAPI not found!');
+} else {
+  // Safe to use api
+}
+```
+
+## Initializing a Mod {#initializing-a-mod}
+
+Most mods should initialize inside `onMapReady`, which fires when a city is loaded and the map is
+ready. Use a guard to prevent double initialization:
+
+```ts
+let initialized = false;
+
+api.hooks.onMapReady((map) => {
+  if (initialized) return;
+  initialized = true;
+
+  // Your setup code here
+  console.log('[MyMod] Initialized!');
+});
+```
+
+:::note
+
+`onMapReady` can fire multiple times (e.g., when switching cities). The `initialized` guard
+ensures your UI and hooks are only set up once.
+
+:::
+
+## Adding UI Panels {#adding-ui-panels}
+
+### Floating Panel {#floating-panel}
+
+The most common way to add a mod UI. Creates a draggable panel accessible from the toolbar:
+
+```ts
+api.ui.addFloatingPanel({
+  id: 'my-panel',
+  title: 'My Panel',
+  icon: 'Settings', // Lucide icon name (PascalCase)
+  render: MyComponent, // A React component
+});
+```
+
+### Toolbar Button {#toolbar-button}
+
+Add a button to the main in-game toolbar:
+
+```ts
+api.ui.addToolbarButton({
+  id: 'my-button',
+  icon: 'Zap',
+  tooltip: 'Do something',
+  onClick: () => {
+    api.ui.showNotification('Button clicked!', 'info');
+  },
+});
+```
+
+### Escape Menu Button {#escape-menu-button}
+
+Add a button to the in-game escape/pause menu:
+
+```ts
+api.ui.addButton('escape-menu', {
+  id: 'my-menu-btn',
+  label: 'My Mod Settings',
+  onClick: () => {
+    // Open settings, toggle features, etc.
+  },
+});
+```
+
+### Settings Menu Controls {#settings-menu-controls}
+
+Add toggles, sliders, and selects to the settings panel:
+
+```ts
+api.ui.addToggle('settings-menu', {
+  id: 'my-toggle',
+  label: 'Enable feature',
+  defaultValue: true,
+  onChange: (enabled) => {
+    console.log('Feature:', enabled);
+  },
+});
+
+api.ui.addSlider('settings-menu', {
+  id: 'my-slider',
+  label: 'Speed multiplier',
+  min: 1,
+  max: 10,
+  step: 0.5,
+  defaultValue: 1,
+  onChange: (value) => {
+    console.log('Speed:', value);
+  },
+});
+```
+
+### UI Placements {#ui-placements}
+
+The `placement` argument controls where UI elements appear:
+
+| **Placement**           | **Where it shows up**  |
+| ----------------------- | ---------------------- |
+| `'settings-menu'`       | Settings panel         |
+| `'escape-menu'`         | Escape/pause menu body |
+| `'escape-menu-buttons'` | Escape menu button row |
+| `'main-menu'`           | Main menu screen       |
+| `'bottom-bar'`          | Bottom toolbar area    |
+| `'top-bar'`             | Top bar area           |
+| `'debug-panel'`         | Debug overlay          |
+
+### Notifications {#notifications}
+
+Show a toast message to the player:
+
+```ts
+api.ui.showNotification('Map loaded successfully!', 'success');
+api.ui.showNotification('Something went wrong.', 'error');
+api.ui.showNotification('Tip: try building underground.', 'info');
+api.ui.showNotification('Running low on funds!', 'warning');
+```
+
+## Reading Game State {#reading-game-state}
+
+All game state is read-only and accessed through `api.gameState`:
+
+```ts
+// Stations, routes, tracks, trains
+const stations = api.gameState.getStations();
+const routes = api.gameState.getRoutes();
+const tracks = api.gameState.getTracks();
+const trains = api.gameState.getTrains();
+
+// Financial
+const budget = api.gameState.getBudget();
+const ticketPrice = api.gameState.getTicketPrice();
+
+// Time
+const day = api.gameState.getCurrentDay();
+const hour = api.gameState.getCurrentHour();
+
+// Performance
+const ridership = api.gameState.getRidershipStats();
+const modeChoice = api.gameState.getModeChoiceStats();
+const lineMetrics = api.gameState.getLineMetrics();
+```
+
+## Station Data {#station-data}
+
+Each station has coordinates, track IDs, and nearby station info:
+
+```ts
+const stations = api.gameState.getStations();
+
+for (const station of stations) {
+  console.log(station.name, station.coords); // [longitude, latitude]
+  console.log('Tracks:', station.trackIds.length);
+  console.log(
+    'Nearby:',
+    station.nearbyStations.map((n) => n.stationId),
+  );
+}
+```
+
+## Ridership Data {#ridership-data}
+
+```ts
+// Overall stats
+const stats = api.gameState.getRidershipStats();
+console.log(`${stats.totalRidersPerHour} riders/hour`);
+
+// Per-station
+const stationData = api.gameState.getStationRidership('station-uuid-here');
+console.log(`${stationData.total} riders at this station`);
+
+// Per-route
+const routeData = api.gameState.getRouteRidership('route-uuid-here');
+```
+
+## Reacting to Events {#reacting-to-events}
+
+Register callbacks for game events using `api.hooks`:
+
+```ts
+// React to new stations
+api.hooks.onStationBuilt((station) => {
+  console.log(`New station: ${station.name} at ${station.coords}`);
+});
+
+// React to money changes
+api.hooks.onMoneyChanged((balance, change, type, category) => {
+  if (type === 'expense' && change > 1000000) {
+    api.ui.showNotification('Big purchase!', 'info');
+  }
+});
+
+// React to day changes
+api.hooks.onDayChange((day) => {
+  console.log(`Day ${day}`);
+});
+
+// React to speed changes
+api.hooks.onSpeedChanged((speed) => {
+  console.log(`Speed: ${speed}`); // 'slow' | 'normal' | 'fast' | 'ultrafast'
+});
+
+// React to game saves
+api.hooks.onGameSaved((saveName) => {
+  console.log(`Game saved: ${saveName}`);
+});
+```
+
+## All Available Hooks {#all-available-hooks}
+
+| **Hook**            | **Callback arguments**                         |
+| ------------------- | ---------------------------------------------- |
+| `onGameInit`        | (none)                                         |
+| `onDayChange`       | `day: number`                                  |
+| `onCityLoad`        | `cityCode: string`                             |
+| `onMapReady`        | `map: MapLibreMap`                             |
+| `onStationBuilt`    | `station: Station`                             |
+| `onStationDeleted`  | `stationId: string`                            |
+| `onRouteCreated`    | `route: Route`                                 |
+| `onRouteDeleted`    | `routeId: string, routeBullet: string`         |
+| `onTrackBuilt`      | `tracks: Track[]`                              |
+| `onBlueprintPlaced` | `tracks: Track[]`                              |
+| `onDemandChange`    | `popCount: number`                             |
+| `onTrackChange`     | `changeType: 'add' \| 'delete', count: number` |
+| `onTrainSpawned`    | `train: Train`                                 |
+| `onTrainDeleted`    | `trainId: string, routeId: string`             |
+| `onPauseChanged`    | `isPaused: boolean`                            |
+| `onSpeedChanged`    | `newSpeed: GameSpeed`                          |
+| `onMoneyChanged`    | `newBalance, change, type, category?`          |
+| `onGameSaved`       | `saveName: string`                             |
+| `onGameLoaded`      | `saveName: string`                             |
+| `onWarning`         | `message: string`                              |
+| `onError`           | `error: string`                                |
+| `onGameEnd`         | (none)                                         |
+
+## Modifying Game Actions {#modifying-game-actions}
+
+Use `api.actions` to change game state:
+
+```ts
+// Money
+api.actions.setMoney(5000000);
+api.actions.addMoney(1000000, 'grant');
+api.actions.subtractMoney(500000, 'maintenance');
+
+// Game control
+api.actions.setPause(true);
+api.actions.setSpeed('fast'); // 'slow' | 'normal' | 'fast' | 'ultrafast'
+
+// Ticket price
+api.actions.setTicketPrice(5);
+```
+
+## Modifying Game Constants {#modifying-game-constants}
+
+Tweak the game's rules:
+
+```ts
+api.modifyConstants({
+  STARTING_MONEY: 10000000000, // 10 billion
+  DEFAULT_TICKET_COST: 5,
+  CONSTRUCTION_COSTS: {
+    TUNNEL: { SINGLE_MULTIPLIER: 0.5 }, // Half-price tunnels
+  },
+});
+```
+
+:::important
+
+Call `modifyConstants()` early — ideally before `onMapReady`. Constants affect the
+entire game session.
+
+:::
+
+## Building Tracks Programmatically {#building-tracks-programatically}
+
+Use `api.build` to place and construct tracks via code:
+
+```ts
+// Place blueprint tracks
+const result = api.build.placeBlueprintTracks([
+  {
+    coords: [
+      [-74.006, 40.7128],
+      [-74.009, 40.715],
+    ], // [lng, lat] pairs
+    trackType: 'heavy-metro',
+    startElevation: -15, // underground
+    endElevation: -15,
+  },
+]);
+
+if (result.success) {
+  console.log(`Placed ${result.trackIds.length} tracks`);
+
+  // Build the blueprints (costs money)
+  const buildResult = await api.build.buildBlueprints();
+  console.log(
+    `Built ${buildResult.builtTrackCount} tracks, cost: $${buildResult.totalCost}`,
+  );
+}
+```
+
+## Creating Routes and Adding Trains {#creating-routes-and-adding-trains}
+
+```ts
+// Create a new route
+const route = api.build.createRoute({
+  bullet: 'A',
+  color: '#0039A6',
+  textColor: '#FFFFFF',
+  shape: 'circle',
+  trainType: 'heavy-metro',
+});
+
+if (route.success && route.route) {
+  // Buy trains and add them to the route
+  api.build.buyTrains(4, 'heavy-metro');
+  api.build.addTrainToRoute(route.route.id, 0); // Add at first station
+}
+```
+
+## Persistent Storage {#persistent-storage}
+
+:::danger
+
+Mod-level storage is currently broken. You may use localStorage or game-level Electron storage as a workaround, but be aware that these are not sandboxed and can cause conflicts with other mods (or even with the game itself). Use at your own risk!
+
+:::
+
+Save mod data between sessions (desktop app only):
+
+```ts
+// Save
+await api.storage.set('highScore', 42);
+await api.storage.set('settings', { sound: true, difficulty: 'hard' });
+
+// Load
+const score = await api.storage.get('highScore', 0);
+const settings = await api.storage.get('settings', {
+  sound: true,
+  difficulty: 'normal',
+});
+
+// Delete
+await api.storage.delete('highScore');
+
+// List all keys
+const keys = await api.storage.keys();
+```
+
+:::note
+
+Storage only works in the desktop (Electron) app. In the browser version, `set` does nothing
+and `get` always returns the default value.
+
+:::
