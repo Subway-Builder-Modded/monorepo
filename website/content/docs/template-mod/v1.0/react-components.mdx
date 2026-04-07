@@ -1,0 +1,269 @@
+---
+id: react-components
+title: React Components
+description: Learn about the various React components that are available for you to use.
+---
+
+Subway Builder mods can render custom UI using React. The game provides React at runtime — your mod
+doesn't need to bundle it.
+
+## How the React Shim Works {#how-the-react-shim-works}
+
+The template includes a React shim at `src/types/react.ts` that pulls React from the game's API:
+
+```ts
+const React = window.SubwayBuilderAPI.utils.React;
+export default React;
+export const { useState, useEffect, useCallback, useMemo, useRef } = React;
+```
+
+Vite is configured to alias all `react` imports to this shim, so you can write standard React:
+
+```tsx
+import { useState, useEffect } from 'react';
+```
+
+This just works — the import gets redirected to the shim at build time, and at runtime it uses the
+game's React instance.
+
+## Using Game UI Components {#using-game-ui-components}
+
+The game exposes a set of styled UI components. Access them from the API:
+
+```tsx
+const api = window.SubwayBuilderAPI;
+
+// Cast to any since the components work at runtime but don't have strict prop types
+const { Button, Card, CardHeader, CardTitle, CardContent } = api.utils
+  .components as Record<string, React.ComponentType<any>>;
+```
+
+### Available Components {#available-components}
+
+| **Component**     | **Description**                      |
+| ----------------- | ------------------------------------ |
+| `Button`          | Standard button with variant support |
+| `Card`            | Container card                       |
+| `CardHeader`      | Card header section                  |
+| `CardTitle`       | Card title text                      |
+| `CardContent`     | Card body content                    |
+| `CardDescription` | Card description text                |
+| `Switch`          | Toggle switch                        |
+| `Slider`          | Range slider                         |
+| `Label`           | Form label                           |
+| `Input`           | Text input                           |
+| `Badge`           | Status badge                         |
+| `Progress`        | Progress bar                         |
+| `Tooltip`         | Tooltip wrapper                      |
+| `TooltipProvider` | Tooltip context provider             |
+| `TooltipTrigger`  | Tooltip trigger element              |
+| `TooltipContent`  | Tooltip content popup                |
+| `SubwayButton`    | Game-styled button                   |
+| `MainMenuButton`  | Main menu style button               |
+
+### Button Example {#button-example}
+
+```tsx
+const { Button } = api.utils.components as Record<
+  string,
+  React.ComponentType<any>
+>;
+
+function MyPanel() {
+  return (
+    <div className="flex flex-col gap-2">
+      <Button onClick={() => console.log('click')}>Default</Button>
+      <Button variant="secondary">Secondary</Button>
+      <Button variant="destructive">Delete</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="ghost">Ghost</Button>
+    </div>
+  );
+}
+```
+
+### Card Example {#card-example}
+
+```tsx
+const { Card, CardHeader, CardTitle, CardContent } = api.utils
+  .components as Record<string, React.ComponentType<any>>;
+
+function StatsCard() {
+  const stats = api.gameState.getRidershipStats();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Ridership</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>{stats.totalRidersPerHour} riders/hour</p>
+        <p>{stats.totalRiders} total</p>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## Using Lucide Icons {#using-lucide-icons}
+
+The game provides ~1700 [Lucide](https://lucide.dev/) icons. Access them by PascalCase name:
+
+```tsx
+const icons = api.utils.icons;
+
+function MyPanel() {
+  const TrainIcon = icons.Train;
+  const SettingsIcon = icons.Settings;
+  const MapPinIcon = icons.MapPin;
+
+  return (
+    <div className="flex items-center gap-2">
+      <TrainIcon className="w-4 h-4" />
+      <span>Trains</span>
+    </div>
+  );
+}
+```
+
+Common icons you might use: `Train`, `MapPin`, `Settings`, `DollarSign`, `BarChart`, `Route`,
+`Building`, `Layers`, `Clock`, `Play`, `Pause`, `Zap`, `Plus`, `Minus`, `Search`, `Filter`,
+`Download`, `Save`.
+
+For icon names used in `addFloatingPanel`, `addToolbarButton`, etc., use the PascalCase string name
+directly:
+
+```ts
+api.ui.addFloatingPanel({
+  id: 'my-panel',
+  icon: 'Train', // String name, not the component
+  title: 'My Panel',
+  render: MyPanel,
+});
+```
+
+## Using Recharts {#using-recharts}
+
+The game bundles [Recharts](https://recharts.org/) for data visualization. All the standard
+components are available:
+
+```tsx
+const {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} = api.utils.charts;
+
+function RidershipChart() {
+  const metrics = api.gameState.getLineMetrics();
+
+  const data = metrics.map((m) => ({
+    name: m.name,
+    riders: m.ridersPerHour,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="riders" fill="#3b82f6" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+```
+
+### Available Chart Components {#available-chart-components}
+
+| **Component**             | **Use for**                                       |
+| ------------------------- | ------------------------------------------------- |
+| `ResponsiveContainer`     | Auto-sizing wrapper (use this around every chart) |
+| `BarChart`, `Bar`         | Bar charts                                        |
+| `LineChart`, `Line`       | Line charts                                       |
+| `AreaChart`, `Area`       | Area charts                                       |
+| `PieChart`, `Pie`, `Cell` | Pie/donut charts                                  |
+| `RadarChart`, `Radar`     | Radar charts                                      |
+| `ComposedChart`           | Mixed chart types                                 |
+| `XAxis`, `YAxis`          | Axes                                              |
+| `CartesianGrid`           | Grid lines                                        |
+| `Tooltip`                 | Hover tooltips                                    |
+| `Legend`                  | Chart legend                                      |
+
+## Styling With Tailwind {#styling-with-tailwind}
+
+The game uses Tailwind CSS. You can use Tailwind utility classes directly in your components:
+
+```tsx
+function MyPanel() {
+  return (
+    <div className="flex flex-col gap-3 p-3">
+      <h3 className="text-lg font-semibold">My Mod</h3>
+      <p className="text-sm text-muted-foreground">Some description</p>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-card rounded-lg p-2">Cell 1</div>
+        <div className="bg-card rounded-lg p-2">Cell 2</div>
+      </div>
+    </div>
+  );
+}
+```
+
+Useful theme-aware classes:
+
+- `text-muted-foreground` — subdued text color
+- `bg-card` — card background
+- `border` — themed border
+- `rounded-lg` / `rounded-md` — border radius
+
+## Floating Panel Tips {#floating-panel-tips}
+
+When rendering into a floating panel (`addFloatingPanel`), the panel provides its own container —
+you don't need to wrap your component in a `Card`:
+
+```tsx
+// Good — panel provides the container
+function MyPanel() {
+  return (
+    <div className="flex flex-col gap-3 p-3">
+      <p>Content here</p>
+    </div>
+  );
+}
+
+// Registering it
+api.ui.addFloatingPanel({
+  id: 'my-panel',
+  title: 'My Mod',
+  icon: 'Puzzle',
+  render: MyPanel,
+});
+```
+
+## Registering Custom Components at Placements {#registering-custom-components-at-placements}
+
+For more advanced UI, you can register a React component directly at a UI placement:
+
+```tsx
+function MySettingsSection() {
+  const [enabled, setEnabled] = useState(true);
+
+  return (
+    <div className="flex items-center justify-between p-2">
+      <span>My Feature</span>
+      <Switch checked={enabled} onCheckedChange={setEnabled} />
+    </div>
+  );
+}
+
+api.ui.registerComponent('settings-menu', {
+  id: 'my-settings',
+  component: MySettingsSection,
+});
+```

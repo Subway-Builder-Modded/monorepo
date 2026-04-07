@@ -1,11 +1,37 @@
 #!/usr/bin/env sh
 set -eu
 
-ROOT_DIR="$(git rev-parse --show-toplevel)/railyard"
-if command -v pwsh >/dev/null 2>&1; then
-  pwsh -NoProfile -ExecutionPolicy Bypass -File "$ROOT_DIR/scripts/pre-push-check.ps1"
-elif command -v powershell >/dev/null 2>&1; then
-  powershell -NoProfile -ExecutionPolicy Bypass -File "$ROOT_DIR/scripts/pre-push-check.ps1"
-else
-  "$ROOT_DIR/scripts/pre-push-check.sh"
-fi
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+
+run_railyard_checks() {
+  RAILYARD_DIR="$ROOT_DIR/railyard"
+  if [ ! -d "$RAILYARD_DIR" ]; then
+    return 0
+  fi
+
+  if command -v pwsh >/dev/null 2>&1; then
+    pwsh -NoProfile -ExecutionPolicy Bypass -File "$RAILYARD_DIR/scripts/pre-push-check.ps1"
+  elif command -v powershell >/dev/null 2>&1; then
+    powershell -NoProfile -ExecutionPolicy Bypass -File "$RAILYARD_DIR/scripts/pre-push-check.ps1"
+  else
+    "$RAILYARD_DIR/scripts/pre-push-check.sh"
+  fi
+}
+
+run_website_checks() {
+  WEBSITE_DIR="$ROOT_DIR/website"
+  if [ ! -d "$WEBSITE_DIR" ] || [ ! -f "$WEBSITE_DIR/package.json" ]; then
+    return 0
+  fi
+
+  if command -v pwsh >/dev/null 2>&1; then
+    pwsh -NoProfile -ExecutionPolicy Bypass -File "$WEBSITE_DIR/scripts/quality.ps1"
+  elif command -v powershell >/dev/null 2>&1; then
+    powershell -NoProfile -ExecutionPolicy Bypass -File "$WEBSITE_DIR/scripts/quality.ps1"
+  else
+    "$WEBSITE_DIR/scripts/quality.sh"
+  fi
+}
+
+run_railyard_checks
+run_website_checks

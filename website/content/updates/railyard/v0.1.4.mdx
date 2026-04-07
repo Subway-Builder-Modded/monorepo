@@ -1,0 +1,93 @@
+---
+title: 'Railyard - v0.1.4'
+date: 'March 15, 2026'
+tag: 'beta'
+githubUrl: 'https://github.com/Subway-Builder-Modded/railyard/releases/tag/v0.1.4'
+description: Changelogs and release notes for Railyard v0.1.4.
+---
+
+**Full Changelog**: [`v0.1.3...v0.1.4`](https://github.com/Subway-Builder-Modded/railyard/compare/v0.1.3...v0.1.4)
+
+<br />
+
+<UpdateSection type="features">
+  <IconList>
+    <IconItem icon="Plus" color="#48A54B">
+      Added a library page to easily view and manage installed content
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Installs can now be cancelled during the download phase
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Added support for optional GitHub token to work around GitHub API limits
+    </IconItem>
+  </IconList>
+</UpdateSection>
+
+<UpdateSection type="upgrades">
+    <IconList>
+        <IconItem icon="Wrench" color="#EEB03D">
+            Added sorting by country/downloads/last updated (default is now last updated)
+        </IconItem>
+        <IconItem icon="Wrench" color="#EEB03D">
+            All assets now show download counts on the Browse page, with maps also showing flag icons corresponding to the country of the map
+        </IconItem>
+        <IconItem icon="Wrench" color="#EEB03D">
+            Search now only show tags when an asset with that tag exists
+        </IconItem>
+        <IconItem icon="Wrench" color="#EEB03D">
+            Separated toasts for download progress and download success and added an indicator for how many downloads are in queue
+        </IconItem>
+        <IconItem icon="Wrench" color="#EEB03D">
+            Added an updated multistep loading screen on startup
+        </IconItem>
+        <IconItem icon="Wrench" color="#EEB03D">
+            Railyard now launches in fullscreen
+        </IconItem>
+        <IconItem icon="Wrench" color="#EEB03D">
+            Linux builds are now through Flatpak. This means you will need to have Flatpak installed in order for the app to function. In addition, this means the autoupdater will be broken for one patch on Linux (you will need to manually install the flatpak included in the v0.1.4 release yourself)
+
+            :::note
+
+            You may not be able to find normal file paths when using the flatpak on linux. This is normal. Your host file system will be mounted on /run/host. You **will** have to update your paths when switching to the flatpak build.
+
+            :::
+        </IconItem>
+    </IconList>
+
+</UpdateSection>
+
+<UpdateSection type="bugfixes">
+  <IconList>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed the error log copy button overlapping with text
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed scrolling left and right/zooming in and out
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Profiles will now automatically purge entries related to uninstallable
+      content
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Resolved issue where multiple Railyard application instances could be
+      started simultaneously
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Assets with no installable versions are hidden on the Browse page and
+      individual versions that are not installable are hidden on the Install
+      page
+    </IconItem>
+  </IconList>
+</UpdateSection>
+
+<UpdateSection type="other">
+  <IconList>
+    <IconItem icon="Info" color="#3B86CB">
+      Fixed the in-game mod loader version (appeared as `vv0.1.3`)
+    </IconItem>
+    <IconItem icon="Info" color="#3B86CB">
+      Changed app instance title from `railyard` to `Railyard`
+    </IconItem>
+  </IconList>
+</UpdateSection>

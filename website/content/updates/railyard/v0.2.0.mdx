@@ -1,0 +1,119 @@
+---
+title: 'Railyard - v0.2.0'
+date: 'March 29, 2026'
+tag: 'beta'
+githubUrl: 'https://github.com/Subway-Builder-Modded/railyard/releases/tag/v0.2.0'
+description: Changelogs and release notes for Railyard v0.2.0.
+---
+
+**Full Changelog**: [`v0.1.6...v0.2.0`](https://github.com/Subway-Builder-Modded/railyard/compare/v0.1.6...v0.2.0)
+
+<br />
+
+<UpdateSection type="features">
+  #### UI Overhaul
+  <IconList>
+    <IconItem icon="Plus" color="#48A54B">
+      Completely redesigned the Railyard UI with a new layout and visual style
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Added 4 new themes (in place of the old high-contrast and soft ones):
+      `Coffee`, `Midnight`, `Crystal`, and `Forest`
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Added a new versions, changelog, and dependencies page for each individual
+      asset
+    </IconItem>
+  </IconList>
+  #### Import Local Maps
+  <IconList>
+    <IconItem icon="Plus" color="#48A54B">
+      Added support for importing local map ZIPs
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Local maps are displayed in the Library with a Local tag and are loaded
+      alongside any Railyard-hosted maps
+    </IconItem>
+  </IconList>
+  #### Profiles
+  <IconList>
+    <IconItem icon="Plus" color="#48A54B">
+      Added support for multiple profiles
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Individual profiles maintain separate sets of subscriptions + UI/System
+      preferences
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Archives of non-active profiles are maintained to allow quick switches
+      between different profiles
+    </IconItem>
+  </IconList>
+  #### Dependencies
+  <IconList>
+    <IconItem icon="Plus" color="#48A54B">
+      Added dependency resolution for mods
+    </IconItem>
+    <IconItem icon="Plus" color="#48A54B">
+      Mods can now declare another mod as a dependency, and all dependencies
+      will automatically be installed
+    </IconItem>
+  </IconList>
+  #### Command-Line Arguments
+  <IconList>
+    <IconItem icon="Plus" color="#48A54B">
+      Devtools within Subway Builder can now be enabled via a setting in
+      Railyard
+    </IconItem>
+  </IconList>
+</UpdateSection>
+
+<UpdateSection type="upgrades">
+  <IconList>
+    <IconItem icon="Wrench" color="#EEB03D">
+      Registry refreshes and downloaded asset extraction are now atomic to
+      reduce risk of corrupted/mixed disk state on unexpected shutdown
+    </IconItem>
+    <IconItem icon="Wrench" color="#EEB03D">
+      Browse section now displays a loading symbol to eliminate lag/slow loading
+      behavior on startup
+    </IconItem>
+    <IconItem icon="Wrench" color="#EEB03D">
+      Library now displays city code for all maps
+    </IconItem>
+    <IconItem icon="Wrench" color="#EEB03D">
+      Disabled modifying (installing, deleting, updating) content while the game
+      is launched
+    </IconItem>
+  </IconList>
+</UpdateSection>
+
+<UpdateSection type="bugfixes">
+  <IconList>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed Ctrl+Click on an asset's Browse page card causing it to open up in a
+      browser window
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed toast notifications being able to be picked up and moved around the
+      screen
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Command line argument insertion no longer replaces machine env when
+      DevTools setting is enabled
+    </IconItem>
+    <IconItem icon="Bug" color="#EF4444">
+      Fixed fuzzy search being too lenient and matching on small subsets of
+      strings
+    </IconItem>
+  </IconList>
+</UpdateSection>
+
+<UpdateSection type="other">
+  <IconList>
+    <IconItem icon="Info" color="#3B86CB">
+      v0.2 documentation is live at
+      https://subwaybuildermodded.com/railyard/docs/v0.2
+    </IconItem>
+  </IconList>
+</UpdateSection>

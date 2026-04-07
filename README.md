@@ -89,6 +89,43 @@ The pre-push check includes:
 
 ---
 
+<a href="https://subwaybuildermodded.com/">
+  <h1 align="center">
+    <img width="24" alt="globe" src="https://github.com/user-attachments/assets/ff2b1eee-91d1-4621-965e-e8e75eef29c5" />
+    Website
+  </h1>
+</a>
+
+### Development Prerequisites
+
+- [Node.js](https://nodejs.org/) 22+
+- [pnpm](https://pnpm.io/)
+
+### Getting Started
+
+```bash
+cd website
+pnpm install
+pnpm run dev
+```
+
+### Quality Checks
+
+```bash
+cd website
+pnpm run check
+```
+
+### Branches
+
+- `website`: production website source branch
+- `website-dev`: development website source branch
+
+<br/>
+<br/>
+
+---
+
 <p align="center">
   <a href="https://subwaybuildermodded.com/">
     <b>

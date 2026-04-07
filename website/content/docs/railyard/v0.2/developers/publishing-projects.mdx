@@ -1,0 +1,139 @@
+---
+id: publishing-projects
+title: Publishing Projects
+description: Learn how to properly publish your project to the Railyard registry.
+---
+
+Railyard does not host mods or maps within the service. Instead, Railyard pulls directly from its [registry](https://github.com/Subway-Builder-Modded/registry), which contains the data pointing to all the user-created projects. To add a project to Railyard for people to download and play with, you must first add it to the registry.
+
+## Step 1 - Hosting the File {#hosting-the-file}
+
+In order to make a submission to the Railyard registry, you need to first upload the source code and release to GitHub and link it to Railyard. To do this, create a new GitHub repository. The actual contents can contain the source code for your map/mod.
+
+Once you have the repository set up, create a new release. In this release, place **ALL** the ZIP files containing your various projects (as different release assets). The ZIP files should contain **exactly** the files that are used for the mods, meaning no nested subfolders.
+
+::::important
+
+If you are publishing a **mod**, you must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Specifically, Railyard checks that the `dependencies` field is present and includes `subway-builder`.
+
+- **GitHub Releases:** Upload `manifest.json` as a **separate release asset** alongside the `.zip` file.
+- **Custom URL:** Provide a **Manifest URL** in the issue form pointing to the `manifest.json` for the current release.
+
+This requirement applies to **mods only** — maps are exempt.
+
+:::note
+
+Mods must declare dependencies in their `manifest.json` (the one shipped inside the mod's download ZIP). The `dependencies` field is required and must include a `subway-builder` semver range. You can also declare another existing mod as a dependency. For more information, see the [Dependencies guide](/railyard/docs/v0.2/developers/dependencies).
+
+:::
+
+:::caution
+
+Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`, `abc`, `version-A`, etc. will not work. Your version must be `X.Y.Z` or `vX.Y.Z`.
+
+:::
+
+::::
+
+## Step 2 - Submitting to the Registry {#submitting-to-the-registry}
+
+Now that your files are hosted on GitHub, you are ready to make a submission to the registry. Go to the [registry's issues page](https://github.com/Subway-Builder-Modded/registry/issues) and click on "New Issue". Here, you can create your submission, which will then be reviewed by a Railyard maintainer. Once you have the issue selection screen open, select "Publish New Map" or "Publish New Mod", depending on the type of the project you are trying to submit. The next process will differ a little depending on if you are submitting a map or a mod.
+
+::::note
+
+If you want to host multiple projects within a single repository, follow the [using custom URL guide](/railyard/docs/v0.2/developers/using-custom-url) for further instructions. This will teach you how to set up your custom Update JSON for Railyard to pull from.
+
+:::info
+
+You should _likely_ only need to do this if you are the creator of a large amount of maps. For single maps, GitHub Releases is usually the simpler option. For mods, you likely want to keep each project separate anyways for source code management reasons, so GitHub Releases is also recommended.
+
+:::
+
+::::
+
+## Step 3 - Using the Issue Template {#using-the-issue-template}
+
+<Tabs>
+
+<TabItem value="submitting-maps" label="Submitting Maps" default>
+
+Once you select "Publish New Map", a popup window will appear to input some information about the map. The information should be inputted according to the issue template.
+
+:::danger[Data Source and Quality]
+
+Railyard requires all map makers to submit the source and quality of their data. This is then used to categorize the data for users looking to download maps. For more detailed information on the specifications of data quality, see [**Data Quality**](/railyard/docs/v0.2/developers/data-quality).
+
+:::
+
+:::tip
+
+For more information on how to properly tag your map, see the [**Tagging guide**](/railyard/docs/v0.2/developers/tagging).
+
+:::
+
+</TabItem>
+
+<TabItem value="submitting-mods" label="Submitting Mods">
+
+Once you select "Publish New Mod", a popup window will appear to input some information about the mod. The information should be inputted according to the issue template.
+
+:::tip
+
+For more information on how to properly tag your map, see the [**Tagging guide**](/railyard/docs/v0.2/developers/tagging).
+
+:::
+
+</TabItem>
+
+</Tabs>
+
+<details>
+  <summary>**Using the Update JSON**</summary>
+  
+For `Custom URL`, place a link to your raw Update JSON file. You can paste the raw link directly copied from your repository, however, it is instead recommended to deploy it to GitHub pages and paste that link there. This can help some users who may be rate limited. To deploy to GitHub pages, create a new file located at `.github/workflows/deploy-releases.yml`. Paste the following into the file:
+
+```yml
+name: Deploy Update JSON to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: [releases/**]
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: releases
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+This will automatically deploy your Update JSON files to GitHub Pages. Once you do this, put the direct link to your Update JSON file for the corresponding map in the `Custom URL` field. Now every time you update your map (and your Update JSON file), it will automatically deploy the latest Update JSON file for Railyard to use.
+
+</details>
+
+Once you fill out the submission ticket, a Pull Request should automatically be created. A Railyard maintainer will review it and it will be automatically submitted once they do. After that, it will be available on Railyard for everyone to download.
+
+:::tip
+
+If you input a field incorrectly, the validation will fail. If this happens, you can edit the message above automatically created by the fields you set earlier. Once you edit that message, send a new comment simply commenting `revalidate`.
+
+:::

@@ -1,0 +1,84 @@
+---
+id: github-token
+title: GitHub Token
+description: Learn how to generate and use a GitHub token with Railyard.
+---
+
+This guide will walk you through generating a GitHub token for use with Railyard. This can help users who are having issues with GitHub's API rate limits when using Railyard.
+
+<Image
+  width="1000"
+  alt="image"
+  src="/images/docs/railyard/v0.2/github-ratelimit.png"
+/>
+
+## Step 1 - Generating a GitHub Token {#generating-github-token}
+
+Go to https://github.com and create an account if you don't have one already. Head to your settings, then click on "Developer settings" in the sidebar. From there, click on "Personal access tokens", then "Fine-grained tokens". Click on "Generate new token".
+
+From here, input a token name. Under "Resource owner", select "All repositories". Under "Permissions", add a permission for "Contents" and set it to "Read-only". Finally, click "Generate token".
+
+:::note
+
+Once your token expires, you may experience rate limit issues again until you regenerate your token and change it to Railyard.
+
+:::
+
+<Image
+  width="1000"
+  alt="image"
+  src="/images/docs/railyard/v0.2/github-pat.png"
+/>
+
+:::tip
+
+The "Metadata" permission will be automatically added once you select the "Contents" permission. This is required for Railyard to be able to use the token, so there is no need to worry about adding it manually.
+
+:::
+
+Once you have generated the token, copy it to your clipboard. You will need this for the next step.
+
+:::important
+
+If you forget your token and need to reinput it into Railyard, you can simply [regenerate it](#regenerating-your-github-token).
+
+:::
+
+## Step 2 - Adding Your GitHub Token to Railyard {#adding-your-github-token-to-railyard}
+
+If you have not yet completed the initial setup for Railyard, you can add your GitHub token during the setup process. If you have already completed the initial setup, you can add your GitHub token at any time via the settings menu.
+
+<Tabs>
+<TabItem value="initial-setup" label="Initial Setup" default>
+
+In the setup process, you will see a step for adding your GitHub token. Simply paste your token into the input field and click "Next" to continue with the setup process.
+
+<Image
+  width="1000"
+  alt="image"
+  src="/images/docs/railyard/v0.2/railyard-setup-pat.png"
+/>
+
+</TabItem>
+<TabItem value="settings" label="Settings">
+
+To change your token via settings, head to the settings page by clicking on the "Settings" link in the navbar. From there, find the "GitHub Token (Option)" item in the "General Settings" category. Click on "Add" and paste your token into the input field. Click "Save" to update your token.
+
+<Image
+  width="1000"
+  alt="image"
+  src="/images/docs/railyard/v0.2/railyard-settings-generalsettings.png"
+/>
+
+</TabItem>
+</Tabs>
+
+## Regenerating Your GitHub Token {#regenerating-your-github-token}
+
+If for whatever reason you need to regenerate your GitHub token, simply go back to the "Personal access tokens" page in your GitHub settings. Find the token you generated for Railyard and click on the "Regenerate" button. This will generate a new token for you, which you can then copy and paste into Railyard as described in the previous step.
+
+<Image
+  width="1000"
+  alt="image"
+  src="/images/docs/railyard/v0.2/github-pat-regen.png"
+/>
