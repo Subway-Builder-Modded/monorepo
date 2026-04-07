@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import Response
 
 from ..registry import RegistryService
 from ..types import AssetManifest, MapManifest, IntegrityVersionInfo
@@ -44,5 +45,27 @@ async def get_mod_versions(mod: str) -> dict[str, IntegrityVersionInfo] | dict:
         return await RegistryService.get_asset_versions(mod, "mod")
     except FileNotFoundError:
         return {"error": "Mod not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/maps/{map}/gallery/{image}", tags=["registry"])
+async def get_gallery_image(map: str, image: str):
+    """Fetches a gallery image for a specific map."""
+    try:
+        image_data = await RegistryService.get_gallery_image("map", map, image)
+        return Response(content=image_data, media_type=f"image/{image.split('.')[-1]}")
+    except FileNotFoundError:
+        return {"error": "Image not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.get("/mods/{mod}/gallery/{image}", tags=["registry"])
+async def get_mod_gallery_image(mod: str, image: str):
+    """Fetches a gallery image for a specific mod."""
+    try:
+        image_data = await RegistryService.get_gallery_image("mod", mod, image)
+        return Response(content=image_data, media_type=f"image/{image.split('.')[-1]}")
+    except FileNotFoundError:
+        return {"error": "Image not found"}
     except Exception as e:
         return {"error": str(e)}

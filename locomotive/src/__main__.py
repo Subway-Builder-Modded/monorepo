@@ -8,7 +8,7 @@ from . import registry, routers
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    process = Thread(target=registry.continuous_registry_update)
+    process = Thread(target=registry.RegistryService.continuous_registry_update)
     process.daemon = True
     process.start()
     yield

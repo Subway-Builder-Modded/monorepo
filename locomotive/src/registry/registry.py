@@ -2,6 +2,7 @@ import json
 import os
 import time
 
+import aiofiles
 import git
 from loguru import logger
 
@@ -220,10 +221,16 @@ class RegistryService:
     async def get_asset_versions(asset_id: str, asset_type: str) -> dict[str, registry_types.IntegrityVersionInfo]:
         manifest = await RegistryService._get_integrity_index(asset_type)
         return manifest.listings[asset_id].versions
-
-
-get_repository_path = RegistryService.get_repository_path
-continuous_registry_update = RegistryService.continuous_registry_update
-get_author_info = RegistryService.get_author_info
-get_asset_manifest = RegistryService.get_asset_manifest
-get_asset_versions = RegistryService.get_asset_versions
+    
+    @staticmethod
+    async def get_gallery_image(asset_type: str, asset_id: str, image_name: str) -> bytes:
+        image_path = os.path.join(RegistryService.get_repository_path(), f"{asset_type}s", f"{asset_id}", "gallery", image_name)
+        try:
+            async with aiofiles.open(image_path, "rb") as image_file:
+                return await image_file.read()
+        except FileNotFoundError:
+            logger.error(f"Gallery image {image_name} not found for asset {asset_id} of type {asset_type}")
+            raise
+        except Exception as error:
+            logger.error(f"Error loading gallery image {image_name} for asset {asset_id} of type {asset_type}: {str(error)}")
+            raise
