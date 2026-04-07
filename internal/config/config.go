@@ -373,7 +373,9 @@ func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.
 					},
 				},
 			}
-			// For MacOS, allow .app bundles to be selected as executables, even though they may be directories to support the .app bundle format.
+			// On macOS, .app bundles are directories so OpenFileDialog cannot select them
+			// (NSOpenPanel sets canChooseDirectories=false). Use OpenDirectoryDialog instead
+			// so .app bundles appear as selectable items.
 			if runtime.GOOS == "darwin" {
 				dialogOptions.Filters = []wruntime.FileFilter{
 					{
@@ -385,8 +387,7 @@ func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.
 						Pattern:     "*",
 					},
 				}
-				// Ensure .app bundles can be selected as launch targets.
-				dialogOptions.TreatPackagesAsDirectories = false
+				return wruntime.OpenDirectoryDialog(ctx, dialogOptions)
 			}
 
 			return wruntime.OpenFileDialog(ctx, dialogOptions)
