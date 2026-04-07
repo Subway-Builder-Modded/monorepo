@@ -33,6 +33,17 @@ jobs:
           go-version: "1.25"
           cache: true
           cache-dependency-path: railyard/go.sum
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.14"
+          cache: "pip"
+      
+      - name: Install virtual environment
+        working-directory: ./locomotive
+        run: |
+          pip install poetry
+          poetry install --no-root --no-ansi --no-interaction
 
       - name: Run backend quality checks
         run: bash ./scripts/backend-quality.sh
