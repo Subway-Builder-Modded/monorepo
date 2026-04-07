@@ -3,7 +3,7 @@ name: Website Build
 on:
   pull_request:
     branches:
-      - website
+      - main
       - website-dev
     paths:
       - "website/**"

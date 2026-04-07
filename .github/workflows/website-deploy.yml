@@ -3,7 +3,7 @@ name: Website Deploy (Prod)
 on:
   push:
     branches:
-      - website
+      - main
     paths:
       - "website/**"
       - ".github/workflows/website-deploy.yml"
