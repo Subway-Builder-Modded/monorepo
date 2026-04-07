@@ -1,12 +1,7 @@
-railyard/build/bin
-node_modules
-railyard/frontend/dist
+# Ignore agentic files and directories
 .claude/
+
+# Ignore cache and temporary files
 .gocache/
 .pnpm-store/
-railyard.claude/tmp/
 tmp/
-.tmp/
-coverage
-coverage_func.txt
-$coverFile

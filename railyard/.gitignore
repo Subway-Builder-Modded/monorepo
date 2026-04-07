@@ -1,0 +1,10 @@
+# Build artifacts and dependencies
+build/bin
+node_modules
+frontend/dist
+
+# CI artifacts
+coverage
+coverage_func.txt
+$coverFile
+.tmp/
