@@ -39,14 +39,15 @@ class RegistryService:
 
         author_details_cache: dict[str, registry_types.AuthorDetails] = {}
         for author in content.authors:
-            if not author.author_id:
+            if not author.author_id.lower():
                 continue
 
-            author_details_cache[author.author_id] = registry_types.AuthorDetails(
+            author_details_cache[author.author_id.lower()] = registry_types.AuthorDetails(
                 author_id=author.author_id,
                 author_alias=author.author_alias,
                 attribution_link=author.attribution_link,
                 contributor_tier=author.contributor_tier,
+                attribution_method=author.attribution_method,
             )
 
         RegistryService._author_details_cache = author_details_cache
@@ -104,6 +105,48 @@ class RegistryService:
         except KeyError:
             logger.error("Author index file has an unexpected structure in registry repository")
             raise
+    
+    @staticmethod
+    async def get_author_info_with_assets(author_id: str) -> registry_types.AuthorResponse:
+        author_details = await RegistryService.get_author_info(author_id)
+
+        map_ids = []
+        mod_ids = []
+
+        maps_path = os.path.join(RegistryService.get_repository_path(), "maps")
+        mods_path = os.path.join(RegistryService.get_repository_path(), "mods")
+
+        for asset_type, path, id_list in [("map", maps_path, map_ids), ("mod", mods_path, mod_ids)]:
+            try:
+                for asset_id in os.listdir(path):
+                    manifest_path = os.path.join(path, asset_id, "manifest.json")
+                    if not os.path.isfile(manifest_path):
+                        continue
+
+                    try:
+                        manifest_data = await files.read_and_validate_schema(
+                            manifest_path,
+                            registry_types.MapManifest if asset_type == "map" else registry_types.AssetManifest,
+                        )
+                        if manifest_data.author.lower() == author_id:
+                            id_list.append(asset_id)
+                    except Exception as e:
+                        logger.error(f"Error reading manifest for {asset_type} {asset_id}: {str(e)}")
+            except FileNotFoundError:
+                logger.error(f"{asset_type.capitalize()} directory not found in registry repository")
+                continue
+            except Exception as e:
+                logger.error(f"Error listing {asset_type} directory in registry repository: {str(e)}")
+                continue
+
+        return registry_types.AuthorResponse(
+            author_id=author_details.author_id,
+            author_alias=author_details.author_alias,
+            attribution_link=author_details.attribution_link,
+            contributor_tier=author_details.contributor_tier,
+            map_ids=map_ids, 
+            mod_ids=mod_ids
+        )
 
     @staticmethod
     def continuous_registry_update() -> None:

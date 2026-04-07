@@ -8,6 +8,7 @@ class AuthorDetails(BaseModel):
     author_alias: Optional[str] = None
     attribution_link: Optional[str] = None
     contributor_tier: Optional[str] = None
+    attribution_method: Optional[str] = None
 
 
 class UpdateConfig(BaseModel):
@@ -135,3 +136,8 @@ class IntegrityReport(BaseModel):
     schema_version: int
     generated_at: str
     listings: dict[str, IntegrityListing]
+
+
+class AuthorResponse(AuthorDetails):
+    map_ids: List[str]
+    mod_ids: List[str]
