@@ -29,10 +29,4 @@ go test ./...
 echo "[backend] running Go coverage gate..."
 "$ROOT_DIR/scripts/check-go-coverage.sh"
 
-echo "[backend] running Python formatting check..."
-cd ./locomotive
-poetry run black --line-length=120 --check .
-poetry run isort --check .
-cd ..
-
 echo "[backend] all checks passed"

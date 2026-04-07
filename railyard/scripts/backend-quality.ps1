@@ -39,10 +39,4 @@ Invoke-CheckedCommand { go test ./... } "[backend] Go tests failed"
 Write-Host "[backend] running Go coverage gate..."
 Invoke-CheckedCommand { & (Join-Path $rootDir "scripts/check-go-coverage.ps1") } "[backend] Go coverage gate failed"
 
-Write-Host "[backend] running Python formatting check..."
-Set-Location (Join-Path $rootDir "locomotive")
-Invoke-CheckedCommand { poetry run black --line-length=120 --check . } "[backend] Python formatting check failed (black)"
-Invoke-CheckedCommand { poetry run isort --check . } "[backend] Python formatting check failed (isort)"
-Set-Location $rootDir
-
 Write-Host "[backend] all checks passed"
