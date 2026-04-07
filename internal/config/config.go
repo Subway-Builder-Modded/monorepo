@@ -384,6 +384,7 @@ func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.
 						Pattern:     "*",
 					},
 				}
+				dialogOptions.TreatPackagesAsDirectories = true
 				// Use a directory picker for MacOS since executables are typically .app bundles and the OpenFileDialog will not allow selecting them even if `*.app` filter is provided or if TreatPackagesAsDirectories is set to true
 				return wruntime.OpenDirectoryDialog(ctx, dialogOptions)
 			}
