@@ -5,7 +5,7 @@ import { PageHeader } from '../../../components/shared/page-header';
 import { getUpdateProjectById } from '../../../config/content/updates';
 import { PROJECT_COLOR_SCHEMES } from '../../../config/theme/colors';
 import type { DocsInstance } from '../../../config/content/docs';
-import { CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { CardDescription, CardHeader, CardTitle } from '@sbm/shared/ui/card';
 import { ThemedShowcaseCard } from '../../../components/ui/themed-showcase-card';
 import { hexAlpha } from '../../../lib/color';
 import { buildDocHref } from '../../../lib/docs/shared';

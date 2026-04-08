@@ -20,8 +20,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from '../../../components/ui/carousel';
-import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
+} from '@sbm/shared/ui/carousel';
+import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
 import { usePersistedState } from '../../../lib/use-persisted-state';
 import type { RailyardAnalyticsData } from '../../../types/railyard-analytics';
 import {

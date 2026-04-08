@@ -1,4 +1,4 @@
-import { Card, CardDescription, CardHeader } from '../../../../components/ui/card';
+import { Card, CardDescription, CardHeader } from '@sbm/shared/ui/card';
 
 export function PlaygroundIntroCard() {
   return (

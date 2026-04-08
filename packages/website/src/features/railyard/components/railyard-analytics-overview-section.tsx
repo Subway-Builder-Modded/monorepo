@@ -8,7 +8,7 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '../../../components/ui/stat';
+} from '@sbm/shared/ui/stat';
 import type { RailyardAnalyticsData } from '../../../types/railyard-analytics';
 import { RailyardSectionHeader } from './railyard-analytics-shared';
 

@@ -19,11 +19,13 @@ import {
 } from '../../components/layout/layout-shell';
 import { Button } from '../../components/ui/button';
 import {
-  sharedNavbarBrandClass,
-  sharedNavbarCurrentIndicatorClass,
-  sharedNavbarInteractiveAccentClass,
-  sharedNavbarItemClass,
-  sharedNavbarStickyShellClass,
+  NavbarShell,
+  NavbarBrand,
+  NavbarNav,
+  NavbarActions,
+  NavbarItem,
+  navbarInteractiveAccentClass,
+  navbarCurrentIndicatorClass,
 } from '@sbm/shared/ui/navbar-shell';
 import {
   Dialog,
@@ -32,12 +34,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
+} from '@sbm/shared/ui/dialog';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '../../components/ui/tooltip';
+} from '@sbm/shared/ui/tooltip';
 import { cn } from '../../lib/utils';
 
 type NavLinkConfig = {
@@ -177,82 +179,81 @@ export function Navbar({
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-3 z-50">
       <div className={cn(APP_SHELL_WIDTH_CLASS, APP_SHELL_PADDING_CLASS)}>
-        <div className={cn(sharedNavbarStickyShellClass, 'flex gap-y-2')}>
+        <NavbarShell className="flex gap-y-2">
           <div className="flex min-w-0 flex-wrap items-center gap-[clamp(0.6rem,1.8vw,1.25rem)]">
-            <Link
-              href="/"
-              className={sharedNavbarBrandClass}
-            >
-              <TrainTrack className="h-[1.2em] w-[1.2em]" />
-              <span>Railyard</span>
-            </Link>
-            <nav className="flex max-w-full flex-wrap items-center gap-1.5">
+            <NavbarBrand asChild>
+              <Link href="/">
+                <TrainTrack className="h-[1.2em] w-[1.2em]" />
+                <span>Railyard</span>
+              </Link>
+            </NavbarBrand>
+            <NavbarNav>
               {navLinks.map(({ href, label, icon: Icon, isCurrent }) => {
                 const current = isCurrent(location);
 
                 return (
-                  <Link
+                  <NavbarItem
                     key={href}
-                    href={href}
-                    aria-current={current ? 'page' : undefined}
+                    asChild
                     className={cn(
-                      sharedNavbarItemClass,
-                      sharedNavbarInteractiveAccentClass,
+                      navbarInteractiveAccentClass,
                       current ? 'text-primary bg-accent/45' : undefined,
                     )}
                   >
-                    <Icon className="h-[1.05em] w-[1.05em] shrink-0 transition-colors" />
-                    <span>{label}</span>
-                    {current && (
-                      <span
-                        aria-hidden
-                        className={sharedNavbarCurrentIndicatorClass}
-                      />
-                    )}
-                  </Link>
+                    <Link
+                      href={href}
+                      aria-current={current ? 'page' : undefined}
+                    >
+                      <Icon className="h-[1.05em] w-[1.05em] shrink-0 transition-colors" />
+                      <span>{label}</span>
+                      {current && (
+                        <span
+                          aria-hidden
+                          className={navbarCurrentIndicatorClass}
+                        />
+                      )}
+                    </Link>
+                  </NavbarItem>
                 );
               })}
-            </nav>
+            </NavbarNav>
           </div>
-          <div className="flex items-center gap-1.5">
+          <NavbarActions>
             {gameRunning ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleStop}
-                className={cn(
-                  sharedNavbarItemClass,
-                  'h-auto bg-[color-mix(in_srgb,var(--install-primary)_20%,transparent)] text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_24%,transparent)] hover:!text-[var(--uninstall-primary)]',
-                )}
+              <NavbarItem
+                asChild
+                className="h-auto bg-[color-mix(in_srgb,var(--install-primary)_20%,transparent)] text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_24%,transparent)] hover:!text-[var(--uninstall-primary)]"
               >
-                <Square className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
-                Running
-                <span
-                  aria-hidden
-                  className={cn(
-                    sharedNavbarCurrentIndicatorClass,
-                    'bg-[var(--install-primary)] transition-colors group-hover:bg-[var(--uninstall-primary)]',
-                  )}
-                />
-              </Button>
+                <Button variant="ghost" size="sm" onClick={handleStop}>
+                  <Square className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
+                  Running
+                  <span
+                    aria-hidden
+                    className={cn(
+                      navbarCurrentIndicatorClass,
+                      'bg-[var(--install-primary)] transition-colors group-hover:bg-[var(--uninstall-primary)]',
+                    )}
+                  />
+                </Button>
+              </NavbarItem>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleLaunch}
-                      disabled={!canLaunch}
-                      className={cn(
-                        sharedNavbarItemClass,
-                        sharedNavbarInteractiveAccentClass,
-                        'h-auto disabled:opacity-50',
-                      )}
+                    <NavbarItem
+                      asChild
+                      className={cn(navbarInteractiveAccentClass, 'h-auto disabled:opacity-50')}
                     >
-                      <Play className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
-                      Launch
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleLaunch}
+                        disabled={!canLaunch}
+                      >
+                        <Play className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
+                        Launch
+                      </Button>
+                    </NavbarItem>
                   </span>
                 </TooltipTrigger>
                 {!canLaunch && (
@@ -262,27 +263,27 @@ export function Navbar({
                 )}
               </Tooltip>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onRefreshRegistry}
-              disabled={registryLoading || registryRefreshing}
-              className={cn(
-                sharedNavbarItemClass,
-                sharedNavbarInteractiveAccentClass,
-                'h-auto',
-              )}
+            <NavbarItem
+              asChild
+              className={cn(navbarInteractiveAccentClass, 'h-auto')}
             >
-              <RefreshCw
-                className={cn(
-                  'mr-1 h-[1.125rem] w-[1.125rem]',
-                  (registryLoading || registryRefreshing) && 'animate-spin',
-                )}
-              />
-              Refresh
-            </Button>
-          </div>
-        </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRefreshRegistry}
+                disabled={registryLoading || registryRefreshing}
+              >
+                <RefreshCw
+                  className={cn(
+                    'mr-1 h-[1.125rem] w-[1.125rem]',
+                    (registryLoading || registryRefreshing) && 'animate-spin',
+                  )}
+                />
+                Refresh
+              </Button>
+            </NavbarItem>
+          </NavbarActions>
+        </NavbarShell>
       </div>
 
       <Dialog open={showModReminder} onOpenChange={setShowModReminder}>

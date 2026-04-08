@@ -8,9 +8,9 @@ import { twJoin, twMerge } from 'tailwind-merge';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { cx } from '../../lib/primitive';
 import { Button, type ButtonProps } from './button';
-import { Separator } from './separator';
+import { Separator } from '@sbm/shared/ui/separator';
 import { Sheet, SheetBody, SheetContent } from './sheet';
-import { sharedNavbarStickyShellClass } from '@sbm/shared/ui/navbar-shell';
+import { NavbarShell } from '@sbm/shared/ui/navbar-shell';
 
 interface NavbarContextProps {
   open: boolean;
@@ -179,17 +179,17 @@ const Navbar = ({
             'rounded-xl bg-bg py-0 *:data-[navbar=content]:max-w-7xl *:data-[navbar=content]:rounded-xl *:data-[navbar=content]:border *:data-[navbar=content]:bg-sidebar *:data-[navbar=content]:px-4 *:data-[navbar=content]:py-(--navbar-gutter) *:data-[navbar=content]:shadow-xs',
         )}
       >
-        <div
-          data-navbar="content"
-          className={twMerge(
-            'flex w-full items-center',
-            isSticky &&
-              sharedNavbarStickyShellClass,
-            className,
-          )}
-        >
-          {children}
-        </div>
+        {(() => {
+          const ContentWrapper: React.ElementType = isSticky ? NavbarShell : 'div';
+          return (
+            <ContentWrapper
+              data-navbar="content"
+              className={twMerge('flex w-full items-center', className)}
+            >
+              {children}
+            </ContentWrapper>
+          );
+        })()}
       </div>
     </div>
   );

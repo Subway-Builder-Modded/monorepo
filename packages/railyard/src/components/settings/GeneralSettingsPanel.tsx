@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 import { SettingRow } from '../../components/settings/SettingRow';
 import { SettingToggleButton } from '../../components/settings/SettingToggleButton';
-import { Badge } from '../../components/ui/badge';
+import { Badge } from '@sbm/shared/ui/badge';
 import { Button } from '../../components/ui/button';
 import {
   Card,
@@ -18,7 +18,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../../components/ui/card';
+} from '@sbm/shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -26,8 +26,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
-import { Input } from '../../components/ui/input';
+} from '@sbm/shared/ui/dialog';
+import { Input } from '@sbm/shared/ui/input';
 import { getLocalAccentClasses } from '../../lib/local-accent';
 
 import {

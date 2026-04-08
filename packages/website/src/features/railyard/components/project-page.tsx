@@ -18,9 +18,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '../../../components/ui/breadcrumb';
-import { Skeleton } from '../../../components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
+} from '@sbm/shared/ui/breadcrumb';
+import { Skeleton } from '@sbm/shared/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
 import { useRegistryItem } from '../../../hooks/use-registry-item';
 import { useVersions } from '../../../hooks/use-versions';
 import { fetchRegistryJsonWithFallback } from '../../../lib/railyard/registry-source';

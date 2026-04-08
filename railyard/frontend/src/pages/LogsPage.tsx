@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
 import { EmptyState } from '@sbm/railyard/components/shared/EmptyState';
 import { PageHeading } from '@sbm/railyard/components/shared/PageHeading';
-import { Badge } from '@sbm/railyard/components/ui/badge';
+import { Badge } from '@sbm/shared/ui/badge';
 import { Button } from '@sbm/railyard/components/ui/button';
 import {
   Select,
@@ -21,12 +21,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@sbm/railyard/components/ui/select';
+} from '@sbm/shared/ui/select';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@sbm/railyard/components/ui/tooltip';
+} from '@sbm/shared/ui/tooltip';
 import { cn } from '@sbm/railyard/lib/utils';
 import { useConfigStore } from '@/stores/config-store';
 import type { LogEntry } from '@/stores/game-store';
