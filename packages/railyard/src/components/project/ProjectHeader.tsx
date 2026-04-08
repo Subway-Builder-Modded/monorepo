@@ -23,7 +23,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../../components/ui/tooltip';
+} from '@sbm/shared/ui/tooltip';
 import { type AssetType, assetTypeToListingPath } from '../../lib/asset-types';
 import { getLocalAccentClasses } from '../../lib/local-accent';
 import { ProjectHeader as SharedProjectHeader } from '@sbm/shared/project/project-header';

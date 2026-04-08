@@ -8,7 +8,7 @@ import { MultiStepLoader } from '@sbm/railyard/components/layout/MultiStepLoader
 import { RequestErrorNotification } from '@sbm/railyard/components/layout/RequestErrorNotification';
 import { SetupScreen } from '@sbm/railyard/components/setup/SetupScreen';
 import { Toaster } from '@sbm/railyard/components/ui/sonner';
-import { TooltipProvider } from '@sbm/railyard/components/ui/tooltip';
+import { TooltipProvider } from '@sbm/shared/ui/tooltip';
 import { useTheme } from '@sbm/railyard/hooks/use-theme';
 import { BrowsePage } from '@/pages/BrowsePage';
 import { ChangelogPage } from '@/pages/ChangelogPage';

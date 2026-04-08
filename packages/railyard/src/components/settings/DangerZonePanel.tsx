@@ -10,7 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../../components/ui/card';
+} from '@sbm/shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../../components/ui/dialog';
+} from '@sbm/shared/ui/dialog';
 
 export interface DangerZonePanelProps {
   onClearConfig: () => Promise<void>;

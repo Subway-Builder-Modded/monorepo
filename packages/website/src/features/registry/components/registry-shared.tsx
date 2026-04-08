@@ -21,7 +21,7 @@ import {
 } from 'recharts';
 import { cn } from '../../../lib/utils';
 import { AuthorName } from '../../../components/shared/author-name';
-import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
+import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
 import {
   getAuthorAttributionHref as resolveAuthorAttributionHref,
   getAuthorDisplayName as resolveAuthorDisplayName,

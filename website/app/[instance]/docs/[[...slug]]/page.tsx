@@ -18,7 +18,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@sbm/website/components/ui/breadcrumb';
+} from '@sbm/shared/ui/breadcrumb';
 import { DocsOnThisPage } from '@sbm/website/components/ui/on-this-page';
 import { useMDXComponents as getMDXComponents } from '@/mdx-components';
 import {

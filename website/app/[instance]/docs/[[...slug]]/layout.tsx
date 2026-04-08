@@ -2,7 +2,10 @@ import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { DocsSidebarShell } from '@sbm/website/features/docs/components/docs-sidebar';
 import { resolveDocsRouteForInstance } from '@sbm/website/lib/docs/shared';
-import { getAllDocsDocSlugs, getSidebarTree } from '@sbm/website/lib/docs/server';
+import {
+  getAllDocsDocSlugs,
+  getSidebarTree,
+} from '@sbm/website/lib/docs/server';
 
 export default async function DocsCatchAllLayout({
   children,

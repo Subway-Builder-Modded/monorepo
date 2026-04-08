@@ -28,16 +28,16 @@ import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
 import { ChangelogDependencies } from '@sbm/railyard/components/project/ChangelogDependencies';
 import { EmptyState } from '@sbm/railyard/components/shared/EmptyState';
 import { ErrorBanner } from '@sbm/railyard/components/shared/ErrorBanner';
-import { Badge } from '@sbm/railyard/components/ui/badge';
+import { Badge } from '@sbm/shared/ui/badge';
 import { Button } from '@sbm/railyard/components/ui/button';
-import { Skeleton } from '@sbm/railyard/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@sbm/railyard/components/ui/toggle-group';
+import { Skeleton } from '@sbm/shared/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@sbm/railyard/components/ui/tooltip';
+} from '@sbm/shared/ui/tooltip';
 import { listingPathToAssetType } from '@sbm/railyard/lib/asset-types';
 import { getLocalAccentClasses } from '@sbm/railyard/lib/local-accent';
 import { isCompatible } from '@sbm/railyard/lib/semver';

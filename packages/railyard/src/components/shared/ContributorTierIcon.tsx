@@ -5,7 +5,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../../components/ui/tooltip';
+} from '@sbm/shared/ui/tooltip';
 
 export type ContributorTierIconSize = 'sm' | 'default';
 
