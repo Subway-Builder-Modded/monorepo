@@ -10,6 +10,7 @@ import { cx } from '../../lib/primitive';
 import { Button, type ButtonProps } from './button';
 import { Separator } from './separator';
 import { Sheet, SheetBody, SheetContent } from './sheet';
+import { sharedNavbarStickyShellClass } from '@sbm/shared/ui/navbar-shell';
 
 interface NavbarContextProps {
   open: boolean;
@@ -183,7 +184,7 @@ const Navbar = ({
           className={twMerge(
             'flex w-full items-center',
             isSticky &&
-              'min-h-[4rem] flex-wrap justify-between rounded-2xl border border-border/70 bg-background/90 px-[clamp(0.7rem,1.6vw,1.2rem)] py-1.5 shadow-sm backdrop-blur-md',
+              sharedNavbarStickyShellClass,
             className,
           )}
         >
