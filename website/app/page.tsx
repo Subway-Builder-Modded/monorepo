@@ -1,10 +1,10 @@
-import { HomeHeroBackground } from '@/features/home/components/home-hero-background';
-import { HomeLinkButton } from '@/features/home/components/home-link-button';
-import { HomeProjectCardView } from '@/features/home/components/home-project-card';
+import { HomeHeroBackground } from '@sbm/website/features/home/components/home-hero-background';
+import { HomeLinkButton } from '@sbm/website/features/home/components/home-link-button';
+import { HomeProjectCardView } from '@sbm/website/features/home/components/home-project-card';
 import {
   HomeSectionDivider,
   HomeSectionShell,
-} from '@/features/home/components/home-sections';
+} from '@sbm/website/features/home/components/home-sections';
 import {
   HOME_CONTRIBUTE_SECTION,
   HOME_COMMUNITY_SECTION,
@@ -13,7 +13,7 @@ import {
   HOME_PROJECT_SECTION,
   HOME_SUBWAY_BARS,
   HOME_THEME,
-} from '@/config/site/homepage';
+} from '@sbm/website/config/site/homepage';
 
 export default function Page() {
   return (

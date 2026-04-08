@@ -13,9 +13,9 @@ import {
   YAxis,
 } from 'recharts';
 import { Users } from 'lucide-react';
-import { SortableNumberHeader } from '@/components/shared/sortable-number-header';
-import { usePersistedState } from '@/lib/use-persisted-state';
-import { AuthorName } from '@/components/shared/author-name';
+import { SortableNumberHeader } from '../../../components/shared/sortable-number-header';
+import { usePersistedState } from '../../../lib/use-persisted-state';
+import { AuthorName } from '../../../components/shared/author-name';
 
 import {
   REGISTRY_LINK_HOVER_CLS,
@@ -35,11 +35,11 @@ import {
   TABLE_ROW_CLS,
   truncateName,
   useClientReady,
-} from '@/features/registry/components/registry-shared';
+} from '../../../features/registry/components/registry-shared';
 import type {
   RegistryAnalyticsData,
   RegistryAuthorRow,
-} from '@/types/registry-analytics';
+} from '../../../types/registry-analytics';
 
 // ---------------------------------------------------------------------------
 // Sort-aware bar chart (top 10 by active metric)

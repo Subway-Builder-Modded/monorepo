@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { resolveSiteColorScheme } from '@/config/theme/route-schemes';
+import { resolveSiteColorScheme } from '../../../config/theme/route-schemes';
 
 export function PageColorSchemeProvider({
   children,

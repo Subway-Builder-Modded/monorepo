@@ -8,10 +8,10 @@ import {
   MonitorCog,
   History,
 } from 'lucide-react';
-import { PageHeader } from '@/components/shared/page-header';
-import { cn } from '@/lib/utils';
-import { usePersistedState } from '@/lib/use-persisted-state';
-import type { RailyardAnalyticsData } from '@/types/railyard-analytics';
+import { PageHeader } from '../../../components/shared/page-header';
+import { cn } from '../../../lib/utils';
+import { usePersistedState } from '../../../lib/use-persisted-state';
+import type { RailyardAnalyticsData } from '../../../types/railyard-analytics';
 import { RailyardAnalyticsOverviewSection } from './railyard-analytics-overview-section';
 import { RailyardAnalyticsTimelineSection } from './railyard-analytics-timeline-section';
 import { RailyardAnalyticsVersionsSection } from './railyard-analytics-versions-section';

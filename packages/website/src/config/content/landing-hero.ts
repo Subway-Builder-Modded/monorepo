@@ -1,4 +1,4 @@
-import type { HomeButtonSize } from '@/config/site/homepage';
+import type { HomeButtonSize } from '../../config/site/homepage';
 
 export type HeroActionId = 'template-mod-get-started' | 'template-mod-docs';
 

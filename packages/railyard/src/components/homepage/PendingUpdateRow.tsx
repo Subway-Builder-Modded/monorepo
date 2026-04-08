@@ -1,9 +1,9 @@
 import { ArrowRight, MapPin, Package, RefreshCw } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import type { AssetType } from '@/lib/asset-types';
-import { cn } from '@/lib/utils';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import type { AssetType } from '../../lib/asset-types';
+import { cn } from '../../lib/utils';
 
 interface PendingUpdateRowProps {
   name: string;

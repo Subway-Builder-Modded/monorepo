@@ -1,102 +1,52 @@
 import {
   AlertTriangle,
-  ArrowDownToLine,
-  Calendar,
   Check,
   CheckCircle,
   CircleX,
   Copy,
   Download,
-  FileText,
   Loader2,
-  Tag,
   TriangleAlert,
 } from 'lucide-react';
 import { useState } from 'react';
-import semver from 'semver';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
-import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { AppDialog } from '../../components/dialogs/AppDialog';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import type { AssetType } from '@/lib/asset-types';
-import { assetTypeToListingPath } from '@/lib/asset-types';
-import { getLocalAccentClasses } from '@/lib/local-accent';
-import { isCompatible } from '@/lib/semver';
+} from '../../components/ui/tooltip';
+import type { AssetType } from '../../lib/asset-types';
+import { assetTypeToListingPath } from '../../lib/asset-types';
+import { getLocalAccentClasses } from '../../lib/local-accent';
+import { isCompatible } from '../../lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
-} from '@/lib/subscription-mutation-ui';
+} from '../../lib/subscription-mutation-ui';
 import {
   hasCancellationSyncErrors,
   hasOnlySilentSyncWarnings,
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
-} from '@/lib/subscription-sync-error';
-import { cn } from '@/lib/utils';
-import { useDownloadQueueStore } from '@/stores/download-queue-store';
+} from '../../lib/subscription-sync-error';
+import { cn } from '../../lib/utils';
+import { useDownloadQueueStore } from '@railyard-app/stores/download-queue-store';
 import {
   AssetConflictError,
   useInstalledStore,
-} from '@/stores/installed-store';
+} from '@railyard-app/stores/installed-store';
+import { ProjectVersions as SharedProjectVersions } from '@sbm/shared/project/project-versions';
+import type { SharedVersionInfo } from '@sbm/shared/railyard-core/shared-item';
 
-import type { types } from '../../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
-type VersionSortField = 'version' | 'date' | 'downloads';
-interface VersionSortState {
-  field: VersionSortField;
-  direction: 'asc' | 'desc';
-}
-
-const VERSION_TEXT_FIELDS = new Set<string>();
-
-const DEFAULT_SORT: VersionSortState = { field: 'date', direction: 'desc' };
-
-function sortVersions(
-  versions: types.VersionInfo[],
-  sort: VersionSortState,
-): types.VersionInfo[] {
-  return [...versions].sort((a, b) => {
-    let cmp = 0;
-    if (sort.field === 'date') {
-      cmp = new Date(a.date).getTime() - new Date(b.date).getTime();
-    } else if (sort.field === 'downloads') {
-      cmp = a.downloads - b.downloads;
-    } else {
-      const av = semver.coerce(a.version);
-      const bv = semver.coerce(b.version);
-      cmp =
-        av && bv
-          ? semver.compare(av, bv)
-          : a.version.localeCompare(b.version, undefined, { numeric: true });
-    }
-    return sort.direction === 'asc' ? cmp : -cmp;
-  });
-}
-
-function formatDate(dateStr: string) {
-  try {
-    return new Date(dateStr).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return dateStr;
-  }
-}
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
   if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
@@ -125,7 +75,6 @@ export function ProjectVersions({
   error,
   gameVersion,
 }: ProjectVersionsProps) {
-  const [sort, setSort] = useState<VersionSortState>(DEFAULT_SORT);
   const [installError, setInstallError] = useState<{
     version: string;
     message: string;
@@ -219,14 +168,6 @@ export function ProjectVersions({
     }
   };
 
-  const handleSort = (field: VersionSortField) => {
-    setSort((prev) =>
-      prev.field === field
-        ? { field, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
-        : { field, direction: 'desc' },
-    );
-  };
-
   const handleCopyError = async () => {
     if (!installError) return;
     await navigator.clipboard.writeText(installError.message);
@@ -234,195 +175,84 @@ export function ProjectVersions({
     setTimeout(() => setErrorCopied(false), 2000);
   };
 
-  if (loading) {
-    return (
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border bg-muted/20 px-4 py-2">
-          <Skeleton className="h-4 w-48" />
-        </div>
-        <div className="divide-y divide-border/50">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex items-center gap-3 px-4 py-3">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-4 w-20 ml-auto" />
-              <Skeleton className="h-8 w-8 rounded-lg" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <ErrorBanner message={error} />;
-  }
-
-  if (versions.length === 0) {
-    return <EmptyState icon={FileText} title="No versions available" />;
-  }
-
-  const hasAnyGameVersion = versions.some((v) => v.game_version);
-  const sorted = sortVersions(versions, sort);
   const typeListingPath = assetTypeToListingPath(type);
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="flex items-center gap-4 border-b border-border bg-muted/20 px-4 py-2">
-          <div className="flex-1 min-w-0">
-            <SortableHeaderCell
-              label="Version"
-              field="version"
-              icon={Tag}
-              sort={sort}
-              textFields={VERSION_TEXT_FIELDS}
-              onSort={handleSort}
-            />
-          </div>
-          <div className="w-[7rem] shrink-0 hidden sm:block">
-            <SortableHeaderCell
-              label="Date"
-              field="date"
-              icon={Calendar}
-              sort={sort}
-              textFields={VERSION_TEXT_FIELDS}
-              onSort={handleSort}
-            />
-          </div>
-          <div className="w-[6.5rem] shrink-0 hidden lg:block">
-            <SortableHeaderCell
-              label="Downloads"
-              field="downloads"
-              icon={ArrowDownToLine}
-              sort={sort}
-              textFields={VERSION_TEXT_FIELDS}
-              onSort={handleSort}
-            />
-          </div>
-          <div
-            className="hidden lg:block w-px self-stretch bg-border/50 mx-2"
-            aria-hidden
-          />
-          <div
-            className="w-[7rem] shrink-0 flex items-center justify-center"
-            aria-hidden
-          />
-        </div>
+      <SharedProjectVersions
+        itemName={itemName}
+        versions={versions as SharedVersionInfo[]}
+        loading={loading}
+        error={error}
+        renderVersionLink={({ version: v, children, className }) => (
+          <Link
+            href={`/project/${typeListingPath}/${itemId}/changelog/${encodeURIComponent(v.version)}`}
+            className={className}
+          >
+            {children}
+          </Link>
+        )}
+        renderVersionAction={(v) => {
+          const isThisInstalled = installedVersion === v.version;
+          const installing = isInstalling(itemId);
+          const installingVersion = getInstallingVersion(itemId);
+          const uninstalling = isUninstalling(itemId);
+          const compat = isCompatible(gameVersion, v.game_version);
+          const incompatible = compat === false;
 
-        <div className="divide-y divide-border/50">
-          {sorted.map((v) => {
-            const isThisInstalled = installedVersion === v.version;
-            const installing = isInstalling(itemId);
-            const installingVersion = getInstallingVersion(itemId);
-            const uninstalling = isUninstalling(itemId);
-            const compat = isCompatible(gameVersion, v.game_version);
-            const incompatible = compat === false;
-
-            return (
-              <div
-                key={v.version}
-                className={cn(
-                  'flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/30',
-                  incompatible && 'opacity-50',
-                )}
-              >
-                <div className="flex-1 min-w-0">
-                  <Link
-                    href={`/project/${typeListingPath}/${itemId}/changelog/${encodeURIComponent(v.version)}`}
-                    className="group inline-flex flex-col"
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-foreground group-hover:underline">
-                        {v.version}
-                      </span>
-                      {v.prerelease && (
-                        <Badge
-                          size="sm"
-                          className="border-amber-500/40 bg-amber-500/15 text-amber-600 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-400"
+          return (
+            <span className={cn(incompatible && 'opacity-50')}>
+              {uninstalling ? (
+                <Button variant="outline" size="icon-xs" disabled>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                </Button>
+              ) : installing ? (
+                installingVersion === v.version ? (
+                  <Button variant="outline" size="icon-xs" disabled>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  </Button>
+                ) : null
+              ) : isThisInstalled ? (
+                <Badge variant="success" size="sm" className="gap-1">
+                  <CheckCircle className="h-2.5 w-2.5" />
+                  Installed
+                </Badge>
+              ) : incompatible ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Button
+                          variant="outline"
+                          size="icon-xs"
+                          disabled
+                          className={INSTALL_ACCENT.outlineButton}
                         >
-                          Beta
-                        </Badge>
-                      )}
-                    </span>
-                    {v.name && v.name !== v.version && (
-                      <span className="mt-0.5 text-xs text-muted-foreground truncate max-w-[20rem]">
-                        {v.name}
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
                       </span>
-                    )}
-                  </Link>
-                  {hasAnyGameVersion && v.game_version && (
-                    <span className="mt-0.5 block text-xs text-muted-foreground">
-                      {v.game_version}
-                    </span>
-                  )}
-                </div>
-
-                <div className="w-[7rem] shrink-0 hidden sm:block">
-                  <span className="text-sm text-muted-foreground">
-                    {formatDate(v.date)}
-                  </span>
-                </div>
-
-                <div className="w-[6.5rem] shrink-0 hidden lg:flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <ArrowDownToLine className="h-3.5 w-3.5" />
-                  {v.downloads.toLocaleString()}
-                </div>
-
-                <div className="hidden lg:block w-px self-stretch bg-border/50 mx-2" />
-                <div className="w-[7rem] shrink-0 flex items-center justify-center">
-                  {uninstalling ? (
-                    <Button variant="outline" size="icon-xs" disabled>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    </Button>
-                  ) : installing ? (
-                    installingVersion === v.version ? (
-                      <Button variant="outline" size="icon-xs" disabled>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      </Button>
-                    ) : null
-                  ) : isThisInstalled ? (
-                    <Badge variant="success" size="sm" className="gap-1">
-                      <CheckCircle className="h-2.5 w-2.5" />
-                      Installed
-                    </Badge>
-                  ) : incompatible ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>
-                            <Button
-                              variant="outline"
-                              size="icon-xs"
-                              disabled
-                              className={INSTALL_ACCENT.outlineButton}
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </Button>
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Not compatible with your game version (you have{' '}
-                          {gameVersion}, need {v.game_version})
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="icon-xs"
-                      className={INSTALL_ACCENT.outlineButton}
-                      onClick={() => handleInstall(v.version, v.prerelease)}
-                      disabled={mutationLocked}
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Not compatible with your game version (you have{' '}
+                      {gameVersion}, need {v.game_version})
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="icon-xs"
+                  className={INSTALL_ACCENT.outlineButton}
+                  onClick={() => handleInstall(v.version, v.prerelease)}
+                  disabled={mutationLocked}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </span>
+          );
+        }}
+      />
 
       {prereleasePrompt && (
         <AppDialog

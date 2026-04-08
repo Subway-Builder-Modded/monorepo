@@ -1,1 +1,2 @@
-export * from '@sbm/railyard-core/browse-sort';
+export * from '@sbm/shared/railyard-core/browse-sort';
+

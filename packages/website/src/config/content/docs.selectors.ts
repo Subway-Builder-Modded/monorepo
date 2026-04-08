@@ -1,8 +1,8 @@
 import type {
   DocsInstance,
   DocsSidebarOrderItem,
-} from '@/config/content/docs.types';
-import { DOCS_INSTANCES } from '@/config/content/docs.instances';
+} from '../../config/content/docs.types';
+import { DOCS_INSTANCES } from '../../config/content/docs.instances';
 
 export function getDocsInstanceById(id: string) {
   return DOCS_INSTANCES.find((instance) => instance.id === id);

@@ -16,8 +16,8 @@ import { Link, useLocation } from 'wouter';
 import {
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_WIDTH_CLASS,
-} from '@/components/layout/layout-shell';
-import { Button } from '@/components/ui/button';
+} from '../../components/layout/layout-shell';
+import { Button } from '../../components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -25,17 +25,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '../../components/ui/dialog';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { useConfigStore } from '@/stores/config-store';
-import { useGameStore } from '@/stores/game-store';
-import { useInstalledStore } from '@/stores/installed-store';
-import { useRegistryStore } from '@/stores/registry-store';
+} from '../../components/ui/tooltip';
+import { cn } from '../../lib/utils';
 
 type NavLinkConfig = {
   href: string;
@@ -89,17 +85,29 @@ const NAV_CURRENT_INDICATOR_CLASS =
 const NAVBAR_TOP_OFFSET_PX = 48;
 const NAVBAR_BOTTOM_GAP_PX = 12;
 
-export function Navbar() {
+export interface NavbarProps {
+  registryLoading: boolean;
+  registryRefreshing: boolean;
+  onRefreshRegistry: () => void;
+  canLaunch: boolean | undefined;
+  gameRunning: boolean;
+  onLaunchGame: () => Promise<void>;
+  onStopGame: () => Promise<void>;
+  hasInstalledMaps: boolean;
+}
+
+export function Navbar({
+  registryLoading,
+  registryRefreshing,
+  onRefreshRegistry,
+  canLaunch,
+  gameRunning,
+  onLaunchGame,
+  onStopGame,
+  hasInstalledMaps,
+}: NavbarProps) {
   const headerRef = useRef<HTMLElement>(null);
   const [location] = useLocation();
-  const refresh = useRegistryStore((s) => s.refresh);
-  const loading = useRegistryStore((s) => s.loading);
-  const refreshing = useRegistryStore((s) => s.refreshing);
-  const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
-  const running = useGameStore((s) => s.running);
-  const launch = useGameStore((s) => s.launch);
-  const stop = useGameStore((s) => s.stop);
-  const installedMaps = useInstalledStore((s) => s.installedMaps);
   const [showModReminder, setShowModReminder] = useState(false);
 
   const runWithToast = async (
@@ -114,7 +122,7 @@ export function Navbar() {
   };
 
   const handleLaunch = async () => {
-    const hasMaps = installedMaps.length > 0;
+    const hasMaps = hasInstalledMaps;
     const alreadyAcknowledged =
       localStorage.getItem(MOD_REMINDER_KEY) === 'true';
 
@@ -123,16 +131,16 @@ export function Navbar() {
       return;
     }
 
-    await runWithToast(launch, 'Failed to launch game.');
+    await runWithToast(onLaunchGame, 'Failed to launch game.');
   };
 
   const handleAcknowledgeAndLaunch = async () => {
     localStorage.setItem(MOD_REMINDER_KEY, 'true');
     setShowModReminder(false);
-    await runWithToast(launch, 'Failed to launch game.');
+    await runWithToast(onLaunchGame, 'Failed to launch game.');
   };
 
-  const handleStop = async () => runWithToast(stop, 'Failed to stop game.');
+  const handleStop = async () => runWithToast(onStopGame, 'Failed to stop game.');
 
   useEffect(() => {
     const element = headerRef.current;
@@ -205,7 +213,7 @@ export function Navbar() {
             </nav>
           </div>
           <div className="flex items-center gap-1.5">
-            {running ? (
+            {gameRunning ? (
               <Button
                 variant="ghost"
                 size="sm"
@@ -255,8 +263,8 @@ export function Navbar() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={refresh}
-              disabled={loading || refreshing}
+              onClick={onRefreshRegistry}
+              disabled={registryLoading || registryRefreshing}
               className={cn(
                 NAV_ITEM_BASE_CLASS,
                 NAV_ITEM_GREEN_HOVER_CLASS,
@@ -266,7 +274,7 @@ export function Navbar() {
               <RefreshCw
                 className={cn(
                   'mr-1 h-[1.125rem] w-[1.125rem]',
-                  (loading || refreshing) && 'animate-spin',
+                  (registryLoading || registryRefreshing) && 'animate-spin',
                 )}
               />
               Refresh

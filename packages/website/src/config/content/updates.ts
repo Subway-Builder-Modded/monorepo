@@ -1,5 +1,5 @@
 import { Globe, Package, TrainTrack, type LucideIcon } from 'lucide-react';
-import { PROJECT_COLOR_SCHEMES, type ModeHex } from '@/config/theme/colors';
+import { PROJECT_COLOR_SCHEMES, type ModeHex } from '../../config/theme/colors';
 
 export type UpdateProjectId = 'railyard' | 'template-mod' | 'website';
 

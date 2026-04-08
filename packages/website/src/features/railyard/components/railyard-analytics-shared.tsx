@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
-import { cn } from '@/lib/utils';
+import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
+import { PROJECT_COLOR_SCHEMES } from '../../../config/theme/colors';
+import { cn } from '../../../lib/utils';
 
 export const RAILYARD_ANALYTICS_PAGE_HEADER_SCHEME = {
   accent: PROJECT_COLOR_SCHEMES.railyard.accentColor,

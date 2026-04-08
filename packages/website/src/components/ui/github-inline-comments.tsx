@@ -3,18 +3,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, MessageSquarePlus, X } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
-import { Avatar } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
+import { cn } from '../../lib/utils';
+import { Avatar } from '../../components/ui/avatar';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Separator } from '../../components/ui/separator';
+import { Textarea } from '../../components/ui/textarea';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '../../components/ui/tooltip';
 
 type Line =
   | { kind: 'hunk'; content: string }

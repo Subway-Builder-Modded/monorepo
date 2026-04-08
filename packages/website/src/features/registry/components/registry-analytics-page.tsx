@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { PageHeader } from '@/components/shared/page-header';
-import { cn } from '@/lib/utils';
-import type { RegistryAnalyticsData } from '@/types/registry-analytics';
+import { PageHeader } from '../../../components/shared/page-header';
+import { cn } from '../../../lib/utils';
+import type { RegistryAnalyticsData } from '../../../types/registry-analytics';
 
 import { RegistrySummaryStats } from './registry-summary-stats';
 import { RegistryTrendingSection } from './registry-trending-section';
@@ -20,7 +20,7 @@ import { RegistryAuthorsSection } from './registry-authors-section';
 import { RegistryBreakdownSection } from './registry-breakdown-section';
 import { RegistryPopulationSection } from './registry-population-section';
 import { RegistryDownloadsTimelineSection } from './registry-downloads-timeline-section';
-import { usePersistedState } from '@/lib/use-persisted-state';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 
 const PAGE_HEADER_SCHEME = {
   accent: { light: '#9d4edd', dark: '#c77dff' },

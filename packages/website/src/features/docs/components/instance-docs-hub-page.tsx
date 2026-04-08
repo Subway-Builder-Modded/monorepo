@@ -1,15 +1,15 @@
 import Link from 'next/link';
 import { ArrowRight, BookText, Tag } from 'lucide-react';
 
-import { PageHeader } from '@/components/shared/page-header';
-import { getUpdateProjectById } from '@/config/content/updates';
-import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
-import type { DocsInstance } from '@/config/content/docs';
-import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
-import { hexAlpha } from '@/lib/color';
-import { buildDocHref } from '@/lib/docs/shared';
-import { cn } from '@/lib/utils';
+import { PageHeader } from '../../../components/shared/page-header';
+import { getUpdateProjectById } from '../../../config/content/updates';
+import { PROJECT_COLOR_SCHEMES } from '../../../config/theme/colors';
+import type { DocsInstance } from '../../../config/content/docs';
+import { CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { ThemedShowcaseCard } from '../../../components/ui/themed-showcase-card';
+import { hexAlpha } from '../../../lib/color';
+import { buildDocHref } from '../../../lib/docs/shared';
+import { cn } from '../../../lib/utils';
 
 function getHubTheme(instance: DocsInstance) {
   const colors = PROJECT_COLOR_SCHEMES[instance.id];

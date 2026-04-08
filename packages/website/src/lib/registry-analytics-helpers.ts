@@ -7,7 +7,7 @@ import type {
   RegistryListingRow,
   RegistryMapPopulationRow,
   RegistryTrendingRow,
-} from '@/types/registry-analytics';
+} from '../types/registry-analytics';
 
 // Pure data-processing helpers — no fs/path, safe to import in client components.
 

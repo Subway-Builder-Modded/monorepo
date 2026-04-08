@@ -14,8 +14,8 @@ import {
   NavbarProvider,
   useNavbar,
   type NavbarProps,
-} from '@/components/ui/navbar';
-import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar';
+} from '../../../components/ui/navbar';
+import { APP_NAVBAR_CONFIG } from '../../../config/navigation/navbar';
 import { createNavbarConfigStyleVars } from './app-navbar/style-vars';
 import { useNavbarOffset } from './app-navbar/use-navbar-offset';
 import { DesktopNavbar } from './app-navbar/desktop-navbar';

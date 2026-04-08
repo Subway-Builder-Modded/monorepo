@@ -5,7 +5,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Archive, ChevronDown, PanelLeftCloseIcon, Tag } from 'lucide-react';
-import { type DocsInstance, type DocsVersion } from '@/config/content/docs';
+import { type DocsInstance, type DocsVersion } from '../../../../config/content/docs';
 import {
   buildDocsHubHref,
   buildVersionedDocHref,
@@ -15,10 +15,10 @@ import {
   isLatestVersion,
   type DocsSidebarEntry,
   type DocsSidebarTree,
-} from '@/lib/docs/shared';
-import { cn } from '@/lib/utils';
-import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
-import { PageHeader } from '@/components/shared/page-header';
+} from '../../../../lib/docs/shared';
+import { cn } from '../../../../lib/utils';
+import { PROJECT_COLOR_SCHEMES } from '../../../../config/theme/colors';
+import { PageHeader } from '../../../../components/shared/page-header';
 import {
   collectActiveCategoryKeys,
   findActiveEntry,
@@ -32,8 +32,8 @@ import {
   getSwitcherRowBackground,
   removeCategoryBranch,
   withAlpha,
-} from '@/features/docs/components/docs-sidebar/helpers';
-import { useOnClickOutside } from '@/features/docs/components/docs-sidebar/hooks';
+} from '../../../../features/docs/components/docs-sidebar/helpers';
+import { useOnClickOutside } from '../../../../features/docs/components/docs-sidebar/hooks';
 
 function VersionIcon({
   instance,

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
-import { ItemCard } from '@/components/shared/ItemCard';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { AssetType } from '@/lib/asset-types';
-import type { TaggedItem } from '@/lib/tagged-items';
+import { ErrorBanner } from '../../components/shared/ErrorBanner';
+import { ItemCard } from '../../components/shared/ItemCard';
+import { Skeleton } from '../../components/ui/skeleton';
+import type { AssetType } from '../../lib/asset-types';
+import type { TaggedItem } from '../../lib/tagged-items';
 
 const DISCOVER_CARD_MIN_WIDTH = 220;
 const DISCOVER_CARD_GAP = 12;

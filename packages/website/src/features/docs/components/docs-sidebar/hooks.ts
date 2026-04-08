@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   EDGE_GAP_PX,
   MOBILE_BREAKPOINT,
-} from '@/features/docs/components/docs-sidebar/helpers';
+} from '../../../../features/docs/components/docs-sidebar/helpers';
 
 export function useDocsIsMobile() {
   const [isMobile, setIsMobile] = React.useState<boolean | null>(null);

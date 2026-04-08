@@ -4,7 +4,7 @@ import {
   Link as LinkPrimitive,
   type LinkProps as LinkPrimitiveProps,
 } from 'react-aria-components';
-import { cx } from '@/lib/primitive';
+import { cx } from '../../lib/primitive';
 
 function isExternalHref(href?: LinkPrimitiveProps['href']) {
   return (

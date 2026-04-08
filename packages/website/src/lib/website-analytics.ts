@@ -11,7 +11,7 @@ import type {
   WebsiteScreenSizeRow,
   WebsiteSummaryStats,
   WebsiteTimeseriesRow,
-} from '@/types/website-analytics';
+} from '../types/website-analytics';
 
 export type {
   WebsiteAnalyticsData,
@@ -24,7 +24,7 @@ export type {
   WebsiteScreenSizeRow,
   WebsiteSummaryStats,
   WebsiteTimeseriesRow,
-} from '@/types/website-analytics';
+} from '../types/website-analytics';
 
 type SnapshotMetadata = {
   snapshotLabel?: string;

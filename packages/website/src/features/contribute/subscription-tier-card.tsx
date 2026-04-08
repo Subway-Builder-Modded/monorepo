@@ -6,9 +6,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import type { SubscriptionTier } from '@/config/ui/contribute';
+} from '../../components/ui/card';
+import { cn } from '../../lib/utils';
+import type { SubscriptionTier } from '../../config/ui/contribute';
 
 interface SubscriptionTierCardProps {
   tier: SubscriptionTier;

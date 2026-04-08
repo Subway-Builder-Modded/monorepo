@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { ProjectPage } from '@/features/railyard/components/project-page';
-import { buildNoEmbedMetadata } from '@/config/site/metadata';
+import { ProjectPage } from '@sbm/website/features/railyard/components/project-page';
+import { buildNoEmbedMetadata } from '@sbm/website/config/site/metadata';
 import {
   buildRailyardProjectEmbedMetadata,
   getRegistryStaticIds,
-} from '@/lib/railyard/registry.server';
+} from '@sbm/website/lib/railyard/registry.server';
 
 export async function generateStaticParams() {
   const ids = await getRegistryStaticIds('mods');

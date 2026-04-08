@@ -17,7 +17,10 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@sbm/railyard/*": ["../../packages/railyard/src/*"],
+      "@railyard-app/stores/*": ["./src/stores/*"],
+      "@railyard-app/wailsjs/*": ["./wailsjs/*"]
     }
   },
   "include": ["src"]

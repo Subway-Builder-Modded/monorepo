@@ -5,13 +5,13 @@ import { FileText } from 'lucide-react';
 import {
   SortableNumberHeader,
   type SortDirection,
-} from '@/components/shared/sortable-number-header';
-import { usePersistedState } from '@/lib/use-persisted-state';
+} from '../../../components/shared/sortable-number-header';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 import type {
   WebsiteAnalyticsData,
   WebsiteAnalyticsPeriod,
   WebsitePageRow,
-} from '@/types/website-analytics';
+} from '../../../types/website-analytics';
 import {
   EmptyState,
   WEBSITE_ACCENT_COLOR,

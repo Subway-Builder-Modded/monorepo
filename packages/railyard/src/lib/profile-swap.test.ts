@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isProfileSwapUnavailable } from '@/lib/profile-swap';
+import { isProfileSwapUnavailable } from '../lib/profile-swap';
 
 describe('isProfileSwapUnavailable', () => {
   it('returns true when game is running', () => {

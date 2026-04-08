@@ -5,11 +5,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { AppIcon } from '@/components/shared/app-icon';
-import type { AppNavbarItem } from '@/config/navigation/navbar';
-import { cn } from '@/lib/utils';
-import { isExternalHref } from '@/lib/url';
+} from '../../../../components/ui/dropdown-menu';
+import { AppIcon } from '../../../../components/shared/app-icon';
+import type { AppNavbarItem } from '../../../../config/navigation/navbar';
+import { cn } from '../../../../lib/utils';
+import { isExternalHref } from '../../../../lib/url';
 import styles from '../app-navbar.module.css';
 import {
   getDropdownItemActiveDepth,

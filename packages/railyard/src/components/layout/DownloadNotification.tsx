@@ -2,15 +2,17 @@ import { CheckCircle, Download } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-import { useDownloadQueueStore } from '@/stores/download-queue-store';
-import { useInstalledStore } from '@/stores/installed-store';
-
-import { EventsOn } from '../../../wailsjs/runtime/runtime';
+import { EventsOn } from '@railyard-app/wailsjs/runtime/runtime';
 import {
   TOAST_PROGRESS_FILL_CLASS,
   TOAST_PROGRESS_TRACK_CLASS,
   TOAST_QUEUE_LABEL_CLASS,
 } from './notification-classes';
+
+export interface DownloadNotificationProps {
+  getIsInstalling: (itemId: string) => boolean;
+  getQueueState: () => { completed: number; total: number };
+}
 
 interface DownloadProgress {
   itemId: string;
@@ -28,14 +30,14 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function DownloadNotification() {
+export function DownloadNotification({ getIsInstalling, getQueueState }: DownloadNotificationProps) {
   const toastIds = useRef<Map<string, string | number>>(new Map());
   const cancelledItems = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const cancel = EventsOn('download:progress', (data: DownloadProgress) => {
       const { itemId, received, total } = data;
-      const isInstalling = useInstalledStore.getState().isInstalling(itemId);
+      const isInstalling = getIsInstalling(itemId);
 
       if (cancelledItems.current.has(itemId)) {
         if (!isInstalling) {
@@ -50,8 +52,7 @@ export function DownloadNotification() {
       if (isComplete) {
         const existingId = toastIds.current.get(itemId);
         if (existingId) {
-          const { completed, total: queueTotal } =
-            useDownloadQueueStore.getState();
+          const { completed, total: queueTotal } = getQueueState();
           const queueLabel =
             queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
 
@@ -76,7 +77,7 @@ export function DownloadNotification() {
         return;
       }
 
-      const { completed, total: queueTotal } = useDownloadQueueStore.getState();
+      const { completed, total: queueTotal } = getQueueState();
       const queueLabel =
         queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
 

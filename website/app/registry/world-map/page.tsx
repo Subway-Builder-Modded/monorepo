@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { Globe } from 'lucide-react';
-import { PageHeader } from '@/components/shared/page-header';
-import { buildEmbedMetadata } from '@/config/site/metadata';
-import { WorldMap } from '@/features/railyard/components/world-map';
+import { PageHeader } from '@sbm/website/components/shared/page-header';
+import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
+import { WorldMap } from '@sbm/website/features/railyard/components/world-map';
 
 export const metadata: Metadata = buildEmbedMetadata({
   title: 'World Map | Registry',

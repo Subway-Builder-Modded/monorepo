@@ -1,11 +1,11 @@
 import { existsSync, readFileSync, statSync } from 'fs';
 import path from 'path';
-import { enrichAuthorIdentity } from '@/lib/authors';
-import { loadRegistryAuthorDirectoryFromCache } from '@/lib/registry-author-directory.server';
+import { enrichAuthorIdentity } from '../lib/authors';
+import { loadRegistryAuthorDirectoryFromCache } from '../lib/registry-author-directory.server';
 import {
   REGISTRY_ANALYTICS_SENTINEL,
   resolveRegistryAnalyticsDir,
-} from '@/lib/registry-analytics-paths';
+} from '../lib/registry-analytics-paths';
 import type {
   DailyDataPoint,
   ListingType,
@@ -20,7 +20,7 @@ import type {
   RegistryProjectRow,
   RegistryProjectTrendingRow,
   RegistryTrendingRow,
-} from '@/types/registry-analytics';
+} from '../types/registry-analytics';
 
 export type {
   DailyDataPoint,
@@ -36,7 +36,7 @@ export type {
   RegistryProjectRow,
   RegistryProjectTrendingRow,
   RegistryTrendingRow,
-} from '@/types/registry-analytics';
+} from '../types/registry-analytics';
 
 // ---------------------------------------------------------------------------
 // CSV parser

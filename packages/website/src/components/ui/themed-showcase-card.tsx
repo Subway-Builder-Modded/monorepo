@@ -1,15 +1,15 @@
 import type { CSSProperties, ReactNode } from 'react';
 
-import { getSuiteColorVarRefs } from '@/config/theme/css-vars';
-import type { ThemedColorSet } from '@/config/theme/colors';
-import type { SiteColorSchemeId } from '@/config/theme/contracts';
+import { getSuiteColorVarRefs } from '../../config/theme/css-vars';
+import type { ThemedColorSet } from '../../config/theme/colors';
+import type { SiteColorSchemeId } from '../../config/theme/contracts';
 import {
   PROJECT_COLOR_SCHEMES,
   SHARED_TEXT_COLOR,
   SHARED_TEXT_COLOR_INVERTED,
-} from '@/config/theme/colors';
-import { hexAlpha } from '@/lib/color';
-import { cn } from '@/lib/utils';
+} from '../../config/theme/colors';
+import { hexAlpha } from '../../lib/color';
+import { cn } from '../../lib/utils';
 
 type ThemedShowcaseCardVariant =
   | 'home'

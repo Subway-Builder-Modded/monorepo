@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-import { ASSET_TYPES, type AssetType } from '@/lib/asset-types';
-import { toCumulativeDownloadTotals } from '@/lib/download-totals';
+import { ASSET_TYPES, type AssetType } from '@sbm/railyard/lib/asset-types';
+import { toCumulativeDownloadTotals } from '@sbm/railyard/lib/download-totals';
 
 import type { types } from '../../wailsjs/go/models';
 import {

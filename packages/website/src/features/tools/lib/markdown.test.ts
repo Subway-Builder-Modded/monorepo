@@ -4,7 +4,7 @@ import {
   richTextHtmlToMarkdown,
   toInlineHtml,
   toInlineMarkdown,
-} from '@/features/tools/lib/markdown';
+} from '../../../features/tools/lib/markdown';
 
 describe('richTextHtmlToMarkdown', () => {
   it('converts formatted html to markdown', () => {

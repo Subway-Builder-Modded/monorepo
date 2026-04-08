@@ -3,11 +3,11 @@ import * as React from 'react';
 import {
   UPDATE_SECTION_CONFIG,
   type UpdateSectionType,
-} from '@/config/content/updates';
-import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
-import { UPDATE_SECTION_ICON_MAP } from '@/config/ui/site-content';
-import { hexAlpha } from '@/lib/color';
-import { cn } from '@/lib/utils';
+} from '../../../config/content/updates';
+import { PROJECT_COLOR_SCHEMES } from '../../../config/theme/colors';
+import { UPDATE_SECTION_ICON_MAP } from '../../../config/ui/site-content';
+import { hexAlpha } from '../../../lib/color';
+import { cn } from '../../../lib/utils';
 
 export interface UpdateSectionProps {
   type: UpdateSectionType;

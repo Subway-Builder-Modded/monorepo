@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { APP_NAVBAR_SIZES } from '@/config/navigation/navbar';
-import { createNavbarConfigStyleVars } from '@/components/app-shell/navigation/app-navbar/style-vars';
+import { APP_NAVBAR_SIZES } from '../../../../config/navigation/navbar';
+import { createNavbarConfigStyleVars } from '../../../../components/app-shell/navigation/app-navbar/style-vars';
 
 describe('createNavbarConfigStyleVars', () => {
   it('maps navbar size config to CSS variable values', () => {

@@ -6,7 +6,7 @@ import {
   OverlayArrow,
   Popover as PopoverPrimitive,
 } from 'react-aria-components';
-import { cx } from '@/lib/primitive';
+import { cx } from '../../lib/primitive';
 import {
   DialogBody,
   DialogClose,

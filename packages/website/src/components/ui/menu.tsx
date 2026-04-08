@@ -21,7 +21,7 @@ import {
 } from 'react-aria-components';
 import { twMerge } from 'tailwind-merge';
 import { tv, type VariantProps } from 'tailwind-variants';
-import { cx } from '@/lib/primitive';
+import { cx } from '../../lib/primitive';
 import {
   DropdownDescription,
   DropdownKeyboard,

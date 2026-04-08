@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 
-import type { PerPage } from '@/lib/constants';
+import type { PerPage } from '../lib/constants';
 import type {
   AssetQueryFilters,
   AssetQueryFilterUpdater,
-} from '@/stores/asset-query-filter-store';
+} from '@railyard-app/stores/asset-query-filter-store';
 
 interface UsePaginationSyncParams {
   defaultPerPage: PerPage;

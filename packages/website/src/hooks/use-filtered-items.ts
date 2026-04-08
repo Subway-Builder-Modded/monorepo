@@ -3,20 +3,20 @@
 import Fuse from 'fuse.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { AssetType } from '@/lib/railyard/asset-types';
+import type { AssetType } from '../lib/railyard/asset-types';
 import {
   DEFAULT_SORT_STATE,
   PER_PAGE_OPTIONS,
   type PerPage,
   type SortState,
-} from '@/lib/railyard/constants';
-import { FUSE_SEARCH_OPTIONS } from '@/lib/railyard/search';
+} from '../lib/railyard/constants';
+import { FUSE_SEARCH_OPTIONS } from '../lib/railyard/search';
 import {
   buildTaggedItems,
   compareItems,
   type TaggedItem,
-} from '@/lib/railyard/tagged-items';
-import type { MapManifest, ModManifest } from '@/types/registry';
+} from '../lib/railyard/tagged-items';
+import type { MapManifest, ModManifest } from '../types/registry';
 
 export type { TaggedItem };
 export { PER_PAGE_OPTIONS };
@@ -34,7 +34,7 @@ export interface SearchFilterState {
   };
   map: {
     locations: string[];
-    dataQuality: string[];
+    sourceQuality: string[];
     levelOfDetail: string[];
     specialDemand: string[];
   };
@@ -49,7 +49,7 @@ interface AssetFilterState {
   };
   map: {
     locations: string[];
-    dataQuality: string[];
+    sourceQuality: string[];
     levelOfDetail: string[];
     specialDemand: string[];
   };
@@ -96,7 +96,7 @@ function createDefaultFilters(type: AssetType = 'map'): SearchFilterState {
     },
     map: {
       locations: [],
-      dataQuality: [],
+      sourceQuality: [],
       levelOfDetail: [],
       specialDemand: [],
     },
@@ -112,7 +112,7 @@ function cloneFilterState(state: SearchFilterState): SearchFilterState {
     },
     map: {
       locations: [...state.map.locations],
-      dataQuality: [...state.map.dataQuality],
+      sourceQuality: [...state.map.sourceQuality],
       levelOfDetail: [...state.map.levelOfDetail],
       specialDemand: [...state.map.specialDemand],
     },
@@ -132,7 +132,7 @@ function toAssetFilterState(
     },
     map: {
       locations: [...state.map.locations],
-      dataQuality: [...state.map.dataQuality],
+      sourceQuality: [...state.map.sourceQuality],
       levelOfDetail: [...state.map.levelOfDetail],
       specialDemand: [...state.map.specialDemand],
     },
@@ -199,7 +199,7 @@ function matchesMapAttributeFilters(
 
   return (
     matchesSingleValueFilter(item.item.location, filters.locations) &&
-    matchesSingleValueFilter(item.item.source_quality, filters.dataQuality) &&
+    matchesSingleValueFilter(item.item.source_quality, filters.sourceQuality) &&
     matchesSingleValueFilter(
       item.item.level_of_detail,
       filters.levelOfDetail,
@@ -310,8 +310,8 @@ function normalizeAssetFilterState(
       locations: Array.isArray(rawMap?.locations)
         ? [...(rawMap.locations as string[])]
         : [],
-      dataQuality: Array.isArray(rawMap?.dataQuality)
-        ? [...(rawMap.dataQuality as string[])]
+      sourceQuality: Array.isArray(rawMap?.sourceQuality)
+        ? [...(rawMap.sourceQuality as string[])]
         : [],
       levelOfDetail: Array.isArray(rawMap?.levelOfDetail)
         ? [...(rawMap.levelOfDetail as string[])]
@@ -352,8 +352,8 @@ function parsePersistedState(
         locations: Array.isArray(parsed.filters.map?.locations)
           ? parsed.filters.map.locations
           : [],
-        dataQuality: Array.isArray(parsed.filters.map?.dataQuality)
-          ? parsed.filters.map.dataQuality
+        sourceQuality: Array.isArray(parsed.filters.map?.sourceQuality)
+          ? parsed.filters.map.sourceQuality
           : [],
         levelOfDetail: Array.isArray(parsed.filters.map?.levelOfDetail)
           ? parsed.filters.map.levelOfDetail
@@ -513,7 +513,7 @@ export function useFilteredItems({
           },
           map: {
             locations: [...targetState.map.locations],
-            dataQuality: [...targetState.map.dataQuality],
+            sourceQuality: [...targetState.map.sourceQuality],
             levelOfDetail: [...targetState.map.levelOfDetail],
             specialDemand: [...targetState.map.specialDemand],
           },

@@ -13,8 +13,8 @@ import {
   TABLE_HEADER_CLS,
   TABLE_HEADER_RIGHT_CLS,
   TABLE_ROW_CLS,
-} from '@/features/registry/components/registry-shared';
-import type { RegistryAnalyticsData } from '@/types/registry-analytics';
+} from '../../../features/registry/components/registry-shared';
+import type { RegistryAnalyticsData } from '../../../types/registry-analytics';
 
 const MAX_ROWS = 20;
 

@@ -1,1 +1,1 @@
-export { PlaygroundPage } from '@/features/tools/components/playground-page';
+export { PlaygroundPage } from '../../../features/tools/components/playground-page';

@@ -4,14 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { FileCode2 } from 'lucide-react';
-import { PageHeader } from '@/components/shared/page-header';
-import { usePersistedState } from '@/lib/use-persisted-state';
-import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
+import { PageHeader } from '../../../components/shared/page-header';
+import { usePersistedState } from '../../../lib/use-persisted-state';
+import { PROJECT_COLOR_SCHEMES } from '../../../config/theme/colors';
 import {
   markdownToHtml,
   richTextHtmlToMarkdown,
   toInlineHtml,
-} from '@/features/tools/lib/markdown';
+} from '../../../features/tools/lib/markdown';
 import {
   DEFAULT_DOCUMENT,
   DOC_STORAGE_KEY,
@@ -21,10 +21,10 @@ import {
   parseDocument,
   type InputMode,
   type OutputMode,
-} from '@/features/tools/components/playground/constants';
-import { PlaygroundInputPanel } from '@/features/tools/components/playground/input-panel';
-import { PlaygroundIntroCard } from '@/features/tools/components/playground/intro-card';
-import { PlaygroundOutputPanel } from '@/features/tools/components/playground/output-panel';
+} from '../../../features/tools/components/playground/constants';
+import { PlaygroundInputPanel } from '../../../features/tools/components/playground/input-panel';
+import { PlaygroundIntroCard } from '../../../features/tools/components/playground/intro-card';
+import { PlaygroundOutputPanel } from '../../../features/tools/components/playground/output-panel';
 
 export function PlaygroundPage() {
   const [copied, setCopied] = useState(false);

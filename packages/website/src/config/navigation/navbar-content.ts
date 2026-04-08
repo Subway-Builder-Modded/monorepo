@@ -25,7 +25,7 @@ import type {
   AppNavbarConfig,
   AppNavbarItem,
   AppNavbarSizes,
-} from '@/config/navigation/navbar.types';
+} from '../../config/navigation/navbar.types';
 
 export const APP_NAVBAR_SIZES: AppNavbarSizes = {
   mobile: {

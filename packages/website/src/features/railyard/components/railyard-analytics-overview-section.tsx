@@ -8,8 +8,8 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '@/components/ui/stat';
-import type { RailyardAnalyticsData } from '@/types/railyard-analytics';
+} from '../../../components/ui/stat';
+import type { RailyardAnalyticsData } from '../../../types/railyard-analytics';
 import { RailyardSectionHeader } from './railyard-analytics-shared';
 
 const ICON_STYLE: CSSProperties = {

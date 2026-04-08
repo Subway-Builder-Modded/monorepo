@@ -11,8 +11,8 @@ import type {
   RailyardVersionDailyRow,
   RailyardVersionDownloadRow,
   RailyardVersionHourlyRow,
-} from '@/types/railyard-analytics';
-import { getRailyardAssetLabel } from '@/lib/railyard-asset-label';
+} from '../types/railyard-analytics';
+import { getRailyardAssetLabel } from '../lib/railyard-asset-label';
 
 export type {
   RailyardAnalyticsData,
@@ -25,7 +25,7 @@ export type {
   RailyardVersionDailyRow,
   RailyardVersionDownloadRow,
   RailyardVersionHourlyRow,
-} from '@/types/railyard-analytics';
+} from '../types/railyard-analytics';
 
 type DownloadMetricRaw = {
   total_downloads?: unknown;

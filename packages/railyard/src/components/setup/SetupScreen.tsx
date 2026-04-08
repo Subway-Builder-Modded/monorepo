@@ -13,11 +13,11 @@ import {
 import { type ChangeEvent, useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { useConfigStore } from '@/stores/config-store';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
+import { cn } from '../../lib/utils';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 import { SETUP_STEPS, type SetupStepState } from './setup-steps';
 
@@ -149,7 +149,25 @@ function StepIndicator({ activeStep }: StepIndicatorProps) {
   );
 }
 
-export function SetupScreen() {
+export interface SetupScreenProps {
+  config: types.AppConfig | null;
+  validation: types.ConfigPathValidation | null;
+  openDataFolderDialog: (autoDetect: boolean) => Promise<{ source: string }>;
+  openExecutableDialog: (autoDetect: boolean) => Promise<{ source: string }>;
+  updateCheckForUpdatesOnLaunch: (enabled: boolean) => Promise<unknown>;
+  updateGithubToken: (token: string) => Promise<unknown>;
+  completeSetup: () => Promise<unknown>;
+}
+
+export function SetupScreen({
+  config,
+  validation,
+  openDataFolderDialog,
+  openExecutableDialog,
+  updateCheckForUpdatesOnLaunch,
+  updateGithubToken,
+  completeSetup,
+}: SetupScreenProps) {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [checkForUpdates, setCheckForUpdates] = useState<boolean | null>(null);
@@ -157,16 +175,6 @@ export function SetupScreen() {
   const [tokenState, setTokenState] = useState<'idle' | 'valid' | 'invalid'>(
     'idle',
   );
-
-  const {
-    config,
-    validation,
-    openDataFolderDialog,
-    openExecutableDialog,
-    updateCheckForUpdatesOnLaunch,
-    updateGithubToken,
-    completeSetup,
-  } = useConfigStore();
 
   const handleCheckToken = async () => {
     const req = await fetch('https://api.github.com/rate_limit', {

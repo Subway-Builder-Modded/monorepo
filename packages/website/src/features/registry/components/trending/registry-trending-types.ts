@@ -4,7 +4,7 @@ import type {
   RegistryAnalyticsData,
   RegistryListingDailyRow,
   RegistryTrendingRow,
-} from '@/types/registry-analytics';
+} from '../../../../types/registry-analytics';
 
 export type TrendingModeKey = '1d' | '3d' | '7d';
 

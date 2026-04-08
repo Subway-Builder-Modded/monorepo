@@ -1,4 +1,3 @@
-import { ChevronRight, SlidersHorizontal } from 'lucide-react';
 import {
   type CSSProperties,
   type ReactNode,
@@ -7,9 +6,9 @@ import {
   useRef,
   useState,
 } from 'react';
-
-import { cn } from '@/lib/utils';
-import type { AssetQueryFilters } from '@/stores/asset-query-filter-store';
+import { ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { cn } from '../../lib/utils';
+import type { AssetQueryFilters } from '@railyard-app/stores/asset-query-filter-store';
 
 const SIDEBAR_WIDTH_REM = 15.5;
 const SIDEBAR_GAP_REM = 1.5;
@@ -268,3 +267,4 @@ export function SidebarPanel({
     </>
   );
 }
+

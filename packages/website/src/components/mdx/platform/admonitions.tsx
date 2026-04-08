@@ -13,7 +13,7 @@ import {
   Success,
   Tip,
   Warning,
-} from '@/components/ui/admonition';
+} from '../../../components/ui/admonition';
 
 export const mdxAdmonitionComponents: MDXComponents = {
   Admonition,

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { DocsSidebarEntry } from '@/lib/docs/shared';
+import type { DocsSidebarEntry } from '../../../../lib/docs/shared';
 import {
   collectActiveCategoryKeys,
   findActiveEntry,
   readSidebarOpenStateFromCookieString,
   removeCategoryBranch,
-} from '@/features/docs/components/docs-sidebar/helpers';
+} from '../../../../features/docs/components/docs-sidebar/helpers';
 
 const TREE: DocsSidebarEntry[] = [
   {

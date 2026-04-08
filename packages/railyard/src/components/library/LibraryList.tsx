@@ -9,44 +9,41 @@ import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { AuthorName } from '@/components/shared/AuthorName';
-import { GalleryImage } from '@/components/shared/GalleryImage';
-import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
-import type { AssetType } from '@/lib/asset-types';
-import { assetTypeToListingPath } from '@/lib/asset-types';
+import { AppDialog } from '../../components/dialogs/AppDialog';
+import { AuthorName } from '../../components/shared/AuthorName';
+import { GalleryImage } from '../../components/shared/GalleryImage';
+import { SortableHeaderCell } from '../../components/shared/SortableHeaderCell';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Checkbox } from '../../components/ui/checkbox';
+import type { InstalledTaggedItem } from '../../hooks/use-filtered-installed-items';
+import type { AssetType } from '../../lib/asset-types';
+import { assetTypeToListingPath } from '../../lib/asset-types';
 import {
   type SortDirection,
   type SortField,
   type SortState,
   TEXT_SORT_FIELDS,
-} from '@/lib/constants';
-import { getCountryFlagIcon } from '@/lib/flags';
-import { openInstallFolder } from '@/lib/install-path';
-import { LOCAL_ACCENTS } from '@/lib/local-accent';
-import { formatSourceQuality } from '@/lib/map-filter-values';
-import { formatStorageSize } from '@/lib/size-format';
+} from '../../lib/constants';
+import { getCountryFlagIcon } from '../../lib/flags';
+import { openInstallFolder } from '../../lib/install-path';
+import { LOCAL_ACCENTS } from '../../lib/local-accent';
+import { formatSourceQuality } from '../../lib/map-filter-values';
+import { formatStorageSize } from '../../lib/size-format';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
-} from '@/lib/subscription-mutation-ui';
+} from '../../lib/subscription-mutation-ui';
 import {
   composeAssetKey,
   getPendingSubscriptionUpdate,
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
-} from '@/lib/subscription-updates';
-import { cn } from '@/lib/utils';
-import { useConfigStore } from '@/stores/config-store';
-import { useInstalledStore } from '@/stores/installed-store';
-import { useLibraryStore } from '@/stores/library-store';
+} from '../../lib/subscription-updates';
+import { cn } from '../../lib/utils';
 
-import type { types } from '../../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 const UPDATE_ICON_ACCENT = LOCAL_ACCENTS.update.iconButton;
 const FILES_ICON_ACCENT = LOCAL_ACCENTS.files.iconButton;
@@ -84,6 +81,14 @@ export interface LibraryListProps {
   onRefreshPendingUpdates: () => Promise<void>;
   sort: SortState;
   onSortChange: (sort: SortState) => void;
+  selectedIds: Set<string>;
+  onSelectAll: (keys: string[]) => void;
+  onClearSelection: () => void;
+  onToggleSelected: (key: string) => void;
+  onRemoveSelected: (keys: string[]) => void;
+  onUninstallAssets: (assets: Array<{ id: string; type: 'map' | 'mod' }>) => Promise<unknown>;
+  onUpdateAssetsToLatest: (assets: Array<{ id: string; type: 'map' | 'mod' }>) => Promise<unknown>;
+  metroMakerDataPath: string | undefined;
 }
 
 export function LibraryList({
@@ -93,10 +98,15 @@ export function LibraryList({
   onRefreshPendingUpdates,
   sort,
   onSortChange,
+  selectedIds,
+  onSelectAll,
+  onClearSelection,
+  onToggleSelected,
+  onRemoveSelected,
+  onUninstallAssets,
+  onUpdateAssetsToLatest,
+  metroMakerDataPath,
 }: LibraryListProps) {
-  const selectedIds = useLibraryStore((s) => s.selectedIds);
-  const selectAll = useLibraryStore((s) => s.selectAll);
-  const clearSelection = useLibraryStore((s) => s.clearSelection);
   const { locked: mutationLocked, reason: mutationLockedReason } =
     useSubscriptionMutationLockState();
   const showMapColumns = activeType === 'map';
@@ -135,7 +145,7 @@ export function LibraryList({
         <Checkbox
           checked={allSelected ? true : someSelected ? 'indeterminate' : false}
           onCheckedChange={() =>
-            allSelected ? clearSelection() : selectAll(allKeys)
+            allSelected ? onClearSelection() : onSelectAll(allKeys)
           }
           aria-label="Select all"
           className="h-4 w-4 shrink-0"
@@ -208,6 +218,12 @@ export function LibraryList({
             onRefreshPendingUpdates={onRefreshPendingUpdates}
             mutationLocked={mutationLocked}
             mutationLockedReason={mutationLockedReason}
+            selectedIds={selectedIds}
+            onToggleSelected={onToggleSelected}
+            onRemoveSelected={onRemoveSelected}
+            onUninstallAssets={onUninstallAssets}
+            onUpdateAssetsToLatest={onUpdateAssetsToLatest}
+            metroMakerDataPath={metroMakerDataPath}
           />
         ))}
       </div>
@@ -222,6 +238,12 @@ interface LibraryListRowProps {
   onRefreshPendingUpdates: () => Promise<void>;
   mutationLocked: boolean;
   mutationLockedReason?: string;
+  selectedIds: Set<string>;
+  onToggleSelected: (key: string) => void;
+  onRemoveSelected: (keys: string[]) => void;
+  onUninstallAssets: (assets: Array<{ id: string; type: 'map' | 'mod' }>) => Promise<unknown>;
+  onUpdateAssetsToLatest: (assets: Array<{ id: string; type: 'map' | 'mod' }>) => Promise<unknown>;
+  metroMakerDataPath: string | undefined;
 }
 
 function LibraryListRow({
@@ -231,20 +253,20 @@ function LibraryListRow({
   onRefreshPendingUpdates,
   mutationLocked,
   mutationLockedReason,
+  selectedIds,
+  onToggleSelected,
+  onRemoveSelected,
+  onUninstallAssets,
+  onUpdateAssetsToLatest,
+  metroMakerDataPath,
 }: LibraryListRowProps) {
   const [uninstallOpen, setUninstallOpen] = useState(false);
   const [uninstallLoading, setUninstallLoading] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
 
-  const selectedIds = useLibraryStore((s) => s.selectedIds);
-  const toggleSelected = useLibraryStore((s) => s.toggleSelected);
-  const removeSelected = useLibraryStore((s) => s.removeSelected);
-  const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
-  const updateAssetsToLatest = useInstalledStore((s) => s.updateAssetsToLatest);
-  const metroMakerDataPath = useConfigStore(
-    (s) => s.config?.metroMakerDataPath,
-  );
+  const uninstallAssets = onUninstallAssets;
+  const updateAssetsToLatest = onUpdateAssetsToLatest;
 
   const key = composeAssetKey(entry.type, entry.item.id);
   const isSelected = selectedIds.has(key);
@@ -283,7 +305,7 @@ function LibraryListRow({
     try {
       await uninstallAssets([{ id: entry.item.id, type: entry.type }]);
       toast.success(`${entry.item.name} has been uninstalled.`);
-      removeSelected([key]);
+      onRemoveSelected([key]);
       void onRefreshPendingUpdates();
       setUninstallOpen(false);
     } catch (err) {
@@ -350,7 +372,7 @@ function LibraryListRow({
       >
         <Checkbox
           checked={isSelected}
-          onCheckedChange={() => toggleSelected(key)}
+          onCheckedChange={() => onToggleSelected(key)}
           aria-label={`Select ${entry.item.name}`}
           className="h-4 w-4 shrink-0"
         />

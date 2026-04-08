@@ -7,29 +7,38 @@ import {
   BROWSE_ITEM_CN,
   BROWSE_TRIGGER_CN,
   ControlWrapper,
-} from '@/components/settings/ControlWrapper';
-import { SettingRow } from '@/components/settings/SettingRow';
-import { ThemePicker, type ThemeValue } from '@/components/shared/ThemePicker';
+} from '../../components/settings/ControlWrapper';
+import { SettingRow } from '../../components/settings/SettingRow';
+import { ThemePicker, type ThemeValue } from '../../components/shared/ThemePicker';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '../../components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '../../components/ui/select';
 import {
   isSearchViewMode,
   normalizeSearchViewMode,
-} from '@/lib/search-view-mode';
-import { cn } from '@/lib/utils';
-import { useProfileStore } from '@/stores/profile-store';
+} from '../../lib/search-view-mode';
+import { cn } from '../../lib/utils';
+import type { types } from '@railyard-app/wailsjs/go/models';
+
+export interface UIPreferencesPanelProps {
+  profile: types.UserProfile | null;
+  onUpdateUIPreferences: (prefs: Partial<{
+    theme?: string;
+    defaultPerPage?: number;
+    searchViewMode?: 'list' | 'full' | 'compact';
+  }>) => Promise<void>;
+}
 
 const VALID_THEMES = new Set<ThemeValue>([
   'dark',
@@ -69,9 +78,8 @@ function normalizeThemeValue(theme: unknown): ThemeValue {
   return 'dark';
 }
 
-export function UIPreferencesPanel() {
-  const profile = useProfileStore((s) => s.profile);
-  const updateUIPreferences = useProfileStore((s) => s.updateUIPreferences);
+export function UIPreferencesPanel({ profile, onUpdateUIPreferences }: UIPreferencesPanelProps) {
+  const updateUIPreferences = onUpdateUIPreferences;
 
   const [showThemePreviews, setShowThemePreviews] = useState(false);
 

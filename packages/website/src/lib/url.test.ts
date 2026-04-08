@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isExternalHref, normalizePath } from '@/lib/url';
+import { isExternalHref, normalizePath } from '../lib/url';
 
 describe('isExternalHref', () => {
   it('returns true only for absolute http or https URLs', () => {

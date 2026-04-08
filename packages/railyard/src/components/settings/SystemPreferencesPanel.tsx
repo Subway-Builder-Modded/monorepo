@@ -2,30 +2,32 @@ import { CircleFadingArrowUp, Database, Shield, Terminal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { SettingRow } from '@/components/settings/SettingRow';
-import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { SettingRow } from '../../components/settings/SettingRow';
+import { SettingToggleButton } from '../../components/settings/SettingToggleButton';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { useProfileStore } from '@/stores/profile-store';
+} from '../../components/ui/card';
 
 import {
   GetPlatform,
   InstallLinuxSandbox,
   SandboxIsInstalled,
-} from '../../../wailsjs/go/main/App';
+} from '@railyard-app/wailsjs/go/main/App';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
-export function SystemPreferencesPanel() {
-  const profile = useProfileStore((s) => s.profile);
-  const updateSystemPreferences = useProfileStore(
-    (s) => s.updateSystemPreferences,
-  );
+export interface SystemPreferencesPanelProps {
+  profile: types.UserProfile | null;
+  onUpdateSystemPreferences: (prefs: Partial<types.SystemPreferences>) => Promise<void>;
+}
+
+export function SystemPreferencesPanel({ profile, onUpdateSystemPreferences }: SystemPreferencesPanelProps) {
+  const updateSystemPreferences = onUpdateSystemPreferences;
 
   const [platform, setPlatform] = useState<string>('unknown');
   const [sandboxInstalled, setSandboxInstalled] = useState(false);

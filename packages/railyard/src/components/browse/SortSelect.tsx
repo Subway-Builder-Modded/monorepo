@@ -1,15 +1,16 @@
 import {
-  type SharedSortSelectProps,
   SharedSortSelect,
-} from '@sbm/railyard-ui/shared/sort-select';
-import type { AssetType } from '@/lib/asset-types';
+  type SharedSortSelectProps,
+} from '@sbm/shared/railyard-ui/shared/sort-select';
+
+import type { AssetType } from '../../lib/asset-types';
 import {
   DEFAULT_SORT_STATE,
   getSortOptionsForType,
   type SortField,
   type SortState,
   TEXT_SORT_FIELDS,
-} from '@/lib/constants';
+} from '../../lib/constants';
 
 type SortSelectProps = {
   value: SortState;
@@ -40,3 +41,4 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
 
   return <SharedSortSelect {...sharedProps} />;
 }
+

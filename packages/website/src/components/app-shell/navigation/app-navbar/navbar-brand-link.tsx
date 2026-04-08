@@ -1,7 +1,7 @@
 import NextLink from 'next/link';
-import { AppIcon } from '@/components/shared/app-icon';
-import type { AppNavbarBrand } from '@/config/navigation/navbar';
-import { cn } from '@/lib/utils';
+import { AppIcon } from '../../../../components/shared/app-icon';
+import type { AppNavbarBrand } from '../../../../config/navigation/navbar';
+import { cn } from '../../../../lib/utils';
 
 type NavbarBrandLinkProps = {
   brand: AppNavbarBrand;

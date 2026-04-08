@@ -4,7 +4,7 @@ import { Box, Map } from 'lucide-react';
 import {
   SectionHeader,
   getListingColor,
-} from '@/features/registry/components/registry-shared';
+} from '../../../../features/registry/components/registry-shared';
 import type {
   EnrichedTrendingRow,
   TrendingModeKey,

@@ -2,15 +2,15 @@
 
 import { useEffect } from 'react';
 import { Activity, FileText, Cpu, Globe2, Globe } from 'lucide-react';
-import { PageHeader } from '@/components/shared/page-header';
-import { cn } from '@/lib/utils';
-import type { WebsiteAnalyticsData } from '@/types/website-analytics';
+import { PageHeader } from '../../../components/shared/page-header';
+import { cn } from '../../../lib/utils';
+import type { WebsiteAnalyticsData } from '../../../types/website-analytics';
 import { WebsiteOverviewSection } from './website-overview-section';
 import { WebsitePagesSection } from './website-pages-section';
 import { WebsiteTechnologySection } from './website-technology-section';
 import { WebsiteCountriesSection } from './website-countries-section';
 import { WEBSITE_PAGE_HEADER_SCHEME } from './website-shared';
-import { usePersistedState } from '@/lib/use-persisted-state';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 
 type TabKey = 'overview' | 'pages' | 'countries' | 'technology';
 

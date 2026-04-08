@@ -1,16 +1,13 @@
-import { MapPin, Package } from 'lucide-react';
+import { GalleryImageDisplay } from '@sbm/shared/railyard-ui/shared/gallery-image-display';
 
-import { Skeleton } from '@/components/ui/skeleton';
-import { useGalleryImage } from '@/hooks/use-gallery-image';
-import type { AssetType } from '@/lib/asset-types';
-import { cn } from '@/lib/utils';
+import { useGalleryImage } from '../../hooks/use-gallery-image';
+import type { AssetType } from '../../lib/asset-types';
 
 interface GalleryImageProps {
   type: AssetType;
   id: string;
   imagePath?: string;
   className?: string;
-  /** Override the fallback icon size. Defaults to `h-12 w-12`. */
   fallbackIconClassName?: string;
 }
 
@@ -19,35 +16,18 @@ export function GalleryImage({
   id,
   imagePath,
   className,
-  fallbackIconClassName = 'h-12 w-12',
+  fallbackIconClassName,
 }: GalleryImageProps) {
   const { imageUrl, loading, error } = useGalleryImage(type, id, imagePath);
-  const FallbackIcon = type === 'mod' ? Package : MapPin;
-
-  if (loading) {
-    return <Skeleton className={cn('w-full', className)} />;
-  }
-
-  if (!imageUrl || error) {
-    return (
-      <div
-        className={cn(
-          'w-full flex items-center justify-center bg-muted',
-          className,
-        )}
-      >
-        <FallbackIcon
-          className={cn('text-muted-foreground', fallbackIconClassName)}
-        />
-      </div>
-    );
-  }
-
   return (
-    <img
+    <GalleryImageDisplay
+      type={type}
       src={imageUrl}
-      alt=""
-      className={cn('w-full object-cover', className)}
+      loading={loading}
+      error={error}
+      className={className}
+      fallbackIconClassName={fallbackIconClassName}
     />
   );
 }
+

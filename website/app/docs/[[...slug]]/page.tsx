@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { buildEmbedMetadata } from '@/config/site/metadata';
+import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
 
 export const dynamicParams = false;
 

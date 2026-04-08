@@ -15,11 +15,11 @@ vi.mock('sonner', () => ({
 import {
   SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
   SubscriptionMutationLockedError,
-} from '@/lib/subscription-mutation-client';
+} from '../lib/subscription-mutation-client';
 import {
   handleSubscriptionMutationError,
   withLockAwareConfirm,
-} from '@/lib/subscription-mutation-ui';
+} from '../lib/subscription-mutation-ui';
 
 describe('subscription-mutation-ui', () => {
   beforeEach(() => {

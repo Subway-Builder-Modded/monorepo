@@ -1,4 +1,4 @@
-import type { AssetIconDefinition } from '@/lib/icons/types';
+import type { AssetIconDefinition } from '../../lib/icons/types';
 
 export const APP_ICON_REGISTRY = {
   logo: { type: 'image', src: '/logo.png' },

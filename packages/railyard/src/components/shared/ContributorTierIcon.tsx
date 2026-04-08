@@ -1,12 +1,11 @@
 import type { CSSProperties } from 'react';
-
+import { getContributorTierStyle } from '../../lib/contributor-tier';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { getContributorTierStyle } from '@/lib/contributor-tier';
+} from '../../components/ui/tooltip';
 
 export type ContributorTierIconSize = 'sm' | 'default';
 
@@ -51,3 +50,4 @@ export function ContributorTierIcon({
     </TooltipProvider>
   );
 }
+

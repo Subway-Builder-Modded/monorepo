@@ -13,10 +13,10 @@ import {
   YAxis,
 } from 'recharts';
 import { Globe } from 'lucide-react';
-import { SortableNumberHeader } from '@/components/shared/sortable-number-header';
-import { getCountryFlagIcon } from '@/lib/railyard/flags';
-import { usePersistedState } from '@/lib/use-persisted-state';
-import { AuthorName } from '@/components/shared/author-name';
+import { SortableNumberHeader } from '../../../components/shared/sortable-number-header';
+import { getCountryFlagIcon } from '../../../lib/railyard/flags';
+import { usePersistedState } from '../../../lib/use-persisted-state';
+import { AuthorName } from '../../../components/shared/author-name';
 
 import {
   MAP_COLOR,
@@ -34,8 +34,8 @@ import {
   truncateName,
   useClientReady,
   registryLinkStyle,
-} from '@/features/registry/components/registry-shared';
-import type { RegistryAnalyticsData } from '@/types/registry-analytics';
+} from '../../../features/registry/components/registry-shared';
+import type { RegistryAnalyticsData } from '../../../types/registry-analytics';
 
 type PopulationRow = RegistryAnalyticsData['mapPopulations'][number];
 

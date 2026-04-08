@@ -1,9 +1,9 @@
 import {
   Pagination as SharedPagination,
   type PaginationProps as SharedPaginationProps,
-} from '@sbm/railyard-ui/shared/pagination';
+} from '@sbm/shared/railyard-ui/shared/pagination';
 
-import { PER_PAGE_OPTIONS, type PerPage } from '@/lib/constants';
+import { PER_PAGE_OPTIONS, type PerPage } from '../../lib/constants';
 
 interface PaginationProps
   extends Omit<SharedPaginationProps, 'perPage' | 'perPageOptions' | 'onPerPageChange'> {
@@ -20,3 +20,4 @@ export function Pagination({ onPerPageChange, ...props }: PaginationProps) {
     />
   );
 }
+

@@ -1,9 +1,8 @@
-import { cn } from '@/lib/utils';
-
+import { cn } from '../../lib/utils';
 import {
   ContributorTierIcon,
   type ContributorTierIconSize,
-} from './ContributorTierIcon';
+} from '../../components/shared/ContributorTierIcon';
 
 interface AuthorNameProps {
   name: string;
@@ -30,3 +29,4 @@ export function AuthorName({
     </span>
   );
 }
+

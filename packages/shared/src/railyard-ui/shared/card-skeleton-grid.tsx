@@ -52,3 +52,4 @@ export function CardSkeletonGrid({
     </ResponsiveCardGrid>
   );
 }
+

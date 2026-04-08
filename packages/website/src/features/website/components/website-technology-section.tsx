@@ -4,8 +4,8 @@ import { Cpu } from 'lucide-react';
 import type {
   WebsiteAnalyticsData,
   WebsiteAnalyticsPeriod,
-} from '@/types/website-analytics';
-import { usePersistedState } from '@/lib/use-persisted-state';
+} from '../../../types/website-analytics';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 import {
   EmptyState,
   WEBSITE_ACCENT_COLOR,

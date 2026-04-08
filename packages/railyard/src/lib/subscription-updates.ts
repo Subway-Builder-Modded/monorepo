@@ -1,10 +1,10 @@
-import type { AssetType } from '@/lib/asset-types';
+import type { AssetType } from '../lib/asset-types';
 
-import { types } from '../../wailsjs/go/models';
+import { types } from '@railyard-app/wailsjs/go/models';
 import {
   GetActiveProfile,
   UpdateSubscriptionsToLatest,
-} from '../../wailsjs/go/profiles/UserProfiles';
+} from '@railyard-app/wailsjs/go/profiles/UserProfiles';
 
 export interface AssetTarget {
   type: AssetType;

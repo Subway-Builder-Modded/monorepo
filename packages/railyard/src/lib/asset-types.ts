@@ -1,1 +1,2 @@
-export * from '@sbm/railyard-core/asset-types';
+export * from '@sbm/shared/railyard-core/asset-types';
+

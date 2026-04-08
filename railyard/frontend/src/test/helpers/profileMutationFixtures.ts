@@ -1,4 +1,4 @@
-import type { UpdateSubscriptionsRequestType } from '@/lib/profile-update-request-type';
+import type { UpdateSubscriptionsRequestType } from '@sbm/railyard/lib/profile-update-request-type';
 
 import { types } from '../../../wailsjs/go/models';
 

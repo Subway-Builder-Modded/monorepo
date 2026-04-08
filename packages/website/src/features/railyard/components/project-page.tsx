@@ -7,10 +7,10 @@ import { useSearchParams } from 'next/navigation';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 
-import { EmptyState } from '@/features/railyard/components/empty-state';
-import { ProjectGallery } from '@/features/railyard/components/project-gallery';
-import { ProjectHeader } from '@/features/railyard/components/project-header';
-import { ProjectVersions } from '@/features/railyard/components/project-versions';
+import { EmptyState } from '../../../features/railyard/components/empty-state';
+import { ProjectGallery } from '../../../features/railyard/components/project-gallery';
+import { ProjectHeader } from '../../../features/railyard/components/project-header';
+import { ProjectVersions } from '../../../features/railyard/components/project-versions';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,21 +18,21 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useRegistryItem } from '@/hooks/use-registry-item';
-import { useVersions } from '@/hooks/use-versions';
-import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
+} from '../../../components/ui/breadcrumb';
+import { Skeleton } from '../../../components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
+import { useRegistryItem } from '../../../hooks/use-registry-item';
+import { useVersions } from '../../../hooks/use-versions';
+import { fetchRegistryJsonWithFallback } from '../../../lib/railyard/registry-source';
 import {
   mergeVersionDownloads,
   withZeroDownloads,
-} from '@/lib/railyard/version-downloads';
+} from '../../../lib/railyard/version-downloads';
 import type {
   AssetDownloadCountsByVersion,
   RegistryIntegrityReport,
   VersionInfo,
-} from '@/types/registry';
+} from '../../../types/registry';
 
 interface ProjectPageProps {
   type: 'mods' | 'maps';

@@ -7,12 +7,12 @@ import remarkGfm from 'remark-gfm';
 import { remarkHeadingId } from 'remark-custom-heading-id';
 import remarkFlexibleCodeTitles from 'remark-flexible-code-titles';
 import remarkDirective from 'remark-directive';
-import remarkAdmonitionDirectives from '@/lib/remark-admonition-directives';
+import remarkAdmonitionDirectives from '../lib/remark-admonition-directives';
 import rehypePrettyCode from 'rehype-pretty-code';
 import rehypeExternalLinks from 'rehype-external-links';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
-import { UPDATE_PROJECTS, type UpdateTag } from '@/config/content/updates';
+import { UPDATE_PROJECTS, type UpdateTag } from '../config/content/updates';
 
 const UPDATES_ROOT = path.join(process.cwd(), 'content', 'updates');
 

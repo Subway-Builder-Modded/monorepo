@@ -4,8 +4,8 @@ import { toast } from 'sonner';
 import {
   isSubscriptionMutationLockedError,
   SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
-} from '@/lib/subscription-mutation-client';
-import { useGameStore } from '@/stores/game-store';
+} from '../lib/subscription-mutation-client';
+import { useGameStore } from '@railyard-app/stores/game-store';
 
 type LockAwareDialogConfirm = {
   disabled?: boolean;

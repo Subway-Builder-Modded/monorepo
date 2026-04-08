@@ -1,3 +1,4 @@
 'use client';
 
-export { SortableHeaderCell } from '@sbm/railyard-ui/shared/sortable-header-cell';
+export { SortableHeaderCell } from '@sbm/shared/railyard-ui/shared/sortable-header-cell';
+

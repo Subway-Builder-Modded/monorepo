@@ -1,23 +1,23 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { Link } from '@/components/ui/link';
-import { Avatar } from '@/components/ui/avatar';
-import { AppIcon } from '@/components/shared/app-icon';
+import { Link } from '../../../components/ui/link';
+import { Avatar } from '../../../components/ui/avatar';
+import { AppIcon } from '../../../components/shared/app-icon';
 import {
   APP_FOOTER_UI_CONFIG,
   FOOTER_NAV_SECTIONS,
   FOOTER_SOCIAL_LINKS,
   getFooterNavColorScheme,
   type FooterNavColorSchemeId,
-} from '@/config/navigation/footer';
-import { SHARED_MUTED_TEXT_COLOR } from '@/config/theme/colors';
+} from '../../../config/navigation/footer';
+import { SHARED_MUTED_TEXT_COLOR } from '../../../config/theme/colors';
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_LOGO_PATH,
-} from '@/config/site/metadata';
-import { hexAlpha } from '@/lib/color';
+} from '../../../config/site/metadata';
+import { hexAlpha } from '../../../lib/color';
 
 function getFooterRootVars(): CSSProperties {
   return {

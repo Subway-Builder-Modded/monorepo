@@ -14,16 +14,16 @@ import { Layers3 } from 'lucide-react';
 import {
   SortableNumberHeader,
   type SortDirection,
-} from '@/components/shared/sortable-number-header';
+} from '../../../components/shared/sortable-number-header';
 import {
   type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
-} from '@/components/ui/carousel';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { usePersistedState } from '@/lib/use-persisted-state';
-import type { RailyardAnalyticsData } from '@/types/railyard-analytics';
+} from '../../../components/ui/carousel';
+import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
+import { usePersistedState } from '../../../lib/use-persisted-state';
+import type { RailyardAnalyticsData } from '../../../types/railyard-analytics';
 import {
   compareSemver,
   formatCompactNumber,

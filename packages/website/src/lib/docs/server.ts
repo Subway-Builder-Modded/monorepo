@@ -10,13 +10,13 @@ import rehypeExternalLinks from 'rehype-external-links';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkDirective from 'remark-directive';
 import remarkFlexibleCodeTitles from 'remark-flexible-code-titles';
-import remarkAdmonitionDirectives from '@/lib/remark-admonition-directives';
+import remarkAdmonitionDirectives from '../../lib/remark-admonition-directives';
 
 import {
   DOCS_INSTANCES,
   getSidebarOrder,
   type DocsInstance,
-} from '@/config/content/docs';
+} from '../../config/content/docs';
 import {
   buildDocsHubHref,
   buildDocHref,
@@ -25,7 +25,7 @@ import {
   type DocsSidebarEntry,
   type DocsSidebarPage,
   type DocsSidebarTree,
-} from '@/lib/docs/shared';
+} from '../../lib/docs/shared';
 
 const CONTENT_ROOT = path.join(process.cwd(), 'content', 'docs');
 

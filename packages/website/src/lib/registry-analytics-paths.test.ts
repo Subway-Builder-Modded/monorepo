@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { resolveRegistryAnalyticsDir } from '@/lib/registry-analytics-paths';
+import { resolveRegistryAnalyticsDir } from '../lib/registry-analytics-paths';
 
 describe('resolveRegistryAnalyticsDir', () => {
   const cwd = '/repo/website';

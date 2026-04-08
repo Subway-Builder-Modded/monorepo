@@ -19,15 +19,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { cn } from '@/lib/utils';
-import { AuthorName } from '@/components/shared/author-name';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { cn } from '../../../lib/utils';
+import { AuthorName } from '../../../components/shared/author-name';
+import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
 import {
   getAuthorAttributionHref as resolveAuthorAttributionHref,
   getAuthorDisplayName as resolveAuthorDisplayName,
   isExternalHref as checkExternalHref,
-} from '@/lib/authors';
-import type { DailyDataPoint, ListingType } from '@/types/registry-analytics';
+} from '../../../lib/authors';
+import type { DailyDataPoint, ListingType } from '../../../types/registry-analytics';
 
 // ---------------------------------------------------------------------------
 // Color constants — purple = UI chrome, red = mods data, blue = maps data

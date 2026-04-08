@@ -1,4 +1,4 @@
-export type * from '@/config/site/homepage.types';
+export type * from '../../config/site/homepage.types';
 export {
   HOME_CONTRIBUTE_SECTION,
   HOME_COMMUNITY_SECTION,
@@ -7,4 +7,4 @@ export {
   HOME_PROJECT_SECTION,
   HOME_SUBWAY_BARS,
   HOME_THEME,
-} from '@/config/site/homepage.data';
+} from '../../config/site/homepage.data';

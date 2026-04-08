@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { AppNavbarSizes } from '@/config/navigation/navbar';
+import type { AppNavbarSizes } from '../../../../config/navigation/navbar';
 
 export function createNavbarConfigStyleVars(
   sizes: AppNavbarSizes,

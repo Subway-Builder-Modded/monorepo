@@ -16,12 +16,12 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '@/components/ui/stat';
+} from '../../../components/ui/stat';
 import type {
   DailyDataPoint,
   RegistryAnalyticsData,
-} from '@/types/registry-analytics';
-import { getAuthorAnalytics } from '@/lib/registry-analytics-helpers';
+} from '../../../types/registry-analytics';
+import { getAuthorAnalytics } from '../../../lib/registry-analytics-helpers';
 import {
   DailyDownloadChart,
   REGISTRY_LINK_HOVER_CLS,
@@ -38,9 +38,9 @@ import {
   TABLE_ROW_CLS,
   registryLinkStyle,
 } from './registry-shared';
-import { AuthorName } from '@/components/shared/author-name';
-import { SortableNumberHeader } from '@/components/shared/sortable-number-header';
-import { usePersistedState } from '@/lib/use-persisted-state';
+import { AuthorName } from '../../../components/shared/author-name';
+import { SortableNumberHeader } from '../../../components/shared/sortable-number-header';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 
 const STAT_HEADER_CLS =
   'text-xs font-semibold uppercase tracking-wider text-muted-foreground';

@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import AppFooter from '@/components/app-shell/footer/app-footer';
-import AppNavbar from '@/components/app-shell/navigation/app-navbar';
-import { ScrollRestoration } from '@/components/app-shell/navigation/scroll-restoration';
-import { PageColorSchemeProvider } from '@/components/app-shell/theme/page-color-scheme-provider';
-import { ThemeProvider } from '@/components/app-shell/theme/theme-provider';
-import { FooterBars } from '@/components/ui/footer-bars';
+import AppFooter from '../../components/app-shell/footer/app-footer';
+import AppNavbar from '../../components/app-shell/navigation/app-navbar';
+import { ScrollRestoration } from '../../components/app-shell/navigation/scroll-restoration';
+import { PageColorSchemeProvider } from '../../components/app-shell/theme/page-color-scheme-provider';
+import { ThemeProvider } from '../../components/app-shell/theme/theme-provider';
+import { FooterBars } from '../../components/ui/footer-bars';
 
 export function AppLayoutShell({
   children,

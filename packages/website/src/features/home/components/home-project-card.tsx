@@ -1,9 +1,9 @@
 import Image from 'next/image';
 
-import { HomeLinkButton } from '@/features/home/components/home-link-button';
-import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
-import type { HomeProjectCard } from '@/config/site/homepage';
-import { cn } from '@/lib/utils';
+import { HomeLinkButton } from '../../../features/home/components/home-link-button';
+import { ThemedShowcaseCard } from '../../../components/ui/themed-showcase-card';
+import type { HomeProjectCard } from '../../../config/site/homepage';
+import { cn } from '../../../lib/utils';
 
 type HomeProjectCardProps = {
   card: HomeProjectCard;

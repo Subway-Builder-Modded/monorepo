@@ -11,8 +11,8 @@ import {
   YAxis,
 } from 'recharts';
 import { LineChart as LineChartIcon } from 'lucide-react';
-import { usePersistedState } from '@/lib/use-persisted-state';
-import type { RailyardAnalyticsData } from '@/types/railyard-analytics';
+import { usePersistedState } from '../../../lib/use-persisted-state';
+import type { RailyardAnalyticsData } from '../../../types/railyard-analytics';
 import {
   compareSemver,
   formatCompactNumber,

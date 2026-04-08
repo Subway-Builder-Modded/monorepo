@@ -2,14 +2,14 @@
 
 import * as React from 'react';
 import { PanelLeftCloseIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../../lib/utils';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet';
+} from '../../../components/ui/sheet';
 import {
   MOBILE_SIDEBAR_TOP_OFFSET,
   SIDEBAR_COOKIE_MAX_AGE,
@@ -17,14 +17,14 @@ import {
   SIDEBAR_TOTAL_OFFSET_REM,
   SIDEBAR_WIDTH_REM,
   readSidebarOpenStateFromCookieString,
-} from '@/features/docs/components/docs-sidebar/helpers';
+} from '../../../features/docs/components/docs-sidebar/helpers';
 import {
   useDocsIsMobile,
   useSidebarFloatingLayout,
   useSidebarScrollThumb,
-} from '@/features/docs/components/docs-sidebar/hooks';
-import { SidebarPanelContent } from '@/features/docs/components/docs-sidebar/sidebar-panel-content';
-import { type DocsSidebarTree } from '@/lib/docs/shared';
+} from '../../../features/docs/components/docs-sidebar/hooks';
+import { SidebarPanelContent } from '../../../features/docs/components/docs-sidebar/sidebar-panel-content';
+import { type DocsSidebarTree } from '../../../lib/docs/shared';
 
 type AppDocsSidebarProps = {
   tree?: DocsSidebarTree;

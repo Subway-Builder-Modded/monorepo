@@ -5,7 +5,7 @@ import {
   isMaskIcon,
   resolveAppIcon,
   resolveNamedLucideIcon,
-} from '@/lib/icons';
+} from '../../lib/icons';
 
 describe('resolveAppIcon', () => {
   it('resolves icons from the shared registry', () => {

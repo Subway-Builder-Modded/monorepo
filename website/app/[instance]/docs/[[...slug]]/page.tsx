@@ -10,7 +10,7 @@ import remarkFlexibleCodeTitles from 'remark-flexible-code-titles';
 import rehypeExternalLinks from 'rehype-external-links';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkDirective from 'remark-directive';
-import remarkAdmonitionDirectives from '@/lib/remark-admonition-directives';
+import remarkAdmonitionDirectives from '@sbm/website/lib/remark-admonition-directives';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,8 +18,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { DocsOnThisPage } from '@/components/ui/on-this-page';
+} from '@sbm/website/components/ui/breadcrumb';
+import { DocsOnThisPage } from '@sbm/website/components/ui/on-this-page';
 import { useMDXComponents as getMDXComponents } from '@/mdx-components';
 import {
   extractTocHeadings,
@@ -28,16 +28,16 @@ import {
   getAllDocsDocSlugs,
   resolveDocsDocFilePath,
   type DocsFrontmatter,
-} from '@/lib/docs/server';
-import { DOCS_INSTANCES } from '@/config/content/docs';
-import { InstanceDocsHubPage } from '@/features/docs/components/instance-docs-hub-page';
-import { resolveEmbedDescription } from '@/config/site/embed-descriptions';
-import { buildEmbedMetadata } from '@/config/site/metadata';
+} from '@sbm/website/lib/docs/server';
+import { DOCS_INSTANCES } from '@sbm/website/config/content/docs';
+import { InstanceDocsHubPage } from '@sbm/website/features/docs/components/instance-docs-hub-page';
+import { resolveEmbedDescription } from '@sbm/website/config/site/embed-descriptions';
+import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
 import {
   buildDocsHubHref,
   buildDocHref,
   resolveDocsRouteForInstance,
-} from '@/lib/docs/shared';
+} from '@sbm/website/lib/docs/shared';
 
 export const dynamicParams = false;
 

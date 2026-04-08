@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useProfileStore } from '@/stores/profile-store';
+import { useProfileStore } from '@railyard-app/stores/profile-store';
 
 type FullTheme =
   | 'dark'

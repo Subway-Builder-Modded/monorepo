@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getRailyardAssetLabel } from '@/lib/railyard-asset-label';
+import { getRailyardAssetLabel } from '../lib/railyard-asset-label';
 
 describe('getRailyardAssetLabel', () => {
   it('maps known asset names to user-friendly labels', () => {

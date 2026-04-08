@@ -22,8 +22,8 @@ import {
   SHARED_MUTED_TEXT_COLOR,
   SHARED_TEXT_COLOR,
   type ModeHex,
-} from '@/config/theme/colors';
-import type { AppIconValue } from '@/lib/icons';
+} from '../../config/theme/colors';
+import type { AppIconValue } from '../../lib/icons';
 
 export type FooterNavLink = {
   id: string;

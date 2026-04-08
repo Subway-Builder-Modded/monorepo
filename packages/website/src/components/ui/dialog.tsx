@@ -8,7 +8,7 @@ import {
   Dialog as PrimitiveDialog,
 } from 'react-aria-components';
 import { twMerge } from 'tailwind-merge';
-import { cx } from '@/lib/primitive';
+import { cx } from '../../lib/primitive';
 import { Button, type ButtonProps } from './button';
 
 const Dialog = ({

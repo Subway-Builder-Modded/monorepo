@@ -2,8 +2,8 @@ import * as React from 'react';
 import type { MDXComponents } from 'mdx/types';
 import * as LucideIcons from 'lucide-react';
 import type { LucideIcon, LucideProps } from 'lucide-react';
-import { AppIcon } from '@/components/shared/app-icon';
-import { resolveAppIcon, type AppIconInput } from '@/lib/icons';
+import { AppIcon } from '../../../components/shared/app-icon';
+import { resolveAppIcon, type AppIconInput } from '../../../lib/icons';
 
 type MdxIconProps = Omit<React.ComponentProps<typeof AppIcon>, 'icon'> & {
   name?: string;

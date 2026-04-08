@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { ChevronDown, Search } from 'lucide-react';
-import { getCountryFlagIcon } from '@/lib/railyard/flags';
+import { getCountryFlagIcon } from '../../../../lib/railyard/flags';
 
 type CountryEntry = {
   name: string;

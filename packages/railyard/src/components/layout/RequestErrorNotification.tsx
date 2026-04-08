@@ -2,7 +2,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { EventsOn } from '../../../wailsjs/runtime/runtime';
+import { EventsOn } from '@railyard-app/wailsjs/runtime/runtime';
 
 export function RequestErrorNotification() {
   useEffect(() => {

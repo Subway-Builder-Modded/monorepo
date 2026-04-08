@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { loadRegistryAnalytics } from '@/lib/registry-analytics';
+import { loadRegistryAnalytics } from '@sbm/website/lib/registry-analytics';
 
 export const dynamicParams = false;
 export const dynamic = 'force-static';

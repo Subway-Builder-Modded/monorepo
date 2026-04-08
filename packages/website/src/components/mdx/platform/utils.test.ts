@@ -4,7 +4,7 @@ import {
   slugify,
   textFromChildren,
   toDimension,
-} from '@/components/mdx/platform/utils';
+} from '../../../components/mdx/platform/utils';
 
 describe('mdx platform utils', () => {
   it('slugifies heading text consistently', () => {

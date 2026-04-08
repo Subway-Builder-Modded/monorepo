@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
+import { type AssetType, assetTypeToListingPath } from '../lib/asset-types';
 
-import { GetGalleryImageResponse } from '../../wailsjs/go/registry/Registry';
+import { GetGalleryImageResponse } from '@railyard-app/wailsjs/go/registry/Registry';
 
 interface GalleryImageCacheEntry {
   imageUrl: string | null;

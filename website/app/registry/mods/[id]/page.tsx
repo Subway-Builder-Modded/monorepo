@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import {
   loadListingDailyData,
   loadRegistryAnalytics,
-} from '@/lib/registry-analytics';
-import { RegistryListingPage } from '@/features/registry/components/registry-listing-page';
+} from '@sbm/website/lib/registry-analytics';
+import { RegistryListingPage } from '@sbm/website/features/registry/components/registry-listing-page';
 import {
   buildEmbedMetadata,
   buildNoEmbedMetadata,
-} from '@/config/site/metadata';
+} from '@sbm/website/config/site/metadata';
 
 export const dynamicParams = false;
 export const dynamic = 'force-static';

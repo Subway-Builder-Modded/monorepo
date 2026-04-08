@@ -3,7 +3,7 @@ import {
   getDocsInstanceById,
   type DocsInstance,
   type DocsVersion,
-} from '@/config/content/docs';
+} from '../../config/content/docs';
 
 export type DocsSidebarPage = {
   kind: 'page';

@@ -4,12 +4,12 @@ import {
   APP_ICON_ALIASES,
   APP_ICON_REGISTRY,
   type AppIconRegistryName,
-} from '@/lib/icons/registry';
+} from '../../lib/icons/registry';
 import type {
   AppIconDefinition,
   AppIconInput,
   AssetIconDefinition,
-} from '@/lib/icons/types';
+} from '../../lib/icons/types';
 
 const NODE_ENV = process.env.NODE_ENV;
 

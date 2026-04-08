@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { MdxIcon } from '@/components/mdx/platform/icons';
+import { MdxIcon } from '../../../components/mdx/platform/icons';
 
 describe('MdxIcon', () => {
   it('renders lucide icons by name', () => {

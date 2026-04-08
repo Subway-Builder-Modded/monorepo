@@ -1,5 +1,5 @@
 import { Bug, Info, Plus, Wrench, type LucideIcon } from 'lucide-react';
-import type { UpdateSectionType, UpdateTag } from '@/config/content/updates';
+import type { UpdateSectionType, UpdateTag } from '../../config/content/updates';
 
 export const UPDATE_SECTION_ICON_MAP: Record<UpdateSectionType, LucideIcon> = {
   features: Plus,

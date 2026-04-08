@@ -7,52 +7,48 @@ import {
   Copy,
   Download,
   ExternalLink,
-  Globe,
   OctagonX,
   Trash2,
   TriangleAlert,
-  Users,
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { AuthorName } from '@/components/shared/AuthorName';
-import { GalleryImage } from '@/components/shared/GalleryImage';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { AppDialog } from '../../components/dialogs/AppDialog';
+import { GalleryImage } from '../../components/shared/GalleryImage';
+import { Button } from '../../components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
-import { getCountryFlagIcon } from '@/lib/flags';
-import { getLocalAccentClasses } from '@/lib/local-accent';
-import { formatSourceQuality } from '@/lib/map-filter-values';
+} from '../../components/ui/tooltip';
+import { type AssetType, assetTypeToListingPath } from '../../lib/asset-types';
+import { getLocalAccentClasses } from '../../lib/local-accent';
+import { ProjectHeader as SharedProjectHeader } from '@sbm/shared/project/project-header';
+import type { SharedItemData } from '@sbm/shared/railyard-core/shared-item';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
-} from '@/lib/subscription-mutation-ui';
+} from '../../lib/subscription-mutation-ui';
 import {
   hasCancellationSyncErrors,
   hasOnlySilentSyncWarnings,
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
-} from '@/lib/subscription-sync-error';
-import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
-import { cn } from '@/lib/utils';
-import { useDownloadQueueStore } from '@/stores/download-queue-store';
+} from '../../lib/subscription-sync-error';
+import { requestLatestSubscriptionUpdatesForActiveProfile } from '../../lib/subscription-updates';
+import { cn } from '../../lib/utils';
+import { useDownloadQueueStore } from '@railyard-app/stores/download-queue-store';
 import {
   AssetConflictError,
   useInstalledStore,
-} from '@/stores/installed-store';
+} from '@railyard-app/stores/installed-store';
 
-import type { types } from '../../../wailsjs/go/models';
-import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
+import type { types } from '@railyard-app/wailsjs/go/models';
+import { BrowserOpenURL } from '@railyard-app/wailsjs/runtime/runtime';
 
 interface ProjectHeaderProps {
   type: AssetType;
@@ -172,7 +168,6 @@ export function ProjectHeader({
     installedVersion &&
     updateTargetVersion &&
     installedVersion !== updateTargetVersion;
-  const authorAlias = item.author.author_alias;
   const authorAttributionLink = item.author.attribution_link;
   const noCompatibleVersion =
     gameVersion && latestVersion && !latestCompatibleVersion;
@@ -426,112 +421,62 @@ export function ProjectHeader({
     );
   };
 
-  const badges = mapItem
-    ? [
-        mapItem.location,
-        formatSourceQuality(mapItem.source_quality),
-        mapItem.level_of_detail,
-        ...(mapItem.special_demand ?? []),
-      ].filter((v): v is string => Boolean(v))
-    : (item.tags ?? []);
-
-  const CountryFlag = mapItem?.country
-    ? getCountryFlagIcon(mapItem.country.trim().toUpperCase())
-    : null;
+  const sharedItem: SharedItemData = {
+    id: item.id,
+    name: item.name,
+    author: {
+      display_name: item.author.author_alias,
+      contributor_tier: item.author.contributor_tier ?? null,
+    },
+    description: item.description,
+    tags: item.tags,
+    gallery: item.gallery,
+    source: item.source,
+    city_code: mapItem?.city_code,
+    country: mapItem?.country,
+    location: mapItem?.location,
+    population: mapItem?.population,
+    source_quality: mapItem?.source_quality,
+    level_of_detail: mapItem?.level_of_detail,
+    special_demand: mapItem?.special_demand,
+  };
 
   return (
     <>
-      <div className="flex gap-7">
-        <div className="relative h-[10rem] w-[10rem] shrink-0 overflow-hidden rounded-xl bg-muted border border-border/50">
+      <SharedProjectHeader
+        type={type}
+        item={sharedItem}
+        totalDownloads={totalDownloads}
+        renderImage={(imagePath, className) => (
           <GalleryImage
             type={type}
             id={item.id}
-            imagePath={item.gallery?.[0]}
-            className="absolute inset-0 h-full w-full object-cover"
+            imagePath={imagePath}
+            className={className}
             fallbackIconClassName="h-10 w-10"
           />
-        </div>
-
-        <div className="flex min-w-0 flex-1 items-start justify-between gap-4 pt-1">
-          <div className="flex min-w-0 flex-col gap-2.5">
-            <div>
-              <h1 className="text-4xl font-bold leading-tight text-foreground">
-                {item.name}
-              </h1>
-              {mapItem?.city_code && (
-                <div className="mt-1 flex items-center gap-2.5 text-sm">
-                  <span className="font-bold text-foreground">
-                    {mapItem.city_code}
-                  </span>
-                  {mapItem.country && (
-                    <>
-                      <div className="h-4 w-0.5 shrink-0 rounded-full bg-border" />
-                      <span className="flex items-center gap-1.5 text-muted-foreground">
-                        {CountryFlag && (
-                          <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
-                        )}
-                        <span>{mapItem.country.trim().toUpperCase()}</span>
-                      </span>
-                    </>
-                  )}
-                </div>
-              )}
-              <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                <span className="shrink-0">by</span>
-                <Button
-                  variant="link"
-                  className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1"
-                  onClick={() => BrowserOpenURL(authorAttributionLink)}
-                >
-                  <AuthorName
-                    name={authorAlias}
-                    contributorTier={item.author.contributor_tier}
-                  />
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              {typeof totalDownloads === 'number' && (
-                <span className="flex items-center gap-1.5">
-                  <Download className="h-3.5 w-3.5" />
-                  {totalDownloads.toLocaleString()}
-                </span>
-              )}
-              {mapItem && (mapItem.population ?? 0) > 0 && (
-                <span className="flex items-center gap-1.5">
-                  <Users className="h-3.5 w-3.5" />
-                  {mapItem.population.toLocaleString()}
-                </span>
-              )}
-              {item.source && (
-                <Button
-                  variant="link"
-                  className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1 no-underline hover:no-underline"
-                  onClick={() => BrowserOpenURL(item.source!)}
-                >
-                  <Globe className="h-3.5 w-3.5" />
-                  Source
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-
-            {badges.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 -ml-1.5">
-                {badges.map((badge) => (
-                  <Badge key={badge} variant="secondary" size="sm">
-                    {badge}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="shrink-0 pt-6">{renderActionButtons()}</div>
-        </div>
-      </div>
+        )}
+        renderAuthorLink={(children) => (
+          <Button
+            variant="link"
+            className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1"
+            onClick={() => BrowserOpenURL(authorAttributionLink)}
+          >
+            {children}
+            <ExternalLink className="h-3 w-3" />
+          </Button>
+        )}
+        renderSourceLink={(href, children) => (
+          <Button
+            variant="link"
+            className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1 no-underline hover:no-underline"
+            onClick={() => BrowserOpenURL(href)}
+          >
+            {children}
+          </Button>
+        )}
+        renderActions={renderActionButtons()}
+      />
 
       <AppDialog
         open={uninstallOpen}

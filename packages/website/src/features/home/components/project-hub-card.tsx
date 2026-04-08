@@ -2,9 +2,9 @@ import { ArrowRight, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import type { ThemedColorSet } from '@/config/theme/colors';
-import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
-import { cn } from '@/lib/utils';
+import type { ThemedColorSet } from '../../../config/theme/colors';
+import { ThemedShowcaseCard } from '../../../components/ui/themed-showcase-card';
+import { cn } from '../../../lib/utils';
 
 type ProjectHubCardProps = {
   href: string;

@@ -1,7 +1,31 @@
 # Ignore agentic files and directories
 .claude/
 
+# Dependencies
+node_modules/
+
 # Ignore cache and temporary files
 .gocache/
 .pnpm-store/
+.pnpm/
 tmp/
+
+# Test coverage
+coverage/
+coverage_func.txt
+*.lcov
+
+# Build outputs
+dist/
+.next/
+out/
+build/bin/
+frontend/dist/
+
+# Environment and secrets
+*.env.local
+*.env.*.local
+
+# OS artifacts
+.DS_Store
+Thumbs.db

@@ -1,7 +1,7 @@
 import { Loader2, type LucideIcon } from 'lucide-react';
 import { type ReactNode } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '../../components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,12 +9,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '../../components/ui/dialog';
 import {
   getLocalAccentClasses,
   getToneVarsClass,
   type LocalAccentTone,
-} from '@/lib/local-accent';
+} from '../../lib/local-accent';
 
 interface AppDialogConfirm {
   label: ReactNode;

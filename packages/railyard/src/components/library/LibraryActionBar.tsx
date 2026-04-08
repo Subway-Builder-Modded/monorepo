@@ -7,29 +7,30 @@ import {
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { Button } from '@/components/ui/button';
-import { type InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
-import { getLocalAccentClasses } from '@/lib/local-accent';
+import { AppDialog } from '../../components/dialogs/AppDialog';
+import { Button } from '../../components/ui/button';
+import { type InstalledTaggedItem } from '../../hooks/use-filtered-installed-items';
+import { getLocalAccentClasses } from '../../lib/local-accent';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
-} from '@/lib/subscription-mutation-ui';
+} from '../../lib/subscription-mutation-ui';
 import {
   type AssetTarget,
   composeAssetKey,
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
   toPendingUpdateTargets,
-} from '@/lib/subscription-updates';
-import { useInstalledStore } from '@/stores/installed-store';
-import { useLibraryStore } from '@/stores/library-store';
-
+} from '../../lib/subscription-updates';
 interface LibraryActionBarProps {
   allItems: InstalledTaggedItem[];
   pendingUpdatesByKey: PendingUpdatesByKey;
   onRefreshPendingUpdates: () => Promise<void>;
+  selectedIds: Set<string>;
+  onRemoveSelected: (keys: string[]) => void;
+  onUninstallAssets: (assets: Array<{ id: string; type: 'map' | 'mod' }>) => Promise<unknown>;
+  onUpdateAssetsToLatest: (assets: Array<{ id: string; type: 'map' | 'mod' }>) => Promise<unknown>;
 }
 
 const ENTRIES_PREVIEW_LIMIT = 10;
@@ -39,11 +40,14 @@ export function LibraryActionBar({
   allItems,
   pendingUpdatesByKey,
   onRefreshPendingUpdates,
+  selectedIds,
+  onRemoveSelected,
+  onUninstallAssets,
+  onUpdateAssetsToLatest,
 }: LibraryActionBarProps) {
-  const selectedIds = useLibraryStore((s) => s.selectedIds);
-  const removeSelected = useLibraryStore((s) => s.removeSelected);
-  const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
-  const updateAssetsToLatest = useInstalledStore((s) => s.updateAssetsToLatest);
+  const removeSelected = onRemoveSelected;
+  const uninstallAssets = onUninstallAssets;
+  const updateAssetsToLatest = onUpdateAssetsToLatest;
   const { locked: mutationLocked, reason: mutationLockedReason } =
     useSubscriptionMutationLockState();
   const [uninstallTargets, setUninstallTargets] = useState<

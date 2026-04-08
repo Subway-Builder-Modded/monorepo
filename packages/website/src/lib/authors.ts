@@ -2,7 +2,7 @@ import type {
   ContributorTier,
   RegistryAuthorsIndex,
   RegistryAuthorsIndexEntry,
-} from '@/types/registry';
+} from '../types/registry';
 
 export type AuthorIdentity = {
   author: string;

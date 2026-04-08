@@ -1,1 +1,2 @@
-export { EmptyState } from '@sbm/railyard-ui/shared/empty-state';
+export { EmptyState } from '@sbm/shared/railyard-ui/shared/empty-state';
+

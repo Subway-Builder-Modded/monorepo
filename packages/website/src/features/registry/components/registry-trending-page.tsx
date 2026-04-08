@@ -2,12 +2,12 @@
 
 import { useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
-import { PageHeader } from '@/components/shared/page-header';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { PageHeader } from '../../../components/shared/page-header';
+import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
 import type {
   RegistryAnalyticsData,
   RegistryListingDailyRow,
-} from '@/types/registry-analytics';
+} from '../../../types/registry-analytics';
 import {
   TRENDING_MODE_LABELS,
   type TrendingModeKey,
@@ -15,7 +15,7 @@ import {
 } from './trending/registry-trending-types';
 import { RegistryTrendingTypeSection } from './trending/registry-trending-type-section';
 import { MAP_COLOR, MOD_COLOR } from './registry-shared';
-import { usePersistedState } from '@/lib/use-persisted-state';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 
 const PAGE_HEADER_SCHEME = {
   accent: { light: '#9d4edd', dark: '#c77dff' },

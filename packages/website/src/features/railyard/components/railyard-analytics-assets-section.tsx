@@ -6,8 +6,8 @@ import { HardDrive } from 'lucide-react';
 import {
   SortableNumberHeader,
   type SortDirection,
-} from '@/components/shared/sortable-number-header';
-import type { RailyardAnalyticsData } from '@/types/railyard-analytics';
+} from '../../../components/shared/sortable-number-header';
+import type { RailyardAnalyticsData } from '../../../types/railyard-analytics';
 import {
   RAILYARD_ACCENT_COLOR,
   RAILYARD_OS_COLORS,

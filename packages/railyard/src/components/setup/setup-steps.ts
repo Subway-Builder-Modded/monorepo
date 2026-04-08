@@ -1,9 +1,9 @@
 import { Gamepad2, RefreshCw, TrainTrack } from 'lucide-react';
 import { type ComponentType, type SVGProps } from 'react';
 
-import { GitHubIcon } from '@/components/icons/social-icons';
+import { GitHubIcon } from '../../components/icons/social-icons';
 
-import type { types } from '../../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 export interface SetupStepState {
   validation: types.ConfigPathValidation | null;

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { useDropdownHoverState } from '@/components/app-shell/navigation/app-navbar/use-dropdown-hover-state';
+import { useDropdownHoverState } from '../../../../components/app-shell/navigation/app-navbar/use-dropdown-hover-state';
 
 describe('useDropdownHoverState', () => {
   it('opens on trigger enter and closes after hover leave timeout', () => {

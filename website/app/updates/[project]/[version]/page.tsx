@@ -1,6 +1,6 @@
 import { permanentRedirect } from 'next/navigation';
-import { getAllUpdateParams, getUpdateFilePath } from '@/lib/updates.server';
-import { getUpdateProjectById } from '@/config/content/updates';
+import { getAllUpdateParams, getUpdateFilePath } from '@sbm/website/lib/updates.server';
+import { getUpdateProjectById } from '@sbm/website/config/content/updates';
 
 export const dynamicParams = false;
 

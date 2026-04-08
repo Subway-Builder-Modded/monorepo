@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   resolveSiteColorScheme,
   SITE_COLOR_SCHEME_ROUTE_RULES,
-} from '@/config/theme/route-schemes';
+} from '../../config/theme/route-schemes';
 
 describe('resolveSiteColorScheme', () => {
   it('resolves project schemes for matching paths', () => {

@@ -1,5 +1,5 @@
-import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
-import type { NavbarColorScheme } from '@/config/navigation/navbar.types';
+import { PROJECT_COLOR_SCHEMES } from '../../config/theme/colors';
+import type { NavbarColorScheme } from '../../config/navigation/navbar.types';
 
 function getProjectNavbarScheme(
   project: keyof typeof PROJECT_COLOR_SCHEMES,

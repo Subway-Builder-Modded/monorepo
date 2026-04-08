@@ -1,24 +1,24 @@
-import type { AssetType } from '@/lib/asset-types';
+import type { AssetType } from '../lib/asset-types';
 import {
   isSubscriptionMutationLocked,
   isSubscriptionMutationLockedError as isSubscriptionMutationLockedErrorLike,
   SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE,
   SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
   type SubscriptionMutationLockedErrorLike,
-} from '@/lib/subscription-mutation-lock';
+} from '../lib/subscription-mutation-lock';
 import {
   resolveActiveProfileID,
   toLatestUpdateRequestTargets,
-} from '@/lib/subscription-updates';
-import { useGameStore } from '@/stores/game-store';
+} from '../lib/subscription-updates';
+import { useGameStore } from '@railyard-app/stores/game-store';
 
-import { CancelInstall } from '../../wailsjs/go/downloader/Downloader';
-import { types } from '../../wailsjs/go/models';
+import { CancelInstall } from '@railyard-app/wailsjs/go/downloader/Downloader';
+import { types } from '@railyard-app/wailsjs/go/models';
 import {
   ImportAsset,
   UpdateSubscriptions,
   UpdateSubscriptionsToLatest,
-} from '../../wailsjs/go/profiles/UserProfiles';
+} from '@railyard-app/wailsjs/go/profiles/UserProfiles';
 
 /**
  * This module provides a thin wrapper over the Wails-generated client functions for subscription mutations, adding error handling for mutation locks and ensuring that the active profile ID is resolved before making requests.

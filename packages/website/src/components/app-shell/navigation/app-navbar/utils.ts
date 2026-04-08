@@ -4,8 +4,8 @@ import type {
   AppNavbarItem,
   NavbarColorScheme,
   NavbarColorSchemeId,
-} from '@/config/navigation/navbar';
-import { APP_NAVBAR_COLOR_SCHEMES } from '@/config/navigation/navbar';
+} from '../../../../config/navigation/navbar';
+import { APP_NAVBAR_COLOR_SCHEMES } from '../../../../config/navigation/navbar';
 
 export const NAVBAR_DEFAULT_COLOR_SCHEME_ID = 'default';
 

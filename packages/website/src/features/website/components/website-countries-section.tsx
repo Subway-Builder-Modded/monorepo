@@ -15,13 +15,13 @@ import { Globe2 } from 'lucide-react';
 import {
   SortableNumberHeader,
   type SortDirection,
-} from '@/components/shared/sortable-number-header';
-import { usePersistedState } from '@/lib/use-persisted-state';
+} from '../../../components/shared/sortable-number-header';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 import type {
   WebsiteAnalyticsData,
   WebsiteAnalyticsPeriod,
-} from '@/types/website-analytics';
-import { getCountryFlagIcon } from '@/lib/railyard/flags';
+} from '../../../types/website-analytics';
+import { getCountryFlagIcon } from '../../../lib/railyard/flags';
 import {
   EmptyState,
   SafeChartContainer,

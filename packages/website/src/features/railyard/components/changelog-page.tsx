@@ -15,23 +15,23 @@ import { useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 
-import { EmptyState } from '@/features/railyard/components/empty-state';
-import { ErrorBanner } from '@/features/railyard/components/error-banner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useRegistryItem } from '@/hooks/use-registry-item';
-import { useVersions } from '@/hooks/use-versions';
-import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
+import { EmptyState } from '../../../features/railyard/components/empty-state';
+import { ErrorBanner } from '../../../features/railyard/components/error-banner';
+import { Badge } from '../../../components/ui/badge';
+import { Button } from '../../../components/ui/button';
+import { Skeleton } from '../../../components/ui/skeleton';
+import { useRegistryItem } from '../../../hooks/use-registry-item';
+import { useVersions } from '../../../hooks/use-versions';
+import { fetchRegistryJsonWithFallback } from '../../../lib/railyard/registry-source';
 import {
   mergeVersionDownloads,
   withZeroDownloads,
-} from '@/lib/railyard/version-downloads';
+} from '../../../lib/railyard/version-downloads';
 import type {
   AssetDownloadCountsByVersion,
   RegistryIntegrityReport,
-} from '@/types/registry';
-import type { VersionInfo } from '@/types/registry';
+} from '../../../types/registry';
+import type { VersionInfo } from '../../../types/registry';
 
 async function fetchIntegrity(
   type: 'mods' | 'maps',

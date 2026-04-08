@@ -5,10 +5,10 @@ import {
   getLastUpdated,
   getTotalDownloads,
   type TaggedItem as SharedTaggedItem,
-} from '@sbm/railyard-core/tagged-items';
+} from '@sbm/shared/railyard-core/tagged-items';
 
-import type { SortState } from '@/lib/railyard/constants';
-import type { MapManifest, ModManifest } from '@/types/registry';
+import type { SortState } from '../../lib/railyard/constants';
+import type { MapManifest, ModManifest } from '../../types/registry';
 
 export type TaggedItem = SharedTaggedItem<ModManifest, MapManifest>;
 
@@ -41,3 +41,4 @@ export function compareItems(
     getAuthorName,
   );
 }
+

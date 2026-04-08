@@ -6,11 +6,11 @@ import {
   getTotalDownloads,
   sortTaggedItemsByLastUpdated as sortSharedTaggedItemsByLastUpdated,
   type TaggedItem as SharedTaggedItem,
-} from '@sbm/railyard-core/tagged-items';
+} from '@sbm/shared/railyard-core/tagged-items';
 
-import type { SortDirection, SortState } from '@/lib/constants';
+import type { SortDirection, SortState } from '../lib/constants';
 
-import type { types } from '../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 export type TaggedItem = SharedTaggedItem<types.ModManifest, types.MapManifest>;
 
@@ -57,3 +57,4 @@ export function sortTaggedItemsByLastUpdated<T extends TaggedItem>(
 ): T[] {
   return sortSharedTaggedItemsByLastUpdated(items, direction);
 }
+

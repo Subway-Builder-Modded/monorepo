@@ -2,14 +2,14 @@ import type { Metadata } from 'next';
 import {
   loadListingDailyData,
   loadRegistryAnalytics,
-} from '@/lib/registry-analytics';
-import { RegistryListingPage } from '@/features/registry/components/registry-listing-page';
+} from '@sbm/website/lib/registry-analytics';
+import { RegistryListingPage } from '@sbm/website/features/registry/components/registry-listing-page';
 import {
   buildEmbedMetadata,
   buildNoEmbedMetadata,
-} from '@/config/site/metadata';
-import { getRegistryManifest } from '@/lib/railyard/registry.server';
-import type { MapManifest } from '@/types/registry';
+} from '@sbm/website/config/site/metadata';
+import { getRegistryManifest } from '@sbm/website/lib/railyard/registry.server';
+import type { MapManifest } from '@sbm/website/types/registry';
 
 export const dynamicParams = false;
 export const dynamic = 'force-static';

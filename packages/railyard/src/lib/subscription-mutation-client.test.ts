@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useGameStore } from '@/stores/game-store';
+import { useGameStore } from '@railyard-app/stores/game-store';
 
 const {
   mockUpdateSubscriptions,
@@ -18,17 +18,17 @@ const {
   mockToLatestUpdateRequestTargets: vi.fn(),
 }));
 
-vi.mock('../../wailsjs/go/profiles/UserProfiles', () => ({
+vi.mock('@railyard-app/wailsjs/go/profiles/UserProfiles', () => ({
   UpdateSubscriptions: mockUpdateSubscriptions,
   UpdateSubscriptionsToLatest: mockUpdateSubscriptionsToLatest,
   ImportAsset: mockImportAsset,
 }));
 
-vi.mock('../../wailsjs/go/downloader/Downloader', () => ({
+vi.mock('@railyard-app/wailsjs/go/downloader/Downloader', () => ({
   CancelInstall: mockCancelInstall,
 }));
 
-vi.mock('@/lib/subscription-updates', () => ({
+vi.mock('../lib/subscription-updates', () => ({
   resolveActiveProfileID: mockResolveActiveProfileID,
   toLatestUpdateRequestTargets: mockToLatestUpdateRequestTargets,
 }));
@@ -40,9 +40,9 @@ import {
   isSubscriptionMutationLockedError,
   mutateSubscriptionsForActiveProfile,
   SubscriptionMutationLockedError,
-} from '@/lib/subscription-mutation-client';
+} from '../lib/subscription-mutation-client';
 
-import { types } from '../../wailsjs/go/models';
+import { types } from '@railyard-app/wailsjs/go/models';
 
 describe('subscription-mutation-client', () => {
   beforeEach(() => {

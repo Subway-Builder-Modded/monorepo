@@ -1,24 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { enrichAuthorIdentity } from '@/lib/authors';
-import { toCumulativeDownloadTotals } from '@/lib/railyard/download-totals';
-import { getRegistryAuthorDirectory } from '@/lib/railyard/registry-author-directory';
+import { enrichAuthorIdentity } from '../lib/authors';
+import { toCumulativeDownloadTotals } from '../lib/railyard/download-totals';
+import { getRegistryAuthorDirectory } from '../lib/railyard/registry-author-directory';
 import {
   getCustomVersions,
   getGithubReleases,
-} from '@/lib/railyard/github-releases';
+} from '../lib/railyard/github-releases';
 import {
   fetchRegistryJsonWithFallback,
   getRawRegistryUrls,
   getRegistryCdnUrls,
-} from '@/lib/railyard/registry-source';
+} from '../lib/railyard/registry-source';
 import type {
   AssetDownloadCountsByVersion,
   ModManifest,
   MapManifest,
   RegistryIntegrityReport,
-} from '@/types/registry';
+} from '../types/registry';
 
 const LAST_UPDATED_WORKER_LIMIT = 6;
 

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import type { types } from '../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 type ProfilesState = {
   create: {

@@ -1,4 +1,4 @@
-import type { ContributorTier } from '@/types/registry';
+import type { ContributorTier } from '../types/registry';
 
 export type ListingType = 'mod' | 'map';
 

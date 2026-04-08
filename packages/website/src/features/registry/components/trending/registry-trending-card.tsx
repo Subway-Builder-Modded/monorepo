@@ -21,8 +21,8 @@ import {
   registryLinkStyle,
   trimLeadingZeroDailyData,
   useClientReady,
-} from '@/features/registry/components/registry-shared';
-import { AuthorName } from '@/components/shared/author-name';
+} from '../../../../features/registry/components/registry-shared';
+import { AuthorName } from '../../../../components/shared/author-name';
 import type {
   EnrichedTrendingRow,
   TrendingModeKey,

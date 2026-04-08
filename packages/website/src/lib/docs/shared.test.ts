@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DOCS_INSTANCES } from '@/config/content/docs';
+import { DOCS_INSTANCES } from '../../config/content/docs';
 import {
   buildDocHref,
   buildVersionedDocHref,
@@ -7,7 +7,7 @@ import {
   getActiveVersionFromPathname,
   getDocSlugFromPathname,
   resolveDocsRouteForInstance,
-} from '@/lib/docs/shared';
+} from '../../lib/docs/shared';
 
 const railyardDocs = DOCS_INSTANCES.find(
   (instance) => instance.id === 'railyard',

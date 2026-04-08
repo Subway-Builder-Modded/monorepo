@@ -1,4 +1,4 @@
-import type { VersionInfo } from '@/types/registry';
+import type { VersionInfo } from '../../types/registry';
 
 export function withZeroDownloads(versions: VersionInfo[]): VersionInfo[] {
   return versions.map((version) => ({ ...version, downloads: 0 }));

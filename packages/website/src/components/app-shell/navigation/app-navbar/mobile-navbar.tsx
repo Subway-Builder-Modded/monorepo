@@ -3,9 +3,9 @@ import {
   NavbarMobile,
   NavbarSpacer,
   NavbarTrigger,
-} from '@/components/ui/navbar';
-import type { AppNavbarBrand, AppNavbarItem } from '@/config/navigation/navbar';
-import { cn } from '@/lib/utils';
+} from '../../../../components/ui/navbar';
+import type { AppNavbarBrand, AppNavbarItem } from '../../../../config/navigation/navbar';
+import { cn } from '../../../../lib/utils';
 import styles from '../app-navbar.module.css';
 import { NAVBAR_DEFAULT_COLOR_SCHEME_ID } from './utils';
 import { NavbarBrandLink } from './navbar-brand-link';

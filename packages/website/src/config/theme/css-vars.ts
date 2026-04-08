@@ -1,4 +1,4 @@
-import type { ModeHex } from '@/config/theme/contracts';
+import type { ModeHex } from '../../config/theme/contracts';
 
 type ThemeSuiteColorRole =
   | 'accentColor'

@@ -1,6 +1,6 @@
 import { Toaster as Sonner } from 'sonner';
 
-import { useProfileStore } from '@/stores/profile-store';
+import { useProfileStore } from '@railyard-app/stores/profile-store';
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 

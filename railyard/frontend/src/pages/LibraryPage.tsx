@@ -3,39 +3,41 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { LibraryActionBar } from '@/components/library/LibraryActionBar';
-import { LibraryList } from '@/components/library/LibraryList';
+import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
+import { LibraryActionBar } from '@sbm/railyard/components/library/LibraryActionBar';
+import { LibraryList } from '@sbm/railyard/components/library/LibraryList';
 import {
   LIBRARY_SIDEBAR_CONTENT_OFFSET,
   LibrarySidebarPanel,
-} from '@/components/library/LibrarySidebarPanel';
-import { SearchBar } from '@/components/search/SearchBar';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
-import { PageHeading } from '@/components/shared/PageHeading';
-import { Pagination } from '@/components/shared/Pagination';
-import { Button } from '@/components/ui/button';
-import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
-import { buildAssetListingCounts } from '@/lib/listing-counts';
-import { getLocalAccentClasses } from '@/lib/local-accent';
-import { buildSpecialDemandValues } from '@/lib/map-filter-values';
+} from '@sbm/railyard/components/library/LibrarySidebarPanel';
+import { SearchBar } from '@sbm/railyard/components/search/SearchBar';
+import { EmptyState } from '@sbm/railyard/components/shared/EmptyState';
+import { ErrorBanner } from '@sbm/railyard/components/shared/ErrorBanner';
+import { PageHeading } from '@sbm/railyard/components/shared/PageHeading';
+import { Pagination } from '@sbm/railyard/components/shared/Pagination';
+import { Button } from '@sbm/railyard/components/ui/button';
+import { useFilteredInstalledItems } from '@sbm/railyard/hooks/use-filtered-installed-items';
+import { buildAssetListingCounts } from '@sbm/railyard/lib/listing-counts';
+import { getLocalAccentClasses } from '@sbm/railyard/lib/local-accent';
+import { buildSpecialDemandValues } from '@sbm/railyard/lib/map-filter-values';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
-} from '@/lib/subscription-mutation-ui';
+} from '@sbm/railyard/lib/subscription-mutation-ui';
 import {
   indexPendingSubscriptionUpdates,
   type PendingUpdatesByKey,
   requestLatestSubscriptionUpdatesForActiveProfile,
-} from '@/lib/subscription-updates';
+} from '@sbm/railyard/lib/subscription-updates';
 import { useBrowseStore } from '@/stores/browse-store';
+import { useConfigStore } from '@/stores/config-store';
 import {
   AssetConflictError,
   InvalidMapCodeError,
   useInstalledStore,
 } from '@/stores/installed-store';
+import { useLibraryStore } from '@/stores/library-store';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
@@ -135,6 +137,16 @@ export function LibraryPage() {
   const installedMaps = useInstalledStore((s) => s.installedMaps);
   const updateInstalledLists = useInstalledStore((s) => s.updateInstalledLists);
   const importMapFromZip = useInstalledStore((s) => s.importMapFromZip);
+  const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
+  const updateAssetsToLatest = useInstalledStore((s) => s.updateAssetsToLatest);
+
+  const selectedIds = useLibraryStore((s) => s.selectedIds);
+  const selectAll = useLibraryStore((s) => s.selectAll);
+  const clearSelection = useLibraryStore((s) => s.clearSelection);
+  const toggleSelected = useLibraryStore((s) => s.toggleSelected);
+  const removeSelected = useLibraryStore((s) => s.removeSelected);
+
+  const metroMakerDataPath = useConfigStore((s) => s.config?.metroMakerDataPath);
 
   const refreshPendingSubscriptionUpdates = useCallback(async () => {
     let result;
@@ -481,6 +493,14 @@ export function LibraryPage() {
                   onSortChange={(value) =>
                     setFilters((prev) => ({ ...prev, sort: value }))
                   }
+                  selectedIds={selectedIds}
+                  onSelectAll={selectAll}
+                  onClearSelection={clearSelection}
+                  onToggleSelected={toggleSelected}
+                  onRemoveSelected={removeSelected}
+                  onUninstallAssets={uninstallAssets}
+                  onUpdateAssetsToLatest={updateAssetsToLatest}
+                  metroMakerDataPath={metroMakerDataPath}
                 />
                 <Pagination
                   page={page}
@@ -500,6 +520,10 @@ export function LibraryPage() {
                 allItems={allFilteredItems}
                 pendingUpdatesByKey={pendingUpdatesByKey}
                 onRefreshPendingUpdates={refreshPendingSubscriptionUpdates}
+                selectedIds={selectedIds}
+                onRemoveSelected={removeSelected}
+                onUninstallAssets={uninstallAssets}
+                onUpdateAssetsToLatest={updateAssetsToLatest}
               />
             </div>
           </div>

@@ -2,8 +2,8 @@
 
 import { composeRenderProps, ToggleButton } from 'react-aria-components';
 import { tv } from 'tailwind-variants';
-import { buttonStyles } from '@/components/ui/button';
-import { Text } from '@/components/ui/text';
+import { buttonStyles } from '../../components/ui/button';
+import { Text } from '../../components/ui/text';
 
 const showMoreStyles = tv({
   base: 'text-sm leading-6 before:border-border after:border-border',

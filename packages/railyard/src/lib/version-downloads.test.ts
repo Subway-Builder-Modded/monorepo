@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { types } from '../../wailsjs/go/models';
+import { types } from '@railyard-app/wailsjs/go/models';
 import { mergeVersionDownloads, withZeroDownloads } from './version-downloads';
 
 function version(version: string, downloads = 123): types.VersionInfo {

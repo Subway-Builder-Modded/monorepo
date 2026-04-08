@@ -2,13 +2,13 @@ import type * as React from 'react';
 import type { MDXComponents } from 'mdx/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { CodeBlock } from '@/components/mdx/code-block';
-import { cn } from '@/lib/utils';
+import { CodeBlock } from '../../../components/mdx/code-block';
+import { cn } from '../../../lib/utils';
 import {
   slugify,
   textFromChildren,
   toDimension,
-} from '@/components/mdx/platform/utils';
+} from '../../../components/mdx/platform/utils';
 
 type MdxImageProps = Omit<
   React.ComponentProps<typeof Image>,

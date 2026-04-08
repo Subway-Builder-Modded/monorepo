@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
-import type { AppIconValue } from '@/lib/icons';
-import type { ProjectColorId } from '@/config/theme/contracts';
+import type { AppIconValue } from '../../lib/icons';
+import type { ProjectColorId } from '../../config/theme/contracts';
 
 export type HomeButtonScheme = 'default' | ProjectColorId;
 export type HomeButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';

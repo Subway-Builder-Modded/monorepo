@@ -4,7 +4,7 @@ import {
   getRawRegistryRefUrls,
   getRawRegistryUrls,
   getRegistryCdnUrls,
-} from '@/lib/railyard/registry-source';
+} from '../../lib/railyard/registry-source';
 
 describe('registry-source', () => {
   afterEach(() => {

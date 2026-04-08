@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { ThemeHydrationScript } from '@/components/app-shell/theme/theme-hydration-script';
+import { ThemeHydrationScript } from '../../../components/app-shell/theme/theme-hydration-script';
 
 describe('ThemeHydrationScript', () => {
   it('renders a hydration script that applies light/dark class early', () => {

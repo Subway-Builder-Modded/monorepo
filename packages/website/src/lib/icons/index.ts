@@ -2,14 +2,14 @@ export {
   APP_ICON_ALIASES,
   APP_ICON_REGISTRY,
   type AppIconRegistryName,
-} from '@/lib/icons/registry';
+} from '../../lib/icons/registry';
 export {
   isImageIcon,
   isLucideIcon,
   isMaskIcon,
   resolveNamedLucideIcon,
   resolveAppIcon,
-} from '@/lib/icons/resolve';
+} from '../../lib/icons/resolve';
 export type {
   AppIconDefinition,
   AppIconInput,
@@ -17,4 +17,4 @@ export type {
   AssetIconDefinition,
   ImageIconDefinition,
   MaskIconDefinition,
-} from '@/lib/icons/types';
+} from '../../lib/icons/types';

@@ -77,7 +77,7 @@ describe('loadRailyardAnalytics', () => {
     ]);
 
     process.env['RAILYARD_ANALYTICS_DIR'] = dir;
-    const { loadRailyardAnalytics } = await import('@/lib/railyard-analytics');
+    const { loadRailyardAnalytics } = await import('../lib/railyard-analytics');
 
     const data = loadRailyardAnalytics();
 
@@ -114,7 +114,7 @@ describe('loadRailyardAnalytics', () => {
     writeCsv(dir, 'railyard_app_by_day.csv', []);
 
     process.env['RAILYARD_ANALYTICS_DIR'] = dir;
-    const { loadRailyardAnalytics } = await import('@/lib/railyard-analytics');
+    const { loadRailyardAnalytics } = await import('../lib/railyard-analytics');
 
     const data = loadRailyardAnalytics();
 

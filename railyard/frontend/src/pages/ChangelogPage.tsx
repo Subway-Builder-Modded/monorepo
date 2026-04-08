@@ -24,38 +24,38 @@ import rehypeRaw from 'rehype-raw';
 import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
+import { ChangelogDependencies } from '@sbm/railyard/components/project/ChangelogDependencies';
+import { EmptyState } from '@sbm/railyard/components/shared/EmptyState';
+import { ErrorBanner } from '@sbm/railyard/components/shared/ErrorBanner';
+import { Badge } from '@sbm/railyard/components/ui/badge';
+import { Button } from '@sbm/railyard/components/ui/button';
+import { Skeleton } from '@sbm/railyard/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@sbm/railyard/components/ui/toggle-group';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { listingPathToAssetType } from '@/lib/asset-types';
-import { getLocalAccentClasses } from '@/lib/local-accent';
-import { isCompatible } from '@/lib/semver';
+} from '@sbm/railyard/components/ui/tooltip';
+import { listingPathToAssetType } from '@sbm/railyard/lib/asset-types';
+import { getLocalAccentClasses } from '@sbm/railyard/lib/local-accent';
+import { isCompatible } from '@sbm/railyard/lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
-} from '@/lib/subscription-mutation-ui';
+} from '@sbm/railyard/lib/subscription-mutation-ui';
 import {
   hasCancellationSyncErrors,
   hasOnlySilentSyncWarnings,
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
-} from '@/lib/subscription-sync-error';
+} from '@sbm/railyard/lib/subscription-sync-error';
 import {
   mergeVersionDownloads,
   withZeroDownloads,
-} from '@/lib/version-downloads';
+} from '@sbm/railyard/lib/version-downloads';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -632,6 +632,7 @@ export function ChangelogPage() {
                       versionInfo={versionInfo}
                       resolvedDeps={resolvedDeps}
                       resolving={resolvingDeps}
+                      knownMods={mods}
                     />
                   )}
                 </div>

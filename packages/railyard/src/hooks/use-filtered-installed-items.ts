@@ -3,12 +3,12 @@ import { useMemo } from 'react';
 import {
   filterAndSortTaggedItems,
   type TaggedItemFilterState,
-} from '@/hooks/use-filtered-items';
-import { usePaginationSync } from '@/hooks/use-pagination-sync';
-import { useLibraryStore } from '@/stores/library-store';
-import { useProfileStore } from '@/stores/profile-store';
+} from '../hooks/use-filtered-items';
+import { usePaginationSync } from '../hooks/use-pagination-sync';
+import { useLibraryStore } from '@railyard-app/stores/library-store';
+import { useProfileStore } from '@railyard-app/stores/profile-store';
 
-import type { types } from '../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 import { type PerPage } from '../lib/constants';
 
 export type InstalledTaggedItem =

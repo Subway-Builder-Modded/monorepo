@@ -11,21 +11,21 @@ import remarkFlexibleCodeTitles from 'remark-flexible-code-titles';
 import remarkGfm from 'remark-gfm';
 import { remarkHeadingId } from 'remark-custom-heading-id';
 
-import { HomeLinkButton } from '@/features/home/components/home-link-button';
-import { ReleaseTagBadge } from '@/features/updates/components/release-tag-badge';
-import { UpdateSection } from '@/features/updates/components/update-section';
-import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
-import { getUpdateProjectById } from '@/config/content/updates';
-import { resolveEmbedDescription } from '@/config/site/embed-descriptions';
-import { buildEmbedMetadata } from '@/config/site/metadata';
+import { HomeLinkButton } from '@sbm/website/features/home/components/home-link-button';
+import { ReleaseTagBadge } from '@sbm/website/features/updates/components/release-tag-badge';
+import { UpdateSection } from '@sbm/website/features/updates/components/update-section';
+import { ThemedShowcaseCard } from '@sbm/website/components/ui/themed-showcase-card';
+import { getUpdateProjectById } from '@sbm/website/config/content/updates';
+import { resolveEmbedDescription } from '@sbm/website/config/site/embed-descriptions';
+import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
 import { useMDXComponents as getMDXComponents } from '@/mdx-components';
-import remarkAdmonitionDirectives from '@/lib/remark-admonition-directives';
+import remarkAdmonitionDirectives from '@sbm/website/lib/remark-admonition-directives';
 import {
   getAllUpdateParams,
   getUpdateFilePath,
   readUpdateFrontmatter,
   type UpdateFrontmatter,
-} from '@/lib/updates.server';
+} from '@sbm/website/lib/updates.server';
 
 export const dynamicParams = false;
 

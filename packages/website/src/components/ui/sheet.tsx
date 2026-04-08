@@ -6,7 +6,7 @@ import {
   Modal,
   ModalOverlay,
 } from 'react-aria-components';
-import { cx } from '@/lib/primitive';
+import { cx } from '../../lib/primitive';
 import {
   Dialog,
   DialogBody,

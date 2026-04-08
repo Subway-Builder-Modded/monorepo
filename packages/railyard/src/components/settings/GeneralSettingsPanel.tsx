@@ -8,17 +8,17 @@ import {
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { SettingRow } from '@/components/settings/SettingRow';
-import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { SettingRow } from '../../components/settings/SettingRow';
+import { SettingToggleButton } from '../../components/settings/SettingToggleButton';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '../../components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -26,33 +26,44 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { getLocalAccentClasses } from '@/lib/local-accent';
-import { useConfigStore } from '@/stores/config-store';
+} from '../../components/ui/dialog';
+import { Input } from '../../components/ui/input';
+import { getLocalAccentClasses } from '../../lib/local-accent';
 
 import {
   ManuallyCheckForUpdates,
   OpenInFileExplorer,
-} from '../../../wailsjs/go/main/App';
+} from '@railyard-app/wailsjs/go/main/App';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 const FILES_ACCENT = getLocalAccentClasses('files');
 const UPDATE_ACCENT = getLocalAccentClasses('update');
 
-export function GeneralSettingsPanel() {
-  const {
-    config,
-    validation,
-    hasGithubToken,
-    githubTokenValid,
-    openDataFolderDialog,
-    openExecutableDialog,
-    saveConfig,
-    clearConfig: _clearConfig,
-    updateGithubToken,
-    clearGithubToken,
-    updateCheckForUpdatesOnLaunch,
-  } = useConfigStore();
+export interface GeneralSettingsPanelProps {
+  config: types.AppConfig | null;
+  validation: types.ConfigPathValidation | null;
+  hasGithubToken: boolean;
+  githubTokenValid: boolean;
+  openDataFolderDialog: (autoDetect: boolean) => Promise<{ source: string }>;
+  openExecutableDialog: (autoDetect: boolean) => Promise<{ source: string }>;
+  saveConfig: () => Promise<unknown>;
+  updateGithubToken: (token: string) => Promise<unknown>;
+  clearGithubToken: () => Promise<unknown>;
+  updateCheckForUpdatesOnLaunch: (enabled: boolean) => Promise<unknown>;
+}
+
+export function GeneralSettingsPanel({
+  config,
+  validation,
+  hasGithubToken,
+  githubTokenValid,
+  openDataFolderDialog,
+  openExecutableDialog,
+  saveConfig,
+  updateGithubToken,
+  clearGithubToken,
+  updateCheckForUpdatesOnLaunch,
+}: GeneralSettingsPanelProps) {
 
   const [githubTokenDialogOpen, setGithubTokenDialogOpen] = useState(false);
   const [githubTokenDraft, setGithubTokenDraft] = useState('');

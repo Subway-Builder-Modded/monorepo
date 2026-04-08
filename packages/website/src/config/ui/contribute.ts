@@ -1,6 +1,6 @@
 import { Heart } from 'lucide-react';
-import type { PageHeaderConfig } from '@/components/shared/page-header';
-import type { ContributorTier } from '@/types/registry';
+import type { PageHeaderConfig } from '../../components/shared/page-header';
+import type { ContributorTier } from '../../types/registry';
 
 export const CONTRIBUTE_PAGE_CONTENT: PageHeaderConfig = {
   icon: Heart,

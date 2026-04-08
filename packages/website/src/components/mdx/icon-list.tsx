@@ -1,8 +1,8 @@
 import * as React from 'react';
 import type { LucideProps } from 'lucide-react';
-import { AppIcon } from '@/components/shared/app-icon';
-import { resolveAppIcon, type AppIconInput } from '@/lib/icons';
-import { cn } from '@/lib/utils';
+import { AppIcon } from '../../components/shared/app-icon';
+import { resolveAppIcon, type AppIconInput } from '../../lib/icons';
+import { cn } from '../../lib/utils';
 
 type IconListProps = React.ComponentProps<'div'>;
 

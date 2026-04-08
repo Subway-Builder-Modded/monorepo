@@ -9,9 +9,9 @@ import {
 } from 'react';
 import { MapPin, Minus, Plus } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { ItemCard } from '@/features/railyard/components/item-card';
-import { useRegistry } from '@/hooks/use-registry';
-import type { MapManifest } from '@/types/registry';
+import { ItemCard } from '../../../features/railyard/components/item-card';
+import { useRegistry } from '../../../hooks/use-registry';
+import type { MapManifest } from '../../../types/registry';
 
 type MapInstance = {
   addControl: (control: unknown, position?: string) => void;

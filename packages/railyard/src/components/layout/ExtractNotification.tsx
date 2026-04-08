@@ -2,9 +2,9 @@ import { CheckCircle, Package } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
-import { useDownloadQueueStore } from '@/stores/download-queue-store';
+import { useDownloadQueueStore } from '@railyard-app/stores/download-queue-store';
 
-import { EventsOn } from '../../../wailsjs/runtime/runtime';
+import { EventsOn } from '@railyard-app/wailsjs/runtime/runtime';
 import {
   TOAST_PROGRESS_FILL_CLASS,
   TOAST_PROGRESS_TRACK_CLASS,

@@ -1,10 +1,10 @@
 import { toast } from 'sonner';
 
-import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
-import { joinOsPath } from '@/lib/utils';
+import type { InstalledTaggedItem } from '../hooks/use-filtered-installed-items';
+import { joinOsPath } from '../lib/utils';
 
-import { OpenInFileExplorer } from '../../wailsjs/go/main/App';
-import type { types } from '../../wailsjs/go/models';
+import { OpenInFileExplorer } from '@railyard-app/wailsjs/go/main/App';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 export function resolveInstallFolderPath(
   entry: InstalledTaggedItem,

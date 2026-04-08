@@ -6,9 +6,9 @@ import {
   indexPendingSubscriptionUpdates,
   toLatestUpdateRequestTargets,
   toPendingUpdateTargets,
-} from '@/lib/subscription-updates';
+} from '../lib/subscription-updates';
 
-import { types } from '../../wailsjs/go/models';
+import { types } from '@railyard-app/wailsjs/go/models';
 
 describe('subscription-updates helpers', () => {
   it('indexes pending updates by asset key', () => {

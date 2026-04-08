@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import type {
   AppNavbarDropdownItem,
   AppNavbarItem,
-} from '@/config/navigation/navbar';
+} from '../../../../config/navigation/navbar';
 import {
   defaultItemHref,
   getDropdownItemActiveDepth,
   isActivePath,
   resolveNavbarScheme,
   toSchemeStyle,
-} from '@/components/app-shell/navigation/app-navbar/utils';
+} from '../../../../components/app-shell/navigation/app-navbar/utils';
 
 describe('isActivePath', () => {
   it('matches root route exactly', () => {

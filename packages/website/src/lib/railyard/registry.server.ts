@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
-import { enrichAuthorIdentity } from '@/lib/authors';
-import { getRegistryAuthorDirectory } from '@/lib/railyard/registry-author-directory';
-import { buildEmbedMetadata } from '@/config/site/metadata';
+import { enrichAuthorIdentity } from '../../lib/authors';
+import { getRegistryAuthorDirectory } from '../../lib/railyard/registry-author-directory';
+import { buildEmbedMetadata } from '../../config/site/metadata';
 import {
   fetchRegistryJsonWithFallback,
   getRawRegistryUrls,
-} from '@/lib/railyard/registry-source';
+} from '../../lib/railyard/registry-source';
 import type {
   MapManifest,
   ModManifest,
   RegistryIntegrityReport,
-} from '@/types/registry';
+} from '../../types/registry';
 
 export type RailyardRegistryType = 'mods' | 'maps';
 

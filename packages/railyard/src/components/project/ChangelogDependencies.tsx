@@ -2,15 +2,14 @@ import { ExternalLink, Loader2, Package } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 
-import { EmptyState } from '@/components/shared/EmptyState';
-import { GalleryImage } from '@/components/shared/GalleryImage';
-import { SubwayBuilderIcon } from '@/components/shared/SubwayBuilderIcon';
-import { Badge } from '@/components/ui/badge';
-import type { AssetType } from '@/lib/asset-types';
-import { assetTypeToListingPath } from '@/lib/asset-types';
-import { useRegistryStore } from '@/stores/registry-store';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { GalleryImage } from '../../components/shared/GalleryImage';
+import { SubwayBuilderIcon } from '../../components/shared/SubwayBuilderIcon';
+import { Badge } from '../../components/ui/badge';
+import type { AssetType } from '../../lib/asset-types';
+import { assetTypeToListingPath } from '../../lib/asset-types';
 
-import type { types } from '../../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 interface ChangelogDependenciesProps {
   type: AssetType;
@@ -18,6 +17,7 @@ interface ChangelogDependenciesProps {
   versionInfo: types.VersionInfo;
   resolvedDeps: Record<string, types.DependencyListEntry> | null;
   resolving: boolean;
+  knownMods: types.ModManifest[];
 }
 
 interface FlatDep {
@@ -32,8 +32,9 @@ export function ChangelogDependencies({
   versionInfo,
   resolvedDeps,
   resolving,
+  knownMods,
 }: ChangelogDependenciesProps) {
-  const mods = useRegistryStore((s) => s.mods);
+  const mods = knownMods;
 
   const rawDeps = versionInfo.dependencies ?? {};
   const gameDep = versionInfo.game_version;

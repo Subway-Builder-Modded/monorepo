@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 
-import { buildGalleryCdnUrl, buildGalleryUrl } from '@/hooks/use-registry';
+import { buildGalleryCdnUrl, buildGalleryUrl } from '../hooks/use-registry';
 import {
   getRawRegistryUrls,
   getRegistryCdnUrls,
-} from '@/lib/railyard/registry-source';
+} from '../lib/railyard/registry-source';
 
 interface GalleryImageCacheEntry {
   imageUrl: string | null;

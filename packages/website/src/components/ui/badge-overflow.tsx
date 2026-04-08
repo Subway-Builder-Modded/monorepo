@@ -2,8 +2,8 @@
 
 import { Slot as SlotPrimitive } from 'radix-ui';
 import * as React from 'react';
-import { useComposedRefs } from '@/lib/compose-refs';
-import { cn } from '@/lib/utils';
+import { useComposedRefs } from '../../lib/compose-refs';
+import { cn } from '../../lib/utils';
 
 interface GetBadgeLabel<T> {
   /**

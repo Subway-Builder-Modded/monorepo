@@ -8,8 +8,8 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '@/components/ui/stat';
-import type { RegistryAnalyticsData } from '@/types/registry-analytics';
+} from '../../../components/ui/stat';
+import type { RegistryAnalyticsData } from '../../../types/registry-analytics';
 
 const ICON_STYLE: CSSProperties = {
   borderColor: 'color-mix(in srgb, var(--primary) 35%, transparent)',

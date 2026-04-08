@@ -3,12 +3,12 @@ import path from 'path';
 import {
   createRegistryAuthorDirectory,
   type RegistryAuthorDirectoryEntry,
-} from '@/lib/authors';
+} from '../lib/authors';
 import {
   REGISTRY_ANALYTICS_SENTINEL,
   resolveRegistryAnalyticsDir,
-} from '@/lib/registry-analytics-paths';
-import type { RegistryAuthorsIndex } from '@/types/registry';
+} from '../lib/registry-analytics-paths';
+import type { RegistryAuthorsIndex } from '../types/registry';
 
 let authorDirectoryCache: Map<string, RegistryAuthorDirectoryEntry> | null =
   null;

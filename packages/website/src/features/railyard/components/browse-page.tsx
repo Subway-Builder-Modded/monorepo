@@ -12,27 +12,27 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   AssetSidebarPanel,
   SIDEBAR_CONTENT_OFFSET,
-} from '@/features/railyard/components/asset-sidebar-panel';
-import { CardSkeletonGrid } from '@/features/railyard/components/card-skeleton-grid';
-import { EmptyState } from '@/features/railyard/components/empty-state';
-import { ErrorBanner } from '@/features/railyard/components/error-banner';
+} from '../../../features/railyard/components/asset-sidebar-panel';
+import { CardSkeletonGrid } from '../../../features/railyard/components/card-skeleton-grid';
+import { EmptyState } from '../../../features/railyard/components/empty-state';
+import { ErrorBanner } from '../../../features/railyard/components/error-banner';
 import { ItemCard } from './item-card';
-import { PageHeader } from '@/components/shared/page-header';
-import { Pagination } from '@/features/railyard/components/pagination';
-import { SearchBar } from '@/features/railyard/components/search-bar';
-import { SortSelect } from '@/features/railyard/components/sort-select';
-import { ViewModeToggle } from '@/features/railyard/components/view-mode-toggle';
-import { createRandomSeed, useFilteredItems } from '@/hooks/use-filtered-items';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { preloadGalleryImage } from '@/hooks/use-gallery-image';
-import { useRegistry } from '@/hooks/use-registry';
-import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
-import { buildSpecialDemandValues } from '@/lib/railyard/map-filter-values';
+import { PageHeader } from '../../../components/shared/page-header';
+import { Pagination } from '../../../features/railyard/components/pagination';
+import { SearchBar } from '../../../features/railyard/components/search-bar';
+import { SortSelect } from '../../../features/railyard/components/sort-select';
+import { ViewModeToggle } from '../../../features/railyard/components/view-mode-toggle';
+import { createRandomSeed, useFilteredItems } from '../../../hooks/use-filtered-items';
+import { useIsMobile } from '../../../hooks/use-mobile';
+import { preloadGalleryImage } from '../../../hooks/use-gallery-image';
+import { useRegistry } from '../../../hooks/use-registry';
+import { buildAssetListingCounts } from '../../../lib/railyard/listing-counts';
+import { buildSpecialDemandValues } from '../../../lib/railyard/map-filter-values';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,
-} from '@/lib/railyard/search-view-mode';
-import { cn } from '@/lib/utils';
+} from '../../../lib/railyard/search-view-mode';
+import { cn } from '../../../lib/utils';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
 const SIDEBAR_OPEN_KEY = 'railyard:browse:sidebar-open:v1';
@@ -98,7 +98,7 @@ export function BrowsePage() {
   const {
     modTagCounts,
     mapLocationCounts,
-    mapDataQualityCounts,
+    mapSourceQualityCounts,
     mapLevelOfDetailCounts,
     mapSpecialDemandCounts,
   } = useMemo(() => buildAssetListingCounts(mods, maps), [mods, maps]);
@@ -181,7 +181,7 @@ export function BrowsePage() {
         availableSpecialDemand={availableSpecialDemand}
         modTagCounts={modTagCounts}
         mapLocationCounts={mapLocationCounts}
-        mapDataQualityCounts={mapDataQualityCounts}
+        mapSourceQualityCounts={mapSourceQualityCounts}
         mapLevelOfDetailCounts={mapLevelOfDetailCounts}
         mapSpecialDemandCounts={mapSpecialDemandCounts}
         modCount={mods.length}

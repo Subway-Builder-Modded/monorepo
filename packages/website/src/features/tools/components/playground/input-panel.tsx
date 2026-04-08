@@ -15,11 +15,11 @@ import {
   UnderlineIcon,
   Undo2,
 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ToolbarButton } from '@/features/tools/components/playground/toolbar-button';
-import type { InputMode } from '@/features/tools/components/playground/constants';
+import { Textarea } from '../../../../components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs';
+import { ToolbarButton } from '../../../../features/tools/components/playground/toolbar-button';
+import type { InputMode } from '../../../../features/tools/components/playground/constants';
 
 export function PlaygroundInputPanel({
   editor,

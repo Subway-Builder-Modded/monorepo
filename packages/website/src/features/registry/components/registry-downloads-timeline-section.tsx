@@ -10,7 +10,7 @@ import {
   YAxis,
 } from 'recharts';
 import { LineChart as LineChartIcon } from 'lucide-react';
-import type { RegistryAnalyticsData } from '@/types/registry-analytics';
+import type { RegistryAnalyticsData } from '../../../types/registry-analytics';
 import {
   MAP_COLOR,
   MOD_COLOR,

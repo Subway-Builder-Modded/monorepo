@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { ContributorTierBadge } from '@/components/shared/contributor-tier-badge';
+import { ContributorTierBadge } from '../../components/shared/contributor-tier-badge';
 import {
   getAuthorDisplayName,
   isExternalHref,
   type AuthorIdentity,
-} from '@/lib/authors';
-import { cn } from '@/lib/utils';
+} from '../../lib/authors';
+import { cn } from '../../lib/utils';
 
 type AuthorNameProps = {
   author: AuthorIdentity;

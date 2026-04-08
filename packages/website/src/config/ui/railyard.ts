@@ -1,4 +1,4 @@
-import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
+import { PROJECT_COLOR_SCHEMES } from '../../config/theme/colors';
 
 export const RAILYARD_CARD_CONTENT = {
   mapLabel: 'Map',

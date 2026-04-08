@@ -63,7 +63,7 @@ describe('loadWebsiteAnalytics', () => {
     writeJson(dir, 'devices.json', [{ device: 'Desktop', visitors: 19 }]);
 
     process.env['WEBSITE_ANALYTICS_DIR'] = dir;
-    const { loadWebsiteAnalytics } = await import('@/lib/website-analytics');
+    const { loadWebsiteAnalytics } = await import('../lib/website-analytics');
 
     const data = loadWebsiteAnalytics();
 
@@ -81,7 +81,7 @@ describe('loadWebsiteAnalytics', () => {
     writeJson(dir, 'summary.json', {});
 
     process.env['WEBSITE_ANALYTICS_DIR'] = dir;
-    const { loadWebsiteAnalytics } = await import('@/lib/website-analytics');
+    const { loadWebsiteAnalytics } = await import('../lib/website-analytics');
 
     const data = loadWebsiteAnalytics();
 

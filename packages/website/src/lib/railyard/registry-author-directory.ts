@@ -1,9 +1,9 @@
 import {
   createRegistryAuthorDirectory,
   type RegistryAuthorDirectoryEntry,
-} from '@/lib/authors';
-import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
-import type { RegistryAuthorsIndex } from '@/types/registry';
+} from '../../lib/authors';
+import { fetchRegistryJsonWithFallback } from '../../lib/railyard/registry-source';
+import type { RegistryAuthorsIndex } from '../../types/registry';
 
 const AUTHORS_CACHE_PATH = '/registry/analytics/authors_index.json';
 

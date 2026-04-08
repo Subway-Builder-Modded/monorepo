@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@sbm/website/*": [
+        "../packages/website/src/*"
       ]
     }
   },

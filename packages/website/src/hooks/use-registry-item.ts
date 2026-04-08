@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { enrichAuthorIdentity } from '@/lib/authors';
-import { getRegistryAuthorDirectory } from '@/lib/railyard/registry-author-directory';
-import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
-import type { ModManifest, MapManifest } from '@/types/registry';
+import { enrichAuthorIdentity } from '../lib/authors';
+import { getRegistryAuthorDirectory } from '../lib/railyard/registry-author-directory';
+import { fetchRegistryJsonWithFallback } from '../lib/railyard/registry-source';
+import type { ModManifest, MapManifest } from '../types/registry';
 
 interface UseRegistryItemResult {
   item: ModManifest | MapManifest | null;

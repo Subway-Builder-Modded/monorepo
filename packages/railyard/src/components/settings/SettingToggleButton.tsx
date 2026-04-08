@@ -1,7 +1,7 @@
 import { ToggleLeft, ToggleRight } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Button } from '../../components/ui/button';
+import { cn } from '../../lib/utils';
 
 const TOGGLE_ENABLED: Record<'install' | 'update' | 'profiles', string> = {
   install:

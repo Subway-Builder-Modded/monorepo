@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react';
 import {
   getCustomVersions,
   getGithubReleases,
-} from '@/lib/railyard/github-releases';
-import type { UpdateConfig, VersionInfo } from '@/types/registry';
+} from '../lib/railyard/github-releases';
+import type { UpdateConfig, VersionInfo } from '../types/registry';
 
 export async function fetchVersionsForUpdate(
   update?: UpdateConfig,

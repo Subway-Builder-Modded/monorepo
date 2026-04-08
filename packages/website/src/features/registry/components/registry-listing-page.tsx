@@ -21,16 +21,16 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '@/components/ui/stat';
+} from '../../../components/ui/stat';
 import type {
   DailyDataPoint,
   ListingType,
   RegistryAnalyticsData,
-} from '@/types/registry-analytics';
+} from '../../../types/registry-analytics';
 import {
   getListingAnalytics,
   type ListingAnalytics,
-} from '@/lib/registry-analytics-helpers';
+} from '../../../lib/registry-analytics-helpers';
 import {
   DailyDownloadChart,
   REGISTRY_LINK_HOVER_CLS,
@@ -47,10 +47,10 @@ import {
   registryLinkStyle,
   trimLeadingZeroDailyData,
 } from './registry-shared';
-import { AuthorName } from '@/components/shared/author-name';
-import { SortableNumberHeader } from '@/components/shared/sortable-number-header';
-import { usePersistedState } from '@/lib/use-persisted-state';
-import { RegistryMapPreview } from '@/features/registry/components/registry-map-preview';
+import { AuthorName } from '../../../components/shared/author-name';
+import { SortableNumberHeader } from '../../../components/shared/sortable-number-header';
+import { usePersistedState } from '../../../lib/use-persisted-state';
+import { RegistryMapPreview } from '../../../features/registry/components/registry-map-preview';
 
 const STAT_HEADER_CLS =
   'text-xs font-semibold uppercase tracking-wider text-muted-foreground';

@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import { Trophy } from 'lucide-react';
 import Link from 'next/link';
-import { SortableNumberHeader } from '@/components/shared/sortable-number-header';
+import { SortableNumberHeader } from '../../../components/shared/sortable-number-header';
 
 import {
   REGISTRY_LINK_HOVER_CLS,
@@ -35,16 +35,16 @@ import {
   truncateName,
   useClientReady,
   registryLinkStyle,
-} from '@/features/registry/components/registry-shared';
-import { AuthorName } from '@/components/shared/author-name';
-import type { ContributorTier } from '@/types/registry';
+} from '../../../features/registry/components/registry-shared';
+import { AuthorName } from '../../../components/shared/author-name';
+import type { ContributorTier } from '../../../types/registry';
 import type {
   ListingType,
   RegistryAnalyticsData,
   RegistryListingRow,
   RegistryTrendingRow,
-} from '@/types/registry-analytics';
-import { usePersistedState } from '@/lib/use-persisted-state';
+} from '../../../types/registry-analytics';
+import { usePersistedState } from '../../../lib/use-persisted-state';
 
 // ---------------------------------------------------------------------------
 // Types

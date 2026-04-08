@@ -1,6 +1,6 @@
-import { SubscriptionSyncError } from '@/stores/installed-store';
+import { SubscriptionSyncError } from '@railyard-app/stores/installed-store';
 
-import type { types } from '../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 export interface SubscriptionSyncErrorState {
   version: string;

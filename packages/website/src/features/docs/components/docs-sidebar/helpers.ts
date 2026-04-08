@@ -1,11 +1,11 @@
-import { type DocsInstance, type DocsVersion } from '@/config/content/docs';
+import { type DocsInstance, type DocsVersion } from '../../../../config/content/docs';
 import {
   PROJECT_COLOR_SCHEMES,
   getModeHex,
   type ModeHex,
-} from '@/config/theme/colors';
-import { isLatestVersion, type DocsSidebarEntry } from '@/lib/docs/shared';
-import { normalizePath } from '@/lib/url';
+} from '../../../../config/theme/colors';
+import { isLatestVersion, type DocsSidebarEntry } from '../../../../lib/docs/shared';
+import { normalizePath } from '../../../../lib/url';
 
 export const SWITCHER_ROW_HIGHLIGHT_ALPHA = 0.12;
 export const SWITCHER_ROW_NEUTRAL_ALPHA = 0.06;

@@ -1,0 +1,16 @@
+{
+  "name": "@sbm/website",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./*": "./src/*"
+  },
+  "dependencies": {
+    "@sbm/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "next": ">=16"
+  }
+}

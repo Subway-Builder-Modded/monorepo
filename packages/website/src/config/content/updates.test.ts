@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   UPDATE_PROJECTS,
   getUpdateProjectById,
-} from '@/config/content/updates';
+} from '../../config/content/updates';
 
 describe('updates config', () => {
   it('includes website updates project metadata', () => {

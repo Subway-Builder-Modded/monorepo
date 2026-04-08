@@ -1,4 +1,4 @@
-import type { SiteColorSchemeId } from '@/config/theme/contracts';
+import type { SiteColorSchemeId } from '../../config/theme/contracts';
 
 export type SiteColorSchemeRouteRule = {
   pattern: string;

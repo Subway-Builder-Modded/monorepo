@@ -21,17 +21,17 @@ import {
 import { useTheme } from 'next-themes';
 import { createHighlighter } from 'shiki';
 
-import { HomeLinkButton } from '@/features/home/components/home-link-button';
-import { MarkdownText } from '@/components/ui/markdown-text';
-import type { HomeButtonSize } from '@/config/site/homepage';
+import { HomeLinkButton } from '../../../features/home/components/home-link-button';
+import { MarkdownText } from '../../../components/ui/markdown-text';
+import type { HomeButtonSize } from '../../../config/site/homepage';
 import {
   LANDING_HERO_COPY,
   interpolateHeroText,
   type HeroActionId,
-} from '@/config/content/landing-hero';
-import { getUpdateProjectById } from '@/config/content/updates';
-import { LineBullet } from '@/components/ui/line-bullet';
-import { cn } from '@/lib/utils';
+} from '../../../config/content/landing-hero';
+import { getUpdateProjectById } from '../../../config/content/updates';
+import { LineBullet } from '../../../components/ui/line-bullet';
+import { cn } from '../../../lib/utils';
 
 type HeroAction = {
   id: HeroActionId;

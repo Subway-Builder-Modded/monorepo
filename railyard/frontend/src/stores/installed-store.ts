@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 
-import type { AssetType } from '@/lib/asset-types';
+import type { AssetType } from '@sbm/railyard/lib/asset-types';
 import {
   applyLatestSubscriptionUpdatesForActiveProfile,
   cancelInstallForAsset,
   importAssetForActiveProfile,
   mutateSubscriptionsForActiveProfile,
-} from '@/lib/subscription-mutation-client';
-export { SubscriptionMutationLockedError } from '@/lib/subscription-mutation-client';
+} from '@sbm/railyard/lib/subscription-mutation-client';
+export { SubscriptionMutationLockedError } from '@sbm/railyard/lib/subscription-mutation-client';
 
 import { types } from '../../wailsjs/go/models';
 import {

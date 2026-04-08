@@ -11,15 +11,15 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { PageHeading } from '@/components/shared/PageHeading';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useProfilesState } from '@/hooks/use-profile-dialogs';
-import { getLocalAccentClasses } from '@/lib/local-accent';
-import { isProfileSwapUnavailable } from '@/lib/profile-swap';
-import { formatStorageSize } from '@/lib/size-format';
-import { cn } from '@/lib/utils';
+import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
+import { PageHeading } from '@sbm/railyard/components/shared/PageHeading';
+import { Button } from '@sbm/railyard/components/ui/button';
+import { Input } from '@sbm/railyard/components/ui/input';
+import { useProfilesState } from '@sbm/railyard/hooks/use-profile-dialogs';
+import { getLocalAccentClasses } from '@sbm/railyard/lib/local-accent';
+import { isProfileSwapUnavailable } from '@sbm/railyard/lib/profile-swap';
+import { formatStorageSize } from '@sbm/railyard/lib/size-format';
+import { cn } from '@sbm/railyard/lib/utils';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';

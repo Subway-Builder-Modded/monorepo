@@ -2,15 +2,15 @@ import { AlertTriangle, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { SettingRow } from '@/components/settings/SettingRow';
-import { Button } from '@/components/ui/button';
+import { SettingRow } from '../../components/settings/SettingRow';
+import { Button } from '../../components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '../../components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -18,13 +18,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { useConfigStore } from '@/stores/config-store';
-import { useProfileStore } from '@/stores/profile-store';
+} from '../../components/ui/dialog';
 
-export function DangerZonePanel() {
-  const { clearConfig } = useConfigStore();
-  const resetProfile = useProfileStore((s) => s.resetProfile);
+export interface DangerZonePanelProps {
+  onClearConfig: () => Promise<void>;
+  onResetProfile: () => Promise<void>;
+}
+
+export function DangerZonePanel({ onClearConfig, onResetProfile }: DangerZonePanelProps) {
 
   const [confirmAction, setConfirmAction] = useState<
     'config' | 'profile' | null
@@ -33,10 +34,10 @@ export function DangerZonePanel() {
   const handleConfirm = async () => {
     try {
       if (confirmAction === 'config') {
-        await clearConfig();
+        await onClearConfig();
         toast.success('Configuration has been reset.');
       } else if (confirmAction === 'profile') {
-        await resetProfile();
+        await onResetProfile();
         toast.success('Profile has been reset.');
       }
     } catch {

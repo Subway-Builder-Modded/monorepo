@@ -1,4 +1,4 @@
-import type { types } from '../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 
 export function withZeroDownloads(
   versions: types.VersionInfo[],

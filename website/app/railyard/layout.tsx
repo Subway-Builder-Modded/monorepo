@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { buildEmbedMetadata } from '@/config/site/metadata';
+import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
 
 export const metadata: Metadata = buildEmbedMetadata({
   title: 'Railyard',

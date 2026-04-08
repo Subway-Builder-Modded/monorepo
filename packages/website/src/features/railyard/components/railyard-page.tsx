@@ -30,30 +30,30 @@ import {
   Globe,
 } from 'lucide-react';
 
-import { ItemCard } from '@/features/railyard/components/item-card';
-import { MarkdownText } from '@/components/ui/markdown-text';
+import { ItemCard } from '../../../features/railyard/components/item-card';
+import { MarkdownText } from '../../../components/ui/markdown-text';
 import {
   Marquee,
   MarqueeContent,
   MarqueeEdge,
   MarqueeItem,
-} from '@/components/ui/marquee';
-import { Card } from '@/components/ui/card';
-import { LineBullet } from '@/components/ui/line-bullet';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+} from '../../../components/ui/marquee';
+import { Card } from '../../../components/ui/card';
+import { LineBullet } from '../../../components/ui/line-bullet';
+import { Badge } from '../../../components/ui/badge';
+import { Separator } from '../../../components/ui/separator';
 import {
   LANDING_HERO_COPY,
   interpolateHeroText,
-} from '@/config/content/landing-hero';
-import { getUpdateProjectById } from '@/config/content/updates';
-import { useRegistry } from '@/hooks/use-registry';
-import { DEFAULT_SORT_STATE } from '@/lib/railyard/constants';
-import type { GithubRelease } from '@/lib/railyard/github-releases';
-import { getGithubReleases } from '@/lib/railyard/github-releases';
-import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
-import { buildTaggedItems, compareItems } from '@/lib/railyard/tagged-items';
-import { cn } from '@/lib/utils';
+} from '../../../config/content/landing-hero';
+import { getUpdateProjectById } from '../../../config/content/updates';
+import { useRegistry } from '../../../hooks/use-registry';
+import { DEFAULT_SORT_STATE } from '../../../lib/railyard/constants';
+import type { GithubRelease } from '../../../lib/railyard/github-releases';
+import { getGithubReleases } from '../../../lib/railyard/github-releases';
+import { fetchRegistryJsonWithFallback } from '../../../lib/railyard/registry-source';
+import { buildTaggedItems, compareItems } from '../../../lib/railyard/tagged-items';
+import { cn } from '../../../lib/utils';
 
 // ─── Data ──────────────────────────────────────────────────────────────────
 

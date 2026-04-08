@@ -1,5 +1,5 @@
-import type { AppIconValue } from '@/lib/icons';
-import type { ProjectColorId } from '@/config/theme/contracts';
+import type { AppIconValue } from '../../lib/icons';
+import type { ProjectColorId } from '../../config/theme/contracts';
 
 export type NavbarPosition = 'left' | 'right';
 

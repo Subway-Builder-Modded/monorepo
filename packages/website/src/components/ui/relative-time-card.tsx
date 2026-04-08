@@ -10,14 +10,14 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from '@/components/ui/hover-card';
+} from '../../components/ui/hover-card';
 
 type HoverCardProps = React.ComponentProps<typeof HoverCardPrimitive.Root>;
 type HoverCardContentProps = React.ComponentProps<
   typeof HoverCardPrimitive.Content
 >;
 
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 
 function pluralize(n: number, word: string) {
   return `${n} ${word}${n === 1 ? '' : 's'}`;

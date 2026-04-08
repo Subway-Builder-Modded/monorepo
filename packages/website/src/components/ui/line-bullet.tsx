@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { getSuiteColorVarRefs } from '@/config/theme/css-vars';
-import { cn } from '@/lib/utils';
+import { getSuiteColorVarRefs } from '../../config/theme/css-vars';
+import { cn } from '../../lib/utils';
 import {
   getLineBulletPreset,
   resolveLineBulletHoverModeHex,
@@ -11,7 +11,7 @@ import {
   type LineBulletSize,
   type LineBulletTextRole,
   type LineBulletThemeId,
-} from '@/lib/line-bullet-theme';
+} from '../../lib/line-bullet-theme';
 
 export type { LineBulletShape, LineBulletSize };
 

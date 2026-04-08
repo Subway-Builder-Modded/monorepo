@@ -1,14 +1,14 @@
 import type { CSSProperties } from 'react';
 import Image from 'next/image';
 import type { LucideProps } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 import {
   isImageIcon,
   isLucideIcon,
   isMaskIcon,
   resolveAppIcon,
   type AppIconInput,
-} from '@/lib/icons';
+} from '../../lib/icons';
 
 type AppIconProps = {
   icon?: AppIconInput;

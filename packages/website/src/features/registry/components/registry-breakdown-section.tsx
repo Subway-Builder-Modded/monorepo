@@ -9,8 +9,8 @@ import {
   SafeChartContainer,
   SectionHeader,
   useClientReady,
-} from '@/features/registry/components/registry-shared';
-import type { RegistryAnalyticsData } from '@/types/registry-analytics';
+} from '../../../features/registry/components/registry-shared';
+import type { RegistryAnalyticsData } from '../../../types/registry-analytics';
 
 // ---------------------------------------------------------------------------
 // Pie label

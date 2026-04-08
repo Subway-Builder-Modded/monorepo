@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getSuiteColorVarRefs } from '@/config/theme/css-vars';
+import { getSuiteColorVarRefs } from '../../config/theme/css-vars';
 
 describe('getSuiteColorVarRefs', () => {
   it('returns suite CSS variable references for color roles', () => {

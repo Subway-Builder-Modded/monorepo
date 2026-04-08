@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { PageColorSchemeProvider } from '@/components/app-shell/theme/page-color-scheme-provider';
+import { PageColorSchemeProvider } from '../../../components/app-shell/theme/page-color-scheme-provider';
 
 const mockUsePathname = vi.fn<() => string | null>();
 

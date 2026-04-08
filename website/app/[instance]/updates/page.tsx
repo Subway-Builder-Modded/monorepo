@@ -4,18 +4,18 @@ import { notFound } from 'next/navigation';
 import { ChevronRight, Megaphone } from 'lucide-react';
 import type { CSSProperties } from 'react';
 
-import { PageHeader } from '@/components/shared/page-header';
-import { ReleaseTagBadge } from '@/features/updates/components/release-tag-badge';
-import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
+import { PageHeader } from '@sbm/website/components/shared/page-header';
+import { ReleaseTagBadge } from '@sbm/website/features/updates/components/release-tag-badge';
+import { ThemedShowcaseCard } from '@sbm/website/components/ui/themed-showcase-card';
 import {
   getUpdateProjectById,
   UPDATE_PROJECTS,
-} from '@/config/content/updates';
-import { resolveEmbedDescription } from '@/config/site/embed-descriptions';
-import { buildEmbedMetadata } from '@/config/site/metadata';
-import { UPDATES_PAGE_COPY } from '@/config/ui/site-content';
-import { hexAlpha } from '@/lib/color';
-import { getAllUpdatesForProject, type UpdateMeta } from '@/lib/updates.server';
+} from '@sbm/website/config/content/updates';
+import { resolveEmbedDescription } from '@sbm/website/config/site/embed-descriptions';
+import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
+import { UPDATES_PAGE_COPY } from '@sbm/website/config/ui/site-content';
+import { hexAlpha } from '@sbm/website/lib/color';
+import { getAllUpdatesForProject, type UpdateMeta } from '@sbm/website/lib/updates.server';
 
 export const dynamicParams = false;
 

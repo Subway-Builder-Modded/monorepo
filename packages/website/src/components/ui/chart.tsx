@@ -38,8 +38,8 @@ import type {
 } from 'recharts/types/component/DefaultTooltipContent';
 import type { ContentType as TooltipContentType } from 'recharts/types/component/Tooltip';
 import { twJoin, twMerge } from 'tailwind-merge';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { cx } from '@/lib/primitive';
+import { useIsMobile } from '../../hooks/use-mobile';
+import { cx } from '../../lib/primitive';
 
 // #region Chart Types
 type ChartType = 'default' | 'stacked' | 'percent';

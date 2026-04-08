@@ -1,11 +1,11 @@
 import type { LucideIcon } from 'lucide-react';
-import type { ModeHex } from '@/config/theme/colors';
-import { hexAlpha } from '@/lib/color';
+import type { ModeHex } from '../../config/theme/colors';
+import { hexAlpha } from '../../lib/color';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 
 export type PageHeaderColorScheme = {
   accent: ModeHex;

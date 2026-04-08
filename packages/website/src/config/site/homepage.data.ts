@@ -14,7 +14,7 @@ import {
   Coffee,
   Heart,
 } from 'lucide-react';
-import type { HomeLink, HomeProjectCard } from '@/config/site/homepage.types';
+import type { HomeLink, HomeProjectCard } from '../../config/site/homepage.types';
 
 const GITHUB_MASK_ICON = 'github';
 const DISCORD_MASK_ICON = 'discord';

@@ -1,4 +1,4 @@
-import type { AssetType } from '@sbm/railyard-core/asset-types';
+import type { AssetType } from '@sbm/shared/railyard-core/asset-types';
 import {
   DEFAULT_SORT_STATE as SHARED_DEFAULT_SORT_STATE,
   getSortOptionsForType as getSharedSortOptionsForType,
@@ -9,11 +9,11 @@ import {
   type SortDirection,
   type SortField as SharedSortField,
   SortKey as SharedSortKey,
-  type SortState as SharedSortState,
   type SortOption as SharedSortOption,
+  type SortState as SharedSortState,
   sortStateToOptionKey as sharedSortStateToOptionKey,
   TEXT_SORT_FIELDS as SHARED_TEXT_SORT_FIELDS,
-} from '@sbm/railyard-core/browse-sort';
+} from '@sbm/shared/railyard-core/browse-sort';
 
 export { PER_PAGE_OPTIONS, type PerPage, type SortDirection };
 
@@ -106,3 +106,4 @@ export function normalizeSortStateForType(
 
   return normalizeSharedSortStateForType(sharedState, type) as SortState;
 }
+

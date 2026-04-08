@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   mdxComponentGroups,
   useMDXComponents,
-} from '@/components/mdx/platform/registry';
+} from '../../../components/mdx/platform/registry';
 
 describe('mdx component registry', () => {
   it('exposes core and ergonomic icon components', () => {

@@ -4,7 +4,7 @@ import {
   isSubscriptionMutationLocked,
   isSubscriptionMutationLockedError,
   SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE,
-} from '@/lib/subscription-mutation-lock';
+} from '../lib/subscription-mutation-lock';
 
 describe('subscription-mutation-lock', () => {
   it('detects lock state from game running flag', () => {

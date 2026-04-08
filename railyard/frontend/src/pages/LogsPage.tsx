@@ -10,24 +10,24 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { PageHeading } from '@/components/shared/PageHeading';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
+import { EmptyState } from '@sbm/railyard/components/shared/EmptyState';
+import { PageHeading } from '@sbm/railyard/components/shared/PageHeading';
+import { Badge } from '@sbm/railyard/components/ui/badge';
+import { Button } from '@sbm/railyard/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@sbm/railyard/components/ui/select';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+} from '@sbm/railyard/components/ui/tooltip';
+import { cn } from '@sbm/railyard/lib/utils';
 import { useConfigStore } from '@/stores/config-store';
 import type { LogEntry } from '@/stores/game-store';
 import { useGameStore } from '@/stores/game-store';

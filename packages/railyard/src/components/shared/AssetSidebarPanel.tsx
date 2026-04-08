@@ -1,80 +1,41 @@
-import { MapPin, Package } from 'lucide-react';
-
+import type { Dispatch, SetStateAction } from 'react';
 import {
-  SidebarFilters,
-  type SidebarFiltersProps,
-} from '@/components/shared/SidebarFilters';
-import {
+  AssetSidebarPanel as SharedAssetSidebarPanel,
+  type AssetSidebarPanelProps as SharedAssetSidebarPanelProps,
   SIDEBAR_CONTENT_OFFSET,
-  SidebarPanel,
-} from '@/components/shared/SidebarPanel';
-import type { AssetType } from '@/lib/asset-types';
-import { cn } from '@/lib/utils';
+} from '@sbm/shared/railyard-ui/shared/asset-sidebar-panel';
+import type { SharedFilterState } from '@sbm/shared/railyard-core/filter-state';
+import type {
+  AssetQueryFilters,
+  AssetQueryFilterUpdater,
+} from '@railyard-app/stores/asset-query-filter-store';
 
 export { SIDEBAR_CONTENT_OFFSET };
 
-export interface AssetSidebarPanelProps extends SidebarFiltersProps {
-  open: boolean;
-  onToggle: () => void;
-  ariaLabel: string;
-}
-
-const TYPE_BUTTONS: Array<{
-  type: AssetType;
-  icon: typeof MapPin;
-  label: string;
-}> = [
-  { type: 'map', icon: MapPin, label: 'Show maps' },
-  { type: 'mod', icon: Package, label: 'Show mods' },
-];
+export type AssetSidebarPanelProps = Omit<
+  SharedAssetSidebarPanelProps,
+  'filters' | 'onFiltersChange'
+> & {
+  filters: AssetQueryFilters;
+  onFiltersChange: (updater: AssetQueryFilterUpdater) => void;
+};
 
 export function AssetSidebarPanel({
-  open,
-  onToggle,
-  ariaLabel,
-  ...filterProps
+  filters,
+  onFiltersChange,
+  ...props
 }: AssetSidebarPanelProps) {
-  const currentType = filterProps.filters.type;
-
-  const collapsedContent = (
-    <>
-      {TYPE_BUTTONS.map(({ type, icon: Icon, label }) => {
-        const isCurrent = currentType === type;
-        return (
-          <button
-            key={type}
-            type="button"
-            onClick={() => filterProps.onTypeChange(type)}
-            aria-label={label}
-            aria-current={isCurrent ? 'true' : undefined}
-            className={cn(
-              'relative flex h-10 w-full items-center justify-center transition-colors',
-              'hover:bg-accent/45 hover:text-primary',
-              isCurrent ? 'text-primary' : '',
-            )}
-          >
-            <Icon className="h-4 w-4" />
-            {isCurrent && (
-              <span
-                aria-hidden
-                className="absolute right-0 top-1 bottom-1 w-[3px] rounded-full bg-primary"
-              />
-            )}
-          </button>
-        );
-      })}
-    </>
-  );
-
+  const handleChange: Dispatch<SetStateAction<SharedFilterState>> = (
+    updater,
+  ) => {
+    onFiltersChange(updater as unknown as AssetQueryFilterUpdater);
+  };
   return (
-    <SidebarPanel
-      open={open}
-      onToggle={onToggle}
-      ariaLabel={ariaLabel}
-      filters={filterProps.filters}
-      collapsedContent={collapsedContent}
-    >
-      <SidebarFilters {...filterProps} />
-    </SidebarPanel>
+    <SharedAssetSidebarPanel
+      {...props}
+      filters={filters}
+      onFiltersChange={handleChange}
+    />
   );
 }
+

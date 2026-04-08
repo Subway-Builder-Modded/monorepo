@@ -13,7 +13,7 @@ import {
   TrainTrack,
   Users,
 } from 'lucide-react';
-import type { DocsInstance } from '@/config/content/docs.types';
+import type { DocsInstance } from '../../config/content/docs.types';
 
 export const DOCS_INSTANCES: DocsInstance[] = [
   {

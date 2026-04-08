@@ -52,3 +52,4 @@ export function SortableHeaderCell<T extends string>({
     </button>
   );
 }
+

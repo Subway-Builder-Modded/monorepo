@@ -1,20 +1,20 @@
 import Fuse from 'fuse.js';
 import { useMemo } from 'react';
 
-import { usePaginationSync } from '@/hooks/use-pagination-sync';
-import { FUSE_SEARCH_OPTIONS } from '@/lib/search';
+import { usePaginationSync } from '../hooks/use-pagination-sync';
+import { FUSE_SEARCH_OPTIONS } from '../lib/search';
 import {
   buildTaggedItems,
   compareItems,
   type TaggedItem,
-} from '@/lib/tagged-items';
-import { type BrowseFilterState, useBrowseStore } from '@/stores/browse-store';
-import { useProfileStore } from '@/stores/profile-store';
+} from '../lib/tagged-items';
+import { type BrowseFilterState, useBrowseStore } from '@railyard-app/stores/browse-store';
+import { useProfileStore } from '@railyard-app/stores/profile-store';
 
-import type { types } from '../../wailsjs/go/models';
+import type { types } from '@railyard-app/wailsjs/go/models';
 import { type PerPage, type SortState } from '../lib/constants';
 
-export type { BrowseFilterState } from '@/stores/browse-store';
+export type { BrowseFilterState } from '@railyard-app/stores/browse-store';
 
 interface UseFilteredItemsParams {
   mods: types.ModManifest[];
