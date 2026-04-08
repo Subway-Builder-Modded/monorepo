@@ -5,11 +5,11 @@ import { compileMDX } from 'next-mdx-remote/rsc';
 import { Scale } from 'lucide-react';
 import remarkGfm from 'remark-gfm';
 
-import { PageHeader } from '@sbm/website/components/shared/page-header';
-import { ThemedShowcaseCard } from '@sbm/website/components/ui/themed-showcase-card';
-import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
-import { SHARED_TEXT_COLOR } from '@sbm/website/config/theme/colors';
-import { hexAlpha } from '@sbm/website/lib/color';
+import { PageHeader } from '@/components/shared/page-header';
+import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
+import { buildEmbedMetadata } from '@/config/site/metadata';
+import { SHARED_TEXT_COLOR } from '@/config/theme/colors';
+import { hexAlpha } from '@/lib/color';
 import { useMDXComponents as getMDXComponents } from '@/mdx-components';
 
 type LicenseFrontmatter = {

@@ -1,1 +1,1 @@
-export { useMDXComponents } from '@sbm/website/components/mdx/platform/registry';
+export { useMDXComponents } from '@/components/mdx/platform/registry';

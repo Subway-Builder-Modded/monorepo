@@ -1,4 +1,4 @@
-import type { AssetType } from '@sbm/railyard/lib/asset-types';
+import type { AssetType } from '@/lib/asset-types';
 import type {
   AssetQueryFilterState,
   FilterByAssetType,

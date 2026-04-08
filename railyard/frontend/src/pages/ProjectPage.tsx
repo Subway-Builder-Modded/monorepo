@@ -4,10 +4,10 @@ import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { Link, useRoute } from 'wouter';
 
-import { ProjectGallery } from '@sbm/railyard/components/project/ProjectGallery';
-import { ProjectHeader } from '@sbm/railyard/components/project/ProjectHeader';
-import { ProjectVersions } from '@sbm/railyard/components/project/ProjectVersions';
-import { EmptyState } from '@sbm/railyard/components/shared/EmptyState';
+import { ProjectGallery } from '@/components/project/ProjectGallery';
+import { ProjectHeader } from '@/components/project/ProjectHeader';
+import { ProjectVersions } from '@/components/project/ProjectVersions';
+import { EmptyState } from '@/components/shared/EmptyState';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -15,14 +15,14 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@sbm/shared/ui/breadcrumb';
-import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
-import { listingPathToAssetType } from '@sbm/railyard/lib/asset-types';
-import { isCompatible } from '@sbm/railyard/lib/semver';
+} from '@/components/ui/breadcrumb';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { listingPathToAssetType } from '@/lib/asset-types';
+import { isCompatible } from '@/lib/semver';
 import {
   mergeVersionDownloads,
   withZeroDownloads,
-} from '@sbm/railyard/lib/version-downloads';
+} from '@/lib/version-downloads';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 

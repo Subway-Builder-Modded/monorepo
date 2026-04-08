@@ -2,7 +2,7 @@ import { permanentRedirect } from 'next/navigation';
 import {
   UPDATE_PROJECTS,
   getUpdateProjectById,
-} from '@sbm/website/config/content/updates';
+} from '@/config/content/updates';
 
 export const dynamicParams = false;
 

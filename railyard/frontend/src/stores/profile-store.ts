@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 
-import type { AssetType } from '@sbm/railyard/lib/asset-types';
+import type { AssetType } from '@/lib/asset-types';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,
-} from '@sbm/railyard/lib/search-view-mode';
+} from '@/lib/search-view-mode';
 
 import type { types } from '../../wailsjs/go/models';
 import {

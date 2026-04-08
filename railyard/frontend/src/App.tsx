@@ -1,15 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 
-import { DownloadNotification } from '@sbm/railyard/components/layout/DownloadNotification';
-import { Layout } from '@sbm/railyard/components/layout/Layout';
-import { Navbar } from '@sbm/railyard/components/layout/Navbar';
-import { MultiStepLoader } from '@sbm/railyard/components/layout/MultiStepLoader';
-import { RequestErrorNotification } from '@sbm/railyard/components/layout/RequestErrorNotification';
-import { SetupScreen } from '@sbm/railyard/components/setup/SetupScreen';
-import { Toaster } from '@sbm/railyard/components/ui/sonner';
-import { TooltipProvider } from '@sbm/shared/ui/tooltip';
-import { useTheme } from '@sbm/railyard/hooks/use-theme';
+import { DownloadNotification } from '@/components/layout/DownloadNotification';
+import { Layout } from '@/components/layout/Layout';
+import { MultiStepLoader } from '@/components/layout/MultiStepLoader';
+import { RequestErrorNotification } from '@/components/layout/RequestErrorNotification';
+import { SetupScreen } from '@/components/setup/SetupScreen';
+import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { useTheme } from '@/hooks/use-theme';
 import { BrowsePage } from '@/pages/BrowsePage';
 import { ChangelogPage } from '@/pages/ChangelogPage';
 import { HomePage } from '@/pages/HomePage';
@@ -19,7 +18,6 @@ import { ProfilesPage } from '@/pages/ProfilesPage';
 import { ProjectPage } from '@/pages/ProjectPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { useConfigStore } from '@/stores/config-store';
-import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';
@@ -27,12 +25,11 @@ import { useRegistryStore } from '@/stores/registry-store';
 
 import {
   ConsumePendingDeepLink,
-  GetCurrentVersion,
   IsStartupReady,
   LaunchGame,
 } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
-import { ExtractNotification } from '@sbm/railyard/components/layout/ExtractNotification';
+import { ExtractNotification } from './components/layout/ExtractNotification';
 
 interface DownloadCancelledEvent {
   itemId?: string;
@@ -47,7 +44,6 @@ function App() {
   useTheme();
   const [, setLocation] = useLocation();
   const [startupReady, setStartupReady] = useState(false);
-  const [appVersion, setAppVersion] = useState('');
   const [pendingDeepLinkRoute, setPendingDeepLinkRoute] = useState<
     string | null
   >(null);
@@ -55,7 +51,6 @@ function App() {
   const acknowledgeCancel = useInstalledStore(
     (s) => s.acknowledgeCancelledInstall,
   );
-  const installedMaps = useInstalledStore((s) => s.installedMaps);
 
   const initConfig = useConfigStore((s) => s.initialize);
   const configInitialized = useConfigStore((s) => s.initialized);
@@ -65,55 +60,20 @@ function App() {
   const setupCompleted = useConfigStore(
     (s) => s.config?.setupCompleted ?? false,
   );
-  const config = useConfigStore((s) => s.config);
-  const validation = useConfigStore((s) => s.validation);
-  const openDataFolderDialog = useConfigStore((s) => s.openDataFolderDialog);
-  const openExecutableDialog = useConfigStore((s) => s.openExecutableDialog);
-  const updateCheckForUpdatesOnLaunch = useConfigStore(
-    (s) => s.updateCheckForUpdatesOnLaunch,
-  );
-  const updateGithubToken = useConfigStore((s) => s.updateGithubToken);
-  const completeSetup = useConfigStore((s) => s.completeSetup);
-  const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
 
   const initProfile = useProfileStore((s) => s.initialize);
 
   const initRegistry = useRegistryStore((s) => s.initialize);
   const registryInitialized = useRegistryStore((s) => s.initialized);
-  const registryRefresh = useRegistryStore((s) => s.refresh);
-  const registryRefreshing = useRegistryStore((s) => s.refreshing);
   const initInstalled = useInstalledStore((s) => s.initialize);
   const installedInitialized = useInstalledStore((s) => s.initialized);
   const profileInitialized = useProfileStore((s) => s.initialized);
   const initGame = useGameStore((s) => s.initialize);
-  const gameRunning = useGameStore((s) => s.running);
-  const gameLaunch = useGameStore((s) => s.launch);
-  const gameStop = useGameStore((s) => s.stop);
 
   useEffect(() => {
-    GetCurrentVersion().then((response) => {
-      if (response.status !== 'success') return;
-      const sanitized = [...(response.version || '')]
-        .filter((c) => c !== '\u0000')
-        .join('');
-      setAppVersion(sanitized);
+    const registryUpdate = EventsOn('registry:update', () => {
+      updateInstalledLists();
     });
-  }, []);
-
-  const getIsInstalling = useCallback(
-    (itemId: string) => useInstalledStore.getState().isInstalling(itemId),
-    [],
-  );
-  const getQueueState = useCallback(
-    () => {
-      const s = useDownloadQueueStore.getState();
-      return { completed: s.completed, total: s.total };
-    },
-    [],
-  );
-
-  useEffect(() => {
-    updateInstalledLists();
     const downloadCancelled = EventsOn(
       'download:cancelled',
       (payload: DownloadCancelledEvent) => {
@@ -159,6 +119,7 @@ function App() {
     pollStartupReady();
 
     return () => {
+      registryUpdate();
       downloadCancelled();
       deepLinkOpened();
       cancelled = true;
@@ -281,15 +242,7 @@ function App() {
   if (!isConfigured || !setupCompleted) {
     return (
       <div className="railyard-accent">
-        <SetupScreen
-          config={config}
-          validation={validation}
-          openDataFolderDialog={openDataFolderDialog}
-          openExecutableDialog={openExecutableDialog}
-          updateCheckForUpdatesOnLaunch={updateCheckForUpdatesOnLaunch}
-          updateGithubToken={updateGithubToken}
-          completeSetup={completeSetup}
-        />
+        <SetupScreen />
         <Toaster />
       </div>
     );
@@ -298,21 +251,7 @@ function App() {
   return (
     <div className="railyard-accent">
       <TooltipProvider>
-        <Layout
-          appVersion={appVersion}
-          navbar={
-            <Navbar
-              registryLoading={registryLoading}
-              registryRefreshing={registryRefreshing}
-              onRefreshRegistry={registryRefresh}
-              canLaunch={canLaunch}
-              gameRunning={gameRunning}
-              onLaunchGame={gameLaunch}
-              onStopGame={gameStop}
-              hasInstalledMaps={installedMaps.length > 0}
-            />
-          }
-        >
+        <Layout>
           <Switch>
             <Route path="/" component={HomePage} />
             <Route path="/library" component={LibraryPage} />
@@ -328,10 +267,7 @@ function App() {
             <Route path="/settings" component={SettingsPage} />
           </Switch>
         </Layout>
-        <DownloadNotification
-          getIsInstalling={getIsInstalling}
-          getQueueState={getQueueState}
-        />
+        <DownloadNotification />
         <ExtractNotification />
         <RequestErrorNotification />
         <Toaster />

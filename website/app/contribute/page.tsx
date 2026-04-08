@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
 
-import { PageHeader } from '@sbm/website/components/shared/page-header';
-import { SubscriptionTierCard } from '@sbm/website/features/contribute/subscription-tier-card';
+import { PageHeader } from '@/components/shared/page-header';
+import { SubscriptionTierCard } from '@/features/contribute/subscription-tier-card';
 import {
   CONTRIBUTE_PAGE_CONTENT,
   SUBSCRIPTION_TIERS,
-} from '@sbm/website/config/ui/contribute';
-import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
+} from '@/config/ui/contribute';
+import { buildEmbedMetadata } from '@/config/site/metadata';
 
 export const metadata: Metadata = buildEmbedMetadata({
   title: 'Contribute',

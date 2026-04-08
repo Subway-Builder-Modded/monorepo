@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import '../styles/globals.css';
-import { AppLayoutShell } from '@sbm/website/components/app-shell/root-layout-shell';
-import { ThemeHydrationScript } from '@sbm/website/components/app-shell/theme/theme-hydration-script';
+import { AppLayoutShell } from '@/components/app-shell/root-layout-shell';
+import { ThemeHydrationScript } from '@/components/app-shell/theme/theme-hydration-script';
 import {
   resolveSiteMetadataBase,
   SITE_DESCRIPTION,
   SITE_OG_IMAGE_PATH,
   SITE_NAME,
-} from '@sbm/website/config/site/metadata';
+} from '@/config/site/metadata';
 
 export const metadata: Metadata = {
   metadataBase: resolveSiteMetadataBase(),

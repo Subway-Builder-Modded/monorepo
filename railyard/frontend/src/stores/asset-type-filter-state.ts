@@ -1,9 +1,9 @@
-import { ASSET_TYPES, type AssetType } from '@sbm/railyard/lib/asset-types';
+import { ASSET_TYPES, type AssetType } from '@/lib/asset-types';
 import {
   DEFAULT_SORT_STATE,
   type PerPage,
   type SortState,
-} from '@sbm/railyard/lib/constants';
+} from '@/lib/constants';
 
 export interface AssetFilterFields {
   sort: SortState;

@@ -1,31 +1,12 @@
-# Ignore agentic files and directories
+railyard/build/bin
+node_modules
+railyard/frontend/dist
 .claude/
-
-# Dependencies
-node_modules/
-
-# Ignore cache and temporary files
 .gocache/
 .pnpm-store/
-.pnpm/
+railyard.claude/tmp/
 tmp/
-
-# Test coverage
-coverage/
+.tmp/
+coverage
 coverage_func.txt
-*.lcov
-
-# Build outputs
-dist/
-.next/
-out/
-build/bin/
-frontend/dist/
-
-# Environment and secrets
-*.env.local
-*.env.*.local
-
-# OS artifacts
-.DS_Store
-Thumbs.db
+$coverFile

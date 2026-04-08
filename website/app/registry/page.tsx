@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { loadRegistryAnalytics } from '@sbm/website/lib/registry-analytics';
-import { RegistryAnalyticsPage } from '@sbm/website/features/registry/components/registry-analytics-page';
-import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
+import { loadRegistryAnalytics } from '@/lib/registry-analytics';
+import { RegistryAnalyticsPage } from '@/features/registry/components/registry-analytics-page';
+import { buildEmbedMetadata } from '@/config/site/metadata';
 
 export const metadata: Metadata = buildEmbedMetadata({
   title: 'Registry',

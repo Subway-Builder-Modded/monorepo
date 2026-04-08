@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { SearchViewMode } from '@sbm/railyard/lib/search-view-mode';
+import type { SearchViewMode } from '@/lib/search-view-mode';
 import type {
   AssetQueryFilters,
   AssetQueryFilterStoreState,

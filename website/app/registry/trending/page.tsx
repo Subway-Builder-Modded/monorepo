@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
-import { RegistryTrendingPage } from '@sbm/website/features/registry/components/registry-trending-page';
+import { buildEmbedMetadata } from '@/config/site/metadata';
+import { RegistryTrendingPage } from '@/features/registry/components/registry-trending-page';
 import {
   loadAllListingDailyData,
   loadRegistryAnalytics,
-} from '@sbm/website/lib/registry-analytics';
+} from '@/lib/registry-analytics';
 
 export const metadata: Metadata = buildEmbedMetadata({
   title: 'Trending | Registry',

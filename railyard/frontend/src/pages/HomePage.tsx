@@ -16,29 +16,29 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 
-import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
-import { DiscoverSectionGrid } from '@sbm/railyard/components/homepage/DiscoverSectionGrid';
-import { PendingUpdateRow } from '@sbm/railyard/components/homepage/PendingUpdateRow';
-import { QuickNavCard } from '@sbm/railyard/components/homepage/QuickNavCard';
-import { SectionHeader } from '@sbm/railyard/components/homepage/SectionHeader';
-import { PageHeading } from '@sbm/railyard/components/shared/PageHeading';
-import { Badge } from '@sbm/shared/ui/badge';
-import { Button } from '@sbm/railyard/components/ui/button';
-import { Skeleton } from '@sbm/shared/ui/skeleton';
-import type { AssetType } from '@sbm/railyard/lib/asset-types';
-import { getLocalAccentClasses } from '@sbm/railyard/lib/local-accent';
+import { AppDialog } from '@/components/dialogs/AppDialog';
+import { DiscoverSectionGrid } from '@/components/homepage/DiscoverSectionGrid';
+import { PendingUpdateRow } from '@/components/homepage/PendingUpdateRow';
+import { QuickNavCard } from '@/components/homepage/QuickNavCard';
+import { SectionHeader } from '@/components/homepage/SectionHeader';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { AssetType } from '@/lib/asset-types';
+import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
-} from '@sbm/railyard/lib/subscription-mutation-ui';
+} from '@/lib/subscription-mutation-ui';
 import {
   indexPendingSubscriptionUpdates,
   type PendingUpdatesByKey,
   requestLatestSubscriptionUpdatesForActiveProfile,
-} from '@sbm/railyard/lib/subscription-updates';
-import { sortTaggedItemsByLastUpdated } from '@sbm/railyard/lib/tagged-items';
-import { cn } from '@sbm/railyard/lib/utils';
+} from '@/lib/subscription-updates';
+import { sortTaggedItemsByLastUpdated } from '@/lib/tagged-items';
+import { cn } from '@/lib/utils';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useRegistryStore } from '@/stores/registry-store';
 

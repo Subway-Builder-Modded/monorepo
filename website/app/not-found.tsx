@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { TrainFront } from 'lucide-react';
 
-import { LineBullet } from '@sbm/website/components/ui/line-bullet';
-import { buildNoEmbedMetadata } from '@sbm/website/config/site/metadata';
+import { LineBullet } from '@/components/ui/line-bullet';
+import { buildNoEmbedMetadata } from '@/config/site/metadata';
 
 const LINES = [
   { id: '4', color: '#419245' },

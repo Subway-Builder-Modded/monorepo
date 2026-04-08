@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { ChangelogPage } from '@sbm/website/features/railyard/components/changelog-page';
-import { buildNoEmbedMetadata } from '@sbm/website/config/site/metadata';
+import { ChangelogPage } from '@/features/railyard/components/changelog-page';
+import { buildNoEmbedMetadata } from '@/config/site/metadata';
 import {
   buildRailyardProjectEmbedMetadata,
   getRegistryStaticVersionParams,
-} from '@sbm/website/lib/railyard/registry.server';
+} from '@/lib/railyard/registry.server';
 
 export async function generateStaticParams(): Promise<
   { id: string; version: string }[]
