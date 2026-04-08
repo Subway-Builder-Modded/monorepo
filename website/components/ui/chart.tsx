@@ -19,6 +19,7 @@ import type {
   CartesianGridProps,
   LegendPayload,
   LegendProps,
+  TooltipProps as TooltipPrimitiveProps,
   XAxisProps as XAxisPropsPrimitive,
   YAxisProps as YAxisPrimitiveProps,
 } from 'recharts';
@@ -176,7 +177,7 @@ interface BaseChartProps<
   valueFormatter?: (value: number) => string;
 
   tooltip?: TooltipContentType<TValue, TName> | boolean;
-  tooltipProps?: Omit<ChartTooltipProps<TValue, TName>, 'content'> & {
+  tooltipProps?: Omit<ChartTooltipProps, 'content'> & {
     hideLabel?: boolean;
     labelSeparator?: boolean;
     hideIndicator?: boolean;
@@ -311,10 +312,7 @@ ${colorConfig
   );
 };
 
-type ChartTooltipProps<
-  TValue extends ValueType,
-  TName extends NameType,
-> = React.ComponentProps<typeof TooltipPrimitive<TValue, TName>>;
+type ChartTooltipProps = TooltipPrimitiveProps<ValueType, NameType>;
 
 const tooltipWrapperStyle = { outline: 'none' } as const;
 
@@ -332,9 +330,7 @@ const cursorStyleDefault = {
   fillOpacity: 0.5,
 } as const;
 
-const ChartTooltip = <TValue extends ValueType, TName extends NameType>(
-  props: ChartTooltipProps<TValue, TName>,
-) => {
+const ChartTooltip = (props: ChartTooltipProps) => {
   const { layout } = useChart();
   const cursorStyle =
     layout === 'radial' ? cursorStyleRadial : cursorStyleDefault;
