@@ -7,8 +7,8 @@ import { Slot } from 'radix-ui';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { cn } from '../../lib/utils';
 import { Button } from '../../components/ui/button';
-import { Input } from '@sbm/shared/ui/input';
-import { Separator } from '@sbm/shared/ui/separator';
+import { Input } from '../../components/ui/input';
+import { Separator } from '../../components/ui/separator';
 import {
   Sheet,
   SheetContent,
@@ -16,12 +16,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from '../../components/ui/sheet';
-import { Skeleton } from '@sbm/shared/ui/skeleton';
+import { Skeleton } from '../../components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@sbm/shared/ui/tooltip';
+} from '../../components/ui/tooltip';
 import { PanelLeftIcon } from 'lucide-react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';

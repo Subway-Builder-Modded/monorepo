@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 import { SettingRow } from '../../components/settings/SettingRow';
 import { SettingToggleButton } from '../../components/settings/SettingToggleButton';
-import { Badge } from '@sbm/shared/ui/badge';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import {
   Card,
@@ -12,7 +12,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@sbm/shared/ui/card';
+} from '../../components/ui/card';
 
 import {
   GetPlatform,

@@ -16,14 +16,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@sbm/shared/ui/card';
+} from '../../components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@sbm/shared/ui/select';
+} from '../../components/ui/select';
 import {
   isSearchViewMode,
   normalizeSearchViewMode,

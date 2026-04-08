@@ -8,7 +8,7 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '@sbm/shared/ui/stat';
+} from '../../../components/ui/stat';
 import type { RegistryAnalyticsData } from '../../../types/registry-analytics';
 
 const ICON_STYLE: CSSProperties = {

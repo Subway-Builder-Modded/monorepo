@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { ErrorBanner } from '../../components/shared/ErrorBanner';
 import { ItemCard } from '../../components/shared/ItemCard';
-import { Skeleton } from '@sbm/shared/ui/skeleton';
+import { Skeleton } from '../../components/ui/skeleton';
 import type { AssetType } from '../../lib/asset-types';
 import type { TaggedItem } from '../../lib/tagged-items';
 

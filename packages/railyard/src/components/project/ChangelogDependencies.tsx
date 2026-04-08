@@ -5,7 +5,7 @@ import { Link } from 'wouter';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { GalleryImage } from '../../components/shared/GalleryImage';
 import { SubwayBuilderIcon } from '../../components/shared/SubwayBuilderIcon';
-import { Badge } from '@sbm/shared/ui/badge';
+import { Badge } from '../../components/ui/badge';
 import type { AssetType } from '../../lib/asset-types';
 import { assetTypeToListingPath } from '../../lib/asset-types';
 

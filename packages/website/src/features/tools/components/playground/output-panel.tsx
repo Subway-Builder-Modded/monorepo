@@ -1,6 +1,6 @@
 import { Copy } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@sbm/shared/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@sbm/shared/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../../components/ui/tabs';
 import type { OutputMode } from '../../../../features/tools/components/playground/constants';
 
 export function PlaygroundOutputPanel({

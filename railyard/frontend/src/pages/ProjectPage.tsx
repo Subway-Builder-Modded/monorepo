@@ -15,8 +15,8 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from '@sbm/shared/ui/breadcrumb';
-import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
+} from '@sbm/railyard/components/ui/breadcrumb';
+import { ToggleGroup, ToggleGroupItem } from '@sbm/railyard/components/ui/toggle-group';
 import { listingPathToAssetType } from '@sbm/railyard/lib/asset-types';
 import { isCompatible } from '@sbm/railyard/lib/semver';
 import {

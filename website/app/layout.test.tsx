@@ -15,19 +15,13 @@ vi.mock('@sbm/website/components/ui/footer-bars', () => ({
   FooterBars: () => <div data-testid="footer-bars">Bars</div>,
 }));
 
-vi.mock(
-  '@sbm/website/components/app-shell/navigation/scroll-restoration',
-  () => ({
-    ScrollRestoration: () => <div data-testid="scroll-restoration" />,
-  }),
-);
+vi.mock('@sbm/website/components/app-shell/navigation/scroll-restoration', () => ({
+  ScrollRestoration: () => <div data-testid="scroll-restoration" />,
+}));
 
-vi.mock(
-  '@sbm/website/components/app-shell/theme/theme-hydration-script',
-  () => ({
-    ThemeHydrationScript: () => <script data-testid="theme-hydration-script" />,
-  }),
-);
+vi.mock('@sbm/website/components/app-shell/theme/theme-hydration-script', () => ({
+  ThemeHydrationScript: () => <script data-testid="theme-hydration-script" />,
+}));
 
 vi.mock('@sbm/website/components/app-shell/theme/theme-provider', () => ({
   ThemeProvider: ({ children }: { children: React.ReactNode }) => (
@@ -35,14 +29,11 @@ vi.mock('@sbm/website/components/app-shell/theme/theme-provider', () => ({
   ),
 }));
 
-vi.mock(
-  '@sbm/website/components/app-shell/theme/page-color-scheme-provider',
-  () => ({
-    PageColorSchemeProvider: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="page-color-scheme-provider">{children}</div>
-    ),
-  }),
-);
+vi.mock('@sbm/website/components/app-shell/theme/page-color-scheme-provider', () => ({
+  PageColorSchemeProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="page-color-scheme-provider">{children}</div>
+  ),
+}));
 
 describe('AppLayoutShell', () => {
   it('composes navbar, main content, and footer around children', () => {

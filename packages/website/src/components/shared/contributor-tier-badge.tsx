@@ -1,11 +1,11 @@
 import { CodeXml, Heart } from 'lucide-react';
-import { Badge } from '@sbm/shared/ui/badge';
+import { Badge } from '../../components/ui/badge';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@sbm/shared/ui/tooltip';
+} from '../../components/ui/tooltip';
 import { CONTRIBUTOR_TIER_STYLES } from '../../config/ui/contribute';
 import type { ContributorTier } from '../../types/registry';
 

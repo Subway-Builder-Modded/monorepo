@@ -21,7 +21,7 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '@sbm/shared/ui/stat';
+} from '../../../components/ui/stat';
 import type {
   DailyDataPoint,
   ListingType,

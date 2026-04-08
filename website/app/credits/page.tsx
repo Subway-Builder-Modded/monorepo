@@ -6,10 +6,7 @@ import remarkGfm from 'remark-gfm';
 
 import { PageHeader } from '@sbm/website/components/shared/page-header';
 import { ThemedShowcaseCard } from '@sbm/website/components/ui/themed-showcase-card';
-import {
-  CREDIT_SECTIONS,
-  type CreditSection,
-} from '@sbm/website/config/content/credits';
+import { CREDIT_SECTIONS, type CreditSection } from '@sbm/website/config/content/credits';
 import { buildEmbedMetadata } from '@sbm/website/config/site/metadata';
 import { CREDITS_PAGE_CONTENT } from '@sbm/website/config/ui/site-content';
 import { hexAlpha } from '@sbm/website/lib/color';

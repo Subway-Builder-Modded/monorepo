@@ -13,14 +13,14 @@ import { toast } from 'sonner';
 import { Link } from 'wouter';
 
 import { AppDialog } from '../../components/dialogs/AppDialog';
-import { Badge } from '@sbm/shared/ui/badge';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@sbm/shared/ui/tooltip';
+} from '../../components/ui/tooltip';
 import type { AssetType } from '../../lib/asset-types';
 import { assetTypeToListingPath } from '../../lib/asset-types';
 import { getLocalAccentClasses } from '../../lib/local-accent';

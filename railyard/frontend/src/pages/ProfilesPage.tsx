@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { AppDialog } from '@sbm/railyard/components/dialogs/AppDialog';
 import { PageHeading } from '@sbm/railyard/components/shared/PageHeading';
 import { Button } from '@sbm/railyard/components/ui/button';
-import { Input } from '@sbm/shared/ui/input';
+import { Input } from '@sbm/railyard/components/ui/input';
 import { useProfilesState } from '@sbm/railyard/hooks/use-profile-dialogs';
 import { getLocalAccentClasses } from '@sbm/railyard/lib/local-accent';
 import { isProfileSwapUnavailable } from '@sbm/railyard/lib/profile-swap';

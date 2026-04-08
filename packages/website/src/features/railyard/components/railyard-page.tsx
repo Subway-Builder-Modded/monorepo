@@ -37,11 +37,11 @@ import {
   MarqueeContent,
   MarqueeEdge,
   MarqueeItem,
-} from '@sbm/shared/ui/marquee';
-import { Card } from '@sbm/shared/ui/card';
+} from '../../../components/ui/marquee';
+import { Card } from '../../../components/ui/card';
 import { LineBullet } from '../../../components/ui/line-bullet';
-import { Badge } from '@sbm/shared/ui/badge';
-import { Separator } from '@sbm/shared/ui/separator';
+import { Badge } from '../../../components/ui/badge';
+import { Separator } from '../../../components/ui/separator';
 import {
   LANDING_HERO_COPY,
   interpolateHeroText,

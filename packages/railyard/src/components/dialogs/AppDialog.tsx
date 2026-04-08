@@ -9,7 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@sbm/shared/ui/dialog';
+} from '../../components/ui/dialog';
 import {
   getLocalAccentClasses,
   getToneVarsClass,

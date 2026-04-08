@@ -22,9 +22,9 @@ import { PendingUpdateRow } from '@sbm/railyard/components/homepage/PendingUpdat
 import { QuickNavCard } from '@sbm/railyard/components/homepage/QuickNavCard';
 import { SectionHeader } from '@sbm/railyard/components/homepage/SectionHeader';
 import { PageHeading } from '@sbm/railyard/components/shared/PageHeading';
-import { Badge } from '@sbm/shared/ui/badge';
+import { Badge } from '@sbm/railyard/components/ui/badge';
 import { Button } from '@sbm/railyard/components/ui/button';
-import { Skeleton } from '@sbm/shared/ui/skeleton';
+import { Skeleton } from '@sbm/railyard/components/ui/skeleton';
 import type { AssetType } from '@sbm/railyard/lib/asset-types';
 import { getLocalAccentClasses } from '@sbm/railyard/lib/local-accent';
 import {

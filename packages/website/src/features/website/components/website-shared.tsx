@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Search } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
+import { ToggleGroup, ToggleGroupItem } from '../../../components/ui/toggle-group';
 import { PROJECT_COLOR_SCHEMES } from '../../../config/theme/colors';
 import { cn } from '../../../lib/utils';
 import type { WebsiteAnalyticsPeriod } from '../../../types/website-analytics';

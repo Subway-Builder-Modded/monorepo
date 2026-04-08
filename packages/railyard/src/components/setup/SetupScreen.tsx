@@ -14,8 +14,8 @@ import { type ChangeEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '../../components/ui/button';
-import { Card } from '@sbm/shared/ui/card';
-import { Input } from '@sbm/shared/ui/input';
+import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
 import { cn } from '../../lib/utils';
 import type { types } from '@railyard-app/wailsjs/go/models';
 

@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@sbm/shared/ui/card';
+} from '../../components/ui/card';
 import { cn } from '../../lib/utils';
 import type { SubscriptionTier } from '../../config/ui/contribute';
 

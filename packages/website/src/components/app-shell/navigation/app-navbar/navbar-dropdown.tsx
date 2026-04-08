@@ -5,7 +5,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@sbm/shared/ui/dropdown-menu';
+} from '../../../../components/ui/dropdown-menu';
 import { AppIcon } from '../../../../components/shared/app-icon';
 import type { AppNavbarItem } from '../../../../config/navigation/navbar';
 import { cn } from '../../../../lib/utils';
