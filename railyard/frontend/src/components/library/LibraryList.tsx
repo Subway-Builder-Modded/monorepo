@@ -1,3 +1,4 @@
+import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import {
   CircleFadingArrowUp,
   FolderOpen,
@@ -13,8 +14,6 @@ import { AppDialog } from '@/components/dialogs/AppDialog';
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import type { AssetType } from '@/lib/asset-types';

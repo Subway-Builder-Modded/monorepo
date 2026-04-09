@@ -1,3 +1,4 @@
+import { Badge, Button, Skeleton } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ArrowDownToLine,
@@ -21,9 +22,6 @@ import { AppDialog } from '@/components/dialogs/AppDialog';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { SortableHeaderCell } from '@/components/shared/SortableHeaderCell';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,

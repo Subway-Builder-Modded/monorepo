@@ -1,24 +1,22 @@
-import { AlertTriangle, Settings } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
-
-import { SettingRow } from '@/components/settings/SettingRow';
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@subway-builder-modded/shared-ui';
+import { AlertTriangle, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+import { SettingRow } from '@/components/settings/SettingRow';
 import { useConfigStore } from '@/stores/config-store';
 import { useProfileStore } from '@/stores/profile-store';
 

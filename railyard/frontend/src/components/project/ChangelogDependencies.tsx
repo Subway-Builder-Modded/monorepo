@@ -1,3 +1,4 @@
+import { Badge } from '@subway-builder-modded/shared-ui';
 import { ExternalLink, Loader2, Package } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'wouter';
@@ -5,7 +6,6 @@ import { Link } from 'wouter';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { SubwayBuilderIcon } from '@/components/shared/SubwayBuilderIcon';
-import { Badge } from '@/components/ui/badge';
 import type { AssetType } from '@/lib/asset-types';
 import { assetTypeToListingPath } from '@/lib/asset-types';
 import { useRegistryStore } from '@/stores/registry-store';

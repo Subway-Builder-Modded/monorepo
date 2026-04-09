@@ -1,16 +1,16 @@
 'use client';
 
-import { Command as CommandPrimitive } from 'cmdk';
-import { SearchIcon } from 'lucide-react';
-import * as React from 'react';
-
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@subway-builder-modded/shared-ui';
+import { Command as CommandPrimitive } from 'cmdk';
+import { SearchIcon } from 'lucide-react';
+import * as React from 'react';
+
 import { cn } from '@/lib/utils';
 
 function Command({

@@ -1,8 +1,8 @@
+import { Skeleton } from '@subway-builder-modded/shared-ui';
 import { useEffect, useRef, useState } from 'react';
 
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { ItemCard } from '@/components/shared/ItemCard';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { AssetType } from '@/lib/asset-types';
 import type { TaggedItem } from '@/lib/tagged-items';
 

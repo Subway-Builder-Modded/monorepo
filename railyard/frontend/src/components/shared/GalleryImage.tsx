@@ -1,6 +1,6 @@
+import { Skeleton } from '@subway-builder-modded/shared-ui';
 import { MapPin, Package } from 'lucide-react';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { useGalleryImage } from '@/hooks/use-gallery-image';
 import type { AssetType } from '@/lib/asset-types';
 import { cn } from '@/lib/utils';

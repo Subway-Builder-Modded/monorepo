@@ -1,10 +1,13 @@
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  Skeleton,
+} from '@subway-builder-modded/shared-ui';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { EmptyState } from '@/components/shared/EmptyState';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 
 import { GetGalleryImageResponse } from '../../../wailsjs/go/registry/Registry';

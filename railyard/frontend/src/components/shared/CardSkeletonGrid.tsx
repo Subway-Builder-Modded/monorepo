@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@subway-builder-modded/shared-ui';
 
 import { ResponsiveCardGrid } from './ResponsiveCardGrid';
 

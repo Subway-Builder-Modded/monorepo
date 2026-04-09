@@ -1,3 +1,4 @@
+import { Button } from '@subway-builder-modded/shared-ui';
 import { BookText, Megaphone } from 'lucide-react';
 
 import { DiscordIcon, GitHubIcon } from '@/components/icons/social-icons';
@@ -5,7 +6,6 @@ import {
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from '@/components/layout/layout-shell';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';

@@ -1,9 +1,9 @@
+import { Badge } from '@subway-builder-modded/shared-ui';
 import { CheckCircle, Download, MapPin, Package, Users } from 'lucide-react';
 import { memo } from 'react';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
 
-import { Badge } from '@/components/ui/badge';
 import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 import { formatListingDescriptionPreview } from '@/lib/description-preview';
 import { getCountryFlagIcon } from '@/lib/flags';

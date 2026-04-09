@@ -1,6 +1,6 @@
+import { Button } from '@subway-builder-modded/shared-ui';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,

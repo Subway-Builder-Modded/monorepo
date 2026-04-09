@@ -1,3 +1,4 @@
+import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ChartLine,
@@ -20,8 +21,6 @@ import { toast } from 'sonner';
 import { AppDialog } from '@/components/dialogs/AppDialog';
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
