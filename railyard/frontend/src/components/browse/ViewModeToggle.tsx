@@ -1,6 +1,6 @@
+import { ToggleGroup, ToggleGroupItem } from '@subway-builder-modded/shared-ui';
 import { Rows3, SquareMenu, TableProperties } from 'lucide-react';
 
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { isSearchViewMode, type SearchViewMode } from '@/lib/search-view-mode';
 import { cn } from '@/lib/utils';
 

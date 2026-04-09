@@ -2,6 +2,7 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @plugin "@tailwindcss/typography";
+@source "../../../packages/shared-ui/src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -109,6 +110,11 @@
   --warning-primary: var(--local-files);
   --folder-primary: var(--local-files);
   --installed-primary: var(--local-install);
+
+  /* shared-ui action token aliases */
+  --action-success: var(--install-primary);
+  --action-danger: var(--uninstall-primary);
+  --action-danger-foreground: var(--uninstall-foreground);
 }
 
 .railyard-accent {
@@ -201,6 +207,11 @@
   --warning-primary: var(--local-files);
   --folder-primary: var(--local-files);
   --installed-primary: var(--local-install);
+
+  /* shared-ui action token aliases */
+  --action-success: var(--install-primary);
+  --action-danger: var(--uninstall-primary);
+  --action-danger-foreground: var(--uninstall-foreground);
 }
 
 .crystal .railyard-accent {
@@ -343,6 +354,11 @@
   --warning-primary: var(--local-files);
   --folder-primary: var(--local-files);
   --installed-primary: var(--local-install);
+
+  /* shared-ui action token aliases */
+  --action-success: var(--install-primary);
+  --action-danger: var(--uninstall-primary);
+  --action-danger-foreground: var(--uninstall-foreground);
 }
 
 .coffee .railyard-accent {

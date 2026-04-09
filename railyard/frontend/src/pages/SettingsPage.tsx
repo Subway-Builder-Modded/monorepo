@@ -1,3 +1,4 @@
+import { Badge } from '@subway-builder-modded/shared-ui';
 import { CircleUser, Settings } from 'lucide-react';
 import { useEffect } from 'react';
 
@@ -10,7 +11,6 @@ import {
 import { SystemPreferencesPanel } from '@/components/settings/SystemPreferencesPanel';
 import { UIPreferencesPanel } from '@/components/settings/UIPreferencesPanel';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { Badge } from '@/components/ui/badge';
 import { useProfileStore } from '@/stores/profile-store';
 import { useUIStore } from '@/stores/ui-store';
 

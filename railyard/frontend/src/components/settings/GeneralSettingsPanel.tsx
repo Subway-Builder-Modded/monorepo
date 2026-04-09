@@ -1,4 +1,20 @@
 import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+} from '@subway-builder-modded/shared-ui';
+import {
   FolderOpen,
   FolderSearch,
   Gamepad2,
@@ -10,24 +26,6 @@ import { toast } from 'sonner';
 
 import { SettingRow } from '@/components/settings/SettingRow';
 import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { useConfigStore } from '@/stores/config-store';
 

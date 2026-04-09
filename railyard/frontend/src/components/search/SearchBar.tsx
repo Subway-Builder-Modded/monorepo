@@ -1,6 +1,6 @@
+import { Button } from '@subway-builder-modded/shared-ui';
 import { Search, X } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 
 interface SearchBarProps {

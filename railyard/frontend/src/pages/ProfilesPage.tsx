@@ -1,3 +1,4 @@
+import { Button, Input } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -13,8 +14,6 @@ import { toast } from 'sonner';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useProfilesState } from '@/hooks/use-profile-dialogs';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isProfileSwapUnavailable } from '@/lib/profile-swap';

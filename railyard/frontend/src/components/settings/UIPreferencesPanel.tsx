@@ -1,3 +1,10 @@
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@subway-builder-modded/shared-ui';
 import { ChevronDown, LayoutGrid, Monitor, Palette } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -10,13 +17,6 @@ import {
 } from '@/components/settings/ControlWrapper';
 import { SettingRow } from '@/components/settings/SettingRow';
 import { ThemePicker, type ThemeValue } from '@/components/shared/ThemePicker';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import {
   Select,
   SelectContent,

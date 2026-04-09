@@ -1,18 +1,18 @@
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@subway-builder-modded/shared-ui';
 import { CircleFadingArrowUp, Database, Shield, Terminal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { SettingRow } from '@/components/settings/SettingRow';
 import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { useProfileStore } from '@/stores/profile-store';
 
 import {

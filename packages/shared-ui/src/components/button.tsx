@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/cn';
 
 type ButtonVariant =
   | 'default'
@@ -46,7 +46,7 @@ const buttonVariants = cva(
         secondary:
           'rounded-lg border border-transparent bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
         destructive:
-          'rounded-lg border border-transparent bg-[var(--uninstall-primary)] text-[var(--uninstall-foreground)] shadow-xs hover:opacity-90',
+          'rounded-lg border border-transparent bg-[var(--action-danger)] text-[var(--action-danger-foreground)] shadow-xs hover:opacity-90',
         outline:
           'rounded-lg border border-border bg-transparent text-foreground shadow-xs hover:bg-muted/40',
         ghost:
@@ -80,7 +80,8 @@ const buttonVariants = cva(
 type ButtonStyleProps = VariantProps<typeof buttonVariants>;
 
 export interface ButtonProps
-  extends React.ComponentProps<'button'>, Omit<ButtonStyleProps, 'size'> {
+  extends React.ComponentProps<'button'>,
+    Omit<ButtonStyleProps, 'size'> {
   asChild?: boolean;
   intent?: ButtonIntent;
   variant?: ButtonVariant;

@@ -1,4 +1,5 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@subway-builder-modded/shared-ui';
+
 import { cn } from '@/lib/utils';
 
 export type ThemeValue =

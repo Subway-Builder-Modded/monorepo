@@ -1,3 +1,4 @@
+import { Badge, Button, Skeleton } from '@subway-builder-modded/shared-ui';
 import {
   ArrowRight,
   CheckCircle2,
@@ -22,9 +23,6 @@ import { PendingUpdateRow } from '@/components/homepage/PendingUpdateRow';
 import { QuickNavCard } from '@/components/homepage/QuickNavCard';
 import { SectionHeader } from '@/components/homepage/SectionHeader';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { AssetType } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import {

@@ -1,9 +1,4 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { type ClassValue, cn } from '@subway-builder-modded/shared-ui';
 
 /** Join OS path segments, stripping redundant separators (handles both / and \). */
 export function joinOsPath(...parts: string[]): string {

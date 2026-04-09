@@ -1,4 +1,11 @@
 import {
+  Badge,
+  Button,
+  Skeleton,
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@subway-builder-modded/shared-ui';
+import {
   AlertTriangle,
   ArrowDownToLine,
   ArrowLeft,
@@ -28,10 +35,6 @@ import { AppDialog } from '@/components/dialogs/AppDialog';
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   Tooltip,
   TooltipContent,

@@ -1,3 +1,4 @@
+import { Separator } from '@subway-builder-modded/shared-ui';
 import {
   BadgeCheck,
   ChevronDown,
@@ -16,7 +17,6 @@ import {
 } from 'react';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
 import type { AssetType } from '@/lib/asset-types';
 import { filterVisibleListingValues } from '@/lib/listing-counts';
 import {

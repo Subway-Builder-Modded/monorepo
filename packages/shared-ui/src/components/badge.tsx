@@ -2,7 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';
 import * as React from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/cn';
 
 const badgeVariants = cva(
   [
@@ -19,9 +19,9 @@ const badgeVariants = cva(
         secondary:
           'bg-background/50 text-muted-foreground [a&]:hover:bg-muted/40',
         success:
-          'border-[color-mix(in_oklab,var(--install-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--install-primary)_14%,transparent)] text-[var(--install-primary)] [a&]:hover:bg-[color-mix(in_oklab,var(--install-primary)_22%,transparent)]',
+          'border-[color-mix(in_oklab,var(--action-success)_35%,transparent)] bg-[color-mix(in_oklab,var(--action-success)_14%,transparent)] text-[var(--action-success)] [a&]:hover:bg-[color-mix(in_oklab,var(--action-success)_22%,transparent)]',
         destructive:
-          'border-[color-mix(in_oklab,var(--uninstall-primary)_35%,transparent)] bg-[color-mix(in_oklab,var(--uninstall-primary)_14%,transparent)] text-[var(--uninstall-primary)] [a&]:hover:bg-[color-mix(in_oklab,var(--uninstall-primary)_22%,transparent)]',
+          'border-[color-mix(in_oklab,var(--action-danger)_35%,transparent)] bg-[color-mix(in_oklab,var(--action-danger)_14%,transparent)] text-[var(--action-danger)] [a&]:hover:bg-[color-mix(in_oklab,var(--action-danger)_22%,transparent)]',
         outline: 'bg-transparent text-muted-foreground [a&]:hover:bg-muted/35',
         ghost:
           'border-transparent bg-transparent text-muted-foreground [a&]:hover:bg-muted/35',

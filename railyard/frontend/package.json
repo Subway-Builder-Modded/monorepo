@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@subway-builder-modded/config": "workspace:*",
+    "@subway-builder-modded/shared-ui": "workspace:*",
     "@tailwindcss/vite": "^4.2.1",
     "@types/semver": "^7.7.1",
     "class-variance-authority": "^0.7.1",
