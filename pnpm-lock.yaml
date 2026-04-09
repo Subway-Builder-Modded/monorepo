@@ -31,7 +31,24 @@ importers:
 
   packages/asset-listings-state: {}
 
-  packages/asset-listings-ui: {}
+  packages/asset-listings-ui:
+    dependencies:
+      '@subway-builder-modded/shared-ui':
+        specifier: workspace:*
+        version: link:../shared-ui
+      lucide-react:
+        specifier: '>=0.4'
+        version: 0.577.0(react@18.3.1)
+      react:
+        specifier: '>=18'
+        version: 18.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^19
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.14)
 
   packages/config: {}
 
@@ -76,6 +93,9 @@ importers:
 
   railyard/frontend:
     dependencies:
+      '@subway-builder-modded/asset-listings-ui':
+        specifier: workspace:*
+        version: link:../../packages/asset-listings-ui
       '@subway-builder-modded/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -233,6 +253,9 @@ importers:
       '@shikijs/transformers':
         specifier: ^4.0.1
         version: 4.0.2
+      '@subway-builder-modded/asset-listings-ui':
+        specifier: workspace:*
+        version: link:../packages/asset-listings-ui
       '@subway-builder-modded/config':
         specifier: workspace:*
         version: link:../packages/config

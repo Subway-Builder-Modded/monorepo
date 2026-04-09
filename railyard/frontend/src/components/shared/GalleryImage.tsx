@@ -1,53 +1,35 @@
-import { Skeleton } from '@subway-builder-modded/shared-ui';
-import { MapPin, Package } from 'lucide-react';
+import {
+  GalleryImage as SharedGalleryImage,
+  type GalleryImageProps as SharedGalleryImageProps,
+} from '@subway-builder-modded/asset-listings-ui';
 
 import { useGalleryImage } from '@/hooks/use-gallery-image';
 import type { AssetType } from '@/lib/asset-types';
-import { cn } from '@/lib/utils';
 
-interface GalleryImageProps {
+interface GalleryImageProps extends Omit<
+  SharedGalleryImageProps,
+  'type' | 'imageUrl' | 'loading' | 'error' | 'resolveImageUrl'
+> {
   type: AssetType;
-  id: string;
-  imagePath?: string;
-  className?: string;
-  /** Override the fallback icon size. Defaults to `h-12 w-12`. */
-  fallbackIconClassName?: string;
 }
 
 export function GalleryImage({
   type,
   id,
   imagePath,
-  className,
-  fallbackIconClassName = 'h-12 w-12',
+  ...props
 }: GalleryImageProps) {
   const { imageUrl, loading, error } = useGalleryImage(type, id, imagePath);
-  const FallbackIcon = type === 'mod' ? Package : MapPin;
-
-  if (loading) {
-    return <Skeleton className={cn('w-full', className)} />;
-  }
-
-  if (!imageUrl || error) {
-    return (
-      <div
-        className={cn(
-          'w-full flex items-center justify-center bg-muted',
-          className,
-        )}
-      >
-        <FallbackIcon
-          className={cn('text-muted-foreground', fallbackIconClassName)}
-        />
-      </div>
-    );
-  }
 
   return (
-    <img
-      src={imageUrl}
-      alt=""
-      className={cn('w-full object-cover', className)}
+    <SharedGalleryImage
+      type={type}
+      id={id}
+      imagePath={imagePath}
+      imageUrl={imageUrl}
+      loading={loading}
+      error={error}
+      {...props}
     />
   );
 }

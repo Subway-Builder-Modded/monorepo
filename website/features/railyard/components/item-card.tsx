@@ -1,24 +1,18 @@
 'use client';
 
-import { CheckCircle, Download, MapPin, Package, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-
-import { AuthorName } from '@/components/shared/author-name';
 import { GalleryImage } from '@/features/railyard/components/gallery-image';
-import { Badge } from '@/components/ui/badge';
+import { AuthorName } from '@/components/shared/author-name';
 import {
   type AssetType,
   assetTypeToListingPath,
 } from '@/lib/railyard/asset-types';
-import { getCountryFlagIcon } from '@/lib/railyard/flags';
-import { formatDataQuality } from '@/lib/railyard/map-filter-values';
-import { MAX_CARD_BADGES } from '@/lib/railyard/search';
 import type { SearchViewMode } from '@/lib/railyard/search-view-mode';
-import { cn } from '@/lib/utils';
 import type { MapManifest, ModManifest } from '@/types/registry';
+import { ItemCard as SharedItemCard } from '@subway-builder-modded/asset-listings-ui';
 
-interface ItemCardProps {
+interface ItemCardWrapperProps {
   type: AssetType;
   item: ModManifest | MapManifest;
   installedVersion?: string;
@@ -26,168 +20,8 @@ interface ItemCardProps {
   viewMode?: SearchViewMode;
 }
 
-interface ItemCardPresentation {
-  isMap: boolean;
-  badges: string[];
-  mapCityCode: string;
-  mapCountry: string;
-  mapPopulation?: number;
-  CountryFlag: ReturnType<typeof getCountryFlagIcon> | null;
-  showDownloads: boolean;
-}
-
 function isMapManifest(item: ModManifest | MapManifest): item is MapManifest {
   return 'city_code' in item;
-}
-
-function buildItemCardPresentation(
-  item: ModManifest | MapManifest,
-  totalDownloads?: number,
-): ItemCardPresentation {
-  const isMap = isMapManifest(item);
-  const mapBadges = isMap
-    ? [
-        item.location,
-        formatDataQuality(item.source_quality ?? ''),
-        item.level_of_detail,
-        ...(item.special_demand ?? []),
-      ].filter((value): value is string => Boolean(value))
-    : [];
-
-  const mapCityCode = isMap ? (item.city_code ?? '').trim() : '';
-  const mapCountry = isMap ? (item.country ?? '').trim().toUpperCase() : '';
-
-  return {
-    isMap,
-    badges: isMap ? mapBadges : (item.tags ?? []),
-    mapCityCode,
-    mapCountry,
-    mapPopulation: isMap ? item.population : undefined,
-    CountryFlag: isMap ? getCountryFlagIcon(mapCountry) : null,
-    showDownloads: typeof totalDownloads === 'number',
-  };
-}
-
-function MapLocationMeta({
-  cityCode,
-  country,
-  CountryFlag,
-}: {
-  cityCode: string;
-  country: string;
-  CountryFlag: ReturnType<typeof getCountryFlagIcon> | null;
-}) {
-  if (!cityCode && !country) return null;
-
-  return (
-    <div className="shrink-0 text-right">
-      {cityCode && (
-        <span className="block text-xs font-mono font-bold text-foreground leading-none">
-          {cityCode}
-        </span>
-      )}
-      {country && (
-        <span className="inline-flex items-center justify-end gap-1 text-xs text-muted-foreground">
-          {CountryFlag && <CountryFlag className="h-3 w-4 rounded-[1px]" />}
-          <span>{country.toUpperCase()}</span>
-        </span>
-      )}
-    </div>
-  );
-}
-
-function ItemStats({
-  isMap,
-  population,
-  showDownloads,
-  totalDownloads,
-  className,
-}: {
-  isMap: boolean;
-  population?: number;
-  showDownloads: boolean;
-  totalDownloads?: number;
-  className?: string;
-}) {
-  if (!(isMap && (population ?? 0) > 0) && !showDownloads) return null;
-
-  return (
-    <div
-      className={cn(
-        'flex flex-col gap-1 text-xs text-muted-foreground shrink-0',
-        className,
-      )}
-    >
-      {isMap && (population ?? 0) > 0 && (
-        <StatMetric icon={Users} value={population ?? 0} />
-      )}
-      {showDownloads && (
-        <StatMetric icon={Download} value={totalDownloads ?? 0} />
-      )}
-    </div>
-  );
-}
-
-function StatMetric({
-  icon: Icon,
-  value,
-  className,
-}: {
-  icon: typeof Users | typeof Download;
-  value: number;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        'flex items-center gap-1 text-xs text-muted-foreground',
-        className,
-      )}
-    >
-      <Icon className="h-3 w-3" aria-hidden="true" />
-      <span>{value.toLocaleString()}</span>
-    </div>
-  );
-}
-
-function ItemBadges({
-  badges,
-  align = 'right',
-  compact = false,
-  wrap = true,
-}: {
-  badges: string[];
-  align?: 'left' | 'right';
-  compact?: boolean;
-  wrap?: boolean;
-}) {
-  if (badges.length === 0) return null;
-
-  const justifyClass = align === 'left' ? 'justify-start' : 'justify-end';
-  const badgeClassName = compact
-    ? 'text-[11px] px-1.5 py-0 h-5'
-    : 'text-xs px-1.5 py-0';
-
-  return (
-    <div
-      className={cn(
-        'flex gap-1',
-        wrap ? 'flex-wrap' : 'flex-nowrap overflow-hidden',
-        justifyClass,
-      )}
-    >
-      {badges.slice(0, MAX_CARD_BADGES).map((badge) => (
-        <Badge key={badge} variant="secondary" className={badgeClassName}>
-          {badge}
-        </Badge>
-      ))}
-      {badges.length > MAX_CARD_BADGES && (
-        <Badge variant="outline" className={badgeClassName}>
-          +{badges.length - MAX_CARD_BADGES}
-        </Badge>
-      )}
-    </div>
-  );
 }
 
 export function ItemCard({
@@ -196,8 +30,8 @@ export function ItemCard({
   installedVersion,
   totalDownloads,
   viewMode = 'full',
-}: ItemCardProps) {
-  const presentation = buildItemCardPresentation(item, totalDownloads);
+}: ItemCardWrapperProps) {
+  const isMap = isMapManifest(item);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const from = searchParams.toString()
@@ -205,257 +39,52 @@ export function ItemCard({
     : pathname;
   const href = `/railyard/${assetTypeToListingPath(type)}/${item.id}?from=${encodeURIComponent(from)}`;
 
-  if (viewMode === 'list') {
-    return (
-      <Link href={href} className="block w-full">
-        <article
-          className={cn(
-            'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm',
-            installedVersion && 'ring-1 ring-primary/40',
-          )}
-        >
-          <div className="flex flex-col sm:flex-row">
-            <div className="relative h-44 sm:h-36 sm:w-48 md:w-52 overflow-hidden bg-muted shrink-0">
-              {installedVersion && (
-                <div className="absolute top-2 right-2 z-10">
-                  <Badge className="gap-1 text-xs shadow-sm">
-                    <CheckCircle className="h-2.5 w-2.5" />
-                    {installedVersion}
-                  </Badge>
-                </div>
-              )}
-              <div className="absolute top-2 left-2 z-10">
-                <span className="inline-flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border/50 text-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-                  {presentation.isMap ? (
-                    <MapPin className="h-2.5 w-2.5" />
-                  ) : (
-                    <Package className="h-2.5 w-2.5" />
-                  )}
-                  {presentation.isMap ? 'Map' : 'Mod'}
-                </span>
-              </div>
-              <GalleryImage
-                type={assetTypeToListingPath(type)}
-                id={item.id}
-                imagePath={item.gallery?.[0]}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              />
-            </div>
-
-            <div className="flex flex-col flex-1 p-3 gap-2 min-w-0">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-sm leading-snug text-foreground truncate">
-                    {item.name}
-                  </h3>
-                  <div className="mt-0.5 flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-                    <span className="shrink-0">by</span>
-                    <AuthorName
-                      author={item}
-                      className="min-w-0 max-w-full"
-                      nameClassName="truncate"
-                    />
-                  </div>
-                </div>
-                {presentation.isMap && (
-                  <MapLocationMeta
-                    cityCode={presentation.mapCityCode}
-                    country={presentation.mapCountry}
-                    CountryFlag={presentation.CountryFlag}
-                  />
-                )}
-              </div>
-
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-1">
-                {item.description}
-              </p>
-
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mt-auto">
-                <ItemStats
-                  isMap={presentation.isMap}
-                  population={presentation.mapPopulation}
-                  showDownloads={presentation.showDownloads}
-                  totalDownloads={totalDownloads}
-                />
-                <ItemBadges
-                  badges={presentation.badges}
-                  align="left"
-                  wrap={false}
-                />
-              </div>
-            </div>
-          </div>
-        </article>
-      </Link>
-    );
-  }
-
-  if (viewMode === 'compact') {
-    const hasMapPopulation =
-      presentation.isMap && (presentation.mapPopulation ?? 0) > 0;
-    const hasDownloads = presentation.showDownloads;
-
-    return (
-      <Link href={href} className="block w-full">
-        <article
-          className={cn(
-            'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
-            installedVersion && 'ring-1 ring-primary/40',
-          )}
-        >
-          <div className="relative aspect-[16/10] overflow-hidden bg-muted shrink-0">
-            {installedVersion && (
-              <div className="absolute top-2 right-2 z-10">
-                <Badge className="gap-1 text-[11px] h-5 px-1.5 shadow-sm">
-                  <CheckCircle className="h-2.5 w-2.5" />
-                  {installedVersion}
-                </Badge>
-              </div>
-            )}
-            <div className="absolute top-2 left-2 z-10">
-              <span className="inline-flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border/50 text-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-                {presentation.isMap ? (
-                  <MapPin className="h-2.5 w-2.5" />
-                ) : (
-                  <Package className="h-2.5 w-2.5" />
-                )}
-                {presentation.isMap ? 'Map' : 'Mod'}
-              </span>
-            </div>
-            <GalleryImage
-              type={assetTypeToListingPath(type)}
-              id={item.id}
-              imagePath={item.gallery?.[0]}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            />
-          </div>
-
-          <div className="flex flex-col flex-1 p-3 gap-2.5">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm leading-snug text-foreground truncate">
-                  {item.name}
-                </h3>
-                <div className="mt-0.5 flex min-w-0 items-center gap-1 text-[11px] text-muted-foreground">
-                  <span className="shrink-0">by</span>
-                  <AuthorName
-                    author={item}
-                    className="min-w-0 max-w-full"
-                    nameClassName="truncate"
-                  />
-                </div>
-              </div>
-              {presentation.isMap && (
-                <MapLocationMeta
-                  cityCode={presentation.mapCityCode}
-                  country={presentation.mapCountry}
-                  CountryFlag={presentation.CountryFlag}
-                />
-              )}
-            </div>
-
-            <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 flex-1">
-              {item.description}
-            </p>
-
-            {(hasDownloads || hasMapPopulation) && (
-              <div className="flex items-end justify-between gap-2 mt-auto min-h-4">
-                <div className="min-w-0">
-                  {hasDownloads && (
-                    <StatMetric icon={Download} value={totalDownloads ?? 0} />
-                  )}
-                </div>
-                <div className="min-w-0 text-right">
-                  {hasMapPopulation && (
-                    <StatMetric
-                      icon={Users}
-                      value={presentation.mapPopulation ?? 0}
-                      className="justify-end"
-                    />
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </article>
-      </Link>
-    );
-  }
-
   return (
-    <Link href={href} className="block w-full">
-      <article
-        className={cn(
-          'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
-          installedVersion && 'ring-1 ring-primary/40',
-        )}
-      >
-        <div className="relative aspect-video overflow-hidden bg-muted shrink-0">
-          {installedVersion && (
-            <div className="absolute top-2 right-2 z-10">
-              <Badge className="gap-1 text-xs shadow-sm">
-                <CheckCircle className="h-2.5 w-2.5" />
-                {installedVersion}
-              </Badge>
-            </div>
-          )}
-          <div className="absolute top-2 left-2 z-10">
-            <span className="inline-flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border/50 text-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-              {presentation.isMap ? (
-                <MapPin className="h-2.5 w-2.5" />
-              ) : (
-                <Package className="h-2.5 w-2.5" />
-              )}
-              {presentation.isMap ? 'Map' : 'Mod'}
-            </span>
-          </div>
-          <GalleryImage
-            type={assetTypeToListingPath(type)}
-            id={item.id}
-            imagePath={item.gallery?.[0]}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-        </div>
-
-        <div className="flex flex-col flex-1 p-4 gap-3">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-sm leading-snug text-foreground truncate">
-                {item.name}
-              </h3>
-              <div className="mt-0.5 flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-                <span className="shrink-0">by</span>
-                <AuthorName
-                  author={item}
-                  className="min-w-0 max-w-full"
-                  nameClassName="truncate"
-                />
-              </div>
-            </div>
-            {presentation.isMap && (
-              <MapLocationMeta
-                cityCode={presentation.mapCityCode}
-                country={presentation.mapCountry}
-                CountryFlag={presentation.CountryFlag}
-              />
-            )}
-          </div>
-
-          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 flex-1">
-            {item.description}
-          </p>
-
-          <div className="flex items-end justify-between gap-2 mt-auto">
-            <ItemStats
-              isMap={presentation.isMap}
-              population={presentation.mapPopulation}
-              showDownloads={presentation.showDownloads}
-              totalDownloads={totalDownloads}
-            />
-            <ItemBadges badges={presentation.badges} />
-          </div>
-        </div>
-      </article>
-    </Link>
+    <SharedItemCard
+      type={type === 'map' ? 'map' : 'mod'}
+      id={item.id}
+      name={item.name}
+      author={{
+        author_alias: item.author,
+        contributor_tier: undefined,
+      }}
+      gallery={item.gallery}
+      description={item.description}
+      city_code={isMap ? (item as MapManifest).city_code : undefined}
+      country={isMap ? (item as MapManifest).country : undefined}
+      location={isMap ? (item as MapManifest).location : undefined}
+      source_quality={isMap ? (item as MapManifest).source_quality : undefined}
+      level_of_detail={
+        isMap ? (item as MapManifest).level_of_detail : undefined
+      }
+      special_demand={isMap ? (item as MapManifest).special_demand : undefined}
+      tags={!isMap ? (item as ModManifest).tags : undefined}
+      population={isMap ? (item as MapManifest).population : undefined}
+      installedVersion={installedVersion}
+      totalDownloads={totalDownloads}
+      viewMode={viewMode}
+      href={href}
+      imagePath={item.gallery?.[0]}
+      renderImage={({ type, id, imagePath, className }) => (
+        <GalleryImage
+          type={type === 'mod' ? 'mods' : 'maps'}
+          id={id}
+          imagePath={imagePath}
+          className={className}
+        />
+      )}
+      renderLink={({ href, children }) => (
+        <Link href={href} className="block w-full">
+          {children}
+        </Link>
+      )}
+      renderAuthorName={() => (
+        <AuthorName
+          author={item}
+          className="min-w-0 max-w-full"
+          nameClassName="truncate"
+        />
+      )}
+    />
   );
 }

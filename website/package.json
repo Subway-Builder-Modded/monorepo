@@ -24,6 +24,7 @@
     "ci": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
+    "@subway-builder-modded/asset-listings-ui": "workspace:*",
     "@subway-builder-modded/config": "workspace:*",
     "@subway-builder-modded/shared-ui": "workspace:*",
     "@base-ui/react": "^1.2.0",

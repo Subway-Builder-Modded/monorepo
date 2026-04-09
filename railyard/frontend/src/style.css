@@ -3,6 +3,7 @@
 @import 'shadcn/tailwind.css';
 @plugin "@tailwindcss/typography";
 @source "../../../packages/shared-ui/src";
+@source "../../../packages/asset-listings-ui/src";
 
 @custom-variant dark (&:is(.dark *));
 
