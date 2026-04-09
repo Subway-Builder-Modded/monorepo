@@ -37,6 +37,7 @@ This repository is managed as a **pnpm workspace**. A single `pnpm install` from
 pnpm install
 
 # Run quality checks for each app
+pnpm run ci
 pnpm run check:website
 pnpm run check:railyard-frontend
 ```
