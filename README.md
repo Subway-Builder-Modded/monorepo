@@ -22,10 +22,10 @@ This repository is managed as a **pnpm workspace**. A single `pnpm install` from
 | Package | Path | Description |
 |---|---|---|
 | `@subway-builder-modded/config` | `packages/config` | Shared workspace constants |
-| `@subway-builder-modded/ui` | `packages/ui` | Shared React UI components |
-| `@subway-builder-modded/domain-ui` | `packages/domain-ui` | Domain-specific UI components |
+| `@subway-builder-modded/shared-ui` | `packages/shared-ui` | Shared React UI components |
+| `@subway-builder-modded/asset-listings-ui` | `packages/asset-listings-ui` | Asset listing UI components |
 | `@subway-builder-modded/stores-core` | `packages/stores-core` | Core Zustand store definitions |
-| `@subway-builder-modded/stores-platform` | `packages/stores-platform` | Platform-specific store extensions |
+| `@subway-builder-modded/asset-listings-state` | `packages/asset-listings-state` | Asset listing state and store extensions |
 | `@subway-builder-modded/lifecycle-core` | `packages/lifecycle-core` | Shared lifecycle hooks |
 | `@subway-builder-modded/lifecycle-web` | `packages/lifecycle-web` | Web-specific lifecycle hooks |
 | `@subway-builder-modded/lifecycle-wails` | `packages/lifecycle-wails` | Wails-specific lifecycle hooks |

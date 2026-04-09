@@ -12,10 +12,10 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
-      '@subway-builder-modded/ui',
-      '@subway-builder-modded/domain-ui',
+      '@subway-builder-modded/shared-ui',
+      '@subway-builder-modded/asset-listings-ui',
       '@subway-builder-modded/stores-core',
-      '@subway-builder-modded/stores-platform',
+      '@subway-builder-modded/asset-listings-state',
       '@subway-builder-modded/lifecycle-core',
       '@subway-builder-modded/lifecycle-web',
       '@subway-builder-modded/lifecycle-wails',

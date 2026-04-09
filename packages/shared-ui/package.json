@@ -1,5 +1,5 @@
 {
-  "name": "@subway-builder-modded/ui",
+  "name": "@subway-builder-modded/shared-ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",

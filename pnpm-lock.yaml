@@ -29,9 +29,11 @@ importers:
         specifier: ^3.3.0
         version: 3.3.0
 
-  packages/config: {}
+  packages/asset-listings-state: {}
 
-  packages/domain-ui: {}
+  packages/asset-listings-ui: {}
+
+  packages/config: {}
 
   packages/lifecycle-core: {}
 
@@ -39,11 +41,9 @@ importers:
 
   packages/lifecycle-web: {}
 
+  packages/shared-ui: {}
+
   packages/stores-core: {}
-
-  packages/stores-platform: {}
-
-  packages/ui: {}
 
   railyard/frontend:
     dependencies:
