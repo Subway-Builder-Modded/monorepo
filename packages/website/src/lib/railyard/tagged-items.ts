@@ -5,7 +5,7 @@ import {
   getLastUpdated,
   getTotalDownloads,
   type TaggedItem as SharedTaggedItem,
-} from '@sbm/shared/railyard-core/tagged-items';
+} from '@sbm/core/railyard/core/tagged-items';
 
 import type { SortState } from '../../lib/railyard/constants';
 import type { MapManifest, ModManifest } from '../../types/registry';

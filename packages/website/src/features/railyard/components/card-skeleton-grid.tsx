@@ -1,2 +1,2 @@
-export { CardSkeletonGrid } from '@sbm/shared/railyard-ui/shared/card-skeleton-grid';
+export { CardSkeletonGrid } from '@sbm/core/railyard/ui/shared/card-skeleton-grid';
 

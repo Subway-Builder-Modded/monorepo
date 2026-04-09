@@ -5,8 +5,8 @@ import {
   AssetSidebarPanel as SharedAssetSidebarPanel,
   type AssetSidebarPanelProps as SharedAssetSidebarPanelProps,
   SIDEBAR_CONTENT_OFFSET,
-} from '@sbm/shared/railyard-ui/shared/asset-sidebar-panel';
-import type { SharedFilterState } from '@sbm/shared/railyard-core/filter-state';
+} from '@sbm/core/railyard/ui/shared/asset-sidebar-panel';
+import type { SharedFilterState } from '@sbm/core/railyard/core/filter-state';
 
 import type {
   SearchFilterState,

@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
 import { PageHeader } from '../../../components/shared/page-header';
-import { ToggleGroup, ToggleGroupItem } from '@sbm/shared/ui/toggle-group';
+import { ToggleGroup, ToggleGroupItem } from '@sbm/core/shared/ui/toggle-group';
 import type {
   RegistryAnalyticsData,
   RegistryListingDailyRow,

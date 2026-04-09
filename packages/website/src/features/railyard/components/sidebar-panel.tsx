@@ -3,5 +3,5 @@ export {
   SIDEBAR_CONTENT_OFFSET,
   SidebarPanel,
   type SidebarPanelProps,
-} from '@sbm/shared/railyard-ui/shared/sidebar-panel';
+} from '@sbm/core/railyard/ui/shared/sidebar-panel';
 

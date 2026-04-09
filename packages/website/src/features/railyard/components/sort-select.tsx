@@ -3,7 +3,7 @@
 import {
   type SharedSortSelectProps,
   SharedSortSelect,
-} from '@sbm/shared/railyard-ui/shared/sort-select';
+} from '@sbm/core/railyard/ui/shared/sort-select';
 import type { AssetType } from '../../../lib/railyard/asset-types';
 import {
   DEFAULT_SORT_STATE,

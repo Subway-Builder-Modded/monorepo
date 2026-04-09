@@ -7,7 +7,7 @@
     "./*": "./src/*"
   },
   "dependencies": {
-    "@sbm/shared": "workspace:*"
+    "@sbm/core": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=19",

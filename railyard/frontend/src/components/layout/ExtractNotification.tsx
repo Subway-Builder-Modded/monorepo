@@ -1,16 +1,9 @@
-import { CheckCircle, Package } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
-import {
-  TOAST_PROGRESS_FILL_CLASS,
-  TOAST_PROGRESS_TRACK_CLASS,
-  TOAST_QUEUE_LABEL_CLASS,
-} from './notification-classes';
-
 interface ExtractProgress {
   itemId: string;
   amountExtracted: number;
@@ -33,22 +26,11 @@ export function ExtractNotification() {
           const queueLabel =
             queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
 
-          toast(
-            <div className="flex flex-col gap-1.5 w-full">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
-                  <span className="text-sm font-medium truncate">
-                    Extracted {itemId}
-                  </span>
-                </div>
-                {queueLabel && (
-                  <span className={TOAST_QUEUE_LABEL_CLASS}>{queueLabel}</span>
-                )}
-              </div>
-            </div>,
-            { id: existingId, duration: 2000 },
-          );
+          toast.success(`Extracted ${itemId}`, {
+            id: existingId,
+            duration: 2000,
+            description: queueLabel ? `Queue ${queueLabel}` : undefined,
+          });
           toastIds.current.delete(itemId);
         }
         return;
@@ -58,38 +40,23 @@ export function ExtractNotification() {
       const queueLabel =
         queueTotal > 1 ? `${completed + 1}/${queueTotal}` : null;
 
-      const description = `Extracting\u2026 (${amountExtracted} / ${total})`;
-
-      const toastContent = (
-        <div className="flex flex-col gap-2 w-full">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Package className="h-4 w-4 shrink-0" />
-              <span className="text-sm font-medium truncate">
-                Extracting {itemId}
-              </span>
-            </div>
-            {queueLabel && (
-              <span className={TOAST_QUEUE_LABEL_CLASS}>{queueLabel}</span>
-            )}
-          </div>
-          <div className="text-xs text-muted-foreground">{description}</div>
-          {total !== amountExtracted && (
-            <div className={TOAST_PROGRESS_TRACK_CLASS}>
-              <div
-                className={TOAST_PROGRESS_FILL_CLASS}
-                style={{ width: `${(amountExtracted / total) * 100}%` }}
-              />
-            </div>
-          )}
-        </div>
-      );
+      const description = `Extracting... (${amountExtracted} / ${total})`;
+      const fullDescription = queueLabel
+        ? `${description} • Queue ${queueLabel}`
+        : description;
 
       const existingId = toastIds.current.get(itemId);
       if (existingId) {
-        toast(toastContent, { id: existingId, duration: Infinity });
+        toast.loading(`Extracting ${itemId}`, {
+          id: existingId,
+          duration: Infinity,
+          description: fullDescription,
+        });
       } else {
-        const id = toast(toastContent, { duration: Infinity });
+        const id = toast.loading(`Extracting ${itemId}`, {
+          duration: Infinity,
+          description: fullDescription,
+        });
         toastIds.current.set(itemId, id);
       }
     });

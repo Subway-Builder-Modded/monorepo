@@ -2,15 +2,13 @@
 
 import { Bars2Icon } from '@heroicons/react/20/solid';
 import { createContext, use, useCallback, useMemo, useState } from 'react';
-import type { LinkProps } from 'react-aria-components';
-import { Link } from 'react-aria-components';
 import { twJoin, twMerge } from 'tailwind-merge';
 import { useIsMobile } from '../../hooks/use-mobile';
-import { cx } from '../../lib/primitive';
 import { Button, type ButtonProps } from './button';
-import { Separator } from '@sbm/shared/ui/separator';
+import { Link, type LinkProps } from './link';
+import { Separator } from '@sbm/core/shared/ui/separator';
 import { Sheet, SheetBody, SheetContent } from './sheet';
-import { sharedNavbarStickyShellClass } from '@sbm/shared/ui/navbar-shell';
+import { sharedNavbarStickyShellClass } from '@sbm/core/shared/ui/navbar-shell';
 
 interface NavbarContextProps {
   open: boolean;
@@ -213,55 +211,55 @@ const NavbarSection = ({
   );
 };
 
-interface NavbarItemProps extends LinkProps {
+interface NavbarItemProps extends Omit<LinkProps, 'children'> {
   isCurrent?: boolean;
+  children?: React.ReactNode | ((values: { isCurrent: boolean }) => React.ReactNode);
 }
 
 const NavbarItem = ({ className, isCurrent, ...props }: NavbarItemProps) => {
+  const content =
+    typeof props.children === 'function'
+      ? props.children({ isCurrent: Boolean(isCurrent) })
+      : props.children;
+
   return (
     <Link
       data-slot="navbar-item"
       aria-current={isCurrent ? 'page' : undefined}
-      className={cx(
-        [
-          'href' in props ? 'cursor-pointer' : 'cursor-default',
-          'aria-[current=page]:text-primary aria-[current=page]:bg-accent/45 aria-[current=page]*:data-[slot=icon]:text-primary',
-          'col-span-full flex items-center gap-x-2',
-          'relative min-w-0 items-center gap-x-3 rounded-lg p-2 text-start font-semibold text-base/6 md:gap-x-(--navbar-gutter) md:px-[clamp(0.45rem,0.95vw,0.7rem)] md:py-[clamp(0.4rem,0.82vw,0.56rem)] md:text-[clamp(0.8rem,0.95vw,0.9rem)]',
-          '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:text-muted-fg md:*:data-[slot=icon]:size-4',
-          '*:data-[slot=loader]:size-5 *:data-[slot=loader]:shrink-0 md:*:data-[slot=loader]:size-4',
-          '*:not-nth-2:last:data-[slot=icon]:row-start-1 *:not-nth-2:last:data-[slot=icon]:ms-auto *:not-nth-2:last:data-[slot=icon]:size-5 md:*:not-nth-2:last:data-[slot=icon]:size-4',
-          '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-6 md:*:data-[slot=avatar]:size-5',
-          'outline-hidden focus-visible:inset-ring focus-visible:inset-ring-ring focus-visible:ring-2 focus-visible:ring-ring/20',
-          'text-start disabled:cursor-default disabled:opacity-50',
-          'no-underline transition-colors duration-150 ease-out',
-          'hover:bg-accent/45 active:bg-accent/50',
-          'text-muted-fg hover:text-primary active:text-primary',
-          'transition-all duration-200 ease-[cubic-bezier(.22,.9,.35,1)]',
-          '*:data-[slot=icon]:text-muted-fg hover:*:data-[slot=icon]:text-primary active:*:data-[slot=icon]:text-primary',
-        ],
+      className={twMerge(
+        props.href ? 'cursor-pointer' : 'cursor-default',
+        'aria-[current=page]:text-primary aria-[current=page]:bg-accent/45 aria-[current=page]*:data-[slot=icon]:text-primary',
+        'col-span-full flex items-center gap-x-2',
+        'relative min-w-0 items-center gap-x-3 rounded-lg p-2 text-start font-semibold text-base/6 md:gap-x-(--navbar-gutter) md:px-[clamp(0.45rem,0.95vw,0.7rem)] md:py-[clamp(0.4rem,0.82vw,0.56rem)] md:text-[clamp(0.8rem,0.95vw,0.9rem)]',
+        '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 *:data-[slot=icon]:text-muted-fg md:*:data-[slot=icon]:size-4',
+        '*:data-[slot=loader]:size-5 *:data-[slot=loader]:shrink-0 md:*:data-[slot=loader]:size-4',
+        '*:not-nth-2:last:data-[slot=icon]:row-start-1 *:not-nth-2:last:data-[slot=icon]:ms-auto *:not-nth-2:last:data-[slot=icon]:size-5 md:*:not-nth-2:last:data-[slot=icon]:size-4',
+        '*:data-[slot=avatar]:-m-0.5 *:data-[slot=avatar]:size-6 md:*:data-[slot=avatar]:size-5',
+        'outline-hidden focus-visible:inset-ring focus-visible:inset-ring-ring focus-visible:ring-2 focus-visible:ring-ring/20',
+        'text-start disabled:cursor-default disabled:opacity-50',
+        'no-underline transition-colors duration-150 ease-out',
+        'hover:bg-accent/45 active:bg-accent/50',
+        'text-muted-fg hover:text-primary active:text-primary',
+        'transition-all duration-200 ease-[cubic-bezier(.22,.9,.35,1)]',
+        '*:data-[slot=icon]:text-muted-fg hover:*:data-[slot=icon]:text-primary active:*:data-[slot=icon]:text-primary',
         className,
       )}
       {...props}
     >
-      {(values) => (
-        <>
-          {typeof props.children === 'function'
-            ? props.children(values)
-            : props.children}
+      <>
+        {content}
 
-          {(isCurrent || values.isCurrent) && (
-            <span
-              data-slot="current-indicator"
-              className={twJoin(
-                'absolute rounded-full bg-primary [--gutter:--spacing(0.5)]',
-                'inset-y-[calc(var(--navbar-gutter)---spacing(0.5))] -start-4 w-(--gutter) md:inset-y-auto md:w-auto',
-                'md:inset-x-2 md:-bottom-[0.38rem] md:h-1',
-              )}
-            />
-          )}
-        </>
-      )}
+        {Boolean(isCurrent) && (
+          <span
+            data-slot="current-indicator"
+            className={twJoin(
+              'absolute rounded-full bg-primary [--gutter:--spacing(0.5)]',
+              'inset-y-[calc(var(--navbar-gutter)---spacing(0.5))] -start-4 w-(--gutter) md:inset-y-auto md:w-auto',
+              'md:inset-x-2 md:-bottom-[0.38rem] md:h-1',
+            )}
+          />
+        )}
+      </>
     </Link>
   );
 };
@@ -374,7 +372,7 @@ const NavbarTrigger = ({
       intent="plain"
       aria-label={props['aria-label'] || 'Toggle Navbar'}
       size="sq-sm"
-      className={cx('-ms-2 lg:hidden', className)}
+      className={twMerge('-ms-2 lg:hidden', className as string | undefined)}
       onPress={(event) => {
         onPress?.(event);
         toggleNavbar();

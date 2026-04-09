@@ -3,7 +3,7 @@
 import {
   SearchBar as SharedSearchBar,
   type SearchBarProps as SharedSearchBarProps,
-} from '@sbm/shared/railyard-ui/shared/search-bar';
+} from '@sbm/core/railyard/ui/shared/search-bar';
 
 import { SEARCH_BAR_PLACEHOLDER } from '../../../lib/railyard/search';
 

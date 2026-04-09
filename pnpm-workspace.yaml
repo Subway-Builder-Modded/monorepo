@@ -1,7 +1,8 @@
 packages:
   - website
   - railyard/frontend
-  - packages/*
+  - packages/core
+  - packages/website
 
 ignoredBuiltDependencies:
   - sharp

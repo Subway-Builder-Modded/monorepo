@@ -1,7 +1,7 @@
 'use client';
 
 import { GalleryImage } from '../../../features/railyard/components/gallery-image';
-import { ProjectGallery as SharedProjectGallery } from '@sbm/shared/project/project-gallery';
+import { ProjectGallery as SharedProjectGallery } from '@sbm/core/railyard/project/project-gallery';
 
 interface ProjectGalleryProps {
   type: 'mods' | 'maps';

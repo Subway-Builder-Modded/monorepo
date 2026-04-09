@@ -3,4 +3,4 @@ export {
   buildAssetListingCounts,
   filterVisibleListingValues,
   type AssetListingCounts,
-} from '@sbm/shared/railyard-core/listing-counts';
+} from '@sbm/core/railyard/core/listing-counts';

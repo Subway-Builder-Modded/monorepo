@@ -16,7 +16,7 @@ import {
   StatIndicator,
   StatLabel,
   StatValue,
-} from '@sbm/shared/ui/stat';
+} from '@sbm/core/shared/ui/stat';
 import type {
   DailyDataPoint,
   RegistryAnalyticsData,

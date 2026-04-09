@@ -1,4 +1,7 @@
 {
   "name": "subway-builder-modded-monorepo",
-  "private": true
+  "private": true,
+  "scripts": {
+    "postinstall": "node scripts/fix-client-only.js"
+  }
 }

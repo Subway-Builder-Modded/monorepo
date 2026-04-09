@@ -3,7 +3,7 @@
 import {
   Pagination as SharedPagination,
   type PaginationProps as SharedPaginationProps,
-} from '@sbm/shared/railyard-ui/shared/pagination';
+} from '@sbm/core/railyard/ui/shared/pagination';
 
 import { PER_PAGE_OPTIONS, type PerPage } from '../../../lib/railyard/constants';
 

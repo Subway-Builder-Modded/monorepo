@@ -1,6 +1,6 @@
 'use client';
 
-import { GalleryImageDisplay } from '@sbm/shared/railyard-ui/shared/gallery-image-display';
+import { GalleryImageDisplay } from '@sbm/core/railyard/ui/shared/gallery-image-display';
 
 import { useGalleryImage } from '../../../hooks/use-gallery-image';
 import type { AssetType } from '../../../lib/railyard/asset-types';

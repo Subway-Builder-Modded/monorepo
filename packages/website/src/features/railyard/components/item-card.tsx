@@ -2,9 +2,9 @@
 
 import {
   ItemCard as SharedItemCard,
-} from '@sbm/shared/railyard-ui/shared/item-card';
-import type { SharedItemData } from '@sbm/shared/railyard-core/shared-item';
-import { assetTypeToListingPath } from '@sbm/shared/railyard-core/asset-types';
+} from '@sbm/core/railyard/ui/shared/item-card';
+import type { SharedItemData } from '@sbm/core/railyard/core/shared-item';
+import { assetTypeToListingPath } from '@sbm/core/railyard/core/asset-types';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 

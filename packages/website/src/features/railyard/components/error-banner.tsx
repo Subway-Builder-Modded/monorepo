@@ -1,2 +1,2 @@
-export { ErrorBanner } from '@sbm/shared/railyard-ui/shared/error-banner';
+export { ErrorBanner } from '@sbm/core/railyard/ui/shared/error-banner';
 

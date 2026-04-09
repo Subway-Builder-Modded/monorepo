@@ -5,16 +5,16 @@ import { CheckCircle2, MessageSquarePlus, X } from 'lucide-react';
 
 import { cn } from '../../lib/utils';
 import { Avatar } from '../../components/ui/avatar';
-import { Badge } from '@sbm/shared/ui/badge';
+import { Badge } from '@sbm/core/shared/ui/badge';
 import { Button } from '../../components/ui/button';
-import { Separator } from '@sbm/shared/ui/separator';
-import { Textarea } from '@sbm/shared/ui/textarea';
+import { Separator } from '@sbm/core/shared/ui/separator';
+import { Textarea } from '@sbm/core/shared/ui/textarea';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@sbm/shared/ui/tooltip';
+} from '@sbm/core/shared/ui/tooltip';
 
 type Line =
   | { kind: 'hunk'; content: string }

@@ -17,9 +17,9 @@ import rehypeRaw from 'rehype-raw';
 
 import { EmptyState } from '../../../features/railyard/components/empty-state';
 import { ErrorBanner } from '../../../features/railyard/components/error-banner';
-import { Badge } from '@sbm/shared/ui/badge';
+import { Badge } from '@sbm/core/shared/ui/badge';
 import { Button } from '../../../components/ui/button';
-import { Skeleton } from '@sbm/shared/ui/skeleton';
+import { Skeleton } from '@sbm/core/shared/ui/skeleton';
 import { useRegistryItem } from '../../../hooks/use-registry-item';
 import { useVersions } from '../../../hooks/use-versions';
 import { fetchRegistryJsonWithFallback } from '../../../lib/railyard/registry-source';

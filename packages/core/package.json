@@ -1,0 +1,48 @@
+{
+  "name": "@sbm/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./shared/ui/*": "./src/shared/ui/*",
+    "./shared/hooks/*": "./src/shared/hooks/*",
+    "./shared/utils/*": "./src/shared/utils/*",
+    "./shared/components/*": "./src/shared/components/*",
+    "./railyard/core/*": "./src/railyard/core/*",
+    "./railyard/ui/*": "./src/railyard/ui/*",
+    "./railyard/lib/*": "./src/railyard/lib/*",
+    "./railyard/hooks/*": "./src/railyard/hooks/*",
+    "./railyard/components/*": "./src/railyard/components/*",
+    "./railyard/types/*": "./src/railyard/types/*",
+    "./railyard/project/*": "./src/railyard/project/*",
+    "./ui/*": "./src/shared/ui/*",
+    "./hooks/*": "./src/shared/hooks/*",
+    "./utils/*": "./src/shared/utils/*",
+    "./shared/*": "./src/shared/components/*",
+    "./railyard-core/*": "./src/railyard/core/*",
+    "./railyard-ui/*": "./src/railyard/ui/*",
+    "./project/*": "./src/railyard/project/*"
+  },
+  "peerDependencies": {
+    "cmdk": ">=1.1.1",
+    "class-variance-authority": ">=0.7.0",
+    "country-flag-icons": ">=1.5.0",
+    "embla-carousel-react": ">=8.6.0",
+    "lucide-react": ">=0.575.0",
+    "radix-ui": ">=1.0.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "cmdk": "^1.1.1",
+    "class-variance-authority": "^0.7.1",
+    "country-flag-icons": "^1.5.16",
+    "embla-carousel-react": "^8.6.0",
+    "lucide-react": "^0.577.0",
+    "radix-ui": "^1.3.2",
+    "react": "^19.2.0",
+    "typescript": "^5.9.3"
+  }
+}

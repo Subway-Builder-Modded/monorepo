@@ -4,8 +4,8 @@ import { useMemo } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '../../lib/utils';
-import { Label } from '@sbm/shared/ui/label';
-import { Separator } from '@sbm/shared/ui/separator';
+import { Label } from '@sbm/core/shared/ui/label';
+import { Separator } from '@sbm/core/shared/ui/separator';
 
 function FieldSet({ className, ...props }: React.ComponentProps<'fieldset'>) {
   return (

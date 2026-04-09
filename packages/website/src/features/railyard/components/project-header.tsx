@@ -13,8 +13,8 @@ import {
   isExternalHref,
 } from '../../../lib/authors';
 import type { MapManifest, ModManifest, VersionInfo } from '../../../types/registry';
-import { ProjectHeader as SharedProjectHeader } from '@sbm/shared/project/project-header';
-import type { SharedItemData } from '@sbm/shared/railyard-core/shared-item';
+import { ProjectHeader as SharedProjectHeader } from '@sbm/core/railyard/project/project-header';
+import type { SharedItemData } from '@sbm/core/railyard/core/shared-item';
 
 interface ProjectHeaderProps {
   type: 'mods' | 'maps';

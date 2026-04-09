@@ -13,7 +13,7 @@ import {
   Success,
   Tip,
   Warning,
-} from '@sbm/shared/ui/admonition';
+} from '@sbm/core/shared/ui/admonition';
 
 export const mdxAdmonitionComponents: MDXComponents = {
   Admonition,

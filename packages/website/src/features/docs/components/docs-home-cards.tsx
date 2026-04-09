@@ -31,7 +31,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@sbm/shared/ui/card';
+} from '@sbm/core/shared/ui/card';
 import { cn } from '../../../lib/utils';
 
 const ICONS = {

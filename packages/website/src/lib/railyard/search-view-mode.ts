@@ -1,2 +1,2 @@
-export * from '@sbm/shared/railyard-core/search-view-mode';
+export * from '@sbm/core/railyard/core/search-view-mode';
 

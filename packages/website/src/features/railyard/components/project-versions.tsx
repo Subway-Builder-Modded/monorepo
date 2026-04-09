@@ -8,11 +8,11 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@sbm/shared/ui/tooltip';
+} from '@sbm/core/shared/ui/tooltip';
 import { cn } from '../../../lib/utils';
 import type { VersionInfo } from '../../../types/registry';
-import { ProjectVersions as SharedProjectVersions } from '@sbm/shared/project/project-versions';
-import type { SharedVersionInfo } from '@sbm/shared/railyard-core/shared-item';
+import { ProjectVersions as SharedProjectVersions } from '@sbm/core/railyard/project/project-versions';
+import type { SharedVersionInfo } from '@sbm/core/railyard/core/shared-item';
 
 interface ProjectVersionsProps {
   type: 'mods' | 'maps';
