@@ -1,4 +1,4 @@
-name: Website Build
+name: Website CI
 
 on:
   pull_request:
