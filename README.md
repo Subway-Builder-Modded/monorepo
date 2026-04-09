@@ -13,6 +13,36 @@
 
 ---
 
+## Workspace
+
+This repository is managed as a **pnpm workspace**. A single `pnpm install` from the repo root installs dependencies for all projects — you never need to `cd` into a sub-package just to install.
+
+### Workspace packages
+
+| Package | Path | Description |
+|---|---|---|
+| `@subway-builder-modded/config` | `packages/config` | Shared workspace constants |
+| `@subway-builder-modded/ui` | `packages/ui` | Shared React UI components |
+| `@subway-builder-modded/domain-ui` | `packages/domain-ui` | Domain-specific UI components |
+| `@subway-builder-modded/stores-core` | `packages/stores-core` | Core Zustand store definitions |
+| `@subway-builder-modded/stores-platform` | `packages/stores-platform` | Platform-specific store extensions |
+| `@subway-builder-modded/lifecycle-core` | `packages/lifecycle-core` | Shared lifecycle hooks |
+| `@subway-builder-modded/lifecycle-web` | `packages/lifecycle-web` | Web-specific lifecycle hooks |
+| `@subway-builder-modded/lifecycle-wails` | `packages/lifecycle-wails` | Wails-specific lifecycle hooks |
+
+### Root scripts
+
+```bash
+# Install all workspace dependencies
+pnpm install
+
+# Run quality checks for each app
+pnpm run check:website
+pnpm run check:railyard-frontend
+```
+
+---
+
 <p align="center">
   <img width="128" height="128" alt="train-track" src="https://github.com/user-attachments/assets/914ab1b4-d5f7-47a6-91dd-58304ac45970" />
   <img width="128" height="128" alt="globe" src="https://github.com/user-attachments/assets/ff2b1eee-91d1-4621-965e-e8e75eef29c5" />
@@ -50,10 +80,11 @@
 ### Getting Started
 
 ```bash
-# Install frontend dependencies
-cd frontend && pnpm install && cd ..
+# From the repo root — installs all workspace packages in one step
+pnpm install
 
-# Run in development mode (hot reload)
+# Run in development mode (hot reload) — from the railyard/ directory
+cd railyard
 wails dev
 
 # Build for production
@@ -63,7 +94,8 @@ wails build
 ### Quality Checks
 
 ```bash
-# Run full pre-push checks manually (backend + frontend)
+# Run full pre-push checks manually (backend + frontend) — from railyard/
+cd railyard
 pwsh -File ./scripts/pre-push-check.ps1
 
 # Optional: enforce checks automatically before every git push
@@ -104,14 +136,18 @@ The pre-push check includes:
 ### Getting Started
 
 ```bash
-cd website
+# From the repo root — installs all workspace packages in one step
 pnpm install
+
+# Start the development server
+cd website
 pnpm run dev
 ```
 
 ### Quality Checks
 
 ```bash
+# Run lint, formatting check, unit tests, and coverage
 cd website
 pnpm run check
 ```

@@ -1,0 +1,12 @@
+{
+  "name": "subway-builder-modded-workspace",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "install:workspace": "pnpm install --frozen-lockfile",
+    "check:website": "pnpm --dir website run check",
+    "check:railyard": "pnpm --dir railyard/frontend run check",
+    "ci": "pnpm run --dir website ci && pnpm run --dir railyard/frontend ci"
+  }
+}

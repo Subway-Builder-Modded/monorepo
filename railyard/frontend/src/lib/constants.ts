@@ -1,4 +1,11 @@
+import {
+  WORKSPACE_NAME,
+  WORKSPACE_VERSION,
+} from '@subway-builder-modded/config';
+
 import type { AssetType } from '@/lib/asset-types';
+
+export { WORKSPACE_NAME, WORKSPACE_VERSION };
 
 export const PER_PAGE_OPTIONS = [12, 24, 48] as const;
 export type PerPage = (typeof PER_PAGE_OPTIONS)[number];

@@ -24,6 +24,7 @@
     "ci": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
+    "@subway-builder-modded/config": "workspace:*",
     "@base-ui/react": "^1.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
@@ -90,7 +91,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "eslint-config-prettier": "^10.1.8",
@@ -101,6 +102,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "unified": "^11.0.5",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.0"
   }
 }

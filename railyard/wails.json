@@ -2,9 +2,9 @@
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "railyard",
   "outputfilename": "railyard",
-  "frontend:install": "pnpm install",
-  "frontend:build": "pnpm run build",
-  "frontend:dev:watcher": "pnpm run dev",
+  "frontend:install": "pnpm --dir .. install --frozen-lockfile",
+  "frontend:build": "pnpm --dir frontend run build",
+  "frontend:dev:watcher": "pnpm --dir frontend run dev",
   "frontend:dev:serverUrl": "auto",
   "preBuildHooks": {
     "windows/*": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $roots = @(); if ($env:WAILS_PROJECT_DIR) { $roots += $env:WAILS_PROJECT_DIR }; if ($env:WAILS_APPDIR) { $roots += $env:WAILS_APPDIR }; $roots += (Resolve-Path '.').Path; $c = @(); foreach ($r in $roots) { $c += (Join-Path $r 'scripts/generate-version.ps1') }; $c += @('scripts/generate-version.ps1','../scripts/generate-version.ps1','../../scripts/generate-version.ps1','../../../scripts/generate-version.ps1'); foreach ($p in $c) { if (Test-Path $p) { & $p; exit 0 } }; throw 'scripts/generate-version.ps1 not found. cwd=' + (Resolve-Path '.').Path }\""

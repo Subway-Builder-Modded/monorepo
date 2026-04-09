@@ -10,6 +10,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    exclude: [
+      '@subway-builder-modded/ui',
+      '@subway-builder-modded/domain-ui',
+      '@subway-builder-modded/stores-core',
+      '@subway-builder-modded/stores-platform',
+      '@subway-builder-modded/lifecycle-core',
+      '@subway-builder-modded/lifecycle-web',
+      '@subway-builder-modded/lifecycle-wails',
+      '@subway-builder-modded/config',
+    ],
+  },
   test: {
     environment: 'node',
     coverage: {

@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "railyard/**"
+      - "packages/**"
       - ".githooks/pre-push"
       - ".github/workflows/ci.yml"
   push:
@@ -11,6 +12,7 @@ on:
       - main
     paths:
       - "railyard/**"
+      - "packages/**"
       - ".githooks/pre-push"
       - ".github/workflows/ci.yml"
 
@@ -53,13 +55,13 @@ jobs:
         with:
           node-version: "20"
           cache: "pnpm"
-          cache-dependency-path: railyard/frontend/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Verify pnpm
         run: pnpm --version
 
       - name: Install frontend dependencies
-        working-directory: railyard/frontend
+        working-directory: .
         run: pnpm install --frozen-lockfile
 
       - name: Run frontend quality checks

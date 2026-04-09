@@ -5,3 +5,5 @@
 .gocache/
 .pnpm-store/
 tmp/
+
+node_modules/
