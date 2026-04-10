@@ -2,35 +2,20 @@
 
 import { MapPin, Package } from 'lucide-react';
 
-import { SidebarFilters } from '@/features/railyard/components/sidebar-filters';
 import {
-  SIDEBAR_CONTENT_OFFSET,
-  SidebarPanel,
-} from '@/features/railyard/components/sidebar-panel';
-import type { SearchFilterState } from '@/hooks/use-filtered-items';
+  SidebarFilters,
+  type SidebarFiltersProps,
+} from '@/features/railyard/components/sidebar-filters';
+import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import type { AssetType } from '@/lib/railyard/asset-types';
 import { cn } from '@/lib/utils';
-import type { Dispatch, SetStateAction } from 'react';
 
-export { SIDEBAR_CONTENT_OFFSET };
-
-export interface AssetSidebarPanelProps {
+export interface AssetSidebarPanelProps extends SidebarFiltersProps {
   open: boolean;
   onToggle: () => void;
   mobileOpen?: boolean;
   onMobileOpenChange?: (open: boolean) => void;
-  filters: SearchFilterState;
-  onFiltersChange: Dispatch<SetStateAction<SearchFilterState>>;
-  onTypeChange: (type: AssetType) => void;
-  availableTags: string[];
-  availableSpecialDemand: string[];
-  modTagCounts: Record<string, number>;
-  mapLocationCounts: Record<string, number>;
-  mapDataQualityCounts: Record<string, number>;
-  mapLevelOfDetailCounts: Record<string, number>;
-  mapSpecialDemandCounts: Record<string, number>;
-  modCount: number;
-  mapCount: number;
+  ariaLabel?: string;
 }
 
 const TYPE_BUTTONS: Array<{
@@ -47,12 +32,10 @@ export function AssetSidebarPanel({
   onToggle,
   mobileOpen,
   onMobileOpenChange,
-  filters,
-  onFiltersChange,
-  onTypeChange,
+  ariaLabel = 'Browse filters',
   ...filterProps
 }: AssetSidebarPanelProps) {
-  const currentType = filters.type;
+  const currentType = filterProps.filters.type;
 
   const collapsedContent = (
     <>
@@ -62,7 +45,7 @@ export function AssetSidebarPanel({
           <button
             key={type}
             type="button"
-            onClick={() => onTypeChange(type)}
+            onClick={() => filterProps.onTypeChange(type)}
             aria-label={label}
             aria-current={isCurrent ? 'true' : undefined}
             className={cn(
@@ -90,16 +73,11 @@ export function AssetSidebarPanel({
       onToggle={onToggle}
       mobileOpen={mobileOpen}
       onMobileOpenChange={onMobileOpenChange}
-      ariaLabel="Browse filters"
-      filters={filters}
+      ariaLabel={ariaLabel}
+      filters={filterProps.filters}
       collapsedContent={collapsedContent}
     >
-      <SidebarFilters
-        filters={filters}
-        onFiltersChange={onFiltersChange}
-        onTypeChange={onTypeChange}
-        {...filterProps}
-      />
+      <SidebarFilters {...filterProps} />
     </SidebarPanel>
   );
 }

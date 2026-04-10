@@ -9,6 +9,8 @@
 @import './schemes/website.css';
 @import './schemes/tools.css';
 @plugin "../node_modules/@tailwindcss/typography/src/index.js";
+@source "../../packages/shared-ui/src";
+@source "../../packages/asset-listings-ui/src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -274,6 +276,18 @@ body {
   --accent: color-mix(in srgb, var(--suite-accent-dark) 22%, black);
   --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 72%, white);
   --ring: color-mix(in srgb, var(--suite-accent-dark) 48%, transparent);
+}
+
+.sidebar-scroll {
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .heading-anchor {

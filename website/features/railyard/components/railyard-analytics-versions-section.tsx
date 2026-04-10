@@ -21,7 +21,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { ToggleGroup, ToggleGroupItem } from '@subway-builder-modded/shared-ui';
 import { usePersistedState } from '@/lib/use-persisted-state';
 import type { RailyardAnalyticsData } from '@/types/railyard-analytics';
 import {

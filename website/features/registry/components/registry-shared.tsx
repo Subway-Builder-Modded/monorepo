@@ -19,9 +19,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { ToggleGroup, ToggleGroupItem } from '@subway-builder-modded/shared-ui';
 import { cn } from '@/lib/utils';
 import { AuthorName } from '@/components/shared/author-name';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
   getAuthorAttributionHref as resolveAuthorAttributionHref,
   getAuthorDisplayName as resolveAuthorDisplayName,

@@ -14,12 +14,12 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import { Skeleton } from '@subway-builder-modded/shared-ui';
 
 import { EmptyState } from '@/features/railyard/components/empty-state';
 import { ErrorBanner } from '@/features/railyard/components/error-banner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useRegistryItem } from '@/hooks/use-registry-item';
 import { useVersions } from '@/hooks/use-versions';
 import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';

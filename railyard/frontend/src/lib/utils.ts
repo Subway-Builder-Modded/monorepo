@@ -1,4 +1,13 @@
-export { type ClassValue, cn } from '@subway-builder-modded/shared-ui';
+import {
+  type ClassValue as SharedClassValue,
+  cn as sharedCn,
+} from '@subway-builder-modded/shared-ui';
+
+export type ClassValue = SharedClassValue;
+
+export function cn(...inputs: ClassValue[]) {
+  return sharedCn(...inputs);
+}
 
 /** Join OS path segments, stripping redundant separators (handles both / and \). */
 export function joinOsPath(...parts: string[]): string {

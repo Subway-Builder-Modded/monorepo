@@ -62,7 +62,6 @@ export interface SidebarFiltersProps {
     specialDemand?: string;
   };
   collapsibleSections?: boolean;
-  renderCheckbox?: (checked: boolean) => ReactNode;
   sourceQualityTitle?: string;
 }
 
@@ -91,7 +90,6 @@ export function SidebarFilters({
   filterVisibleListingValues,
   emptyLabels,
   collapsibleSections = true,
-  renderCheckbox,
   sourceQualityTitle = 'Source Quality',
 }: SidebarFiltersProps) {
   const counts: Record<GalleryAssetType, number> = {
@@ -99,21 +97,20 @@ export function SidebarFilters({
     map: mapCount,
   };
 
-  const checkboxRenderer =
-    renderCheckbox ??
-    ((checked: boolean) => (
-      <span
-        className={cn(
-          'size-4 shrink-0 rounded-sm border border-input flex items-center justify-center transition-colors',
-          checked
-            ? 'bg-primary border-primary text-primary-foreground'
-            : 'bg-background text-transparent',
-        )}
-        aria-hidden="true"
-      >
-        <Check className="size-3" />
-      </span>
-    ));
+  const checkboxRenderer = (checked: boolean) => (
+    <span
+      className={cn(
+        'peer size-4 shrink-0 rounded-sm border border-input shadow-xs',
+        'flex items-center justify-center transition-colors',
+        checked
+          ? 'bg-primary border-primary text-primary-foreground'
+          : 'bg-background text-transparent dark:bg-input/30',
+      )}
+      aria-hidden="true"
+    >
+      <Check className="size-3 transition-none" />
+    </span>
+  );
 
   return (
     <div className="space-y-5">
@@ -383,13 +380,20 @@ function ChecklistFilterSection({
               {visibleValues.map((value) => {
                 const checked = selected.includes(value);
                 return (
-                  <button
+                  <div
                     key={value}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => toggle(value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        toggle(value);
+                      }
+                    }}
                     className={cn(
                       'flex w-full items-center justify-between rounded-md px-2 py-1 text-sm font-normal',
-                      'transition-colors',
+                      'transition-colors cursor-pointer',
                       checked
                         ? 'bg-muted/60 text-foreground'
                         : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
@@ -400,7 +404,7 @@ function ChecklistFilterSection({
                       <span>{formatValue(value)}</span>
                     </span>
                     <span className={FILTER_COUNT_BADGE_CLASS}>{counts[value] ?? 0}</span>
-                  </button>
+                  </div>
                 );
               })}
             </div>

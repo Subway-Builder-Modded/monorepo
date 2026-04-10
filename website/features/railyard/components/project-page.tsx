@@ -6,6 +6,11 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Markdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import {
+  Skeleton,
+  ToggleGroup,
+  ToggleGroupItem,
+} from '@subway-builder-modded/shared-ui';
 
 import { EmptyState } from '@/features/railyard/components/empty-state';
 import { ProjectGallery } from '@/features/railyard/components/project-gallery';
@@ -19,8 +24,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useRegistryItem } from '@/hooks/use-registry-item';
 import { useVersions } from '@/hooks/use-versions';
 import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';

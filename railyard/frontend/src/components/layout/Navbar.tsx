@@ -1,4 +1,6 @@
 import {
+  APP_SHELL_PADDING_CLASS,
+  APP_SHELL_WIDTH_CLASS,
   Button,
   Dialog,
   DialogContent,
@@ -22,10 +24,6 @@ import { type ComponentType, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useLocation } from 'wouter';
 
-import {
-  APP_SHELL_PADDING_CLASS,
-  APP_SHELL_WIDTH_CLASS,
-} from '@/components/layout/layout-shell';
 import {
   Tooltip,
   TooltipContent,

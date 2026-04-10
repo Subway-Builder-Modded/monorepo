@@ -4,7 +4,6 @@ import {
 } from '@subway-builder-modded/asset-listings-ui';
 import { type Dispatch, type SetStateAction } from 'react';
 
-import { Checkbox } from '@/components/ui/checkbox';
 import type { AssetType } from '@/lib/asset-types';
 import { filterVisibleListingValues } from '@/lib/listing-counts';
 import {
@@ -69,9 +68,6 @@ export function SidebarFilters({
       formatSourceQuality={formatSourceQuality}
       filterVisibleListingValues={filterVisibleListingValues}
       emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
-      renderCheckbox={(checked) => (
-        <Checkbox checked={checked} aria-hidden="true" />
-      )}
     />
   );
 }

@@ -4,14 +4,9 @@ import {
   SidebarFilters,
   type SidebarFiltersProps,
 } from '@/components/shared/SidebarFilters';
-import {
-  SIDEBAR_CONTENT_OFFSET,
-  SidebarPanel,
-} from '@/components/shared/SidebarPanel';
+import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import type { AssetType } from '@/lib/asset-types';
 import { cn } from '@/lib/utils';
-
-export { SIDEBAR_CONTENT_OFFSET };
 
 export interface AssetSidebarPanelProps extends SidebarFiltersProps {
   open: boolean;

@@ -82,7 +82,10 @@ export function ItemCard({
         />
       )}
       renderLink={({ href, children }) => (
-        <Link href={href} className="block w-full">
+        <Link
+          href={href}
+          className="block w-full no-underline text-inherit hover:no-underline"
+        >
           {children}
         </Link>
       )}

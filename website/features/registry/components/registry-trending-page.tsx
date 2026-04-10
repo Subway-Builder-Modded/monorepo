@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { TrendingUp } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@subway-builder-modded/shared-ui';
 import { PageHeader } from '@/components/shared/page-header';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type {
   RegistryAnalyticsData,
   RegistryListingDailyRow,

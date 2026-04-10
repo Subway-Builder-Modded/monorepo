@@ -1,3 +1,4 @@
+import { SIDEBAR_CONTENT_OFFSET } from '@subway-builder-modded/asset-listings-ui';
 import { Button } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
@@ -7,10 +8,7 @@ import { useLocation } from 'wouter';
 import { AppDialog } from '@/components/dialogs/AppDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
-import {
-  LIBRARY_SIDEBAR_CONTENT_OFFSET,
-  LibrarySidebarPanel,
-} from '@/components/library/LibrarySidebarPanel';
+import { LibrarySidebarPanel } from '@/components/library/LibrarySidebarPanel';
 import { SearchBar } from '@/components/search/SearchBar';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
@@ -382,7 +380,7 @@ export function LibraryPage() {
       <div
         className="space-y-5"
         style={{
-          paddingLeft: sidebarOpen ? LIBRARY_SIDEBAR_CONTENT_OFFSET : '0px',
+          paddingLeft: sidebarOpen ? SIDEBAR_CONTENT_OFFSET : '0px',
           transition: 'padding-left 200ms ease-out',
           minHeight: 'calc(100vh - var(--app-navbar-offset))',
         }}

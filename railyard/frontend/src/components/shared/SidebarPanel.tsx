@@ -1,12 +1,9 @@
 import {
-  SIDEBAR_CONTENT_OFFSET,
   SidebarPanel as SharedSidebarPanel,
   type SidebarPanelProps as SharedSidebarPanelProps,
 } from '@subway-builder-modded/asset-listings-ui';
 
 import type { AssetQueryFilters } from '@/stores/asset-query-filter-store';
-
-export { SIDEBAR_CONTENT_OFFSET };
 
 function getNavbarOffsetPx(): number {
   return (

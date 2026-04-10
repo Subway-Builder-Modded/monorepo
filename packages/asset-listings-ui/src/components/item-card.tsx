@@ -14,7 +14,7 @@ const CARD_TITLE_CLASS =
 const CARD_AUTHOR_CLASS =
   'flex items-center gap-1 text-xs text-muted-foreground mt-0.5 min-w-0';
 const CARD_ARTICLE_BASE =
-  'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm';
+  'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer text-foreground transition-all duration-150 hover:border-foreground/20 hover:shadow-sm';
 
 export interface ItemCardProps<T = { author_alias: string; contributor_tier?: string }> {
   type: GalleryAssetType;
@@ -571,7 +571,7 @@ export const ItemCard = memo(function ItemCard({
     children: (
       <article
         className={cn(
-          'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
+          'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer text-foreground transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
           installedVersion && 'ring-1 ring-primary/40',
         )}
       >
