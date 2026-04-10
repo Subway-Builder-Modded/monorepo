@@ -4,7 +4,6 @@ runtime-version: "47"
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.golang
-  - org.freedesktop.Sdk.Extension.node24
 command: railyard
 finish-args:
   # Needs X11, Wayland, Network, Filesystem
@@ -29,7 +28,6 @@ modules:
         GOROOT: /usr/lib/sdk/golang
         GOFLAGS: "-mod=vendor"
     build-commands:
-      - cd frontend && npm run build
       - go build -mod=vendor -tags "desktop,production,webkit2_41" -ldflags "-s -w" -o /app/bin/railyard .
       - install -Dm644 ./build/linux/railyard.desktop /app/share/applications/org.SBM.Railyard.desktop
       - install -Dm644 ./build/linux/org.SBM.Railyard.metainfo.xml /app/share/metainfo/org.SBM.Railyard.metainfo.xml
