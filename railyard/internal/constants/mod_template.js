@@ -24,63 +24,62 @@ function generateTabs(places) {
   return tabs;
 }
 
-config.places.forEach(async place => {
-    let newPlace = {
-        code: place.code,
-        name: place.name,
-        population: place.population,
-        description: place.description,
-        mapImageUrl: "http://127.0.0.1:" + config.port + "/thumbnails/" + place.code + ".svg"
-    };
-    if (place.initialViewState) {
-        newPlace.initialViewState = place.initialViewState;
-    } else {
-        newPlace.initialViewState = {
-            longitude: (place.bbox[0] + place.bbox[2]) / 2,
-            latitude: (place.bbox[1] + place.bbox[3]) / 2,
-            zoom: 12,
-            bearing: 0,
+(async () => {
+    await Promise.all(config.places.map(async place => {
+        let newPlace = {
+            code: place.code,
+            name: place.name,
+            population: place.population,
+            description: place.description,
+            mapImageUrl: "http://127.0.0.1:" + config.port + "/thumbnails/" + place.code + ".svg"
         };
-    }
-    window.SubwayBuilderAPI.registerCity(newPlace);
-    window.SubwayBuilderAPI.map.setDefaultLayerVisibility(place.code, {
-        oceanFoundations: false,
-        trackElevations: false
-    });
-    // 3. Fix layer schemas for custom tiles
-    window.SubwayBuilderAPI.map.setLayerOverride({
-        layerId: 'parks-large',
-        sourceLayer: 'landuse',
-        filter: ['==', ['get', 'kind'], 'park'],
-    });
+        if (place.initialViewState) {
+            newPlace.initialViewState = place.initialViewState;
+        } else {
+            newPlace.initialViewState = {
+                longitude: (place.bbox[0] + place.bbox[2]) / 2,
+                latitude: (place.bbox[1] + place.bbox[3]) / 2,
+                zoom: 12,
+                bearing: 0,
+            };
+        }
+        await window.SubwayBuilderAPI.registerCity(newPlace);
+        window.SubwayBuilderAPI.map.setDefaultLayerVisibility(place.code, {
+            oceanFoundations: false,
+            trackElevations: false
+        });
+        // Fix layer schemas for custom tiles
+        window.SubwayBuilderAPI.map.setLayerOverride({
+            layerId: 'parks-large',
+            sourceLayer: 'landuse',
+            filter: ['==', ['get', 'kind'], 'park'],
+        });
+        window.SubwayBuilderAPI.map.setLayerOverride({
+            layerId: 'airports',
+            sourceLayer: 'landuse',
+            filter: ['==', ['get', 'kind'], 'aerodrome'],
+        });
+        window.SubwayBuilderAPI.map.setTileURLOverride({
+            cityCode: place.code,
+            tilesUrl: "http://127.0.0.1:" + config.port + "/" + place.code + "/{z}/{x}/{y}.mvt",
+            foundationTilesUrl: "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+            maxZoom: config.tileZoomLevel
+        });
+        window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, { // auto appends .gz, is this intended? if it is then its fine if not then that has to be removed so we can manually set the .gz file extension
+            buildingsIndex: "/data/" + place.code + "/buildings_index.json",
+            demandData: "/data/" + place.code + "/demand_data.json", // drivingPaths supplied in demand_data.json.gz still aren't used
+            roads: "/data/" + place.code + "/roads.geojson",
+            runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
+        });
+    }));
 
-    window.SubwayBuilderAPI.map.setLayerOverride({
-        layerId: 'airports',
-        sourceLayer: 'landuse',
-        filter: ['==', ['get', 'kind'], 'aerodrome'],
+    const tabs = generateTabs(config.places);
+    Object.entries(tabs).forEach(([country, codes]) => {
+        window.SubwayBuilderAPI.cities.registerTab({
+            id: country,
+            label: getCountryName(country),
+            emoji: getFlagEmoji(country),
+            cityCodes: codes,
+        });
     });
-
-    window.SubwayBuilderAPI.map.setTileURLOverride({
-        cityCode: place.code,
-        tilesUrl: "http://127.0.0.1:" + config.port + "/" + place.code + "/{z}/{x}/{y}.mvt",
-        foundationTilesUrl: "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-        maxZoom: config.tileZoomLevel
-    });
-
-    window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, { // auto appends .gz, is this intended? if it is then its fine if not then that has to be removed so we can manually set the .gz file extension
-        buildingsIndex: "/data/" + place.code + "/buildings_index.json",
-        demandData: "/data/" + place.code + "/demand_data.json", // drivingPaths supplied in demand_data.json.gz still aren't used
-        roads: "/data/" + place.code + "/roads.geojson",
-        runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
-    })
-})
-
-let tabs = generateTabs(config.places);
-Object.entries(tabs).forEach(([country, codes]) => {
-    window.SubwayBuilderAPI.cities.registerTab({
-      id: country,
-      label: getCountryName(country),
-      emoji: getFlagEmoji(country),
-      cityCodes: codes,
-    });
-});
+})();
