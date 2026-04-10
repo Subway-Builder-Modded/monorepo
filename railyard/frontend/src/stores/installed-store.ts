@@ -429,17 +429,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
         });
       } catch (err) {
         setErrorFromUnknown(err);
-        set({ loading: false });
-      }
-    },
-
-    updateInstalledLists: async () => {
-      set({ loading: true, error: null });
-      try {
-        set({ ...(await getInstalledLists()), loading: false });
-      } catch (err) {
-        setErrorFromUnknown(err);
-        set({ loading: false });
+        set({ initialized: true, loading: false });
       }
     },
 
@@ -557,5 +547,13 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
       get().installOperationsById[id]?.requestedVersion ?? null,
 
     isUninstalling: (id: string) => get().uninstalling.has(id),
+
+    updateInstalledLists: async () => {
+      try {
+        set(await getInstalledLists());
+      } catch (err) {
+        setErrorFromUnknown(err);
+      }
+    },
   };
 });

@@ -63,8 +63,18 @@ export function useTheme() {
       const handler = (e: MediaQueryListEvent) => {
         applyThemeClasses(root, e.matches ? 'dark' : 'light');
       };
-      mql.addEventListener('change', handler);
-      return () => mql.removeEventListener('change', handler);
+
+      if (typeof mql.addEventListener === 'function') {
+        mql.addEventListener('change', handler);
+        return () => mql.removeEventListener('change', handler);
+      }
+
+      if (typeof mql.addListener === 'function') {
+        mql.addListener(handler);
+        return () => mql.removeListener(handler);
+      }
+
+      return;
     }
 
     applyThemeClasses(root, theme);

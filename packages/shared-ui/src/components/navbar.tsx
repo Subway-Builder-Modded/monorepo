@@ -217,6 +217,24 @@ export type NavbarItemProps = React.ComponentProps<'button'> & {
 export function NavbarItem({ className, isActive, asChild = false, children, ...props }: NavbarItemProps) {
   const Comp = asChild ? Slot.Root : 'button';
 
+  if (asChild) {
+    return (
+      <Comp
+        data-slot="navbar-item"
+        data-active={isActive ? 'true' : 'false'}
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+          'group relative inline-flex min-w-0 items-center justify-center gap-[var(--app-navbar-item-gap,0.28rem)] rounded-[var(--app-navbar-item-radius,0.54rem)] px-[var(--app-navbar-item-px,0.42rem)] py-[var(--app-navbar-item-py,0.3rem)] text-[var(--app-navbar-item-title,0.68rem)] font-semibold text-muted-fg no-underline outline-none transition-all duration-200 ease-[cubic-bezier(.22,.9,.35,1)]',
+          'hover:bg-accent/45 hover:text-primary active:bg-accent/55 data-[active=true]:bg-accent/45 data-[active=true]:text-primary',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </Comp>
+    );
+  }
+
   return (
     <Comp
       data-slot="navbar-item"
