@@ -1,0 +1,6078 @@
+{
+  "$schema": "special_demand_points.schema.json",
+  "version": 1,
+  "map_code": "AOJ",
+  "generated_at": "2026-04-10T01:46:23.154520+00:00",
+  "points": [
+    {
+      "point_id": "SCH_PRI_奥内小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "奥内小学校",
+        "ja": "奥内小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12715", "12718", "12719", "12721", "12724", "12725"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_北中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "北中学校",
+        "ja": "北中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12937", "13245", "13301"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立青森第一高等養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立青森第一高等養護学校",
+        "ja": "青森県立青森第一高等養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["12733", "13419"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_油川小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "油川小学校",
+        "ja": "油川小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "12731",
+        "12732",
+        "12737",
+        "12739",
+        "12742",
+        "12749",
+        "12750",
+        "12756"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_油川中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "油川中学校",
+        "ja": "油川中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12740", "12963", "13089", "13111", "13479"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森北高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森北高等学校",
+        "ja": "青森北高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12753",
+        "12765",
+        "12766",
+        "12809",
+        "12859",
+        "13115",
+        "14239"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立青森第一養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立青森第一養護学校",
+        "ja": "青森県立青森第一養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["12806", "12988", "13215", "13413", "13457"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_国立療養所松丘保養園_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "国立療養所松丘保養園",
+        "ja": "国立療養所松丘保養園"
+      },
+      "pop_ids": ["12837", "12838", "12855", "12897", "13238", "14244"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 211,
+        "address": "青森市大字石江字平山19"
+      }
+    },
+    {
+      "point_id": "HOS_公財_鷹揚郷腎研究所青森病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(公財)鷹揚郷腎研究所青森病院",
+        "ja": "(公財)鷹揚郷腎研究所青森病院"
+      },
+      "pop_ids": ["12936", "14730"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 45,
+        "address": "青森市大字石江字岡部101-1"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_篠田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "篠田小学校",
+        "ja": "篠田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "12773",
+        "12785",
+        "12786",
+        "12790",
+        "12791",
+        "13383",
+        "13384",
+        "13385"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "ART_青森市民美術展示館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "青森市民美術展示館",
+        "ja": "青森市民美術展示館"
+      },
+      "sub_type": "art_museum",
+      "pop_ids": ["12745", "12814", "13041", "13311", "13393", "13482"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "MUS_青森市森林博物館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "青森市森林博物館",
+        "ja": "青森市森林博物館"
+      },
+      "pop_ids": ["12744"],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_千刈小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "千刈小学校",
+        "ja": "千刈小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "12798",
+        "12800",
+        "12803",
+        "12804",
+        "12805",
+        "12808",
+        "12816"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_古川中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "古川中学校",
+        "ja": "古川中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "12716",
+        "12792",
+        "12825",
+        "12878",
+        "13007",
+        "13236",
+        "13314",
+        "13525",
+        "13528"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "ART_青森県立美術館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "青森県立美術館",
+        "ja": "青森県立美術館"
+      },
+      "pop_ids": [
+        "12735",
+        "12787",
+        "12788",
+        "12811",
+        "12819",
+        "12820",
+        "12861",
+        "12902",
+        "12932",
+        "12997",
+        "13124",
+        "13224",
+        "13250",
+        "13292",
+        "13420",
+        "13493",
+        "13543",
+        "13544",
+        "13891",
+        "14148",
+        "14285",
+        "14716"
+      ],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "MUS_三内丸山遺跡縄文時遊館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "三内丸山遺跡縄文時遊館",
+        "ja": "三内丸山遺跡縄文時遊館"
+      },
+      "pop_ids": [
+        "12774",
+        "12778",
+        "12794",
+        "12830",
+        "12889",
+        "12913",
+        "12935",
+        "13133",
+        "13380",
+        "13550",
+        "13914",
+        "14061",
+        "14205"
+      ],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_三内中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三内中学校",
+        "ja": "三内中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12887", "12905", "13211", "13226", "13426", "13527"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_三内西小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三内西小学校",
+        "ja": "三内西小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12828", "12829", "12843", "12844", "12845"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_青森県立つくしが丘病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "青森県立つくしが丘病院",
+        "ja": "青森県立つくしが丘病院"
+      },
+      "pop_ids": ["12783", "12958", "13002", "13240", "13265"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 230,
+        "address": "青森市大字三内字沢部353-92"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_泉川小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "泉川小学校",
+        "ja": "泉川小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "12851",
+        "12893",
+        "12926",
+        "13028",
+        "13039",
+        "13131",
+        "13139",
+        "13217",
+        "13484"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_西中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "西中学校",
+        "ja": "西中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "12793",
+        "13038",
+        "13060",
+        "13086",
+        "13155",
+        "13269",
+        "13451"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_甲田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "甲田小学校",
+        "ja": "甲田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12869", "12870", "12871", "12940", "12941"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_甲田中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "甲田中学校",
+        "ja": "甲田中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12923", "12969", "13130", "13200", "13260", "13470"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_金沢小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "金沢小学校",
+        "ja": "金沢小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "12880",
+        "12881",
+        "12882",
+        "12883",
+        "12894",
+        "12895",
+        "12946",
+        "12947",
+        "12948"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_長島小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "長島小学校",
+        "ja": "長島小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12967", "12970", "12972", "12973"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_古川小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "古川小学校",
+        "ja": "古川小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12929", "12959", "12964"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "ART_ねぶたの家_ワ_ラッセ_1",
+      "type": "museum",
+      "name": {
+        "__default__": "ねぶたの家 ワ･ラッセ",
+        "ja": "ねぶたの家 ワ･ラッセ"
+      },
+      "sub_type": "art_museum",
+      "pop_ids": [
+        "12780",
+        "12799",
+        "12812",
+        "12863",
+        "12896",
+        "12919",
+        "12950",
+        "12971",
+        "12980",
+        "12993",
+        "13021",
+        "13022",
+        "13031",
+        "13042",
+        "13079",
+        "13106",
+        "13125",
+        "13148",
+        "13168",
+        "13188",
+        "13294",
+        "13332",
+        "13341",
+        "13346",
+        "13386",
+        "13399",
+        "13551",
+        "13553",
+        "14483",
+        "14772"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "HOS_村上新町病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "村上新町病院",
+        "ja": "村上新町病院"
+      },
+      "pop_ids": ["13053", "13409", "14523"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 78,
+        "address": "青森市新町二丁目1-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浦町小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浦町小学校",
+        "ja": "浦町小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12983", "12984", "12986", "13004"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_佐藤病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "佐藤病院",
+        "ja": "佐藤病院"
+      },
+      "pop_ids": ["13295", "13533"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 36,
+        "address": "青森市青柳二丁目1-12"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_莨町小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "莨町小学校",
+        "ja": "莨町小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12990", "12991", "13036"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_橋本小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "橋本小学校",
+        "ja": "橋本小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12975", "12979", "13001"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_青森市民病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "青森市民病院",
+        "ja": "青森市民病院"
+      },
+      "pop_ids": [
+        "12839",
+        "12965",
+        "13026",
+        "13209",
+        "13257",
+        "13323",
+        "13361",
+        "13448",
+        "13460",
+        "13465",
+        "13472",
+        "13545",
+        "13830",
+        "14100",
+        "14431"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 538,
+        "address": "青森市勝田一丁目14-20"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_浦町中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浦町中学校",
+        "ja": "浦町中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "12730",
+        "13242",
+        "13335",
+        "13373",
+        "13387",
+        "13427",
+        "13477"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_東奥学園高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東奥学園高等学校",
+        "ja": "東奥学園高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12755",
+        "12924",
+        "12952",
+        "13013",
+        "13018",
+        "13138",
+        "13244",
+        "13354",
+        "13363",
+        "13392",
+        "13563"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_北斗高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "北斗高等学校",
+        "ja": "北斗高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["12840", "12900", "13003", "13054", "13127"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_堤小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "堤小学校",
+        "ja": "堤小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13000", "13008", "13014", "13061"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_合浦小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "合浦小学校",
+        "ja": "合浦小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13045", "13046", "13055"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_浪打中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪打中学校",
+        "ja": "浪打中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12849", "13319", "13321", "13499"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_浪打病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "浪打病院",
+        "ja": "浪打病院"
+      },
+      "pop_ids": ["13197", "13279", "13394"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 69,
+        "address": "青森市合浦二丁目11-24"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浪打小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪打小学校",
+        "ja": "浪打小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13050", "13059", "13066", "13069", "13081", "13082"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_青森明の星短期大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "青森明の星短期大学",
+        "ja": "青森明の星短期大学"
+      },
+      "sub_type": "junior_college",
+      "pop_ids": ["13020", "13159"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森明の星中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森明の星中学校",
+        "ja": "青森明の星中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12939", "13424", "13514"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森明の星高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森明の星高等学校",
+        "ja": "青森明の星高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12826",
+        "12892",
+        "12906",
+        "13029",
+        "13052",
+        "13068",
+        "13151",
+        "13160",
+        "13310",
+        "13480",
+        "13508"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_佃小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "佃小学校",
+        "ja": "佃小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13073",
+        "13075",
+        "13076",
+        "13087",
+        "13092",
+        "13093",
+        "13094",
+        "13103",
+        "13104",
+        "13110"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_佃中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "佃中学校",
+        "ja": "佃中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["13098", "13339", "13382", "13398", "13462"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_造道小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "造道小学校",
+        "ja": "造道小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13117",
+        "13122",
+        "13141",
+        "13149",
+        "13150",
+        "13153",
+        "13154",
+        "13449"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_造道中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "造道中学校",
+        "ja": "造道中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "12760",
+        "12921",
+        "13033",
+        "13056",
+        "13074",
+        "13199",
+        "13253",
+        "13372"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立青森若葉養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立青森若葉養護学校",
+        "ja": "青森県立青森若葉養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["12797", "12956", "13207", "13302"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森商業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森商業高等学校",
+        "ja": "青森商業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13077", "13105", "14103", "14683"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_青森県立中央病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "青森県立中央病院",
+        "ja": "青森県立中央病院"
+      },
+      "pop_ids": [
+        "12738",
+        "12875",
+        "12951",
+        "12994",
+        "13012",
+        "13023",
+        "13047",
+        "13065",
+        "13121",
+        "13129",
+        "13145",
+        "13180",
+        "13266",
+        "13298",
+        "13459",
+        "13464",
+        "14333",
+        "14508",
+        "14585",
+        "14718"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 684,
+        "address": "青森市東造道二丁目1-1"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浜館小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浜館小学校",
+        "ja": "浜館小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13182",
+        "13186",
+        "13364",
+        "13365",
+        "13371",
+        "13374",
+        "13375"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_小柳小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小柳小学校",
+        "ja": "小柳小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13126",
+        "13134",
+        "13136",
+        "13313",
+        "13316",
+        "13317",
+        "13318",
+        "13431",
+        "13437",
+        "13438"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_青森県立保健大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "青森県立保健大学",
+        "ja": "青森県立保健大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "12757",
+        "12992",
+        "13015",
+        "13090",
+        "13096",
+        "13202",
+        "13263",
+        "13290",
+        "13430",
+        "13439",
+        "13469",
+        "13486",
+        "13487",
+        "13600",
+        "13995"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_原別小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "原別小学校",
+        "ja": "原別小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13157",
+        "13158",
+        "13161",
+        "13175",
+        "13178",
+        "13442",
+        "13453"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立盲学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立盲学校",
+        "ja": "青森県立盲学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["13034"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_野内小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "野内小学校",
+        "ja": "野内小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13163", "13164"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_浅虫中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浅虫中学校",
+        "ja": "浅虫中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12922"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_福法_敬仁会青森敬仁会病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(福法)敬仁会青森敬仁会病院",
+        "ja": "(福法)敬仁会青森敬仁会病院"
+      },
+      "pop_ids": ["12747", "12876", "12933", "13181"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 120,
+        "address": "青森市大字久栗坂字山辺89-10"
+      }
+    },
+    {
+      "point_id": "HOS_一社_青森精神医学研究所附属浅虫温泉病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(一社)青森精神医学研究所附属浅虫温泉病院",
+        "ja": "(一社)青森精神医学研究所附属浅虫温泉病院"
+      },
+      "pop_ids": ["13162", "13776", "14132", "14208", "14421", "14581"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 198,
+        "address": "青森市大字浅虫字内野27-2"
+      }
+    },
+    {
+      "point_id": "AQU_青森県営浅虫水族館_1",
+      "type": "aquarium",
+      "name": {
+        "__default__": "青森県営浅虫水族館",
+        "ja": "青森県営浅虫水族館"
+      },
+      "pop_ids": [
+        "12767",
+        "12853",
+        "13088",
+        "13102",
+        "13278",
+        "13331",
+        "13379",
+        "13435",
+        "13517",
+        "14134",
+        "14288",
+        "14372",
+        "14579"
+      ],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_東陽小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東陽小学校",
+        "ja": "東陽小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13166", "13169", "13170", "13172"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SPO_新青森県総合運動公園_1",
+      "type": "sports_facility",
+      "name": {
+        "__default__": "新青森県総合運動公園",
+        "ja": "新青森県総合運動公園"
+      },
+      "sub_type": "sports_park",
+      "pop_ids": [
+        "12729",
+        "12831",
+        "12953",
+        "12976",
+        "13006",
+        "13064",
+        "13128",
+        "13177",
+        "13183",
+        "13237",
+        "13239",
+        "13243",
+        "13367",
+        "13402",
+        "13406",
+        "13433",
+        "14249",
+        "14526",
+        "14573",
+        "14626"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森工業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森工業高等学校",
+        "ja": "青森工業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13085", "13304", "13368"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_東中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東中学校",
+        "ja": "東中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12925", "13196", "13330", "13418", "13445"],
+      "sibling_point_ids": ["SCH_SEC_東中学校_2"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立青森第二養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立青森第二養護学校",
+        "ja": "青森県立青森第二養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["12781", "13320", "13434", "13562"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立青森第二高等養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立青森第二高等養護学校",
+        "ja": "青森県立青森第二高等養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["12934"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_筒井中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "筒井中学校",
+        "ja": "筒井中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "12938",
+        "13051",
+        "13097",
+        "13223",
+        "13303",
+        "13421",
+        "13440",
+        "13495"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森高等学校",
+        "ja": "青森高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12872",
+        "13099",
+        "13100",
+        "13189",
+        "13201",
+        "13262",
+        "13329",
+        "13358",
+        "13359",
+        "14401",
+        "14628"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_筒井南小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "筒井南小学校",
+        "ja": "筒井南小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13212",
+        "13213",
+        "13214",
+        "13221",
+        "13461",
+        "13466",
+        "13467",
+        "13468"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_青森大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "青森大学",
+        "ja": "青森大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "12743",
+        "12884",
+        "12943",
+        "12995",
+        "13025",
+        "13070",
+        "13179",
+        "13193",
+        "13219",
+        "13234",
+        "13315",
+        "13340",
+        "13549",
+        "13559",
+        "14376",
+        "14542",
+        "14733"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_幸畑小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "幸畑小学校",
+        "ja": "幸畑小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13228", "13229", "13230", "13232", "13233"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "MUS_青森市八甲田山雪中行軍遭難資料館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "青森市八甲田山雪中行軍遭難資料館",
+        "ja": "青森市八甲田山雪中行軍遭難資料館"
+      },
+      "pop_ids": ["13404", "14519"],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森山田高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森山田高等学校",
+        "ja": "青森山田高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12751",
+        "12879",
+        "13112",
+        "13120",
+        "13192",
+        "13216",
+        "13249",
+        "13350",
+        "13366",
+        "13548"
+      ],
+      "sibling_point_ids": ["SCH_SEC_青森山田高等学校_2"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_青森保健生活協同組合生協さくら病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "青森保健生活協同組合生協さくら病院",
+        "ja": "青森保健生活協同組合生協さくら病院"
+      },
+      "pop_ids": ["12854", "13142", "13225", "13415", "14675"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 140,
+        "address": "青森市問屋町一丁目15-10"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_横内中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "横内中学校",
+        "ja": "横内中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12815", "13101", "13281", "13282", "13362"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_横内小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "横内小学校",
+        "ja": "横内小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12904", "12978", "13037", "13334", "13395"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "PRK_八甲田いこいの牧場_1",
+      "type": "park",
+      "name": {
+        "__default__": "八甲田いこいの牧場",
+        "ja": "八甲田いこいの牧場"
+      },
+      "sub_type": "park",
+      "pop_ids": ["13208", "13540"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "UNI_青森中央学院大学_青森中央短期大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "青森中央学院大学|青森中央短期大学",
+        "ja": "青森中央学院大学|青森中央短期大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "12782",
+        "12846",
+        "12866",
+        "12931",
+        "12977",
+        "12987",
+        "12989",
+        "13019",
+        "13048",
+        "13067",
+        "13176",
+        "13355",
+        "13369",
+        "13401",
+        "13686",
+        "13920",
+        "14203",
+        "14534"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SP-institution-03e3cb1589af",
+      "type": "university",
+      "name": {
+        "__default__": "青森中央短期大学",
+        "ja": "青森中央短期大学"
+      },
+      "sub_type": "junior_college",
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "ART_国際芸術センター青森_1",
+      "type": "heritage_site",
+      "name": {
+        "__default__": "国際芸術センター青森",
+        "ja": "国際芸術センター青森"
+      },
+      "sub_type": "historic_building",
+      "pop_ids": ["13538"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "HOS_芙蓉会病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "芙蓉会病院",
+        "ja": "芙蓉会病院"
+      },
+      "pop_ids": [
+        "12868",
+        "12890",
+        "12981",
+        "13032",
+        "13143",
+        "13173",
+        "13235",
+        "13280",
+        "13471",
+        "13483"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 407,
+        "address": "青森市大字雲谷字山吹93-1"
+      }
+    },
+    {
+      "point_id": "UNI_青森公立大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "青森公立大学",
+        "ja": "青森公立大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "12867",
+        "13063",
+        "13095",
+        "13113",
+        "13165",
+        "13275",
+        "13376",
+        "13454",
+        "13509",
+        "13921",
+        "13992",
+        "14031",
+        "14081",
+        "14183",
+        "14204",
+        "14264",
+        "14338",
+        "14418",
+        "14442",
+        "14625"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SKI_モヤヒルズ_スキー場_1",
+      "type": "resort",
+      "name": {
+        "__default__": "モヤヒルズ（スキー場）",
+        "ja": "モヤヒルズ（スキー場）"
+      },
+      "pop_ids": ["13140", "13974"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "PRK_モヤヒルズ_グリーンシーズン_1",
+      "type": "park",
+      "name": {
+        "__default__": "モヤヒルズ（グリーンシーズン）",
+        "ja": "モヤヒルズ（グリーンシーズン）"
+      },
+      "sub_type": "park",
+      "pop_ids": ["12998", "13293", "14463"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "PRK_八甲田ロープウェー_1",
+      "type": "park",
+      "name": {
+        "__default__": "八甲田ロープウェー",
+        "ja": "八甲田ロープウェー"
+      },
+      "sub_type": "park",
+      "pop_ids": [
+        "13348",
+        "13660",
+        "13704",
+        "14241",
+        "14268",
+        "14298",
+        "14439",
+        "14490",
+        "14565"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "MUS_青森県近代文学館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "青森県近代文学館",
+        "ja": "青森県近代文学館"
+      },
+      "pop_ids": ["13078"],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_荒川小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "荒川小学校",
+        "ja": "荒川小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13248", "13251", "13254", "13276", "13473"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_荒川中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "荒川中学校",
+        "ja": "荒川中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12727", "13017", "13247"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浜田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浜田小学校",
+        "ja": "浜田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13258",
+        "13259",
+        "13264",
+        "13345",
+        "13349",
+        "13351",
+        "13352",
+        "13353",
+        "13476"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_社_慈恵会青森慈恵会病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(社)慈恵会青森慈恵会病院",
+        "ja": "(社)慈恵会青森慈恵会病院"
+      },
+      "pop_ids": [
+        "12736",
+        "12796",
+        "12817",
+        "12833",
+        "12834",
+        "12873",
+        "12914",
+        "13152"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 332,
+        "address": "青森市大字安田字近野146-1"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立青森聾学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立青森聾学校",
+        "ja": "青森県立青森聾学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["12827", "12888", "13246", "13270", "13558"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_高田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "高田小学校",
+        "ja": "高田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13272", "13273"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "PORT_青森_1",
+      "type": "airport",
+      "name": {
+        "__default__": "青森",
+        "ja": "青森"
+      },
+      "pop_ids": [
+        "12789",
+        "12877",
+        "12910",
+        "12966",
+        "13027",
+        "13187",
+        "13220",
+        "14303"
+      ],
+      "metadata": {
+        "source_dataset": "mlit_airport_combined.csv",
+        "daily_international_travelers": 123,
+        "daily_domestic_travelers": 3239
+      }
+    },
+    {
+      "point_id": "HOS_社_慈恵会青い森病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(社)慈恵会青い森病院",
+        "ja": "(社)慈恵会青い森病院"
+      },
+      "pop_ids": ["13333", "13494", "13521", "14492"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 160,
+        "address": "青森市大字大谷字山ノ内16-3"
+      }
+    },
+    {
+      "point_id": "HOS_一財_双仁会青森厚生病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(一財)双仁会青森厚生病院",
+        "ja": "(一財)双仁会青森厚生病院"
+      },
+      "pop_ids": [
+        "12726",
+        "12982",
+        "13108",
+        "13174",
+        "13300",
+        "13403",
+        "13416"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 282,
+        "address": "青森市大字新城字山田488-1"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_新城中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "新城中学校",
+        "ja": "新城中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12961", "13072", "13210", "13344", "13531"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森西高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森西高等学校",
+        "ja": "青森西高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12769",
+        "12856",
+        "12962",
+        "13283",
+        "13390",
+        "13491",
+        "13526",
+        "13547",
+        "13556",
+        "13571",
+        "13638",
+        "14155",
+        "14257",
+        "14272",
+        "14518"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_新城小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "新城小学校",
+        "ja": "新城小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12761", "12762", "12763", "12770", "12771", "13572"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_新城中央小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "新城中央小学校",
+        "ja": "新城中央小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13284",
+        "13285",
+        "13286",
+        "13287",
+        "13288",
+        "13289",
+        "13305",
+        "13306",
+        "13307",
+        "13308",
+        "13309"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "MUS_あおもり北のまほろば歴史館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "あおもり北のまほろば歴史館",
+        "ja": "あおもり北のまほろば歴史館"
+      },
+      "sub_type": "general_museum",
+      "pop_ids": ["12813", "13011"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "PORT_青森_2",
+      "type": "port",
+      "name": {
+        "__default__": "青森",
+        "ja": "青森"
+      },
+      "pop_ids": [
+        "12748",
+        "12776",
+        "12802",
+        "12960",
+        "12999",
+        "13118",
+        "14251",
+        "14360"
+      ],
+      "sibling_point_ids": ["SP-port-f3d97a18e1a8"],
+      "metadata": {
+        "source_dataset": "port_locations.csv"
+      }
+    },
+    {
+      "point_id": "SP-port-f3d97a18e1a8",
+      "type": "port",
+      "name": {
+        "__default__": "青森",
+        "ja": "青森"
+      },
+      "sibling_point_ids": ["PORT_青森_2"],
+      "metadata": {
+        "source_dataset": "port_locations.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_沖館小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "沖館小学校",
+        "ja": "沖館小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13322",
+        "13324",
+        "13325",
+        "13327",
+        "13336",
+        "13337",
+        "13388",
+        "13391",
+        "13397"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_沖館中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "沖館中学校",
+        "ja": "沖館中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12728", "12985", "13156", "13328", "13356", "13505"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_南中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "南中学校",
+        "ja": "南中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "13834",
+        "13835",
+        "13846",
+        "13847",
+        "13991",
+        "13994",
+        "14002"
+      ],
+      "sibling_point_ids": ["SCH_SEC_南中学校_2"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森山田中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森山田中学校",
+        "ja": "青森山田中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12823", "13016", "13044", "13417", "13450"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森山田高等学校_2",
+      "type": "school",
+      "name": {
+        "__default__": "青森山田高等学校",
+        "ja": "青森山田高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["12911", "12942", "13083", "13132", "13218", "13326"],
+      "sibling_point_ids": ["SCH_SEC_青森山田高等学校_1"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浪館小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪館小学校",
+        "ja": "浪館小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12857", "12858", "13400", "13410", "13411", "13412"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_三内小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三内小学校",
+        "ja": "三内小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["12850", "13422", "13423", "13425", "13428", "13429"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森東高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森東高等学校",
+        "ja": "青森東高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13261", "13432", "13444", "13452", "13568"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_筒井小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "筒井小学校",
+        "ja": "筒井小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13191",
+        "13198",
+        "13203",
+        "13204",
+        "13455",
+        "13456",
+        "13458"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_村上病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "村上病院",
+        "ja": "村上病院"
+      },
+      "pop_ids": ["13057", "13107", "13119", "13206"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 120,
+        "address": "青森市浜田三丁目3-14"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森中央高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森中央高等学校",
+        "ja": "青森中央高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12898",
+        "12903",
+        "12915",
+        "12945",
+        "12996",
+        "13137",
+        "13555"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_大野小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "大野小学校",
+        "ja": "大野小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "12907",
+        "12908",
+        "12916",
+        "12917",
+        "12918",
+        "13347",
+        "13357",
+        "13485"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_あおもり協立病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "あおもり協立病院",
+        "ja": "あおもり協立病院"
+      },
+      "pop_ids": ["12784", "12821", "12864", "13255", "13312", "13343"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 223,
+        "address": "青森市東大野二丁目1-10"
+      }
+    },
+    {
+      "point_id": "HOS_青森市立浪岡病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "青森市立浪岡病院",
+        "ja": "青森市立浪岡病院"
+      },
+      "pop_ids": ["12836", "13475", "13791", "13844", "13987", "14354"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 199,
+        "address": "青森市浪岡大字浪岡平野180"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_浪岡高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪岡高等学校",
+        "ja": "浪岡高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12752",
+        "13241",
+        "13492",
+        "13566",
+        "13719",
+        "14087",
+        "14759"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浪岡北小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪岡北小学校",
+        "ja": "浪岡北小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13500", "13522", "13523", "13524", "13529", "13530"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_浪岡中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪岡中学校",
+        "ja": "浪岡中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "12764",
+        "12841",
+        "13109",
+        "13268",
+        "13338",
+        "13501",
+        "13502",
+        "13552"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_国立病院機構青森病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "国立病院機構青森病院",
+        "ja": "国立病院機構青森病院"
+      },
+      "pop_ids": [
+        "12822",
+        "12944",
+        "13043",
+        "13474",
+        "13496",
+        "13534",
+        "14223",
+        "14261",
+        "14627",
+        "14648"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 333,
+        "address": "青森市浪岡大字女鹿沢字平野155-1"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立浪岡養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立浪岡養護学校",
+        "ja": "青森県立浪岡養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["14190", "14629"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_女鹿沢小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "女鹿沢小学校",
+        "ja": "女鹿沢小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13506", "13512", "13515"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浪岡野沢小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪岡野沢小学校",
+        "ja": "浪岡野沢小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13516", "13518", "13519"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_浪岡南小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "浪岡南小学校",
+        "ja": "浪岡南小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13489", "13497", "13511", "13541"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_本郷小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "本郷小学校",
+        "ja": "本郷小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13535", "13536"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森南高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森南高等学校",
+        "ja": "青森南高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12768",
+        "12818",
+        "12824",
+        "12865",
+        "12885",
+        "12886",
+        "12891",
+        "12899",
+        "12920",
+        "12928",
+        "13009",
+        "13024",
+        "13058",
+        "13135",
+        "13252",
+        "13378",
+        "13546",
+        "14250",
+        "14393",
+        "14396",
+        "14474",
+        "14547"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_戸山中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "戸山中学校",
+        "ja": "戸山中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["13436", "13447", "13504"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_戸山西小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "戸山西小学校",
+        "ja": "戸山西小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13185", "13561", "13564", "13565", "13567", "13569"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_医_雄心会青森新都市病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(医)雄心会青森新都市病院",
+        "ja": "(医)雄心会青森新都市病院"
+      },
+      "pop_ids": [
+        "12754",
+        "12874",
+        "12974",
+        "13256",
+        "13296",
+        "13297",
+        "14774"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 191,
+        "address": "青森市大字石江字高間109-18"
+      }
+    },
+    {
+      "point_id": "HOS_弘前大学医学部附属病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "弘前大学医学部附属病院",
+        "ja": "弘前大学医学部附属病院"
+      },
+      "pop_ids": [
+        "13612",
+        "13631",
+        "13637",
+        "13753",
+        "13787",
+        "13883",
+        "13884",
+        "13937",
+        "13947",
+        "13975",
+        "13977",
+        "14072",
+        "14126",
+        "14209",
+        "14222",
+        "14245",
+        "14503",
+        "14537"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 644,
+        "address": "弘前市大字本町53"
+      }
+    },
+    {
+      "point_id": "UNI_弘前大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "弘前大学",
+        "ja": "弘前大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "12777",
+        "13613",
+        "13734",
+        "13763",
+        "13793",
+        "13833",
+        "13842",
+        "13879",
+        "13948",
+        "13971",
+        "13973",
+        "13976",
+        "14046",
+        "14093",
+        "14177",
+        "14216",
+        "14240",
+        "14446",
+        "14502",
+        "14556",
+        "14719"
+      ],
+      "sibling_point_ids": [
+        "UNI_弘前大学_2",
+        "UNI_弘前大学_3",
+        "UNI_弘前大学_4"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_弘前大学_2",
+      "type": "university",
+      "name": {
+        "__default__": "弘前大学",
+        "ja": "弘前大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "13062",
+        "13490",
+        "13590",
+        "13595",
+        "13620",
+        "13658",
+        "13661",
+        "13679",
+        "13810",
+        "13825",
+        "13840",
+        "13863",
+        "13870",
+        "13886",
+        "13902",
+        "13934",
+        "14118",
+        "14121",
+        "14131",
+        "14255",
+        "14314",
+        "14487"
+      ],
+      "sibling_point_ids": [
+        "UNI_弘前大学_1",
+        "UNI_弘前大学_3",
+        "UNI_弘前大学_4"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_朝陽小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "朝陽小学校",
+        "ja": "朝陽小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13575", "13577", "13586", "13905"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_弘前高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前高等学校",
+        "ja": "弘前高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "13584",
+        "13859",
+        "13860",
+        "13862",
+        "13990",
+        "14681",
+        "14698"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_第一中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "第一中学校",
+        "ja": "第一中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "13598",
+        "13599",
+        "13605",
+        "13617",
+        "13649",
+        "13654",
+        "13656",
+        "13912",
+        "13922",
+        "14104"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_東北女子短期大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "東北女子短期大学",
+        "ja": "東北女子短期大学"
+      },
+      "sub_type": "junior_college",
+      "pop_ids": ["13537", "13615", "14525"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "MUS_弘前市立博物館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "弘前市立博物館",
+        "ja": "弘前市立博物館"
+      },
+      "pop_ids": ["13645", "14282"],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "MUS_弘前城史料館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "弘前城史料館",
+        "ja": "弘前城史料館"
+      },
+      "pop_ids": [
+        "12848",
+        "13579",
+        "13607",
+        "13630",
+        "13648",
+        "13651",
+        "13682",
+        "13697",
+        "13783",
+        "13819",
+        "13856",
+        "13953",
+        "13969",
+        "14149",
+        "14164",
+        "14632",
+        "14668",
+        "14747"
+      ],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "THM_弘前市立観光館_1",
+      "type": "amusement_park",
+      "name": {
+        "__default__": "弘前市立観光館",
+        "ja": "弘前市立観光館"
+      },
+      "sub_type": "theme_park",
+      "pop_ids": [
+        "12954",
+        "13581",
+        "13601",
+        "13673",
+        "13705",
+        "13741",
+        "13747",
+        "13823",
+        "13841",
+        "13900",
+        "13963",
+        "13980",
+        "14123",
+        "14315",
+        "14391",
+        "14397",
+        "14498",
+        "14614",
+        "14647",
+        "14659"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_弘前中央高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前中央高等学校",
+        "ja": "弘前中央高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "13622",
+        "13678",
+        "13701",
+        "13707",
+        "13742",
+        "13919",
+        "13926",
+        "13966",
+        "13982",
+        "14079",
+        "14111",
+        "14137",
+        "14138",
+        "14150",
+        "14221",
+        "14400",
+        "14705",
+        "14714"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "PRK_弘前市城北交通公園広場_1",
+      "type": "park",
+      "name": {
+        "__default__": "弘前市城北交通公園広場",
+        "ja": "弘前市城北交通公園広場"
+      },
+      "sub_type": "park",
+      "pop_ids": ["13750", "14023", "14107"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_時敏小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "時敏小学校",
+        "ja": "時敏小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13626", "13628", "13632", "13644", "13647", "13655"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "PRK_藤田記念庭園_1",
+      "type": "park",
+      "name": {
+        "__default__": "藤田記念庭園",
+        "ja": "藤田記念庭園"
+      },
+      "sub_type": "garden",
+      "pop_ids": ["13574", "13606", "13635", "13669", "13759"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_弘前工業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前工業高等学校",
+        "ja": "弘前工業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13917", "14030", "14496", "14651"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_城西小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "城西小学校",
+        "ja": "城西小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13639", "13676", "13677", "13889"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_第二中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "第二中学校",
+        "ja": "第二中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "13665",
+        "13675",
+        "13681",
+        "13688",
+        "13692",
+        "14019",
+        "14024",
+        "14025",
+        "14053"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_西小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "西小学校",
+        "ja": "西小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13689", "13690"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_鳴海病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "鳴海病院",
+        "ja": "鳴海病院"
+      },
+      "pop_ids": ["13943", "13949", "14283", "14707"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 116,
+        "address": "弘前市大字品川町19"
+      }
+    },
+    {
+      "point_id": "ART_弘前れんが倉庫美術館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "弘前れんが倉庫美術館",
+        "ja": "弘前れんが倉庫美術館"
+      },
+      "sub_type": "art_museum",
+      "pop_ids": ["13580", "13798", "13848", "13956", "14329", "14723"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "HOS_弘前中央病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "弘前中央病院",
+        "ja": "弘前中央病院"
+      },
+      "pop_ids": ["13709", "13740", "13786", "14171", "14172"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 174,
+        "address": "弘前市大字吉野町3-1"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_桔梗野小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "桔梗野小学校",
+        "ja": "桔梗野小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13720", "13726", "13730", "13768", "13901"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_第四中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "第四中学校",
+        "ja": "第四中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "13583",
+        "13589",
+        "13592",
+        "13725",
+        "13729",
+        "13770",
+        "13777",
+        "13788"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_弘前メディカルセンター_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "弘前メディカルセンター",
+        "ja": "弘前メディカルセンター"
+      },
+      "pop_ids": ["13698", "13733", "14116", "14242", "14615"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 137,
+        "address": "弘前市大字大町二丁目2-9"
+      }
+    },
+    {
+      "point_id": "HOS_弘前市立病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "弘前市立病院",
+        "ja": "弘前市立病院"
+      },
+      "pop_ids": [
+        "12775",
+        "13731",
+        "13839",
+        "14101",
+        "14187",
+        "14562",
+        "14660",
+        "14720"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 250,
+        "address": "弘前市大字大町三丁目8-1"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_和徳小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "和徳小学校",
+        "ja": "和徳小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13596", "13597", "13604", "14112", "14113", "14125"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_大成小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "大成小学校",
+        "ja": "大成小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13594", "13703", "13713", "13735", "13738", "13744"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_独立行政法人国立病院機構弘前病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "独立行政法人国立病院機構弘前病院",
+        "ja": "独立行政法人国立病院機構弘前病院"
+      },
+      "pop_ids": [
+        "13488",
+        "13588",
+        "13657",
+        "13674",
+        "13864",
+        "13903",
+        "13936",
+        "14120",
+        "14128"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 342,
+        "address": "弘前市大字富野町1"
+      }
+    },
+    {
+      "point_id": "SCH_SP_弘前大学教育学部附属特別支援学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前大学教育学部附属特別支援学校",
+        "ja": "弘前大学教育学部附属特別支援学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": [
+        "13629",
+        "13722",
+        "13737",
+        "13765",
+        "14011",
+        "14133",
+        "14546"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_弘前大学_3",
+      "type": "university",
+      "name": {
+        "__default__": "弘前大学",
+        "ja": "弘前大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "13578",
+        "13585",
+        "13591",
+        "13634",
+        "13662",
+        "13746",
+        "13756",
+        "13772",
+        "13809",
+        "13811",
+        "13812",
+        "13817",
+        "13824",
+        "13843",
+        "13861",
+        "13881",
+        "13890",
+        "13897",
+        "13979",
+        "14016",
+        "14022",
+        "14038",
+        "14105",
+        "14109",
+        "14127",
+        "14682"
+      ],
+      "sibling_point_ids": [
+        "UNI_弘前大学_1",
+        "UNI_弘前大学_2",
+        "UNI_弘前大学_4"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_弘前大学_4",
+      "type": "university",
+      "name": {
+        "__default__": "弘前大学",
+        "ja": "弘前大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "13570",
+        "13614",
+        "13640",
+        "13641",
+        "13653",
+        "13693",
+        "13728",
+        "13767",
+        "13775",
+        "13789",
+        "13795",
+        "13815",
+        "13882",
+        "13985",
+        "14013",
+        "14098",
+        "14106",
+        "14110",
+        "14156",
+        "14456",
+        "14689"
+      ],
+      "sibling_point_ids": [
+        "UNI_弘前大学_1",
+        "UNI_弘前大学_2",
+        "UNI_弘前大学_3"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_第三中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "第三中学校",
+        "ja": "第三中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "13699",
+        "13700",
+        "13702",
+        "13712",
+        "13751",
+        "13754",
+        "13760",
+        "13851",
+        "13852",
+        "13866"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_柴田女子高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "柴田女子高等学校",
+        "ja": "柴田女子高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13520", "14432", "14536", "14717"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_弘前学院大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "弘前学院大学",
+        "ja": "弘前学院大学"
+      },
+      "sub_type": "university",
+      "pop_ids": ["13727", "13748", "14165", "14166"],
+      "sibling_point_ids": ["UNI_弘前学院大学_2"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_弘前学院大学_2",
+      "type": "university",
+      "name": {
+        "__default__": "弘前学院大学",
+        "ja": "弘前学院大学"
+      },
+      "sub_type": "university",
+      "pop_ids": ["13752", "13941", "13950", "14263", "14708"],
+      "sibling_point_ids": ["UNI_弘前学院大学_1"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_公財_鷹揚郷腎研究所弘前病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(公財)鷹揚郷腎研究所弘前病院",
+        "ja": "(公財)鷹揚郷腎研究所弘前病院"
+      },
+      "pop_ids": ["13633", "13755", "13998", "14721"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 109,
+        "address": "弘前市大字小沢字山崎90"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_小沢小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小沢小学校",
+        "ja": "小沢小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13779", "13792", "13797", "13904", "13906"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_弘前南高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前南高等学校",
+        "ja": "弘前南高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "13672",
+        "13694",
+        "13739",
+        "13780",
+        "13803",
+        "14005",
+        "14068",
+        "14144",
+        "14679"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_東小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東小学校",
+        "ja": "東小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13813", "13814", "13826", "14122", "14129", "14130"],
+      "sibling_point_ids": ["SCH_PRI_東小学校_2"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_一財_愛成会弘前愛成会病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(一財)愛成会弘前愛成会病院",
+        "ja": "(一財)愛成会弘前愛成会病院"
+      },
+      "pop_ids": [
+        "13554",
+        "13610",
+        "13650",
+        "13715",
+        "13782",
+        "13801",
+        "13805",
+        "13981",
+        "13997"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 328,
+        "address": "弘前市大字北園一丁目6-2"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_松原小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "松原小学校",
+        "ja": "松原小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13832", "13836", "13838", "13877"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_第三大成小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "第三大成小学校",
+        "ja": "第三大成小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13849",
+        "13850",
+        "13853",
+        "13858",
+        "13867",
+        "13868",
+        "13869"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_東北女子大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "東北女子大学",
+        "ja": "東北女子大学"
+      },
+      "sub_type": "university",
+      "pop_ids": ["13762", "13774", "13820", "13831", "14043"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_文京小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "文京小学校",
+        "ja": "文京小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13761",
+        "13829",
+        "13880",
+        "13885",
+        "13888",
+        "13999",
+        "14014",
+        "14015"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_弘前実業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前実業高等学校",
+        "ja": "弘前実業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13684", "13696", "13872", "13873", "14516"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_致遠小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "致遠小学校",
+        "ja": "致遠小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13893",
+        "13894",
+        "13899",
+        "14017",
+        "14020",
+        "14021",
+        "14028",
+        "14029"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "PRK_弘前市りんご公園_1",
+      "type": "park",
+      "name": {
+        "__default__": "弘前市りんご公園",
+        "ja": "弘前市りんご公園"
+      },
+      "sub_type": "park",
+      "pop_ids": [
+        "13643",
+        "13659",
+        "13717",
+        "13764",
+        "13794",
+        "14151",
+        "14690"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_青柳小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青柳小学校",
+        "ja": "青柳小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13907", "13908"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_城東小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "城東小学校",
+        "ja": "城東小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13608", "13619", "13910", "13911", "13916"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_弘前医療福祉大学短期大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "弘前医療福祉大学短期大学",
+        "ja": "弘前医療福祉大学短期大学"
+      },
+      "sub_type": "junior_college",
+      "pop_ids": ["13766", "13913", "14624", "14741"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "UNI_弘前医療福祉大学_1",
+      "type": "university",
+      "name": {
+        "__default__": "弘前医療福祉大学",
+        "ja": "弘前医療福祉大学"
+      },
+      "sub_type": "university",
+      "pop_ids": [
+        "12852",
+        "13532",
+        "13593",
+        "13609",
+        "13680",
+        "13954",
+        "14408",
+        "14424"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_弘前脳卒中_リハビリテーションセンター_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "弘前脳卒中・ﾘﾊﾋﾞﾘﾃｰｼｮﾝｾﾝﾀｰ",
+        "ja": "弘前脳卒中・ﾘﾊﾋﾞﾘﾃｰｼｮﾝｾﾝﾀｰ"
+      },
+      "pop_ids": ["12955", "13718", "13887", "14143", "14616"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 248,
+        "address": "弘前市大字扇町一丁目2-1"
+      }
+    },
+    {
+      "point_id": "HOS_津軽保健生活協同組合健生病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "津軽保健生活協同組合健生病院",
+        "ja": "津軽保健生活協同組合健生病院"
+      },
+      "pop_ids": [
+        "13625",
+        "13664",
+        "13711",
+        "13716",
+        "13802",
+        "13931",
+        "14558",
+        "14738"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 282,
+        "address": "弘前市大字扇町二丁目2-2"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_福村小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "福村小学校",
+        "ja": "福村小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13940", "13944", "13945", "13951", "13952"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_弘前記念病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "弘前記念病院",
+        "ja": "弘前記念病院"
+      },
+      "pop_ids": ["12835", "13611", "13621", "14099", "14557"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 171,
+        "address": "弘前市大字境関字西田59-1"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_第五中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "第五中学校",
+        "ja": "第五中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "13804",
+        "13807",
+        "13930",
+        "13957",
+        "13961",
+        "13962",
+        "13964"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_弘前東高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前東高等学校",
+        "ja": "弘前東高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12801",
+        "13749",
+        "13837",
+        "13845",
+        "13959",
+        "13965",
+        "14051",
+        "14142",
+        "14188",
+        "14207",
+        "14416",
+        "14495",
+        "14535",
+        "14704"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_豊田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "豊田小学校",
+        "ja": "豊田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13806",
+        "13808",
+        "13927",
+        "13929",
+        "13939",
+        "13955",
+        "13960"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SPO_弘前市運動公園_1",
+      "type": "sports_facility",
+      "name": {
+        "__default__": "弘前市運動公園",
+        "ja": "弘前市運動公園"
+      },
+      "sub_type": "sports_park",
+      "pop_ids": ["13778", "13958", "13967", "14119", "14427", "14701"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_堀越小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "堀越小学校",
+        "ja": "堀越小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13932",
+        "13933",
+        "13968",
+        "13970",
+        "13972",
+        "13978",
+        "13984"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_千年小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "千年小学校",
+        "ja": "千年小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "13988",
+        "13989",
+        "13993",
+        "14000",
+        "14001",
+        "14009",
+        "14010"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立弘前聾学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立弘前聾学校",
+        "ja": "青森県立弘前聾学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["14003", "14108"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_弘前学院聖愛高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "弘前学院聖愛高等学校",
+        "ja": "弘前学院聖愛高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13721", "13938", "14008", "14073", "14086", "14095"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_南中学校_2",
+      "type": "school",
+      "name": {
+        "__default__": "南中学校",
+        "ja": "南中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["12717", "12842", "13005", "13171", "13443"],
+      "sibling_point_ids": ["SCH_SEC_南中学校_1"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_大和沢小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "大和沢小学校",
+        "ja": "大和沢小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14004", "14007"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_津軽保健生活協同組合藤代健生病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "津軽保健生活協同組合藤代健生病院",
+        "ja": "津軽保健生活協同組合藤代健生病院"
+      },
+      "pop_ids": [
+        "13683",
+        "13757",
+        "13942",
+        "14054",
+        "14058",
+        "14174",
+        "14617"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 248,
+        "address": "弘前市大字藤代二丁目12-1"
+      }
+    },
+    {
+      "point_id": "SPO_河西体育センター_1",
+      "type": "sports_facility",
+      "name": {
+        "__default__": "河西体育センター",
+        "ja": "河西体育センター"
+      },
+      "sub_type": "sports_park",
+      "pop_ids": ["13663", "13790", "13983"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_三省小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三省小学校",
+        "ja": "三省小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14033", "14035"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_東目屋中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東目屋中学校",
+        "ja": "東目屋中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14036"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_東目屋小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東目屋小学校",
+        "ja": "東目屋小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14037", "14040", "14042"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_船沢中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "船沢中学校",
+        "ja": "船沢中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14045", "14048"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_船沢小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "船沢小学校",
+        "ja": "船沢小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14047", "14049", "14052"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立弘前第一養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立弘前第一養護学校",
+        "ja": "青森県立弘前第一養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["13895"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立弘前第二養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立弘前第二養護学校",
+        "ja": "青森県立弘前第二養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["14074"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_北辰中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "北辰中学校",
+        "ja": "北辰中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14059", "14062", "14066"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_高杉小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "高杉小学校",
+        "ja": "高杉小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14056", "14057", "14060"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_自得小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "自得小学校",
+        "ja": "自得小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14063", "14064", "14067"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_草薙小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "草薙小学校",
+        "ja": "草薙小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13691", "13732"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_裾野中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "裾野中学校",
+        "ja": "裾野中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14069", "14071"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_修斉小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "修斉小学校",
+        "ja": "修斉小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13822", "14041"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_新和小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "新和小学校",
+        "ja": "新和小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14077", "14078", "14080", "14085"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_新和中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "新和中学校",
+        "ja": "新和中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14075", "14076", "14084"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_COM_石川中学校_石川小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "石川中学校|石川小学校",
+        "ja": "石川中学校|石川小学校"
+      },
+      "sub_type": "consolidated",
+      "pop_ids": [
+        "14088",
+        "14089",
+        "14090",
+        "14091",
+        "14092",
+        "14096",
+        "14097"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_東奥義塾高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東奥義塾高等学校",
+        "ja": "東奥義塾高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13771", "14226", "14301", "14385"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SP-institution-7be3b4c88ce2",
+      "type": "school",
+      "name": {
+        "__default__": "石川中学校",
+        "ja": "石川中学校"
+      },
+      "sub_type": "junior_high",
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_北小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "北小学校",
+        "ja": "北小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["13652", "13923", "13925", "14102", "14115"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_医_弘愛会弘愛会病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(医)弘愛会弘愛会病院",
+        "ja": "(医)弘愛会弘愛会病院"
+      },
+      "pop_ids": ["14083", "14653", "14672"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 84,
+        "address": "弘前市大字宮川三丁目1-4"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_東中学校_2",
+      "type": "school",
+      "name": {
+        "__default__": "東中学校",
+        "ja": "東中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "13616",
+        "13816",
+        "13821",
+        "13827",
+        "13828",
+        "14117",
+        "14124"
+      ],
+      "sibling_point_ids": ["SCH_SEC_東中学校_1"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_医_元秀会弘前小野病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(医)元秀会弘前小野病院",
+        "ja": "(医)元秀会弘前小野病院"
+      },
+      "pop_ids": ["13091", "13714", "13800", "14543"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 93,
+        "address": "弘前市大字和泉二丁目19-1"
+      }
+    },
+    {
+      "point_id": "HOS_聖康会病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "聖康会病院",
+        "ja": "聖康会病院"
+      },
+      "pop_ids": ["13695", "13928", "14034", "14695"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 88,
+        "address": "弘前市大字和泉二丁目17-1"
+      }
+    },
+    {
+      "point_id": "SPO_弘前市立岩木B_G海洋センター_1",
+      "type": "sports_facility",
+      "name": {
+        "__default__": "弘前市立岩木Ｂ＆Ｇ海洋センター",
+        "ja": "弘前市立岩木Ｂ＆Ｇ海洋センター"
+      },
+      "sub_type": "sports_park",
+      "pop_ids": ["13724", "14230"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_岩木高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "岩木高等学校",
+        "ja": "岩木高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "12860",
+        "13618",
+        "13624",
+        "13627",
+        "13646",
+        "13668",
+        "13670",
+        "13745",
+        "13758",
+        "13865",
+        "13878",
+        "13909",
+        "14055",
+        "14507"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_岩木小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "岩木小学校",
+        "ja": "岩木小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "14136",
+        "14141",
+        "14145",
+        "14153",
+        "14157",
+        "14158",
+        "14159",
+        "14160"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_津軽中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "津軽中学校",
+        "ja": "津軽中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14139", "14146", "14147", "14154", "14161"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SHR_岩木山神社_1",
+      "type": "religious_institution",
+      "name": {
+        "__default__": "岩木山神社",
+        "ja": "岩木山神社"
+      },
+      "sub_type": "shrine",
+      "pop_ids": ["13666", "14613", "14643", "14753"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SPO_岩木山総合公園_1",
+      "type": "sports_facility",
+      "name": {
+        "__default__": "岩木山総合公園",
+        "ja": "岩木山総合公園"
+      },
+      "sub_type": "sports_park",
+      "pop_ids": ["13876", "14152", "14609"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "ZOO_弥生いこいの広場_1",
+      "type": "zoo",
+      "name": {
+        "__default__": "弥生いこいの広場",
+        "ja": "弥生いこいの広場"
+      },
+      "sub_type": "zoo",
+      "pop_ids": ["13123", "13642", "14039", "14070"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_COM_常盤野中学校_常盤野小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "常盤野中学校|常盤野小学校",
+        "ja": "常盤野中学校|常盤野小学校"
+      },
+      "sub_type": "consolidated",
+      "pop_ids": ["14162", "14163"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SP-institution-c9273d4160e0",
+      "type": "school",
+      "name": {
+        "__default__": "常盤野中学校",
+        "ja": "常盤野中学校"
+      },
+      "sub_type": "junior_high",
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_相馬中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "相馬中学校",
+        "ja": "相馬中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14167", "14169"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SKI_ロマントピアスキー場_1",
+      "type": "resort",
+      "name": {
+        "__default__": "ロマントピアスキー場",
+        "ja": "ロマントピアスキー場"
+      },
+      "pop_ids": ["14637"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_相馬小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "相馬小学校",
+        "ja": "相馬小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14170", "14173", "14175", "14176"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_黒石小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "黒石小学校",
+        "ja": "黒石小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "14182",
+        "14184",
+        "14191",
+        "14192",
+        "14213",
+        "14214",
+        "14217",
+        "14218",
+        "14262"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_黒石高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "黒石高等学校",
+        "ja": "黒石高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13706", "14006", "14196", "14215", "14392"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_中郷中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "中郷中学校",
+        "ja": "中郷中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14180", "14193", "14194", "14195", "14265"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_黒石中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "黒石中学校",
+        "ja": "黒石中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "14178",
+        "14200",
+        "14211",
+        "14227",
+        "14237",
+        "14248",
+        "14254"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_黒石市国保黒石病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "黒石市国保黒石病院",
+        "ja": "黒石市国保黒石病院"
+      },
+      "pop_ids": [
+        "13498",
+        "13539",
+        "14206",
+        "14260",
+        "14266",
+        "14295",
+        "14332"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 257,
+        "address": "黒石市北美町一丁目70"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_黒石東小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "黒石東小学校",
+        "ja": "黒石東小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "14179",
+        "14189",
+        "14198",
+        "14201",
+        "14210",
+        "14234",
+        "14235",
+        "14238",
+        "14253",
+        "14256"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_医_社団来蘇圓会黒石あけぼの病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "（医）社団来蘇圓会黒石あけぼの病院",
+        "ja": "（医）社団来蘇圓会黒石あけぼの病院"
+      },
+      "pop_ids": ["13773", "13784", "13892", "14181", "14232", "14553"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 189,
+        "address": "黒石市あけぼの町52"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_黒石商業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "黒石商業高等学校",
+        "ja": "黒石商業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "13736",
+        "13918",
+        "13924",
+        "14065",
+        "14114",
+        "14236",
+        "14551"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_六郷小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "六郷小学校",
+        "ja": "六郷小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14220", "14224", "14228", "14229"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "MUS_津軽こけし館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "津軽こけし館",
+        "ja": "津軽こけし館"
+      },
+      "pop_ids": ["13222", "13799"],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "MUS_津軽伝承工芸館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "津軽伝承工芸館",
+        "ja": "津軽伝承工芸館"
+      },
+      "sub_type": "archive",
+      "pop_ids": ["13408", "14441"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立黒石養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立黒石養護学校",
+        "ja": "青森県立黒石養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["12968", "14252", "14258"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_東英小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東英小学校",
+        "ja": "東英小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14243", "14246", "14247"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_一財_双仁会黒石厚生病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "（一財）双仁会黒石厚生病院",
+        "ja": "（一財）双仁会黒石厚生病院"
+      },
+      "pop_ids": ["13116", "13144", "13946", "14185", "14259", "14736"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 213,
+        "address": "黒石市大字黒石字建石9-1"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_南小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "南小学校",
+        "ja": "南小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14269", "14273", "14274", "14275", "14378"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原第一高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原第一高等学校",
+        "ja": "五所川原第一高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["14284", "14322"],
+      "sibling_point_ids": ["SCH_SEC_五所川原第一高等学校_2"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原第一高等学校_2",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原第一高等学校",
+        "ja": "五所川原第一高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["14304"],
+      "sibling_point_ids": ["SCH_SEC_五所川原第一高等学校_1"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_増田病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "増田病院",
+        "ja": "増田病院"
+      },
+      "pop_ids": ["14135", "14347", "14402"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 75,
+        "address": "五所川原市字新町41"
+      }
+    },
+    {
+      "point_id": "HOS_つがる西北五広域連合つがる総合病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "つがる西北五広域連合つがる総合病院",
+        "ja": "つがる西北五広域連合つがる総合病院"
+      },
+      "pop_ids": [
+        "12723",
+        "13190",
+        "13299",
+        "13503",
+        "13667",
+        "14032",
+        "14271",
+        "14311",
+        "14491",
+        "14743",
+        "14745"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 438,
+        "address": "五所川原市字岩木町12番地3"
+      }
+    },
+    {
+      "point_id": "THM_ストーブ列車_津軽鉄道_1",
+      "type": "amusement_park",
+      "name": {
+        "__default__": "ストーブ列車（津軽鉄道）",
+        "ja": "ストーブ列車（津軽鉄道）"
+      },
+      "sub_type": "theme_park",
+      "pop_ids": ["12779"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "HOS_医_白生会胃腸病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(医)白生会胃腸病院",
+        "ja": "(医)白生会胃腸病院"
+      },
+      "pop_ids": ["14379", "14449", "14694"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 146,
+        "address": "五所川原市字中平井町142-1"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原高等学校",
+        "ja": "五所川原高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13370", "13874", "14280", "14452", "14742"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_布施病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "布施病院",
+        "ja": "布施病院"
+      },
+      "pop_ids": ["13360", "13446", "14365", "14369"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 120,
+        "address": "五所川原市字芭蕉18-4"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_松島小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "松島小学校",
+        "ja": "松島小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14294", "14296", "14302", "14305"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原商業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原商業高等学校",
+        "ja": "五所川原商業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["12807", "13871", "14297", "14375", "14699"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原農林高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原農林高等学校",
+        "ja": "五所川原農林高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["14233", "14309", "14339"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原工業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原工業高等学校",
+        "ja": "五所川原工業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["12810", "14387", "14477", "14552", "14710", "14731"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_栄小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "栄小学校",
+        "ja": "栄小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14312", "14313", "14355", "14356", "14361", "14380"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原第三中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原第三中学校",
+        "ja": "五所川原第三中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14317", "14335", "14357", "14358", "14359"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_三輪小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三輪小学校",
+        "ja": "三輪小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14316", "14319", "14321", "14327"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原第四中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原第四中学校",
+        "ja": "五所川原第四中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14306", "14307", "14377"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原第二中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原第二中学校",
+        "ja": "五所川原第二中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14328", "14337"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_東峰小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東峰小学校",
+        "ja": "東峰小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14330", "14331", "14334", "14336"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_いずみ小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "いずみ小学校",
+        "ja": "いずみ小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14308", "14323", "14324", "14341"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_三好小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三好小学校",
+        "ja": "三好小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14343", "14344"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_中央小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "中央小学校",
+        "ja": "中央小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14276", "14277", "14278", "14349", "14350"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_五所川原第一中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原第一中学校",
+        "ja": "五所川原第一中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": [
+        "14267",
+        "14279",
+        "14291",
+        "14292",
+        "14300",
+        "14345",
+        "14351"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_五所川原小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "五所川原小学校",
+        "ja": "五所川原小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14286", "14287", "14325", "14346"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_つがる西北五広域連合かなぎ病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "つがる西北五広域連合かなぎ病院",
+        "ja": "つがる西北五広域連合かなぎ病院"
+      },
+      "pop_ids": ["14140", "14348", "14597"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 100,
+        "address": "五所川原市金木町菅原13-1"
+      }
+    },
+    {
+      "point_id": "MUS_五所川原市金木歴史民俗資料館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "五所川原市金木歴史民俗資料館",
+        "ja": "五所川原市金木歴史民俗資料館"
+      },
+      "pop_ids": [
+        "12759",
+        "12957",
+        "13114",
+        "13481",
+        "13687",
+        "14219",
+        "14611"
+      ],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_金木中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "金木中学校",
+        "ja": "金木中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14362", "14363", "14364", "14366"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_金木高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "金木高等学校",
+        "ja": "金木高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["12720", "13267", "13623", "14342"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_金木小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "金木小学校",
+        "ja": "金木小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14367", "14368", "14370", "14371", "14373", "14374"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "MUS_太宰治記念館_斜陽館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "太宰治記念館「斜陽館」",
+        "ja": "太宰治記念館「斜陽館」"
+      },
+      "pop_ids": ["14447", "14458", "14462"],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "MUS_津軽三味線会館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "津軽三味線会館",
+        "ja": "津軽三味線会館"
+      },
+      "sub_type": "general_museum",
+      "pop_ids": ["14299", "14470"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "HOS_医_慈仁会尾野病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(医)慈仁会尾野病院",
+        "ja": "(医)慈仁会尾野病院"
+      },
+      "pop_ids": ["12746", "13602", "14290", "14340"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 101,
+        "address": "五所川原市金木町字朝日山453"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_市浦中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "市浦中学校",
+        "ja": "市浦中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14381"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_市浦小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "市浦小学校",
+        "ja": "市浦小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14382", "14383"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_金木高等学校市浦分校_1",
+      "type": "school",
+      "name": {
+        "__default__": "金木高等学校市浦分校",
+        "ja": "金木高等学校市浦分校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13396", "14744"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "MUS_市浦歴史民俗資料館_1",
+      "type": "museum",
+      "name": {
+        "__default__": "市浦歴史民俗資料館",
+        "ja": "市浦歴史民俗資料館"
+      },
+      "pop_ids": ["14752"],
+      "metadata": {
+        "source_dataset": "P27-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_木造中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "木造中学校",
+        "ja": "木造中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14388", "14390", "14403", "14409", "14415", "14437"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_木造高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "木造高等学校",
+        "ja": "木造高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": [
+        "13478",
+        "13557",
+        "13898",
+        "14225",
+        "14398",
+        "14435",
+        "14455",
+        "14468"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_向陽小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "向陽小学校",
+        "ja": "向陽小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14386", "14389", "14394", "14395", "14399", "14436"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_医_誠仁会尾野病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "(医)誠仁会尾野病院",
+        "ja": "(医)誠仁会尾野病院"
+      },
+      "pop_ids": [
+        "13560",
+        "13785",
+        "14044",
+        "14231",
+        "14326",
+        "14411",
+        "14687"
+      ],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 265,
+        "address": "つがる市木造若竹5"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_穂波小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "穂波小学校",
+        "ja": "穂波小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14406", "14407", "14410"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_瑞穂小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "瑞穂小学校",
+        "ja": "瑞穂小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14412", "14414", "14419", "14420"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SP_青森県立森田養護学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森県立森田養護学校",
+        "ja": "青森県立森田養護学校"
+      },
+      "sub_type": "special_support",
+      "pop_ids": ["14026", "14318", "14423", "14706"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_森田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "森田小学校",
+        "ja": "森田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14428", "14429", "14430"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_森田中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "森田中学校",
+        "ja": "森田中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14422", "14425"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_柏中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "柏中学校",
+        "ja": "柏中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14440", "14450", "14451"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_柏小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "柏小学校",
+        "ja": "柏小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14434", "14444", "14445", "14453", "14454"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_稲垣西小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "稲垣西小学校",
+        "ja": "稲垣西小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14457", "14459"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_稲垣中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "稲垣中学校",
+        "ja": "稲垣中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14461", "14466"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_稲垣小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "稲垣小学校",
+        "ja": "稲垣小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14464", "14465"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_車力中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "車力中学校",
+        "ja": "車力中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14467", "14471"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_車力小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "車力小学校",
+        "ja": "車力小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14469"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SHR_高山稲荷神社_1",
+      "type": "religious_institution",
+      "name": {
+        "__default__": "高山稲荷神社",
+        "ja": "高山稲荷神社"
+      },
+      "sub_type": "shrine",
+      "pop_ids": [
+        "12795",
+        "12909",
+        "13407",
+        "13510",
+        "13781",
+        "13796",
+        "13875",
+        "13935",
+        "13986",
+        "14050",
+        "14281",
+        "14353",
+        "14404",
+        "14413",
+        "14417",
+        "14460",
+        "14604",
+        "14640"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_牛潟小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "牛潟小学校",
+        "ja": "牛潟小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14472", "14473"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_富萢小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "富萢小学校",
+        "ja": "富萢小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14475", "14476"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_金田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "金田小学校",
+        "ja": "金田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14480", "14482", "14484", "14486", "14493"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_尾上総合高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "尾上総合高等学校",
+        "ja": "尾上総合高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13636", "14212"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_猿賀小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "猿賀小学校",
+        "ja": "猿賀小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14494", "14499", "14500", "14504", "14505", "14506"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SHR_猿賀神社_1",
+      "type": "religious_institution",
+      "name": {
+        "__default__": "猿賀神社",
+        "ja": "猿賀神社"
+      },
+      "sub_type": "shrine",
+      "pop_ids": ["13896", "14186", "14289", "14310", "14509", "14667"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "ART_盛美園_1",
+      "type": "heritage_site",
+      "name": {
+        "__default__": "盛美園",
+        "ja": "盛美園"
+      },
+      "sub_type": "historic_building",
+      "pop_ids": ["13030", "13507"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_尾上中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "尾上中学校",
+        "ja": "尾上中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14481", "14489", "14497", "14501"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_柏木小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "柏木小学校",
+        "ja": "柏木小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14511", "14512", "14531", "14532"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_大坊小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "大坊小学校",
+        "ja": "大坊小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14515", "14517"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_柏木農業高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "柏木農業高等学校",
+        "ja": "柏木農業高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13685", "14199", "14479", "14545", "14671"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_小和森小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小和森小学校",
+        "ja": "小和森小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14520", "14533", "14563", "14564"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_松崎小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "松崎小学校",
+        "ja": "松崎小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14522", "14524", "14528"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_平賀西中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "平賀西中学校",
+        "ja": "平賀西中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14510", "14514", "14521", "14529", "14530"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_竹館小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "竹館小学校",
+        "ja": "竹館小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14540", "14541"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_平賀東中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "平賀東中学校",
+        "ja": "平賀東中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14538", "14539", "14555", "14560", "14561"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_平賀東小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "平賀東小学校",
+        "ja": "平賀東小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14548", "14549", "14550", "14554", "14559"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "ONS_南田温泉ホテルアップルランド_1",
+      "type": "bathhouse",
+      "name": {
+        "__default__": "南田温泉ホテルアップルランド",
+        "ja": "南田温泉ホテルアップルランド"
+      },
+      "sub_type": "onsen",
+      "pop_ids": ["13671", "14094", "14485", "14513"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "ONS_碇ヶ関温泉_1",
+      "type": "bathhouse",
+      "name": {
+        "__default__": "碇ヶ関温泉",
+        "ja": "碇ヶ関温泉"
+      },
+      "sub_type": "onsen",
+      "pop_ids": ["13405", "14018", "14168", "14566"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_COM_碇ヶ関中学校_碇ヶ関小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "碇ヶ関中学校|碇ヶ関小学校",
+        "ja": "碇ヶ関中学校|碇ヶ関小学校"
+      },
+      "sub_type": "consolidated",
+      "pop_ids": ["14567", "14568", "14569", "14570"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SP-institution-8b8e4ecc6778",
+      "type": "school",
+      "name": {
+        "__default__": "碇ヶ関小学校",
+        "ja": "碇ヶ関小学校"
+      },
+      "sub_type": "elementary",
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_平内町国保平内中央病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "平内町国保平内中央病院",
+        "ja": "平内町国保平内中央病院"
+      },
+      "pop_ids": ["12741", "13184", "14433"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 96,
+        "address": "東津軽郡平内町大字小湊字外ノ沢1-1"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_小湊小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小湊小学校",
+        "ja": "小湊小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14571", "14574", "14578", "14580"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_小湊中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小湊中学校",
+        "ja": "小湊中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14572", "14575", "14588"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_青森東高等学校平内校舎分校_1",
+      "type": "school",
+      "name": {
+        "__default__": "青森東高等学校平内校舎分校",
+        "ja": "青森東高等学校平内校舎分校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["12930"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "PRK_夜越山森林公園_1",
+      "type": "park",
+      "name": {
+        "__default__": "夜越山森林公園",
+        "ja": "夜越山森林公園"
+      },
+      "sub_type": "park",
+      "pop_ids": ["12722", "13167", "13381", "14599", "14728"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_松風塾高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "松風塾高等学校",
+        "ja": "松風塾高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13231"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_東平内中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "東平内中学校",
+        "ja": "東平内中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14584"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_東小学校_2",
+      "type": "school",
+      "name": {
+        "__default__": "東小学校",
+        "ja": "東小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14582", "14583"],
+      "sibling_point_ids": ["SCH_PRI_東小学校_1"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_西平内中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "西平内中学校",
+        "ja": "西平内中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14577"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_山口小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "山口小学校",
+        "ja": "山口小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14586", "14587"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_今別小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "今別小学校",
+        "ja": "今別小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14589", "14590"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_今別中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "今別中学校",
+        "ja": "今別中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14591"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "ONS_よもぎ温泉_1",
+      "type": "bathhouse",
+      "name": {
+        "__default__": "よもぎ温泉",
+        "ja": "よもぎ温泉"
+      },
+      "sub_type": "onsen",
+      "pop_ids": ["12832", "13723", "14594"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_蓬田中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "蓬田中学校",
+        "ja": "蓬田中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14592", "14598"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_蓬田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "蓬田小学校",
+        "ja": "蓬田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14593", "14595", "14596"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_外ヶ浜町国保外ヶ浜中央病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "外ヶ浜町国保外ヶ浜中央病院",
+        "ja": "外ヶ浜町国保外ヶ浜中央病院"
+      },
+      "pop_ids": ["13080", "13271"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 44,
+        "address": "東津軽郡外ヶ浜町蟹田字下蟹田42-1"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_蟹田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "蟹田小学校",
+        "ja": "蟹田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14600", "14601", "14603"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_三厩中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三厩中学校",
+        "ja": "三厩中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14605"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_三厩小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "三厩小学校",
+        "ja": "三厩小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14606"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_蟹田中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "蟹田中学校",
+        "ja": "蟹田中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14602", "14607"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_西目屋小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "西目屋小学校",
+        "ja": "西目屋小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14608", "14610"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_西目屋中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "西目屋中学校",
+        "ja": "西目屋中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14612"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_藤崎小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "藤崎小学校",
+        "ja": "藤崎小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14619", "14620", "14621", "14622", "14623"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_藤崎中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "藤崎中学校",
+        "ja": "藤崎中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14618", "14631", "14634", "14635"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_藤崎中央小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "藤崎中央小学校",
+        "ja": "藤崎中央小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14630", "14636", "14638", "14639"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_ときわ会病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "ときわ会病院",
+        "ja": "ときわ会病院"
+      },
+      "pop_ids": ["13035", "13582", "13855", "14478", "14544"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 149,
+        "address": "南津軽郡藤崎町大字榊字亀田2-1"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_明徳中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "明徳中学校",
+        "ja": "明徳中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14641", "14649", "14650"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_常盤小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "常盤小学校",
+        "ja": "常盤小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14646", "14652", "14654", "14655"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_大鰐小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "大鰐小学校",
+        "ja": "大鰐小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14657", "14658", "14661", "14662", "14663", "14666"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SKI_大鰐温泉スキー場_1",
+      "type": "resort",
+      "name": {
+        "__default__": "大鰐温泉スキー場",
+        "ja": "大鰐温泉スキー場"
+      },
+      "pop_ids": ["13996"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_大鰐中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "大鰐中学校",
+        "ja": "大鰐中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14656", "14664", "14665"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "HOS_町立大鰐病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "町立大鰐病院",
+        "ja": "町立大鰐病院"
+      },
+      "pop_ids": ["13769", "13854"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 30,
+        "address": "南津軽郡大鰐町大字蔵館字川原田40-4"
+      }
+    },
+    {
+      "point_id": "THM_田んぼアート_田舎館村展望台_1",
+      "type": "amusement_park",
+      "name": {
+        "__default__": "田んぼアート（田舎館村展望台）",
+        "ja": "田んぼアート（田舎館村展望台）"
+      },
+      "sub_type": "theme_park",
+      "pop_ids": ["13587", "13857", "14197", "14202", "14384"],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_田舎館中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "田舎館中学校",
+        "ja": "田舎館中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14674", "14676", "14677", "14678", "14691"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_田舎館小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "田舎館小学校",
+        "ja": "田舎館小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "14669",
+        "14670",
+        "14680",
+        "14684",
+        "14688",
+        "14692",
+        "14693"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "THM_板柳町ふるさとセンター_1",
+      "type": "amusement_park",
+      "name": {
+        "__default__": "板柳町ふるさとセンター",
+        "ja": "板柳町ふるさとセンター"
+      },
+      "sub_type": "theme_park",
+      "pop_ids": [
+        "13513",
+        "13573",
+        "13710",
+        "13915",
+        "14012",
+        "14352",
+        "14576",
+        "14644",
+        "14673"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "HOS_国保板柳中央病院_1",
+      "type": "hospital",
+      "name": {
+        "__default__": "国保板柳中央病院",
+        "ja": "国保板柳中央病院"
+      },
+      "pop_ids": ["13576", "14027", "14527", "14754"],
+      "metadata": {
+        "source_dataset": "P04-20",
+        "beds": 87,
+        "address": "北津軽郡板柳町大字灰沼字岩井74-2"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_板柳北小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "板柳北小学校",
+        "ja": "板柳北小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14702", "14709", "14711", "14712"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_板柳中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "板柳中学校",
+        "ja": "板柳中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14700", "14703", "14713", "14725", "14729", "14739"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_板柳南小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "板柳南小学校",
+        "ja": "板柳南小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14696", "14722", "14724", "14726", "14727"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_小阿弥小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小阿弥小学校",
+        "ja": "小阿弥小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14732", "14734", "14735"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_板柳東小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "板柳東小学校",
+        "ja": "板柳東小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14737", "14740"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "PRK_富士見湖パーク_1",
+      "type": "park",
+      "name": {
+        "__default__": "富士見湖パーク",
+        "ja": "富士見湖パーク"
+      },
+      "sub_type": "park",
+      "pop_ids": [
+        "13603",
+        "13708",
+        "14320",
+        "14426",
+        "14438",
+        "14443",
+        "14448"
+      ],
+      "metadata": {
+        "source_dataset": "custom_attractions.csv"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_鶴田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "鶴田小学校",
+        "ja": "鶴田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": [
+        "14746",
+        "14749",
+        "14750",
+        "14751",
+        "14755",
+        "14756",
+        "14761",
+        "14762",
+        "14765"
+      ],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_鶴田中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "鶴田中学校",
+        "ja": "鶴田中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14748", "14757", "14763", "14764"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_鶴田高等学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "鶴田高等学校",
+        "ja": "鶴田高等学校"
+      },
+      "sub_type": "high_school",
+      "pop_ids": ["13274", "14633", "14645", "14758"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_中里小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "中里小学校",
+        "ja": "中里小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14767", "14768", "14776"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_中里中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "中里中学校",
+        "ja": "中里中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14766", "14769", "14777"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_武田小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "武田小学校",
+        "ja": "武田小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14770", "14771"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_薄市小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "薄市小学校",
+        "ja": "薄市小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14773", "14775"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_PRI_小泊小学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小泊小学校",
+        "ja": "小泊小学校"
+      },
+      "sub_type": "elementary",
+      "pop_ids": ["14778", "14780"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    },
+    {
+      "point_id": "SCH_SEC_小泊中学校_1",
+      "type": "school",
+      "name": {
+        "__default__": "小泊中学校",
+        "ja": "小泊中学校"
+      },
+      "sub_type": "junior_high",
+      "pop_ids": ["14779"],
+      "metadata": {
+        "source_dataset": "P29-13"
+      }
+    }
+  ]
+}

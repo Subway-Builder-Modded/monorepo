@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://subwaybuilder.dev/schemas/special_demand_types.schema.json",
+  "title": "Special Demand Type Definitions",
+  "description": "Defines the taxonomy of special demand point types (airports, schools, attractions, etc.) for use by the Subway Builder mod UI. Each type has a unique code, display metadata, optional sub-types, and an icon hint for rendering. Designed to be extensible across maps and mappers.",
+  "type": "object",
+  "required": ["$schema", "version", "types"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for validation."
+    },
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version. Increment on breaking changes."
+    },
+    "types": {
+      "type": "array",
+      "description": "All top-level special demand type definitions.",
+      "items": {
+        "$ref": "#/$defs/DemandType"
+      }
+    }
+  },
+  "$defs": {
+    "LocalizedString": {
+      "type": "object",
+      "description": "A dictionary of locale-keyed display strings. '__default__' is the unlocalized fallback; additional keys are BCP 47 locale tags (e.g. 'ja', 'en', 'es').",
+      "required": ["__default__"],
+      "properties": {
+        "__default__": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "DemandType": {
+      "type": "object",
+      "description": "A top-level special demand category (e.g. 'airport', 'university', 'art_museum').",
+      "required": ["id", "code", "label", "description", "icon"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Machine-readable identifier. Lowercase snake_case, suitable for variable names and foreign keys. Must be unique across all types."
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]{2,4}(_[A-Z]{2,4})?$",
+          "description": "Short uppercase alphabetic code (2-4 chars, optionally compound with underscore) used as a point ID prefix in demand_data. Must be unique across all types."
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedString",
+          "description": "Human-readable category name for UI display."
+        },
+        "description": {
+          "$ref": "#/$defs/LocalizedString",
+          "description": "Short description of what this category contains."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Lucide icon name (https://lucide.dev) for UI rendering."
+        },
+        "sub_types": {
+          "type": "array",
+          "description": "Optional narrower classifications within this type. Sub-types inherit the parent code but allow differentiated display.",
+          "items": {
+            "$ref": "#/$defs/DemandSubType"
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Freeform key-value pairs for auditing, future mod plugins, or mapper-specific extensions.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "DemandSubType": {
+      "type": "object",
+      "description": "A sub-classification within a parent demand type.",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "description": "Machine-readable identifier. Must be unique within the parent type's sub_types array and referenced by content points."
+        },
+        "label": {
+          "$ref": "#/$defs/LocalizedString",
+          "description": "Display name for this sub-type."
+        },
+        "description": {
+          "$ref": "#/$defs/LocalizedString",
+          "description": "Optional short description."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Optional Lucide icon override. If omitted, inherits the parent type icon."
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Freeform key-value pairs.",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}
