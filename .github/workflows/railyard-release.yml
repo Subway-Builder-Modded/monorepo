@@ -1,4 +1,4 @@
-name: RailyardRelease
+name: Railyard Release
 
 on:
   push:
@@ -13,6 +13,7 @@ env:
 
 jobs:
   build-macos:
+    name: Build macOS
     runs-on: macos-latest
     defaults:
       run:
@@ -28,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - uses: pnpm/action-setup@v4
 
@@ -36,7 +37,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/Library/pnpm/store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('railyard/frontend/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install Wails
@@ -72,6 +73,7 @@ jobs:
             railyard/build/bin/railyard-${{ env.VERSION }}-macos-universal.zip
 
   build-linux:
+    name: Build Linux
     runs-on: ubuntu-22.04
     defaults:
       run:
@@ -87,7 +89,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "22"
 
       - uses: pnpm/action-setup@v4
 
@@ -95,7 +97,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/pnpm/store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('railyard/frontend/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install Linux dependencies
@@ -133,6 +135,7 @@ jobs:
           path: railyard/build/bin/railyard-${{ env.VERSION }}-current-linux-amd64.flatpak
 
   build-windows:
+    name: Build Windows
     runs-on: windows-latest
     defaults:
       run:
@@ -151,7 +154,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - uses: pnpm/action-setup@v4
 
@@ -159,7 +162,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: $HOME/AppData/Local/pnpm/store
-          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: pnpm-${{ runner.os }}-${{ hashFiles('railyard/frontend/pnpm-lock.yaml') }}
           restore-keys: pnpm-${{ runner.os }}-
 
       - name: Install NSIS
@@ -197,6 +200,7 @@ jobs:
             railyard/build/bin/railyard-${{ env.VERSION }}-windows-${{ matrix.arch }}-portable.zip
 
   release:
+    name: Create Release
     needs: [build-macos, build-linux, build-windows]
     runs-on: ubuntu-latest
     if: ${{!contains(github.ref_name, '+rc')}}

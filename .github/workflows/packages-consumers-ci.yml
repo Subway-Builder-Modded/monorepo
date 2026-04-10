@@ -1,0 +1,73 @@
+name: Packages Consumers CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - website-dev
+    paths:
+      - "packages/**"
+      - "website/**"
+      - "railyard/frontend/**"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - ".github/workflows/packages-consumers-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: packages-consumers-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  website-consumer-check:
+    name: Website Consumer Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: website/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint website
+        run: pnpm run lint
+
+  railyard-consumer-check:
+    name: Railyard Consumer Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: railyard/frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: railyard/frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint railyard frontend
+        run: pnpm run lint

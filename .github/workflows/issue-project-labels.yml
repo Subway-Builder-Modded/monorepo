@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   apply-project-labels:
+    name: Apply Project Labels
     runs-on: ubuntu-latest
     steps:
       - name: Apply labels from issue form
