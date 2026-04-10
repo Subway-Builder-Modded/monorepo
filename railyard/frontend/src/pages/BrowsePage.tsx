@@ -1,26 +1,30 @@
 import {
+  AssetSidebarPanel,
   CardSkeletonGrid,
+  EmptyState,
+  ErrorBanner,
   ResponsiveCardGrid,
+  ResultsSummary,
+  SearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  ViewModeToggle,
 } from '@subway-builder-modded/asset-listings-ui';
 import { Compass, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { BrowseSidebar } from '@/components/browse/BrowseSidebar';
 import { SortSelect } from '@/components/browse/SortSelect';
-import { ViewModeToggle } from '@/components/browse/ViewModeToggle';
 import { PageLoadScreen } from '@/components/layout/PageLoadScreen';
-import { SearchBar } from '@/components/search/SearchBar';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { ItemCard } from '@/components/shared/ItemCard';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { Pagination } from '@/components/shared/Pagination';
+import { SidebarFilters } from '@/components/shared/SidebarFilters';
+import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import type { AssetType } from '@/lib/asset-types';
 import { buildAssetListingCounts } from '@/lib/listing-counts';
 import { buildSpecialDemandValues } from '@/lib/map-filter-values';
+import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';
@@ -228,22 +232,47 @@ function BrowsePageContent({
 
   return (
     <div className="relative isolate">
-      <BrowseSidebar
+      <AssetSidebarPanel
         open={sidebarOpen}
         onToggle={handleSidebarToggle}
+        ariaLabel="Browse filters"
         filters={filters}
-        onFiltersChange={setFilters}
+        currentType={filters.type}
         onTypeChange={setType}
-        availableTags={allTags}
-        availableSpecialDemand={availableSpecialDemand}
-        modTagCounts={modTagCounts}
-        mapLocationCounts={mapLocationCounts}
-        mapSourceQualityCounts={mapSourceQualityCounts}
-        mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-        mapSpecialDemandCounts={mapSpecialDemandCounts}
-        modCount={mods.length}
-        mapCount={maps.length}
-      />
+        renderPanel={({
+          open,
+          onToggle,
+          ariaLabel,
+          filters,
+          collapsedContent,
+          children,
+        }) => (
+          <SidebarPanel
+            open={open}
+            onToggle={onToggle}
+            ariaLabel={ariaLabel}
+            filters={filters}
+            collapsedContent={collapsedContent}
+          >
+            {children}
+          </SidebarPanel>
+        )}
+      >
+        <SidebarFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onTypeChange={setType}
+          availableTags={allTags}
+          availableSpecialDemand={availableSpecialDemand}
+          modTagCounts={modTagCounts}
+          mapLocationCounts={mapLocationCounts}
+          mapSourceQualityCounts={mapSourceQualityCounts}
+          mapLevelOfDetailCounts={mapLevelOfDetailCounts}
+          mapSpecialDemandCounts={mapSpecialDemandCounts}
+          modCount={mods.length}
+          mapCount={maps.length}
+        />
+      </AssetSidebarPanel>
 
       <div
         className="relative z-10 space-y-5"
@@ -261,27 +290,20 @@ function BrowsePageContent({
 
         {error && <ErrorBanner message={error} />}
 
-        <SearchBar query={filters.query} onQueryChange={handleQueryChange} />
+        <SearchBar
+          query={filters.query}
+          onQueryChange={handleQueryChange}
+          placeholder={SEARCH_BAR_PLACEHOLDER}
+          ariaLabel="Search mods and maps"
+        />
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              {loading ? (
-                <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />
-              ) : (
-                <>
-                  <span className="font-medium text-foreground">
-                    {totalResults}
-                  </span>{' '}
-                  result{totalResults !== 1 ? 's' : ''}
-                  {filters.query && (
-                    <span className="ml-1">
-                      for <span className="italic">"{filters.query}"</span>
-                    </span>
-                  )}
-                </>
-              )}
-            </p>
+            <ResultsSummary
+              totalResults={totalResults}
+              query={filters.query}
+              loading={loading}
+            />
             <div className="flex items-center gap-2">
               <ViewModeToggle value={viewMode} onChange={setViewMode} />
               <SortSelect

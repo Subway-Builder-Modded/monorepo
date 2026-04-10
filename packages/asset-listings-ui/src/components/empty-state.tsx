@@ -1,13 +1,15 @@
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { LucideIcon } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
-
-interface EmptyStateProps {
+export interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description?: string;
   children?: React.ReactNode;
   className?: string;
+  iconClassName?: string;
+  titleClassName?: string;
+  descriptionClassName?: string;
 }
 
 export function EmptyState({
@@ -16,6 +18,9 @@ export function EmptyState({
   description,
   children,
   className,
+  iconClassName,
+  titleClassName,
+  descriptionClassName,
 }: EmptyStateProps) {
   return (
     <div
@@ -24,10 +29,13 @@ export function EmptyState({
         className,
       )}
     >
-      <Icon className="h-12 w-12 text-muted-foreground mb-4" />
-      <h3 className="text-lg font-medium">{title}</h3>
+      <Icon
+        className={cn('mb-4 h-12 w-12 text-muted-foreground', iconClassName)}
+        aria-hidden="true"
+      />
+      <h3 className={cn('text-lg font-medium', titleClassName)}>{title}</h3>
       {description && (
-        <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+        <p className={cn('mt-1 max-w-sm text-sm text-muted-foreground', descriptionClassName)}>
           {description}
         </p>
       )}

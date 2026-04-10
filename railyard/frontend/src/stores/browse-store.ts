@@ -1,6 +1,6 @@
+import type { SearchViewMode } from '@subway-builder-modded/config';
 import { create } from 'zustand';
 
-import type { SearchViewMode } from '@/lib/search-view-mode';
 import type {
   AssetQueryFilters,
   AssetQueryFilterStoreState,

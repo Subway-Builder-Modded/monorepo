@@ -4,15 +4,13 @@ import { AlignLeft, CircleAlert, History, Images } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import Markdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
 import {
-  Skeleton,
-  ToggleGroup,
-  ToggleGroupItem,
-} from '@subway-builder-modded/shared-ui';
+  EmptyState,
+  MarkdownPanel,
+  ProjectTabs,
+} from '@subway-builder-modded/asset-listings-ui';
+import { Skeleton } from '@subway-builder-modded/shared-ui';
 
-import { EmptyState } from '@/features/railyard/components/empty-state';
 import { ProjectGallery } from '@/features/railyard/components/project-gallery';
 import { ProjectHeader } from '@/features/railyard/components/project-header';
 import { ProjectVersions } from '@/features/railyard/components/project-versions';
@@ -225,63 +223,20 @@ export function ProjectPage({ type, id }: ProjectPageProps) {
       />
 
       <div className="space-y-5">
-        <ToggleGroup
-          type="single"
+        <ProjectTabs
           value={activeTab}
-          variant="default"
-          size="sm"
-          spacing={1}
-          onValueChange={(tab: string) => {
-            if (tab) setActiveTab(tab);
-          }}
-          className="rounded-xl border border-border/70 bg-background p-0.5 shadow-sm"
-        >
-          {(
-            [
-              { value: 'description', label: 'Description', icon: AlignLeft },
-              ...(hasGallery
-                ? [{ value: 'gallery', label: 'Gallery', icon: Images }]
-                : []),
-              { value: 'versions', label: 'Versions', icon: History },
-            ] as {
-              value: string;
-              label: string;
-              icon: React.ComponentType<{ className?: string }>;
-            }[]
-          ).map(({ value, label, icon: Icon }) => (
-            <ToggleGroupItem
-              key={value}
-              value={value}
-              className="h-9 rounded-lg px-3 text-sm font-semibold text-muted-foreground hover:bg-accent/45 hover:text-primary data-[state=on]:bg-accent/45 data-[state=on]:text-primary"
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+          onChange={setActiveTab}
+          options={[
+            { value: 'description', label: 'Description', icon: AlignLeft },
+            ...(hasGallery
+              ? [{ value: 'gallery', label: 'Gallery', icon: Images }]
+              : []),
+            { value: 'versions', label: 'Versions', icon: History },
+          ]}
+        />
 
         {activeTab === 'description' && (
-          <div className="rounded-xl border border-border bg-card p-5">
-            <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none text-sm leading-relaxed">
-              <Markdown
-                rehypePlugins={[rehypeRaw]}
-                components={{
-                  a: ({ href, children, ...props }) => (
-                    <a
-                      {...props}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {children}
-                    </a>
-                  ),
-                }}
-              >
-                {item.description}
-              </Markdown>
-            </div>
-          </div>
+          <MarkdownPanel markdown={item.description} />
         )}
 
         {hasGallery && activeTab === 'gallery' && (

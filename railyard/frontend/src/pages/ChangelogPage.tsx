@@ -1,4 +1,9 @@
 import {
+  EmptyState,
+  ErrorBanner,
+  MarkdownPanel,
+} from '@subway-builder-modded/asset-listings-ui';
+import {
   Badge,
   Button,
   Skeleton,
@@ -26,15 +31,11 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import Markdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
 import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
 import { AppDialog } from '@/components/dialogs/AppDialog';
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import {
   Tooltip,
   TooltipContent,
@@ -596,29 +597,13 @@ export function ChangelogPage() {
                       </div>
                       <div className="p-4">
                         {versionInfo.changelog ? (
-                          <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none text-sm leading-relaxed">
-                            <Markdown
-                              rehypePlugins={[rehypeRaw]}
-                              components={{
-                                a: ({ href, children, ...props }) => (
-                                  <a
-                                    {...props}
-                                    href={href}
-                                    onClick={(e) => {
-                                      if (href) {
-                                        e.preventDefault();
-                                        BrowserOpenURL(href);
-                                      }
-                                    }}
-                                  >
-                                    {children}
-                                  </a>
-                                ),
-                              }}
-                            >
-                              {versionInfo.changelog}
-                            </Markdown>
-                          </div>
+                          <MarkdownPanel
+                            markdown={versionInfo.changelog}
+                            className="border-0 bg-transparent p-0"
+                            onLinkClick={(href) => {
+                              BrowserOpenURL(href);
+                            }}
+                          />
                         ) : (
                           <p className="text-sm text-muted-foreground italic">
                             No changelog provided for this version.

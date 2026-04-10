@@ -22,6 +22,7 @@ import {
   StatLabel,
   StatValue,
 } from '@/components/ui/stat';
+import { EmptyState } from '@subway-builder-modded/asset-listings-ui';
 import type {
   DailyDataPoint,
   ListingType,
@@ -332,9 +333,12 @@ export function RegistryListingPage({
         type={type}
         snapshotLabel={data.snapshotLabel}
       >
-        <p className="text-muted-foreground">
-          No analytics data for this listing.
-        </p>
+        <EmptyState
+          icon={Package}
+          title="No analytics data"
+          description="No analytics data is available for this listing yet."
+          className="py-10"
+        />
       </RegistryDetailShell>
     );
   }

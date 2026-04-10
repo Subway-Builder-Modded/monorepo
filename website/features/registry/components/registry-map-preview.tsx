@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, MapPin } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { EmptyState } from '@subway-builder-modded/asset-listings-ui';
 
 type Bbox = [number, number, number, number];
 type MetricId =
@@ -758,12 +759,15 @@ export function RegistryMapPreview({ mapId }: { mapId: string }) {
   if (status === 'empty') {
     return (
       <div className="flex h-[26rem] items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-4 text-center">
-        <div className="space-y-2">
-          <MapPin className="mx-auto size-5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Heatmap grid data is not available for this map yet.
-          </p>
-        </div>
+        <EmptyState
+          icon={MapPin}
+          title="Heatmap unavailable"
+          description="Heatmap grid data is not available for this map yet."
+          className="py-0"
+          iconClassName="mb-2 h-5 w-5"
+          titleClassName="sr-only"
+          descriptionClassName="text-sm"
+        />
       </div>
     );
   }
@@ -771,12 +775,15 @@ export function RegistryMapPreview({ mapId }: { mapId: string }) {
   if (status === 'error') {
     return (
       <div className="flex h-[26rem] items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-4 text-center">
-        <div className="space-y-2">
-          <AlertCircle className="mx-auto size-5 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Unable to load map heatmap data right now.
-          </p>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Heatmap failed"
+          description="Unable to load map heatmap data right now."
+          className="py-0"
+          iconClassName="mb-2 h-5 w-5"
+          titleClassName="sr-only"
+          descriptionClassName="text-sm"
+        />
       </div>
     );
   }

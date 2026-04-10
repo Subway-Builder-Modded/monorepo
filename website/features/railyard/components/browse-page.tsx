@@ -9,19 +9,22 @@ import React, {
 } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
+  AssetSidebarPanel,
   CardSkeletonGrid,
+  EmptyState,
+  ErrorBanner,
+  ResultsSummary,
+  SearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  ViewModeToggle,
 } from '@subway-builder-modded/asset-listings-ui';
 
-import { AssetSidebarPanel } from '@/features/railyard/components/asset-sidebar-panel';
-import { EmptyState } from '@/features/railyard/components/empty-state';
-import { ErrorBanner } from '@/features/railyard/components/error-banner';
+import { SidebarFilters } from '@/features/railyard/components/sidebar-filters';
+import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import { ItemCard } from './item-card';
 import { PageHeader } from '@/components/shared/page-header';
 import { Pagination } from '@/features/railyard/components/pagination';
-import { SearchBar } from '@/features/railyard/components/search-bar';
 import { SortSelect } from '@/features/railyard/components/sort-select';
-import { ViewModeToggle } from '@/features/railyard/components/view-mode-toggle';
 import { createRandomSeed, useFilteredItems } from '@/hooks/use-filtered-items';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
@@ -31,7 +34,8 @@ import { buildSpecialDemandValues } from '@/lib/railyard/map-filter-values';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,
-} from '@/lib/railyard/search-view-mode';
+} from '@subway-builder-modded/config';
+import { SEARCH_BAR_PLACEHOLDER } from '@/lib/railyard/search';
 import { cn } from '@subway-builder-modded/shared-ui';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
@@ -172,21 +176,46 @@ export function BrowsePage() {
       <AssetSidebarPanel
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
-        mobileOpen={mobileSidebarOpen}
-        onMobileOpenChange={setMobileSidebarOpen}
+        ariaLabel="Browse filters"
+        currentType={filters.type}
         filters={filters}
-        onFiltersChange={setFilters}
         onTypeChange={setType}
-        availableTags={allTags}
-        availableSpecialDemand={availableSpecialDemand}
-        modTagCounts={modTagCounts}
-        mapLocationCounts={mapLocationCounts}
-        mapDataQualityCounts={mapDataQualityCounts}
-        mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-        mapSpecialDemandCounts={mapSpecialDemandCounts}
-        modCount={mods.length}
-        mapCount={maps.length}
-      />
+        renderPanel={({
+          open,
+          onToggle,
+          ariaLabel,
+          filters,
+          collapsedContent,
+          children,
+        }) => (
+          <SidebarPanel
+            open={open}
+            onToggle={onToggle}
+            ariaLabel={ariaLabel}
+            filters={filters}
+            collapsedContent={collapsedContent}
+            mobileOpen={mobileSidebarOpen}
+            onMobileOpenChange={setMobileSidebarOpen}
+          >
+            {children}
+          </SidebarPanel>
+        )}
+      >
+        <SidebarFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onTypeChange={setType}
+          availableTags={allTags}
+          availableSpecialDemand={availableSpecialDemand}
+          modTagCounts={modTagCounts}
+          mapLocationCounts={mapLocationCounts}
+          mapDataQualityCounts={mapDataQualityCounts}
+          mapLevelOfDetailCounts={mapLevelOfDetailCounts}
+          mapSpecialDemandCounts={mapSpecialDemandCounts}
+          modCount={mods.length}
+          mapCount={maps.length}
+        />
+      </AssetSidebarPanel>
 
       <div
         className={cn(
@@ -215,6 +244,8 @@ export function BrowsePage() {
           onQueryChange={(value) =>
             setFilters((prev) => ({ ...prev, query: value }))
           }
+          placeholder={SEARCH_BAR_PLACEHOLDER}
+          ariaLabel="Search mods and maps"
         />
 
         <div className="space-y-4">
@@ -228,26 +259,11 @@ export function BrowsePage() {
                 <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
                 Filters
               </button>
-              <p className="text-sm text-muted-foreground">
-                {loading ? (
-                  <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />
-                ) : (
-                  <>
-                    <span className="font-medium text-foreground">
-                      {totalResults}
-                    </span>{' '}
-                    result{totalResults !== 1 ? 's' : ''}
-                    {filters.query && (
-                      <span className="ml-1">
-                        for{' '}
-                        <span className="italic">
-                          &quot;{filters.query}&quot;
-                        </span>
-                      </span>
-                    )}
-                  </>
-                )}
-              </p>
+              <ResultsSummary
+                totalResults={totalResults}
+                query={filters.query}
+                loading={loading}
+              />
             </div>
             <div className="flex items-center gap-2">
               <ViewModeToggle value={viewMode} onChange={setViewMode} />

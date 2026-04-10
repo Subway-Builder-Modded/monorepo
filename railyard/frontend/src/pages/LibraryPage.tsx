@@ -1,4 +1,11 @@
-import { SIDEBAR_CONTENT_OFFSET } from '@subway-builder-modded/asset-listings-ui';
+import {
+  AssetSidebarPanel,
+  EmptyState,
+  ErrorBanner,
+  ResultsSummary,
+  SearchBar,
+  SIDEBAR_CONTENT_OFFSET,
+} from '@subway-builder-modded/asset-listings-ui';
 import { Button } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
@@ -8,16 +15,15 @@ import { useLocation } from 'wouter';
 import { AppDialog } from '@/components/dialogs/AppDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
-import { LibrarySidebarPanel } from '@/components/library/LibrarySidebarPanel';
-import { SearchBar } from '@/components/search/SearchBar';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { Pagination } from '@/components/shared/Pagination';
+import { SidebarFilters } from '@/components/shared/SidebarFilters';
+import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
 import { buildAssetListingCounts } from '@/lib/listing-counts';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { buildSpecialDemandValues } from '@/lib/map-filter-values';
+import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -360,22 +366,47 @@ export function LibraryPage() {
 
   return (
     <>
-      <LibrarySidebarPanel
+      <AssetSidebarPanel
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
+        ariaLabel="Library filters"
         filters={filters}
-        onFiltersChange={setFilters}
+        currentType={filters.type}
         onTypeChange={setType}
-        availableTags={availableTags}
-        availableSpecialDemand={availableSpecialDemand}
-        modTagCounts={modTagCounts}
-        mapLocationCounts={mapLocationCounts}
-        mapSourceQualityCounts={mapSourceQualityCounts}
-        mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-        mapSpecialDemandCounts={mapSpecialDemandCounts}
-        modCount={modCount}
-        mapCount={mapCount}
-      />
+        renderPanel={({
+          open,
+          onToggle,
+          ariaLabel,
+          filters,
+          collapsedContent,
+          children,
+        }) => (
+          <SidebarPanel
+            open={open}
+            onToggle={onToggle}
+            ariaLabel={ariaLabel}
+            filters={filters}
+            collapsedContent={collapsedContent}
+          >
+            {children}
+          </SidebarPanel>
+        )}
+      >
+        <SidebarFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          onTypeChange={setType}
+          availableTags={availableTags}
+          availableSpecialDemand={availableSpecialDemand}
+          modTagCounts={modTagCounts}
+          mapLocationCounts={mapLocationCounts}
+          mapSourceQualityCounts={mapSourceQualityCounts}
+          mapLevelOfDetailCounts={mapLevelOfDetailCounts}
+          mapSpecialDemandCounts={mapSpecialDemandCounts}
+          modCount={modCount}
+          mapCount={mapCount}
+        />
+      </AssetSidebarPanel>
 
       <div
         className="space-y-5"
@@ -408,6 +439,8 @@ export function LibraryPage() {
               onQueryChange={(value) =>
                 setFilters((prev) => ({ ...prev, query: value }))
               }
+              placeholder={SEARCH_BAR_PLACEHOLDER}
+              ariaLabel="Search installed mods and maps"
             />
           </div>
           <Button
@@ -444,17 +477,7 @@ export function LibraryPage() {
           </EmptyState>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">
-                {totalResults}
-              </span>{' '}
-              result{totalResults !== 1 ? 's' : ''}
-              {filters.query && (
-                <span className="ml-1">
-                  for <span className="italic">"{filters.query}"</span>
-                </span>
-              )}
-            </p>
+            <ResultsSummary totalResults={totalResults} query={filters.query} />
 
             {paginatedItems.length === 0 ? (
               <EmptyState

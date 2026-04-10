@@ -2,8 +2,8 @@
 
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { useState } from 'react';
+import { EmptyState } from '@subway-builder-modded/asset-listings-ui';
 
-import { EmptyState } from '@/features/railyard/components/empty-state';
 import { GalleryImage } from '@/features/railyard/components/gallery-image';
 import { Button } from '@/components/ui/button';
 
