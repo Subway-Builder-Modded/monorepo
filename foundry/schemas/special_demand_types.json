@@ -953,10 +953,7 @@
           },
           "metadata": {
             "classification": "MLIT P29 institution_type_code 16007 (university) or 99999 (other higher education); includes graduate schools",
-            "institution_type_codes": [
-              "16007",
-              "99999"
-            ]
+            "institution_type_codes": ["16007", "99999"]
           }
         }
       ]

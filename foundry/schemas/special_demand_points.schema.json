@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Subway-Builder-Modded/schemas/special_demand_content.schema.json",
+  "$id": "https://github.com/Subway-Builder-Modded/schemas/special_demand_points.schema.json",
   "title": "Special Demand Content",
   "x-immutable": true,
   "x-owner": "Subway-Builder-Modded",
@@ -35,7 +35,6 @@
   },
 
   "$defs": {
-
     "LocalizedString": {
       "type": "object",
       "description": "A dictionary of locale-keyed display strings. '__default__' is the unlocalized fallback; additional keys are BCP 47 locale tags.",

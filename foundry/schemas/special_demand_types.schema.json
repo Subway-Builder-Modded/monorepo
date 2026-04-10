@@ -4,11 +4,7 @@
   "title": "Special Demand Type Definitions",
   "description": "Defines the taxonomy of special demand point types (airports, schools, attractions, etc.) for use by the Subway Builder mod UI. Each type has a unique code, display metadata, optional sub-types, and an icon hint for rendering. Designed to be extensible across maps and mappers.",
   "type": "object",
-  "required": [
-    "$schema",
-    "version",
-    "types"
-  ],
+  "required": ["$schema", "version", "types"],
   "additionalProperties": false,
   "properties": {
     "$schema": {
@@ -32,9 +28,7 @@
     "LocalizedString": {
       "type": "object",
       "description": "A dictionary of locale-keyed display strings. '__default__' is the unlocalized fallback; additional keys are BCP 47 locale tags (e.g. 'ja', 'en', 'es').",
-      "required": [
-        "__default__"
-      ],
+      "required": ["__default__"],
       "properties": {
         "__default__": {
           "type": "string"
@@ -47,13 +41,7 @@
     "DemandType": {
       "type": "object",
       "description": "A top-level special demand category (e.g. 'airport', 'university', 'art_museum').",
-      "required": [
-        "id",
-        "code",
-        "label",
-        "description",
-        "icon"
-      ],
+      "required": ["id", "code", "label", "description", "icon"],
       "additionalProperties": false,
       "properties": {
         "id": {
@@ -95,10 +83,7 @@
     "DemandSubType": {
       "type": "object",
       "description": "A sub-classification within a parent demand type.",
-      "required": [
-        "id",
-        "label"
-      ],
+      "required": ["id", "label"],
       "additionalProperties": false,
       "properties": {
         "id": {
