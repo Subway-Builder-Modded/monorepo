@@ -54,13 +54,10 @@ export {
 } from './components/dialog';
 export { Input } from './components/input';
 export {
-  ActiveRouteIndicator,
-  MobileNavigationShell,
   Navbar,
   NavbarActionsSlot,
   NavbarBrandBlock,
   NavbarGap,
-  NavbarGroup,
   NavbarInset,
   NavbarItem,
   NavbarLabel,

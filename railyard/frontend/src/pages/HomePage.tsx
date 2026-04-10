@@ -1,3 +1,4 @@
+import type { AssetType } from '@subway-builder-modded/asset-listings-ui';
 import { Badge, Button, Skeleton } from '@subway-builder-modded/shared-ui';
 import {
   ArrowRight,
@@ -23,7 +24,6 @@ import { PendingUpdateRow } from '@/components/homepage/PendingUpdateRow';
 import { QuickNavCard } from '@/components/homepage/QuickNavCard';
 import { SectionHeader } from '@/components/homepage/SectionHeader';
 import { PageHeading } from '@/components/shared/PageHeading';
-import type { AssetType } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   handleSubscriptionMutationError,

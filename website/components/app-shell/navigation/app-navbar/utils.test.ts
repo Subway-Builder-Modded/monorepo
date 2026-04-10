@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   AppNavbarDropdownItem,
   AppNavbarItem,
-} from '@/config/navigation/navbar';
+} from '@/config/navigation/navbar.types';
 import {
   defaultItemHref,
   getDropdownItemActiveDepth,

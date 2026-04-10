@@ -8,7 +8,10 @@ import {
   NavbarStart,
   type NavbarProps,
 } from '@subway-builder-modded/shared-ui';
-import type { AppNavbarBrand, AppNavbarItem } from '@/config/navigation/navbar';
+import type {
+  AppNavbarBrand,
+  AppNavbarItem,
+} from '@/config/navigation/navbar.types';
 import { cn } from '@subway-builder-modded/shared-ui';
 import styles from '../app-navbar.module.css';
 import { NAVBAR_DEFAULT_COLOR_SCHEME_ID } from './utils';

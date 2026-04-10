@@ -1,4 +1,9 @@
 import {
+  isNavItemActive,
+  RAILYARD_SHARED_NAVBAR_MODEL,
+  type SharedNavItem,
+} from '@subway-builder-modded/config';
+import {
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_WIDTH_CLASS,
   Button,
@@ -42,48 +47,20 @@ import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useRegistryStore } from '@/stores/registry-store';
 
-type NavLinkConfig = {
-  href: string;
-  label: string;
-  icon: ComponentType<{ className?: string }>;
-  isCurrent: (location: string) => boolean;
+const NAV_ICON_BY_KEY: Partial<
+  Record<string, ComponentType<{ className?: string }>>
+> = {
+  browse: Compass,
+  library: Inbox,
+  profiles: CircleUser,
+  logs: Terminal,
+  settings: Settings,
 };
 
-const navLinks: NavLinkConfig[] = [
-  {
-    href: '/browse',
-    label: 'Browse',
-    icon: Compass,
-    isCurrent: (location: string) =>
-      location.startsWith('/browse') ||
-      location.startsWith('/search') ||
-      location.startsWith('/project'),
-  },
-  {
-    href: '/library',
-    label: 'Library',
-    icon: Inbox,
-    isCurrent: (location: string) => location.startsWith('/library'),
-  },
-  {
-    href: '/profiles',
-    label: 'Profiles',
-    icon: CircleUser,
-    isCurrent: (location: string) => location.startsWith('/profiles'),
-  },
-  {
-    href: '/logs',
-    label: 'Logs',
-    icon: Terminal,
-    isCurrent: (location: string) => location.startsWith('/logs'),
-  },
-  {
-    href: '/settings',
-    label: 'Settings',
-    icon: Settings,
-    isCurrent: (location: string) => location.startsWith('/settings'),
-  },
-] as const;
+const MAIN_NAV_ITEMS: SharedNavItem[] =
+  RAILYARD_SHARED_NAVBAR_MODEL.sections
+    .find((section) => section.id === 'main')
+    ?.items.filter((item): item is SharedNavItem => Boolean(item.href)) ?? [];
 
 const MOD_REMINDER_KEY = 'railyard:mod-reminder-acknowledged';
 const NAV_ITEM_BASE_CLASS =
@@ -195,12 +172,23 @@ export function Navbar() {
               </Link>
             </NavbarBrandBlock>
             <nav className="flex max-w-full flex-wrap items-center gap-1.5">
-              {navLinks.map(({ href, label, icon: Icon, isCurrent }) => {
-                const current = isCurrent(location);
+              {MAIN_NAV_ITEMS.map((item) => {
+                const Icon = item.iconKey
+                  ? NAV_ICON_BY_KEY[item.iconKey]
+                  : undefined;
+                if (!Icon || !item.href) {
+                  return null;
+                }
+
+                const current = isNavItemActive(
+                  location,
+                  item.activeMatchRules,
+                  item.href,
+                );
 
                 return (
                   <NavbarItem
-                    key={href}
+                    key={item.id}
                     asChild
                     isActive={current}
                     className={cn(
@@ -209,11 +197,11 @@ export function Navbar() {
                     )}
                   >
                     <Link
-                      href={href}
+                      href={item.href}
                       aria-current={current ? 'page' : undefined}
                     >
                       <Icon className="h-[1.05em] w-[1.05em] shrink-0 transition-colors" />
-                      <NavbarLabel>{label}</NavbarLabel>
+                      <NavbarLabel>{item.label}</NavbarLabel>
                     </Link>
                   </NavbarItem>
                 );

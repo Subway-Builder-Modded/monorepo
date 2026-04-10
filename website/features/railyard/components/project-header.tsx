@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { getModeHex, PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
 import { getAuthorAttributionHref } from '@/lib/authors';
 import { getCountryFlagIcon } from '@/lib/railyard/flags';
-import { formatDataQuality } from '@/lib/railyard/map-filter-values';
+import { formatSourceQuality } from '@subway-builder-modded/asset-listings-ui';
 import type { MapManifest, ModManifest, VersionInfo } from '@/types/registry';
 
 interface ProjectHeaderProps {
@@ -40,7 +40,7 @@ export function ProjectHeader({
   const badges = mapItem
     ? [
         mapItem.location,
-        formatDataQuality(mapItem.source_quality ?? ''),
+        formatSourceQuality(mapItem.source_quality ?? ''),
         mapItem.level_of_detail,
         ...(mapItem.special_demand ?? []),
       ].filter((v): v is string => Boolean(v))

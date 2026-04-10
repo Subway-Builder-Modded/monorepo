@@ -84,7 +84,7 @@ export const APP_NAVBAR_SIZES: AppNavbarSizes = {
   },
 };
 
-export const APP_NAVBAR_BRAND: AppNavbarBrand = {
+const APP_NAVBAR_BRAND: AppNavbarBrand = {
   title: WEBSITE_SHARED_NAVBAR_MODEL.brand.title,
   href: WEBSITE_SHARED_NAVBAR_MODEL.brand.href,
   iconKey: WEBSITE_SHARED_NAVBAR_MODEL.brand.iconKey,
@@ -116,7 +116,7 @@ const discordShared = getSharedItem('discord');
 const githubShared = getSharedItem('github');
 const themeShared = getSharedItem('theme');
 
-export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
+const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
   {
     id: railyardShared.id,
     title: railyardShared.label,

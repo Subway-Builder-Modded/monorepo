@@ -1,6 +1,9 @@
+import {
+  ASSET_TYPES,
+  type AssetType,
+} from '@subway-builder-modded/asset-listings-ui';
 import { create } from 'zustand';
 
-import { ASSET_TYPES, type AssetType } from '@/lib/asset-types';
 import { toCumulativeDownloadTotals } from '@/lib/download-totals';
 
 import type { types } from '../../wailsjs/go/models';

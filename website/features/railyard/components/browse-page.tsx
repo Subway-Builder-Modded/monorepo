@@ -10,7 +10,10 @@ import React, {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   CardSkeletonGrid,
+  Pagination as SharedPagination,
+  SearchBar as SharedSearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  ViewModeToggle as SharedViewModeToggle,
 } from '@subway-builder-modded/asset-listings-ui';
 
 import { AssetSidebarPanel } from '@/features/railyard/components/asset-sidebar-panel';
@@ -18,20 +21,25 @@ import { EmptyState } from '@/features/railyard/components/empty-state';
 import { ErrorBanner } from '@/features/railyard/components/error-banner';
 import { ItemCard } from './item-card';
 import { PageHeader } from '@/components/shared/page-header';
-import { Pagination } from '@/features/railyard/components/pagination';
-import { SearchBar } from '@/features/railyard/components/search-bar';
 import { SortSelect } from '@/features/railyard/components/sort-select';
-import { ViewModeToggle } from '@/features/railyard/components/view-mode-toggle';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { createRandomSeed, useFilteredItems } from '@/hooks/use-filtered-items';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
+import { PER_PAGE_OPTIONS, type PerPage } from '@/lib/railyard/constants';
 import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
-import { buildSpecialDemandValues } from '@/lib/railyard/map-filter-values';
+import { buildSpecialDemandValues } from '@subway-builder-modded/asset-listings-ui';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,
-} from '@/lib/railyard/search-view-mode';
+} from '@subway-builder-modded/asset-listings-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
@@ -210,11 +218,13 @@ export function BrowsePage() {
 
         {error && <ErrorBanner message={error} />}
 
-        <SearchBar
+        <SharedSearchBar
           query={filters.query}
           onQueryChange={(value) =>
             setFilters((prev) => ({ ...prev, query: value }))
           }
+          placeholder="Search mods and maps..."
+          ariaLabel="Search mods and maps"
         />
 
         <div className="space-y-4">
@@ -250,7 +260,10 @@ export function BrowsePage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <ViewModeToggle value={viewMode} onChange={setViewMode} />
+              <SharedViewModeToggle
+                value={viewMode}
+                onChange={(next) => setViewMode(next as SearchViewMode)}
+              />
               <SortSelect
                 value={filters.sort}
                 onChange={(value) =>
@@ -297,15 +310,37 @@ export function BrowsePage() {
                   />
                 ))}
               </div>
-              <Pagination
+              <SharedPagination
                 page={page}
                 totalPages={totalPages}
                 totalResults={totalResults}
                 perPage={filters.perPage}
+                perPageOptions={PER_PAGE_OPTIONS}
                 onPageChange={setPage}
                 onPerPageChange={(value) =>
-                  setFilters((prev) => ({ ...prev, perPage: value }))
+                  setFilters((prev) => ({ ...prev, perPage: value as PerPage }))
                 }
+                renderPerPageControl={({ value, options, onChange }) => (
+                  <Select
+                    value={String(value)}
+                    onValueChange={(v) => onChange(Number(v))}
+                  >
+                    <SelectTrigger className="w-16 h-7 text-xs" size="sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((opt) => (
+                        <SelectItem
+                          key={opt}
+                          value={String(opt)}
+                          className="text-xs"
+                        >
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
             </>
           )}

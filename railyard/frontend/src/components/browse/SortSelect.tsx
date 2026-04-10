@@ -1,3 +1,4 @@
+import type { AssetType } from '@subway-builder-modded/asset-listings-ui';
 import {
   DEFAULT_FIELD_ICONS,
   type SortFieldOption,
@@ -23,7 +24,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import type { AssetType } from '@/lib/asset-types';
 import {
   DEFAULT_SORT_STATE,
   getSortOptionsForType,

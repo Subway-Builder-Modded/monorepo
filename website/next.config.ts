@@ -13,6 +13,11 @@ const workspaceRoot = dirname(projectRoot);
 const nextConfig: NextConfig = {
   output: 'export',
   trailingSlash: true,
+  transpilePackages: [
+    '@subway-builder-modded/shared-ui',
+    '@subway-builder-modded/config',
+    '@subway-builder-modded/asset-listings-ui',
+  ],
   turbopack: {
     root: workspaceRoot,
   },

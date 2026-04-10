@@ -189,10 +189,6 @@ export function NavbarSection({ className, ...props }: React.ComponentProps<'div
   );
 }
 
-export function NavbarGroup({ className, ...props }: React.ComponentProps<'div'>) {
-  return <NavbarSection className={className} {...props} />;
-}
-
 export function NavbarStart({ className, ...props }: React.ComponentProps<'div'>) {
   return <div className={twMerge('relative', className)} {...props} />;
 }
@@ -280,7 +276,7 @@ export function NavbarActionsSlot({ className, ...props }: React.ComponentProps<
   return <div data-slot="navbar-actions" className={twMerge('flex items-center gap-1.5', className)} {...props} />;
 }
 
-export function ActiveRouteIndicator({
+function ActiveRouteIndicator({
   isActive,
   className,
   ...props
@@ -311,16 +307,6 @@ export function NavbarMobile({ className, ...props }: React.ComponentProps<'div'
         'group-has-data-navbar-sticky/navbar:sticky group-has-data-navbar-sticky/navbar:top-0 group-has-data-navbar-sticky/navbar:border-b group-has-data-navbar-sticky/navbar:border-border/70 group-has-data-navbar-sticky/navbar:bg-background/90 group-has-data-navbar-sticky/navbar:shadow-sm group-has-data-navbar-sticky/navbar:backdrop-blur-md',
         className,
       )}
-      {...props}
-    />
-  );
-}
-
-export function MobileNavigationShell({ className, ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div
-      data-slot="mobile-navigation-shell"
-      className={twMerge('flex flex-col gap-2 md:hidden', className)}
       {...props}
     />
   );

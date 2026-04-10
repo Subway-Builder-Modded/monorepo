@@ -15,7 +15,7 @@ import {
   useNavbar,
   type NavbarProps,
 } from '@subway-builder-modded/shared-ui';
-import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar';
+import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar-content';
 import { createNavbarConfigStyleVars } from './app-navbar/style-vars';
 import { useNavbarOffset } from './app-navbar/use-navbar-offset';
 import { DesktopNavbar } from './app-navbar/desktop-navbar';

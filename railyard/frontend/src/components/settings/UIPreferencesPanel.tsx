@@ -1,4 +1,8 @@
 import {
+  isSearchViewMode,
+  normalizeSearchViewMode,
+} from '@subway-builder-modded/asset-listings-ui';
+import {
   Card,
   CardContent,
   CardDescription,
@@ -24,10 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  isSearchViewMode,
-  normalizeSearchViewMode,
-} from '@/lib/search-view-mode';
 import { cn } from '@/lib/utils';
 import { useProfileStore } from '@/stores/profile-store';
 

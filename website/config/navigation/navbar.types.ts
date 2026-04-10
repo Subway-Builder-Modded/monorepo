@@ -1,13 +1,12 @@
 import type { AppIconValue } from '@/lib/icons';
 import type { ProjectColorId } from '@/config/theme/contracts';
 import type {
-  ActiveRouteMatchRule,
-  NavIconKey,
   SharedNavAction,
   SharedNavBrand,
+  SharedNavItem,
 } from '@subway-builder-modded/config';
 
-export type NavbarPosition = 'left' | 'right';
+type NavbarPosition = 'left' | 'right';
 
 export type NavbarItemColors = {
   light: {
@@ -25,49 +24,15 @@ export type NavbarModeColor = {
   dark: string;
 };
 
-export type NavbarDropdownItem = {
-  id: string;
-  title?: string;
-  href?: string;
-  icon?: AppIconValue;
-  colors?: NavbarItemColors;
-  color?: NavbarItemColors;
-};
-
-export type NavbarItem = {
-  id: string;
-  title?: string;
-  href?: string;
-  icon?: AppIconValue;
-  position: NavbarPosition;
-  colors?: NavbarItemColors;
-  color?: NavbarItemColors;
-  dropdown?: NavbarDropdownItem[];
-  specialStyle?: NavbarSpecialStyle;
-  styleVars?: NavbarStyleVars;
-};
-
-export type NavbarSpecialStyle = {
-  triggerClassName?: string;
-  dropdownContentClassName?: string;
-  dropdownItemClassName?: string;
-  activeUnderlineClassName?: string;
-};
-
-export type NavbarStyleVars = {
-  '--instance-accent-light': string;
-  '--instance-accent-dark': string;
-};
-
 export type NavbarColorScheme = {
   hover?: NavbarItemColors;
   active?: NavbarItemColors;
   indicator?: NavbarModeColor;
 };
 
-export type NavbarThemeId = 'light' | 'dark' | 'system';
+type NavbarThemeId = 'light' | 'dark' | 'system';
 
-export type NavbarAction =
+type NavbarAction =
   | {
       type: 'theme';
       theme: NavbarThemeId;
@@ -76,24 +41,21 @@ export type NavbarAction =
       type: 'none';
     };
 
-export type AppNavbarDropdownItem = {
-  id: string;
+type SharedNavbarItemCore = Pick<
+  SharedNavItem,
+  'id' | 'href' | 'iconKey' | 'activeMatchRules'
+>;
+
+export type AppNavbarDropdownItem = SharedNavbarItemCore & {
   title?: string;
-  href?: string;
-  iconKey?: NavIconKey;
   activeMatchPaths?: string[];
-  activeMatchRules?: ActiveRouteMatchRule[];
   icon?: AppIconValue;
   schemeId?: NavbarColorSchemeId;
   action?: SharedNavAction | NavbarAction;
 };
 
-export type AppNavbarItem = {
-  id: string;
+export type AppNavbarItem = SharedNavbarItemCore & {
   title?: string;
-  href?: string;
-  iconKey?: NavIconKey;
-  activeMatchRules?: ActiveRouteMatchRule[];
   icon?: AppIconValue;
   position: NavbarPosition;
   schemeId?: NavbarColorSchemeId;
@@ -101,22 +63,19 @@ export type AppNavbarItem = {
   dropdown?: AppNavbarDropdownItem[];
 };
 
-export type AppNavbarItemPresentation = {
+type AppNavbarItemPresentation = {
   restingState?: 'neutral' | 'hover';
   hoverExpand?: boolean;
 };
 
-export type AppNavbarBrand = {
-  title: string;
-  href: string;
-  iconKey?: NavIconKey;
+export type AppNavbarBrand = Pick<
+  SharedNavBrand,
+  'title' | 'href' | 'iconKey'
+> & {
   icon: AppIconValue;
 };
 
-export type SharedAwareNavbarBrand = SharedNavBrand &
-  Pick<AppNavbarBrand, 'icon'>;
-
-export type AppNavbarSizing = {
+type AppNavbarSizing = {
   brand: {
     gap: string;
     iconSize: string;

@@ -7,8 +7,8 @@ import { AuthorName } from '@/components/shared/author-name';
 import {
   type AssetType,
   assetTypeToListingPath,
-} from '@/lib/railyard/asset-types';
-import type { SearchViewMode } from '@/lib/railyard/search-view-mode';
+} from '@subway-builder-modded/asset-listings-ui';
+import type { SearchViewMode } from '@subway-builder-modded/asset-listings-ui';
 import type { MapManifest, ModManifest } from '@/types/registry';
 import { ItemCard as SharedItemCard } from '@subway-builder-modded/asset-listings-ui';
 

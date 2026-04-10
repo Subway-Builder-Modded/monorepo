@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AppIcon } from '@/components/shared/app-icon';
-import type { AppNavbarItem } from '@/config/navigation/navbar';
+import type { AppNavbarItem } from '@/config/navigation/navbar.types';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { isExternalHref } from '@/lib/url';
 import styles from '../app-navbar.module.css';

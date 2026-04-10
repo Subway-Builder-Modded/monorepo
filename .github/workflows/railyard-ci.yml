@@ -5,16 +5,14 @@ on:
     paths:
       - "railyard/**"
       - "packages/**"
-      - ".githooks/pre-push"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/railyard-ci.yml"
   push:
     branches:
       - main
     paths:
       - "railyard/**"
       - "packages/**"
-      - ".githooks/pre-push"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/railyard-ci.yml"
 
 jobs:
   backend_quality:

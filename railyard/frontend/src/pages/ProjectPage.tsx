@@ -1,3 +1,4 @@
+import { listingPathToAssetType } from '@subway-builder-modded/asset-listings-ui';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,7 +19,6 @@ import { ProjectGallery } from '@/components/project/ProjectGallery';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
 import { ProjectVersions } from '@/components/project/ProjectVersions';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { listingPathToAssetType } from '@/lib/asset-types';
 import { isCompatible } from '@/lib/semver';
 import {
   mergeVersionDownloads,

@@ -1,6 +1,6 @@
 import NextLink from 'next/link';
 import { AppIcon } from '@/components/shared/app-icon';
-import type { AppNavbarBrand } from '@/config/navigation/navbar';
+import type { AppNavbarBrand } from '@/config/navigation/navbar.types';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { resolveNavbarBrandIcon } from './icon-resolver';
 

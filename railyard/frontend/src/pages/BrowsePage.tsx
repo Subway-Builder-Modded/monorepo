@@ -1,26 +1,36 @@
+import type { AssetType } from '@subway-builder-modded/asset-listings-ui';
+import type { SearchViewMode } from '@subway-builder-modded/asset-listings-ui';
 import {
   CardSkeletonGrid,
+  Pagination as SharedPagination,
   ResponsiveCardGrid,
+  SearchBar as SharedSearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  ViewModeToggle as SharedViewModeToggle,
 } from '@subway-builder-modded/asset-listings-ui';
+import { buildSpecialDemandValues } from '@subway-builder-modded/asset-listings-ui';
 import { Compass, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { BrowseSidebar } from '@/components/browse/BrowseSidebar';
 import { SortSelect } from '@/components/browse/SortSelect';
-import { ViewModeToggle } from '@/components/browse/ViewModeToggle';
 import { PageLoadScreen } from '@/components/layout/PageLoadScreen';
-import { SearchBar } from '@/components/search/SearchBar';
+import { AssetSidebarPanel } from '@/components/shared/AssetSidebarPanel';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { ItemCard } from '@/components/shared/ItemCard';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { Pagination } from '@/components/shared/Pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
-import type { AssetType } from '@/lib/asset-types';
+import { PER_PAGE_OPTIONS, type PerPage } from '@/lib/constants';
 import { buildAssetListingCounts } from '@/lib/listing-counts';
-import { buildSpecialDemandValues } from '@/lib/map-filter-values';
+import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';
@@ -228,9 +238,10 @@ function BrowsePageContent({
 
   return (
     <div className="relative isolate">
-      <BrowseSidebar
+      <AssetSidebarPanel
         open={sidebarOpen}
         onToggle={handleSidebarToggle}
+        ariaLabel="Browse filters"
         filters={filters}
         onFiltersChange={setFilters}
         onTypeChange={setType}
@@ -261,7 +272,12 @@ function BrowsePageContent({
 
         {error && <ErrorBanner message={error} />}
 
-        <SearchBar query={filters.query} onQueryChange={handleQueryChange} />
+        <SharedSearchBar
+          query={filters.query}
+          onQueryChange={handleQueryChange}
+          placeholder={SEARCH_BAR_PLACEHOLDER}
+          ariaLabel="Search mods and maps"
+        />
 
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3">
@@ -283,7 +299,10 @@ function BrowsePageContent({
               )}
             </p>
             <div className="flex items-center gap-2">
-              <ViewModeToggle value={viewMode} onChange={setViewMode} />
+              <SharedViewModeToggle
+                value={viewMode}
+                onChange={(next) => setViewMode(next as SearchViewMode)}
+              />
               <SortSelect
                 value={filters.sort}
                 onChange={handleSortChange}
@@ -347,13 +366,37 @@ function BrowsePageContent({
                   ))}
                 </ResponsiveCardGrid>
               )}
-              <Pagination
+              <SharedPagination
                 page={page}
                 totalPages={totalPages}
                 totalResults={totalResults}
                 perPage={filters.perPage}
+                perPageOptions={PER_PAGE_OPTIONS}
                 onPageChange={setPage}
-                onPerPageChange={handlePerPageChange}
+                onPerPageChange={(value) =>
+                  handlePerPageChange(value as PerPage)
+                }
+                renderPerPageControl={({ value, options, onChange }) => (
+                  <Select
+                    value={String(value)}
+                    onValueChange={(v) => onChange(Number(v))}
+                  >
+                    <SelectTrigger className="w-16 h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((opt) => (
+                        <SelectItem
+                          key={opt}
+                          value={String(opt)}
+                          className="text-xs"
+                        >
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
             </>
           )}

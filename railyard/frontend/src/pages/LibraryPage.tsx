@@ -1,4 +1,9 @@
-import { SIDEBAR_CONTENT_OFFSET } from '@subway-builder-modded/asset-listings-ui';
+import {
+  Pagination as SharedPagination,
+  SearchBar as SharedSearchBar,
+  SIDEBAR_CONTENT_OFFSET,
+} from '@subway-builder-modded/asset-listings-ui';
+import { buildSpecialDemandValues } from '@subway-builder-modded/asset-listings-ui';
 import { Button } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
@@ -8,16 +13,22 @@ import { useLocation } from 'wouter';
 import { AppDialog } from '@/components/dialogs/AppDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
-import { LibrarySidebarPanel } from '@/components/library/LibrarySidebarPanel';
-import { SearchBar } from '@/components/search/SearchBar';
+import { AssetSidebarPanel } from '@/components/shared/AssetSidebarPanel';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { Pagination } from '@/components/shared/Pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
+import { PER_PAGE_OPTIONS, type PerPage } from '@/lib/constants';
 import { buildAssetListingCounts } from '@/lib/listing-counts';
 import { getLocalAccentClasses } from '@/lib/local-accent';
-import { buildSpecialDemandValues } from '@/lib/map-filter-values';
+import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -360,9 +371,10 @@ export function LibraryPage() {
 
   return (
     <>
-      <LibrarySidebarPanel
+      <AssetSidebarPanel
         open={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
+        ariaLabel="Library filters"
         filters={filters}
         onFiltersChange={setFilters}
         onTypeChange={setType}
@@ -403,11 +415,13 @@ export function LibraryPage() {
 
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <SearchBar
+            <SharedSearchBar
               query={filters.query}
               onQueryChange={(value) =>
                 setFilters((prev) => ({ ...prev, query: value }))
               }
+              placeholder={SEARCH_BAR_PLACEHOLDER}
+              ariaLabel="Search mods and maps"
             />
           </div>
           <Button
@@ -480,15 +494,40 @@ export function LibraryPage() {
                     setFilters((prev) => ({ ...prev, sort: value }))
                   }
                 />
-                <Pagination
+                <SharedPagination
                   page={page}
                   totalPages={totalPages}
                   totalResults={totalResults}
                   perPage={filters.perPage}
+                  perPageOptions={PER_PAGE_OPTIONS}
                   onPageChange={setPage}
                   onPerPageChange={(value) =>
-                    setFilters((prev) => ({ ...prev, perPage: value }))
+                    setFilters((prev) => ({
+                      ...prev,
+                      perPage: value as PerPage,
+                    }))
                   }
+                  renderPerPageControl={({ value, options, onChange }) => (
+                    <Select
+                      value={String(value)}
+                      onValueChange={(v) => onChange(Number(v))}
+                    >
+                      <SelectTrigger className="w-16 h-7 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {options.map((opt) => (
+                          <SelectItem
+                            key={opt}
+                            value={String(opt)}
+                            className="text-xs"
+                          >
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
               </>
             )}

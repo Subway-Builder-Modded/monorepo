@@ -1,6 +1,6 @@
+import type { AssetType } from '@subway-builder-modded/asset-listings-ui';
 import { create } from 'zustand';
 
-import type { AssetType } from '@/lib/asset-types';
 import {
   applyLatestSubscriptionUpdatesForActiveProfile,
   cancelInstallForAsset,

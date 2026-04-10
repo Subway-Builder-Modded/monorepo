@@ -1,3 +1,4 @@
+import { listingPathToAssetType } from '@subway-builder-modded/asset-listings-ui';
 import {
   Badge,
   Button,
@@ -41,7 +42,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { listingPathToAssetType } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {

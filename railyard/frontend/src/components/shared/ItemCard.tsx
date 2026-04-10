@@ -1,9 +1,9 @@
+import type { AssetType } from '@subway-builder-modded/asset-listings-ui';
 import { ItemCard as SharedItemCard } from '@subway-builder-modded/asset-listings-ui';
+import { assetTypeToListingPath } from '@subway-builder-modded/asset-listings-ui';
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 
-import type { AssetType } from '@/lib/asset-types';
-import { assetTypeToListingPath } from '@/lib/asset-types';
 import { formatListingDescriptionPreview } from '@/lib/description-preview';
 
 import type { types } from '../../../wailsjs/go/models';

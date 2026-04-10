@@ -44,7 +44,6 @@ function App() {
   useTheme();
   const [, setLocation] = useLocation();
   const [startupReady, setStartupReady] = useState(false);
-  const [fatalError, setFatalError] = useState<string | null>(null);
   const [pendingDeepLinkRoute, setPendingDeepLinkRoute] = useState<
     string | null
   >(null);
@@ -70,32 +69,6 @@ function App() {
   const installedInitialized = useInstalledStore((s) => s.initialized);
   const profileInitialized = useProfileStore((s) => s.initialized);
   const initGame = useGameStore((s) => s.initialize);
-
-  useEffect(() => {
-    const onWindowError = (event: ErrorEvent) => {
-      setFatalError(
-        event.error instanceof Error
-          ? event.error.message
-          : event.message || 'Unexpected application error',
-      );
-    };
-    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-      const reason = event.reason;
-      if (reason instanceof Error) {
-        setFatalError(reason.message);
-        return;
-      }
-      setFatalError(String(reason || 'Unhandled promise rejection'));
-    };
-
-    window.addEventListener('error', onWindowError);
-    window.addEventListener('unhandledrejection', onUnhandledRejection);
-
-    return () => {
-      window.removeEventListener('error', onWindowError);
-      window.removeEventListener('unhandledrejection', onUnhandledRejection);
-    };
-  }, []);
 
   useEffect(() => {
     const registryUpdate = EventsOn('registry:update', () => {
@@ -261,27 +234,6 @@ function App() {
           loadingStates={loadingStates}
           currentStep={currentStep}
         />
-      </div>
-    );
-  }
-
-  if (fatalError) {
-    return (
-      <div className="railyard-accent min-h-screen w-full bg-background text-foreground">
-        <div className="mx-auto flex min-h-screen w-full max-w-3xl items-center px-6 py-10">
-          <div className="w-full rounded-xl border border-destructive/35 bg-card/70 p-6">
-            <h1 className="text-lg font-semibold text-foreground">
-              Railyard encountered an error
-            </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              A runtime error has occurred in Railyard. Please report this error
-              to the developers.
-            </p>
-            <pre className="mt-4 overflow-x-auto rounded-md bg-background/80 p-3 text-xs text-destructive">
-              {fatalError}
-            </pre>
-          </div>
-        </div>
       </div>
     );
   }

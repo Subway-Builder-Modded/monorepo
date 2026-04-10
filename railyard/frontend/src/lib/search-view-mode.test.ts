@@ -1,10 +1,9 @@
-import { describe, expect, it } from 'vitest';
-
 import {
   isSearchViewMode,
   normalizeSearchViewMode,
   SEARCH_VIEW_MODES,
-} from './search-view-mode';
+} from '@subway-builder-modded/asset-listings-ui';
+import { describe, expect, it } from 'vitest';
 
 describe('SEARCH_VIEW_MODES', () => {
   it('contains full, compact, and list', () => {
