@@ -53,6 +53,31 @@ export {
   DialogTrigger,
 } from './components/dialog';
 export { Input } from './components/input';
+export {
+  ActiveRouteIndicator,
+  MobileNavigationShell,
+  Navbar,
+  NavbarActionsSlot,
+  NavbarBrandBlock,
+  NavbarGap,
+  NavbarGroup,
+  NavbarInset,
+  NavbarItem,
+  NavbarLabel,
+  NavbarMobile,
+  NavbarProvider,
+  NavbarSection,
+  NavbarSeparator,
+  NavbarShell,
+  NavbarSpacer,
+  NavbarStart,
+  NavbarTrigger,
+  useNavbar,
+  type NavbarItemProps,
+  type NavbarProps,
+  type NavbarProviderProps,
+  type NavbarTriggerProps,
+} from './components/navbar';
 export { Separator } from './components/separator';
 export { Skeleton } from './components/skeleton';
 export { Toggle, toggleVariants } from './components/toggle';

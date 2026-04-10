@@ -18,6 +18,7 @@ import {
   resolveNavbarScheme,
   toSchemeStyle,
 } from './utils';
+import { resolveNavbarIcon } from './icon-resolver';
 import { useDropdownHoverState } from './use-dropdown-hover-state';
 
 type NavbarDropdownProps = {
@@ -97,7 +98,7 @@ export function NavbarDropdown({
 
           const icon = (
             <AppIcon
-              icon={dropdownItem.icon}
+              icon={resolveNavbarIcon(dropdownItem.icon, dropdownItem.iconKey)}
               className="shrink-0 text-current size-[var(--app-navbar-dd-item-icon)]"
             />
           );

@@ -218,6 +218,7 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : String(err),
+        initialized: true,
         loading: false,
       });
     }

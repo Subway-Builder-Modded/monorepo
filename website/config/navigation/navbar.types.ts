@@ -1,5 +1,11 @@
 import type { AppIconValue } from '@/lib/icons';
 import type { ProjectColorId } from '@/config/theme/contracts';
+import type {
+  ActiveRouteMatchRule,
+  NavIconKey,
+  SharedNavAction,
+  SharedNavBrand,
+} from '@subway-builder-modded/config';
 
 export type NavbarPosition = 'left' | 'right';
 
@@ -74,16 +80,20 @@ export type AppNavbarDropdownItem = {
   id: string;
   title?: string;
   href?: string;
+  iconKey?: NavIconKey;
   activeMatchPaths?: string[];
+  activeMatchRules?: ActiveRouteMatchRule[];
   icon?: AppIconValue;
   schemeId?: NavbarColorSchemeId;
-  action?: NavbarAction;
+  action?: SharedNavAction | NavbarAction;
 };
 
 export type AppNavbarItem = {
   id: string;
   title?: string;
   href?: string;
+  iconKey?: NavIconKey;
+  activeMatchRules?: ActiveRouteMatchRule[];
   icon?: AppIconValue;
   position: NavbarPosition;
   schemeId?: NavbarColorSchemeId;
@@ -99,8 +109,12 @@ export type AppNavbarItemPresentation = {
 export type AppNavbarBrand = {
   title: string;
   href: string;
+  iconKey?: NavIconKey;
   icon: AppIconValue;
 };
+
+export type SharedAwareNavbarBrand = SharedNavBrand &
+  Pick<AppNavbarBrand, 'icon'>;
 
 export type AppNavbarSizing = {
   brand: {

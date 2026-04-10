@@ -3,10 +3,11 @@ import {
   Navbar,
   NavbarGap,
   NavbarSection,
+  NavbarShell,
   NavbarSpacer,
   NavbarStart,
   type NavbarProps,
-} from '@/components/ui/navbar';
+} from '@subway-builder-modded/shared-ui';
 import type { AppNavbarBrand, AppNavbarItem } from '@/config/navigation/navbar';
 import { cn } from '@subway-builder-modded/shared-ui';
 import styles from '../app-navbar.module.css';
@@ -45,55 +46,57 @@ export function DesktopNavbar({
       isSticky
       {...props}
       ref={headerRef}
-      className={cn(styles.root, 'flex-nowrap')}
+      className={cn(styles.root)}
       style={configStyleVars}
       data-color-scheme={NAVBAR_DEFAULT_COLOR_SCHEME_ID}
     >
-      <NavbarStart>
-        <NavbarBrandLink
-          brand={brand}
-          onNavigate={onNavigate}
-          compact={compactBrand}
+      <NavbarShell className="mx-auto w-[min(2200px,calc(100vw-3rem))] flex-nowrap">
+        <NavbarStart>
+          <NavbarBrandLink
+            brand={brand}
+            onNavigate={onNavigate}
+            compact={compactBrand}
+          />
+        </NavbarStart>
+
+        <NavbarGap />
+
+        <div
+          aria-hidden="true"
+          className="h-7 w-[3px] shrink-0 rounded-full bg-foreground/25"
         />
-      </NavbarStart>
 
-      <NavbarGap />
+        <NavbarGap />
 
-      <div
-        aria-hidden="true"
-        className="h-7 w-[3px] shrink-0 rounded-full bg-foreground/25"
-      />
+        <NavbarSection className="gap-1.5 md:gap-1.5">
+          {leftItems.map((item) => (
+            <NavbarItemView
+              key={item.id}
+              item={item}
+              pathname={pathname}
+              onNavigate={onNavigate}
+              setTheme={setTheme}
+              configStyleVars={configStyleVars}
+              compact={compactLeftItems}
+            />
+          ))}
+        </NavbarSection>
 
-      <NavbarGap />
+        <NavbarSpacer />
 
-      <NavbarSection className="gap-1.5 md:gap-1.5">
-        {leftItems.map((item) => (
-          <NavbarItemView
-            key={item.id}
-            item={item}
-            pathname={pathname}
-            onNavigate={onNavigate}
-            setTheme={setTheme}
-            configStyleVars={configStyleVars}
-            compact={compactLeftItems}
-          />
-        ))}
-      </NavbarSection>
-
-      <NavbarSpacer />
-
-      <NavbarSection className="max-md:hidden gap-1.5 md:gap-1.5">
-        {rightItems.map((item) => (
-          <NavbarItemView
-            key={item.id}
-            item={item}
-            pathname={pathname}
-            onNavigate={onNavigate}
-            setTheme={setTheme}
-            configStyleVars={configStyleVars}
-          />
-        ))}
-      </NavbarSection>
+        <NavbarSection className="max-md:hidden gap-1.5 md:gap-1.5">
+          {rightItems.map((item) => (
+            <NavbarItemView
+              key={item.id}
+              item={item}
+              pathname={pathname}
+              onNavigate={onNavigate}
+              setTheme={setTheme}
+              configStyleVars={configStyleVars}
+            />
+          ))}
+        </NavbarSection>
+      </NavbarShell>
     </Navbar>
   );
 }

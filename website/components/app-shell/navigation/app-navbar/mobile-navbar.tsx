@@ -3,7 +3,7 @@ import {
   NavbarMobile,
   NavbarSpacer,
   NavbarTrigger,
-} from '@/components/ui/navbar';
+} from '@subway-builder-modded/shared-ui';
 import type { AppNavbarBrand, AppNavbarItem } from '@/config/navigation/navbar';
 import { cn } from '@subway-builder-modded/shared-ui';
 import styles from '../app-navbar.module.css';

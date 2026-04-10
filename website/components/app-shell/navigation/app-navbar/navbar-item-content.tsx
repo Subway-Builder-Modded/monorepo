@@ -2,6 +2,7 @@ import { ChevronDownIcon } from 'lucide-react';
 import { AppIcon } from '@/components/shared/app-icon';
 import type { AppNavbarItem } from '@/config/navigation/navbar';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { resolveNavbarIcon } from './icon-resolver';
 
 type NavbarItemContentProps = {
   item: AppNavbarItem;
@@ -18,9 +19,11 @@ export function NavbarItemContent({
   hasDropdown,
   hasScheme,
 }: NavbarItemContentProps) {
-  const icon = item.icon ? (
+  const resolvedIcon = resolveNavbarIcon(item.icon, item.iconKey);
+
+  const icon = resolvedIcon ? (
     <AppIcon
-      icon={item.icon}
+      icon={resolvedIcon}
       className="shrink-0 text-current size-[calc(var(--app-navbar-item-icon)*var(--app-navbar-item-icon-scale,1))]"
     />
   ) : null;
