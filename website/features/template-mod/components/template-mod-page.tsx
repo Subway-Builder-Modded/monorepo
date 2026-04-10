@@ -31,7 +31,7 @@ import {
 } from '@/config/content/landing-hero';
 import { getUpdateProjectById } from '@/config/content/updates';
 import { LineBullet } from '@/components/ui/line-bullet';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 type HeroAction = {
   id: HeroActionId;

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, MessageSquarePlus, X } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

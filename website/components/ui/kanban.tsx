@@ -46,7 +46,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 import { useComposedRefs } from '@/lib/compose-refs';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 const directions: string[] = [
   KeyboardCode.Down,

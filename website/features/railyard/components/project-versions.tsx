@@ -21,7 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { VersionInfo } from '@/types/registry';
 
 type VersionSortField = 'version' | 'date' | 'downloads';

@@ -2,7 +2,7 @@ import * as React from 'react';
 import type { LucideProps } from 'lucide-react';
 import { AppIcon } from '@/components/shared/app-icon';
 import { resolveAppIcon, type AppIconInput } from '@/lib/icons';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 type IconListProps = React.ComponentProps<'div'>;
 

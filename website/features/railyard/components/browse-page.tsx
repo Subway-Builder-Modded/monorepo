@@ -32,7 +32,7 @@ import {
   normalizeSearchViewMode,
   type SearchViewMode,
 } from '@/lib/railyard/search-view-mode';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
 const SIDEBAR_OPEN_KEY = 'railyard:browse:sidebar-open:v1';

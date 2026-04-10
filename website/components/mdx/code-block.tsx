@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Check, Copy } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 type CodeBlockProps = React.ComponentProps<'pre'>;
 

@@ -9,7 +9,7 @@ import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
 import { hexAlpha } from '@/lib/color';
 import { buildDocHref } from '@/lib/docs/shared';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 function getHubTheme(instance: DocsInstance) {
   const colors = PROJECT_COLOR_SCHEMES[instance.id];

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Activity, FileText, Cpu, Globe2, Globe } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { WebsiteAnalyticsData } from '@/types/website-analytics';
 import { WebsiteOverviewSection } from './website-overview-section';
 import { WebsitePagesSection } from './website-pages-section';

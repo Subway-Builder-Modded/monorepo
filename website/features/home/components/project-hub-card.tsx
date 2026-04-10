@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 import type { ThemedColorSet } from '@/config/theme/colors';
 import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 type ProjectHubCardProps = {
   href: string;

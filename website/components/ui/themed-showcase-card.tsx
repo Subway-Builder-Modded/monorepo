@@ -9,7 +9,7 @@ import {
   SHARED_TEXT_COLOR_INVERTED,
 } from '@/config/theme/colors';
 import { hexAlpha } from '@/lib/color';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 type ThemedShowcaseCardVariant =
   | 'home'

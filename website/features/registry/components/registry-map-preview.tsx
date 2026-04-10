@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, MapPin } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 type Bbox = [number, number, number, number];
 type MetricId =

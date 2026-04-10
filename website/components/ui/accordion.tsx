@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Accordion as AccordionPrimitive } from 'radix-ui';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 function Accordion({

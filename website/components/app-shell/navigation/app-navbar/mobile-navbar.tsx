@@ -5,7 +5,7 @@ import {
   NavbarTrigger,
 } from '@/components/ui/navbar';
 import type { AppNavbarBrand, AppNavbarItem } from '@/config/navigation/navbar';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import styles from '../app-navbar.module.css';
 import { NAVBAR_DEFAULT_COLOR_SCHEME_ID } from './utils';
 import { NavbarBrandLink } from './navbar-brand-link';

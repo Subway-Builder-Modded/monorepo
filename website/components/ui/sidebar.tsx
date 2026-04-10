@@ -6,7 +6,7 @@ import { Slot } from 'radix-ui';
 import { Skeleton } from '@subway-builder-modded/shared-ui';
 
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';

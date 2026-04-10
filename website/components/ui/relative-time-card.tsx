@@ -17,7 +17,7 @@ type HoverCardContentProps = React.ComponentProps<
   typeof HoverCardPrimitive.Content
 >;
 
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 function pluralize(n: number, word: string) {
   return `${n} ${word}${n === 1 ? '' : 's'}`;

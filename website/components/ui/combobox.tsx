@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Combobox as ComboboxPrimitive } from '@base-ui/react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { buttonStyles } from '@/components/ui/button';
 import {
   InputGroup,

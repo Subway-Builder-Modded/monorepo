@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { SubscriptionTier } from '@/config/ui/contribute';
 
 interface SubscriptionTierCardProps {

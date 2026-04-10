@@ -9,7 +9,7 @@ import {
   History,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { usePersistedState } from '@/lib/use-persisted-state';
 import type { RailyardAnalyticsData } from '@/types/railyard-analytics';
 import { RailyardAnalyticsOverviewSection } from './railyard-analytics-overview-section';

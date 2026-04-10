@@ -3,7 +3,7 @@
 import { Slot as SlotPrimitive } from 'radix-ui';
 import * as React from 'react';
 import { useComposedRefs } from '@/lib/compose-refs';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 interface GetBadgeLabel<T> {
   /**

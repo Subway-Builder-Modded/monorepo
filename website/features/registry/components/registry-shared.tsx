@@ -20,7 +20,7 @@ import {
   YAxis,
 } from 'recharts';
 import { ToggleGroup, ToggleGroupItem } from '@subway-builder-modded/shared-ui';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { AuthorName } from '@/components/shared/author-name';
 import {
   getAuthorAttributionHref as resolveAuthorAttributionHref,

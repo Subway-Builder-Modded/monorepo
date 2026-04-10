@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { getSuiteColorVarRefs } from '@/config/theme/css-vars';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   getLineBulletPreset,
   resolveLineBulletHoverModeHex,

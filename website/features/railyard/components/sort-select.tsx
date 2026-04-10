@@ -32,7 +32,7 @@ import {
   type SortState,
   TEXT_SORT_FIELDS,
 } from '@/lib/railyard/constants';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 const FIELD_ICONS: Record<string, typeof Type> = {
   ...DEFAULT_FIELD_ICONS,

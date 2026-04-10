@@ -16,7 +16,7 @@ import {
   ArchiveX,
 } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 const admonitionVariants = cva(
   'my-6 flex min-w-0 items-start gap-3 overflow-hidden rounded-lg border-l-[3px] px-4 py-3 text-sm [&>svg]:mt-[1px] [&>svg]:size-4 [&>svg]:shrink-0',

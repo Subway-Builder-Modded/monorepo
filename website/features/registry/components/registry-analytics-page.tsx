@@ -11,7 +11,7 @@ import {
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/page-header';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { RegistryAnalyticsData } from '@/types/registry-analytics';
 
 import { RegistrySummaryStats } from './registry-summary-stats';

@@ -3,7 +3,7 @@ import type { MDXComponents } from 'mdx/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CodeBlock } from '@/components/mdx/code-block';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   slugify,
   textFromChildren,

@@ -3,7 +3,7 @@
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import type { ComponentType } from 'react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 interface SortableHeaderCellProps<T extends string> {
   label: string;

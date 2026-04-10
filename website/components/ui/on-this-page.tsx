@@ -4,7 +4,7 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { PROJECT_COLOR_SCHEMES, getModeHex } from '@/config/theme/colors';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { getActiveInstanceFromPathname } from '@/lib/docs/shared';
 
 export type TocHeading = {

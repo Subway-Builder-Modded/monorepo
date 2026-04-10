@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { PanelLeftCloseIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   Sheet,
   SheetContent,

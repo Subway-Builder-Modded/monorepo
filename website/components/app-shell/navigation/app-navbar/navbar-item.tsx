@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import NextLink from 'next/link';
 import type { AppNavbarItem } from '@/config/navigation/navbar';
 import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { isExternalHref } from '@/lib/url';
 import { NavbarDropdown } from './navbar-dropdown';
 import { NavbarItemContent } from './navbar-item-content';

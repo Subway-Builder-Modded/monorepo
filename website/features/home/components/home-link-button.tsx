@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import { AppIcon } from '@/components/shared/app-icon';
 import { MarkdownText } from '@/components/ui/markdown-text';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { HomeLink } from '@/config/site/homepage';
 import type { AppIconValue } from '@/lib/icons';
 import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';

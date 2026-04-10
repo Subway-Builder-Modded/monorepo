@@ -15,7 +15,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import type { SearchFilterState } from '@/hooks/use-filtered-items';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 const MOBILE_SIDEBAR_TOP = 'var(--app-navbar-offset, 5.5rem)';
 

@@ -8,7 +8,7 @@ import {
 } from '@/features/railyard/components/sidebar-filters';
 import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import type { AssetType } from '@/lib/railyard/asset-types';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 export interface AssetSidebarPanelProps extends SidebarFiltersProps {
   open: boolean;

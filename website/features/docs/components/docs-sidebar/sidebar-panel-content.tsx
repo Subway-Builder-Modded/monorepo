@@ -16,7 +16,7 @@ import {
   type DocsSidebarEntry,
   type DocsSidebarTree,
 } from '@/lib/docs/shared';
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
 import { PageHeader } from '@/components/shared/page-header';
 import {
