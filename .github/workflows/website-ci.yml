@@ -8,16 +8,16 @@ on:
     paths:
       - "website/**"
       - "packages/**"
-      - ".github/workflows/website-ci.yml"
+      - ".github/workflows/website-build.yml"
   workflow_dispatch:
 
 concurrency:
-  group: website-ci-${{ github.event.pull_request.number || github.ref }}
+  group: website-build-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Quality Checks
+  check:
+    name: Check Code Quality
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: website/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         working-directory: .
@@ -45,7 +45,6 @@ jobs:
 
   build:
     name: Build Site
-    needs: quality
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -65,7 +64,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: website/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Restore Next.js build cache
         uses: actions/cache@v4
@@ -73,9 +72,9 @@ jobs:
           path: |
             ~/.npm
             ${{ github.workspace }}/website/.next/cache
-          key: ${{ runner.os }}-website-nextjs-${{ hashFiles('website/pnpm-lock.yaml') }}-${{ hashFiles('website/**/*.js', 'website/**/*.jsx', 'website/**/*.ts', 'website/**/*.tsx') }}
+          key: ${{ runner.os }}-website-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('website/**/*.js', 'website/**/*.jsx', 'website/**/*.ts', 'website/**/*.tsx') }}
           restore-keys: |
-            ${{ runner.os }}-website-nextjs-${{ hashFiles('website/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-website-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
 
       - name: Install dependencies
         working-directory: .

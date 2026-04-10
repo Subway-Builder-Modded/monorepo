@@ -6,7 +6,7 @@ on:
       - "railyard/**"
       - "packages/**"
       - ".githooks/pre-push"
-      - ".github/workflows/railyard-ci.yml"
+      - ".github/workflows/ci.yml"
   push:
     branches:
       - main
@@ -14,15 +14,10 @@ on:
       - "railyard/**"
       - "packages/**"
       - ".githooks/pre-push"
-      - ".github/workflows/railyard-ci.yml"
-  workflow_dispatch:
-
-concurrency:
-  group: railyard-ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+      - ".github/workflows/ci.yml"
 
 jobs:
-  backend-quality:
+  backend_quality:
     name: Backend Quality
     runs-on: ubuntu-latest
     defaults:
@@ -42,7 +37,7 @@ jobs:
       - name: Run backend quality checks
         run: bash ./scripts/backend-quality.sh
 
-  frontend-quality:
+  frontend_quality:
     name: Frontend Quality
     runs-on: ubuntu-latest
     defaults:
@@ -58,15 +53,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "20"
           cache: "pnpm"
-          cache-dependency-path: railyard/frontend/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Verify pnpm
         run: pnpm --version
 
       - name: Install frontend dependencies
-        working-directory: railyard/frontend
+        working-directory: .
         run: pnpm install --frozen-lockfile
 
       - name: Run frontend quality checks
