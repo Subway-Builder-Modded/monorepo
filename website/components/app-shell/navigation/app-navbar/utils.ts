@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { isRouteMatch } from '@subway-builder-modded/config';
 import type {
   AppNavbarDropdownItem,
   AppNavbarItem,
@@ -67,11 +68,17 @@ export function getDropdownItemActiveDepth(
   pathname: string,
   item: AppNavbarDropdownItem,
 ): number {
+  const ruleMatchDepth = (item.activeMatchRules ?? []).reduce((best, rule) => {
+    if (!isRouteMatch(pathname, rule)) return best;
+    const depth = rule.path.split('/').filter(Boolean).length;
+    return depth > best ? depth : best;
+  }, -1);
+
   const paths = [item.href, ...(item.activeMatchPaths ?? [])].filter(
     (value): value is string => Boolean(value),
   );
 
-  let best = -1;
+  let best = ruleMatchDepth;
   for (const path of paths) {
     if (!isActivePath(pathname, path)) continue;
     const depth = path.split('/').filter(Boolean).length;

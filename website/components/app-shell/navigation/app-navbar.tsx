@@ -14,7 +14,7 @@ import {
   NavbarProvider,
   useNavbar,
   type NavbarProps,
-} from '@/components/ui/navbar';
+} from '@subway-builder-modded/shared-ui';
 import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar';
 import { createNavbarConfigStyleVars } from './app-navbar/style-vars';
 import { useNavbarOffset } from './app-navbar/use-navbar-offset';

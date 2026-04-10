@@ -1,6 +1,13 @@
 import {
+  WEBSITE_SHARED_NAVBAR_MODEL,
+  type SharedNavItem,
+} from '@subway-builder-modded/config';
+import {
   BookText,
+  ChartLine,
+  Database,
   Download,
+  FileCode2,
   FileSearchCorner,
   Globe,
   Heart,
@@ -9,16 +16,13 @@ import {
   Megaphone,
   Moon,
   Package,
-  Wrench,
   Scale,
   Sun,
   SunMoon,
   TrainTrack,
-  Users,
-  Database,
-  ChartLine,
   TrendingUp,
-  FileCode2,
+  Users,
+  Wrench,
 } from 'lucide-react';
 import type {
   AppNavbarBrand,
@@ -81,16 +85,44 @@ export const APP_NAVBAR_SIZES: AppNavbarSizes = {
 };
 
 export const APP_NAVBAR_BRAND: AppNavbarBrand = {
-  title: 'Subway Builder Modded',
-  href: '/',
+  title: WEBSITE_SHARED_NAVBAR_MODEL.brand.title,
+  href: WEBSITE_SHARED_NAVBAR_MODEL.brand.href,
+  iconKey: WEBSITE_SHARED_NAVBAR_MODEL.brand.iconKey,
   icon: 'logo',
 };
 
+const SHARED_ITEMS_BY_ID = new Map<string, SharedNavItem>(
+  WEBSITE_SHARED_NAVBAR_MODEL.sections
+    .flatMap((section) => section.items)
+    .map((item) => [item.id, item]),
+);
+
+function getSharedItem(id: string): SharedNavItem {
+  const sharedItem = SHARED_ITEMS_BY_ID.get(id);
+  if (!sharedItem) {
+    throw new Error(`Missing shared navbar item: ${id}`);
+  }
+
+  return sharedItem;
+}
+
+const railyardShared = getSharedItem('railyard');
+const registryShared = getSharedItem('registry');
+const templateModShared = getSharedItem('template-mod');
+const websiteShared = getSharedItem('website');
+const toolsShared = getSharedItem('tools');
+const communityShared = getSharedItem('community');
+const discordShared = getSharedItem('discord');
+const githubShared = getSharedItem('github');
+const themeShared = getSharedItem('theme');
+
 export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
   {
-    id: 'railyard',
-    title: 'Railyard',
-    href: '/railyard',
+    id: railyardShared.id,
+    title: railyardShared.label,
+    href: railyardShared.href,
+    iconKey: railyardShared.iconKey,
+    activeMatchRules: railyardShared.activeMatchRules,
     icon: TrainTrack,
     position: 'left',
     schemeId: 'railyard',
@@ -134,9 +166,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'registry',
-    title: 'Registry',
-    href: '/registry',
+    id: registryShared.id,
+    title: registryShared.label,
+    href: registryShared.href,
+    iconKey: registryShared.iconKey,
+    activeMatchRules: registryShared.activeMatchRules,
     icon: Database,
     position: 'left',
     schemeId: 'registry',
@@ -165,9 +199,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'template-mod',
-    title: 'Template Mod',
-    href: '/template-mod',
+    id: templateModShared.id,
+    title: templateModShared.label,
+    href: templateModShared.href,
+    iconKey: templateModShared.iconKey,
+    activeMatchRules: templateModShared.activeMatchRules,
     icon: Package,
     position: 'left',
     schemeId: 'template-mod',
@@ -196,9 +232,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'website',
-    title: 'Website',
-    href: '/website',
+    id: websiteShared.id,
+    title: websiteShared.label,
+    href: websiteShared.href,
+    iconKey: websiteShared.iconKey,
+    activeMatchRules: websiteShared.activeMatchRules,
     icon: Globe,
     position: 'left',
     schemeId: 'website',
@@ -220,9 +258,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'tools',
-    title: 'Tools',
-    href: '/tools/md-playground',
+    id: toolsShared.id,
+    title: toolsShared.label,
+    href: toolsShared.href,
+    iconKey: toolsShared.iconKey,
+    activeMatchRules: toolsShared.activeMatchRules,
     icon: Wrench,
     position: 'left',
     schemeId: 'tools',
@@ -237,8 +277,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'community',
-    href: 'https://discord.gg/syG9YHMyeG',
+    id: communityShared.id,
+    title: communityShared.label,
+    href: communityShared.href,
+    iconKey: communityShared.iconKey,
+    activeMatchRules: communityShared.activeMatchRules,
     icon: HeartHandshake,
     position: 'right',
     dropdown: [
@@ -266,8 +309,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'discord',
-    href: 'https://discord.gg/syG9YHMyeG',
+    id: discordShared.id,
+    title: discordShared.label,
+    href: discordShared.href,
+    iconKey: discordShared.iconKey,
+    activeMatchRules: discordShared.activeMatchRules,
     icon: 'discord',
     position: 'right',
     dropdown: [
@@ -286,8 +332,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'github',
-    href: 'https://github.com/Subway-Builder-Modded',
+    id: githubShared.id,
+    title: githubShared.label,
+    href: githubShared.href,
+    iconKey: githubShared.iconKey,
+    activeMatchRules: githubShared.activeMatchRules,
     icon: 'github',
     position: 'right',
     dropdown: [
@@ -322,7 +371,11 @@ export const APP_NAVBAR_ITEMS: AppNavbarItem[] = [
     ],
   },
   {
-    id: 'theme',
+    id: themeShared.id,
+    title: themeShared.label,
+    href: themeShared.href,
+    iconKey: themeShared.iconKey,
+    activeMatchRules: themeShared.activeMatchRules,
     icon: SunMoon,
     position: 'right',
     dropdown: [
@@ -355,7 +408,11 @@ export const APP_NAVBAR_CONFIG: AppNavbarConfig = {
   brand: APP_NAVBAR_BRAND,
   sizes: APP_NAVBAR_SIZES,
   layout: {
-    mobileQuickItemIds: ['discord', 'github', 'theme'],
+    mobileQuickItemIds: WEBSITE_SHARED_NAVBAR_MODEL.mobileQuickActionIds ?? [
+      'discord',
+      'github',
+      'theme',
+    ],
     rightItemIconScale: 1,
   },
   items: APP_NAVBAR_ITEMS,

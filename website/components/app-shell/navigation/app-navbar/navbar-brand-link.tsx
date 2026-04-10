@@ -2,6 +2,7 @@ import NextLink from 'next/link';
 import { AppIcon } from '@/components/shared/app-icon';
 import type { AppNavbarBrand } from '@/config/navigation/navbar';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { resolveNavbarBrandIcon } from './icon-resolver';
 
 type NavbarBrandLinkProps = {
   brand: AppNavbarBrand;
@@ -11,6 +12,8 @@ type NavbarBrandLinkProps = {
 };
 
 export function NavbarBrandLink({ brand, onNavigate }: NavbarBrandLinkProps) {
+  const resolvedBrandIcon = brand.icon ?? resolveNavbarBrandIcon(brand.iconKey);
+
   return (
     <NextLink
       href={brand.href}
@@ -23,7 +26,7 @@ export function NavbarBrandLink({ brand, onNavigate }: NavbarBrandLinkProps) {
       onClick={onNavigate}
     >
       <AppIcon
-        icon={brand.icon}
+        icon={resolvedBrandIcon}
         className="shrink-0 text-current size-[var(--app-navbar-brand-icon)]"
       />
     </NextLink>

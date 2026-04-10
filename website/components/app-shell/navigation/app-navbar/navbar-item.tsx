@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import NextLink from 'next/link';
+import { isNavItemActive } from '@subway-builder-modded/config';
 import type { AppNavbarItem } from '@/config/navigation/navbar';
 import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar';
 import { cn } from '@subway-builder-modded/shared-ui';
@@ -9,7 +10,6 @@ import { NavbarItemContent } from './navbar-item-content';
 import {
   defaultItemHref,
   getDropdownItemActiveDepth,
-  isActivePath,
   ITEM_SCHEME_VARIABLE_CLASS_NAME,
   resolveNavbarScheme,
   toSchemeStyle,
@@ -46,8 +46,11 @@ export function NavbarItemView({
         } as CSSProperties);
 
   const itemHref = defaultItemHref(item);
-  const isItemActive =
-    typeof itemHref === 'string' ? isActivePath(pathname, itemHref) : false;
+  const isItemActive = isNavItemActive(
+    pathname,
+    item.activeMatchRules,
+    itemHref,
+  );
   const hasActiveDropdownPath =
     item.dropdown?.some(
       (dropdownItem) => getDropdownItemActiveDepth(pathname, dropdownItem) >= 0,

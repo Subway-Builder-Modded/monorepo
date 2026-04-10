@@ -8,6 +8,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  NavbarActionsSlot,
+  NavbarItem,
+  NavbarSection,
+  NavbarShell,
+  NavbarSpacer,
 } from '@subway-builder-modded/shared-ui';
 import {
   CircleUser,
@@ -95,7 +100,7 @@ export function Navbar() {
   const refreshing = useRegistryStore((s) => s.refreshing);
   const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
   const running = useGameStore((s) => s.running);
-  const launch = useGameStore((s) => s.launch);
+     const launch = useGameStore((s) => s.launch);
   const stop = useGameStore((s) => s.stop);
   const installedMaps = useInstalledStore((s) => s.installedMaps);
   const [showModReminder, setShowModReminder] = useState(false);
@@ -165,8 +170,8 @@ export function Navbar() {
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-3 z-50">
       <div className={cn(APP_SHELL_WIDTH_CLASS, APP_SHELL_PADDING_CLASS)}>
-        <div className="flex min-h-[4rem] flex-wrap items-center justify-between gap-y-2 rounded-2xl border border-border/70 bg-background/90 px-[clamp(0.8rem,2vw,1.4rem)] py-1.5 shadow-sm backdrop-blur-md">
-          <div className="flex min-w-0 flex-wrap items-center gap-[clamp(0.6rem,1.8vw,1.25rem)]">
+        <NavbarShell>
+          <NavbarSection className="gap-[clamp(0.6rem,1.8vw,1.25rem)]">
             <Link
               href="/"
               className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[clamp(1rem,1.55vw,1.15rem)] font-extrabold tracking-[0.01em] text-foreground"
@@ -179,30 +184,28 @@ export function Navbar() {
                 const current = isCurrent(location);
 
                 return (
-                  <Link
+                     <NavbarItem
                     key={href}
-                    href={href}
-                    aria-current={current ? 'page' : undefined}
+                       asChild
+                       isActive={current}
                     className={cn(
                       NAV_ITEM_BASE_CLASS,
                       NAV_ITEM_GREEN_HOVER_CLASS,
-                      current ? 'text-primary bg-accent/45' : undefined,
                     )}
                   >
-                    <Icon className="h-[1.05em] w-[1.05em] shrink-0 transition-colors" />
-                    <span>{label}</span>
-                    {current && (
-                      <span
-                        aria-hidden
-                        className={NAV_CURRENT_INDICATOR_CLASS}
-                      />
-                    )}
-                  </Link>
+                       <Link href={href} aria-current={current ? 'page' : undefined}>
+                         <Icon className="h-[1.05em] w-[1.05em] shrink-0 transition-colors" />
+                         <span>{label}</span>
+                       </Link>
+                     </NavbarItem>
                 );
               })}
             </nav>
-          </div>
-          <div className="flex items-center gap-1.5">
+          </NavbarSection>
+
+          <NavbarSpacer />
+
+          <NavbarActionsSlot>
             {running ? (
               <Button
                 variant="ghost"
@@ -269,8 +272,8 @@ export function Navbar() {
               />
               Refresh
             </Button>
-          </div>
-        </div>
+          </NavbarActionsSlot>
+        </NavbarShell>
       </div>
 
       <Dialog open={showModReminder} onOpenChange={setShowModReminder}>
