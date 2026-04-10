@@ -52,7 +52,7 @@ jobs:
 
       - name: Build macOS (universal)
         run: |
-          echo -e $VERSION > internal/constants/version.txt
+          printf '%s' "$VERSION" > internal/constants/version.txt
           wails build -platform darwin/universal
           cd build/bin
           ditto -c -k --sequesterRsrc --keepParent railyard.app railyard-${VERSION}-macos-universal.zip
@@ -127,7 +127,7 @@ jobs:
 
       - name: Build Linux (amd64 current)
         run: |
-          echo -e $VERSION > internal/constants/version.txt
+          printf '%s' "$VERSION" > internal/constants/version.txt
           cp build/linux/org.SBM.Railyard.yml .
           flatpak-builder --force-clean --repo="./out" build/build-linux org.SBM.Railyard.yml
           mkdir -p build/bin

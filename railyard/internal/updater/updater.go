@@ -179,8 +179,8 @@ func downloadAndRunInstaller(downloadURL string, ctx context.Context, downloadPr
 
 func VersionIsNewerThanInstalled(version string) bool {
 	installed := constants.RAILYARD_VERSION
-	installed = strings.TrimPrefix(installed, "v")
-	version = strings.TrimPrefix(version, "v")
+	installed = strings.TrimSpace(strings.TrimPrefix(installed, "v"))
+	version = strings.TrimSpace(strings.TrimPrefix(version, "v"))
 
 	newVersionIsRC := strings.Contains(version, "rc")
 	installedVersionIsRC := strings.Contains(installed, "rc")
