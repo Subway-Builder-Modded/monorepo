@@ -104,7 +104,7 @@ func ValidateMapArchive(filePath string) (types.ConfigData, types.DownloaderErro
 		return configData, types.InstallErrorInvalidManifest, err
 	}
 	if !types.LocalMapCodePattern.MatchString(configData.Code) {
-		return configData, types.InstallErrorInvalidMapCode, fmt.Errorf("invalid map code %q in config.json: must match ^[A-Z]{2,4}$", configData.Code)
+		return configData, types.InstallErrorInvalidMapCode, fmt.Errorf("invalid map code %q in config.json: must be 2-4 chars, start with 2 uppercase letters, digits only as trailing suffix", configData.Code)
 	}
 
 	return configData, "", nil
@@ -128,7 +128,7 @@ func readInstalledMapConfig(mapInstallRoot string, cityCode string) (types.Confi
 		return configData, types.InstallErrorInvalidManifest, fmt.Errorf("failed to parse installed map config: %w", err)
 	}
 	if !types.LocalMapCodePattern.MatchString(configData.Code) {
-		return configData, types.InstallErrorInvalidMapCode, fmt.Errorf("invalid map code %q in installed map config: must match ^[A-Z]{2,4}$", configData.Code)
+		return configData, types.InstallErrorInvalidMapCode, fmt.Errorf("invalid map code %q in installed map config: must be 2-4 chars, start with 2 uppercase letters, digits only as trailing suffix", configData.Code)
 	}
 
 	return configData, "", nil

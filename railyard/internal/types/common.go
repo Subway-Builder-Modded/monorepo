@@ -177,7 +177,7 @@ const (
 	AssetTypeMod AssetType = "mod"
 )
 
-var LocalMapCodePattern = regexp.MustCompile(`^[A-Z]{2,4}$`)
+var LocalMapCodePattern = regexp.MustCompile(`^[A-Z]{2}([A-Z]{0,2}|[A-Z][0-9]|[0-9]{1,2})$`)
 
 func IsValidAssetType(assetType AssetType) bool {
 	switch assetType {
