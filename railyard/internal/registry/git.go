@@ -60,14 +60,20 @@ func (r *Registry) forceClone() error {
 					return cloneErr
 				}
 
+				// NoCheckout leaves refs/heads/main uncreated, so resolve the remote ref directly rather than relying on HEAD.
+				ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+				if err != nil {
+					return fmt.Errorf("failed to resolve origin/main after clone: %w", err)
+				}
+
 				wt, err := repo.Worktree()
 				if err != nil {
 					return fmt.Errorf("failed to get worktree: %w", err)
 				}
 
-				// Use sparse checkout to only materialize the directories we need
 				// NOTE: If we ever need new directories from the registry, we must update the registrySparseCheckoutDirs list above and ensure this logic is applied in fetchAndReset as well.
 				return wt.Checkout(&git.CheckoutOptions{
+					Hash:                      ref.Hash(),
 					SparseCheckoutDirectories: registrySparseCheckoutDirs,
 				})
 			},

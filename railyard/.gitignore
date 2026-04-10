@@ -1,6 +1,7 @@
 # Build artifacts and dependencies
 build/bin
 node_modules
+package-lock.json
 frontend/dist
 
 # CI artifacts
