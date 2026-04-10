@@ -91,14 +91,21 @@ func TestProgressReader(t *testing.T) {
 }
 
 func TestLocalMapCodePattern(t *testing.T) {
+	// Valid: 2-4 chars, first two uppercase alpha, digits only as trailing suffix
 	require.True(t, LocalMapCodePattern.MatchString("AB"))
 	require.True(t, LocalMapCodePattern.MatchString("ABC"))
 	require.True(t, LocalMapCodePattern.MatchString("ABCD"))
+	require.True(t, LocalMapCodePattern.MatchString("AB1"))
+	require.True(t, LocalMapCodePattern.MatchString("AB12"))
+	require.True(t, LocalMapCodePattern.MatchString("ABC1"))
+	// Invalid
 	require.False(t, LocalMapCodePattern.MatchString("A"))
 	require.False(t, LocalMapCodePattern.MatchString("ABCDE"))
 	require.False(t, LocalMapCodePattern.MatchString("AbC"))
 	require.False(t, LocalMapCodePattern.MatchString("abc"))
-	require.False(t, LocalMapCodePattern.MatchString("AB1"))
+	require.False(t, LocalMapCodePattern.MatchString("A1"))
+	require.False(t, LocalMapCodePattern.MatchString("A1B"))
+	require.False(t, LocalMapCodePattern.MatchString("AB1C"))
 	require.False(t, LocalMapCodePattern.MatchString(" AB"))
 	require.False(t, LocalMapCodePattern.MatchString("AB "))
 }
