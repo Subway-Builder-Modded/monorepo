@@ -1,5 +1,10 @@
 import { SortableHeaderCell } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
+import type {
+  SortDirection,
+  SortField,
+  SortState,
+} from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
 import { formatSourceQuality } from '@subway-builder-modded/config';
 import { TEXT_SORT_FIELDS } from '@subway-builder-modded/config';
@@ -21,11 +26,6 @@ import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
-import {
-  type SortDirection,
-  type SortField,
-  type SortState,
-} from '@/lib/constants';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
 import { LOCAL_ACCENTS } from '@/lib/local-accent';

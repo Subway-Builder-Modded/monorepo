@@ -4,7 +4,11 @@ import {
   type SourceAssetQueryFilterState,
   type SourceQualityMapFilters,
 } from '@subway-builder-modded/asset-listings-state';
-import { ASSET_TYPES, DEFAULT_SORT_STATE } from '@subway-builder-modded/config';
+import {
+  ASSET_TYPES,
+  DEFAULT_SORT_STATE,
+  type SortState as InstalledSortState,
+} from '@subway-builder-modded/config';
 import {
   cloneFilterState,
   createFilterByAssetType,
@@ -13,8 +17,6 @@ import {
   syncFilter,
 } from '@subway-builder-modded/stores-core';
 import { create } from 'zustand';
-
-import { type SortState as InstalledSortState } from '@/lib/constants';
 
 type LibraryFilters = Omit<SourceAssetQueryFilterState, 'sort'> & {
   sort: InstalledSortState;

@@ -8,6 +8,7 @@ export type SortField =
   | 'city_code'
   | 'country'
   | 'author'
+  | 'size'
   | 'population'
   | 'downloads'
   | 'last_updated'
