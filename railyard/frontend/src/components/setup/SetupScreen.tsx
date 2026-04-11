@@ -1,4 +1,5 @@
 import { Button, Card, Input } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   Check,
   CheckCircle,
@@ -14,7 +15,6 @@ import {
 import { type ChangeEvent, useState } from 'react';
 import { toast } from 'sonner';
 
-import { cn } from '@/lib/utils';
 import { useConfigStore } from '@/stores/config-store';
 
 import { SETUP_STEPS, type SetupStepState } from './setup-steps';

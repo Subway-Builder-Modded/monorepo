@@ -8,14 +8,14 @@ import type { Dispatch, SetStateAction } from 'react';
 
 import type { SearchFilterState } from '@/hooks/use-filtered-items';
 import type { AssetType } from '@subway-builder-modded/config';
-import { filterVisibleListingValues } from '@/lib/railyard/listing-counts';
 import {
   DATA_QUALITY_VALUES,
+  filterVisibleListingValues,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
+  SEARCH_FILTER_EMPTY_LABELS,
   formatDataQuality,
 } from '@subway-builder-modded/config';
-import { SEARCH_FILTER_EMPTY_LABELS } from '@/lib/railyard/search';
 
 export interface SidebarFiltersProps {
   filters: SearchFilterState;

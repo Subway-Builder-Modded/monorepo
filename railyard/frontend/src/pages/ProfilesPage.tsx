@@ -1,4 +1,5 @@
 import { Button, Input } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -18,7 +19,6 @@ import { useProfilesState } from '@/hooks/use-profile-dialogs';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isProfileSwapUnavailable } from '@/lib/profile-swap';
 import { formatStorageSize } from '@/lib/size-format';
-import { cn } from '@/lib/utils';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';

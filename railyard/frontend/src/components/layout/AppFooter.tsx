@@ -3,10 +3,10 @@ import {
   APP_SHELL_WIDTH_CLASS,
   Button,
 } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { BookText, Megaphone } from 'lucide-react';
 
 import { DiscordIcon, GitHubIcon } from '@/components/icons/social-icons';
-import { cn } from '@/lib/utils';
 
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 

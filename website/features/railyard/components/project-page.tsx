@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import {
   EmptyState,
   MarkdownPanel,
+  ProjectDetailShell,
   ProjectTabs,
 } from '@subway-builder-modded/asset-listings-ui';
 import { Skeleton } from '@subway-builder-modded/shared-ui';
@@ -190,39 +191,40 @@ export function ProjectPage({ type, id }: ProjectPageProps) {
   }
 
   return (
-    <div
-      className="railyard-accent px-6 py-8 max-w-screen-xl mx-auto space-y-5"
+    <ProjectDetailShell
+      className="railyard-accent px-6 py-8 max-w-screen-xl mx-auto"
       style={{ minHeight: 'calc(100vh - var(--app-navbar-offset, 5.5rem))' }}
-    >
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/railyard">Home</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href={browseHref}>Browse</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{item.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <ProjectHeader
-        type={type}
-        item={item}
-        latestVersion={latestVersion}
-        versionsLoading={versionsLoading}
-        totalDownloads={totalDownloads}
-      />
-
-      <div className="space-y-5">
+      breadcrumb={
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/railyard">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href={browseHref}>Browse</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{item.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      }
+      header={
+        <ProjectHeader
+          type={type}
+          item={item}
+          latestVersion={latestVersion}
+          versionsLoading={versionsLoading}
+          totalDownloads={totalDownloads}
+        />
+      }
+      tabs={
         <ProjectTabs
           value={activeTab}
           onChange={setActiveTab}
@@ -234,26 +236,29 @@ export function ProjectPage({ type, id }: ProjectPageProps) {
             { value: 'versions', label: 'Versions', icon: History },
           ]}
         />
+      }
+      body={
+        <>
+          {activeTab === 'description' && (
+            <MarkdownPanel markdown={item.description} />
+          )}
 
-        {activeTab === 'description' && (
-          <MarkdownPanel markdown={item.description} />
-        )}
+          {hasGallery && activeTab === 'gallery' && (
+            <ProjectGallery type={type} id={item.id} gallery={gallery} />
+          )}
 
-        {hasGallery && activeTab === 'gallery' && (
-          <ProjectGallery type={type} id={item.id} gallery={gallery} />
-        )}
-
-        {activeTab === 'versions' && (
-          <ProjectVersions
-            type={type}
-            itemId={item.id}
-            itemName={item.name}
-            versions={versions}
-            loading={versionsLoading}
-            error={versionsError}
-          />
-        )}
-      </div>
-    </div>
+          {activeTab === 'versions' && (
+            <ProjectVersions
+              type={type}
+              itemId={item.id}
+              itemName={item.name}
+              versions={versions}
+              loading={versionsLoading}
+              error={versionsError}
+            />
+          )}
+        </>
+      }
+    />
   );
 }

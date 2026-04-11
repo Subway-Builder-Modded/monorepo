@@ -1,5 +1,6 @@
 import { EmptyState } from '@subway-builder-modded/asset-listings-ui';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   ArrowDownToLine,
   Calendar,
@@ -26,7 +27,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 import { useConfigStore } from '@/stores/config-store';
 import type { LogEntry } from '@/stores/game-store';
 import { useGameStore } from '@/stores/game-store';

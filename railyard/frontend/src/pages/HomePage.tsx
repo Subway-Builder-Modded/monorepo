@@ -1,5 +1,7 @@
+import { sortTaggedItemsByLastUpdated } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
 import { Badge, Button, Skeleton } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   ArrowRight,
   CheckCircle2,
@@ -35,8 +37,6 @@ import {
   type PendingUpdatesByKey,
   requestLatestSubscriptionUpdatesForActiveProfile,
 } from '@/lib/subscription-updates';
-import { sortTaggedItemsByLastUpdated } from '@/lib/tagged-items';
-import { cn } from '@/lib/utils';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useRegistryStore } from '@/stores/registry-store';
 

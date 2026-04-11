@@ -3,6 +3,7 @@ import type { AssetType } from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
 import { formatSourceQuality } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   CircleFadingArrowUp,
   FolderOpen,
@@ -40,7 +41,6 @@ import {
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
 } from '@/lib/subscription-updates';
-import { cn } from '@/lib/utils';
 import { useConfigStore } from '@/stores/config-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useLibraryStore } from '@/stores/library-store';

@@ -8,11 +8,11 @@ import {
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
+  SEARCH_FILTER_EMPTY_LABELS,
   SOURCE_QUALITY_VALUES,
 } from '@subway-builder-modded/config';
 import { type Dispatch, type SetStateAction } from 'react';
 
-import { SEARCH_FILTER_EMPTY_LABELS } from '@/lib/search';
 import type { AssetQueryFilters } from '@/stores/asset-query-filter-store';
 
 export interface SidebarFiltersProps {
