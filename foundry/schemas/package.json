@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "pnpm run build && node --test --test-isolation=none tests/*.test.mjs",
+    "test": "pnpm run build && node --test --experimental-test-isolation=none tests/*.test.mjs",
     "check": "pnpm run test"
   },
   "dependencies": {
