@@ -1,4 +1,4 @@
-import type { SortDirection, SortState } from '@subway-builder-modded/config';
+import type { SortDirection, SortState } from '../types';
 
 /**
  * Generic tagged item type that works with any manifest types.
