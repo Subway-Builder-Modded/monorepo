@@ -1,4 +1,4 @@
-name: RailyardRelease
+name: Railyard Release
 
 on:
   push:
