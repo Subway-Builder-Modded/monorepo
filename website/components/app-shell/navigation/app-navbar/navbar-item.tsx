@@ -1,8 +1,8 @@
 import type { CSSProperties } from 'react';
 import NextLink from 'next/link';
 import { isNavItemActive } from '@subway-builder-modded/config';
-import type { AppNavbarItem } from '@/config/navigation/navbar';
-import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar';
+import type { AppNavbarItem } from '@/config/navigation/navbar.types';
+import { APP_NAVBAR_CONFIG } from '@/config/navigation/navbar-content';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { isExternalHref } from '@/lib/url';
 import { NavbarDropdown } from './navbar-dropdown';

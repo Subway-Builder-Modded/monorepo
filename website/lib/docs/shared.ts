@@ -1,9 +1,6 @@
-import {
-  DOCS_INSTANCES,
-  getDocsInstanceById,
-  type DocsInstance,
-  type DocsVersion,
-} from '@/config/content/docs';
+import { DOCS_INSTANCES } from '@/config/content/docs.instances';
+import { getDocsInstanceById } from '@/config/content/docs.selectors';
+import type { DocsInstance, DocsVersion } from '@/config/content/docs.types';
 
 export type DocsSidebarPage = {
   kind: 'page';

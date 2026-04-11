@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 import { HomeLinkButton } from '@/features/home/components/home-link-button';
 import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
-import type { HomeProjectCard } from '@/config/site/homepage';
+import type { HomeProjectCard } from '@/config/site/homepage.types';
 import { cn } from '@subway-builder-modded/shared-ui';
 
 type HomeProjectCardProps = {

@@ -2,8 +2,20 @@ import {
   SidebarPanel as SharedSidebarPanel,
   type SidebarPanelProps as SharedSidebarPanelProps,
 } from '@subway-builder-modded/asset-listings-ui';
+import type { AssetType } from '@subway-builder-modded/config';
 
-import type { AssetQueryFilters } from '@/stores/asset-query-filter-store';
+interface RailyardSidebarFilterShape {
+  type: AssetType;
+  mod: {
+    tags: string[];
+  };
+  map: {
+    locations: string[];
+    sourceQuality: string[];
+    levelOfDetail: string[];
+    specialDemand: string[];
+  };
+}
 
 function getNavbarOffsetPx(): number {
   return (
@@ -15,9 +27,12 @@ function getNavbarOffsetPx(): number {
   );
 }
 
-export type SidebarPanelProps = SharedSidebarPanelProps<AssetQueryFilters>;
+export type SidebarPanelProps<TFilters extends RailyardSidebarFilterShape> =
+  SharedSidebarPanelProps<TFilters>;
 
-export function SidebarPanel(props: SidebarPanelProps) {
+export function SidebarPanel<TFilters extends RailyardSidebarFilterShape>(
+  props: SidebarPanelProps<TFilters>,
+) {
   return (
     <SharedSidebarPanel
       {...props}

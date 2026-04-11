@@ -1,11 +1,12 @@
+import { describe, expect, it } from 'vitest';
+
 import {
   buildSpecialDemandValues,
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SOURCE_QUALITY_VALUES,
-} from '@subway-builder-modded/config';
-import { describe, expect, it } from 'vitest';
+} from './map-filter-values';
 
 describe('LOCATION_TAGS', () => {
   it('is a non-empty list of region strings', () => {
@@ -49,13 +50,11 @@ describe('buildSpecialDemandValues', () => {
       { special_demand: ['tram', 'metro'] },
       { special_demand: ['tram', 'ferry'] },
     ]);
-    expect(values).toEqual(['ferry', 'metro', 'tram']); // sorted
+    expect(values).toEqual(['ferry', 'metro', 'tram']);
   });
 
   it('returns empty array when no maps have special demand', () => {
-    expect(buildSpecialDemandValues([{}, { special_demand: null }])).toEqual(
-      [],
-    );
+    expect(buildSpecialDemandValues([{}, { special_demand: null }])).toEqual([]);
   });
 
   it('returns empty array for empty input', () => {

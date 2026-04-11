@@ -31,7 +31,7 @@ import {
   type SortField,
   type SortState,
   TEXT_SORT_FIELDS,
-} from '@/lib/railyard/constants';
+} from '@subway-builder-modded/config';
 import { cn } from '@subway-builder-modded/shared-ui';
 
 const FIELD_ICONS: Record<string, typeof Type> = {

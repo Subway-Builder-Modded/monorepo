@@ -13,7 +13,7 @@ import {
 } from '@/config/content/updates';
 import { resolveEmbedDescription } from '@/config/site/embed-descriptions';
 import { buildEmbedMetadata } from '@/config/site/metadata';
-import { UPDATES_PAGE_COPY } from '@/config/ui/site-content';
+import { UPDATES_PAGE_COPY } from '@/config/ui/updates';
 import { hexAlpha } from '@/lib/color';
 import { getAllUpdatesForProject, type UpdateMeta } from '@/lib/updates.server';
 

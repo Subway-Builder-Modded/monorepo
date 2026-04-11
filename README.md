@@ -33,13 +33,27 @@ This repository is managed as a **pnpm workspace**. A single `pnpm install` from
 ### Root scripts
 
 ```bash
-# Install all workspace dependencies
-pnpm install
+# Install all workspace dependencies (lockfile-enforced)
+pnpm run install:workspace
 
-# Run quality checks for each app
-pnpm run ci
+# Run package tests
+pnpm run test:packages
+pnpm run check:packages
+
+# Run app checks
 pnpm run check:website
-pnpm run check:railyard-frontend
+pnpm run check:railyard
+
+# Apply lint and format across the monorepo
+pnpm run lint
+pnpm run format
+
+# Run CI quality commands across apps
+pnpm run ci
+
+# Development entrypoints
+pnpm run dev:website
+pnpm run dev:railyard
 ```
 
 ---

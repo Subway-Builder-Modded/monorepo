@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
 import { CREDIT_SECTIONS, type CreditSection } from '@/config/content/credits';
 import { buildEmbedMetadata } from '@/config/site/metadata';
-import { CREDITS_PAGE_CONTENT } from '@/config/ui/site-content';
+import { CREDITS_PAGE_CONTENT } from '@/config/ui/credits';
 import { hexAlpha } from '@/lib/color';
 
 export const metadata: Metadata = buildEmbedMetadata({

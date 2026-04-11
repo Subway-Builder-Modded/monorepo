@@ -36,9 +36,9 @@ import { createRandomSeed, useFilteredItems } from '@/hooks/use-filtered-items';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
-import { PER_PAGE_OPTIONS } from '@/lib/railyard/constants';
 import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
 import {
+  PER_PAGE_OPTIONS,
   buildSpecialDemandValues,
   SEARCH_BAR_PLACEHOLDER,
 } from '@subway-builder-modded/config';

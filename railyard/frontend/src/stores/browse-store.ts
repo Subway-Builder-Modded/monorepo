@@ -1,25 +1,30 @@
+import {
+  type AssetQueryFilterStoreState,
+  type AssetQueryFilterUpdater,
+  createDefaultSourceFilters,
+  createSourceFilterByAssetType,
+  type SourceAssetQueryFilterState,
+  type SourceFilterByAssetType,
+} from '@subway-builder-modded/asset-listings-state';
 import type { SearchViewMode } from '@subway-builder-modded/config';
-import { create } from 'zustand';
-
-import type {
-  AssetQueryFilters,
-  AssetQueryFilterStoreState,
-  AssetQueryFilterUpdater,
-} from '@/stores/asset-query-filter-store';
 import {
   cloneFilterState,
-  createFilterByAssetType,
   createRandomSeed,
-  defaultSearchFilters,
   switchFilter,
   syncFilter,
-} from '@/stores/asset-type-filter-state';
+} from '@subway-builder-modded/stores-core';
+import { create } from 'zustand';
 
 export { createRandomSeed };
 
-export type BrowseFilterState = AssetQueryFilters;
-export type BrowseFilterUpdater = AssetQueryFilterUpdater;
-export type BrowseFilterStoreState = AssetQueryFilterStoreState;
+export type BrowseFilterState = SourceAssetQueryFilterState;
+export type BrowseFilterUpdater = AssetQueryFilterUpdater<BrowseFilterState>;
+export type BrowseFilterStoreState = AssetQueryFilterStoreState<
+  BrowseFilterState,
+  SourceFilterByAssetType
+>;
+
+const defaultSearchFilters = createDefaultSourceFilters();
 
 interface BrowseViewModeStoreState {
   viewMode: SearchViewMode;
@@ -33,7 +38,7 @@ export const useBrowseStore = create<
 >((set, get) => ({
   filters: cloneFilterState(defaultSearchFilters),
   page: 1,
-  scopedByType: createFilterByAssetType(defaultSearchFilters, 1),
+  scopedByType: createSourceFilterByAssetType(defaultSearchFilters, 1),
   viewMode: 'full',
   viewModeInitialized: false,
   setFilters: (updater) =>

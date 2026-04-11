@@ -1,6 +1,6 @@
 import { ChevronDownIcon } from 'lucide-react';
 import { AppIcon } from '@/components/shared/app-icon';
-import type { AppNavbarItem } from '@/config/navigation/navbar';
+import type { AppNavbarItem } from '@/config/navigation/navbar.types';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { resolveNavbarIcon } from './icon-resolver';
 

@@ -1,15 +1,46 @@
-import { create } from 'zustand';
-
-import { type AssetQueryFilterStoreState } from '@/stores/asset-query-filter-store';
+import {
+  type AssetQueryFilterStoreState,
+  createDefaultSourceFilters,
+  type SourceAssetQueryFilterState,
+  type SourceQualityMapFilters,
+} from '@subway-builder-modded/asset-listings-state';
+import {
+  ASSET_TYPES,
+  DEFAULT_SORT_STATE,
+  type SortState as InstalledSortState,
+} from '@subway-builder-modded/config';
 import {
   cloneFilterState,
   createFilterByAssetType,
-  defaultLibraryFilters,
+  type FilterByAssetType,
   switchFilter,
   syncFilter,
-} from '@/stores/asset-type-filter-state';
+} from '@subway-builder-modded/stores-core';
+import { create } from 'zustand';
 
-interface LibraryState extends AssetQueryFilterStoreState {
+type LibraryFilters = Omit<SourceAssetQueryFilterState, 'sort'> & {
+  sort: InstalledSortState;
+};
+
+type LibraryFilterByAssetType = FilterByAssetType<
+  'mod' | 'map',
+  SourceQualityMapFilters,
+  InstalledSortState
+>;
+
+const defaultLibraryFilters: LibraryFilters = {
+  ...createDefaultSourceFilters(),
+  sort: {
+    ...DEFAULT_SORT_STATE,
+    field: 'name',
+    direction: 'asc',
+  },
+};
+
+interface LibraryState extends AssetQueryFilterStoreState<
+  LibraryFilters,
+  LibraryFilterByAssetType
+> {
   selectedIds: Set<string>;
   toggleSelected: (id: string) => void;
   selectAll: (ids: string[]) => void;
@@ -21,7 +52,7 @@ interface LibraryState extends AssetQueryFilterStoreState {
 export const useLibraryStore = create<LibraryState>((set, get) => ({
   filters: cloneFilterState(defaultLibraryFilters),
   page: 1,
-  scopedByType: createFilterByAssetType(defaultLibraryFilters, 1),
+  scopedByType: createFilterByAssetType(ASSET_TYPES, defaultLibraryFilters, 1),
   selectedIds: new Set<string>(),
   setFilters: (updater) =>
     set((state) => {

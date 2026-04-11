@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { APP_NAVBAR_SIZES } from '@/config/navigation/navbar';
+import { APP_NAVBAR_SIZES } from '@/config/navigation/navbar-content';
 import { createNavbarConfigStyleVars } from '@/components/app-shell/navigation/app-navbar/style-vars';
 
 describe('createNavbarConfigStyleVars', () => {

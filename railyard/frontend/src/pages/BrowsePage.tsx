@@ -14,6 +14,7 @@ import {
   buildSpecialDemandValues,
   SEARCH_BAR_PLACEHOLDER,
 } from '@subway-builder-modded/config';
+import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { Compass } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -32,7 +33,6 @@ import {
 } from '@/components/ui/select';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
-import { PER_PAGE_OPTIONS } from '@/lib/constants';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';

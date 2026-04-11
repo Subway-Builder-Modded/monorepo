@@ -4,13 +4,19 @@ import {
   SortSelect as SharedSortSelect,
   type SortState as SharedSortState,
 } from '@subway-builder-modded/asset-listings-ui';
-import type { AssetType } from '@subway-builder-modded/config';
+import {
+  type AssetType,
+  DEFAULT_SORT_STATE,
+  getSortOptionsForType,
+  type SortField,
+  type SortState,
+  TEXT_SORT_FIELDS,
+} from '@subway-builder-modded/config';
 import { cn } from '@subway-builder-modded/shared-ui';
 import {
   Calendar,
   Download,
   Globe,
-  HardDrive,
   Hash,
   Shuffle,
   Type,
@@ -25,13 +31,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import {
-  DEFAULT_SORT_STATE,
-  getSortOptionsForType,
-  type SortField,
-  type SortState,
-  TEXT_SORT_FIELDS,
-} from '@/lib/constants';
 
 const FIELD_ICONS: Record<string, typeof Type> = {
   ...DEFAULT_FIELD_ICONS,
@@ -42,7 +41,6 @@ const FIELD_ICONS: Record<string, typeof Type> = {
   population: Users,
   downloads: Download,
   last_updated: Calendar,
-  size: HardDrive,
   random: Shuffle,
 };
 
@@ -116,7 +114,6 @@ export function SortSelect({ value, onChange, tab }: SortSelectProps) {
               position="popper"
               align="end"
               avoidCollisions={false}
-              className="rounded-xl border border-border/70 bg-background/95 p-1 shadow-lg backdrop-blur-md"
             >
               {fieldOptions.map((opt) => {
                 const OptIcon = FIELD_ICONS[opt.field] ?? Type;

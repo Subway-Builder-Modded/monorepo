@@ -1,6 +1,7 @@
 import type { AssetType } from '@subway-builder-modded/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { SubscriptionMutationLockedError } from '@/lib/subscription-mutation-client';
 import {
   activeProfileResultSuccess,
   updateSubscriptionsError,
@@ -15,7 +16,6 @@ import { useGameStore } from './game-store';
 import {
   AssetConflictError,
   InvalidMapCodeError,
-  SubscriptionMutationLockedError,
   SubscriptionSyncError,
   useInstalledStore,
 } from './installed-store';

@@ -12,6 +12,7 @@ import {
   buildSpecialDemandValues,
   SEARCH_BAR_PLACEHOLDER,
 } from '@subway-builder-modded/config';
+import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { Button } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
@@ -32,7 +33,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
-import { PER_PAGE_OPTIONS } from '@/lib/constants';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   handleSubscriptionMutationError,

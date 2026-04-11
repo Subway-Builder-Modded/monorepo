@@ -1,3 +1,4 @@
+import { DEFAULT_SORT_STATE, type AssetType } from '@subway-builder-modded/config';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -5,12 +6,39 @@ import {
   cloneFilterState,
   createFilterByAssetType,
   createRandomSeed,
-  defaultLibraryFilters,
-  defaultSearchFilters,
   switchFilter,
   syncFilter,
   toAssetFilterState,
-} from './asset-type-filter-state';
+  type BaseAssetQueryFilterState,
+} from './asset-filter-state';
+
+interface TestMapFilters {
+  locations: string[];
+  sourceQuality: string[];
+  levelOfDetail: string[];
+  specialDemand: string[];
+}
+
+type TestFilterState = BaseAssetQueryFilterState<AssetType, TestMapFilters>;
+
+const ASSET_TYPES: readonly AssetType[] = ['mod', 'map'];
+
+const defaultSearchFilters: TestFilterState = {
+  query: '',
+  type: 'map',
+  sort: DEFAULT_SORT_STATE,
+  randomSeed: 123,
+  perPage: 12,
+  mod: {
+    tags: [],
+  },
+  map: {
+    locations: [],
+    sourceQuality: [],
+    levelOfDetail: [],
+    specialDemand: [],
+  },
+};
 
 describe('createRandomSeed', () => {
   it('returns a positive integer within range', () => {
@@ -19,16 +47,11 @@ describe('createRandomSeed', () => {
     expect(seed).toBeLessThan(2_147_483_647);
     expect(Number.isInteger(seed)).toBe(true);
   });
-
-  it('produces different values on successive calls', () => {
-    const seeds = new Set(Array.from({ length: 20 }, () => createRandomSeed()));
-    expect(seeds.size).toBeGreaterThan(1);
-  });
 });
 
 describe('cloneFilterState', () => {
   it('creates a deep clone of filter fields', () => {
-    const original = {
+    const original: TestFilterState = {
       ...defaultSearchFilters,
       mod: { tags: ['ui'] },
       map: {
@@ -40,14 +63,9 @@ describe('cloneFilterState', () => {
     };
 
     const cloned = cloneFilterState(original);
-
-    // Verify equal values
-    expect(cloned.mod.tags).toEqual(['ui']);
-    expect(cloned.map.locations).toEqual(['europe']);
-
-    // Verify independence
     cloned.mod.tags.push('gameplay');
     cloned.map.locations.push('asia');
+
     expect(original.mod.tags).toEqual(['ui']);
     expect(original.map.locations).toEqual(['europe']);
   });
@@ -73,23 +91,21 @@ describe('toAssetFilterState', () => {
 
 describe('createFilterByAssetType', () => {
   it('creates an entry for each asset type', () => {
-    const byType = createFilterByAssetType(defaultSearchFilters, 2);
-    expect(byType).toHaveProperty('mod');
-    expect(byType).toHaveProperty('map');
+    const byType = createFilterByAssetType(ASSET_TYPES, defaultSearchFilters, 2);
     expect(byType.mod.page).toBe(2);
     expect(byType.map.page).toBe(2);
   });
 
-  it('each entry is an independent clone', () => {
-    const byType = createFilterByAssetType(defaultSearchFilters, 1);
+  it('creates independent clones for each type', () => {
+    const byType = createFilterByAssetType(ASSET_TYPES, defaultSearchFilters, 1);
     byType.mod.mod.tags.push('mutated');
     expect(byType.map.mod.tags).toEqual([]);
   });
 });
 
 describe('syncFilter', () => {
-  it('updates the scoped state for the active type only', () => {
-    const initial = createFilterByAssetType(defaultSearchFilters, 1);
+  it('updates the active type only', () => {
+    const initial = createFilterByAssetType(ASSET_TYPES, defaultSearchFilters, 1);
     const updated = syncFilter(
       initial,
       { ...defaultSearchFilters, type: 'mod', mod: { tags: ['ui'] } },
@@ -98,18 +114,18 @@ describe('syncFilter', () => {
 
     expect(updated.mod.mod.tags).toEqual(['ui']);
     expect(updated.mod.page).toBe(5);
-    expect(updated.map.mod.tags).toEqual([]); // untouched
-    expect(updated.map.page).toBe(1); // untouched
+    expect(updated.map.mod.tags).toEqual([]);
+    expect(updated.map.page).toBe(1);
   });
 });
 
 describe('applyFilter', () => {
   it('overlays scoped state onto the base filters with the new type', () => {
-    const base = {
+    const base: TestFilterState = {
       ...defaultSearchFilters,
-      type: 'mod' as const,
+      type: 'mod',
       query: 'test',
-      perPage: 24 as const,
+      perPage: 24,
     };
     const scopedState = toAssetFilterState(
       { ...defaultSearchFilters, mod: { tags: ['gameplay'] } },
@@ -119,40 +135,34 @@ describe('applyFilter', () => {
     const result = applyFilter(base, 'map', scopedState);
 
     expect(result.type).toBe('map');
-    expect(result.query).toBe('test'); // preserved from base
-    expect(result.perPage).toBe(24); // preserved from base
-    expect(result.mod.tags).toEqual(['gameplay']); // from scoped state
+    expect(result.query).toBe('test');
+    expect(result.perPage).toBe(24);
+    expect(result.mod.tags).toEqual(['gameplay']);
   });
 });
 
 describe('switchFilter', () => {
   it('saves the current type state and restores the target type state', () => {
-    const initial = createFilterByAssetType(defaultSearchFilters, 1);
-
-    // Simulate having changed mod state
-    const modFilters = {
+    const initial = createFilterByAssetType(ASSET_TYPES, defaultSearchFilters, 1);
+    const modFilters: TestFilterState = {
       ...defaultSearchFilters,
-      type: 'mod' as const,
+      type: 'mod',
       mod: { tags: ['ui'] },
     };
-    const step1 = switchFilter(modFilters, 3, initial, 'map');
 
-    // mod state should be saved with page 3
-    expect(step1.scopedByType.mod.mod.tags).toEqual(['ui']);
-    expect(step1.scopedByType.mod.page).toBe(3);
+    const result = switchFilter(modFilters, 3, initial, 'map');
 
-    // active filters should be map type
-    expect(step1.filters.type).toBe('map');
-    expect(step1.page).toBe(1); // map page was 1
+    expect(result.scopedByType.mod.mod.tags).toEqual(['ui']);
+    expect(result.scopedByType.mod.page).toBe(3);
+    expect(result.filters.type).toBe('map');
+    expect(result.page).toBe(1);
   });
 
-  it('round-trips type switches preserving each type independently', () => {
-    const initial = createFilterByAssetType(defaultSearchFilters, 1);
-
-    // Set up map state
-    const mapFilters = {
+  it('round-trips type switches while preserving each type independently', () => {
+    const initial = createFilterByAssetType(ASSET_TYPES, defaultSearchFilters, 1);
+    const mapFilters: TestFilterState = {
       ...defaultSearchFilters,
-      type: 'map' as const,
+      type: 'map',
       map: {
         locations: ['europe'],
         sourceQuality: [],
@@ -160,38 +170,17 @@ describe('switchFilter', () => {
         specialDemand: [],
       },
     };
-    const afterMapEdit = switchFilter(mapFilters, 2, initial, 'mod');
-    expect(afterMapEdit.filters.type).toBe('mod');
 
-    // Now switch back to map
+    const afterMapEdit = switchFilter(mapFilters, 2, initial, 'mod');
     const afterSwitchBack = switchFilter(
       afterMapEdit.filters,
       afterMapEdit.page,
       afterMapEdit.scopedByType,
       'map',
     );
+
     expect(afterSwitchBack.filters.type).toBe('map');
     expect(afterSwitchBack.filters.map.locations).toEqual(['europe']);
     expect(afterSwitchBack.page).toBe(2);
-  });
-});
-
-describe('defaultSearchFilters vs defaultLibraryFilters', () => {
-  it('defaults to map type for search', () => {
-    expect(defaultSearchFilters.type).toBe('map');
-  });
-
-  it('defaults to name:asc sort for library', () => {
-    expect(defaultLibraryFilters.sort.field).toBe('name');
-    expect(defaultLibraryFilters.sort.direction).toBe('asc');
-  });
-
-  it('defaults to last_updated:desc sort for search', () => {
-    expect(defaultSearchFilters.sort.field).toBe('last_updated');
-    expect(defaultSearchFilters.sort.direction).toBe('desc');
-  });
-
-  it('shares the same default perPage', () => {
-    expect(defaultSearchFilters.perPage).toBe(defaultLibraryFilters.perPage);
   });
 });

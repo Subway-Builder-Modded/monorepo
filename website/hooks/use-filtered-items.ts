@@ -1,15 +1,26 @@
 'use client';
 
-import Fuse from 'fuse.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { filterAndSortTaggedItems } from '@subway-builder-modded/asset-listings-state';
 import type { AssetType } from '@subway-builder-modded/config';
 import {
-  DEFAULT_SORT_STATE,
   PER_PAGE_OPTIONS,
   type PerPage,
   type SortState,
-} from '@/lib/railyard/constants';
+} from '@subway-builder-modded/config';
+import {
+  createDataFilterByAssetType,
+  createDefaultDataFilters,
+  type DataAssetFilterState,
+  type DataAssetQueryFilterState,
+  type DataFilterByAssetType,
+} from '@subway-builder-modded/asset-listings-state';
+import {
+  cloneFilterState,
+  createRandomSeed,
+  toAssetFilterState,
+} from '@subway-builder-modded/stores-core';
 import { FUSE_SEARCH_OPTIONS } from '@/lib/railyard/search';
 import {
   buildTaggedItems,
@@ -20,42 +31,13 @@ import type { MapManifest, ModManifest } from '@/types/registry';
 
 export type { TaggedItem };
 export { PER_PAGE_OPTIONS };
+export { createRandomSeed };
 
 const BROWSE_STATE_STORAGE_KEY = 'railyard:browse:state:v1';
 
-export interface SearchFilterState {
-  query: string;
-  type: AssetType;
-  sort: SortState;
-  randomSeed: number;
-  perPage: PerPage;
-  mod: {
-    tags: string[];
-  };
-  map: {
-    locations: string[];
-    dataQuality: string[];
-    levelOfDetail: string[];
-    specialDemand: string[];
-  };
-}
-
-interface AssetFilterState {
-  sort: SortState;
-  randomSeed: number;
-  page: number;
-  mod: {
-    tags: string[];
-  };
-  map: {
-    locations: string[];
-    dataQuality: string[];
-    levelOfDetail: string[];
-    specialDemand: string[];
-  };
-}
-
-type FilterByAssetType = Record<AssetType, AssetFilterState>;
+export type SearchFilterState = DataAssetQueryFilterState;
+type AssetFilterState = DataAssetFilterState;
+type FilterByAssetType = DataFilterByAssetType;
 
 interface PersistedBrowseState {
   filters: SearchFilterState;
@@ -75,78 +57,8 @@ export type SearchFilterUpdater =
   | SearchFilterState
   | ((prev: SearchFilterState) => SearchFilterState);
 
-type SearchableItem = {
-  entry: TaggedItem;
-  searchText: string;
-};
-
-export function createRandomSeed(): number {
-  return Math.floor(Math.random() * 2_147_483_647);
-}
-
 function createDefaultFilters(type: AssetType = 'map'): SearchFilterState {
-  return {
-    query: '',
-    type,
-    sort: DEFAULT_SORT_STATE,
-    randomSeed: createRandomSeed(),
-    perPage: 12,
-    mod: {
-      tags: [],
-    },
-    map: {
-      locations: [],
-      dataQuality: [],
-      levelOfDetail: [],
-      specialDemand: [],
-    },
-  };
-}
-
-function cloneFilterState(state: SearchFilterState): SearchFilterState {
-  return {
-    ...state,
-    sort: { ...state.sort },
-    mod: {
-      tags: [...state.mod.tags],
-    },
-    map: {
-      locations: [...state.map.locations],
-      dataQuality: [...state.map.dataQuality],
-      levelOfDetail: [...state.map.levelOfDetail],
-      specialDemand: [...state.map.specialDemand],
-    },
-  };
-}
-
-function toAssetFilterState(
-  state: SearchFilterState,
-  page: number,
-): AssetFilterState {
-  return {
-    sort: { ...state.sort },
-    randomSeed: state.randomSeed,
-    page,
-    mod: {
-      tags: [...state.mod.tags],
-    },
-    map: {
-      locations: [...state.map.locations],
-      dataQuality: [...state.map.dataQuality],
-      levelOfDetail: [...state.map.levelOfDetail],
-      specialDemand: [...state.map.specialDemand],
-    },
-  };
-}
-
-function createFilterByAssetType(
-  state: SearchFilterState,
-  page: number,
-): FilterByAssetType {
-  return {
-    mod: toAssetFilterState(state, page),
-    map: toAssetFilterState(state, page),
-  };
+  return createDefaultDataFilters(type);
 }
 
 function buildSearchText(item: TaggedItem): string {
@@ -171,113 +83,6 @@ function buildSearchText(item: TaggedItem): string {
   }
 
   return values.filter(Boolean).join(' ');
-}
-
-function matchesSingleValueFilter(
-  value: string | undefined,
-  selected: string[],
-): boolean {
-  if (selected.length === 0) return true;
-  if (!value) return false;
-  return selected.includes(value);
-}
-
-function matchesZeroOrManyValuesFilter(
-  values: string[] | undefined,
-  selected: string[],
-): boolean {
-  if (selected.length === 0) return true;
-  if (!values || values.length === 0) return false;
-  return selected.some((tag) => values.includes(tag));
-}
-
-function matchesMapAttributeFilters(
-  item: TaggedItem,
-  filters: SearchFilterState['map'],
-): boolean {
-  if (item.type !== 'map') return true;
-
-  return (
-    matchesSingleValueFilter(item.item.location, filters.locations) &&
-    matchesSingleValueFilter(item.item.source_quality, filters.dataQuality) &&
-    matchesSingleValueFilter(
-      item.item.level_of_detail,
-      filters.levelOfDetail,
-    ) &&
-    matchesZeroOrManyValuesFilter(
-      item.item.special_demand,
-      filters.specialDemand,
-    )
-  );
-}
-
-function seededHash(value: string, seed: number): number {
-  const FNV_OFFSET_BASIS_32 = 0x811c9dc5;
-  const FNV_PRIME_32 = 0x01000193;
-
-  let hash = (seed ^ FNV_OFFSET_BASIS_32) >>> 0;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, FNV_PRIME_32) >>> 0;
-  }
-  return hash;
-}
-
-function sortItemsBySeed(items: TaggedItem[], seed: number): TaggedItem[] {
-  return [...items].sort((left, right) => {
-    const leftHash = seededHash(`${left.type}:${left.item.id}`, seed);
-    const rightHash = seededHash(`${right.type}:${right.item.id}`, seed);
-    if (leftHash !== rightHash) {
-      return leftHash - rightHash;
-    }
-    return left.item.id.localeCompare(right.item.id);
-  });
-}
-
-function filterAndSortTaggedItems(
-  items: TaggedItem[],
-  filters: SearchFilterState,
-  modDownloadTotals: Record<string, number>,
-  mapDownloadTotals: Record<string, number>,
-): TaggedItem[] {
-  let result = items.filter((item) => item.type === filters.type);
-
-  if (filters.mod.tags.length > 0) {
-    result = result.filter((item) =>
-      item.type === 'mod'
-        ? matchesZeroOrManyValuesFilter(item.item.tags, filters.mod.tags)
-        : true,
-    );
-  }
-
-  result = result.filter((item) =>
-    matchesMapAttributeFilters(item, filters.map),
-  );
-
-  const query = filters.query.trim();
-  if (query) {
-    const searchable: SearchableItem[] = result.map((entry) => ({
-      entry,
-      searchText: buildSearchText(entry),
-    }));
-
-    const fuse = new Fuse(searchable, FUSE_SEARCH_OPTIONS);
-    result = fuse.search(query).map(({ item }) => item.entry);
-  }
-
-  if (filters.sort.field === 'random') {
-    return sortItemsBySeed(result, filters.randomSeed);
-  }
-
-  return [...result].sort((left, right) =>
-    compareItems(
-      left,
-      right,
-      filters.sort,
-      modDownloadTotals,
-      mapDownloadTotals,
-    ),
-  );
 }
 
 function normalizePerPage(value: unknown): PerPage {
@@ -377,7 +182,7 @@ function parsePersistedState(
         ? Math.floor(parsed.page)
         : 1;
 
-    const fallbackScopedByType = createFilterByAssetType(filters, page);
+    const fallbackScopedByType = createDataFilterByAssetType(filters, page);
     const scopedByType: FilterByAssetType = {
       mod: normalizeAssetFilterState(
         parsed.scopedByType?.mod,
@@ -422,7 +227,7 @@ function getInitialState(initialType?: AssetType): PersistedBrowseState {
   return {
     filters,
     page: 1,
-    scopedByType: createFilterByAssetType(filters, 1),
+    scopedByType: createDataFilterByAssetType(filters, 1),
   };
 }
 
@@ -465,12 +270,31 @@ export function useFilteredItems({
   }, [filters, requestedPage, scopedByType]);
 
   const filtered = useMemo(() => {
-    return filterAndSortTaggedItems(
-      allItems,
+    return filterAndSortTaggedItems({
+      items: allItems,
       filters,
       modDownloadTotals,
       mapDownloadTotals,
-    );
+      compareItems,
+      fuseOptions: FUSE_SEARCH_OPTIONS,
+      accessors: {
+        buildSearchText,
+        getModTags: (item) =>
+          item.type === 'mod' ? (item.item.tags ?? []) : undefined,
+        getMapLocation: (item) =>
+          item.type === 'map' ? (item.item.location ?? '') : undefined,
+        getMapQuality: (item) =>
+          item.type === 'map' ? (item.item.source_quality ?? '') : undefined,
+        getSelectedMapQuality: (mapFilters) => mapFilters.dataQuality,
+        getMapLevelOfDetail: (item) =>
+          item.type === 'map' ? (item.item.level_of_detail ?? '') : undefined,
+        getSelectedMapLevelOfDetail: (mapFilters) => mapFilters.levelOfDetail,
+        getMapSpecialDemand: (item) =>
+          item.type === 'map' ? (item.item.special_demand ?? []) : undefined,
+        getSelectedMapSpecialDemand: (mapFilters) => mapFilters.specialDemand,
+        getSelectedMapLocations: (mapFilters) => mapFilters.locations,
+      },
+    });
   }, [allItems, filters, mapDownloadTotals, modDownloadTotals]);
 
   const totalResults = filtered.length;

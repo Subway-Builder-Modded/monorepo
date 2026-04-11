@@ -1,4 +1,4 @@
-import type { AssetType } from '@subway-builder-modded/config';
+import type { AssetType } from './asset-types';
 
 export const PER_PAGE_OPTIONS = [12, 24, 48] as const;
 export type PerPage = (typeof PER_PAGE_OPTIONS)[number];
@@ -8,6 +8,7 @@ export type SortField =
   | 'city_code'
   | 'country'
   | 'author'
+  | 'size'
   | 'population'
   | 'downloads'
   | 'last_updated'
@@ -141,4 +142,38 @@ export function sortStateToOptionKey(
     defaultOption;
 
   return option.value;
+}
+
+export function toggleSortField(
+  current: SortState,
+  field: Exclude<SortField, 'random'>,
+): SortState {
+  if (current.field === field) {
+    return {
+      field,
+      direction: current.direction === 'asc' ? 'desc' : 'asc',
+    };
+  }
+
+  return {
+    field,
+    direction: 'asc',
+  };
+}
+
+export function normalizeSortStateForType(
+  state: SortState,
+  type: AssetType,
+): SortState {
+  const options = getSortOptionsForType(type);
+  const requestedKey = SortKey.fromState(state);
+  const requested = options.find((option) =>
+    SortKey.equals(option.value, requestedKey),
+  );
+  if (requested) {
+    return requested.sort;
+  }
+
+  const fallback = options.find((option) => option.sort.field === 'name');
+  return fallback?.sort ?? options[0]?.sort ?? DEFAULT_SORT_STATE;
 }

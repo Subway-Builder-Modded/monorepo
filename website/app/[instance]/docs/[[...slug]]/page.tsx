@@ -20,7 +20,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { DocsOnThisPage } from '@/components/ui/on-this-page';
-import { useMDXComponents as getMDXComponents } from '@/mdx-components';
+import { useMDXComponents as getMDXComponents } from '@/components/mdx/platform/registry';
 import {
   extractTocHeadings,
   getDocsBreadcrumbs,
@@ -29,7 +29,7 @@ import {
   resolveDocsDocFilePath,
   type DocsFrontmatter,
 } from '@/lib/docs/server';
-import { DOCS_INSTANCES } from '@/config/content/docs';
+import { DOCS_INSTANCES } from '@/config/content/docs.instances';
 import { InstanceDocsHubPage } from '@/features/docs/components/instance-docs-hub-page';
 import { resolveEmbedDescription } from '@/config/site/embed-descriptions';
 import { buildEmbedMetadata } from '@/config/site/metadata';
