@@ -1,5 +1,5 @@
 import { compareItems as sharedCompareItems } from '@subway-builder-modded/asset-listings-ui';
-import type { SortState } from '@/lib/railyard/constants';
+import type { SortState } from '@subway-builder-modded/config';
 import type { MapManifest, ModManifest } from '@/types/registry';
 
 export type TaggedItem =

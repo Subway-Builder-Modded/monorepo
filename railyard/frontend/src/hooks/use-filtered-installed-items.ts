@@ -1,15 +1,18 @@
+import { filterAndSortTaggedItems } from '@subway-builder-modded/asset-listings-state';
+import type { PerPage } from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 
 import {
-  filterAndSortTaggedItems,
+  buildSearchText,
   type TaggedItemFilterState,
 } from '@/hooks/use-filtered-items';
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
+import { FUSE_SEARCH_OPTIONS } from '@/lib/search';
+import { compareItems } from '@/lib/tagged-items';
 import { useLibraryStore } from '@/stores/library-store';
 import { useProfileStore } from '@/stores/profile-store';
 
 import type { types } from '../../wailsjs/go/models';
-import { type PerPage } from '../lib/constants';
 
 export type InstalledTaggedItem =
   | {
@@ -48,12 +51,38 @@ export function useFilteredInstalledItems({
   usePaginationSync({ defaultPerPage, filters, setFilters, setPage });
 
   const filtered = useMemo(() => {
-    const result = filterAndSortTaggedItems(
+    const result = filterAndSortTaggedItems({
       items,
-      filters as TaggedItemFilterState,
+      filters: filters as TaggedItemFilterState,
       modDownloadTotals,
       mapDownloadTotals,
-    );
+      compareItems: (left, right, sort, nextModTotals, nextMapTotals) =>
+        compareItems(
+          left,
+          right,
+          sort as TaggedItemFilterState['sort'],
+          nextModTotals,
+          nextMapTotals,
+        ),
+      fuseOptions: FUSE_SEARCH_OPTIONS,
+      accessors: {
+        buildSearchText,
+        getModTags: (item) =>
+          item.type === 'mod' ? (item.item.tags ?? []) : undefined,
+        getMapLocation: (item) =>
+          item.type === 'map' ? (item.item.location ?? '') : undefined,
+        getMapQuality: (item) =>
+          item.type === 'map' ? (item.item.source_quality ?? '') : undefined,
+        getSelectedMapQuality: (mapFilters) => mapFilters.sourceQuality,
+        getMapLevelOfDetail: (item) =>
+          item.type === 'map' ? (item.item.level_of_detail ?? '') : undefined,
+        getSelectedMapLevelOfDetail: (mapFilters) => mapFilters.levelOfDetail,
+        getMapSpecialDemand: (item) =>
+          item.type === 'map' ? (item.item.special_demand ?? []) : undefined,
+        getSelectedMapSpecialDemand: (mapFilters) => mapFilters.specialDemand,
+        getSelectedMapLocations: (mapFilters) => mapFilters.locations,
+      },
+    });
     if (filters.sort.field === 'size') {
       const dir = filters.sort.direction;
       return [...result].sort((a, b) => {

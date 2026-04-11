@@ -13,11 +13,24 @@ import {
 } from '@subway-builder-modded/config';
 import { type Dispatch, type SetStateAction } from 'react';
 
-import type { AssetQueryFilters } from '@/stores/asset-query-filter-store';
+interface RailyardSidebarFilterShape {
+  type: AssetType;
+  mod: {
+    tags: string[];
+  };
+  map: {
+    locations: string[];
+    sourceQuality: string[];
+    levelOfDetail: string[];
+    specialDemand: string[];
+  };
+}
 
-export interface SidebarFiltersProps {
-  filters: AssetQueryFilters;
-  onFiltersChange: Dispatch<SetStateAction<AssetQueryFilters>>;
+export interface SidebarFiltersProps<
+  TFilters extends RailyardSidebarFilterShape,
+> {
+  filters: TFilters;
+  onFiltersChange: Dispatch<SetStateAction<TFilters>>;
   onTypeChange: (type: AssetType) => void;
   availableTags: string[];
   availableSpecialDemand: string[];
@@ -30,7 +43,7 @@ export interface SidebarFiltersProps {
   mapCount: number;
 }
 
-export function SidebarFilters({
+export function SidebarFilters<TFilters extends RailyardSidebarFilterShape>({
   filters,
   onFiltersChange,
   onTypeChange,
@@ -43,13 +56,13 @@ export function SidebarFilters({
   mapSpecialDemandCounts,
   modCount,
   mapCount,
-}: SidebarFiltersProps) {
+}: SidebarFiltersProps<TFilters>) {
   return (
     <SharedSidebarFilters
       filters={filters as SidebarFilterState}
       onFiltersChange={(updater) =>
         onFiltersChange(
-          (prev) => updater(prev as SidebarFilterState) as AssetQueryFilters,
+          (prev) => updater(prev as SidebarFilterState) as TFilters,
         )
       }
       onTypeChange={(type) => onTypeChange(type as AssetType)}

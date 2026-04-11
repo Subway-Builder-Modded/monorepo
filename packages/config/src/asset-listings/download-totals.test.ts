@@ -1,8 +1,6 @@
-import {
-  sumVersionDownloads,
-  toCumulativeDownloadTotals,
-} from '@subway-builder-modded/config';
 import { describe, expect, it } from 'vitest';
+
+import { sumVersionDownloads, toCumulativeDownloadTotals } from './download-totals';
 
 describe('sumVersionDownloads', () => {
   it('sums all version counts for an asset', () => {
@@ -19,7 +17,7 @@ describe('sumVersionDownloads', () => {
 
   it('ignores non-finite values', () => {
     expect(
-      sumVersionDownloads({ '1.0.0': NaN, '1.1.0': Infinity, '1.2.0': 5 }),
+      sumVersionDownloads({ '1.0.0': Number.NaN, '1.1.0': Number.POSITIVE_INFINITY, '1.2.0': 5 }),
     ).toBe(5);
   });
 });

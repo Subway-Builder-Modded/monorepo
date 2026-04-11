@@ -48,7 +48,7 @@ import {
 } from '@/config/content/landing-hero';
 import { getUpdateProjectById } from '@/config/content/updates';
 import { useRegistry } from '@/hooks/use-registry';
-import { DEFAULT_SORT_STATE } from '@/lib/railyard/constants';
+import { DEFAULT_SORT_STATE } from '@subway-builder-modded/config';
 import type { GithubRelease } from '@/lib/railyard/github-releases';
 import { getGithubReleases } from '@/lib/railyard/github-releases';
 import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';

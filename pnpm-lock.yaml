@@ -29,7 +29,21 @@ importers:
         specifier: ^3.3.0
         version: 3.3.0
 
-  packages/asset-listings-state: {}
+  packages/asset-listings-state:
+    dependencies:
+      '@subway-builder-modded/config':
+        specifier: workspace:*
+        version: link:../config
+      '@subway-builder-modded/stores-core':
+        specifier: workspace:*
+        version: link:../stores-core
+      fuse.js:
+        specifier: ^7.1.0
+        version: 7.3.0
+    devDependencies:
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.18(@types/node@25.5.2)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.2(@types/node@25.5.2)(typescript@5.9.3))(yaml@2.8.3)
 
   packages/asset-listings-ui:
     dependencies:
@@ -56,11 +70,33 @@ importers:
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
 
-  packages/config: {}
+  packages/config:
+    devDependencies:
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.18(@types/node@25.5.2)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.2(@types/node@25.5.2)(typescript@5.9.3))(yaml@2.8.3)
 
-  packages/lifecycle-core: {}
+  packages/lifecycle-core:
+    devDependencies:
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.18(@types/node@25.5.2)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.2(@types/node@25.5.2)(typescript@5.9.3))(yaml@2.8.3)
 
-  packages/lifecycle-wails: {}
+  packages/lifecycle-wails:
+    dependencies:
+      '@subway-builder-modded/lifecycle-core':
+        specifier: workspace:*
+        version: link:../lifecycle-core
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.18(@types/node@25.5.2)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.2(@types/node@25.5.2)(typescript@5.9.3))(yaml@2.8.3)
 
   packages/lifecycle-web: {}
 
@@ -95,19 +131,36 @@ importers:
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
 
-  packages/stores-core: {}
+  packages/stores-core:
+    dependencies:
+      '@subway-builder-modded/config':
+        specifier: workspace:*
+        version: link:../config
+    devDependencies:
+      vitest:
+        specifier: ^4.0.0
+        version: 4.0.18(@types/node@25.5.2)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.13.2(@types/node@25.5.2)(typescript@5.9.3))(yaml@2.8.3)
 
   railyard/frontend:
     dependencies:
+      '@subway-builder-modded/asset-listings-state':
+        specifier: workspace:*
+        version: link:../../packages/asset-listings-state
       '@subway-builder-modded/asset-listings-ui':
         specifier: workspace:*
         version: link:../../packages/asset-listings-ui
       '@subway-builder-modded/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@subway-builder-modded/lifecycle-wails':
+        specifier: workspace:*
+        version: link:../../packages/lifecycle-wails
       '@subway-builder-modded/shared-ui':
         specifier: workspace:*
         version: link:../../packages/shared-ui
+      '@subway-builder-modded/stores-core':
+        specifier: workspace:*
+        version: link:../../packages/stores-core
       '@tailwindcss/vite':
         specifier: ^4.2.1
         version: 4.2.2(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(yaml@2.8.3))
@@ -259,6 +312,9 @@ importers:
       '@shikijs/transformers':
         specifier: ^4.0.1
         version: 4.0.2
+      '@subway-builder-modded/asset-listings-state':
+        specifier: workspace:*
+        version: link:../packages/asset-listings-state
       '@subway-builder-modded/asset-listings-ui':
         specifier: workspace:*
         version: link:../packages/asset-listings-ui
@@ -268,6 +324,9 @@ importers:
       '@subway-builder-modded/shared-ui':
         specifier: workspace:*
         version: link:../packages/shared-ui
+      '@subway-builder-modded/stores-core':
+        specifier: workspace:*
+        version: link:../packages/stores-core
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.2.2)

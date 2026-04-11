@@ -1,9 +1,10 @@
+import { describe, expect, it } from 'vitest';
+
 import {
   isSearchViewMode,
   normalizeSearchViewMode,
   SEARCH_VIEW_MODES,
-} from '@subway-builder-modded/config';
-import { describe, expect, it } from 'vitest';
+} from './search-view-mode';
 
 describe('SEARCH_VIEW_MODES', () => {
   it('contains full, compact, and list', () => {
@@ -39,7 +40,7 @@ describe('normalizeSearchViewMode', () => {
     expect(normalizeSearchViewMode('list')).toBe('list');
   });
 
-  it('falls back to "full" for invalid values', () => {
+  it('falls back to full for invalid values', () => {
     expect(normalizeSearchViewMode('grid')).toBe('full');
     expect(normalizeSearchViewMode(undefined)).toBe('full');
     expect(normalizeSearchViewMode(null)).toBe('full');

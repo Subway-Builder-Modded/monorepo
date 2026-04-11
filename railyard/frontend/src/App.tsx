@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useWailsStartup } from '@subway-builder-modded/lifecycle-wails';
 import { Route, Switch, useLocation } from 'wouter';
 
 import { DownloadNotification } from '@/components/layout/DownloadNotification';
@@ -35,19 +35,9 @@ interface DownloadCancelledEvent {
   itemId?: string;
 }
 
-interface DeepLinkEvent {
-  type?: string;
-  id?: string;
-}
-
 function App() {
   useTheme();
   const [, setLocation] = useLocation();
-  const [startupReady, setStartupReady] = useState(false);
-  const [fatalError, setFatalError] = useState<string | null>(null);
-  const [pendingDeepLinkRoute, setPendingDeepLinkRoute] = useState<
-    string | null
-  >(null);
   const updateInstalledLists = useInstalledStore((s) => s.updateInstalledLists);
   const acknowledgeCancel = useInstalledStore(
     (s) => s.acknowledgeCancelledInstall,
@@ -70,116 +60,74 @@ function App() {
   const installedInitialized = useInstalledStore((s) => s.initialized);
   const profileInitialized = useProfileStore((s) => s.initialized);
   const initGame = useGameStore((s) => s.initialize);
+  const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
+  const appReadyForNavigation =
+    configInitialized &&
+    profileInitialized &&
+    (!showRegistrySteps || (registryInitialized && installedInitialized)) &&
+    isConfigured &&
+    setupCompleted;
 
-  useEffect(() => {
-    const onWindowError = (event: ErrorEvent) => {
-      setFatalError(
-        event.error instanceof Error
-          ? event.error.message
-          : event.message || 'Unexpected application error',
-      );
-    };
-    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-      const reason = event.reason;
-      if (reason instanceof Error) {
-        setFatalError(reason.message);
-        return;
-      }
-      setFatalError(String(reason || 'Unhandled promise rejection'));
-    };
-
-    window.addEventListener('error', onWindowError);
-    window.addEventListener('unhandledrejection', onUnhandledRejection);
-
-    return () => {
-      window.removeEventListener('error', onWindowError);
-      window.removeEventListener('unhandledrejection', onUnhandledRejection);
-    };
-  }, []);
-
-  useEffect(() => {
-    const registryUpdate = EventsOn('registry:update', () => {
-      updateInstalledLists();
-    });
-    const downloadCancelled = EventsOn(
-      'download:cancelled',
-      (payload: DownloadCancelledEvent) => {
-        if (!payload?.itemId) {
-          return;
-        }
-        acknowledgeCancel(payload.itemId);
-      },
-    );
-    const deepLinkOpened = EventsOn(
-      'deeplink:open',
-      (payload: DeepLinkEvent) => {
-        const routeType = payload?.type;
-        const routeID = payload?.id;
-        if (!routeType || !routeID) {
-          return;
-        }
-        setPendingDeepLinkRoute(
-          `/project/${routeType}/${encodeURIComponent(routeID)}`,
-        );
-      },
-    );
-    let cancelled = false;
-    let timer: number | undefined;
-
-    const pollStartupReady = async () => {
+  const { startupReady, fatalError } = useWailsStartup({
+    subscribe: (eventName, handler) => EventsOn(eventName, handler),
+    pollStartupReady: async () => {
       try {
         const readyResponse = await IsStartupReady();
-        if (cancelled) return;
-        if (readyResponse.status === 'success' && readyResponse.ready) {
-          setStartupReady(true);
-          return;
-        }
+        return readyResponse.status === 'success' && readyResponse.ready;
       } catch {
-        // Keep polling while backend startup is still in progress.
+        return false;
       }
+    },
+    eventSubscriptions: [
+      {
+        eventName: 'registry:update',
+        handler: () => {
+          void updateInstalledLists();
+        },
+      },
+      {
+        eventName: 'download:cancelled',
+        handler: (payload: DownloadCancelledEvent) => {
+          if (payload?.itemId) {
+            acknowledgeCancel(payload.itemId);
+          }
+        },
+      },
+    ],
+    phases: ({ startupReady: isBackendReady }) => [
+      {
+        name: 'bootstrap-user-state',
+        enabled: isBackendReady,
+        run: async () => {
+          await initConfig();
+          await initProfile();
+          initGame();
+        },
+      },
+      {
+        name: 'bootstrap-registry-state',
+        enabled: isBackendReady && configInitialized && isConfigured,
+        run: async () => {
+          await initRegistry();
+          await initInstalled();
+        },
+      },
+    ],
+    consumePendingDeepLink: () => ConsumePendingDeepLink(),
+    getProjectRoute: (type, id) => `/project/${type}/${encodeURIComponent(id)}`,
+    launchGame: async () => {
+      await LaunchGame();
+    },
+    canNavigatePendingRoute: appReadyForNavigation,
+    navigate: (route) => setLocation(route),
+  });
 
-      if (!cancelled) {
-        timer = window.setTimeout(pollStartupReady, 250);
-      }
-    };
-
-    pollStartupReady();
-
-    return () => {
-      registryUpdate();
-      downloadCancelled();
-      deepLinkOpened();
-      cancelled = true;
-      if (timer !== undefined) {
-        window.clearTimeout(timer);
-      }
-    };
-  }, [updateInstalledLists, acknowledgeCancel]);
-
-  // Phase 1: config + profile + game events
-  useEffect(() => {
-    if (!startupReady) return;
-    initConfig();
-    initProfile();
-    initGame();
-  }, [startupReady, initConfig, initProfile, initGame]);
-
-  // Phase 2: registry + installed (only when configured)
-  useEffect(() => {
-    if (startupReady && configInitialized && isConfigured) {
-      initRegistry();
-      initInstalled();
-    }
-  }, [
-    startupReady,
-    configInitialized,
-    isConfigured,
-    initRegistry,
-    initInstalled,
-  ]);
+  const baseLoading =
+    !startupReady || !configInitialized || !profileInitialized;
+  const registryLoading =
+    showRegistrySteps && (!registryInitialized || !installedInitialized);
 
   // Build loading states based on current initialization progress
-  const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const loadingStates = [
     { text: 'Starting backend services' },
     { text: 'Loading configuration' },
@@ -205,54 +153,6 @@ function App() {
       if (registryInitialized && installedInitialized) currentStep = 6;
     }
   }
-
-  const baseLoading =
-    !startupReady || !configInitialized || !profileInitialized;
-  const registryLoading =
-    showRegistrySteps && (!registryInitialized || !installedInitialized);
-
-  useEffect(() => {
-    if (!startupReady) return;
-
-    ConsumePendingDeepLink()
-      .then((response) => {
-        if (response.status !== 'success') {
-          return;
-        }
-        if (response.target?.type === 'GameStart') {
-          LaunchGame().catch(() => {});
-          return;
-        }
-        const routeType = response.target?.type;
-        const routeID = response.target?.id;
-        if (!routeType || !routeID) {
-          return;
-        }
-        setPendingDeepLinkRoute(
-          `/project/${routeType}/${encodeURIComponent(routeID)}`,
-        );
-      })
-      .catch(() => {});
-  }, [startupReady]);
-
-  useEffect(() => {
-    if (baseLoading || registryLoading || !isConfigured || !setupCompleted) {
-      return;
-    }
-    if (!pendingDeepLinkRoute) {
-      return;
-    }
-
-    setLocation(pendingDeepLinkRoute);
-    setPendingDeepLinkRoute(null);
-  }, [
-    baseLoading,
-    registryLoading,
-    isConfigured,
-    pendingDeepLinkRoute,
-    setLocation,
-    setupCompleted,
-  ]);
 
   if (baseLoading || registryLoading) {
     return (

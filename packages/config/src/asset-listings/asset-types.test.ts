@@ -1,9 +1,10 @@
+import { describe, expect, it } from 'vitest';
+
 import {
   ASSET_TYPES,
   assetTypeToListingPath,
   listingPathToAssetType,
-} from '@subway-builder-modded/config';
-import { describe, expect, it } from 'vitest';
+} from './asset-types';
 
 describe('ASSET_TYPES', () => {
   it('contains mod and map', () => {

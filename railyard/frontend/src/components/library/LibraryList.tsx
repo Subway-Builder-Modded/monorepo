@@ -2,6 +2,7 @@ import { SortableHeaderCell } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
 import { formatSourceQuality } from '@subway-builder-modded/config';
+import { TEXT_SORT_FIELDS } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 import {
@@ -24,7 +25,6 @@ import {
   type SortDirection,
   type SortField,
   type SortState,
-  TEXT_SORT_FIELDS,
 } from '@/lib/constants';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
@@ -52,6 +52,7 @@ const FILES_ICON_ACCENT = LOCAL_ACCENTS.files.iconButton;
 const UNINSTALL_ICON_ACCENT = LOCAL_ACCENTS.uninstall.iconButton;
 
 const ENTRIES_PREVIEW_LIMIT = 10;
+const LIBRARY_TEXT_SORT_FIELDS = new Set<SortField>(TEXT_SORT_FIELDS);
 
 export function LocalBadge({ className }: { className?: string }) {
   return (
@@ -145,7 +146,7 @@ export function LibraryList({
             label="Name"
             field="name"
             sort={sort}
-            textFields={TEXT_SORT_FIELDS}
+            textFields={LIBRARY_TEXT_SORT_FIELDS}
             onSort={handleColumnSort}
           />
         </div>
@@ -161,7 +162,7 @@ export function LibraryList({
                 label="City"
                 field="city_code"
                 sort={sort}
-                textFields={TEXT_SORT_FIELDS}
+                textFields={LIBRARY_TEXT_SORT_FIELDS}
                 onSort={handleColumnSort}
               />
             </div>
@@ -175,7 +176,7 @@ export function LibraryList({
                 label="Country"
                 field="country"
                 sort={sort}
-                textFields={TEXT_SORT_FIELDS}
+                textFields={LIBRARY_TEXT_SORT_FIELDS}
                 onSort={handleColumnSort}
               />
             </div>

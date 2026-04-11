@@ -1,9 +1,10 @@
+import { describe, expect, it } from 'vitest';
+
 import {
   buildAssetListingCounts,
   buildListingCounts,
   filterVisibleListingValues,
-} from '@subway-builder-modded/config';
-import { describe, expect, it } from 'vitest';
+} from './listing-counts';
 
 describe('buildListingCounts', () => {
   it('counts values across items', () => {
@@ -51,31 +52,25 @@ describe('buildAssetListingCounts', () => {
   });
 
   it('counts map location, source quality, and level of detail', () => {
-    const {
-      mapLocationCounts,
-      mapSourceQualityCounts,
-      mapLevelOfDetailCounts,
-    } = buildAssetListingCounts(
-      [],
-      [
-        {
-          location: 'europe',
-          source_quality: 'high-quality',
-          level_of_detail: 'high-detail',
-        },
-        {
-          location: 'europe',
-          source_quality: 'low-quality',
-          level_of_detail: 'low-detail',
-        },
-      ],
-    );
-    expect(mapLocationCounts).toEqual({ europe: 2 });
-    expect(mapSourceQualityCounts).toEqual({
+    const result = buildAssetListingCounts([], [
+      {
+        location: 'europe',
+        source_quality: 'high-quality',
+        level_of_detail: 'high-detail',
+      },
+      {
+        location: 'europe',
+        source_quality: 'low-quality',
+        level_of_detail: 'low-detail',
+      },
+    ]);
+
+    expect(result.mapLocationCounts).toEqual({ europe: 2 });
+    expect(result.mapSourceQualityCounts).toEqual({
       'high-quality': 1,
       'low-quality': 1,
     });
-    expect(mapLevelOfDetailCounts).toEqual({
+    expect(result.mapLevelOfDetailCounts).toEqual({
       'high-detail': 1,
       'low-detail': 1,
     });
@@ -107,16 +102,11 @@ describe('filterVisibleListingValues', () => {
   });
 
   it('includes selected values even when count is zero', () => {
-    const visible = filterVisibleListingValues(
-      ['europe', 'asia'],
-      { europe: 0 },
-      ['europe'],
-    );
+    const visible = filterVisibleListingValues(['europe', 'asia'], { europe: 0 }, ['europe']);
     expect(visible).toContain('europe');
   });
 
   it('excludes values with zero count that are not selected', () => {
-    const visible = filterVisibleListingValues(['africa'], { africa: 0 }, []);
-    expect(visible).toEqual([]);
+    expect(filterVisibleListingValues(['africa'], { africa: 0 }, [])).toEqual([]);
   });
 });

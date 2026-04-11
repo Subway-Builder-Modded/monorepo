@@ -1,24 +1,25 @@
+import type { AssetQueryFilterUpdater } from '@subway-builder-modded/asset-listings-state';
+import type { AssetType, PerPage } from '@subway-builder-modded/config';
 import { useEffect, useRef } from 'react';
 
-import type { PerPage } from '@/lib/constants';
-import type {
-  AssetQueryFilters,
-  AssetQueryFilterUpdater,
-} from '@/stores/asset-query-filter-store';
+interface BasePaginationFilterState {
+  perPage: PerPage;
+  type: AssetType;
+}
 
-interface UsePaginationSyncParams {
+interface UsePaginationSyncParams<TFilters extends BasePaginationFilterState> {
   defaultPerPage: PerPage;
-  filters: AssetQueryFilters;
-  setFilters: (updater: AssetQueryFilterUpdater) => void;
+  filters: TFilters;
+  setFilters: (updater: AssetQueryFilterUpdater<TFilters>) => void;
   setPage: (page: number) => void;
 }
 
-export function usePaginationSync({
+export function usePaginationSync<TFilters extends BasePaginationFilterState>({
   defaultPerPage,
   filters,
   setFilters,
   setPage,
-}: UsePaginationSyncParams): void {
+}: UsePaginationSyncParams<TFilters>): void {
   useEffect(() => {
     setFilters((prev) =>
       prev.perPage === defaultPerPage
