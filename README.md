@@ -29,6 +29,7 @@ This repository is managed as a **pnpm workspace**. A single `pnpm install` from
 | `@subway-builder-modded/lifecycle-core` | `packages/lifecycle-core` | Shared lifecycle hooks |
 | `@subway-builder-modded/lifecycle-web` | `packages/lifecycle-web` | Web-specific lifecycle hooks |
 | `@subway-builder-modded/lifecycle-wails` | `packages/lifecycle-wails` | Wails-specific lifecycle hooks |
+| `@subway-builder-modded/special-demand-schemas` | `foundry/schemas` | Published special demand JSON schemas and validators |
 
 ### Root scripts
 
