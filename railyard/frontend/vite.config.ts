@@ -6,9 +6,13 @@ import path from 'path';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+      {
+        find: /^@subway-builder-modded\/(.+)$/,
+        replacement: path.resolve(__dirname, '../../packages/$1/src/index.ts'),
+      },
+    ],
   },
   optimizeDeps: {
     exclude: [

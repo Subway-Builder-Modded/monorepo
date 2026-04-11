@@ -10,6 +10,9 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 )
 
+// registrySparseCheckoutDirs lists the only directories materialized on disk from the registry clone. Everything else (analytics, schemas, scripts, history etc.) stays compressed inside the git object store and is never written to disk.
+var registrySparseCheckoutDirs = []string{"mods", "maps", "authors", "supporters"}
+
 // openOrClone opens an existing repo or force-clones if missing/corrupt.
 func (r *Registry) openOrClone() error {
 	repo, err := git.PlainOpen(r.repoPath)
@@ -38,21 +41,41 @@ func (r *Registry) refreshRepo() error {
 	return nil
 }
 
-// forceClone removes any existing directory and performs a fresh clone.
+// forceClone removes any existing directory and performs a fresh clone,
+// checking out only registrySparseCheckoutDirs.
 func (r *Registry) forceClone() error {
 	if err := files.WritePathsAtomically([]files.AtomicWrite{
 		files.AtomicDirectoryWrite{
 			Path:  r.repoPath,
 			Label: "registry clone directory",
 			Callback: func(stagingPath string) error {
-				cloneOpts := &git.CloneOptions{
+				repo, cloneErr := git.PlainClone(stagingPath, false, &git.CloneOptions{
 					URL:           RegistryRepoURL,
 					ReferenceName: plumbing.NewBranchReferenceName("main"),
 					SingleBranch:  true,
 					Depth:         1,
+					NoCheckout:    true,
+				})
+				if cloneErr != nil {
+					return cloneErr
 				}
-				_, cloneErr := git.PlainClone(stagingPath, false, cloneOpts)
-				return cloneErr
+
+				// NoCheckout leaves refs/heads/main uncreated, so resolve the remote ref directly rather than relying on HEAD.
+				ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+				if err != nil {
+					return fmt.Errorf("failed to resolve origin/main after clone: %w", err)
+				}
+
+				wt, err := repo.Worktree()
+				if err != nil {
+					return fmt.Errorf("failed to get worktree: %w", err)
+				}
+
+				// NOTE: If we ever need new directories from the registry, we must update the registrySparseCheckoutDirs list above and ensure this logic is applied in fetchAndReset as well.
+				return wt.Checkout(&git.CheckoutOptions{
+					Hash:                      ref.Hash(),
+					SparseCheckoutDirectories: registrySparseCheckoutDirs,
+				})
 			},
 		},
 	}); err != nil {
@@ -66,17 +89,16 @@ func (r *Registry) forceClone() error {
 	return nil
 }
 
-// fetchAndReset fetches from origin and hard-resets the working tree to
-// origin/main.
+// fetchAndReset fetches from origin, hard-resets the working tree to origin/main, and re-applies the sparse checkout to keep excluded directories off disk.
 func (r *Registry) fetchAndReset(repo *git.Repository) error {
-	fetchOpts := &git.FetchOptions{
+	err := repo.Fetch(&git.FetchOptions{
 		RemoteName: "origin",
 		RefSpecs: []config.RefSpec{
 			"+refs/heads/main:refs/remotes/origin/main",
 		},
 		Force: true,
-	}
-	err := repo.Fetch(fetchOpts)
+		Depth: 1,
+	})
 	if err != nil && err != git.NoErrAlreadyUpToDate {
 		return fmt.Errorf("failed to fetch registry: %w", err)
 	}
@@ -91,12 +113,18 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 		return fmt.Errorf("failed to get worktree: %w", err)
 	}
 
-	err = wt.Reset(&git.ResetOptions{
+	if err := wt.Reset(&git.ResetOptions{
 		Commit: ref.Hash(),
 		Mode:   git.HardReset,
-	})
-	if err != nil {
+	}); err != nil {
 		return fmt.Errorf("failed to reset to origin/main: %w", err)
+	}
+
+	// Re-apply sparse checkout after reset — go-git's hard reset may reset the sparse checkout; this trims it back to registrySparseCheckoutDirs.
+	if err := wt.Checkout(&git.CheckoutOptions{
+		SparseCheckoutDirectories: registrySparseCheckoutDirs,
+	}); err != nil {
+		return fmt.Errorf("failed to apply sparse checkout after reset: %w", err)
 	}
 
 	return nil

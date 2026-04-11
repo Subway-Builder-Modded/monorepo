@@ -1,4 +1,4 @@
-name: RailyardRelease
+name: Railyard Release
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
 
       - name: Build macOS (universal)
         run: |
-          echo -e $VERSION > internal/constants/version.txt
+          printf '%s' "$VERSION" > internal/constants/version.txt
           wails build -platform darwin/universal
           cd build/bin
           ditto -c -k --sequesterRsrc --keepParent railyard.app railyard-${VERSION}-macos-universal.zip
@@ -107,7 +107,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev flatpak flatpak-builder appstream appstream-util
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y org.gnome.Platform//47 org.gnome.Sdk//47 org.freedesktop.Sdk.Extension.golang//24.08 org.freedesktop.Sdk.Extension.node24//24.08
+          sudo flatpak install -y org.gnome.Platform//47 org.gnome.Sdk//47 org.freedesktop.Sdk.Extension.golang//24.08
 
       - name: Install backend dependencies
         run: |
@@ -118,12 +118,16 @@ jobs:
         working-directory: .
         run: pnpm install --frozen-lockfile
 
+      - name: Build frontend
+        working-directory: railyard/frontend
+        run: pnpm run build
+
       - name: Update version in wails.json
         run: node scripts/update_wails_json.js
 
       - name: Build Linux (amd64 current)
         run: |
-          echo -e $VERSION > internal/constants/version.txt
+          printf '%s' "$VERSION" > internal/constants/version.txt
           cp build/linux/org.SBM.Railyard.yml .
           flatpak-builder --force-clean --repo="./out" build/build-linux org.SBM.Railyard.yml
           mkdir -p build/bin
@@ -168,8 +172,13 @@ jobs:
       - name: Install NSIS
         working-directory: .
         run: |
-          choco install nsis -y
-          echo "C:\Program Files (x86)\NSIS" >> $env:GITHUB_PATH
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            choco install nsis --no-progress -y
+            if ($LASTEXITCODE -eq 0) { break }
+            if ($attempt -lt 3) { Start-Sleep 15 }
+          }
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          Add-Content -Path $env:GITHUB_PATH -Value "C:\Program Files (x86)\NSIS"
 
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest

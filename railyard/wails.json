@@ -2,7 +2,7 @@
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "railyard",
   "outputfilename": "railyard",
-  "frontend:install": "pnpm --dir .. install --frozen-lockfile",
+  "frontend:install": "pnpm --dir ../.. install --frozen-lockfile",
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",
   "frontend:dev:serverUrl": "auto",

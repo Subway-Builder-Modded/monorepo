@@ -18,7 +18,8 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@subway-builder-modded/*": ["../../packages/*/src/index.ts"]
     }
   },
   "include": ["src"]

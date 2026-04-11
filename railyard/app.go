@@ -505,6 +505,8 @@ func (a *App) LaunchGame() types.GenericResponse {
 		}
 	}
 
+	a.Logger.Info("Executing launch command", "cmd", cmd.Path, "args", cmd.Args, "dir", cmd.Dir)
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return types.ErrorResponse(fmt.Sprintf("failed to create stdout pipe: %v", err))
@@ -684,15 +686,15 @@ func (a *App) startPMTilesServer() (int, error) {
 		return -1, err
 	}
 	port := listener.Addr().(*net.TCPAddr).Port
-	listener.Close()
 
 	a.Logger.Info(fmt.Sprintf("Starting PMTiles server on port %d", port))
 
 	channel := make(chan error, 1)
 
-	go func(l *logger.AppLogger, port int, errorChan chan error) {
+	go func(l *logger.AppLogger, port int, errorChan chan error, ln net.Listener) {
 		pmtilesServer, err := pmtiles.NewServerWithBucket(pmtiles.NewFileBucket(path.Join(paths.AppDataRoot(), "tiles")), "", log.New(l.Writer, "pmtiles: ", log.Default().Flags()), 128, "")
 		if err != nil {
+			ln.Close()
 			l.Error("Failed to create PMTiles server", err)
 			errorChan <- err
 			return
@@ -739,13 +741,11 @@ func (a *App) startPMTilesServer() (int, error) {
 			statusCode := pmtilesServer.ServeHTTP(w, r)
 			l.Info("Handled PMTiles request", "path", r.URL.Path, "status", statusCode)
 		})
+		srv := &http.Server{Handler: mux}
+		a.pmtilesServer = srv
 		errorChan <- nil
-		a.pmtilesServer = &http.Server{
-			Addr:    fmt.Sprintf(":%d", port),
-			Handler: mux,
-		}
-		l.Error("PMTiles error: ", a.pmtilesServer.ListenAndServe())
-	}(a.Logger, port, channel)
+		l.Error("PMTiles error: ", srv.Serve(ln))
+	}(a.Logger, port, channel, listener)
 	return port, <-channel
 }
 
