@@ -7,6 +7,8 @@
     "install:workspace": "pnpm install --frozen-lockfile",
     "check:website": "pnpm --dir website run check",
     "check:railyard": "pnpm --dir railyard/frontend run check",
+    "lint": "pnpm run --dir website lint:fix && pnpm run --dir railyard/frontend lint:fix",
+    "format": "pnpm run --dir website format && pnpm run --dir railyard/frontend format",
     "ci": "pnpm run --dir website ci && pnpm run --dir railyard/frontend ci"
   }
 }

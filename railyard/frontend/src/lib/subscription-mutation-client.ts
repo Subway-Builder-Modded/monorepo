@@ -3,8 +3,8 @@ import type { AssetType } from '@subway-builder-modded/config';
 import {
   isSubscriptionMutationLocked,
   isSubscriptionMutationLockedError as isSubscriptionMutationLockedErrorLike,
-  SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE,
-  SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
+  SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE as SHARED_SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE,
+  SUBSCRIPTION_MUTATION_LOCK_MESSAGE as SHARED_SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
   type SubscriptionMutationLockedErrorLike,
 } from '@/lib/subscription-mutation-lock';
 import {
@@ -28,18 +28,18 @@ import {
  */
 
 export class SubscriptionMutationLockedError extends Error {
-  readonly code = SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE;
+  readonly code = SHARED_SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE;
 
-  constructor(message = SUBSCRIPTION_MUTATION_LOCK_MESSAGE) {
+  constructor(message = SHARED_SUBSCRIPTION_MUTATION_LOCK_MESSAGE) {
     super(message);
     this.name = 'SubscriptionMutationLockedError';
   }
 }
 
-export {
-  SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE,
-  SUBSCRIPTION_MUTATION_LOCK_MESSAGE,
-};
+export const SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE =
+  SHARED_SUBSCRIPTION_MUTATION_LOCK_ERROR_CODE;
+export const SUBSCRIPTION_MUTATION_LOCK_MESSAGE =
+  SHARED_SUBSCRIPTION_MUTATION_LOCK_MESSAGE;
 
 // isSubscriptionMutationLockedError is a helper type guard that checks if a given error is a SubscriptionMutationLockedError, either by instance or by shape.
 export function isSubscriptionMutationLockedError(

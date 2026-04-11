@@ -1,9 +1,9 @@
 import {
-  compareByDirection,
+  compareByDirection as sharedCompareByDirection,
   compareItems as sharedCompareItems,
-  getLastUpdated,
-  getTotalDownloads,
-  sortTaggedItemsByLastUpdated,
+  getLastUpdated as sharedGetLastUpdated,
+  getTotalDownloads as sharedGetTotalDownloads,
+  sortTaggedItemsByLastUpdated as sharedSortTaggedItemsByLastUpdated,
 } from '@subway-builder-modded/asset-listings-ui';
 import type { SortState } from '@/lib/railyard/constants';
 import type { MapManifest, ModManifest } from '@/types/registry';
@@ -12,12 +12,32 @@ export type TaggedItem =
   | { type: 'mod'; item: ModManifest }
   | { type: 'map'; item: MapManifest };
 
-export {
-  compareByDirection,
-  getLastUpdated,
-  getTotalDownloads,
-  sortTaggedItemsByLastUpdated,
-};
+export function compareByDirection(
+  a: number,
+  b: number,
+  direction: 'asc' | 'desc',
+): number {
+  return sharedCompareByDirection(a, b, direction);
+}
+
+export function getTotalDownloads(
+  item: TaggedItem,
+  modDownloadTotals: Record<string, number>,
+  mapDownloadTotals: Record<string, number>,
+): number {
+  return sharedGetTotalDownloads(item, modDownloadTotals, mapDownloadTotals);
+}
+
+export function getLastUpdated(item: TaggedItem): number {
+  return sharedGetLastUpdated(item);
+}
+
+export function sortTaggedItemsByLastUpdated<T extends TaggedItem>(
+  items: T[],
+  direction: 'asc' | 'desc' = 'desc',
+): T[] {
+  return sharedSortTaggedItemsByLastUpdated(items, direction);
+}
 
 export function buildTaggedItems(
   mods: ModManifest[],

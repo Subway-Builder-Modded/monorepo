@@ -1,7 +1,7 @@
 import {
   buildAssetListingCounts as buildSharedAssetListingCounts,
-  buildListingCounts,
-  filterVisibleListingValues,
+  buildListingCounts as sharedBuildListingCounts,
+  filterVisibleListingValues as sharedFilterVisibleListingValues,
 } from '@subway-builder-modded/config';
 
 interface ModListingMatches {
@@ -23,7 +23,19 @@ export interface AssetListingCounts {
   mapSpecialDemandCounts: Record<string, number>;
 }
 
-export { buildListingCounts, filterVisibleListingValues };
+export function buildListingCounts(
+  args: Parameters<typeof sharedBuildListingCounts>[0],
+): Record<string, number> {
+  return sharedBuildListingCounts(args);
+}
+
+export function filterVisibleListingValues(
+  values: readonly string[],
+  counts: Record<string, number>,
+  selected: readonly string[],
+): string[] {
+  return sharedFilterVisibleListingValues(values, counts, selected);
+}
 
 export function buildAssetListingCounts(
   mods: readonly ModListingMatches[],
