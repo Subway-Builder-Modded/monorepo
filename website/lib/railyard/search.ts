@@ -1,12 +1,8 @@
-export const SEARCH_BAR_PLACEHOLDER = 'Search by name, author, description...';
-
-export const SEARCH_FILTER_EMPTY_LABELS = {
-  generic: 'No options available',
-  tags: 'No tags available',
-  specialDemand: 'No special demand tags available',
-} as const;
-
-export const MAX_CARD_BADGES = 3;
+export {
+  MAX_CARD_BADGES,
+  SEARCH_BAR_PLACEHOLDER,
+  SEARCH_FILTER_EMPTY_LABELS,
+} from '@subway-builder-modded/config';
 
 export const FUSE_SEARCH_OPTIONS = {
   keys: ['searchText'],

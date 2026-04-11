@@ -98,3 +98,16 @@ export {
 	type ProjectVersionSortField,
 	type ProjectVersionSortState,
 } from './lib/project-versions';
+export {
+	mergeVersionDownloads,
+	withZeroDownloads,
+	type VersionWithDownloadCount,
+} from './lib/version-downloads';
+export {
+	compareByDirection,
+	compareItems,
+	getLastUpdated,
+	getTotalDownloads,
+	sortTaggedItemsByLastUpdated,
+	type AbstractTaggedItem,
+} from './lib/tagged-items';
