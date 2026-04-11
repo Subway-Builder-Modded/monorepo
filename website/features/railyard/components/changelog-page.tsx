@@ -27,7 +27,7 @@ import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
 import {
   mergeVersionDownloads,
   withZeroDownloads,
-} from '@/lib/railyard/version-downloads';
+} from '@subway-builder-modded/asset-listings-ui';
 import type {
   AssetDownloadCountsByVersion,
   RegistryIntegrityReport,

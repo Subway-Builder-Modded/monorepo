@@ -4,6 +4,11 @@ import {
   MarkdownPanel,
 } from '@subway-builder-modded/asset-listings-ui';
 import {
+  mergeVersionDownloads,
+  withZeroDownloads,
+} from '@subway-builder-modded/asset-listings-ui';
+import { listingPathToAssetType } from '@subway-builder-modded/config';
+import {
   Badge,
   Button,
   Skeleton,
@@ -42,7 +47,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { listingPathToAssetType } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {
@@ -56,10 +60,6 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
-import {
-  mergeVersionDownloads,
-  withZeroDownloads,
-} from '@/lib/version-downloads';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,

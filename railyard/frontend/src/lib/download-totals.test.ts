@@ -1,9 +1,8 @@
-import { describe, expect, it } from 'vitest';
-
 import {
   sumVersionDownloads,
   toCumulativeDownloadTotals,
-} from './download-totals';
+} from '@subway-builder-modded/config';
+import { describe, expect, it } from 'vitest';
 
 describe('sumVersionDownloads', () => {
   it('sums all version counts for an asset', () => {

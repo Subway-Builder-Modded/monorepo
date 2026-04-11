@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { getModeHex, PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
 import { getAuthorAttributionHref } from '@/lib/authors';
 import { getCountryFlagIcon } from '@/lib/railyard/flags';
-import { formatDataQuality } from '@/lib/railyard/map-filter-values';
+import { formatDataQuality } from '@subway-builder-modded/config';
 import type { MapManifest, ModManifest, VersionInfo } from '@/types/registry';
 
 interface ProjectHeaderProps {

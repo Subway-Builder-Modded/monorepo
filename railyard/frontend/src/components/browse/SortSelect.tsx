@@ -4,6 +4,7 @@ import {
   SortSelect as SharedSortSelect,
   type SortState as SharedSortState,
 } from '@subway-builder-modded/asset-listings-ui';
+import type { AssetType } from '@subway-builder-modded/config';
 import {
   Calendar,
   Download,
@@ -23,7 +24,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import type { AssetType } from '@/lib/asset-types';
 import {
   DEFAULT_SORT_STATE,
   getSortOptionsForType,

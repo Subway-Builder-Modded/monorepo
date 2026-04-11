@@ -6,6 +6,8 @@ import {
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
 } from '@subway-builder-modded/asset-listings-ui';
+import { buildAssetListingCounts } from '@subway-builder-modded/config';
+import { buildSpecialDemandValues } from '@subway-builder-modded/config';
 import { Button } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
@@ -20,9 +22,7 @@ import { Pagination } from '@/components/shared/Pagination';
 import { SidebarFilters } from '@/components/shared/SidebarFilters';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
-import { buildAssetListingCounts } from '@/lib/listing-counts';
 import { getLocalAccentClasses } from '@/lib/local-accent';
-import { buildSpecialDemandValues } from '@/lib/map-filter-values';
 import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 import {
   handleSubscriptionMutationError,

@@ -1,6 +1,8 @@
+import {
+  type AssetType,
+  assetTypeToListingPath,
+} from '@subway-builder-modded/config';
 import { useEffect, useState } from 'react';
-
-import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 
 import { GetGalleryImageResponse } from '../../wailsjs/go/registry/Registry';
 

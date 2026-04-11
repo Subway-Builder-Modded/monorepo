@@ -2,9 +2,9 @@ import {
   GalleryImage as SharedGalleryImage,
   type GalleryImageProps as SharedGalleryImageProps,
 } from '@subway-builder-modded/asset-listings-ui';
+import type { AssetType } from '@subway-builder-modded/config';
 
 import { useGalleryImage } from '@/hooks/use-gallery-image';
-import type { AssetType } from '@/lib/asset-types';
 
 interface GalleryImageProps extends Omit<
   SharedGalleryImageProps,

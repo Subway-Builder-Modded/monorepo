@@ -4,6 +4,11 @@ import {
   ProjectTabs,
 } from '@subway-builder-modded/asset-listings-ui';
 import {
+  mergeVersionDownloads,
+  withZeroDownloads,
+} from '@subway-builder-modded/asset-listings-ui';
+import { listingPathToAssetType } from '@subway-builder-modded/config';
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -20,12 +25,7 @@ import { Link, useRoute } from 'wouter';
 import { ProjectGallery } from '@/components/project/ProjectGallery';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
 import { ProjectVersions } from '@/components/project/ProjectVersions';
-import { listingPathToAssetType } from '@/lib/asset-types';
 import { isCompatible } from '@/lib/semver';
-import {
-  mergeVersionDownloads,
-  withZeroDownloads,
-} from '@/lib/version-downloads';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 

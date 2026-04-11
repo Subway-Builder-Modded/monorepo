@@ -11,6 +11,8 @@ import {
   sortProjectVersions,
   toggleProjectVersionSort,
 } from '@subway-builder-modded/asset-listings-ui';
+import type { AssetType } from '@subway-builder-modded/config';
+import { assetTypeToListingPath } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
@@ -35,8 +37,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import type { AssetType } from '@/lib/asset-types';
-import { assetTypeToListingPath } from '@/lib/asset-types';
 import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {

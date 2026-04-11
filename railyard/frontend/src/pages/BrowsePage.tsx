@@ -9,6 +9,9 @@ import {
   SIDEBAR_CONTENT_OFFSET,
   ViewModeToggle,
 } from '@subway-builder-modded/asset-listings-ui';
+import type { AssetType } from '@subway-builder-modded/config';
+import { buildAssetListingCounts } from '@subway-builder-modded/config';
+import { buildSpecialDemandValues } from '@subway-builder-modded/config';
 import { Compass, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -21,9 +24,6 @@ import { SidebarFilters } from '@/components/shared/SidebarFilters';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
-import type { AssetType } from '@/lib/asset-types';
-import { buildAssetListingCounts } from '@/lib/listing-counts';
-import { buildSpecialDemandValues } from '@/lib/map-filter-values';
 import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';

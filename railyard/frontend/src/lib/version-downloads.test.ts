@@ -1,7 +1,10 @@
+import {
+  mergeVersionDownloads,
+  withZeroDownloads,
+} from '@subway-builder-modded/asset-listings-ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { types } from '../../wailsjs/go/models';
-import { mergeVersionDownloads, withZeroDownloads } from './version-downloads';
 
 function version(version: string, downloads = 123): types.VersionInfo {
   return new types.VersionInfo({

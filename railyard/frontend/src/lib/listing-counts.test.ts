@@ -1,10 +1,9 @@
-import { describe, expect, it } from 'vitest';
-
 import {
   buildAssetListingCounts,
   buildListingCounts,
   filterVisibleListingValues,
-} from './listing-counts';
+} from '@subway-builder-modded/config';
+import { describe, expect, it } from 'vitest';
 
 describe('buildListingCounts', () => {
   it('counts values across items', () => {

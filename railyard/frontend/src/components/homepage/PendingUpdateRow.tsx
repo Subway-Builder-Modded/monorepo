@@ -1,7 +1,7 @@
+import type { AssetType } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { ArrowRight, MapPin, Package, RefreshCw } from 'lucide-react';
 
-import type { AssetType } from '@/lib/asset-types';
 import { cn } from '@/lib/utils';
 
 interface PendingUpdateRowProps {

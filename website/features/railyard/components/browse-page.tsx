@@ -30,7 +30,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
 import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
-import { buildSpecialDemandValues } from '@/lib/railyard/map-filter-values';
+import { buildSpecialDemandValues } from '@subway-builder-modded/config';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,

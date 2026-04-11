@@ -1,10 +1,9 @@
+import type { AssetType } from '@subway-builder-modded/config';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,
 } from '@subway-builder-modded/config';
 import { create } from 'zustand';
-
-import type { AssetType } from '@/lib/asset-types';
 
 import type { types } from '../../wailsjs/go/models';
 import {
