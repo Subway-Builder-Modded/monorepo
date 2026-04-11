@@ -1,6 +1,6 @@
+import type { AssetType } from '@subway-builder-modded/config';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { AssetType } from '@/lib/asset-types';
 import {
   activeProfileResultSuccess,
   updateSubscriptionsError,

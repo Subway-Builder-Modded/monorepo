@@ -1,16 +1,19 @@
-import type { types } from '../../wailsjs/go/models';
+export interface VersionWithDownloadCount {
+  version: string;
+  downloads: number;
+}
 
-export function withZeroDownloads(
-  versions: types.VersionInfo[],
-): types.VersionInfo[] {
+export function withZeroDownloads<T extends VersionWithDownloadCount>(
+  versions: T[],
+): T[] {
   return versions.map((version) => ({ ...version, downloads: 0 }));
 }
 
-export function mergeVersionDownloads(
-  versions: types.VersionInfo[],
+export function mergeVersionDownloads<T extends VersionWithDownloadCount>(
+  versions: T[],
   counts: Record<string, number>,
   warningContext: string,
-): types.VersionInfo[] {
+): T[] {
   const countsByVersion = counts ?? {};
   const knownVersions = new Set(versions.map((version) => version.version));
 
@@ -20,6 +23,7 @@ export function mergeVersionDownloads(
         `[${warningContext}] Missing download count for version "${version.version}"`,
       );
     }
+
     return {
       ...version,
       downloads: countsByVersion[version.version] ?? 0,

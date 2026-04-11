@@ -1,4 +1,4 @@
-import type { AssetType } from '@/lib/asset-types';
+import type { AssetType } from '@subway-builder-modded/config';
 
 import { types } from '../../wailsjs/go/models';
 import {

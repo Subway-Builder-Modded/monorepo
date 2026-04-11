@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Map } from 'lucide-react';
+import { EmptyState } from '@subway-builder-modded/asset-listings-ui';
 import {
   SectionHeader,
   getListingColor,
@@ -41,9 +42,15 @@ export function RegistryTrendingTypeSection({
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card/70 px-5 py-8 text-sm text-muted-foreground">
-          No {title.toLowerCase()} available for this timeframe.
-        </div>
+        <EmptyState
+          icon={icon}
+          title={`No ${title.toLowerCase()} available`}
+          description="No results are available for this timeframe."
+          className="rounded-xl border border-border bg-card/70 px-5 py-8"
+          iconClassName="mb-2 h-6 w-6"
+          titleClassName="text-sm font-semibold"
+          descriptionClassName="text-sm"
+        />
       )}
     </section>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { enrichAuthorIdentity } from '@/lib/authors';
-import { toCumulativeDownloadTotals } from '@/lib/railyard/download-totals';
+import { toCumulativeDownloadTotals } from '@subway-builder-modded/config';
 import { getRegistryAuthorDirectory } from '@/lib/railyard/registry-author-directory';
 import {
   getCustomVersions,

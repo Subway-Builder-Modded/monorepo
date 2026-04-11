@@ -1,12 +1,11 @@
-import { describe, expect, it } from 'vitest';
-
 import {
   buildSpecialDemandValues,
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SOURCE_QUALITY_VALUES,
-} from './map-filter-values';
+} from '@subway-builder-modded/config';
+import { describe, expect, it } from 'vitest';
 
 describe('LOCATION_TAGS', () => {
   it('is a non-empty list of region strings', () => {

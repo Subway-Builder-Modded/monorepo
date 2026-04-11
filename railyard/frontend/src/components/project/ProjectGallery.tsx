@@ -1,3 +1,8 @@
+import { EmptyState } from '@subway-builder-modded/asset-listings-ui';
+import {
+  type AssetType,
+  assetTypeToListingPath,
+} from '@subway-builder-modded/config';
 import {
   Button,
   Dialog,
@@ -6,9 +11,6 @@ import {
 } from '@subway-builder-modded/shared-ui';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-import { EmptyState } from '@/components/shared/EmptyState';
-import { type AssetType, assetTypeToListingPath } from '@/lib/asset-types';
 
 import { GetGalleryImageResponse } from '../../../wailsjs/go/registry/Registry';
 

@@ -24,7 +24,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import type { AssetType } from '@/lib/railyard/asset-types';
+import type { AssetType } from '@subway-builder-modded/config';
 import {
   DEFAULT_SORT_STATE,
   getSortOptionsForType,

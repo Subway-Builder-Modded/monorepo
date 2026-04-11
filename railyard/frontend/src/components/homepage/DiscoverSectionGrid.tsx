@@ -1,9 +1,9 @@
+import { ErrorBanner } from '@subway-builder-modded/asset-listings-ui';
+import type { AssetType } from '@subway-builder-modded/config';
 import { Skeleton } from '@subway-builder-modded/shared-ui';
 import { useEffect, useRef, useState } from 'react';
 
-import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { ItemCard } from '@/components/shared/ItemCard';
-import type { AssetType } from '@/lib/asset-types';
 import type { TaggedItem } from '@/lib/tagged-items';
 
 const DISCOVER_CARD_MIN_WIDTH = 220;

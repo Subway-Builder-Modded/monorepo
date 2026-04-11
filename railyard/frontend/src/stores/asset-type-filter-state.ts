@@ -1,4 +1,5 @@
-import { ASSET_TYPES, type AssetType } from '@/lib/asset-types';
+import { ASSET_TYPES, type AssetType } from '@subway-builder-modded/config';
+
 import {
   DEFAULT_SORT_STATE,
   type PerPage,

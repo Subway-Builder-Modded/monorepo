@@ -1,7 +1,6 @@
+import { ASSET_TYPES, type AssetType } from '@subway-builder-modded/config';
+import { toCumulativeDownloadTotals } from '@subway-builder-modded/config';
 import { create } from 'zustand';
-
-import { ASSET_TYPES, type AssetType } from '@/lib/asset-types';
-import { toCumulativeDownloadTotals } from '@/lib/download-totals';
 
 import type { types } from '../../wailsjs/go/models';
 import {

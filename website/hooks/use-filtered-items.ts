@@ -3,7 +3,7 @@
 import Fuse from 'fuse.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { AssetType } from '@/lib/railyard/asset-types';
+import type { AssetType } from '@subway-builder-modded/config';
 import {
   DEFAULT_SORT_STATE,
   PER_PAGE_OPTIONS,

@@ -12,12 +12,13 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import Markdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
 import { Skeleton } from '@subway-builder-modded/shared-ui';
+import {
+  EmptyState,
+  ErrorBanner,
+  MarkdownPanel,
+} from '@subway-builder-modded/asset-listings-ui';
 
-import { EmptyState } from '@/features/railyard/components/empty-state';
-import { ErrorBanner } from '@/features/railyard/components/error-banner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useRegistryItem } from '@/hooks/use-registry-item';
@@ -26,7 +27,7 @@ import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
 import {
   mergeVersionDownloads,
   withZeroDownloads,
-} from '@/lib/railyard/version-downloads';
+} from '@subway-builder-modded/asset-listings-ui';
 import type {
   AssetDownloadCountsByVersion,
   RegistryIntegrityReport,
@@ -321,25 +322,10 @@ export function ChangelogPage({
                   </div>
                   <div className="p-4">
                     {versionInfo.changelog ? (
-                      <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none text-sm leading-relaxed">
-                        <Markdown
-                          rehypePlugins={[rehypeRaw]}
-                          components={{
-                            a: ({ href, children, ...props }) => (
-                              <a
-                                {...props}
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                {children}
-                              </a>
-                            ),
-                          }}
-                        >
-                          {versionInfo.changelog}
-                        </Markdown>
-                      </div>
+                      <MarkdownPanel
+                        markdown={versionInfo.changelog}
+                        className="border-0 bg-transparent p-0"
+                      />
                     ) : (
                       <p className="text-sm text-muted-foreground italic">
                         No changelog provided for this version.
