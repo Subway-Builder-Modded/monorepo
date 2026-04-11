@@ -1,9 +1,9 @@
-import { type DocsInstance, type DocsVersion } from '@/config/content/docs';
+import { type DocsInstance, type DocsVersion } from '@/config/content/docs.types';
 import {
   PROJECT_COLOR_SCHEMES,
   getModeHex,
-  type ModeHex,
 } from '@/config/theme/colors';
+import type { ModeHex } from '@/config/theme/contracts';
 import { isLatestVersion, type DocsSidebarEntry } from '@/lib/docs/shared';
 import { normalizePath } from '@/lib/url';
 

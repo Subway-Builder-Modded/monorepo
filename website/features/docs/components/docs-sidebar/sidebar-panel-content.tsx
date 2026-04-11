@@ -5,7 +5,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { Archive, ChevronDown, PanelLeftCloseIcon, Tag } from 'lucide-react';
-import { type DocsInstance, type DocsVersion } from '@/config/content/docs';
+import { type DocsInstance, type DocsVersion } from '@/config/content/docs.types';
 import {
   buildDocsHubHref,
   buildVersionedDocHref,

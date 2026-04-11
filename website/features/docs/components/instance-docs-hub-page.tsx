@@ -4,7 +4,7 @@ import { ArrowRight, BookText, Tag } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { getUpdateProjectById } from '@/config/content/updates';
 import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
-import type { DocsInstance } from '@/config/content/docs';
+import type { DocsInstance } from '@/config/content/docs.types';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
 import { hexAlpha } from '@/lib/color';

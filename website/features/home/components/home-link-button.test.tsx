@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { HomeLinkButton } from '@/features/home/components/home-link-button';
-import type { HomeLink } from '@/config/site/homepage';
+import type { HomeLink } from '@/config/site/homepage.types';
 
 vi.mock('next/link', () => ({
   default: ({

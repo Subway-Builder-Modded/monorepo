@@ -1,4 +1,5 @@
-import { PROJECT_COLOR_SCHEMES, type ModeHex } from '@/config/theme/colors';
+import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
+import type { ModeHex } from '@/config/theme/contracts';
 
 export type LineBulletThemeId = 'default' | 'railyard' | 'template-mod';
 export type LineBulletColorRole =

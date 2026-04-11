@@ -116,5 +116,3 @@ export function useFilteredItems({
     setPage,
   };
 }
-
-export type { BrowseFilterState } from '@/stores/browse-store';

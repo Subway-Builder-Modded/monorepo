@@ -13,7 +13,7 @@ import {
   HOME_PROJECT_SECTION,
   HOME_SUBWAY_BARS,
   HOME_THEME,
-} from '@/config/site/homepage';
+} from '@/config/site/homepage.data';
 
 export default function Page() {
   return (

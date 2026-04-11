@@ -14,9 +14,9 @@ import remarkAdmonitionDirectives from '@/lib/remark-admonition-directives';
 
 import {
   DOCS_INSTANCES,
-  getSidebarOrder,
-  type DocsInstance,
-} from '@/config/content/docs';
+} from '@/config/content/docs.instances';
+import { getSidebarOrder } from '@/config/content/docs.selectors';
+import type { DocsInstance } from '@/config/content/docs.types';
 import {
   buildDocsHubHref,
   buildDocHref,

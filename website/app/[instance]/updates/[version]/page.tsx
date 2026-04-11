@@ -18,7 +18,7 @@ import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
 import { getUpdateProjectById } from '@/config/content/updates';
 import { resolveEmbedDescription } from '@/config/site/embed-descriptions';
 import { buildEmbedMetadata } from '@/config/site/metadata';
-import { useMDXComponents as getMDXComponents } from '@/mdx-components';
+import { useMDXComponents as getMDXComponents } from '@/components/mdx/platform/registry';
 import remarkAdmonitionDirectives from '@/lib/remark-admonition-directives';
 import {
   getAllUpdateParams,

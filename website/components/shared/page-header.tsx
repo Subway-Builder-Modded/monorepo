@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import type { ModeHex } from '@/config/theme/colors';
+import type { ModeHex } from '@/config/theme/contracts';
 import { hexAlpha } from '@/lib/color';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

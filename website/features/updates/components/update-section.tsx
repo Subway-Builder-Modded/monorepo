@@ -5,7 +5,7 @@ import {
   type UpdateSectionType,
 } from '@/config/content/updates';
 import { PROJECT_COLOR_SCHEMES } from '@/config/theme/colors';
-import { UPDATE_SECTION_ICON_MAP } from '@/config/ui/site-content';
+import { UPDATE_SECTION_ICON_MAP } from '@/config/ui/updates';
 import { hexAlpha } from '@/lib/color';
 import { cn } from '@subway-builder-modded/shared-ui';
 

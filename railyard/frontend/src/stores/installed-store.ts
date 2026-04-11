@@ -7,7 +7,6 @@ import {
   importAssetForActiveProfile,
   mutateSubscriptionsForActiveProfile,
 } from '@/lib/subscription-mutation-client';
-export { SubscriptionMutationLockedError } from '@/lib/subscription-mutation-client';
 
 import { types } from '../../wailsjs/go/models';
 import {

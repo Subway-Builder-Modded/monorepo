@@ -8,7 +8,7 @@ import {
   HOME_HERO,
   HOME_OPEN_SOURCE_SECTION,
   HOME_PROJECT_SECTION,
-} from '@/config/site/homepage';
+} from '@/config/site/homepage.data';
 
 vi.mock('@/features/home/components/home-hero-background', () => ({
   HomeHeroBackground: ({ alt }: { alt: string }) => (

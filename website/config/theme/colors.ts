@@ -1,5 +1,4 @@
 import type { ModeHex, ProjectColorId } from '@/config/theme/contracts';
-export type { ModeHex, ProjectColorId } from '@/config/theme/contracts';
 
 export type ThemedColorSetBase = {
   accentColor: ModeHex;

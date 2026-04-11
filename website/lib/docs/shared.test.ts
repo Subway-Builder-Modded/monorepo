@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DOCS_INSTANCES } from '@/config/content/docs';
+import { DOCS_INSTANCES } from '@/config/content/docs.instances';
 import {
   buildDocHref,
   buildVersionedDocHref,

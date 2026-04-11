@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import type { UpdateTag } from '@/config/content/updates';
-import { UPDATE_TAG_STYLES } from '@/config/ui/site-content';
+import { UPDATE_TAG_STYLES } from '@/config/ui/updates';
 
 type ReleaseTagKind = UpdateTag | 'latest';
 

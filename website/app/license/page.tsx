@@ -10,7 +10,7 @@ import { ThemedShowcaseCard } from '@/components/ui/themed-showcase-card';
 import { buildEmbedMetadata } from '@/config/site/metadata';
 import { SHARED_TEXT_COLOR } from '@/config/theme/colors';
 import { hexAlpha } from '@/lib/color';
-import { useMDXComponents as getMDXComponents } from '@/mdx-components';
+import { useMDXComponents as getMDXComponents } from '@/components/mdx/platform/registry';
 
 type LicenseFrontmatter = {
   title?: string;
