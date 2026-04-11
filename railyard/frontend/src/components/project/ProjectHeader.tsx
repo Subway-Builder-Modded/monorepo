@@ -4,6 +4,7 @@ import {
 } from '@subway-builder-modded/config';
 import { formatSourceQuality } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ChartLine,
@@ -46,7 +47,6 @@ import {
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
 import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
-import { cn } from '@/lib/utils';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,

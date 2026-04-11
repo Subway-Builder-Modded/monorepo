@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 
-import { cn } from '../lib/cn';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 const SIDEBAR_WIDTH_REM = 15.5;
 const SIDEBAR_GAP_REM = 1.5;

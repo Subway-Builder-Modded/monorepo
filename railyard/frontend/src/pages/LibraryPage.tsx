@@ -2,12 +2,16 @@ import {
   AssetSidebarPanel,
   EmptyState,
   ErrorBanner,
+  Pagination,
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
 } from '@subway-builder-modded/asset-listings-ui';
-import { buildAssetListingCounts } from '@subway-builder-modded/config';
-import { buildSpecialDemandValues } from '@subway-builder-modded/config';
+import {
+  buildAssetListingCounts,
+  buildSpecialDemandValues,
+  SEARCH_BAR_PLACEHOLDER,
+} from '@subway-builder-modded/config';
 import { Button } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
@@ -18,12 +22,18 @@ import { AppDialog } from '@/components/dialogs/AppDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { Pagination } from '@/components/shared/Pagination';
 import { SidebarFilters } from '@/components/shared/SidebarFilters';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
+import { PER_PAGE_OPTIONS } from '@/lib/constants';
 import { getLocalAccentClasses } from '@/lib/local-accent';
-import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -508,10 +518,35 @@ export function LibraryPage() {
                   totalPages={totalPages}
                   totalResults={totalResults}
                   perPage={filters.perPage}
+                  perPageOptions={PER_PAGE_OPTIONS}
                   onPageChange={setPage}
                   onPerPageChange={(value) =>
-                    setFilters((prev) => ({ ...prev, perPage: value }))
+                    setFilters((prev) => ({
+                      ...prev,
+                      perPage: value as (typeof prev)['perPage'],
+                    }))
                   }
+                  renderPerPageControl={({ value, options, onChange }) => (
+                    <Select
+                      value={String(value)}
+                      onValueChange={(v) => onChange(Number(v))}
+                    >
+                      <SelectTrigger className="w-16 h-7 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {options.map((opt) => (
+                          <SelectItem
+                            key={opt}
+                            value={String(opt)}
+                            className="text-xs"
+                          >
+                            {opt}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
               </>
             )}

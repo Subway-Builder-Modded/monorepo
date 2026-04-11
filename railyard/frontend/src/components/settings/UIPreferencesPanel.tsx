@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { ChevronDown, LayoutGrid, Monitor, Palette } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -28,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { useProfileStore } from '@/stores/profile-store';
 
 const VALID_THEMES = new Set<ThemeValue>([

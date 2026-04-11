@@ -1,6 +1,7 @@
 import {
   EmptyState,
   MarkdownPanel,
+  ProjectDetailShell,
   ProjectTabs,
 } from '@subway-builder-modded/asset-listings-ui';
 import {
@@ -15,11 +16,9 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  ToggleGroup,
-  ToggleGroupItem,
 } from '@subway-builder-modded/shared-ui';
 import { AlignLeft, CircleAlert, History, Images } from 'lucide-react';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useRoute } from 'wouter';
 
 import { ProjectGallery } from '@/components/project/ProjectGallery';
@@ -187,38 +186,40 @@ export function ProjectPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/">Home</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/browse">Browse</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{item.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      <ProjectHeader
-        type={type}
-        item={item}
-        latestVersion={latestVersion}
-        latestCompatibleVersion={latestCompatibleVersion}
-        versionsLoading={versionsLoading}
-        gameVersion={gameVersion}
-        totalDownloads={totalDownloads}
-      />
-
-      <div className="space-y-5">
+    <ProjectDetailShell
+      breadcrumb={
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/browse">Browse</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{item.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      }
+      header={
+        <ProjectHeader
+          type={type}
+          item={item}
+          latestVersion={latestVersion}
+          latestCompatibleVersion={latestCompatibleVersion}
+          versionsLoading={versionsLoading}
+          gameVersion={gameVersion}
+          totalDownloads={totalDownloads}
+        />
+      }
+      tabs={
         <ProjectTabs
           value={activeTab}
           onChange={(tab) => setProjectTab(projectKey, tab)}
@@ -230,32 +231,35 @@ export function ProjectPage() {
             { value: 'versions', label: 'Versions', icon: History },
           ]}
         />
+      }
+      body={
+        <>
+          {activeTab === 'description' && (
+            <MarkdownPanel
+              markdown={item.description}
+              onLinkClick={(href) => {
+                BrowserOpenURL(href);
+              }}
+            />
+          )}
 
-        {activeTab === 'description' && (
-          <MarkdownPanel
-            markdown={item.description}
-            onLinkClick={(href) => {
-              BrowserOpenURL(href);
-            }}
-          />
-        )}
+          {hasGallery && activeTab === 'gallery' && (
+            <ProjectGallery type={type} id={item.id} gallery={gallery} />
+          )}
 
-        {hasGallery && activeTab === 'gallery' && (
-          <ProjectGallery type={type} id={item.id} gallery={gallery} />
-        )}
-
-        {activeTab === 'versions' && (
-          <ProjectVersions
-            type={type}
-            itemId={item.id}
-            itemName={item.name}
-            versions={versions}
-            loading={versionsLoading}
-            error={versionsError}
-            gameVersion={gameVersion}
-          />
-        )}
-      </div>
-    </div>
+          {activeTab === 'versions' && (
+            <ProjectVersions
+              type={type}
+              itemId={item.id}
+              itemName={item.name}
+              versions={versions}
+              loading={versionsLoading}
+              error={versionsError}
+              gameVersion={gameVersion}
+            />
+          )}
+        </>
+      }
+    />
   );
 }

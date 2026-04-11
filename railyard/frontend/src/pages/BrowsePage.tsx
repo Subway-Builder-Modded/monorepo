@@ -1,30 +1,38 @@
 import {
-  AssetSidebarPanel,
-  CardSkeletonGrid,
-  EmptyState,
+  BrowsePageShell,
+  BrowseResultsSection,
   ErrorBanner,
-  ResponsiveCardGrid,
+  Pagination,
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
   ViewModeToggle,
 } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
-import { buildAssetListingCounts } from '@subway-builder-modded/config';
-import { buildSpecialDemandValues } from '@subway-builder-modded/config';
-import { Compass, SearchX } from 'lucide-react';
+import {
+  buildAssetListingCounts,
+  buildSpecialDemandValues,
+  SEARCH_BAR_PLACEHOLDER,
+} from '@subway-builder-modded/config';
+import { Compass } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { SortSelect } from '@/components/browse/SortSelect';
 import { PageLoadScreen } from '@/components/layout/PageLoadScreen';
 import { ItemCard } from '@/components/shared/ItemCard';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { Pagination } from '@/components/shared/Pagination';
 import { SidebarFilters } from '@/components/shared/SidebarFilters';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
-import { SEARCH_BAR_PLACEHOLDER } from '@/lib/search';
+import { PER_PAGE_OPTIONS } from '@/lib/constants';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';
@@ -231,15 +239,15 @@ function BrowsePageContent({
   }, [items, loading, onWarmupComplete, warmupMode]);
 
   return (
-    <div className="relative isolate">
-      <AssetSidebarPanel
-        open={sidebarOpen}
-        onToggle={handleSidebarToggle}
-        ariaLabel="Browse filters"
-        filters={filters}
-        currentType={filters.type}
-        onTypeChange={setType}
-        renderPanel={({
+    <BrowsePageShell
+      sidebar={{
+        open: sidebarOpen,
+        onToggle: handleSidebarToggle,
+        ariaLabel: 'Browse filters',
+        filters,
+        currentType: filters.type,
+        onTypeChange: setType,
+        renderPanel: ({
           open,
           onToggle,
           ariaLabel,
@@ -256,132 +264,126 @@ function BrowsePageContent({
           >
             {children}
           </SidebarPanel>
-        )}
-      >
-        <SidebarFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          onTypeChange={setType}
-          availableTags={allTags}
-          availableSpecialDemand={availableSpecialDemand}
-          modTagCounts={modTagCounts}
-          mapLocationCounts={mapLocationCounts}
-          mapSourceQualityCounts={mapSourceQualityCounts}
-          mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-          mapSpecialDemandCounts={mapSpecialDemandCounts}
-          modCount={mods.length}
-          mapCount={maps.length}
-        />
-      </AssetSidebarPanel>
-
-      <div
-        className="relative z-10 space-y-5"
-        style={{
+        ),
+        content: (
+          <SidebarFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onTypeChange={setType}
+            availableTags={allTags}
+            availableSpecialDemand={availableSpecialDemand}
+            modTagCounts={modTagCounts}
+            mapLocationCounts={mapLocationCounts}
+            mapSourceQualityCounts={mapSourceQualityCounts}
+            mapLevelOfDetailCounts={mapLevelOfDetailCounts}
+            mapSpecialDemandCounts={mapSpecialDemandCounts}
+            modCount={mods.length}
+            mapCount={maps.length}
+          />
+        ),
+      }}
+      content={{
+        style: {
           paddingLeft: sidebarOpen ? SIDEBAR_CONTENT_OFFSET : '0px',
           transition: 'padding-left 200ms ease-out',
           minHeight: 'calc(100vh - var(--app-navbar-offset))',
-        }}
-      >
-        <PageHeading
-          icon={Compass}
-          title="Browse"
-          description="Discover and install maps and mods for Subway Builder."
-        />
-
-        {error && <ErrorBanner message={error} />}
-
-        <SearchBar
-          query={filters.query}
-          onQueryChange={handleQueryChange}
-          placeholder={SEARCH_BAR_PLACEHOLDER}
-          ariaLabel="Search mods and maps"
-        />
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <ResultsSummary
-              totalResults={totalResults}
-              query={filters.query}
-              loading={loading}
+        },
+        header: (
+          <PageHeading
+            icon={Compass}
+            title="Browse"
+            description="Discover and install maps and mods for Subway Builder."
+          />
+        ),
+        error: error ? <ErrorBanner message={error} /> : undefined,
+        search: (
+          <SearchBar
+            query={filters.query}
+            onQueryChange={handleQueryChange}
+            placeholder={SEARCH_BAR_PLACEHOLDER}
+            ariaLabel="Search mods and maps"
+          />
+        ),
+        controlsLeft: (
+          <ResultsSummary
+            totalResults={totalResults}
+            query={filters.query}
+            loading={loading}
+          />
+        ),
+        controlsRight: (
+          <div className="flex items-center gap-2">
+            <ViewModeToggle value={viewMode} onChange={setViewMode} />
+            <SortSelect
+              value={filters.sort}
+              onChange={handleSortChange}
+              tab={filters.type}
             />
-            <div className="flex items-center gap-2">
-              <ViewModeToggle value={viewMode} onChange={setViewMode} />
-              <SortSelect
-                value={filters.sort}
-                onChange={handleSortChange}
-                tab={filters.type}
-              />
-            </div>
           </div>
-
-          {loading ? (
-            <CardSkeletonGrid count={filters.perPage} preset={cardGridPreset} />
-          ) : items.length === 0 ? (
-            <EmptyState
-              icon={SearchX}
-              title="No results found"
-              description={
-                filters.query
-                  ? `No items match "${filters.query}"`
-                  : 'No items match the current filters'
-              }
-            />
-          ) : (
-            <>
-              {viewMode === 'list' ? (
-                <div className="space-y-4">
-                  {items.map(({ type: itemType, item }) => (
-                    <ItemCard
-                      key={`${itemType}-${item.id}`}
-                      type={itemType}
-                      item={item}
-                      viewMode={viewMode}
-                      descriptionMode="preview"
-                      installedVersion={installedVersionByItemKey.get(
-                        `${itemType}-${item.id}`,
-                      )}
-                      totalDownloads={
-                        itemType === 'mod'
-                          ? (modDownloadTotals[item.id] ?? 0)
-                          : (mapDownloadTotals[item.id] ?? 0)
-                      }
-                    />
-                  ))}
-                </div>
-              ) : (
-                <ResponsiveCardGrid preset={cardGridPreset}>
-                  {items.map(({ type: itemType, item }) => (
-                    <ItemCard
-                      key={`${itemType}-${item.id}`}
-                      type={itemType}
-                      item={item}
-                      viewMode={viewMode}
-                      descriptionMode="preview"
-                      installedVersion={installedVersionByItemKey.get(
-                        `${itemType}-${item.id}`,
-                      )}
-                      totalDownloads={
-                        itemType === 'mod'
-                          ? (modDownloadTotals[item.id] ?? 0)
-                          : (mapDownloadTotals[item.id] ?? 0)
-                      }
-                    />
-                  ))}
-                </ResponsiveCardGrid>
-              )}
+        ),
+        body: (
+          <BrowseResultsSection
+            loading={loading}
+            items={items}
+            query={filters.query}
+            viewMode={viewMode}
+            skeletonCount={filters.perPage}
+            gridPreset={cardGridPreset}
+            renderItem={({ type: itemType, item }) => (
+              <ItemCard
+                key={`${itemType}-${item.id}`}
+                type={itemType}
+                item={item}
+                viewMode={viewMode}
+                descriptionMode="preview"
+                installedVersion={installedVersionByItemKey.get(
+                  `${itemType}-${item.id}`,
+                )}
+                totalDownloads={
+                  itemType === 'mod'
+                    ? (modDownloadTotals[item.id] ?? 0)
+                    : (mapDownloadTotals[item.id] ?? 0)
+                }
+              />
+            )}
+            pagination={
               <Pagination
                 page={page}
                 totalPages={totalPages}
                 totalResults={totalResults}
                 perPage={filters.perPage}
+                perPageOptions={PER_PAGE_OPTIONS}
                 onPageChange={setPage}
-                onPerPageChange={handlePerPageChange}
+                onPerPageChange={(value) =>
+                  handlePerPageChange(value as (typeof filters)['perPage'])
+                }
+                renderPerPageControl={({ value, options, onChange }) => (
+                  <Select
+                    value={String(value)}
+                    onValueChange={(v) => onChange(Number(v))}
+                  >
+                    <SelectTrigger className="w-16 h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((opt) => (
+                        <SelectItem
+                          key={opt}
+                          value={String(opt)}
+                          className="text-xs"
+                        >
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+            }
+          />
+        ),
+      }}
+    />
   );
 }
 

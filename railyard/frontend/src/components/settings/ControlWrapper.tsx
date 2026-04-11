@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 export const BROWSE_TRIGGER_CN = cn(
   'border-0 bg-transparent shadow-none',

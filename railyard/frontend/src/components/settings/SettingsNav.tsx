@@ -1,6 +1,5 @@
+import { cn } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, Cpu, Palette, Settings } from 'lucide-react';
-
-import { cn } from '@/lib/utils';
 
 export type SettingsTab = 'general' | 'ui' | 'system' | 'danger';
 

@@ -1,7 +1,6 @@
 import { Button } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { ToggleLeft, ToggleRight } from 'lucide-react';
-
-import { cn } from '@/lib/utils';
 
 const TOGGLE_ENABLED: Record<'install' | 'update' | 'profiles', string> = {
   install:

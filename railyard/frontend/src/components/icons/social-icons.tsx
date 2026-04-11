@@ -1,6 +1,5 @@
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { ComponentProps } from 'react';
-
-import { cn } from '@/lib/utils';
 
 type SocialIconProps = ComponentProps<'svg'>;
 

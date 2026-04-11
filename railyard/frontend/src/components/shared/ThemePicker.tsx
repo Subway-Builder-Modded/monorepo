@@ -1,6 +1,5 @@
 import { Button } from '@subway-builder-modded/shared-ui';
-
-import { cn } from '@/lib/utils';
+import { cn } from '@subway-builder-modded/shared-ui';
 
 export type ThemeValue =
   | 'dark'

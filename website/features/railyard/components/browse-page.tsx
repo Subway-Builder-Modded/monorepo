@@ -1,6 +1,6 @@
 'use client';
 
-import { Compass, SearchX, SlidersHorizontal } from 'lucide-react';
+import { Compass, SlidersHorizontal } from 'lucide-react';
 import React, {
   useEffect,
   useMemo,
@@ -9,10 +9,11 @@ import React, {
 } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
-  AssetSidebarPanel,
+  BrowsePageShell,
+  BrowseResultsSection,
   CardSkeletonGrid,
-  EmptyState,
   ErrorBanner,
+  Pagination,
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
@@ -23,19 +24,28 @@ import { SidebarFilters } from '@/features/railyard/components/sidebar-filters';
 import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import { ItemCard } from './item-card';
 import { PageHeader } from '@/components/shared/page-header';
-import { Pagination } from '@/features/railyard/components/pagination';
 import { SortSelect } from '@/features/railyard/components/sort-select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { createRandomSeed, useFilteredItems } from '@/hooks/use-filtered-items';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
+import { PER_PAGE_OPTIONS } from '@/lib/railyard/constants';
 import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
-import { buildSpecialDemandValues } from '@subway-builder-modded/config';
+import {
+  buildSpecialDemandValues,
+  SEARCH_BAR_PLACEHOLDER,
+} from '@subway-builder-modded/config';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,
 } from '@subway-builder-modded/config';
-import { SEARCH_BAR_PLACEHOLDER } from '@/lib/railyard/search';
 import { cn } from '@subway-builder-modded/shared-ui';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
@@ -150,14 +160,6 @@ export function BrowsePage() {
     );
   }, [items, loading]);
 
-  const resultsLayoutClassName = useMemo(() => {
-    if (viewMode === 'list') return 'space-y-4';
-    if (viewMode === 'compact') {
-      return 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3';
-    }
-    return 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4';
-  }, [viewMode]);
-
   if (!isClient) {
     return (
       <div className="space-y-5">
@@ -172,15 +174,15 @@ export function BrowsePage() {
   }
 
   return (
-    <div className="relative isolate">
-      <AssetSidebarPanel
-        open={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        ariaLabel="Browse filters"
-        currentType={filters.type}
-        filters={filters}
-        onTypeChange={setType}
-        renderPanel={({
+    <BrowsePageShell
+      sidebar={{
+        open: sidebarOpen,
+        onToggle: () => setSidebarOpen(!sidebarOpen),
+        ariaLabel: 'Browse filters',
+        currentType: filters.type,
+        filters,
+        onTypeChange: setType,
+        renderPanel: ({
           open,
           onToggle,
           ariaLabel,
@@ -199,134 +201,150 @@ export function BrowsePage() {
           >
             {children}
           </SidebarPanel>
-        )}
-      >
-        <SidebarFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          onTypeChange={setType}
-          availableTags={allTags}
-          availableSpecialDemand={availableSpecialDemand}
-          modTagCounts={modTagCounts}
-          mapLocationCounts={mapLocationCounts}
-          mapDataQualityCounts={mapDataQualityCounts}
-          mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-          mapSpecialDemandCounts={mapSpecialDemandCounts}
-          modCount={mods.length}
-          mapCount={maps.length}
-        />
-      </AssetSidebarPanel>
-
-      <div
-        className={cn(
-          'relative z-10 space-y-5 transition-[padding-left] duration-200 ease-out',
+        ),
+        content: (
+          <SidebarFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onTypeChange={setType}
+            availableTags={allTags}
+            availableSpecialDemand={availableSpecialDemand}
+            modTagCounts={modTagCounts}
+            mapLocationCounts={mapLocationCounts}
+            mapDataQualityCounts={mapDataQualityCounts}
+            mapLevelOfDetailCounts={mapLevelOfDetailCounts}
+            mapSpecialDemandCounts={mapSpecialDemandCounts}
+            modCount={mods.length}
+            mapCount={maps.length}
+          />
+        ),
+      }}
+      content={{
+        className: cn(
+          'transition-[padding-left] duration-200 ease-out',
           sidebarOpen && !isMobile
             ? 'md:pl-[var(--browse-sidebar-offset)]'
             : '',
-        )}
-        style={
-          {
-            '--browse-sidebar-offset': SIDEBAR_CONTENT_OFFSET,
-            minHeight: 'calc(100vh - var(--app-navbar-offset))',
-          } as React.CSSProperties
-        }
-      >
-        <PageHeader
-          icon={Compass}
-          title="Browse"
-          description="Discover and install community-made content for Subway Builder."
-        />
-
-        {error && <ErrorBanner message={error} />}
-
-        <SearchBar
-          query={filters.query}
-          onQueryChange={(value) =>
-            setFilters((prev) => ({ ...prev, query: value }))
-          }
-          placeholder={SEARCH_BAR_PLACEHOLDER}
-          ariaLabel="Search mods and maps"
-        />
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setMobileSidebarOpen(true)}
-                className="md:hidden flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/90 px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-accent/45 hover:text-primary"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
-                Filters
-              </button>
-              <ResultsSummary
-                totalResults={totalResults}
-                query={filters.query}
-                loading={loading}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <ViewModeToggle value={viewMode} onChange={setViewMode} />
-              <SortSelect
-                value={filters.sort}
-                onChange={(value) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    sort: value,
-                    randomSeed:
-                      value.field === 'random'
-                        ? createRandomSeed()
-                        : prev.randomSeed,
-                  }))
-                }
-                tab={filters.type}
-              />
-            </div>
-          </div>
-
-          {loading ? (
-            <CardSkeletonGrid count={filters.perPage} />
-          ) : items.length === 0 ? (
-            <EmptyState
-              icon={SearchX}
-              title="No results found"
-              description={
-                filters.query
-                  ? `No items match "${filters.query}"`
-                  : 'No items match the current filters'
-              }
+        ),
+        style: {
+          '--browse-sidebar-offset': SIDEBAR_CONTENT_OFFSET,
+          minHeight: 'calc(100vh - var(--app-navbar-offset))',
+        } as React.CSSProperties,
+        header: (
+          <PageHeader
+            icon={Compass}
+            title="Browse"
+            description="Discover and install community-made content for Subway Builder."
+          />
+        ),
+        error: error ? <ErrorBanner message={error} /> : undefined,
+        search: (
+          <SearchBar
+            query={filters.query}
+            onQueryChange={(value) =>
+              setFilters((prev) => ({ ...prev, query: value }))
+            }
+            placeholder={SEARCH_BAR_PLACEHOLDER}
+            ariaLabel="Search mods and maps"
+          />
+        ),
+        controlsLeft: (
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setMobileSidebarOpen(true)}
+              className="md:hidden flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/90 px-3 py-1.5 text-sm font-medium text-muted-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-accent/45 hover:text-primary"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
+              Filters
+            </button>
+            <ResultsSummary
+              totalResults={totalResults}
+              query={filters.query}
+              loading={loading}
             />
-          ) : (
-            <>
-              <div className={cn(resultsLayoutClassName)}>
-                {items.map(({ type: itemType, item }) => (
-                  <ItemCard
-                    key={`${itemType}-${item.id}`}
-                    type={itemType}
-                    item={item}
-                    viewMode={viewMode}
-                    totalDownloads={
-                      itemType === 'mod'
-                        ? (modDownloadTotals[item.id] ?? 0)
-                        : (mapDownloadTotals[item.id] ?? 0)
-                    }
-                  />
-                ))}
-              </div>
+          </div>
+        ),
+        controlsRight: (
+          <div className="flex items-center gap-2">
+            <ViewModeToggle value={viewMode} onChange={setViewMode} />
+            <SortSelect
+              value={filters.sort}
+              onChange={(value) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  sort: value,
+                  randomSeed:
+                    value.field === 'random'
+                      ? createRandomSeed()
+                      : prev.randomSeed,
+                }))
+              }
+              tab={filters.type}
+            />
+          </div>
+        ),
+        body: (
+          <BrowseResultsSection
+            loading={loading}
+            items={items}
+            query={filters.query}
+            viewMode={viewMode}
+            skeletonCount={filters.perPage}
+            renderItem={({ type: itemType, item }) => (
+              <ItemCard
+                key={`${itemType}-${item.id}`}
+                type={itemType}
+                item={item}
+                viewMode={viewMode}
+                descriptionMode="preview"
+                totalDownloads={
+                  itemType === 'mod'
+                    ? (modDownloadTotals[item.id] ?? 0)
+                    : (mapDownloadTotals[item.id] ?? 0)
+                }
+              />
+            )}
+            pagination={
               <Pagination
                 page={page}
                 totalPages={totalPages}
                 totalResults={totalResults}
                 perPage={filters.perPage}
+                perPageOptions={PER_PAGE_OPTIONS}
                 onPageChange={setPage}
                 onPerPageChange={(value) =>
-                  setFilters((prev) => ({ ...prev, perPage: value }))
+                  setFilters((prev) => ({
+                    ...prev,
+                    perPage: value as (typeof prev)['perPage'],
+                  }))
                 }
+                renderPerPageControl={({ value, options, onChange }) => (
+                  <Select
+                    value={String(value)}
+                    onValueChange={(v) => onChange(Number(v))}
+                  >
+                    <SelectTrigger className="w-16 h-7 text-xs" size="sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((opt) => (
+                        <SelectItem
+                          key={opt}
+                          value={String(opt)}
+                          className="text-xs"
+                        >
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               />
-            </>
-          )}
-        </div>
-      </div>
-    </div>
+            }
+          />
+        ),
+      }}
+    />
   );
 }

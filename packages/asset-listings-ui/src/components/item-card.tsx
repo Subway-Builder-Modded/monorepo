@@ -2,7 +2,7 @@ import { Badge } from '@subway-builder-modded/shared-ui';
 import { CheckCircle, Download, MapPin, Package, Users } from 'lucide-react';
 import { memo, type ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { cn } from '../lib/cn';
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { GalleryAssetType, SearchViewMode } from '../types';
 
 const TYPE_PILL_CLASS =

@@ -47,6 +47,18 @@ export {
 	type ProjectVersionRowProps,
 } from './components/project-version-row';
 export {
+	BrowsePageShell,
+	type BrowsePageShellProps,
+} from './components/browse-page-shell';
+export {
+	BrowseResultsSection,
+	type BrowseResultsSectionProps,
+} from './components/browse-results-section';
+export {
+	ProjectDetailShell,
+	type ProjectDetailShellProps,
+} from './components/project-detail-shell';
+export {
 	ResponsiveCardGrid,
 	type ResponsiveCardGridProps,
 } from './components/responsive-card-grid';
@@ -82,9 +94,7 @@ export {
 } from './components/view-mode-toggle';
 
 export {
-	isSearchViewMode,
 	type GalleryAssetType,
-	type SearchViewMode,
 	type SortDirection,
 	type SortFieldOption,
 	type SortState,
@@ -103,6 +113,7 @@ export {
 	withZeroDownloads,
 	type VersionWithDownloadCount,
 } from './lib/version-downloads';
+export { formatListingDescriptionPreview } from './lib/description-preview';
 export {
 	compareByDirection,
 	compareItems,

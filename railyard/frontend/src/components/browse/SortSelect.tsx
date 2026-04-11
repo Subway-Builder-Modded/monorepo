@@ -5,6 +5,7 @@ import {
   type SortState as SharedSortState,
 } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
+import { cn } from '@subway-builder-modded/shared-ui';
 import {
   Calendar,
   Download,
@@ -31,7 +32,6 @@ import {
   type SortState,
   TEXT_SORT_FIELDS,
 } from '@/lib/constants';
-import { cn } from '@/lib/utils';
 
 const FIELD_ICONS: Record<string, typeof Type> = {
   ...DEFAULT_FIELD_ICONS,

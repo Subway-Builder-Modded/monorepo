@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
-import { cn } from '../lib/cn';
+import { cn } from '@subway-builder-modded/shared-ui';
 import type { GalleryAssetType } from '../types';
 
 export const FILTER_SECTION_TITLE_CLASS =

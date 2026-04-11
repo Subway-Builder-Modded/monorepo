@@ -1,16 +1,21 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { GalleryImage } from '@/features/railyard/components/gallery-image';
-import { AuthorName } from '@/components/shared/author-name';
+import {
+  formatListingDescriptionPreview,
+  ItemCard as SharedItemCard,
+} from '@subway-builder-modded/asset-listings-ui';
+import type { SearchViewMode } from '@subway-builder-modded/config';
 import {
   type AssetType,
   assetTypeToListingPath,
 } from '@subway-builder-modded/config';
-import type { SearchViewMode } from '@subway-builder-modded/config';
+import Link from 'next/link';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
+
+import { GalleryImage } from '@/features/railyard/components/gallery-image';
+import { AuthorName } from '@/components/shared/author-name';
 import type { MapManifest, ModManifest } from '@/types/registry';
-import { ItemCard as SharedItemCard } from '@subway-builder-modded/asset-listings-ui';
 
 interface ItemCardWrapperProps {
   type: AssetType;
@@ -18,6 +23,7 @@ interface ItemCardWrapperProps {
   installedVersion?: string;
   totalDownloads?: number;
   viewMode?: SearchViewMode;
+  descriptionMode?: 'raw' | 'preview';
 }
 
 function isMapManifest(item: ModManifest | MapManifest): item is MapManifest {
@@ -30,10 +36,19 @@ export function ItemCard({
   installedVersion,
   totalDownloads,
   viewMode = 'full',
+  descriptionMode = 'raw',
 }: ItemCardWrapperProps) {
   const isMap = isMapManifest(item);
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const formatDescription = useMemo(() => {
+    if (descriptionMode === 'preview') {
+      return (description: string) =>
+        formatListingDescriptionPreview(description);
+    }
+
+    return undefined;
+  }, [descriptionMode]);
   const from = searchParams.toString()
     ? `${pathname}?${searchParams.toString()}`
     : pathname;
@@ -65,6 +80,7 @@ export function ItemCard({
       viewMode={viewMode}
       href={href}
       imagePath={item.gallery?.[0]}
+      formatDescription={formatDescription}
       renderImage={({ type, id, imagePath, className }) => (
         <GalleryImage
           type={type === 'mod' ? 'mods' : 'maps'}

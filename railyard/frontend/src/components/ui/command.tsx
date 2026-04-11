@@ -7,11 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@subway-builder-modded/shared-ui';
+import { cn } from '@subway-builder-modded/shared-ui';
 import { Command as CommandPrimitive } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 import * as React from 'react';
-
-import { cn } from '@/lib/utils';
 
 function Command({
   className,

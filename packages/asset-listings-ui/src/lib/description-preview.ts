@@ -25,7 +25,6 @@ function decodeHtmlEntities(input: string): string {
   });
 }
 
-/** Convert listing markdown/html into a clean single-line preview string for cards. */
 export function formatListingDescriptionPreview(description: string): string {
   if (!description) return '';
 
