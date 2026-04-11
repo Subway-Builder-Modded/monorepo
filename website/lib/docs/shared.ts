@@ -1,6 +1,4 @@
-import {
-  DOCS_INSTANCES,
-} from '@/config/content/docs.instances';
+import { DOCS_INSTANCES } from '@/config/content/docs.instances';
 import { getDocsInstanceById } from '@/config/content/docs.selectors';
 import type { DocsInstance, DocsVersion } from '@/config/content/docs.types';
 

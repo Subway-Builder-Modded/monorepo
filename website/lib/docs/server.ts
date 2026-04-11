@@ -12,9 +12,7 @@ import remarkDirective from 'remark-directive';
 import remarkFlexibleCodeTitles from 'remark-flexible-code-titles';
 import remarkAdmonitionDirectives from '@/lib/remark-admonition-directives';
 
-import {
-  DOCS_INSTANCES,
-} from '@/config/content/docs.instances';
+import { DOCS_INSTANCES } from '@/config/content/docs.instances';
 import { getSidebarOrder } from '@/config/content/docs.selectors';
 import type { DocsInstance } from '@/config/content/docs.types';
 import {
