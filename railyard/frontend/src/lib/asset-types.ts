@@ -2,8 +2,8 @@ export {
   ASSET_LISTING_PATHS,
   ASSET_TYPE_TO_LISTING_PATH,
   ASSET_TYPES,
-  assetTypeToListingPath,
-  listingPathToAssetType,
   type AssetListingPath,
   type AssetType,
+  assetTypeToListingPath,
+  listingPathToAssetType,
 } from '@subway-builder-modded/config';

@@ -16,6 +16,7 @@ export {
 } from './navbar/content';
 export { isNavItemActive, isRouteMatch } from './navbar/route-match';
 export {
+	SEARCH_VIEW_MODES,
 	isSearchViewMode,
 	normalizeSearchViewMode,
 	type SearchViewMode,
@@ -25,6 +26,27 @@ export {
 	SEARCH_BAR_PLACEHOLDER,
 	SEARCH_FILTER_EMPTY_LABELS,
 } from './asset-listings/search-constants';
+export {
+	DATA_QUALITY_VALUES,
+	LEVEL_OF_DETAIL_VALUES,
+	LOCATION_TAGS,
+	SOURCE_QUALITY_VALUES,
+	buildSpecialDemandValues,
+	formatDataQuality,
+	formatSourceQuality,
+} from './asset-listings/map-filter-values';
+export {
+	buildAssetListingCounts,
+	buildListingCounts,
+	filterVisibleListingValues,
+	type AssetListingCounts,
+} from './asset-listings/listing-counts';
+export {
+	sumVersionDownloads,
+	toCumulativeDownloadTotals,
+	type AssetDownloadCountsByVersion,
+	type DownloadCounts,
+} from './asset-listings/download-totals';
 export {
 	ASSET_LISTING_PATHS,
 	ASSET_TYPE_TO_LISTING_PATH,
