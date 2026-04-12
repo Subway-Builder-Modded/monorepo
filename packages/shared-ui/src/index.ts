@@ -1,13 +1,12 @@
 // Utilities
 export { cn, type ClassValue } from './lib/cn';
 export {
-  APP_CONTENT_SPACING_CLASS,
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from './lib/layout-tokens';
 
 // Components
-export { Badge, badgeVariants } from './components/badge';
+export { Badge } from './components/badge';
 export { Checkbox } from './components/checkbox';
 export {
   Breadcrumb,
@@ -20,13 +19,11 @@ export {
 } from './components/breadcrumb';
 export {
   Button,
-  buttonStyles,
   buttonVariants,
   type ButtonProps,
 } from './components/button';
 export {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -83,14 +80,13 @@ export {
 } from './components/navbar';
 export {
   Popover,
-  PopoverAnchor,
   PopoverContent,
   PopoverDescription,
   PopoverHeader,
   PopoverTitle,
   PopoverTrigger,
 } from './components/popover';
-export { ScrollArea, ScrollBar } from './components/scroll-area';
+export { ScrollArea } from './components/scroll-area';
 export {
   Select,
   SelectContent,
@@ -107,13 +103,17 @@ export { Separator } from './components/separator';
 export { Skeleton } from './components/skeleton';
 export { PageLoadScreen } from './components/page-load-screen';
 export {
+  PageHeading,
+  type PageHeadingProps,
+  type PageHeadingSize,
+} from './components/page-heading';
+export {
   SuiteLoader,
   type SuiteLoaderStep,
 } from './components/suite-loader';
 export {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,
@@ -124,7 +124,6 @@ export {
   Tabs,
   TabsContent,
   TabsList,
-  tabsListVariants,
   TabsTrigger,
 } from './components/tabs';
 export { Toggle, toggleVariants } from './components/toggle';

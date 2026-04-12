@@ -1,6 +1,3 @@
-export const WORKSPACE_NAME = 'subway-builder-modded' as const;
-export const WORKSPACE_VERSION = '0.0.0' as const;
-
 export type {
 	ActiveRouteMatchRule,
 	NavIconKey,
@@ -22,6 +19,7 @@ export {
 	type SearchViewMode,
 } from './asset-listings/search-view-mode';
 export {
+	ASSET_LISTING_FUSE_SEARCH_OPTIONS,
 	MAX_CARD_BADGES,
 	SEARCH_BAR_PLACEHOLDER,
 	SEARCH_FILTER_EMPTY_LABELS,
@@ -58,15 +56,10 @@ export {
 } from './asset-listings/asset-types';
 export {
 	DEFAULT_SORT_STATE,
-	normalizeSortStateForType,
 	PER_PAGE_OPTIONS,
 	SORT_OPTIONS,
-	SortKey,
 	TEXT_SORT_FIELDS,
 	getSortOptionsForType,
-	sortKeyToState,
-	sortStateToOptionKey,
-	toggleSortField,
 	type PerPage,
 	type SortDirection,
 	type SortField,

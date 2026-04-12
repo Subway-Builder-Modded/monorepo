@@ -1,5 +1,6 @@
-import { cn } from '@subway-builder-modded/shared-ui';
 import type { LucideIcon } from 'lucide-react';
+
+import { cn } from '../lib/cn';
 
 export type PageHeadingSize = 'default' | 'compact' | 'sidebar';
 

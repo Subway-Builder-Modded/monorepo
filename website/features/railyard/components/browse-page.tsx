@@ -1,7 +1,19 @@
 'use client';
 
-import { Compass, SlidersHorizontal } from 'lucide-react';
+import {
+  Calendar,
+  Compass,
+  Download,
+  Globe,
+  Hash,
+  Shuffle,
+  SlidersHorizontal,
+  Type,
+  User,
+  Users,
+} from 'lucide-react';
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -12,19 +24,22 @@ import {
   BrowsePageShell,
   BrowseResultsSection,
   CardSkeletonGrid,
+  DEFAULT_FIELD_ICONS,
   ErrorBanner,
+  getSortFieldOptions,
   Pagination,
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  SidebarFilters,
+  type SidebarFilterState,
+  SortSelect as SharedSortSelect,
   ViewModeToggle,
+  type SortState as SharedSortState,
 } from '@subway-builder-modded/asset-listings-ui';
 
-import { SidebarFilters } from '@/features/railyard/components/sidebar-filters';
 import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import { ItemCard } from './item-card';
-import { PageHeader } from '@/components/shared/page-header';
-import { SortSelect } from '@/features/railyard/components/sort-select';
 import { createRandomSeed } from '@subway-builder-modded/stores-core';
 import {
   Select,
@@ -37,20 +52,41 @@ import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
-import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
 import {
+  buildAssetListingCounts as buildSharedAssetListingCounts,
+  DEFAULT_SORT_STATE,
+  filterVisibleListingValues,
+  formatSourceQuality,
+  LEVEL_OF_DETAIL_VALUES,
+  LOCATION_TAGS,
   PER_PAGE_OPTIONS,
   buildSpecialDemandValues,
   SEARCH_BAR_PLACEHOLDER,
+  SEARCH_FILTER_EMPTY_LABELS,
+  SOURCE_QUALITY_VALUES,
+  type SortField,
+  TEXT_SORT_FIELDS,
 } from '@subway-builder-modded/config';
 import {
   normalizeSearchViewMode,
   type SearchViewMode,
 } from '@subway-builder-modded/config';
-import { cn } from '@subway-builder-modded/shared-ui';
+import { cn, PageHeading } from '@subway-builder-modded/shared-ui';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
 const SIDEBAR_OPEN_KEY = 'railyard:browse:sidebar-open:v1';
+
+const FIELD_ICONS: Record<string, typeof Type> = {
+  ...DEFAULT_FIELD_ICONS,
+  name: Type,
+  city_code: Hash,
+  country: Globe,
+  author: User,
+  population: Users,
+  downloads: Download,
+  last_updated: Calendar,
+  random: Shuffle,
+};
 
 function normalizeType(value: string | null): 'mod' | 'map' | undefined {
   if (value === 'mod' || value === 'map') return value;
@@ -113,10 +149,10 @@ export function BrowsePage() {
   const {
     modTagCounts,
     mapLocationCounts,
-    mapDataQualityCounts,
+    mapSourceQualityCounts,
     mapLevelOfDetailCounts,
     mapSpecialDemandCounts,
-  } = useMemo(() => buildAssetListingCounts(mods, maps), [mods, maps]);
+  } = useMemo(() => buildSharedAssetListingCounts(mods, maps), [mods, maps]);
 
   const {
     items,
@@ -134,6 +170,47 @@ export function BrowsePage() {
     mapDownloadTotals,
     initialType: queryType,
   });
+
+  const sortFieldOptions = useMemo(
+    () => getSortFieldOptions(filters.type),
+    [filters.type],
+  );
+
+  const handleSidebarFiltersChange = useCallback(
+    (updater: (prev: SidebarFilterState) => SidebarFilterState) => {
+      setFilters((prev) => {
+        const next = updater({
+          type: prev.type,
+          mod: { tags: prev.mod.tags },
+          map: {
+            locations: prev.map.locations,
+            sourceQuality: prev.map.sourceQuality,
+            levelOfDetail: prev.map.levelOfDetail,
+            specialDemand: prev.map.specialDemand,
+          },
+        });
+        return {
+          ...prev,
+          type: next.type,
+          mod: { ...prev.mod, tags: next.mod.tags },
+          map: {
+            ...prev.map,
+            locations: next.map.locations,
+            sourceQuality: next.map.sourceQuality,
+            levelOfDetail: next.map.levelOfDetail,
+            specialDemand: next.map.specialDemand,
+          },
+        };
+      });
+    },
+    [setFilters],
+  );
+
+  useEffect(() => {
+    if (!sortFieldOptions.some((f) => f.field === filters.sort.field)) {
+      setFilters((prev) => ({ ...prev, sort: DEFAULT_SORT_STATE }));
+    }
+  }, [filters.sort.field, setFilters, sortFieldOptions]);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -164,7 +241,7 @@ export function BrowsePage() {
   if (!isClient) {
     return (
       <div className="space-y-5">
-        <PageHeader
+        <PageHeading
           icon={Compass}
           title="Browse"
           description="Discover and install community-made content for Subway Builder."
@@ -206,17 +283,23 @@ export function BrowsePage() {
         content: (
           <SidebarFilters
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={handleSidebarFiltersChange}
             onTypeChange={setType}
             availableTags={allTags}
             availableSpecialDemand={availableSpecialDemand}
             modTagCounts={modTagCounts}
             mapLocationCounts={mapLocationCounts}
-            mapDataQualityCounts={mapDataQualityCounts}
+            mapSourceQualityCounts={mapSourceQualityCounts}
             mapLevelOfDetailCounts={mapLevelOfDetailCounts}
             mapSpecialDemandCounts={mapSpecialDemandCounts}
             modCount={mods.length}
             mapCount={maps.length}
+            locationValues={LOCATION_TAGS}
+            sourceQualityValues={SOURCE_QUALITY_VALUES}
+            levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
+            formatSourceQuality={formatSourceQuality}
+            filterVisibleListingValues={filterVisibleListingValues}
+            emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           />
         ),
       }}
@@ -232,7 +315,7 @@ export function BrowsePage() {
           minHeight: 'calc(100vh - var(--app-navbar-offset))',
         } as React.CSSProperties,
         header: (
-          <PageHeader
+          <PageHeading
             icon={Compass}
             title="Browse"
             description="Discover and install community-made content for Subway Builder."
@@ -269,19 +352,24 @@ export function BrowsePage() {
         controlsRight: (
           <div className="flex items-center gap-2">
             <ViewModeToggle value={viewMode} onChange={setViewMode} />
-            <SortSelect
-              value={filters.sort}
-              onChange={(value) =>
+            <SharedSortSelect
+              value={filters.sort as SharedSortState}
+              onChange={(next) =>
                 setFilters((prev) => ({
                   ...prev,
-                  sort: value,
+                  sort: {
+                    field: next.field as SortField,
+                    direction: next.direction,
+                  },
                   randomSeed:
-                    value.field === 'random'
+                    next.field === 'random'
                       ? createRandomSeed()
                       : prev.randomSeed,
                 }))
               }
-              tab={filters.type}
+              fieldOptions={sortFieldOptions}
+              textSortFields={Array.from(TEXT_SORT_FIELDS)}
+              fieldIcons={FIELD_ICONS}
             />
           </div>
         ),

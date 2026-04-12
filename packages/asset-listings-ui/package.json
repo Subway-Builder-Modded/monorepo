@@ -14,6 +14,8 @@
     }
   },
   "dependencies": {
+    "@subway-builder-modded/config": "workspace:*",
+    "@subway-builder-modded/asset-listings-state": "workspace:*",
     "@subway-builder-modded/shared-ui": "workspace:*",
     "react-markdown": "^10.1.0",
     "rehype-raw": "^7.0.0"

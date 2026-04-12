@@ -72,8 +72,6 @@ export {
 	type SortableHeaderCellProps,
 } from './components/sortable-header-cell';
 export {
-	FILTER_COUNT_BADGE_CLASS,
-	FILTER_SECTION_TITLE_CLASS,
 	SidebarFilters,
 	type SidebarFiltersProps,
 	type SidebarFilterState,
@@ -88,6 +86,7 @@ export {
 	SortSelect,
 	type SortSelectProps,
 } from './components/sort-select';
+export { getSortFieldOptions } from './components/sort-field-options';
 export {
 	ViewModeToggle,
 	type ViewModeToggleProps,
@@ -115,10 +114,12 @@ export {
 } from './lib/version-downloads';
 export { formatListingDescriptionPreview } from './lib/description-preview';
 export {
-	compareByDirection,
 	compareItems,
-	getLastUpdated,
-	getTotalDownloads,
 	sortTaggedItemsByLastUpdated,
 	type AbstractTaggedItem,
 } from './lib/tagged-items';
+export {
+	createBrowsePageCallbacks,
+	type BrowseOrchestrationContext,
+	type BrowsePageCallbacks,
+} from './hooks/use-browse-orchestration';

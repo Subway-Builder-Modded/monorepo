@@ -1,6 +1,11 @@
 import Fuse, { type IFuseOptions } from 'fuse.js';
 
-import type { AssetType, SortState } from '@subway-builder-modded/config';
+import {
+  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  type AssetType,
+  type PerPage,
+  type SortState,
+} from '@subway-builder-modded/config';
 
 type SearchableItem<TItem> = {
   entry: TItem;
@@ -12,11 +17,51 @@ export interface TaggedListingItem<TItem = { id: string }> {
   item: TItem;
 }
 
+export interface AssetSearchable {
+  name?: string | null;
+  description?: string | null;
+  tags?: string[] | null;
+  city_code?: string | null;
+  country?: string | null;
+  location?: string | null;
+  source_quality?: string | null;
+  level_of_detail?: string | null;
+  special_demand?: string[] | null;
+}
+
+export function buildAssetSearchText<TItem extends AssetSearchable>(
+  tagged: TaggedListingItem<TItem>,
+  getAuthorText: (item: TItem) => string,
+): string {
+  const item = tagged.item;
+  const values: string[] = [
+    item.name ?? '',
+    getAuthorText(item),
+    item.description ?? '',
+  ];
+
+  if (tagged.type === 'mod') {
+    values.push(...(item.tags ?? []));
+  } else {
+    values.push(
+      item.city_code ?? '',
+      item.country ?? '',
+      item.location ?? '',
+      item.source_quality ?? '',
+      item.level_of_detail ?? '',
+      ...(item.special_demand ?? []),
+    );
+  }
+
+  return values.filter(Boolean).join(' ');
+}
+
 export interface TaggedListingFilterState<TMapFilters, TSortState = SortState> {
   query: string;
   type: AssetType;
   sort: TSortState;
   randomSeed: number;
+  perPage: PerPage;
   mod: {
     tags: string[];
   };
@@ -53,7 +98,23 @@ export interface FilterAndSortTaggedItemsParams<
     mapDownloadTotals: Record<string, number>,
   ) => number;
   accessors: TaggedListingAccessors<TTaggedItem, TMapFilters>;
-  fuseOptions: IFuseOptions<SearchableItem<TTaggedItem>>;
+  fuseOptions?: IFuseOptions<SearchableItem<TTaggedItem>>;
+}
+
+export interface FilterAndPaginateTaggedItemsParams<
+  TTaggedItem extends TaggedListingItem,
+  TMapFilters,
+  TSortState = SortState,
+> extends FilterAndSortTaggedItemsParams<TTaggedItem, TMapFilters, TSortState> {
+  page: number;
+}
+
+export interface FilteredPageResult<TTaggedItem> {
+  filtered: TTaggedItem[];
+  items: TTaggedItem[];
+  page: number;
+  totalPages: number;
+  totalResults: number;
 }
 
 export function matchesSingleValueFilter(
@@ -164,7 +225,10 @@ export function filterAndSortTaggedItems<
       searchText: accessors.buildSearchText(entry),
     }));
 
-    const fuse = new Fuse(searchable, fuseOptions);
+    const fuse = new Fuse(
+      searchable,
+      fuseOptions ?? ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+    );
     result = fuse.search(query).map(({ item }) => item.entry);
   }
 
@@ -181,4 +245,31 @@ export function filterAndSortTaggedItems<
       mapDownloadTotals,
     ),
   );
+}
+
+export function filterAndPaginateTaggedItems<
+  TTaggedItem extends TaggedListingItem,
+  TMapFilters,
+  TSortState = SortState,
+>({
+  page,
+  ...params
+}: FilterAndPaginateTaggedItemsParams<
+  TTaggedItem,
+  TMapFilters,
+  TSortState
+>): FilteredPageResult<TTaggedItem> {
+  const filtered = filterAndSortTaggedItems(params);
+  const totalResults = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / params.filters.perPage));
+  const boundedPage = Math.min(Math.max(1, page), totalPages);
+  const start = (boundedPage - 1) * params.filters.perPage;
+
+  return {
+    filtered,
+    items: filtered.slice(start, start + params.filters.perPage),
+    page: boundedPage,
+    totalPages,
+    totalResults,
+  };
 }

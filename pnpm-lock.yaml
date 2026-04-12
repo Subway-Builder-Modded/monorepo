@@ -63,6 +63,12 @@ importers:
 
   packages/asset-listings-ui:
     dependencies:
+      '@subway-builder-modded/asset-listings-state':
+        specifier: workspace:*
+        version: link:../asset-listings-state
+      '@subway-builder-modded/config':
+        specifier: workspace:*
+        version: link:../config
       '@subway-builder-modded/shared-ui':
         specifier: workspace:*
         version: link:../shared-ui

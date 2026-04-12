@@ -6,11 +6,19 @@ import {
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  SidebarFilters,
+  type SidebarFilterState,
 } from '@subway-builder-modded/asset-listings-ui';
 import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
+  filterVisibleListingValues,
+  formatSourceQuality,
+  LEVEL_OF_DETAIL_VALUES,
+  LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
+  SEARCH_FILTER_EMPTY_LABELS,
+  SOURCE_QUALITY_VALUES,
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { Button } from '@subway-builder-modded/shared-ui';
@@ -23,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@subway-builder-modded/shared-ui';
+import { PageHeading } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -30,8 +39,6 @@ import { useLocation } from 'wouter';
 
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
-import { PageHeading } from '@/components/shared/PageHeading';
-import { SidebarFilters } from '@/components/shared/SidebarFilters';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
 import {
@@ -374,6 +381,36 @@ export function LibraryPage() {
     }
   };
 
+  const handleSidebarFiltersChange = useCallback(
+    (updater: (prev: SidebarFilterState) => SidebarFilterState) => {
+      setFilters((prev) => {
+        const next = updater({
+          type: prev.type,
+          mod: { tags: prev.mod.tags },
+          map: {
+            locations: prev.map.locations,
+            sourceQuality: prev.map.sourceQuality,
+            levelOfDetail: prev.map.levelOfDetail,
+            specialDemand: prev.map.specialDemand,
+          },
+        });
+        return {
+          ...prev,
+          type: next.type,
+          mod: { ...prev.mod, tags: next.mod.tags },
+          map: {
+            ...prev.map,
+            locations: next.map.locations,
+            sourceQuality: next.map.sourceQuality,
+            levelOfDetail: next.map.levelOfDetail,
+            specialDemand: next.map.specialDemand,
+          },
+        };
+      });
+    },
+    [setFilters],
+  );
+
   return (
     <>
       <AssetSidebarPanel
@@ -404,7 +441,7 @@ export function LibraryPage() {
       >
         <SidebarFilters
           filters={filters}
-          onFiltersChange={setFilters}
+          onFiltersChange={handleSidebarFiltersChange}
           onTypeChange={setType}
           availableTags={availableTags}
           availableSpecialDemand={availableSpecialDemand}
@@ -415,6 +452,12 @@ export function LibraryPage() {
           mapSpecialDemandCounts={mapSpecialDemandCounts}
           modCount={modCount}
           mapCount={mapCount}
+          locationValues={LOCATION_TAGS}
+          sourceQualityValues={SOURCE_QUALITY_VALUES}
+          levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
+          formatSourceQuality={formatSourceQuality}
+          filterVisibleListingValues={filterVisibleListingValues}
+          emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
         />
       </AssetSidebarPanel>
 

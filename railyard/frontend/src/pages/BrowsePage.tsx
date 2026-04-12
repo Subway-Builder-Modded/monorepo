@@ -1,22 +1,37 @@
 import {
   BrowsePageShell,
   BrowseResultsSection,
+  DEFAULT_FIELD_ICONS,
   ErrorBanner,
+  getSortFieldOptions,
   Pagination,
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  SidebarFilters,
+  type SidebarFilterState,
+  SortSelect as SharedSortSelect,
+  type SortState as SharedSortState,
   ViewModeToggle,
 } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
 import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
+  DEFAULT_SORT_STATE,
+  filterVisibleListingValues,
+  formatSourceQuality,
+  LEVEL_OF_DETAIL_VALUES,
+  LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
+  SEARCH_FILTER_EMPTY_LABELS,
+  type SortField,
+  SOURCE_QUALITY_VALUES,
+  TEXT_SORT_FIELDS,
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { usePageWarmup } from '@subway-builder-modded/lifecycle-core';
-import { PageLoadScreen } from '@subway-builder-modded/shared-ui';
+import { PageHeading, PageLoadScreen } from '@subway-builder-modded/shared-ui';
 import {
   Select,
   SelectContent,
@@ -24,13 +39,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@subway-builder-modded/shared-ui';
-import { Compass } from 'lucide-react';
+import {
+  Calendar,
+  Compass,
+  Download,
+  Globe,
+  Hash,
+  Shuffle,
+  Type,
+  User,
+  Users,
+} from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { SortSelect } from '@/components/browse/SortSelect';
 import { ItemCard } from '@/components/shared/ItemCard';
-import { PageHeading } from '@/components/shared/PageHeading';
-import { SidebarFilters } from '@/components/shared/SidebarFilters';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
@@ -44,6 +66,18 @@ interface BrowsePageContentProps {
   warmupMode: boolean;
   onWarmupComplete: () => void;
 }
+
+const FIELD_ICONS: Record<string, typeof Type> = {
+  ...DEFAULT_FIELD_ICONS,
+  name: Type,
+  city_code: Hash,
+  country: Globe,
+  author: User,
+  population: Users,
+  downloads: Download,
+  last_updated: Calendar,
+  random: Shuffle,
+};
 
 function BrowsePageContent({
   warmupMode,
@@ -152,6 +186,11 @@ function BrowsePageContent({
     setPage,
   } = useFilteredItems({ mods, maps, modDownloadTotals, mapDownloadTotals });
 
+  const sortFieldOptions = useMemo(
+    () => getSortFieldOptions(filters.type),
+    [filters.type],
+  );
+
   const cardGridPreset = useMemo(
     () => (viewMode === 'compact' ? 'compact' : 'default'),
     [viewMode],
@@ -186,6 +225,42 @@ function BrowsePageContent({
     },
     [setFilters],
   );
+
+  const handleSidebarFiltersChange = useCallback(
+    (updater: (prev: SidebarFilterState) => SidebarFilterState) => {
+      setFilters((prev) => {
+        const next = updater({
+          type: prev.type,
+          mod: { tags: prev.mod.tags },
+          map: {
+            locations: prev.map.locations,
+            sourceQuality: prev.map.sourceQuality,
+            levelOfDetail: prev.map.levelOfDetail,
+            specialDemand: prev.map.specialDemand,
+          },
+        });
+        return {
+          ...prev,
+          type: next.type,
+          mod: { ...prev.mod, tags: next.mod.tags },
+          map: {
+            ...prev.map,
+            locations: next.map.locations,
+            sourceQuality: next.map.sourceQuality,
+            levelOfDetail: next.map.levelOfDetail,
+            specialDemand: next.map.specialDemand,
+          },
+        };
+      });
+    },
+    [setFilters],
+  );
+
+  useEffect(() => {
+    if (!sortFieldOptions.some((f) => f.field === filters.sort.field)) {
+      setFilters((prev) => ({ ...prev, sort: DEFAULT_SORT_STATE }));
+    }
+  }, [filters.sort.field, setFilters, sortFieldOptions]);
 
   useEffect(() => {
     if (loading) {
@@ -242,7 +317,7 @@ function BrowsePageContent({
         content: (
           <SidebarFilters
             filters={filters}
-            onFiltersChange={setFilters}
+            onFiltersChange={handleSidebarFiltersChange}
             onTypeChange={setType}
             availableTags={allTags}
             availableSpecialDemand={availableSpecialDemand}
@@ -253,6 +328,12 @@ function BrowsePageContent({
             mapSpecialDemandCounts={mapSpecialDemandCounts}
             modCount={mods.length}
             mapCount={maps.length}
+            locationValues={LOCATION_TAGS}
+            sourceQualityValues={SOURCE_QUALITY_VALUES}
+            levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
+            formatSourceQuality={formatSourceQuality}
+            filterVisibleListingValues={filterVisibleListingValues}
+            emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           />
         ),
       }}
@@ -288,10 +369,17 @@ function BrowsePageContent({
         controlsRight: (
           <div className="flex items-center gap-2">
             <ViewModeToggle value={viewMode} onChange={setViewMode} />
-            <SortSelect
-              value={filters.sort}
-              onChange={handleSortChange}
-              tab={filters.type}
+            <SharedSortSelect
+              value={filters.sort as SharedSortState}
+              onChange={(next) =>
+                handleSortChange({
+                  field: next.field as SortField,
+                  direction: next.direction,
+                })
+              }
+              fieldOptions={sortFieldOptions}
+              textSortFields={Array.from(TEXT_SORT_FIELDS)}
+              fieldIcons={FIELD_ICONS}
             />
           </div>
         ),

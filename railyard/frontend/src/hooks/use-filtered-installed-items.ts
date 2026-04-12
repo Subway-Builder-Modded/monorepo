@@ -1,5 +1,8 @@
 import { filterAndSortTaggedItems } from '@subway-builder-modded/asset-listings-state';
-import type { PerPage } from '@subway-builder-modded/config';
+import {
+  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  type PerPage,
+} from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 
 import {
@@ -7,7 +10,6 @@ import {
   type TaggedItemFilterState,
 } from '@/hooks/use-filtered-items';
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
-import { FUSE_SEARCH_OPTIONS } from '@/lib/search';
 import { compareItems } from '@/lib/tagged-items';
 import { useLibraryStore } from '@/stores/library-store';
 import { useProfileStore } from '@/stores/profile-store';
@@ -64,7 +66,7 @@ export function useFilteredInstalledItems({
           nextModTotals,
           nextMapTotals,
         ),
-      fuseOptions: FUSE_SEARCH_OPTIONS,
+      fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
       accessors: {
         buildSearchText,
         getModTags: (item) =>

@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  createDataFilterByAssetType,
-  createDefaultDataFilters,
   createDefaultSourceFilters,
   createSourceFilterByAssetType,
 } from './types';
@@ -24,16 +22,6 @@ describe('createDefaultSourceFilters', () => {
   });
 });
 
-describe('createDefaultDataFilters', () => {
-  it('creates the website data-quality filter shape', () => {
-    const filters = createDefaultDataFilters();
-    expect(filters.type).toBe('map');
-    expect(filters.map.dataQuality).toEqual([]);
-    expect(filters.map.levelOfDetail).toEqual([]);
-    expect(filters.map.specialDemand).toEqual([]);
-  });
-});
-
 describe('filter-by-type factories', () => {
   it('creates source filter state for each asset type', () => {
     const filters = createDefaultSourceFilters();
@@ -42,14 +30,5 @@ describe('filter-by-type factories', () => {
     expect(byType.map.page).toBe(3);
     byType.mod.mod.tags.push('ui');
     expect(byType.map.mod.tags).toEqual([]);
-  });
-
-  it('creates data filter state for each asset type', () => {
-    const filters = createDefaultDataFilters();
-    const byType = createDataFilterByAssetType(filters, 2);
-    expect(byType.mod.page).toBe(2);
-    expect(byType.map.page).toBe(2);
-    byType.map.map.dataQuality.push('verified');
-    expect(byType.mod.map.dataQuality).toEqual([]);
   });
 });
