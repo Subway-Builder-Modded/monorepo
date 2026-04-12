@@ -1,27 +1,12 @@
-import {
-  mergeVersionDownloads,
-  withZeroDownloads,
-} from '@subway-builder-modded/asset-listings-ui';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { types } from '../../wailsjs/go/models';
+import { mergeVersionDownloads, withZeroDownloads } from './version-downloads';
 
-function version(version: string, downloads = 123): types.VersionInfo {
-  return new types.VersionInfo({
-    version,
-    name: version,
-    changelog: '',
-    date: '',
-    download_url: '',
-    game_version: '',
-    sha256: '',
-    downloads,
-    manifest: '',
-    prerelease: false,
-  });
+function version(version: string, downloads = 123) {
+  return { version, downloads, name: version };
 }
 
-describe('version download merge helpers', () => {
+describe('version download helpers', () => {
   beforeEach(() => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
@@ -73,6 +58,7 @@ describe('version download merge helpers', () => {
       version('1.0.0', 55),
       version('1.1.0', 77),
     ]);
+
     expect(result[0].downloads).toBe(0);
     expect(result[1].downloads).toBe(0);
   });
