@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { THEME_HYDRATION_SCRIPT } from '@subway-builder-modded/lifecycle-web';
+import { THEME_HYDRATION_SCRIPT } from '@subway-builder-modded/lifecycle-web/theme-script';
 import '../styles/globals.css';
 import { AppLayoutShell } from '@/components/app-shell/root-layout-shell';
 import {

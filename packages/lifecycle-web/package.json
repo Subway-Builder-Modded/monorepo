@@ -11,6 +11,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./theme-script": {
+      "types": "./src/theme-script.ts",
+      "default": "./src/theme-script.ts"
     }
   },
   "peerDependencies": {
