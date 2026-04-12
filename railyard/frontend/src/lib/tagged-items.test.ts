@@ -1,9 +1,4 @@
-import {
-  compareByDirection,
-  getLastUpdated,
-  getTotalDownloads,
-  sortTaggedItemsByLastUpdated,
-} from '@subway-builder-modded/asset-listings-ui';
+import { sortTaggedItemsByLastUpdated } from '@subway-builder-modded/asset-listings-ui';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -64,50 +59,6 @@ describe('buildTaggedItems', () => {
 
   it('returns empty array when both lists are empty', () => {
     expect(buildTaggedItems([], [])).toHaveLength(0);
-  });
-});
-
-describe('compareByDirection', () => {
-  it('returns negative for ascending order when a < b', () => {
-    expect(compareByDirection(1, 2, 'asc')).toBeLessThan(0);
-  });
-
-  it('returns positive for ascending order when a > b', () => {
-    expect(compareByDirection(2, 1, 'asc')).toBeGreaterThan(0);
-  });
-
-  it('inverts for descending order', () => {
-    expect(compareByDirection(1, 2, 'desc')).toBeGreaterThan(0);
-    expect(compareByDirection(2, 1, 'desc')).toBeLessThan(0);
-  });
-});
-
-describe('getTotalDownloads', () => {
-  it('returns mod download total from modDownloadTotals', () => {
-    const item = makeMod({ id: 'mod-a' });
-    expect(getTotalDownloads(item, { 'mod-a': 42 }, {})).toBe(42);
-  });
-
-  it('returns map download total from mapDownloadTotals', () => {
-    const item = makeMap({ id: 'map-a' });
-    expect(getTotalDownloads(item, {}, { 'map-a': 99 })).toBe(99);
-  });
-
-  it('returns zero when id is not in totals', () => {
-    expect(getTotalDownloads(makeMod(), {}, {})).toBe(0);
-    expect(getTotalDownloads(makeMap(), {}, {})).toBe(0);
-  });
-});
-
-describe('getLastUpdated', () => {
-  it('returns the last_updated timestamp', () => {
-    expect(getLastUpdated(makeMod({ last_updated: 9999 }))).toBe(9999);
-  });
-
-  it('returns zero for non-finite timestamps', () => {
-    expect(getLastUpdated(makeMod({ last_updated: NaN }))).toBe(0);
-    expect(getLastUpdated(makeMod({ last_updated: null }))).toBe(0);
-    expect(getLastUpdated(makeMod({ last_updated: undefined }))).toBe(0);
   });
 });
 

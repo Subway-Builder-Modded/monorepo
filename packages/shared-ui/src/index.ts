@@ -1,13 +1,12 @@
 // Utilities
 export { cn, type ClassValue } from './lib/cn';
 export {
-  APP_CONTENT_SPACING_CLASS,
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from './lib/layout-tokens';
 
 // Components
-export { Badge, badgeVariants } from './components/badge';
+export { Badge } from './components/badge';
 export { Checkbox } from './components/checkbox';
 export {
   Breadcrumb,
@@ -20,13 +19,11 @@ export {
 } from './components/breadcrumb';
 export {
   Button,
-  buttonStyles,
   buttonVariants,
   type ButtonProps,
 } from './components/button';
 export {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -124,7 +121,6 @@ export {
   Tabs,
   TabsContent,
   TabsList,
-  tabsListVariants,
   TabsTrigger,
 } from './components/tabs';
 export { Toggle, toggleVariants } from './components/toggle';

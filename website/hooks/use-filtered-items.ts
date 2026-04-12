@@ -21,7 +21,6 @@ import {
   createRandomSeed,
   toAssetFilterState,
 } from '@subway-builder-modded/stores-core';
-import { FUSE_SEARCH_OPTIONS } from '@/lib/railyard/search';
 import {
   buildTaggedItems,
   compareItems,
@@ -32,6 +31,15 @@ import type { MapManifest, ModManifest } from '@/types/registry';
 export type { TaggedItem };
 
 const BROWSE_STATE_STORAGE_KEY = 'railyard:browse:state:v1';
+const FUSE_SEARCH_OPTIONS = {
+  keys: ['searchText'],
+  threshold: 0.35,
+  ignoreLocation: true,
+  ignoreFieldNorm: true,
+  minMatchCharLength: 1,
+  shouldSort: false,
+  ignoreDiacritics: true,
+};
 
 export type SearchFilterState = DataAssetQueryFilterState;
 type AssetFilterState = DataAssetFilterState;

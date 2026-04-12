@@ -115,10 +115,7 @@ export {
 } from './lib/version-downloads';
 export { formatListingDescriptionPreview } from './lib/description-preview';
 export {
-	compareByDirection,
 	compareItems,
-	getLastUpdated,
-	getTotalDownloads,
 	sortTaggedItemsByLastUpdated,
 	type AbstractTaggedItem,
 } from './lib/tagged-items';
