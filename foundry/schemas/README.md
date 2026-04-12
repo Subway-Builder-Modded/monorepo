@@ -1,48 +1,81 @@
-# Special Demand Schema
+# Special Demand Schemas
 
-JSON Schema definitions for the Subway Builder mod's special demand system. These schemas define how non-commute demand points (airports, schools, attractions, etc.) are classified, described, and linked to the simulation's demand data.
+This package contains the JSON Schema assets and runtime validators for the
+Subway Builder Modded special demand system.
 
-Owned by **Subway-Builder-Modded**. Published as an npm package via the railyard/foundry subproject.
+Package name: `@subway-builder-modded/special-demand-schemas`
 
-## Schema files
+Registry: GitHub Packages under the `@subway-builder-modded` scope
 
-### `special_demand_type_definitions.schema.json`
+## Install
 
-Defines the taxonomy of demand point types. Each type has a machine-readable id, a short code used as a point ID prefix, localized labels, a Lucide icon, and optional sub-types.
+Add an `.npmrc` entry for the organization scope:
 
-The schema encodes a governance model through custom annotations:
+```ini
+@subway-builder-modded:registry=https://npm.pkg.github.com
+```
 
-- **`x-template-locked: true`** — fields (id, code, label, description, icon) that are set by the org and must not be altered by mappers.
-- **`x-user-extensible: true`** — fields (sub_types, metadata) that mappers may add to or override for their region.
-- **`$defs/type_templates`** — a machine-readable contract listing all mandatory types with their locked field values. Application-level validators should verify that every template entry is present and that locked fields match exactly.
+Then install the package:
 
-New types are added only through versioned PRs to this schema. The current version defines 24 types across infrastructure, education, attractions, and several placeholder categories for community use.
+```bash
+pnpm add @subway-builder-modded/special-demand-schemas
+```
 
-### `special_demand_content.schema.json`
+## Published assets
 
-Per-map content file linking demand points to the type taxonomy. Each `SpecialDemandPoint` entry carries:
+The package publishes three schema files directly:
 
-- **point_id** — joins to `demand_data.json` (the simulation's spatial/demand output)
-- **type / sub_type** — references a type id from the definitions schema
-- **name** — localized display name
-- **pop_ids** — population group IDs assigned to this point (links content metadata to the demand simulation)
-- **sibling_point_ids** — other points representing the same real-world entity (e.g. multiple airport terminals)
+- `special_demand_type_definitions.schema.json`
+- `special_demand_types.schema.json`
+- `special_demand_points.schema.json`
 
-This schema is annotated `x-immutable: true` — its structure is not user-modifiable.
+It also exports a small validator API from the package root.
 
-### `special_demand_types.json` (not a schema)
+## Why there are two type schemas
 
-A generated instance of the type definitions schema, produced by `generate_types.py` from this repository's pipeline registries. Serves as the canonical type definitions file for the JP data pipeline and as a reference example for other regions.
+`special_demand_type_definitions.schema.json` is the authoritative contract for
+organization-owned type definitions. It includes the template-lock metadata and
+the canonical `type_templates` contract that application-level validators must
+enforce.
 
-## Generator scripts (JP-specific)
+`special_demand_types.schema.json` is the consumer-facing shape schema for type
+definition documents. It validates the document structure without carrying the
+full template-governance contract.
 
-These live in this directory but are specific to the subwaybuilder-jp-data pipeline:
+Use the authoritative schema and `validateSpecialDemandTypeDefinitions(...)`
+when you need to verify required template presence and locked field values.
 
-- **`generate_types.py`** — builds `special_demand_types.json` from `attraction_type_registry.py` and hardcoded infrastructure/education definitions. Sub-type metadata documents the classification methodology (MLIT field heuristics, manual assignment, etc.).
-- **`generate_content.py`** — builds per-bundle content files by joining phase_e points to phase_f demand data, resolving point IDs, pop_ids, and sibling relationships.
+## Runtime API
 
-## Example content files (JP-specific)
+The root package exports:
 
-- `special_demand_content_fukuoka.json` — 728 points, 7 types
-- `special_demand_content_izumo.json` — 400 points, 15 types
-- `special_demand_content_tsugaru.json` — 372 points, 15 types
+- `specialDemandTypeDefinitionsSchema`
+- `specialDemandTypesSchema`
+- `specialDemandPointsSchema`
+- `validateSpecialDemandTypeDefinitions(data)`
+- `validateSpecialDemandTypes(data)`
+- `validateSpecialDemandPoints(data)`
+- `validateSpecialDemandDataset({ typeDefinitions, points })`
+
+`validateSpecialDemandDataset(...)` adds the cross-document checks that JSON
+Schema alone cannot express:
+
+- required template entries are present in the type definitions document
+- template-locked fields still match the canonical template values
+- every point `type` exists in the supplied definitions document
+- every point `sub_type` exists under the selected parent type
+
+## Local fixtures
+
+These files stay in the repository as fixtures for tests and package
+verification. They are not published with the package:
+
+- `special_demand_types.json`
+- `special_demand_points_izumo.json`
+- `special_demand_points_tsugaru.json`
+
+## Notes
+
+`special_demand_points.schema.json` is the current per-map points schema. Older
+references to `special_demand_content.schema.json` should be treated as legacy
+terminology.
