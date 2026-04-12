@@ -1,9 +1,12 @@
 # Ignore agentic files and directories
 .claude/
+.serena/
 
 # Ignore cache and temporary files
 .gocache/
 .pnpm-store/
 tmp/
+foundry/schemas/dist/
+foundry/schemas/.npm-cache/
 
 node_modules/

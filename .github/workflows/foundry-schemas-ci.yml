@@ -1,0 +1,94 @@
+name: Foundry Schemas CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "foundry/schemas/**"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/foundry-schemas-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "foundry/schemas/**"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/foundry-schemas-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: foundry-schemas-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build And Test Foundry Schemas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm --dir foundry/schemas run build
+
+      - name: Test package
+        run: pnpm --dir foundry/schemas run test
+
+      - name: Verify packed contents
+        working-directory: foundry/schemas
+        shell: bash
+        run: |
+          npm pack --json --dry-run --cache .npm-cache > pack-result.json
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const [{ files }] = JSON.parse(fs.readFileSync('pack-result.json', 'utf8'));
+          const packedFiles = new Set(files.map((entry) => entry.path));
+          const expected = [
+            'dist/index.js',
+            'dist/index.d.ts',
+            'special_demand_type_definitions.schema.json',
+            'special_demand_types.schema.json',
+            'special_demand_points.schema.json',
+          ];
+
+          for (const file of expected) {
+            if (!packedFiles.has(file)) {
+              console.error(`Missing packed file: ${file}`);
+              process.exit(1);
+            }
+          }
+
+          const excluded = [
+            'special_demand_types.json',
+            'special_demand_points_izumo.json',
+            'special_demand_points_tsugaru.json',
+          ];
+
+          for (const file of excluded) {
+            if (packedFiles.has(file)) {
+              console.error(`Unexpected packed fixture: ${file}`);
+              process.exit(1);
+            }
+          }
+
+          console.log('Packed contents verified.');
+          NODE
