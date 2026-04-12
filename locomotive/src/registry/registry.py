@@ -155,7 +155,7 @@ class RegistryService:
             repo = git.Repo(RegistryService.get_repository_path())
             while True:
                 logger.info("Pulling latest changes from registry repository")
-                repo.remotes.origin.pull()
+                repo.remotes.origin.pull(depth=1)
                 time.sleep(60 * 60)  # Check for updates every hour
         else:
             repo = git.Repo.clone_from(
@@ -165,7 +165,7 @@ class RegistryService:
             )
             while True:
                 logger.info("Pulling latest changes from registry repository")
-                commits = repo.remotes.origin.pull()
+                commits = repo.remotes.origin.pull(depth=1)
                 for commit in commits:
                     for changed_file in commit.commit.stats.files:
                         if changed_file.endswith("integrity.json"):
