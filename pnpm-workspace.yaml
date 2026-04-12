@@ -1,5 +1,6 @@
 packages:
   - website
   - railyard/frontend
+  - foundry/schemas
   - foundry/scripts
   - packages/*

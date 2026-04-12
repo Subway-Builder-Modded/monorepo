@@ -13,8 +13,8 @@
     },
     "version": {
       "type": "integer",
-      "const": 1,
-      "description": "Schema version. Increment on breaking changes."
+      "minimum": 1,
+      "description": "Schema version. Increment when the type definitions document changes."
     },
     "types": {
       "type": "array",

@@ -1,0 +1,55 @@
+name: Publish @subway-builder-modded/special-demand-schemas
+
+on:
+  push:
+    tags:
+      - "special-demand-schemas-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: "@subway-builder-modded"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify tag matches package version
+        shell: bash
+        run: |
+          tag_version="${GITHUB_REF_NAME#special-demand-schemas-v}"
+          package_version="$(node -p "require('./foundry/schemas/package.json').version")"
+
+          if [ "$tag_version" != "$package_version" ]; then
+            echo "Tag version ${tag_version} does not match package version ${package_version}."
+            exit 1
+          fi
+
+      - name: Build package
+        run: pnpm --filter @subway-builder-modded/special-demand-schemas run build
+
+      - name: Test package
+        run: pnpm --filter @subway-builder-modded/special-demand-schemas run test
+
+      - name: Publish package
+        run: pnpm --filter @subway-builder-modded/special-demand-schemas publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
