@@ -1,3 +1,4 @@
 [submodule "locomotive/.registry"]
 	path = locomotive/.registry
 	url = https://github.com/Subway-Builder-Modded/registry
+	branch = main
