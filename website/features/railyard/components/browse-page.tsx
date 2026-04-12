@@ -26,6 +26,7 @@ import {
   CardSkeletonGrid,
   DEFAULT_FIELD_ICONS,
   ErrorBanner,
+  getSortFieldOptions,
   Pagination,
   ResultsSummary,
   SearchBar,
@@ -34,13 +35,11 @@ import {
   type SidebarFilterState,
   SortSelect as SharedSortSelect,
   ViewModeToggle,
-  type SortFieldOption,
   type SortState as SharedSortState,
 } from '@subway-builder-modded/asset-listings-ui';
 
 import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import { ItemCard } from './item-card';
-import { PageHeader } from '@/components/shared/page-header';
 import { createRandomSeed } from '@subway-builder-modded/stores-core';
 import {
   Select,
@@ -55,17 +54,16 @@ import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
 import {
   buildAssetListingCounts as buildSharedAssetListingCounts,
-  DATA_QUALITY_VALUES,
   DEFAULT_SORT_STATE,
   filterVisibleListingValues,
-  formatDataQuality,
+  formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   PER_PAGE_OPTIONS,
   buildSpecialDemandValues,
-  getSortOptionsForType,
   SEARCH_BAR_PLACEHOLDER,
   SEARCH_FILTER_EMPTY_LABELS,
+  SOURCE_QUALITY_VALUES,
   type SortField,
   TEXT_SORT_FIELDS,
 } from '@subway-builder-modded/config';
@@ -73,7 +71,7 @@ import {
   normalizeSearchViewMode,
   type SearchViewMode,
 } from '@subway-builder-modded/config';
-import { cn } from '@subway-builder-modded/shared-ui';
+import { cn, PageHeading } from '@subway-builder-modded/shared-ui';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
 const SIDEBAR_OPEN_KEY = 'railyard:browse:sidebar-open:v1';
@@ -173,19 +171,9 @@ export function BrowsePage() {
     initialType: queryType,
   });
 
-  const sortOptions = useMemo(
-    () => getSortOptionsForType(filters.type),
-    [filters.type],
-  );
   const sortFieldOptions = useMemo(
-    () =>
-      sortOptions.reduce<SortFieldOption[]>((acc, opt) => {
-        if (!acc.some((f) => f.field === opt.sort.field)) {
-          acc.push({ field: opt.sort.field, label: opt.label });
-        }
-        return acc;
-      }, []),
-    [sortOptions],
+    () => getSortFieldOptions(filters.type),
+    [filters.type],
   );
 
   const handleSidebarFiltersChange = useCallback(
@@ -196,7 +184,7 @@ export function BrowsePage() {
           mod: { tags: prev.mod.tags },
           map: {
             locations: prev.map.locations,
-            sourceQuality: prev.map.dataQuality,
+            sourceQuality: prev.map.sourceQuality,
             levelOfDetail: prev.map.levelOfDetail,
             specialDemand: prev.map.specialDemand,
           },
@@ -208,7 +196,7 @@ export function BrowsePage() {
           map: {
             ...prev.map,
             locations: next.map.locations,
-            dataQuality: next.map.sourceQuality,
+            sourceQuality: next.map.sourceQuality,
             levelOfDetail: next.map.levelOfDetail,
             specialDemand: next.map.specialDemand,
           },
@@ -253,7 +241,7 @@ export function BrowsePage() {
   if (!isClient) {
     return (
       <div className="space-y-5">
-        <PageHeader
+        <PageHeading
           icon={Compass}
           title="Browse"
           description="Discover and install community-made content for Subway Builder."
@@ -294,16 +282,7 @@ export function BrowsePage() {
         ),
         content: (
           <SidebarFilters
-            filters={{
-              type: filters.type,
-              mod: { tags: filters.mod.tags },
-              map: {
-                locations: filters.map.locations,
-                sourceQuality: filters.map.dataQuality,
-                levelOfDetail: filters.map.levelOfDetail,
-                specialDemand: filters.map.specialDemand,
-              },
-            }}
+            filters={filters}
             onFiltersChange={handleSidebarFiltersChange}
             onTypeChange={setType}
             availableTags={allTags}
@@ -316,9 +295,9 @@ export function BrowsePage() {
             modCount={mods.length}
             mapCount={maps.length}
             locationValues={LOCATION_TAGS}
-            sourceQualityValues={DATA_QUALITY_VALUES}
+            sourceQualityValues={SOURCE_QUALITY_VALUES}
             levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
-            formatSourceQuality={formatDataQuality}
+            formatSourceQuality={formatSourceQuality}
             filterVisibleListingValues={filterVisibleListingValues}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           />
@@ -336,7 +315,7 @@ export function BrowsePage() {
           minHeight: 'calc(100vh - var(--app-navbar-offset))',
         } as React.CSSProperties,
         header: (
-          <PageHeader
+          <PageHeading
             icon={Compass}
             title="Browse"
             description="Discover and install community-made content for Subway Builder."

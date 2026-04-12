@@ -3,13 +3,13 @@ import {
   BrowseResultsSection,
   DEFAULT_FIELD_ICONS,
   ErrorBanner,
+  getSortFieldOptions,
   Pagination,
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
   SidebarFilters,
   type SidebarFilterState,
-  type SortFieldOption,
   SortSelect as SharedSortSelect,
   type SortState as SharedSortState,
   ViewModeToggle,
@@ -21,7 +21,6 @@ import {
   DEFAULT_SORT_STATE,
   filterVisibleListingValues,
   formatSourceQuality,
-  getSortOptionsForType,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
@@ -32,7 +31,7 @@ import {
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { usePageWarmup } from '@subway-builder-modded/lifecycle-core';
-import { PageLoadScreen } from '@subway-builder-modded/shared-ui';
+import { PageHeading, PageLoadScreen } from '@subway-builder-modded/shared-ui';
 import {
   Select,
   SelectContent,
@@ -54,7 +53,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ItemCard } from '@/components/shared/ItemCard';
-import { PageHeading } from '@/components/shared/PageHeading';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
@@ -188,19 +186,9 @@ function BrowsePageContent({
     setPage,
   } = useFilteredItems({ mods, maps, modDownloadTotals, mapDownloadTotals });
 
-  const sortOptions = useMemo(
-    () => getSortOptionsForType(filters.type),
-    [filters.type],
-  );
   const sortFieldOptions = useMemo(
-    () =>
-      sortOptions.reduce<SortFieldOption[]>((acc, opt) => {
-        if (!acc.some((f) => f.field === opt.sort.field)) {
-          acc.push({ field: opt.sort.field, label: opt.label });
-        }
-        return acc;
-      }, []),
-    [sortOptions],
+    () => getSortFieldOptions(filters.type),
+    [filters.type],
   );
 
   const cardGridPreset = useMemo(

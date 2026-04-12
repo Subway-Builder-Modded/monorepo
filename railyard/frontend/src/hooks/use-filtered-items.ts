@@ -1,12 +1,15 @@
 import {
-  filterAndSortTaggedItems,
+  buildAssetSearchText,
+  filterAndPaginateTaggedItems,
   type SourceAssetQueryFilterState,
 } from '@subway-builder-modded/asset-listings-state';
-import type { PerPage } from '@subway-builder-modded/config';
+import {
+  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  type PerPage,
+} from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
-import { FUSE_SEARCH_OPTIONS } from '@/lib/search';
 import {
   buildTaggedItems,
   compareItems,
@@ -36,15 +39,7 @@ export interface TaggedItemFilterState {
 }
 
 export function buildSearchText(item: TaggedItem): string {
-  const base = item.item;
-  const values: string[] = [base.name ?? '', base.author.author_alias];
-
-  if (item.type === 'map') {
-    const map = base as types.MapManifest;
-    values.push(map.city_code ?? '', map.country ?? '');
-  }
-
-  return values.filter(Boolean).join(' ');
+  return buildAssetSearchText(item, (entry) => entry.author.author_alias ?? '');
 }
 
 export function useFilteredItems({
@@ -67,15 +62,16 @@ export function useFilteredItems({
     [mods, maps],
   );
 
-  const filtered = useMemo(
+  const filteredPage = useMemo(
     () =>
-      filterAndSortTaggedItems({
+      filterAndPaginateTaggedItems({
         items: allItems,
+        page,
         filters,
         modDownloadTotals,
         mapDownloadTotals,
         compareItems,
-        fuseOptions: FUSE_SEARCH_OPTIONS,
+        fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
         accessors: {
           buildSearchText,
           getModTags: (item) =>
@@ -94,22 +90,14 @@ export function useFilteredItems({
           getSelectedMapLocations: (mapFilters) => mapFilters.locations,
         },
       }),
-    [allItems, filters, mapDownloadTotals, modDownloadTotals],
+    [allItems, filters, mapDownloadTotals, modDownloadTotals, page],
   );
 
-  const totalResults = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalResults / filters.perPage));
-
-  const items = useMemo(() => {
-    const start = (page - 1) * filters.perPage;
-    return filtered.slice(start, start + filters.perPage);
-  }, [filtered, page, filters.perPage]);
-
   return {
-    items,
-    page,
-    totalPages,
-    totalResults,
+    items: filteredPage.items,
+    page: filteredPage.page,
+    totalPages: filteredPage.totalPages,
+    totalResults: filteredPage.totalResults,
     filters,
     setFilters,
     setType,

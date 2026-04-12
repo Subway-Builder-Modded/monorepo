@@ -86,6 +86,7 @@ export {
 	SortSelect,
 	type SortSelectProps,
 } from './components/sort-select';
+export { getSortFieldOptions } from './components/sort-field-options';
 export {
 	ViewModeToggle,
 	type ViewModeToggleProps,

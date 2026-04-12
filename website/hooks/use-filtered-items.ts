@@ -2,20 +2,22 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { filterAndSortTaggedItems } from '@subway-builder-modded/asset-listings-state';
+import {
+  buildAssetSearchText,
+  createDefaultSourceFilters,
+  createSourceFilterByAssetType,
+  filterAndPaginateTaggedItems,
+  type SourceAssetFilterState,
+  type SourceAssetQueryFilterState,
+  type SourceFilterByAssetType,
+} from '@subway-builder-modded/asset-listings-state';
 import type { AssetType } from '@subway-builder-modded/config';
 import {
+  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
   PER_PAGE_OPTIONS,
   type PerPage,
   type SortState,
 } from '@subway-builder-modded/config';
-import {
-  createDataFilterByAssetType,
-  createDefaultDataFilters,
-  type DataAssetFilterState,
-  type DataAssetQueryFilterState,
-  type DataFilterByAssetType,
-} from '@subway-builder-modded/asset-listings-state';
 import {
   cloneFilterState,
   createRandomSeed,
@@ -31,19 +33,10 @@ import type { MapManifest, ModManifest } from '@/types/registry';
 export type { TaggedItem };
 
 const BROWSE_STATE_STORAGE_KEY = 'railyard:browse:state:v1';
-const FUSE_SEARCH_OPTIONS = {
-  keys: ['searchText'],
-  threshold: 0.35,
-  ignoreLocation: true,
-  ignoreFieldNorm: true,
-  minMatchCharLength: 1,
-  shouldSort: false,
-  ignoreDiacritics: true,
-};
 
-export type SearchFilterState = DataAssetQueryFilterState;
-type AssetFilterState = DataAssetFilterState;
-type FilterByAssetType = DataFilterByAssetType;
+export type SearchFilterState = SourceAssetQueryFilterState;
+type AssetFilterState = SourceAssetFilterState;
+type FilterByAssetType = SourceFilterByAssetType;
 
 interface PersistedBrowseState {
   filters: SearchFilterState;
@@ -64,31 +57,11 @@ export type SearchFilterUpdater =
   | ((prev: SearchFilterState) => SearchFilterState);
 
 function createDefaultFilters(type: AssetType = 'map'): SearchFilterState {
-  return createDefaultDataFilters(type);
+  return createDefaultSourceFilters(type);
 }
 
 function buildSearchText(item: TaggedItem): string {
-  const base = item.item;
-  const values: string[] = [
-    base.name ?? '',
-    base.author ?? '',
-    base.description ?? '',
-  ];
-
-  if (item.type === 'mod') {
-    values.push(...(base.tags ?? []));
-  } else {
-    values.push(
-      item.item.city_code ?? '',
-      item.item.country ?? '',
-      item.item.location ?? '',
-      item.item.source_quality ?? '',
-      item.item.level_of_detail ?? '',
-      ...(item.item.special_demand ?? []),
-    );
-  }
-
-  return values.filter(Boolean).join(' ');
+  return buildAssetSearchText(item, (entry) => entry.author ?? '');
 }
 
 function normalizePerPage(value: unknown): PerPage {
@@ -121,8 +94,8 @@ function normalizeAssetFilterState(
       locations: Array.isArray(rawMap?.locations)
         ? [...(rawMap.locations as string[])]
         : [],
-      dataQuality: Array.isArray(rawMap?.dataQuality)
-        ? [...(rawMap.dataQuality as string[])]
+      sourceQuality: Array.isArray(rawMap?.sourceQuality)
+        ? [...(rawMap.sourceQuality as string[])]
         : [],
       levelOfDetail: Array.isArray(rawMap?.levelOfDetail)
         ? [...(rawMap.levelOfDetail as string[])]
@@ -163,8 +136,8 @@ function parsePersistedState(
         locations: Array.isArray(parsed.filters.map?.locations)
           ? parsed.filters.map.locations
           : [],
-        dataQuality: Array.isArray(parsed.filters.map?.dataQuality)
-          ? parsed.filters.map.dataQuality
+        sourceQuality: Array.isArray(parsed.filters.map?.sourceQuality)
+          ? parsed.filters.map.sourceQuality
           : [],
         levelOfDetail: Array.isArray(parsed.filters.map?.levelOfDetail)
           ? parsed.filters.map.levelOfDetail
@@ -188,7 +161,7 @@ function parsePersistedState(
         ? Math.floor(parsed.page)
         : 1;
 
-    const fallbackScopedByType = createDataFilterByAssetType(filters, page);
+    const fallbackScopedByType = createSourceFilterByAssetType(filters, page);
     const scopedByType: FilterByAssetType = {
       mod: normalizeAssetFilterState(
         parsed.scopedByType?.mod,
@@ -233,7 +206,7 @@ function getInitialState(initialType?: AssetType): PersistedBrowseState {
   return {
     filters,
     page: 1,
-    scopedByType: createDataFilterByAssetType(filters, 1),
+    scopedByType: createSourceFilterByAssetType(filters, 1),
   };
 }
 
@@ -275,43 +248,36 @@ export function useFilteredItems({
     );
   }, [filters, requestedPage, scopedByType]);
 
-  const filtered = useMemo(() => {
-    return filterAndSortTaggedItems({
-      items: allItems,
-      filters,
-      modDownloadTotals,
-      mapDownloadTotals,
-      compareItems,
-      fuseOptions: FUSE_SEARCH_OPTIONS,
-      accessors: {
-        buildSearchText,
-        getModTags: (item) =>
-          item.type === 'mod' ? (item.item.tags ?? []) : undefined,
-        getMapLocation: (item) =>
-          item.type === 'map' ? (item.item.location ?? '') : undefined,
-        getMapQuality: (item) =>
-          item.type === 'map' ? (item.item.source_quality ?? '') : undefined,
-        getSelectedMapQuality: (mapFilters) => mapFilters.dataQuality,
-        getMapLevelOfDetail: (item) =>
-          item.type === 'map' ? (item.item.level_of_detail ?? '') : undefined,
-        getSelectedMapLevelOfDetail: (mapFilters) => mapFilters.levelOfDetail,
-        getMapSpecialDemand: (item) =>
-          item.type === 'map' ? (item.item.special_demand ?? []) : undefined,
-        getSelectedMapSpecialDemand: (mapFilters) => mapFilters.specialDemand,
-        getSelectedMapLocations: (mapFilters) => mapFilters.locations,
-      },
-    });
-  }, [allItems, filters, mapDownloadTotals, modDownloadTotals]);
-
-  const totalResults = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalResults / filters.perPage));
-
-  const pageCapped = Math.min(requestedPage, totalPages);
-
-  const items = useMemo(() => {
-    const start = (pageCapped - 1) * filters.perPage;
-    return filtered.slice(start, start + filters.perPage);
-  }, [filtered, pageCapped, filters.perPage]);
+  const filteredPage = useMemo(
+    () =>
+      filterAndPaginateTaggedItems({
+        items: allItems,
+        page: requestedPage,
+        filters,
+        modDownloadTotals,
+        mapDownloadTotals,
+        compareItems,
+        fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+        accessors: {
+          buildSearchText,
+          getModTags: (item) =>
+            item.type === 'mod' ? (item.item.tags ?? []) : undefined,
+          getMapLocation: (item) =>
+            item.type === 'map' ? (item.item.location ?? '') : undefined,
+          getMapQuality: (item) =>
+            item.type === 'map' ? (item.item.source_quality ?? '') : undefined,
+          getSelectedMapQuality: (mapFilters) => mapFilters.sourceQuality,
+          getMapLevelOfDetail: (item) =>
+            item.type === 'map' ? (item.item.level_of_detail ?? '') : undefined,
+          getSelectedMapLevelOfDetail: (mapFilters) => mapFilters.levelOfDetail,
+          getMapSpecialDemand: (item) =>
+            item.type === 'map' ? (item.item.special_demand ?? []) : undefined,
+          getSelectedMapSpecialDemand: (mapFilters) => mapFilters.specialDemand,
+          getSelectedMapLocations: (mapFilters) => mapFilters.locations,
+        },
+      }),
+    [allItems, filters, mapDownloadTotals, modDownloadTotals, requestedPage],
+  );
 
   const setFilters = useCallback((updater: SearchFilterUpdater) => {
     setFiltersState((previous) => {
@@ -343,7 +309,7 @@ export function useFilteredItems({
           },
           map: {
             locations: [...targetState.map.locations],
-            dataQuality: [...targetState.map.dataQuality],
+            sourceQuality: [...targetState.map.sourceQuality],
             levelOfDetail: [...targetState.map.levelOfDetail],
             specialDemand: [...targetState.map.specialDemand],
           },
@@ -369,10 +335,10 @@ export function useFilteredItems({
   );
 
   return {
-    items,
-    page: pageCapped,
-    totalPages,
-    totalResults,
+    items: filteredPage.items,
+    page: filteredPage.page,
+    totalPages: filteredPage.totalPages,
+    totalResults: filteredPage.totalResults,
     filters,
     setFilters,
     setType,

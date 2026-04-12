@@ -2,6 +2,7 @@ import { Button, Input } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { AppDialog } from '@subway-builder-modded/shared-ui';
 import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
+import { PageHeading } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -15,7 +16,6 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { PageHeading } from '@/components/shared/PageHeading';
 import { useProfilesState } from '@/hooks/use-profile-dialogs';
 import { isProfileSwapUnavailable } from '@/lib/profile-swap';
 import { formatStorageSize } from '@/lib/size-format';

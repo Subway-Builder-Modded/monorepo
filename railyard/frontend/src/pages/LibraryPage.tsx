@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@subway-builder-modded/shared-ui';
+import { PageHeading } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -38,7 +39,6 @@ import { useLocation } from 'wouter';
 
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
-import { PageHeading } from '@/components/shared/PageHeading';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
 import {

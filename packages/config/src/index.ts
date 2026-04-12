@@ -19,6 +19,7 @@ export {
 	type SearchViewMode,
 } from './asset-listings/search-view-mode';
 export {
+	ASSET_LISTING_FUSE_SEARCH_OPTIONS,
 	MAX_CARD_BADGES,
 	SEARCH_BAR_PLACEHOLDER,
 	SEARCH_FILTER_EMPTY_LABELS,

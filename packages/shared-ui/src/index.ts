@@ -103,6 +103,11 @@ export { Separator } from './components/separator';
 export { Skeleton } from './components/skeleton';
 export { PageLoadScreen } from './components/page-load-screen';
 export {
+  PageHeading,
+  type PageHeadingProps,
+  type PageHeadingSize,
+} from './components/page-heading';
+export {
   SuiteLoader,
   type SuiteLoaderStep,
 } from './components/suite-loader';

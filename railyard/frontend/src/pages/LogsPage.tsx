@@ -14,6 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@subway-builder-modded/shared-ui';
+import { PageHeading } from '@subway-builder-modded/shared-ui';
 import {
   ArrowDownToLine,
   Calendar,
@@ -26,7 +27,6 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { PageHeading } from '@/components/shared/PageHeading';
 import { useConfigStore } from '@/stores/config-store';
 import type { LogEntry } from '@/stores/game-store';
 import { useGameStore } from '@/stores/game-store';
