@@ -8,6 +8,7 @@ export {
 
 // Components
 export { Badge, badgeVariants } from './components/badge';
+export { Checkbox } from './components/checkbox';
 export {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -52,6 +53,8 @@ export {
   DialogTitle,
   DialogTrigger,
 } from './components/dialog';
+export { AppFrame } from './components/app-frame';
+export { AppDialog } from './components/app-dialog';
 export { Input } from './components/input';
 export {
   ActiveRouteIndicator,
@@ -78,7 +81,63 @@ export {
   type NavbarProviderProps,
   type NavbarTriggerProps,
 } from './components/navbar';
+export {
+  Popover,
+  PopoverAnchor,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from './components/popover';
+export { ScrollArea, ScrollBar } from './components/scroll-area';
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from './components/select';
 export { Separator } from './components/separator';
 export { Skeleton } from './components/skeleton';
+export { PageLoadScreen } from './components/page-load-screen';
+export {
+  SuiteLoader,
+  type SuiteLoaderStep,
+} from './components/suite-loader';
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './components/table';
+export {
+  Tabs,
+  TabsContent,
+  TabsList,
+  tabsListVariants,
+  TabsTrigger,
+} from './components/tabs';
 export { Toggle, toggleVariants } from './components/toggle';
 export { ToggleGroup, ToggleGroupItem } from './components/toggle-group';
+export {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './components/tooltip';
+export {
+  LOCAL_ACCENTS,
+  getLocalAccentClasses,
+  getToneVarsClass,
+  type LocalAccentTone,
+} from './lib/local-accent';

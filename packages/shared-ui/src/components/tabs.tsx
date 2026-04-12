@@ -1,4 +1,4 @@
-import { cn } from '@subway-builder-modded/shared-ui';
+import { cn } from '../lib/cn';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Tabs as TabsPrimitive } from 'radix-ui';
 import * as React from 'react';

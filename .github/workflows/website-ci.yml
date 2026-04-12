@@ -8,7 +8,7 @@ on:
     paths:
       - "website/**"
       - "packages/**"
-      - ".github/workflows/website-build.yml"
+      - ".github/workflows/website-ci.yml"
   workflow_dispatch:
 
 concurrency:

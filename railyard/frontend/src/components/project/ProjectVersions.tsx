@@ -14,6 +14,14 @@ import {
 import type { AssetType } from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   Check,
@@ -30,14 +38,6 @@ import semver from 'semver';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,

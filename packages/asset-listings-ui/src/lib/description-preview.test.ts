@@ -1,5 +1,6 @@
-import { formatListingDescriptionPreview } from '@subway-builder-modded/asset-listings-ui';
 import { describe, expect, it } from 'vitest';
+
+import { formatListingDescriptionPreview } from './description-preview';
 
 describe('formatListingDescriptionPreview', () => {
   it('strips HTML tags and decodes common entities', () => {

@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.0.0",
   "scripts": {
     "install:workspace": "pnpm install --frozen-lockfile",
-    "test:packages": "pnpm --dir packages/config run test && pnpm --dir packages/stores-core run test && pnpm --dir packages/asset-listings-state run test && pnpm --dir packages/lifecycle-core run test && pnpm --dir packages/lifecycle-web run test && pnpm --dir packages/lifecycle-wails run test",
+    "test:packages": "pnpm --dir packages/config run test && pnpm --dir packages/shared-ui run test && pnpm --dir packages/asset-listings-ui run test && pnpm --dir packages/stores-core run test && pnpm --dir packages/asset-listings-state run test && pnpm --dir packages/lifecycle-core run test && pnpm --dir packages/lifecycle-web run test && pnpm --dir packages/lifecycle-wails run test",
     "check:packages": "pnpm run test:packages",
     "check:website": "pnpm --dir website run check",
     "check:railyard": "pnpm --dir railyard/frontend run check",

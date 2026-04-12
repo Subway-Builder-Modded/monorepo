@@ -25,6 +25,7 @@ import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import { ItemCard } from './item-card';
 import { PageHeader } from '@/components/shared/page-header';
 import { SortSelect } from '@/features/railyard/components/sort-select';
+import { createRandomSeed } from '@subway-builder-modded/stores-core';
 import {
   Select,
   SelectContent,
@@ -32,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { createRandomSeed, useFilteredItems } from '@/hooks/use-filtered-items';
+import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';

@@ -36,6 +36,8 @@ export default defineConfig({
       include: ['src/lib/**', 'src/stores/**'],
       exclude: [
         // React/UI files — not unit-testable without jsdom
+        'src/lib/browse-prewarm.ts',
+        'src/lib/contributor-tier.ts',
         'src/lib/flags.tsx',
         'src/lib/install-path.ts',
         'src/lib/local-accent.ts',

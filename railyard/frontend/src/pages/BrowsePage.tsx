@@ -16,22 +16,22 @@ import {
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { usePageWarmup } from '@subway-builder-modded/lifecycle-core';
-import { Compass } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-import { SortSelect } from '@/components/browse/SortSelect';
-import { PageLoadScreen } from '@/components/layout/PageLoadScreen';
-import { ItemCard } from '@/components/shared/ItemCard';
-import { PageHeading } from '@/components/shared/PageHeading';
-import { SidebarFilters } from '@/components/shared/SidebarFilters';
-import { SidebarPanel } from '@/components/shared/SidebarPanel';
+import { PageLoadScreen } from '@subway-builder-modded/shared-ui';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@subway-builder-modded/shared-ui';
+import { Compass } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+import { SortSelect } from '@/components/browse/SortSelect';
+import { ItemCard } from '@/components/shared/ItemCard';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { SidebarFilters } from '@/components/shared/SidebarFilters';
+import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';

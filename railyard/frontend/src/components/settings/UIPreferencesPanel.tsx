@@ -10,6 +10,13 @@ import {
   CardTitle,
 } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@subway-builder-modded/shared-ui';
 import { ChevronDown, LayoutGrid, Monitor, Palette } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -22,13 +29,6 @@ import {
 } from '@/components/settings/ControlWrapper';
 import { SettingRow } from '@/components/settings/SettingRow';
 import { ThemePicker, type ThemeValue } from '@/components/shared/ThemePicker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useProfileStore } from '@/stores/profile-store';
 
 const VALID_THEMES = new Set<ThemeValue>([

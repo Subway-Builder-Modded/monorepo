@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@subway-builder-modded/shared-ui';
+import { cn } from '../lib/cn';
 import { Popover as PopoverPrimitive } from 'radix-ui';
 import * as React from 'react';
 

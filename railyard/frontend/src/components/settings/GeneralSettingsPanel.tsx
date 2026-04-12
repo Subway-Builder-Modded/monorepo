@@ -14,6 +14,7 @@ import {
   DialogTitle,
   Input,
 } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
 import {
   FolderOpen,
   FolderSearch,
@@ -26,7 +27,6 @@ import { toast } from 'sonner';
 
 import { SettingRow } from '@/components/settings/SettingRow';
 import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import { useConfigStore } from '@/stores/config-store';
 
 import {

@@ -1,11 +1,11 @@
-import type { CSSProperties } from 'react';
-
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@subway-builder-modded/shared-ui';
+import type { CSSProperties } from 'react';
+
 import { getContributorTierStyle } from '@/lib/contributor-tier';
 
 export type ContributorTierIconSize = 'sm' | 'default';

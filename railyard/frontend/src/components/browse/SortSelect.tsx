@@ -14,6 +14,12 @@ import {
 } from '@subway-builder-modded/config';
 import { cn } from '@subway-builder-modded/shared-ui';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@subway-builder-modded/shared-ui';
+import {
   Calendar,
   Download,
   Globe,
@@ -24,13 +30,6 @@ import {
   Users,
 } from 'lucide-react';
 import { useEffect } from 'react';
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
 
 const FIELD_ICONS: Record<string, typeof Type> = {
   ...DEFAULT_FIELD_ICONS,

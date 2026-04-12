@@ -18,6 +18,11 @@ import {
 } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@subway-builder-modded/shared-ui';
+import {
   CircleUser,
   Compass,
   Inbox,
@@ -32,11 +37,6 @@ import { type ComponentType, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useLocation } from 'wouter';
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useConfigStore } from '@/stores/config-store';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';

@@ -15,6 +15,14 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@subway-builder-modded/shared-ui';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ArrowDownToLine,
@@ -39,15 +47,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isCompatible } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,

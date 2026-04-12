@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@subway-builder-modded/shared-ui';
+import { cn } from '../lib/cn';
 import * as React from 'react';
 
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
