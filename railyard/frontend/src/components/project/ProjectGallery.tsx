@@ -1,18 +1,14 @@
 import { EmptyState } from '@subway-builder-modded/asset-listings-ui';
-import {
-  type AssetType,
-  assetTypeToListingPath,
-} from '@subway-builder-modded/config';
+import { type AssetType } from '@subway-builder-modded/config';
 import {
   Button,
   Dialog,
   DialogContent,
-  Skeleton,
 } from '@subway-builder-modded/shared-ui';
 import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-import { GetGalleryImageResponse } from '../../../wailsjs/go/registry/Registry';
+import { GalleryImage } from '@/components/shared/GalleryImage';
 
 interface ProjectGalleryProps {
   type: AssetType;
@@ -21,56 +17,28 @@ interface ProjectGalleryProps {
 }
 
 export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
-  const [images, setImages] = useState<(string | null)[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!gallery || gallery.length === 0) {
-      setLoading(false);
-      return;
-    }
-    Promise.all(
-      gallery.map((path) =>
-        GetGalleryImageResponse(assetTypeToListingPath(type), id, path)
-          .then((r) => (r.status === 'success' ? r.imageUrl : null))
-          .catch(() => null),
-      ),
-    ).then((urls) => {
-      setImages(urls);
-      setLoading(false);
-    });
-  }, [type, id, gallery]);
-
-  if (loading) {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {Array.from({ length: Math.min(gallery?.length || 3, 6) }).map(
-          (_, i) => (
-            <Skeleton key={i} className="aspect-video rounded-lg" />
-          ),
-        )}
-      </div>
-    );
-  }
-
-  const validImages = images.filter((url): url is string => url !== null);
-
-  if (validImages.length === 0) {
+  if (!gallery?.length) {
     return <EmptyState icon={FileText} title="No gallery images" />;
   }
 
   return (
     <>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {validImages.map((url, i) => (
+        {gallery.map((imagePath, i) => (
           <button
-            key={i}
+            key={`${id}-${imagePath}-${i}`}
             type="button"
             onClick={() => setSelectedIndex(i)}
             className="block aspect-video rounded-lg overflow-hidden cursor-pointer transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <img src={url} alt="" className="w-full h-full object-cover" />
+            <GalleryImage
+              type={type}
+              id={id}
+              imagePath={imagePath}
+              className="h-full w-full object-cover"
+            />
           </button>
         ))}
       </div>
@@ -80,14 +48,16 @@ export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
         onOpenChange={() => setSelectedIndex(null)}
       >
         <DialogContent className="w-[95vw] sm:max-w-none max-h-[95vh] p-2 bg-background/95 backdrop-blur-sm border-border">
-          {selectedIndex !== null && validImages[selectedIndex] && (
+          {selectedIndex !== null && gallery[selectedIndex] && (
             <div className="relative flex items-center justify-center">
-              <img
-                src={validImages[selectedIndex]}
-                alt=""
+              <GalleryImage
+                type={type}
+                id={id}
+                imagePath={gallery[selectedIndex]}
                 className="max-h-[90vh] rounded-md object-contain"
+                fallbackIconClassName="h-10 w-10"
               />
-              {validImages.length > 1 && (
+              {gallery.length > 1 && (
                 <>
                   <Button
                     variant="secondary"
@@ -95,8 +65,7 @@ export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
                     className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm"
                     onClick={() =>
                       setSelectedIndex(
-                        (selectedIndex - 1 + validImages.length) %
-                          validImages.length,
+                        (selectedIndex - 1 + gallery.length) % gallery.length,
                       )
                     }
                   >
@@ -107,7 +76,7 @@ export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
                     size="icon"
                     className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm"
                     onClick={() =>
-                      setSelectedIndex((selectedIndex + 1) % validImages.length)
+                      setSelectedIndex((selectedIndex + 1) % gallery.length)
                     }
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -115,7 +84,7 @@ export function ProjectGallery({ type, id, gallery }: ProjectGalleryProps) {
                 </>
               )}
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-muted-foreground bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                {selectedIndex + 1} / {validImages.length}
+                {selectedIndex + 1} / {gallery.length}
               </div>
             </div>
           )}

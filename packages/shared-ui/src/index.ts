@@ -80,14 +80,13 @@ export {
 } from './components/navbar';
 export {
   Popover,
-  PopoverAnchor,
   PopoverContent,
   PopoverDescription,
   PopoverHeader,
   PopoverTitle,
   PopoverTrigger,
 } from './components/popover';
-export { ScrollArea, ScrollBar } from './components/scroll-area';
+export { ScrollArea } from './components/scroll-area';
 export {
   Select,
   SelectContent,
@@ -110,7 +109,6 @@ export {
 export {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableFooter,
   TableHead,

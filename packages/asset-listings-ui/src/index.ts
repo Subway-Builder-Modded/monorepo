@@ -72,8 +72,6 @@ export {
 	type SortableHeaderCellProps,
 } from './components/sortable-header-cell';
 export {
-	FILTER_COUNT_BADGE_CLASS,
-	FILTER_SECTION_TITLE_CLASS,
 	SidebarFilters,
 	type SidebarFiltersProps,
 	type SidebarFilterState,

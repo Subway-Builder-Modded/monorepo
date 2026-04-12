@@ -29,13 +29,14 @@ import {
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  SidebarFilters,
+  type SidebarFilterState,
   SortSelect as SharedSortSelect,
   ViewModeToggle,
   type SortFieldOption,
   type SortState as SharedSortState,
 } from '@subway-builder-modded/asset-listings-ui';
 
-import { SidebarFilters } from '@/features/railyard/components/sidebar-filters';
 import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import { ItemCard } from './item-card';
 import { PageHeader } from '@/components/shared/page-header';
@@ -53,11 +54,17 @@ import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
 import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
 import {
+  DATA_QUALITY_VALUES,
   DEFAULT_SORT_STATE,
+  filterVisibleListingValues,
+  formatDataQuality,
+  LEVEL_OF_DETAIL_VALUES,
+  LOCATION_TAGS,
   PER_PAGE_OPTIONS,
   buildSpecialDemandValues,
   getSortOptionsForType,
   SEARCH_BAR_PLACEHOLDER,
+  SEARCH_FILTER_EMPTY_LABELS,
   type SortField,
   TEXT_SORT_FIELDS,
 } from '@subway-builder-modded/config';
@@ -180,6 +187,36 @@ export function BrowsePage() {
     [sortOptions],
   );
 
+  const handleSidebarFiltersChange = useCallback(
+    (updater: (prev: SidebarFilterState) => SidebarFilterState) => {
+      setFilters((prev) => {
+        const next = updater({
+          type: prev.type,
+          mod: { tags: prev.mod.tags },
+          map: {
+            locations: prev.map.locations,
+            sourceQuality: prev.map.dataQuality,
+            levelOfDetail: prev.map.levelOfDetail,
+            specialDemand: prev.map.specialDemand,
+          },
+        });
+        return {
+          ...prev,
+          type: next.type,
+          mod: { ...prev.mod, tags: next.mod.tags },
+          map: {
+            ...prev.map,
+            locations: next.map.locations,
+            dataQuality: next.map.sourceQuality,
+            levelOfDetail: next.map.levelOfDetail,
+            specialDemand: next.map.specialDemand,
+          },
+        };
+      });
+    },
+    [setFilters],
+  );
+
   useEffect(() => {
     if (!sortFieldOptions.some((f) => f.field === filters.sort.field)) {
       setFilters((prev) => ({ ...prev, sort: DEFAULT_SORT_STATE }));
@@ -256,18 +293,33 @@ export function BrowsePage() {
         ),
         content: (
           <SidebarFilters
-            filters={filters}
-            onFiltersChange={setFilters}
+            filters={{
+              type: filters.type,
+              mod: { tags: filters.mod.tags },
+              map: {
+                locations: filters.map.locations,
+                sourceQuality: filters.map.dataQuality,
+                levelOfDetail: filters.map.levelOfDetail,
+                specialDemand: filters.map.specialDemand,
+              },
+            }}
+            onFiltersChange={handleSidebarFiltersChange}
             onTypeChange={setType}
             availableTags={allTags}
             availableSpecialDemand={availableSpecialDemand}
             modTagCounts={modTagCounts}
             mapLocationCounts={mapLocationCounts}
-            mapDataQualityCounts={mapDataQualityCounts}
+            mapSourceQualityCounts={mapDataQualityCounts}
             mapLevelOfDetailCounts={mapLevelOfDetailCounts}
             mapSpecialDemandCounts={mapSpecialDemandCounts}
             modCount={mods.length}
             mapCount={maps.length}
+            locationValues={LOCATION_TAGS}
+            sourceQualityValues={DATA_QUALITY_VALUES}
+            levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
+            formatSourceQuality={formatDataQuality}
+            filterVisibleListingValues={filterVisibleListingValues}
+            emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           />
         ),
       }}
