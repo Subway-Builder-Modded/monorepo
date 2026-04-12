@@ -195,8 +195,10 @@ function BrowsePageContent({
 
   const warmupTasks = useMemo(
     () =>
-      items.map(({ type, item }) => () =>
-        preloadGalleryImage(type, item.id, item.gallery?.[0]),
+      items.map(
+        ({ type, item }) =>
+          () =>
+            preloadGalleryImage(type, item.id, item.gallery?.[0]),
       ),
     [items],
   );

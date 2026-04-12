@@ -109,7 +109,8 @@ function App() {
         name: 'bootstrap-registry-state',
         enabled: isBackendReady && configInitialized && isConfigured,
         run: async () => {
-          const { initialize: initializeRegistry } = useRegistryStore.getState();
+          const { initialize: initializeRegistry } =
+            useRegistryStore.getState();
           const { initialize: initializeInstalled } =
             useInstalledStore.getState();
 

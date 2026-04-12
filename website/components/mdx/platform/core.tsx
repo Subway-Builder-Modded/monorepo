@@ -11,8 +11,9 @@ import {
 } from '@/components/mdx/platform/utils';
 
 function withoutRef<T extends object>(props: T): Omit<T, 'ref'> {
-  const { ref: _ref, ...rest } = props as T & { ref?: unknown };
-  return rest;
+  const rest = { ...(props as T & { ref?: unknown }) };
+  delete rest.ref;
+  return rest as Omit<T, 'ref'>;
 }
 
 type MdxImageProps = Omit<
@@ -186,10 +187,7 @@ export const mdxCoreComponents: MDXComponents = {
     <ul className="my-6 ml-6 list-disc [&>li]:mt-2" {...withoutRef(props)} />
   ),
   ol: (props) => (
-    <ol
-      className="my-6 ml-6 list-decimal [&>li]:mt-2"
-      {...withoutRef(props)}
-    />
+    <ol className="my-6 ml-6 list-decimal [&>li]:mt-2" {...withoutRef(props)} />
   ),
   li: (props) => (
     <li
@@ -197,16 +195,27 @@ export const mdxCoreComponents: MDXComponents = {
       {...withoutRef(props)}
     />
   ),
-  strong: (props) => <strong className="font-semibold" {...withoutRef(props)} />,
+  strong: (props) => (
+    <strong className="font-semibold" {...withoutRef(props)} />
+  ),
   hr: (props) => <hr className="my-8 border-border" {...withoutRef(props)} />,
   table: (props) => (
     <div className="my-6 w-full overflow-x-auto">
-      <table className="w-full border-collapse text-sm" {...withoutRef(props)} />
+      <table
+        className="w-full border-collapse text-sm"
+        {...withoutRef(props)}
+      />
     </div>
   ),
-  thead: (props) => <thead className="[&_tr]:border-b" {...withoutRef(props)} />,
-  tbody: (props) => <tbody className="[&_tr:last-child]:border-0" {...withoutRef(props)} />,
-  tr: (props) => <tr className="border-b transition-colors" {...withoutRef(props)} />,
+  thead: (props) => (
+    <thead className="[&_tr]:border-b" {...withoutRef(props)} />
+  ),
+  tbody: (props) => (
+    <tbody className="[&_tr:last-child]:border-0" {...withoutRef(props)} />
+  ),
+  tr: (props) => (
+    <tr className="border-b transition-colors" {...withoutRef(props)} />
+  ),
   th: (props) => (
     <th
       className="h-10 px-2 text-left align-middle font-medium text-foreground"
