@@ -3,10 +3,7 @@ import {
   filterAndPaginateTaggedItems,
   type SourceAssetQueryFilterState,
 } from '@subway-builder-modded/asset-listings-state';
-import {
-  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
-  type PerPage,
-} from '@subway-builder-modded/config';
+import { type PerPage } from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
@@ -71,7 +68,6 @@ export function useFilteredItems({
         modDownloadTotals,
         mapDownloadTotals,
         compareItems,
-        fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
         accessors: {
           buildSearchText,
           getModTags: (item) =>

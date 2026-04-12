@@ -1,6 +1,10 @@
 import Fuse, { type IFuseOptions } from 'fuse.js';
 
-import type { AssetType, SortState } from '@subway-builder-modded/config';
+import {
+  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  type AssetType,
+  type SortState,
+} from '@subway-builder-modded/config';
 
 type SearchableItem<TItem> = {
   entry: TItem;
@@ -92,7 +96,7 @@ export interface FilterAndSortTaggedItemsParams<
     mapDownloadTotals: Record<string, number>,
   ) => number;
   accessors: TaggedListingAccessors<TTaggedItem, TMapFilters>;
-  fuseOptions: IFuseOptions<SearchableItem<TTaggedItem>>;
+  fuseOptions?: IFuseOptions<SearchableItem<TTaggedItem>>;
 }
 
 export interface FilterAndPaginateTaggedItemsParams<
@@ -219,7 +223,10 @@ export function filterAndSortTaggedItems<
       searchText: accessors.buildSearchText(entry),
     }));
 
-    const fuse = new Fuse(searchable, fuseOptions);
+    const fuse = new Fuse(
+      searchable,
+      fuseOptions ?? ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+    );
     result = fuse.search(query).map(({ item }) => item.entry);
   }
 

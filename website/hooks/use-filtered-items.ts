@@ -13,7 +13,6 @@ import {
 } from '@subway-builder-modded/asset-listings-state';
 import type { AssetType } from '@subway-builder-modded/config';
 import {
-  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
   PER_PAGE_OPTIONS,
   type PerPage,
   type SortState,
@@ -257,7 +256,6 @@ export function useFilteredItems({
         modDownloadTotals,
         mapDownloadTotals,
         compareItems,
-        fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
         accessors: {
           buildSearchText,
           getModTags: (item) =>
