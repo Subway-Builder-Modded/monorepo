@@ -51,10 +51,6 @@ pnpm run format
 
 # Run CI quality commands across apps
 pnpm run ci
-
-# Development entrypoints
-pnpm run dev:website
-pnpm run dev:railyard
 ```
 
 ---

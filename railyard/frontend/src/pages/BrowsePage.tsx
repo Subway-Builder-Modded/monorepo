@@ -15,6 +15,7 @@ import {
   SEARCH_BAR_PLACEHOLDER,
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
+import { usePageWarmup } from '@subway-builder-modded/lifecycle-core';
 import { Compass } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -192,51 +193,24 @@ function BrowsePageContent({
     }
   }, [loading]);
 
-  useEffect(() => {
-    if (!warmupMode || loading || warmupCompleteRef.current) {
-      return;
-    }
+  const warmupTasks = useMemo(
+    () =>
+      items.map(
+        ({ type, item }) =>
+          () =>
+            preloadGalleryImage(type, item.id, item.gallery?.[0]),
+      ),
+    [items],
+  );
 
-    let cancelled = false;
-    const finishWarmup = () => {
-      if (cancelled || warmupCompleteRef.current) {
-        return;
-      }
+  usePageWarmup({
+    enabled: warmupMode && !loading && !warmupCompleteRef.current,
+    warmupTasks,
+    onReady: () => {
       warmupCompleteRef.current = true;
       onWarmupComplete();
-    };
-
-    const warmup = async () => {
-      await Promise.allSettled(
-        items.map(({ type: itemType, item }) =>
-          preloadGalleryImage(itemType, item.id, item.gallery?.[0]),
-        ),
-      );
-
-      await new Promise<void>((resolve) => {
-        let firstFrame = 0;
-        let secondFrame = 0;
-
-        firstFrame = window.requestAnimationFrame(() => {
-          secondFrame = window.requestAnimationFrame(() => resolve());
-        });
-
-        if (cancelled) {
-          window.cancelAnimationFrame(firstFrame);
-          window.cancelAnimationFrame(secondFrame);
-          resolve();
-        }
-      });
-
-      finishWarmup();
-    };
-
-    warmup().catch(() => finishWarmup());
-
-    return () => {
-      cancelled = true;
-    };
-  }, [items, loading, onWarmupComplete, warmupMode]);
+    },
+  });
 
   return (
     <BrowsePageShell

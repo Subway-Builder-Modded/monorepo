@@ -27,6 +27,7 @@
     "@subway-builder-modded/asset-listings-state": "workspace:*",
     "@subway-builder-modded/asset-listings-ui": "workspace:*",
     "@subway-builder-modded/config": "workspace:*",
+    "@subway-builder-modded/lifecycle-web": "workspace:*",
     "@subway-builder-modded/shared-ui": "workspace:*",
     "@subway-builder-modded/stores-core": "workspace:*",
     "@base-ui/react": "^1.2.0",
