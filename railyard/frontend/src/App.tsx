@@ -43,7 +43,7 @@ function App() {
     (s) => s.acknowledgeCancelledInstall,
   );
 
-  const initConfig = useConfigStore((s) => s.initialize);
+  // Store state selectors for lifecycle coordination
   const configInitialized = useConfigStore((s) => s.initialized);
   const isConfigured = useConfigStore(
     (s) => s.validation?.isConfigured ?? false,
@@ -52,14 +52,11 @@ function App() {
     (s) => s.config?.setupCompleted ?? false,
   );
 
-  const initProfile = useProfileStore((s) => s.initialize);
-
-  const initRegistry = useRegistryStore((s) => s.initialize);
-  const registryInitialized = useRegistryStore((s) => s.initialized);
-  const initInstalled = useInstalledStore((s) => s.initialize);
-  const installedInitialized = useInstalledStore((s) => s.initialized);
   const profileInitialized = useProfileStore((s) => s.initialized);
-  const initGame = useGameStore((s) => s.initialize);
+
+  const registryInitialized = useRegistryStore((s) => s.initialized);
+  const installedInitialized = useInstalledStore((s) => s.initialized);
+
   const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const appReadyForNavigation =
     configInitialized &&
@@ -99,17 +96,25 @@ function App() {
         name: 'bootstrap-user-state',
         enabled: isBackendReady,
         run: async () => {
-          await initConfig();
-          await initProfile();
-          initGame();
+          const { initialize: initializeConfig } = useConfigStore.getState();
+          const { initialize: initializeProfile } = useProfileStore.getState();
+          const { initialize: initializeGame } = useGameStore.getState();
+
+          await initializeConfig();
+          await initializeProfile();
+          initializeGame();
         },
       },
       {
         name: 'bootstrap-registry-state',
         enabled: isBackendReady && configInitialized && isConfigured,
         run: async () => {
-          await initRegistry();
-          await initInstalled();
+          const { initialize: initializeRegistry } = useRegistryStore.getState();
+          const { initialize: initializeInstalled } =
+            useInstalledStore.getState();
+
+          await initializeRegistry();
+          await initializeInstalled();
         },
       },
     ],

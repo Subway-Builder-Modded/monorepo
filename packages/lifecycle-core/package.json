@@ -8,7 +8,11 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@types/react": "^18.2.0",
     "vitest": "^4.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
   },
   "exports": {
     ".": {

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
+import { THEME_HYDRATION_SCRIPT } from '@subway-builder-modded/lifecycle-web';
 import '../styles/globals.css';
 import { AppLayoutShell } from '@/components/app-shell/root-layout-shell';
-import { ThemeHydrationScript } from '@/components/app-shell/theme/theme-hydration-script';
 import {
   resolveSiteMetadataBase,
   SITE_DESCRIPTION,
@@ -30,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <ThemeHydrationScript />
+        <script dangerouslySetInnerHTML={{ __html: THEME_HYDRATION_SCRIPT }} />
       </head>
       <body className="antialiased">
         <AppLayoutShell>{children}</AppLayoutShell>

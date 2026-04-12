@@ -19,10 +19,6 @@ vi.mock('@/components/app-shell/navigation/scroll-restoration', () => ({
   ScrollRestoration: () => <div data-testid="scroll-restoration" />,
 }));
 
-vi.mock('@/components/app-shell/theme/theme-hydration-script', () => ({
-  ThemeHydrationScript: () => <script data-testid="theme-hydration-script" />,
-}));
-
 vi.mock('@/components/app-shell/theme/theme-provider', () => ({
   ThemeProvider: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>

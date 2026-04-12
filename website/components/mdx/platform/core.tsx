@@ -10,6 +10,11 @@ import {
   toDimension,
 } from '@/components/mdx/platform/utils';
 
+function withoutRef<T extends object>(props: T): Omit<T, 'ref'> {
+  const { ref: _ref, ...rest } = props as T & { ref?: unknown };
+  return rest;
+}
+
 type MdxImageProps = Omit<
   React.ComponentProps<typeof Image>,
   'src' | 'alt' | 'width' | 'height'
@@ -65,6 +70,7 @@ export function MdxLink({
   children,
   ...props
 }: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
+  const anchorProps = withoutRef(props);
   const linkClassName =
     'font-medium text-primary underline underline-offset-4 break-words [overflow-wrap:anywhere]';
   const isHash = href.startsWith('#');
@@ -77,7 +83,7 @@ export function MdxLink({
 
   if (isHash) {
     return (
-      <a href={href} className={linkClassName} {...props}>
+      <a href={href} className={linkClassName} {...anchorProps}>
         {children}
       </a>
     );
@@ -85,7 +91,7 @@ export function MdxLink({
 
   if (isInternal) {
     return (
-      <Link href={href} className={linkClassName} {...props}>
+      <Link href={href} className={linkClassName} {...anchorProps}>
         {children}
       </Link>
     );
@@ -98,7 +104,7 @@ export function MdxLink({
         className={linkClassName}
         target="_blank"
         rel="noreferrer"
-        {...props}
+        {...anchorProps}
       >
         {children}
       </a>
@@ -106,7 +112,7 @@ export function MdxLink({
   }
 
   return (
-    <a href={href} className={linkClassName} {...props}>
+    <a href={href} className={linkClassName} {...anchorProps}>
       {children}
     </a>
   );
@@ -117,11 +123,12 @@ export const mdxCoreComponents: MDXComponents = {
   a: MdxLink,
   h1: ({ children, id, ...props }) => {
     const headingId = id ?? slugify(textFromChildren(children));
+    const headingProps = withoutRef(props);
     return (
       <h1
         id={headingId}
         className="scroll-m-20 text-4xl font-black tracking-tight"
-        {...props}
+        {...headingProps}
       >
         {children}
       </h1>
@@ -129,11 +136,12 @@ export const mdxCoreComponents: MDXComponents = {
   },
   h2: ({ children, id, ...props }) => {
     const headingId = id ?? slugify(textFromChildren(children));
+    const headingProps = withoutRef(props);
     return (
       <h2
         id={headingId}
         className="mt-10 scroll-m-20 border-b border-border pb-2 text-3xl font-bold tracking-tight first:mt-0"
-        {...props}
+        {...headingProps}
       >
         {children}
       </h2>
@@ -141,11 +149,12 @@ export const mdxCoreComponents: MDXComponents = {
   },
   h3: ({ children, id, ...props }) => {
     const headingId = id ?? slugify(textFromChildren(children));
+    const headingProps = withoutRef(props);
     return (
       <h3
         id={headingId}
         className="mt-8 scroll-m-20 text-2xl font-bold tracking-tight"
-        {...props}
+        {...headingProps}
       >
         {children}
       </h3>
@@ -153,11 +162,12 @@ export const mdxCoreComponents: MDXComponents = {
   },
   h4: ({ children, id, ...props }) => {
     const headingId = id ?? slugify(textFromChildren(children));
+    const headingProps = withoutRef(props);
     return (
       <h4
         id={headingId}
         className="mt-6 scroll-m-20 text-xl font-semibold tracking-tight"
-        {...props}
+        {...headingProps}
       >
         {children}
       </h4>
@@ -169,50 +179,58 @@ export const mdxCoreComponents: MDXComponents = {
         'leading-7 break-words [overflow-wrap:anywhere] [&:not(:first-child)]:mt-6',
         className,
       )}
-      {...props}
+      {...withoutRef(props)}
     />
   ),
-  ul: (props) => <ul className="my-6 ml-6 list-disc [&>li]:mt-2" {...props} />,
+  ul: (props) => (
+    <ul className="my-6 ml-6 list-disc [&>li]:mt-2" {...withoutRef(props)} />
+  ),
   ol: (props) => (
-    <ol className="my-6 ml-6 list-decimal [&>li]:mt-2" {...props} />
+    <ol
+      className="my-6 ml-6 list-decimal [&>li]:mt-2"
+      {...withoutRef(props)}
+    />
   ),
   li: (props) => (
-    <li className="leading-7 break-words [overflow-wrap:anywhere]" {...props} />
+    <li
+      className="leading-7 break-words [overflow-wrap:anywhere]"
+      {...withoutRef(props)}
+    />
   ),
-  strong: (props) => <strong className="font-semibold" {...props} />,
-  hr: (props) => <hr className="my-8 border-border" {...props} />,
+  strong: (props) => <strong className="font-semibold" {...withoutRef(props)} />,
+  hr: (props) => <hr className="my-8 border-border" {...withoutRef(props)} />,
   table: (props) => (
     <div className="my-6 w-full overflow-x-auto">
-      <table className="w-full border-collapse text-sm" {...props} />
+      <table className="w-full border-collapse text-sm" {...withoutRef(props)} />
     </div>
   ),
-  thead: (props) => <thead className="[&_tr]:border-b" {...props} />,
-  tbody: (props) => <tbody className="[&_tr:last-child]:border-0" {...props} />,
-  tr: (props) => <tr className="border-b transition-colors" {...props} />,
+  thead: (props) => <thead className="[&_tr]:border-b" {...withoutRef(props)} />,
+  tbody: (props) => <tbody className="[&_tr:last-child]:border-0" {...withoutRef(props)} />,
+  tr: (props) => <tr className="border-b transition-colors" {...withoutRef(props)} />,
   th: (props) => (
     <th
       className="h-10 px-2 text-left align-middle font-medium text-foreground"
-      {...props}
+      {...withoutRef(props)}
     />
   ),
-  td: (props) => <td className="p-2 align-middle" {...props} />,
+  td: (props) => <td className="p-2 align-middle" {...withoutRef(props)} />,
   code: ({ className, ...props }) => {
     if (className) {
-      return <code className={className} {...props} />;
+      return <code className={className} {...withoutRef(props)} />;
     }
 
     return (
       <code
         className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm"
-        {...props}
+        {...withoutRef(props)}
       />
     );
   },
-  pre: (props) => <CodeBlock {...props} />,
+  pre: (props) => <CodeBlock {...withoutRef(props)} />,
   blockquote: (props) => (
     <blockquote
       className="mt-6 border-l-2 pl-6 italic text-muted-foreground"
-      {...props}
+      {...withoutRef(props)}
     />
   ),
 };
