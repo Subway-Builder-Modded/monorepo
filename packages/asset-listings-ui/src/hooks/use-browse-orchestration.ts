@@ -37,32 +37,32 @@ export function createBrowsePageCallbacks(
   const createRandomSeed = ctx.createRandomSeed ?? (() => Math.random());
 
   return {
-    handleQueryChange: (value) => {
-      ctx.setFilters((prev) => ({ ...prev, query: value }));
+    handleQueryChange: (value: string) => {
+      ctx.setFilters((prev: SourceAssetQueryFilterState) => ({ ...prev, query: value }));
     },
 
-    handleSortChange: (value) => {
-      ctx.setFilters((prev) => ({
+    handleSortChange: (value: SourceAssetQueryFilterState['sort']) => {
+      ctx.setFilters((prev: SourceAssetQueryFilterState) => ({
         ...prev,
         sort: value,
         randomSeed: value.field === 'random' ? createRandomSeed() : prev.randomSeed,
       }));
     },
 
-    handlePerPageChange: (value) => {
-      ctx.setFilters((prev) => ({ ...prev, perPage: value }));
+    handlePerPageChange: (value: PerPage) => {
+      ctx.setFilters((prev: SourceAssetQueryFilterState) => ({ ...prev, perPage: value }));
     },
 
-    handleTypeChange: (type) => {
+    handleTypeChange: (type: AssetType) => {
       ctx.setType(type);
     },
 
-    handlePageChange: (page) => {
+    handlePageChange: (page: number) => {
       ctx.setPage(page);
     },
 
-    handleSidebarFiltersChange: (updater) => {
-      ctx.setFilters((prev) => {
+    handleSidebarFiltersChange: (updater: (prev: Omit<SourceAssetQueryFilterState, 'query' | 'sort' | 'randomSeed' | 'perPage'>) => Omit<SourceAssetQueryFilterState, 'query' | 'sort' | 'randomSeed' | 'perPage'>) => {
+      ctx.setFilters((prev: SourceAssetQueryFilterState) => {
         const next = updater({
           type: prev.type,
           mod: { tags: prev.mod.tags },

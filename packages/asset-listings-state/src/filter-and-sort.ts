@@ -3,6 +3,7 @@ import Fuse, { type IFuseOptions } from 'fuse.js';
 import {
   ASSET_LISTING_FUSE_SEARCH_OPTIONS,
   type AssetType,
+  type PerPage,
   type SortState,
 } from '@subway-builder-modded/config';
 
@@ -60,6 +61,7 @@ export interface TaggedListingFilterState<TMapFilters, TSortState = SortState> {
   type: AssetType;
   sort: TSortState;
   randomSeed: number;
+  perPage: PerPage;
   mod: {
     tags: string[];
   };
