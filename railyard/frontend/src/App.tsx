@@ -1,13 +1,12 @@
 import { useWailsStartup } from '@subway-builder-modded/lifecycle-wails';
+import { SuiteLoader, TooltipProvider } from '@subway-builder-modded/shared-ui';
 import { Route, Switch, useLocation } from 'wouter';
 
 import { DownloadNotification } from '@/components/layout/DownloadNotification';
 import { Layout } from '@/components/layout/Layout';
-import { MultiStepLoader } from '@/components/layout/MultiStepLoader';
 import { RequestErrorNotification } from '@/components/layout/RequestErrorNotification';
 import { SetupScreen } from '@/components/setup/SetupScreen';
 import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { useTheme } from '@/hooks/use-theme';
 import { BrowsePage } from '@/pages/BrowsePage';
 import { ChangelogPage } from '@/pages/ChangelogPage';
@@ -163,8 +162,9 @@ function App() {
   if (baseLoading || registryLoading) {
     return (
       <div className="railyard-accent">
-        <MultiStepLoader
-          loadingStates={loadingStates}
+        <SuiteLoader
+          title="Railyard"
+          steps={loadingStates}
           currentStep={currentStep}
         />
       </div>

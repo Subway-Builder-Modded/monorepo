@@ -30,8 +30,6 @@ import {
 import type { MapManifest, ModManifest } from '@/types/registry';
 
 export type { TaggedItem };
-export { PER_PAGE_OPTIONS };
-export { createRandomSeed };
 
 const BROWSE_STATE_STORAGE_KEY = 'railyard:browse:state:v1';
 

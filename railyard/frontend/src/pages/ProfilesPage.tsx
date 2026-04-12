@@ -1,5 +1,7 @@
 import { Button, Input } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ArrowLeftRight,
@@ -13,10 +15,8 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
 import { PageHeading } from '@/components/shared/PageHeading';
 import { useProfilesState } from '@/hooks/use-profile-dialogs';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import { isProfileSwapUnavailable } from '@/lib/profile-swap';
 import { formatStorageSize } from '@/lib/size-format';
 import { useGameStore } from '@/stores/game-store';

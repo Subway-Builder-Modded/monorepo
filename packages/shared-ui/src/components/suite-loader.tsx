@@ -1,39 +1,45 @@
-import { cn } from '@subway-builder-modded/shared-ui';
 import { Check, Circle, Loader2 } from 'lucide-react';
+import type { ReactNode } from 'react';
 
-export interface LoadingState {
+import { cn } from '../lib/cn';
+
+export interface SuiteLoaderStep {
   text: string;
 }
 
-interface MultiStepLoaderProps {
-  loadingStates: LoadingState[];
+interface SuiteLoaderProps {
+  steps: SuiteLoaderStep[];
   currentStep: number;
+  title?: ReactNode;
+  subtitle?: ReactNode;
 }
 
-export function MultiStepLoader({
-  loadingStates,
+export function SuiteLoader({
+  steps,
   currentStep,
-}: MultiStepLoaderProps) {
+  title,
+  subtitle = 'Getting things ready...',
+}: SuiteLoaderProps) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background text-foreground select-none">
       <div className="flex flex-col items-center gap-8 px-6">
-        <div className="flex flex-col items-center gap-1.5">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            Railyard
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Getting things ready&hellip;
-          </p>
-        </div>
+        {title ? (
+          <div className="flex flex-col items-center gap-1.5">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              {title}
+            </h1>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
+          </div>
+        ) : null}
 
         <div className="flex flex-col gap-1 min-w-[300px] rounded-xl border border-border/60 bg-card/60 p-2 backdrop-blur-sm">
-          {loadingStates.map((state, index) => {
+          {steps.map((step, index) => {
             const isComplete = index < currentStep;
             const isActive = index === currentStep;
 
             return (
               <div
-                key={state.text}
+                key={step.text}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-500 ease-out',
                   isActive && 'bg-muted/60',
@@ -44,10 +50,7 @@ export function MultiStepLoader({
                 <div className="flex h-5 w-5 shrink-0 items-center justify-center">
                   {isComplete ? (
                     <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-chart-2/15 transition-all duration-300">
-                      <Check
-                        className="h-3 w-3 text-chart-2"
-                        strokeWidth={2.5}
-                      />
+                      <Check className="h-3 w-3 text-chart-2" strokeWidth={2.5} />
                     </div>
                   ) : isActive ? (
                     <Loader2 className="h-4 w-4 animate-spin text-foreground" />
@@ -64,7 +67,7 @@ export function MultiStepLoader({
                     !isActive && !isComplete && 'text-muted-foreground/70',
                   )}
                 >
-                  {state.text}
+                  {step.text}
                 </span>
               </div>
             );

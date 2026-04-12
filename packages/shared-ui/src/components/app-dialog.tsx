@@ -1,20 +1,16 @@
+import { Loader2, type LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+
+import { getLocalAccentClasses, getToneVarsClass, type LocalAccentTone } from '../lib/local-accent';
+import { Button } from './button';
 import {
-  Button,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@subway-builder-modded/shared-ui';
-import { Loader2, type LucideIcon } from 'lucide-react';
-import { type ReactNode } from 'react';
-
-import {
-  getLocalAccentClasses,
-  getToneVarsClass,
-  type LocalAccentTone,
-} from '@/lib/local-accent';
+} from './dialog';
 
 interface AppDialogConfirm {
   label: ReactNode;

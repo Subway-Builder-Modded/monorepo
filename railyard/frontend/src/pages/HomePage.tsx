@@ -2,6 +2,8 @@ import { sortTaggedItemsByLastUpdated } from '@subway-builder-modded/asset-listi
 import type { AssetType } from '@subway-builder-modded/config';
 import { Badge, Button, Skeleton } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
 import {
   ArrowRight,
   CheckCircle2,
@@ -20,13 +22,11 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
 import { DiscoverSectionGrid } from '@/components/homepage/DiscoverSectionGrid';
 import { PendingUpdateRow } from '@/components/homepage/PendingUpdateRow';
 import { QuickNavCard } from '@/components/homepage/QuickNavCard';
 import { SectionHeader } from '@/components/homepage/SectionHeader';
 import { PageHeading } from '@/components/shared/PageHeading';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,

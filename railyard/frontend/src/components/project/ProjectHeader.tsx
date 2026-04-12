@@ -5,6 +5,14 @@ import {
 import { formatSourceQuality } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
   ChartLine,
@@ -24,17 +32,9 @@ import {
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { getCountryFlagIcon } from '@/lib/flags';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,

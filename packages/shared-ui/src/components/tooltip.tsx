@@ -1,4 +1,4 @@
-import { cn } from '@subway-builder-modded/shared-ui';
+import { cn } from '../lib/cn';
 import { Tooltip as TooltipPrimitive } from 'radix-ui';
 import * as React from 'react';
 

@@ -14,26 +14,26 @@ import {
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { Button } from '@subway-builder-modded/shared-ui';
-import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
-import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { useLocation } from 'wouter';
-
-import { AppDialog } from '@/components/dialogs/AppDialog';
-import { LibraryActionBar } from '@/components/library/LibraryActionBar';
-import { LibraryList } from '@/components/library/LibraryList';
-import { PageHeading } from '@/components/shared/PageHeading';
-import { SidebarFilters } from '@/components/shared/SidebarFilters';
-import { SidebarPanel } from '@/components/shared/SidebarPanel';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@subway-builder-modded/shared-ui';
+import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { useLocation } from 'wouter';
+
+import { LibraryActionBar } from '@/components/library/LibraryActionBar';
+import { LibraryList } from '@/components/library/LibraryList';
+import { PageHeading } from '@/components/shared/PageHeading';
+import { SidebarFilters } from '@/components/shared/SidebarFilters';
+import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,

@@ -1,4 +1,6 @@
 import { Button } from '@subway-builder-modded/shared-ui';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
 import {
   CheckCircle,
   CircleFadingArrowUp,
@@ -8,9 +10,7 @@ import {
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
 import { type InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
-import { getLocalAccentClasses } from '@/lib/local-accent';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,

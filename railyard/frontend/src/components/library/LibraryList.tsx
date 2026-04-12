@@ -10,6 +10,9 @@ import { formatSourceQuality } from '@subway-builder-modded/config';
 import { TEXT_SORT_FIELDS } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { AppDialog } from '@subway-builder-modded/shared-ui';
+import { LOCAL_ACCENTS } from '@subway-builder-modded/shared-ui';
+import { Checkbox } from '@subway-builder-modded/shared-ui';
 import {
   CircleFadingArrowUp,
   FolderOpen,
@@ -21,14 +24,11 @@ import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
-import { AppDialog } from '@/components/dialogs/AppDialog';
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
-import { Checkbox } from '@/components/ui/checkbox';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
-import { LOCAL_ACCENTS } from '@/lib/local-accent';
 import { formatStorageSize } from '@/lib/size-format';
 import {
   handleSubscriptionMutationError,
