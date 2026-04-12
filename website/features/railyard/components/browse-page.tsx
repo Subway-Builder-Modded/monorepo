@@ -13,6 +13,7 @@ import {
   Users,
 } from 'lucide-react';
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -52,8 +53,8 @@ import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
-import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
 import {
+  buildAssetListingCounts as buildSharedAssetListingCounts,
   DATA_QUALITY_VALUES,
   DEFAULT_SORT_STATE,
   filterVisibleListingValues,
@@ -150,10 +151,10 @@ export function BrowsePage() {
   const {
     modTagCounts,
     mapLocationCounts,
-    mapDataQualityCounts,
+    mapSourceQualityCounts,
     mapLevelOfDetailCounts,
     mapSpecialDemandCounts,
-  } = useMemo(() => buildAssetListingCounts(mods, maps), [mods, maps]);
+  } = useMemo(() => buildSharedAssetListingCounts(mods, maps), [mods, maps]);
 
   const {
     items,
@@ -309,7 +310,7 @@ export function BrowsePage() {
             availableSpecialDemand={availableSpecialDemand}
             modTagCounts={modTagCounts}
             mapLocationCounts={mapLocationCounts}
-            mapSourceQualityCounts={mapDataQualityCounts}
+            mapSourceQualityCounts={mapSourceQualityCounts}
             mapLevelOfDetailCounts={mapLevelOfDetailCounts}
             mapSpecialDemandCounts={mapSpecialDemandCounts}
             modCount={mods.length}
