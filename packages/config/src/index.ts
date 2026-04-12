@@ -55,10 +55,8 @@ export {
 } from './asset-listings/asset-types';
 export {
 	DEFAULT_SORT_STATE,
-	normalizeSortStateForType,
 	PER_PAGE_OPTIONS,
 	SORT_OPTIONS,
-	SortKey,
 	TEXT_SORT_FIELDS,
 	getSortOptionsForType,
 	type PerPage,

@@ -1,6 +1,17 @@
 'use client';
 
-import { Compass, SlidersHorizontal } from 'lucide-react';
+import {
+  Calendar,
+  Compass,
+  Download,
+  Globe,
+  Hash,
+  Shuffle,
+  SlidersHorizontal,
+  Type,
+  User,
+  Users,
+} from 'lucide-react';
 import React, {
   useEffect,
   useMemo,
@@ -12,19 +23,22 @@ import {
   BrowsePageShell,
   BrowseResultsSection,
   CardSkeletonGrid,
+  DEFAULT_FIELD_ICONS,
   ErrorBanner,
   Pagination,
   ResultsSummary,
   SearchBar,
   SIDEBAR_CONTENT_OFFSET,
+  SortSelect as SharedSortSelect,
   ViewModeToggle,
+  type SortFieldOption,
+  type SortState as SharedSortState,
 } from '@subway-builder-modded/asset-listings-ui';
 
 import { SidebarFilters } from '@/features/railyard/components/sidebar-filters';
 import { SidebarPanel } from '@/features/railyard/components/sidebar-panel';
 import { ItemCard } from './item-card';
 import { PageHeader } from '@/components/shared/page-header';
-import { SortSelect } from '@/features/railyard/components/sort-select';
 import { createRandomSeed } from '@subway-builder-modded/stores-core';
 import {
   Select,
@@ -39,9 +53,13 @@ import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useRegistry } from '@/hooks/use-registry';
 import { buildAssetListingCounts } from '@/lib/railyard/listing-counts';
 import {
+  DEFAULT_SORT_STATE,
   PER_PAGE_OPTIONS,
   buildSpecialDemandValues,
+  getSortOptionsForType,
   SEARCH_BAR_PLACEHOLDER,
+  type SortField,
+  TEXT_SORT_FIELDS,
 } from '@subway-builder-modded/config';
 import {
   normalizeSearchViewMode,
@@ -51,6 +69,18 @@ import { cn } from '@subway-builder-modded/shared-ui';
 
 const VIEW_MODE_STORAGE_KEY = 'railyard:browse:view-mode:v1';
 const SIDEBAR_OPEN_KEY = 'railyard:browse:sidebar-open:v1';
+
+const FIELD_ICONS: Record<string, typeof Type> = {
+  ...DEFAULT_FIELD_ICONS,
+  name: Type,
+  city_code: Hash,
+  country: Globe,
+  author: User,
+  population: Users,
+  downloads: Download,
+  last_updated: Calendar,
+  random: Shuffle,
+};
 
 function normalizeType(value: string | null): 'mod' | 'map' | undefined {
   if (value === 'mod' || value === 'map') return value;
@@ -134,6 +164,27 @@ export function BrowsePage() {
     mapDownloadTotals,
     initialType: queryType,
   });
+
+  const sortOptions = useMemo(
+    () => getSortOptionsForType(filters.type),
+    [filters.type],
+  );
+  const sortFieldOptions = useMemo(
+    () =>
+      sortOptions.reduce<SortFieldOption[]>((acc, opt) => {
+        if (!acc.some((f) => f.field === opt.sort.field)) {
+          acc.push({ field: opt.sort.field, label: opt.label });
+        }
+        return acc;
+      }, []),
+    [sortOptions],
+  );
+
+  useEffect(() => {
+    if (!sortFieldOptions.some((f) => f.field === filters.sort.field)) {
+      setFilters((prev) => ({ ...prev, sort: DEFAULT_SORT_STATE }));
+    }
+  }, [filters.sort.field, setFilters, sortFieldOptions]);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -269,19 +320,24 @@ export function BrowsePage() {
         controlsRight: (
           <div className="flex items-center gap-2">
             <ViewModeToggle value={viewMode} onChange={setViewMode} />
-            <SortSelect
-              value={filters.sort}
-              onChange={(value) =>
+            <SharedSortSelect
+              value={filters.sort as SharedSortState}
+              onChange={(next) =>
                 setFilters((prev) => ({
                   ...prev,
-                  sort: value,
+                  sort: {
+                    field: next.field as SortField,
+                    direction: next.direction,
+                  },
                   randomSeed:
-                    value.field === 'random'
+                    next.field === 'random'
                       ? createRandomSeed()
                       : prev.randomSeed,
                 }))
               }
-              tab={filters.type}
+              fieldOptions={sortFieldOptions}
+              textSortFields={Array.from(TEXT_SORT_FIELDS)}
+              fieldIcons={FIELD_ICONS}
             />
           </div>
         ),

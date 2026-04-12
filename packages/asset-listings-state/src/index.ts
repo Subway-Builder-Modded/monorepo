@@ -1,10 +1,5 @@
 export {
 	filterAndSortTaggedItems,
-	matchesMapAttributeFilters,
-	matchesSingleValueFilter,
-	matchesZeroOrManyValuesFilter,
-	seededHash,
-	sortItemsBySeed,
 	type FilterAndSortTaggedItemsParams,
 	type TaggedListingAccessors,
 	type TaggedListingFilterState,
