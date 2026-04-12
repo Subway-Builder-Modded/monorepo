@@ -6,6 +6,7 @@
 .gocache/
 .pnpm-store/
 tmp/
+.tmp/
 foundry/schemas/dist/
 foundry/schemas/.npm-cache/
 
