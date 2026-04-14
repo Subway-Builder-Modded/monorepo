@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 import { AppLayoutShell } from '@/components/app-shell/root-layout-shell';
 
 vi.mock('@/components/app-shell/navigation/app-navbar', () => ({

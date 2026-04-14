@@ -1,7 +1,7 @@
 import type React from 'react';
 import { Plus } from 'lucide-react';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 import { AppIcon } from '@/components/shared/app-icon';
 
 vi.mock('next/image', () => ({

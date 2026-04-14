@@ -14,12 +14,9 @@ package-lock.json
 # Testing
 /coverage
 
-# Vite + React Router build outputs
+# Vite build outputs
 /build
 /dist
-
-# React Router generated types
-.react-router/
 
 # Cached data
 /public/railyard/

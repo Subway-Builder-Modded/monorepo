@@ -11,19 +11,10 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "rootDirs": [".", "./.react-router/types"],
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".react-router/types/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "coverage"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "build", "coverage"]
 }

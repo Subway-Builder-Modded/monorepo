@@ -1,5 +1,5 @@
 import type { AssetType } from '@subway-builder-modded/config';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { SubscriptionMutationLockedError } from '@/lib/subscription-mutation-client';
 import {
