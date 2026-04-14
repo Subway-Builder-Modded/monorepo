@@ -1,5 +1,3 @@
-import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
-
 import {
   type CreditAuthor,
   CreditsModal,
@@ -12,6 +10,7 @@ import {
 } from '@/lib/contributor-tier';
 
 import type { types } from '../../../wailsjs/go/models';
+import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 
 interface RailyardCreditsModalProps extends Omit<
   CreditsModalProps,
