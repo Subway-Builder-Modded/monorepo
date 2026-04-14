@@ -29,6 +29,7 @@ export interface TaggedItemFilterState {
   type: 'mod' | 'map';
   sort: SourceAssetQueryFilterState['sort'];
   randomSeed: number;
+  perPage: PerPage;
   mod: {
     tags: string[];
   };
