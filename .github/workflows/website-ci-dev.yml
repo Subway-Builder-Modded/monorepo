@@ -1,0 +1,53 @@
+name: Website CI (Dev)
+
+on:
+  pull_request:
+    branches:
+      - main
+      - website-dev
+    paths:
+      - "website-dev/**"
+      - "packages/**"
+      - ".github/workflows/website-ci-dev.yml"
+  push:
+    branches:
+      - main
+      - website-dev
+      - "jfk-*"
+    paths:
+      - "website-dev/**"
+      - "packages/**"
+      - ".github/workflows/website-ci-dev.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: website-dev-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check Code Quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website-dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+
+      - name: Run quality control checks
+        run: pnpm run check

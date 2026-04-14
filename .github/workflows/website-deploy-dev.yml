@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - website-dev
+      - "jfk-*"
     paths:
       - "website-dev/**"
       - "packages/**"
