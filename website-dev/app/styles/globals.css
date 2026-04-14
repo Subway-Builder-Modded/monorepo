@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+/* Scheme files — port from website/styles/schemes/ when ready:
+@import './schemes/default.css';
+@import './schemes/railyard.css';
+@import './schemes/template-mod.css';
+@import './schemes/registry.css';
+@import './schemes/website.css';
+@import './schemes/tools.css';
+*/
+
+@plugin "@tailwindcss/typography";
+
+@source "../../../packages/shared-ui/src";
+@source "../../../packages/asset-listings-ui/src";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* Populated from scheme CSS files — see website/styles/globals.css */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+}

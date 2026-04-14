@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "react-hooks", "typescript", "unicorn"],
+  "env": {
+    "browser": true,
+    "es2022": true
+  },
+  "rules": {
+    "typescript/no-explicit-any": "off",
+    "typescript/no-empty-object-type": "off"
+  },
+  "ignorePatterns": [
+    "dist/**",
+    "node_modules/**",
+    "coverage/**",
+    "build/**",
+    ".react-router/**"
+  ]
+}
