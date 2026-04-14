@@ -826,7 +826,7 @@ func TestInstallModPreservesNoOpThroughStateMutation(t *testing.T) {
 
 	waitForPendingOperation(t, d, downloadQueueKey{assetType: types.AssetTypeMod, assetID: "mod-a"})
 	// Mutate registry state to make it appear as though mod-a is already installed while the install operation is still pending
-	reg.AddInstalledMod("mod-a", "1.0.0", false)
+	reg.AddInstalledMod("mod-a", "1.0.0", false, nil)
 	close(releaseBlocker)
 
 	// Validate that no-op response is returned at execution time

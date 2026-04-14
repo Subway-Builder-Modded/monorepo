@@ -217,7 +217,17 @@ func TestSyncSubscriptions(t *testing.T) {
 			},
 			expectedState: expectedState{
 				mods: []types.InstalledModInfo{
-					{ID: "mod-b", Version: "1.0.0"},
+					{
+						ID:      "mod-b",
+						Version: "1.0.0",
+						Manifest: &types.MetroMakerModManifest{
+							Id:          "fixture-mod",
+							Name:        "Fixture Mod",
+							Description: "Fixture mod for tests",
+							Version:     "1.0.0",
+							Main:        "index.js",
+						},
+					},
 				},
 				maps: []types.InstalledMapInfo{
 					{
@@ -344,7 +354,7 @@ func TestSyncSubscriptions(t *testing.T) {
 			svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, tc.state)
 			configureConfig(t, cfg)
 			for _, mod := range tc.initialMods {
-				reg.AddInstalledMod(mod.ID, mod.Version, false)
+				reg.AddInstalledMod(mod.ID, mod.Version, false, nil)
 			}
 			for _, m := range tc.initialMaps {
 				reg.AddInstalledMap(m.ID, m.Version, false, m.MapConfig)

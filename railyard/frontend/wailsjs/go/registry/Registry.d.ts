@@ -5,7 +5,7 @@ import {context} from '../models';
 
 export function AddInstalledMap(arg1:string,arg2:string,arg3:boolean,arg4:types.ConfigData):Promise<void>;
 
-export function AddInstalledMod(arg1:string,arg2:string,arg3:boolean):Promise<void>;
+export function AddInstalledMod(arg1:string,arg2:string,arg3:boolean,arg4:types.MetroMakerModManifest):Promise<void>;
 
 export function BootstrapInstalledStateFromProfile(arg1:types.UserProfile):Promise<void>;
 

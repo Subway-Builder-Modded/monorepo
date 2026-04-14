@@ -19,7 +19,6 @@ import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
   DEFAULT_SORT_STATE,
-  filterVisibleListingValues,
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
@@ -159,13 +158,10 @@ function BrowsePageContent({
     [maps],
   );
 
-  const {
-    modTagCounts,
-    mapLocationCounts,
-    mapSourceQualityCounts,
-    mapLevelOfDetailCounts,
-    mapSpecialDemandCounts,
-  } = useMemo(() => buildAssetListingCounts(mods, maps), [mods, maps]);
+  const availableDimCounts = useMemo(
+    () => buildAssetListingCounts(mods, maps),
+    [mods, maps],
+  );
 
   useEffect(() => {
     ensureDownloadTotals();
@@ -184,6 +180,7 @@ function BrowsePageContent({
     setFilters,
     setType,
     setPage,
+    dimCounts: filteredDimCounts,
   } = useFilteredItems({ mods, maps, modDownloadTotals, mapDownloadTotals });
 
   const sortFieldOptions = useMemo(
@@ -321,19 +318,18 @@ function BrowsePageContent({
             onTypeChange={setType}
             availableTags={allTags}
             availableSpecialDemand={availableSpecialDemand}
-            modTagCounts={modTagCounts}
-            mapLocationCounts={mapLocationCounts}
-            mapSourceQualityCounts={mapSourceQualityCounts}
-            mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-            mapSpecialDemandCounts={mapSpecialDemandCounts}
-            modCount={mods.length}
-            mapCount={maps.length}
+            dimCounts={{
+              current: filteredDimCounts,
+              available: availableDimCounts,
+            }}
+            modCount={filteredDimCounts.modCount}
+            mapCount={filteredDimCounts.mapCount}
             locationValues={LOCATION_TAGS}
             sourceQualityValues={SOURCE_QUALITY_VALUES}
             levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
             formatSourceQuality={formatSourceQuality}
-            filterVisibleListingValues={filterVisibleListingValues}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
+            minimumVisibleOptions={2}
           />
         ),
       }}

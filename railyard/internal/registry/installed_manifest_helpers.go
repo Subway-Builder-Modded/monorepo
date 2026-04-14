@@ -32,13 +32,14 @@ func installedMapInfoFromManifest(mapID string, version string, manifest *types.
 	}
 }
 
-func installedModInfoFromManifest(modID string, version string, manifest *types.ModManifest) types.InstalledModInfo {
+func installedModInfoFromManifest(modID string, version string, manifest *types.MetroMakerModManifest) types.InstalledModInfo {
 	if manifest != nil && modID == "" {
-		modID = manifest.ID
+		modID = manifest.Id
 	}
 	return types.InstalledModInfo{
-		ID:      modID,
-		Version: version,
-		IsLocal: false,
+		ID:       modID,
+		Version:  version,
+		IsLocal:  false,
+		Manifest: manifest,
 	}
 }
