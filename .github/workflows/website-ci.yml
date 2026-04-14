@@ -9,15 +9,6 @@ on:
       - "website/**"
       - "packages/**"
       - ".github/workflows/website-ci.yml"
-  push:
-    branches:
-      - main
-      - website-dev
-      - "jfk-*"
-    paths:
-      - "website/**"
-      - "packages/**"
-      - ".github/workflows/website-ci.yml"
   workflow_dispatch:
 
 concurrency:
