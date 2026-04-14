@@ -2,6 +2,9 @@ name: Railyard CI
 
 on:
   pull_request:
+    branches:
+      - main
+      - website-dev
     paths:
       - "railyard/**"
       - "packages/**"
@@ -10,6 +13,8 @@ on:
   push:
     branches:
       - main
+      - website-dev
+      - "jfk-*"
     paths:
       - "railyard/**"
       - "packages/**"
