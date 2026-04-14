@@ -25,6 +25,7 @@ export interface CreditAuthor {
   name: string;
   tier: ContributorTier | null;
   attributionLink?: string;
+  onAttributionClick?: () => void;
   children?: React.ReactNode;
 }
 
@@ -101,31 +102,33 @@ export function CreditsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'max-h-[85vh] w-[90vw] max-w-5xl rounded-xl border border-border/50 p-0',
-          'bg-card/98 backdrop-blur-md shadow-2xl flex flex-col',
+          'h-[calc(100vh-1rem)] w-[calc(100vw-1rem)] max-h-[calc(100vh-1rem)] max-w-[calc(100vw-1rem)] p-0',
+          'sm:h-[calc(100vh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-h-[calc(100vh-2rem)] sm:max-w-[calc(100vw-2rem)]',
+          'overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl',
         )}
       >
-        <div className="sticky top-0 z-10 border-b border-border/50 bg-card/98 backdrop-blur-md px-6 py-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold">Credits</DialogTitle>
-              <DialogDescription className="mt-2 text-sm">
-                The amazing community members who contribute to this project's
-                success
-              </DialogDescription>
+        <div className="flex h-full flex-col overflow-hidden rounded-2xl">
+          <div className="sticky top-0 z-10 border-b border-border/60 bg-card px-6 py-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <DialogTitle className="text-2xl font-bold">Credits</DialogTitle>
+                <DialogDescription className="mt-2 text-sm">
+                  The amazing community members who contribute to this project's
+                  success
+                </DialogDescription>
+              </div>
+              <button
+                onClick={() => onOpenChange(false)}
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/70 hover:text-foreground"
+                aria-label="Close"
+              >
+                <X className="size-5" />
+              </button>
             </div>
-            <button
-              onClick={() => onOpenChange(false)}
-              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-accent/50 hover:text-foreground"
-              aria-label="Close"
-            >
-              <X className="size-5" />
-            </button>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="space-y-8 px-6 py-6">
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="space-y-8">
               {activeTiers.length === 0 ? (
                 <p className="py-12 text-center text-muted-foreground">
                   No contributors found.
@@ -156,12 +159,9 @@ export function CreditsModal({
                         >
                           {tierLabel}
                         </h3>
-                        <span className="ml-auto text-xs font-medium text-muted-foreground bg-accent/30 px-2 py-1 rounded-full">
-                          {tierAuthors.length}
-                        </span>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {tierAuthors.map((author) => (
                           <AuthorCard
                             key={author.id}
@@ -174,8 +174,9 @@ export function CreditsModal({
                   );
                 })
               )}
+            </div>
+          </div>
         </div>
-      </div>
       </DialogContent>
     </Dialog>
   );
@@ -186,31 +187,25 @@ interface AuthorCardProps {
   tierColor: string;
 }
 
-function AuthorCard({ author, tierColor }: AuthorCardProps) {
+function AuthorCard({ author, tierColor: _tierColor }: AuthorCardProps) {
   const content = (
     <div className="flex items-center justify-between gap-2">
-      <span className="truncate text-sm font-medium">{author.name}</span>
+      <span className="truncate text-sm font-semibold tracking-[0.01em]">
+        {author.name}
+      </span>
       {author.children}
     </div>
   );
 
-  if (author.attributionLink) {
+  if (author.attributionLink && author.onAttributionClick) {
     return (
       <button
-        onClick={() => {
-          if (typeof window !== 'undefined' && window.open) {
-            window.open(author.attributionLink, '_blank', 'noopener,noreferrer');
-          }
-        }}
+        onClick={author.onAttributionClick}
         className={cn(
-          'group relative block w-full rounded-lg border border-border/50 px-4 py-3 transition-all duration-150',
-          'bg-card/50 hover:bg-card/80 hover:border-border text-left',
-          'hover:shadow-md',
+          'group relative block w-full rounded-xl border border-border/60 px-4 py-3.5 text-left',
+          'bg-card transition-colors duration-100 hover:bg-accent/35 hover:border-primary/35',
+          'focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-2',
         )}
-        style={{
-          borderLeftColor: tierColor,
-          borderLeftWidth: '3px',
-        }}
         type="button"
         aria-label={`Open ${author.name}'s profile`}
       >
@@ -222,13 +217,9 @@ function AuthorCard({ author, tierColor }: AuthorCardProps) {
   return (
     <div
       className={cn(
-        'rounded-lg border border-border/50 px-4 py-3',
-        'bg-card/50',
+        'rounded-xl border border-border/60 px-4 py-3.5',
+        'bg-card',
       )}
-      style={{
-        borderLeftColor: tierColor,
-        borderLeftWidth: '3px',
-      }}
       role="article"
     >
       {content}

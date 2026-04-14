@@ -1,3 +1,5 @@
+import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
+
 import {
   type CreditAuthor,
   CreditsModal,
@@ -72,6 +74,9 @@ export function RailyardCreditsModal({
       name: author.author_alias || author.author_id,
       tier,
       attributionLink: author.attribution_link || undefined,
+      onAttributionClick: author.attribution_link
+        ? () => BrowserOpenURL(author.attribution_link)
+        : undefined,
     }),
   );
 
