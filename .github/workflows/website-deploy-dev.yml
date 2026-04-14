@@ -52,9 +52,6 @@ jobs:
     defaults:
       run:
         working-directory: website-dev
-    env:
-      CLOUDFLARE_ZONE_TAG: ${{ secrets.CLOUDFLARE_ZONE_TAG }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
     steps:
       - name: Checkout source repo
         uses: actions/checkout@v4
@@ -83,32 +80,7 @@ jobs:
         working-directory: .
         run: pnpm install --frozen-lockfile
 
-      - name: Verify analytics secrets
-        shell: bash
-        run: |
-          zone_present=no
-          token_present=no
-
-          if [ -n "${CLOUDFLARE_ZONE_TAG}${CLOUDFLARE_ZONE_ID}" ]; then
-            zone_present=yes
-          fi
-
-          if [ -n "${CLOUDFLARE_API_TOKEN}${CLOUDFLARE_TOKEN}${CF_API_TOKEN}" ]; then
-            token_present=yes
-          fi
-
-          echo "Cloudflare zone present: ${zone_present}"
-          echo "Cloudflare token present: ${token_present}"
-
-      - name: Generate analytics and caches
-        env:
-          WEBSITE_PATH_SOURCE_DIR: ${{ github.workspace }}/website-dev/build/client
-          RAILYARD_GITHUB_TOKEN: ${{ secrets.RAILYARD_GITHUB_TOKEN }}
-        run: pnpm --dir website-dev run analytics
-
       - name: Build
-        env:
-          RAILYARD_GITHUB_TOKEN: ${{ secrets.RAILYARD_GITHUB_TOKEN }}
         run: pnpm run build
 
       - name: Deploy (dev)
