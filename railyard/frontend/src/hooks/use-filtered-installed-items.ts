@@ -5,10 +5,7 @@ import {
 } from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 
-import {
-  buildSearchText,
-  type TaggedItemFilterState,
-} from '@/hooks/use-filtered-items';
+import { buildSearchText } from '@/hooks/use-filtered-items';
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
 import { compareItems } from '@/lib/tagged-items';
 import { useLibraryStore } from '@/stores/library-store';
@@ -55,17 +52,11 @@ export function useFilteredInstalledItems({
   const filtered = useMemo(() => {
     const result = filterAndSortTaggedItems({
       items,
-      filters: filters as TaggedItemFilterState,
+      filters,
       modDownloadTotals,
       mapDownloadTotals,
       compareItems: (left, right, sort, nextModTotals, nextMapTotals) =>
-        compareItems(
-          left,
-          right,
-          sort as TaggedItemFilterState['sort'],
-          nextModTotals,
-          nextMapTotals,
-        ),
+        compareItems(left, right, sort, nextModTotals, nextMapTotals),
       fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
       accessors: {
         buildSearchText,
