@@ -1,4 +1,7 @@
 import {
+  getWebsiteDevBreadcrumbLabel,
+  WEBSITE_DEV_FOOTER_INTERNAL_GROUP,
+  WEBSITE_DEV_FOOTER_SUITE_GROUP,
   WEBSITE_DEV_COMMUNITY_LINKS,
   WEBSITE_DEV_SUITES,
   getWebsiteDevSuiteById,
@@ -10,6 +13,7 @@ import {
 } from "@subway-builder-modded/config";
 
 export { WEBSITE_DEV_COMMUNITY_LINKS, WEBSITE_DEV_SUITES };
+export { WEBSITE_DEV_FOOTER_INTERNAL_GROUP, WEBSITE_DEV_FOOTER_SUITE_GROUP };
 
 export type SiteSuite = WebsiteDevSuiteConfig;
 export type SiteSuiteId = WebsiteDevSuiteId;
@@ -27,6 +31,6 @@ export function getActiveSuiteItem(pathname: string, suiteId?: SiteSuiteId): Sit
   return resolveWebsiteDevSuiteItem(pathname, suiteId);
 }
 
-export function getBreadcrumbLabel(item: SiteSuiteNavItem): string {
-  return item.breadcrumb.join(" / ");
+export function getBreadcrumbLabel(pathname: string, suiteId?: SiteSuiteId): string {
+  return getWebsiteDevBreadcrumbLabel(pathname, suiteId);
 }

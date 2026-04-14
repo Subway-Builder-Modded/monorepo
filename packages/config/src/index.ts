@@ -13,6 +13,9 @@ export {
 } from './navbar/content';
 export { isNavItemActive, isRouteMatch } from './navbar/route-match';
 export {
+	getWebsiteDevBreadcrumbLabel,
+	WEBSITE_DEV_FOOTER_INTERNAL_GROUP,
+	WEBSITE_DEV_FOOTER_SUITE_GROUP,
 	WEBSITE_DEV_COMMUNITY_LINKS,
 	WEBSITE_DEV_SUITES,
 	getWebsiteDevSuiteById,
@@ -21,6 +24,7 @@ export {
 	resolveWebsiteDevSuiteItem,
 	type WebsiteDevColorSchemeId,
 	type WebsiteDevCommunityLink,
+	type WebsiteDevFooterLinkGroup,
 	type WebsiteDevIconKey,
 	type WebsiteDevRouteMatchRule,
 	type WebsiteDevSuiteAccent,

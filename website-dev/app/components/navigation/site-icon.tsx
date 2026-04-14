@@ -1,5 +1,17 @@
 import type { WebsiteDevIconKey } from "@subway-builder-modded/config";
-import { Circle, Database, Github, Globe, LayoutGrid, TrainTrack, Waypoints } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  Circle,
+  Component,
+  Compass,
+  Database,
+  Github,
+  Globe,
+  LayoutGrid,
+  PanelsTopLeft,
+  TrainTrack,
+  Waypoints,
+} from "lucide-react";
 import { FaDiscord } from "react-icons/fa6";
 import { cn } from "@/app/lib/utils";
 
@@ -54,6 +66,14 @@ export function SiteIcon({ iconKey, className }: SiteIconProps) {
       return <FaDiscord className={cn("size-4", className)} aria-hidden="true" />;
     case "overview":
       return <Waypoints className={className} aria-hidden="true" />;
+    case "browse":
+      return <Compass className={className} aria-hidden="true" />;
+    case "directory":
+      return <PanelsTopLeft className={className} aria-hidden="true" />;
+    case "blueprint":
+      return <Component className={className} aria-hidden="true" />;
+    case "metrics":
+      return <ChartNoAxesCombined className={className} aria-hidden="true" />;
     default:
       return <Circle className={className} aria-hidden="true" />;
   }

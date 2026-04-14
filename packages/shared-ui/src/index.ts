@@ -135,6 +135,12 @@ export {
   TooltipTrigger,
 } from './components/tooltip';
 export {
+  ShellDropdown,
+  type ShellDropdownOption,
+} from './components/shell-dropdown';
+export { ShellNavCard } from './components/shell-nav-card';
+export { ShellFooter } from './components/shell-footer';
+export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,
   getToneVarsClass,

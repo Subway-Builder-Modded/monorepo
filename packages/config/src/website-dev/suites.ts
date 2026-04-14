@@ -1,5 +1,5 @@
 export type WebsiteDevSuiteId =
-  | "general"
+  | "subway-builder-modded"
   | "railyard"
   | "registry"
   | "template-mod"
@@ -19,6 +19,10 @@ export type WebsiteDevIconKey =
   | "template-mod"
   | "website"
   | "overview"
+  | "browse"
+  | "directory"
+  | "blueprint"
+  | "metrics"
   | "github"
   | "discord";
 
@@ -33,7 +37,7 @@ export type WebsiteDevSuiteNavItem = {
   description: string;
   href: string;
   iconKey: WebsiteDevIconKey;
-  breadcrumb: string[];
+  breadcrumb: string;
   activeMatchRules?: WebsiteDevRouteMatchRule[];
 };
 
@@ -51,10 +55,7 @@ export type WebsiteDevSuiteConfig = {
   iconKey: WebsiteDevIconKey;
   colorSchemeId: WebsiteDevColorSchemeId;
   accent: WebsiteDevSuiteAccent;
-  lineMarker: {
-    line: string;
-    label: string;
-  };
+  breadcrumbFallback: string;
   items: WebsiteDevSuiteNavItem[];
 };
 
@@ -63,6 +64,16 @@ export type WebsiteDevCommunityLink = {
   title: string;
   href: string;
   iconKey: WebsiteDevIconKey;
+};
+
+export type WebsiteDevFooterLinkGroup = {
+  id: string;
+  title: string;
+  links: Array<{
+    id: string;
+    title: string;
+    href: string;
+  }>;
 };
 
 const GENERAL_ACCENT: WebsiteDevSuiteAccent = {
@@ -74,26 +85,46 @@ const GENERAL_ACCENT: WebsiteDevSuiteAccent = {
 
 export const WEBSITE_DEV_SUITES: WebsiteDevSuiteConfig[] = [
   {
-    id: "general",
+    id: "subway-builder-modded",
     title: "Subway Builder Modded",
     href: "/",
     iconKey: "logo",
     colorSchemeId: "default",
     accent: GENERAL_ACCENT,
-    lineMarker: {
-      line: "0",
-      label: "Line 0",
-    },
+    breadcrumbFallback: "Home",
     items: [
       {
-        id: "general-home",
+        id: "home",
         title: "Home",
-        description:
-          "Modernized suite gateway with signage-inspired navigation and design-system previews.",
+        description: "Main gateway for the Subway Builder Modded ecosystem.",
         href: "/",
         iconKey: "overview",
-        breadcrumb: ["Home"],
+        breadcrumb: "Home",
         activeMatchRules: [{ kind: "exact", path: "/" }],
+      },
+      {
+        id: "go-railyard",
+        title: "Railyard",
+        description: "Downloads, release updates, and distribution channels.",
+        href: "/railyard",
+        iconKey: "railyard",
+        breadcrumb: "Browse",
+      },
+      {
+        id: "go-registry",
+        title: "Registry",
+        description: "Discover packages and ecosystem metadata.",
+        href: "/registry",
+        iconKey: "directory",
+        breadcrumb: "Directory",
+      },
+      {
+        id: "go-template-mod",
+        title: "Template Mod",
+        description: "Start projects with production-ready templates.",
+        href: "/template-mod",
+        iconKey: "blueprint",
+        breadcrumb: "Start",
       },
     ],
   },
@@ -109,20 +140,40 @@ export const WEBSITE_DEV_SUITES: WebsiteDevSuiteConfig[] = [
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
     },
-    lineMarker: {
-      line: "1",
-      label: "Line 1",
-    },
+    breadcrumbFallback: "Overview",
     items: [
       {
         id: "railyard-overview",
         title: "Overview",
-        description:
-          "Download flows, release rail, and project operations for the Railyard suite.",
+        description: "Suite landing with release and operations entry points.",
         href: "/railyard",
         iconKey: "overview",
-        breadcrumb: ["Overview"],
+        breadcrumb: "Overview",
         activeMatchRules: [{ kind: "prefix", path: "/railyard" }],
+      },
+      {
+        id: "railyard-browse",
+        title: "Browse",
+        description: "Inspect active channels and currently tracked modules.",
+        href: "/railyard",
+        iconKey: "browse",
+        breadcrumb: "Browse",
+      },
+      {
+        id: "railyard-registry",
+        title: "Registry",
+        description: "Jump to package metadata and index coverage.",
+        href: "/registry",
+        iconKey: "registry",
+        breadcrumb: "Directory",
+      },
+      {
+        id: "railyard-template-mod",
+        title: "Template Mod",
+        description: "Open template assets and starter scaffolds.",
+        href: "/template-mod",
+        iconKey: "template-mod",
+        breadcrumb: "Templates",
       },
     ],
   },
@@ -138,20 +189,40 @@ export const WEBSITE_DEV_SUITES: WebsiteDevSuiteConfig[] = [
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
     },
-    lineMarker: {
-      line: "2",
-      label: "Line 2",
-    },
+    breadcrumbFallback: "Overview",
     items: [
       {
         id: "registry-overview",
         title: "Overview",
-        description:
-          "Analytics and metadata operations for the global Subway Builder Modded registry.",
+        description: "Core index context for the Registry suite.",
         href: "/registry",
         iconKey: "overview",
-        breadcrumb: ["Overview"],
+        breadcrumb: "Overview",
         activeMatchRules: [{ kind: "prefix", path: "/registry" }],
+      },
+      {
+        id: "registry-browse",
+        title: "Browse",
+        description: "Scan categories and package records quickly.",
+        href: "/registry",
+        iconKey: "browse",
+        breadcrumb: "Browse",
+      },
+      {
+        id: "registry-railyard",
+        title: "Railyard",
+        description: "See release channels and package delivery state.",
+        href: "/railyard",
+        iconKey: "railyard",
+        breadcrumb: "Releases",
+      },
+      {
+        id: "registry-website",
+        title: "Website",
+        description: "Open platform-level pages and metrics context.",
+        href: "/website",
+        iconKey: "website",
+        breadcrumb: "Metrics",
       },
     ],
   },
@@ -167,20 +238,40 @@ export const WEBSITE_DEV_SUITES: WebsiteDevSuiteConfig[] = [
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
     },
-    lineMarker: {
-      line: "3",
-      label: "Line 3",
-    },
+    breadcrumbFallback: "Overview",
     items: [
       {
         id: "template-mod-overview",
         title: "Overview",
-        description:
-          "Starter architecture and compatibility surface for rapid Subway Builder mod authoring.",
+        description: "Primary launch point for template module workflows.",
         href: "/template-mod",
         iconKey: "overview",
-        breadcrumb: ["Overview"],
+        breadcrumb: "Overview",
         activeMatchRules: [{ kind: "prefix", path: "/template-mod" }],
+      },
+      {
+        id: "template-mod-blueprints",
+        title: "Blueprints",
+        description: "Reusable structure and starter package guidance.",
+        href: "/template-mod",
+        iconKey: "blueprint",
+        breadcrumb: "Blueprints",
+      },
+      {
+        id: "template-mod-registry",
+        title: "Registry",
+        description: "Locate published packages and compatibility ranges.",
+        href: "/registry",
+        iconKey: "registry",
+        breadcrumb: "Directory",
+      },
+      {
+        id: "template-mod-railyard",
+        title: "Railyard",
+        description: "Check release rails and distribution updates.",
+        href: "/railyard",
+        iconKey: "railyard",
+        breadcrumb: "Releases",
       },
     ],
   },
@@ -196,20 +287,40 @@ export const WEBSITE_DEV_SUITES: WebsiteDevSuiteConfig[] = [
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
     },
-    lineMarker: {
-      line: "4",
-      label: "Line 4",
-    },
+    breadcrumbFallback: "Overview",
     items: [
       {
         id: "website-overview",
         title: "Overview",
-        description:
-          "Design-system governance, launch quality, and publishing operations for the website.",
+        description: "Top-level website suite context and navigation.",
         href: "/website",
         iconKey: "overview",
-        breadcrumb: ["Overview"],
+        breadcrumb: "Overview",
         activeMatchRules: [{ kind: "prefix", path: "/website" }],
+      },
+      {
+        id: "website-metrics",
+        title: "Metrics",
+        description: "Track platform health and visibility signals.",
+        href: "/website",
+        iconKey: "metrics",
+        breadcrumb: "Metrics",
+      },
+      {
+        id: "website-railyard",
+        title: "Railyard",
+        description: "Open release and delivery context for ecosystem apps.",
+        href: "/railyard",
+        iconKey: "railyard",
+        breadcrumb: "Releases",
+      },
+      {
+        id: "website-registry",
+        title: "Registry",
+        description: "Navigate to indexed package records and metadata.",
+        href: "/registry",
+        iconKey: "registry",
+        breadcrumb: "Directory",
       },
     ],
   },
@@ -230,8 +341,30 @@ export const WEBSITE_DEV_COMMUNITY_LINKS: WebsiteDevCommunityLink[] = [
   },
 ];
 
+export const WEBSITE_DEV_FOOTER_SUITE_GROUP: WebsiteDevFooterLinkGroup = {
+  id: "suite-navigation",
+  title: "Suites",
+  links: WEBSITE_DEV_SUITES.map((suite) => ({
+    id: suite.id,
+    title: suite.title,
+    href: suite.href,
+  })),
+};
+
+export const WEBSITE_DEV_FOOTER_INTERNAL_GROUP: WebsiteDevFooterLinkGroup = {
+  id: "internal-suite-links",
+  title: "Internal",
+  links: [
+    { id: "home", title: "Home", href: "/" },
+    { id: "railyard", title: "Railyard", href: "/railyard" },
+    { id: "registry", title: "Registry", href: "/registry" },
+    { id: "template-mod", title: "Template Mod", href: "/template-mod" },
+    { id: "website", title: "Website", href: "/website" },
+  ],
+};
+
 const SUITE_BY_ID: Record<WebsiteDevSuiteId, WebsiteDevSuiteConfig> = {
-  general: WEBSITE_DEV_SUITES[0],
+  "subway-builder-modded": WEBSITE_DEV_SUITES[0],
   railyard: WEBSITE_DEV_SUITES[1],
   registry: WEBSITE_DEV_SUITES[2],
   "template-mod": WEBSITE_DEV_SUITES[3],
@@ -274,13 +407,13 @@ export function resolveWebsiteDevSuite(pathname: string): WebsiteDevSuiteConfig 
   const normalized = normalizePathname(pathname);
 
   for (const suite of WEBSITE_DEV_SUITES) {
-    if (suite.id === "general") continue;
+    if (suite.id === "subway-builder-modded") continue;
     if (normalized === suite.href || normalized.startsWith(`${suite.href}/`)) {
       return suite;
     }
   }
 
-  return SUITE_BY_ID.general;
+  return SUITE_BY_ID["subway-builder-modded"];
 }
 
 export function resolveWebsiteDevSuiteItem(
@@ -309,4 +442,15 @@ export function resolveWebsiteDevSuiteItem(
   }
 
   return suite.items[0];
+}
+
+export function getWebsiteDevBreadcrumbLabel(
+  pathname: string,
+  suiteId?: WebsiteDevSuiteId,
+): string {
+  const suite = suiteId
+    ? getWebsiteDevSuiteById(suiteId)
+    : resolveWebsiteDevSuite(pathname);
+
+  return resolveWebsiteDevSuiteItem(pathname, suite.id)?.breadcrumb ?? suite.breadcrumbFallback;
 }
