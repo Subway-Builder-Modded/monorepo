@@ -43,7 +43,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run quality control checks
-        run: pnpm run check || exit 0
+        run: pnpm run check
 
   deploy:
     name: Deploy site (dev)
@@ -58,8 +58,6 @@ jobs:
     steps:
       - name: Checkout source repo
         uses: actions/checkout@v4
-        with:
-          ref: website-dev
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
