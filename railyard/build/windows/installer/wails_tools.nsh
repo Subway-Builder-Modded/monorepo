@@ -150,19 +150,30 @@ RequestExecutionLevel "${REQUEST_EXECUTION_LEVEL}"
     !endif
 
     SetRegView 64
-	# If the admin key exists and is not empty then webview2 is already installed
+	# Check both system-wide and per-user runtime installs before invoking
+	# the bootstrapper. Elevated installers can still run on machines where
+	# WebView2 was previously installed per-user only.
 	ReadRegStr $0 HKLM "SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
     ${If} $0 != ""
         Goto ok
     ${EndIf}
 
-    ${If} ${REQUEST_EXECUTION_LEVEL} == "user"
-        # If the installer is run in user level, check the user specific key exists and is not empty then webview2 is already installed
-	    ReadRegStr $0 HKCU "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
-        ${If} $0 != ""
-            Goto ok
-        ${EndIf}
-     ${EndIf}
+	ReadRegStr $0 HKLM "SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
+    ${If} $0 != ""
+        Goto ok
+    ${EndIf}
+
+	ReadRegStr $0 HKCU "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
+    ${If} $0 != ""
+        Goto ok
+    ${EndIf}
+
+    SetRegView 32
+	ReadRegStr $0 HKCU "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
+    ${If} $0 != ""
+        Goto ok
+    ${EndIf}
+    SetRegView 64
 
 	SetDetailsPrint both
     DetailPrint "${WAILS_INSTALL_WEBVIEW_DETAILPRINT}"
