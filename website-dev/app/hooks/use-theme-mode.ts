@@ -1,34 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-const STORAGE_KEY = "sbm-website-dev-theme";
+const STORAGE_KEY = "sbm-site-theme";
 
-export type ThemeMode = "light" | "dark" | "system";
-
-type LegacyMediaQueryList = MediaQueryList & {
-  addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
-  removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
-};
-
-function subscribeMediaQuery(
-  media: MediaQueryList,
-  listener: (event: MediaQueryListEvent) => void,
-) {
-  const legacyMedia = media as LegacyMediaQueryList;
-
-  if (typeof media.addEventListener === "function") {
-    media.addEventListener("change", listener);
-    return () => media.removeEventListener("change", listener);
-  }
-
-  if (typeof legacyMedia.addListener === "function") {
-    legacyMedia.addListener(listener);
-    return () => {
-      legacyMedia.removeListener?.(listener);
-    };
-  }
-
-  return () => {};
-}
+export type ThemeMode = "light" | "dark";
 
 function getSystemPrefersDark() {
   if (typeof window === "undefined") {
@@ -39,9 +13,7 @@ function getSystemPrefersDark() {
 }
 
 function resolveIsDark(theme: ThemeMode): boolean {
-  if (theme === "dark") return true;
-  if (theme === "light") return false;
-  return getSystemPrefersDark();
+  return theme === "dark";
 }
 
 function applyTheme(theme: ThemeMode) {
@@ -56,7 +28,7 @@ function applyTheme(theme: ThemeMode) {
 }
 
 export function useThemeMode() {
-  const [theme, setThemeState] = useState<ThemeMode>("system");
+  const [theme, setThemeState] = useState<ThemeMode>(getSystemPrefersDark() ? "dark" : "light");
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -64,13 +36,15 @@ export function useThemeMode() {
     }
 
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark" || stored === "system") {
+    if (stored === "light" || stored === "dark") {
       setThemeState(stored);
       applyTheme(stored);
       return;
     }
 
-    applyTheme("system");
+    const fallbackTheme: ThemeMode = getSystemPrefersDark() ? "dark" : "light";
+    setThemeState(fallbackTheme);
+    applyTheme(fallbackTheme);
   }, []);
 
   useEffect(() => {
@@ -79,14 +53,6 @@ export function useThemeMode() {
     }
 
     applyTheme(theme);
-
-    if (theme !== "system") {
-      return;
-    }
-
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const listener = () => applyTheme("system");
-    return subscribeMediaQuery(media, listener);
   }, [theme]);
 
   const setTheme = useCallback((nextTheme: ThemeMode) => {
@@ -100,9 +66,7 @@ export function useThemeMode() {
     applyTheme(nextTheme);
   }, []);
 
-  const resolvedTheme = useMemo<"light" | "dark">(() => {
-    return resolveIsDark(theme) ? "dark" : "light";
-  }, [theme]);
+  const resolvedTheme = useMemo<"light" | "dark">(() => theme, [theme]);
 
   return {
     theme,
@@ -118,7 +82,7 @@ export function initializeThemeFromStorage() {
 
   const stored = window.localStorage.getItem(STORAGE_KEY);
   const theme: ThemeMode =
-    stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+    stored === "light" || stored === "dark" ? stored : getSystemPrefersDark() ? "dark" : "light";
 
   applyTheme(theme);
 }
@@ -128,8 +92,10 @@ export function getThemeBootScript() {
 (function () {
   var storageKey = "${STORAGE_KEY}";
   var stored = window.localStorage.getItem(storageKey);
-  var theme = stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
-  var isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  var theme = stored === "light" || stored === "dark"
+    ? stored
+    : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  var isDark = theme === "dark";
   document.documentElement.classList.toggle("dark", isDark);
   document.documentElement.dataset.theme = theme;
 })();

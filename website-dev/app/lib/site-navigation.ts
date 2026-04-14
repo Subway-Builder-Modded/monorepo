@@ -1,36 +1,34 @@
 import {
-  getWebsiteDevBreadcrumbLabel,
-  WEBSITE_DEV_FOOTER_INTERNAL_GROUP,
-  WEBSITE_DEV_FOOTER_SUITE_GROUP,
-  WEBSITE_DEV_COMMUNITY_LINKS,
-  WEBSITE_DEV_SUITES,
-  getWebsiteDevSuiteById,
-  resolveWebsiteDevSuite,
-  resolveWebsiteDevSuiteItem,
-  type WebsiteDevSuiteConfig,
-  type WebsiteDevSuiteId,
-  type WebsiteDevSuiteNavItem,
+  getSiteBreadcrumbLabel,
+  SITE_COMMUNITY_LINKS,
+  SITE_FOOTER_INTERNAL_GROUP,
+  SITE_SUITES,
+  getSiteSuiteById,
+  resolveSiteSuite,
+  resolveSiteSuiteItem,
+  type SiteSuiteConfig as ConfigSiteSuite,
+  type SiteSuiteId as ConfigSiteSuiteId,
+  type SiteSuiteNavItem as ConfigSiteSuiteNavItem,
 } from "@subway-builder-modded/config";
 
-export { WEBSITE_DEV_COMMUNITY_LINKS, WEBSITE_DEV_SUITES };
-export { WEBSITE_DEV_FOOTER_INTERNAL_GROUP, WEBSITE_DEV_FOOTER_SUITE_GROUP };
+export { SITE_COMMUNITY_LINKS, SITE_FOOTER_INTERNAL_GROUP, SITE_SUITES };
 
-export type SiteSuite = WebsiteDevSuiteConfig;
-export type SiteSuiteId = WebsiteDevSuiteId;
-export type SiteSuiteNavItem = WebsiteDevSuiteNavItem;
+export type SiteSuite = ConfigSiteSuite;
+export type SiteSuiteId = ConfigSiteSuiteId;
+export type SiteSuiteNavItem = ConfigSiteSuiteNavItem;
 
 export function getSuiteById(id: SiteSuiteId): SiteSuite {
-  return getWebsiteDevSuiteById(id);
+  return getSiteSuiteById(id);
 }
 
 export function getActiveSuite(pathname: string): SiteSuite {
-  return resolveWebsiteDevSuite(pathname);
+  return resolveSiteSuite(pathname);
 }
 
 export function getActiveSuiteItem(pathname: string, suiteId?: SiteSuiteId): SiteSuiteNavItem {
-  return resolveWebsiteDevSuiteItem(pathname, suiteId);
+  return resolveSiteSuiteItem(pathname, suiteId);
 }
 
 export function getBreadcrumbLabel(pathname: string, suiteId?: SiteSuiteId): string {
-  return getWebsiteDevBreadcrumbLabel(pathname, suiteId);
+  return getSiteBreadcrumbLabel(pathname, suiteId);
 }

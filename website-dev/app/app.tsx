@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useLocation } from "@/app/lib/router";
+import { SiteShell } from "@/app/components/shell/site-shell";
 import HomePage from "@/app/routes/home";
 import RailyardPage from "@/app/routes/railyard";
 import RegistryPage from "@/app/routes/registry";
@@ -30,5 +31,9 @@ export default function App() {
     return HomePage;
   }, [pathname]);
 
-  return <Page />;
+  return (
+    <SiteShell>
+      <Page />
+    </SiteShell>
+  );
 }

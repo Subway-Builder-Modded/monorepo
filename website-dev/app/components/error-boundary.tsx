@@ -57,9 +57,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             background: "#1a1a1a",
           }}
         >
-          <h1 style={{ margin: "0 0 10px", fontSize: "20px", lineHeight: 1.3 }}>
-            Website-dev runtime error
-          </h1>
+          <h1 style={{ margin: "0 0 10px", fontSize: "20px", lineHeight: 1.3 }}>Runtime error</h1>
           <p style={{ margin: "0 0 12px", opacity: 0.86 }}>
             The app hit an error after load. This prevents the blackscreen and shows the failure
             reason so it can be fixed quickly.

@@ -1,9 +1,5 @@
 import { ShellFooter } from "@subway-builder-modded/shared-ui";
-import {
-  WEBSITE_DEV_COMMUNITY_LINKS,
-  WEBSITE_DEV_FOOTER_INTERNAL_GROUP,
-  WEBSITE_DEV_FOOTER_SUITE_GROUP,
-} from "@/app/lib/site-navigation";
+import { SITE_COMMUNITY_LINKS, SITE_FOOTER_INTERNAL_GROUP } from "@/app/lib/site-navigation";
 import { SiteIcon } from "@/app/components/navigation/site-icon";
 
 export function SiteFooter() {
@@ -14,11 +10,10 @@ export function SiteFooter() {
       brand={{
         icon: <SiteIcon iconKey="logo" className="size-6" />,
         title: "Subway Builder Modded",
-        description:
-          "Software-grade shell and wayfinding for the Subway Builder Modded suite ecosystem.",
+        description: "A unified hub for Subway Builder Modded suites and community services.",
       }}
-      groups={[WEBSITE_DEV_FOOTER_SUITE_GROUP, WEBSITE_DEV_FOOTER_INTERNAL_GROUP]}
-      externalLinks={WEBSITE_DEV_COMMUNITY_LINKS.map((link) => ({
+      groups={[SITE_FOOTER_INTERNAL_GROUP]}
+      externalLinks={SITE_COMMUNITY_LINKS.map((link) => ({
         id: link.id,
         title: link.title,
         href: link.href,

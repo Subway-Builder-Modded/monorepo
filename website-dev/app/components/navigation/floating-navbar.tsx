@@ -1,12 +1,12 @@
-import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/app/lib/router";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Menu, MonitorCog, MoonStar, Sun, X } from "lucide-react";
+import { Menu, MoonStar, Sun, X } from "lucide-react";
 import {
+  SITE_SUITES,
   getActiveSuiteItem,
   getBreadcrumbLabel,
   getSuiteById,
-  WEBSITE_DEV_SUITES,
 } from "@/app/lib/site-navigation";
 import { ShellDropdown, ShellNavCard } from "@subway-builder-modded/shared-ui";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
@@ -17,107 +17,97 @@ import { SiteIcon } from "./site-icon";
 type FloatingNavbarProps = {
   pathname: string;
   theme: ThemeMode;
-  resolvedTheme: "light" | "dark";
   setTheme: (theme: ThemeMode) => void;
 };
 
-const THEME_ORDER: ThemeMode[] = ["light", "dark", "system"];
+const CLOSE_DELAY_MS = 150;
 
 function getNextTheme(theme: ThemeMode): ThemeMode {
-  const currentIndex = THEME_ORDER.indexOf(theme);
-  const nextIndex = (currentIndex + 1) % THEME_ORDER.length;
-  return THEME_ORDER[nextIndex];
+  return theme === "light" ? "dark" : "light";
 }
 
-function ThemeIcon({ theme }: { theme: ThemeMode }) {
-  if (theme === "light") {
-    return <Sun className="size-4" aria-hidden="true" />;
-  }
-
-  if (theme === "dark") {
-    return <MoonStar className="size-4" aria-hidden="true" />;
-  }
-
-  return <MonitorCog className="size-4" aria-hidden="true" />;
-}
-
-export function FloatingNavbar({
-  pathname,
-  theme,
-  resolvedTheme,
-  setTheme,
-}: FloatingNavbarProps) {
+export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProps) {
   const prefersReducedMotion = useReducedMotion();
   const isMobile = useMediaQuery("(max-width: 960px)");
+  const closeTimerRef = useRef<number | null>(null);
 
   const realSuite = useMemo(() => {
     return (
-      WEBSITE_DEV_SUITES.find((suite) => {
-        return pathname === suite.href || pathname.startsWith(`${suite.href}/`);
-      }) ?? WEBSITE_DEV_SUITES[0]
+      SITE_SUITES.find(
+        (suite) => pathname === suite.href || pathname.startsWith(`${suite.href}/`),
+      ) ?? SITE_SUITES[0]
     );
   }, [pathname]);
 
   const [openSuiteId, setOpenSuiteId] = useState(realSuite.id);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const displayedSuite = isExpanded ? getSuiteById(openSuiteId) : realSuite;
+  const displayedSuite = isOpen ? getSuiteById(openSuiteId) : realSuite;
 
   const shownActiveItem = useMemo(() => {
     return getActiveSuiteItem(pathname, displayedSuite.id);
   }, [displayedSuite.id, pathname]);
 
   useEffect(() => {
-    setOpenSuiteId(realSuite.id);
-  }, [realSuite.id]);
+    if (!isOpen) {
+      setOpenSuiteId(realSuite.id);
+    }
+  }, [isOpen, realSuite.id]);
+
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearCloseTimer();
+    };
+  }, [clearCloseTimer]);
 
   const closeNavbar = useCallback(() => {
-    setIsExpanded(false);
+    clearCloseTimer();
+    setIsOpen(false);
     setIsPinned(false);
     setIsDropdownOpen(false);
     setOpenSuiteId(realSuite.id);
-  }, [realSuite.id]);
+  }, [clearCloseTimer, realSuite.id]);
 
-  const expandedBreadcrumb =
-    displayedSuite.id === "subway-builder-modded"
-      ? "Home"
-      : `${displayedSuite.title} / ${getBreadcrumbLabel(pathname, displayedSuite.id)}`;
+  const scheduleClose = useCallback(() => {
+    if (isMobile || isPinned) {
+      return;
+    }
 
-  useEffect(() => {
-    if (!isExpanded) return;
+    clearCloseTimer();
+    closeTimerRef.current = window.setTimeout(() => {
+      setIsOpen(false);
+      setIsDropdownOpen(false);
+      setOpenSuiteId(realSuite.id);
+      closeTimerRef.current = null;
+    }, CLOSE_DELAY_MS);
+  }, [clearCloseTimer, isMobile, isPinned, realSuite.id]);
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeNavbar();
-      }
-    };
+  const onInteractiveRegionEnter = useCallback(() => {
+    clearCloseTimer();
+    if (!isMobile) {
+      setIsOpen(true);
+    }
+  }, [clearCloseTimer, isMobile]);
 
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [closeNavbar, isExpanded]);
-
-  const onPointerEnter = useCallback(() => {
-    if (isMobile) return;
-    setIsExpanded(true);
-  }, [isMobile]);
-
-  const onPointerLeave = useCallback(() => {
-    if (isMobile || isPinned) return;
-    setIsExpanded(false);
-    setIsDropdownOpen(false);
-    setOpenSuiteId(realSuite.id);
-  }, [isMobile, isPinned, realSuite.id]);
+  const onInteractiveRegionLeave = useCallback(() => {
+    scheduleClose();
+  }, [scheduleClose]);
 
   const onMenuClick = useCallback(() => {
-    setIsExpanded(true);
+    clearCloseTimer();
+    setIsOpen(true);
     setIsPinned(true);
     setOpenSuiteId(realSuite.id);
-  }, [realSuite.id]);
+  }, [clearCloseTimer, realSuite.id]);
 
   const onSuiteChange = useCallback((suiteId: string) => {
     setOpenSuiteId(suiteId as typeof openSuiteId);
@@ -133,59 +123,79 @@ export function FloatingNavbar({
     setTheme(getNextTheme(theme));
   }, [setTheme, theme]);
 
-  const accentColor = resolvedTheme === "dark" ? displayedSuite.accent.dark : displayedSuite.accent.light;
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        closeNavbar();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [closeNavbar, isOpen]);
+
+  const accentColor = theme === "dark" ? displayedSuite.accent.dark : displayedSuite.accent.light;
   const accentContrast =
-    resolvedTheme === "dark"
+    theme === "dark"
       ? displayedSuite.accent.textInvertedDark
       : displayedSuite.accent.textInvertedLight;
+  const realAccent = theme === "dark" ? realSuite.accent.dark : realSuite.accent.light;
 
-  const realAccent = resolvedTheme === "dark" ? realSuite.accent.dark : realSuite.accent.light;
+  const barDuration = prefersReducedMotion ? 0 : 0.29;
+  const panelDuration = prefersReducedMotion ? 0 : 0.24;
+  const panelDelay = prefersReducedMotion ? 0 : 0.1;
 
-  const openDuration = prefersReducedMotion ? 0 : 0.26;
-
-  const suiteOptions = WEBSITE_DEV_SUITES.map((suite) => ({
+  const suiteOptions = SITE_SUITES.map((suite) => ({
     id: suite.id,
     label: suite.title,
     icon: <SiteIcon iconKey={suite.iconKey} className="size-4" />,
+    tone: {
+      color: theme === "dark" ? suite.accent.dark : suite.accent.light,
+      contrast: theme === "dark" ? suite.accent.textInvertedDark : suite.accent.textInvertedLight,
+    },
   }));
+
+  const breadcrumb = getBreadcrumbLabel(pathname, displayedSuite.id);
 
   return (
     <>
       <AnimatePresence>
-        {isExpanded ? (
+        {isOpen ? (
           <motion.button
-            key="shell-overlay"
+            key="navbar-overlay"
             type="button"
             aria-label="Close navigation"
-            className="fixed inset-0 z-40 bg-black/35"
+            className="fixed inset-0 z-40 bg-black/30"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: openDuration }}
+            transition={{ duration: panelDuration }}
             onClick={closeNavbar}
           />
         ) : null}
       </AnimatePresence>
 
-      <nav
-        aria-label="Site navigation"
-        onMouseEnter={onPointerEnter}
-        onMouseLeave={onPointerLeave}
-        className="fixed left-1/2 top-4 z-50 -translate-x-1/2"
-      >
+      <nav aria-label="Site navigation" className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
         <div
+          onPointerEnter={onInteractiveRegionEnter}
+          onPointerLeave={onInteractiveRegionLeave}
           className={cn(
-            "mx-auto transition-[width,border-radius] duration-300 ease-[cubic-bezier(.22,.9,.35,1)]",
-            isExpanded
+            "relative mx-auto pb-2 transition-[width] ease-[cubic-bezier(.22,.9,.35,1)]",
+            isOpen
               ? "w-[min(78rem,calc(100vw-1.5rem))]"
-              : "w-[min(24rem,calc(100vw-1rem))] sm:w-[min(38rem,calc(100vw-1.5rem))]",
+              : "w-[min(23.5rem,calc(100vw-1rem))] sm:w-[min(31rem,calc(100vw-1.5rem))]",
           )}
+          style={{ transitionDuration: `${barDuration * 1000}ms` }}
         >
           <div
             className={cn(
-              "rounded-[1.75rem] border border-[color:color-mix(in_srgb,var(--suite-accent)_42%,var(--border))]",
-              "bg-background px-3 shadow-[0_10px_32px_-24px_color-mix(in_srgb,var(--suite-accent)_58%,transparent)]",
-              isExpanded && "rounded-[1.2rem]",
+              "relative border-2 border-[color:color-mix(in_srgb,var(--suite-accent)_48%,var(--border))] bg-background px-3",
+              "shadow-[0_14px_32px_-24px_color-mix(in_srgb,var(--suite-accent)_56%,transparent)]",
+              isOpen ? "rounded-t-2xl rounded-b-none" : "rounded-full",
             )}
             style={
               {
@@ -194,9 +204,9 @@ export function FloatingNavbar({
               } as CSSProperties
             }
           >
-            <div className="grid h-14 grid-cols-[auto_1fr_auto] items-center gap-3">
-              <div className="min-w-0">
-                {isExpanded ? (
+            <div className="relative flex h-12 items-center">
+              <div className="min-w-0 max-w-[48%]">
+                {isOpen ? (
                   <ShellDropdown
                     options={suiteOptions}
                     selectedId={openSuiteId}
@@ -204,7 +214,8 @@ export function FloatingNavbar({
                     onOpenChange={setIsDropdownOpen}
                     onSelect={onSuiteChange}
                     triggerLabel="Select suite"
-                    className="text-[color:var(--suite-accent)]"
+                    className="text-[color:var(--suite-accent)] [&>button]:px-0"
+                    menuClassName="border-2"
                   />
                 ) : (
                   <div
@@ -217,21 +228,25 @@ export function FloatingNavbar({
                 )}
               </div>
 
-              <p className="truncate text-center text-sm text-muted-foreground">
-                {isExpanded ? expandedBreadcrumb : getBreadcrumbLabel(pathname, realSuite.id)}
+              <p className="pointer-events-none absolute left-1/2 max-w-[54%] -translate-x-1/2 truncate text-base font-semibold text-foreground">
+                {breadcrumb}
               </p>
 
-              <div className="flex items-center justify-end gap-1">
+              <div className="ml-auto flex items-center justify-end gap-1">
                 <button
                   type="button"
                   onClick={onThemeClick}
                   aria-label={`Switch theme. Current theme ${theme}`}
                   className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <ThemeIcon theme={theme} />
+                  {theme === "light" ? (
+                    <Sun className="size-4" aria-hidden="true" />
+                  ) : (
+                    <MoonStar className="size-4" aria-hidden="true" />
+                  )}
                 </button>
 
-                {isExpanded ? (
+                {isOpen ? (
                   <button
                     type="button"
                     aria-label="Close navigation"
@@ -255,14 +270,18 @@ export function FloatingNavbar({
           </div>
 
           <AnimatePresence>
-            {isExpanded ? (
+            {isOpen ? (
               <motion.div
                 key="suite-panel"
-                initial={{ opacity: 0, y: -8 }}
+                initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: openDuration }}
-                className="mt-2 rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--suite-accent)_42%,var(--border))] bg-background p-3.5 shadow-[0_16px_40px_-28px_rgba(0,0,0,0.48)]"
+                exit={{ opacity: 0, y: -10 }}
+                transition={{
+                  duration: panelDuration,
+                  delay: panelDelay,
+                  ease: [0.22, 0.9, 0.35, 1],
+                }}
+                className="rounded-b-2xl border-x-2 border-b-2 border-[color:color-mix(in_srgb,var(--suite-accent)_48%,var(--border))] bg-background px-3 pb-3 pt-2"
                 style={
                   {
                     ["--suite-accent" as string]: accentColor,
@@ -270,24 +289,40 @@ export function FloatingNavbar({
                   } as CSSProperties
                 }
               >
+                <div className="mb-2 flex items-center">
+                  <span className="h-1.5 w-16 rounded-full bg-[color:var(--suite-accent)]" />
+                </div>
+
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                  {displayedSuite.items.map((item) => {
+                  {displayedSuite.items.map((item, index) => {
                     const isActive = shownActiveItem.id === item.id;
+
                     return (
-                      <Link
+                      <motion.div
                         key={item.id}
-                        to={item.href}
-                        onClick={onCardClick}
-                        aria-current={isActive ? "page" : undefined}
-                        className="rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 8 }}
+                        transition={{
+                          duration: panelDuration,
+                          delay: panelDelay + index * 0.03,
+                          ease: [0.22, 0.9, 0.35, 1],
+                        }}
                       >
-                        <ShellNavCard
-                          title={item.title}
-                          description={item.description}
-                          icon={<SiteIcon iconKey={item.iconKey} className="size-6" />}
-                          active={isActive}
-                        />
-                      </Link>
+                        <Link
+                          to={item.href}
+                          onClick={onCardClick}
+                          aria-current={isActive ? "page" : undefined}
+                          className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <ShellNavCard
+                            title={item.title}
+                            description={item.description}
+                            icon={<SiteIcon iconKey={item.iconKey} className="size-6" />}
+                            active={isActive}
+                          />
+                        </Link>
+                      </motion.div>
                     );
                   })}
                 </div>

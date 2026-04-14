@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useId, useMemo, useRef } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useId, useMemo, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "../lib/cn";
 
@@ -6,6 +6,10 @@ export type ShellDropdownOption = {
   id: string;
   label: string;
   icon?: ReactNode;
+  tone?: {
+    color: string;
+    contrast: string;
+  };
 };
 
 type ShellDropdownProps = {
@@ -16,6 +20,7 @@ type ShellDropdownProps = {
   onSelect: (id: string) => void;
   triggerLabel?: string;
   className?: string;
+  menuClassName?: string;
 };
 
 export function ShellDropdown({
@@ -26,6 +31,7 @@ export function ShellDropdown({
   onSelect,
   triggerLabel = "Select option",
   className,
+  menuClassName,
 }: ShellDropdownProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const listboxId = useId();
@@ -89,11 +95,18 @@ export function ShellDropdown({
             "absolute left-0 top-[calc(100%+0.625rem)] z-50 min-w-56 rounded-xl border border-border",
             "bg-background p-1 shadow-lg",
             "animate-in fade-in-0 zoom-in-95 duration-200",
+            menuClassName,
           )}
         >
           <ul id={listboxId} role="listbox" aria-label={triggerLabel} className="space-y-1">
             {options.map((option) => {
               const isSelected = option.id === selectedId;
+              const optionStyle = option.tone
+                ? ({
+                    ["--option-accent" as string]: option.tone.color,
+                    ["--option-contrast" as string]: option.tone.contrast,
+                  } as CSSProperties)
+                : undefined;
 
               return (
                 <li key={option.id}>
@@ -108,10 +121,16 @@ export function ShellDropdown({
                     className={cn(
                       "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm",
                       "outline-none transition",
-                      "hover:bg-accent hover:text-accent-foreground",
+                      option.tone
+                        ? "text-[color:var(--option-accent)] hover:bg-[color:var(--option-accent)] hover:text-[color:var(--option-contrast)]"
+                        : "hover:bg-accent hover:text-accent-foreground",
                       "focus-visible:ring-2 focus-visible:ring-ring",
-                      isSelected && "bg-accent text-accent-foreground",
+                      isSelected &&
+                        (option.tone
+                          ? "bg-[color:var(--option-accent)] text-[color:var(--option-contrast)]"
+                          : "bg-accent text-accent-foreground"),
                     )}
+                    style={optionStyle}
                   >
                     {option.icon}
                     <span>{option.label}</span>
