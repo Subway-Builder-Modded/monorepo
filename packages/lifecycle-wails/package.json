@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@subway-builder-modded/lifecycle-core": "workspace:*",
-    "react": "^18.2.0"
+    "react": "19.2.3"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
