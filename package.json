@@ -8,9 +8,10 @@
     "test:packages": "pnpm --dir packages/config run test && pnpm --dir packages/shared-ui run test && pnpm --dir packages/asset-listings-ui run test && pnpm --dir packages/stores-core run test && pnpm --dir packages/asset-listings-state run test && pnpm --dir packages/lifecycle-core run test && pnpm --dir packages/lifecycle-web run test && pnpm --dir packages/lifecycle-wails run test",
     "check:packages": "pnpm run test:packages",
     "check:website": "pnpm --dir website run check",
+    "check:website-dev": "pnpm --dir website-dev run check",
     "check:railyard": "pnpm --dir railyard/frontend run check",
-    "lint": "pnpm run --dir website lint:fix && pnpm run --dir railyard/frontend lint:fix",
-    "format": "pnpm run --dir website format && pnpm run --dir railyard/frontend format",
-    "ci": "pnpm run --dir website ci && pnpm run --dir railyard/frontend ci"
+    "lint": "pnpm run --dir website lint:fix && pnpm run --dir website-dev lint:fix && pnpm run --dir railyard/frontend lint:fix",
+    "format": "pnpm run --dir website format && pnpm run --dir website-dev format && pnpm run --dir railyard/frontend format",
+    "ci": "pnpm run --dir website ci && pnpm run --dir website-dev ci && pnpm run --dir railyard/frontend ci"
   }
 }
