@@ -3,11 +3,11 @@ import { motion } from "motion/react";
 import { Link } from "@/app/lib/router";
 import { ShellNavRow } from "@subway-builder-modded/shared-ui";
 import { SiteIcon } from "./site-icon";
-import type { SiteSuite, SiteSuiteNavItem } from "@/app/lib/site-navigation";
+import type { SiteNavItem } from "@/app/lib/site-navigation";
 
 type NavbarPanelProps = {
-  suite: SiteSuite;
-  activeItem: SiteSuiteNavItem | null;
+  items: SiteNavItem[];
+  activeItem: SiteNavItem | null;
   accentColor: string;
   mutedColor: string;
   /** When true rows animate to visible; when false rows animate out. */
@@ -20,7 +20,7 @@ const ROW_DURATION = 0.18;
 const ROW_STAGGER = 0.05;
 
 export const NavbarPanel = memo(function NavbarPanel({
-  suite,
+  items,
   activeItem,
   accentColor,
   mutedColor,
@@ -28,7 +28,7 @@ export const NavbarPanel = memo(function NavbarPanel({
   prefersReducedMotion,
   onRowClick,
 }: NavbarPanelProps) {
-  const useRail = suite.items.length > 1;
+  const useRail = items.length > 1;
 
   return (
     <div
@@ -44,12 +44,12 @@ export const NavbarPanel = memo(function NavbarPanel({
         <ul
           role="list"
           className={
-            suite.items.length === 1
+            items.length === 1
               ? "max-w-sm space-y-1"
               : "grid gap-x-3 gap-y-1 sm:grid-cols-2 xl:max-w-2xl"
           }
         >
-          {suite.items.map((item, index) => {
+          {items.map((item, index) => {
             const isActive = activeItem !== null && activeItem.id === item.id;
             const delay = rowsVisible && !prefersReducedMotion ? index * ROW_STAGGER : 0;
             const duration = prefersReducedMotion ? 0 : ROW_DURATION;
@@ -81,7 +81,7 @@ export const NavbarPanel = memo(function NavbarPanel({
                   >
                     <ShellNavRow
                       title={item.title}
-                      description={item.description}
+                      description={item.description ?? ""}
                       icon={<SiteIcon iconKey={item.iconKey} className="size-5" />}
                       active={isActive}
                     />

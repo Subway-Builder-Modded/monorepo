@@ -5,8 +5,10 @@ import { House, Menu, MoonStar, Sun, X } from "lucide-react";
 import {
   SITE_COMMUNITY_LINKS,
   SITE_SUITES,
+  getActiveSuite,
   getBreadcrumbLabel,
-  getMatchingNavItem,
+  getItemsForSuite,
+  getMatchingItem,
   getSuiteById,
 } from "@/app/lib/site-navigation";
 import { ShellDropdown } from "@subway-builder-modded/shared-ui";
@@ -50,11 +52,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   const isMobile = useMediaQuery("(max-width: 960px)");
 
   const realSuite = useMemo(() => {
-    return (
-      SITE_SUITES.find(
-        (suite) => pathname === suite.href || pathname.startsWith(`${suite.href}/`),
-      ) ?? SITE_SUITES[0]
-    );
+    return getActiveSuite(pathname);
   }, [pathname]);
 
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
@@ -178,10 +176,11 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     : `color-mix(in srgb, ${realAccent} 36%, var(--border))`;
 
   const activeItem = useMemo(() => {
-    return getMatchingNavItem(pathname, displayedSuite.id);
+    return getMatchingItem(pathname, displayedSuite.id);
   }, [displayedSuite.id, pathname]);
 
-  const breadcrumb = getBreadcrumbLabel(pathname, realSuite.id);
+  const breadcrumb = getBreadcrumbLabel(pathname);
+  const displayedItems = useMemo(() => getItemsForSuite(displayedSuite.id), [displayedSuite.id]);
 
   const suiteOptions = useMemo(
     () =>
@@ -197,7 +196,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     [theme],
   );
 
-  const panelHeight = displayedSuite.items.length > 1 ? 204 : 150;
+  const panelHeight = displayedItems.length > 1 ? 204 : displayedItems.length === 1 ? 150 : 84;
   const frameHeight = isFrameExpanded ? TOP_BAR_HEIGHT + panelHeight : TOP_BAR_HEIGHT;
   const sideZoneWidth = isMobile ? TOP_BAR_SIDE_ZONE_MOBILE : TOP_BAR_SIDE_ZONE_DESKTOP;
   const frameDuration = prefersReducedMotion
@@ -352,7 +351,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                 className={cn(!showPanelSurface && "pointer-events-none")}
               >
                 <NavbarPanel
-                  suite={displayedSuite}
+                  items={displayedItems}
                   activeItem={activeItem}
                   accentColor={accentColor}
                   mutedColor={mutedColor}

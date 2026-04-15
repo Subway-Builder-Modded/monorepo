@@ -1,5 +1,5 @@
 import { ShellFooter } from "@subway-builder-modded/shared-ui";
-import { SITE_COMMUNITY_LINKS, SITE_SUITES } from "@/app/lib/site-navigation";
+import { SITE_COMMUNITY_LINKS, SITE_SUITES, getItemsForSuite } from "@/app/lib/site-navigation";
 import { SiteIcon } from "@/app/components/navigation/site-icon";
 
 const SUITE_COLUMN_TITLES: Record<string, string> = {
@@ -17,7 +17,7 @@ export function SiteFooter() {
     id: suite.id,
     title: SUITE_COLUMN_TITLES[suite.id] ?? suite.title,
     accentColor: `color-mix(in srgb, ${suite.accent.dark} 62%, ${suite.accent.light})`,
-    links: suite.items.map((item) => ({
+    links: getItemsForSuite(suite.id).map((item) => ({
       id: item.id,
       title: item.title,
       href: item.href,
@@ -41,6 +41,7 @@ export function SiteFooter() {
   return (
     <ShellFooter
       brand={{
+        href: "/",
         logoSrc: "/logo.png",
         title: "Subway Builder Modded",
         description:

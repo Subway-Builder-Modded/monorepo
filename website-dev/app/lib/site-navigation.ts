@@ -1,47 +1,111 @@
 import {
-  getSiteBreadcrumbLabel,
   SITE_COMMUNITY_LINKS,
-  SITE_FOOTER_INTERNAL_GROUP,
+  SITE_NAV_ITEMS,
   SITE_SUITES,
-  getSiteSuiteById,
-  resolveSiteSuite,
-  resolveSiteSuiteItem,
-  getMatchingSiteSuiteItem,
-  type SiteSuiteConfig as ConfigSiteSuite,
-  type SiteSuiteId as ConfigSiteSuiteId,
-  type SiteSuiteNavItem as ConfigSiteSuiteNavItem,
-} from "@subway-builder-modded/config";
+  type SiteNavItem,
+  type SiteRouteMatchRule,
+  type SiteSuite,
+  type SiteSuiteId,
+} from "@/app/config/site-navigation";
 
-export { SITE_COMMUNITY_LINKS, SITE_FOOTER_INTERNAL_GROUP, SITE_SUITES };
+export {
+  SITE_COMMUNITY_LINKS,
+  SITE_NAV_ITEMS,
+  SITE_SUITES,
+  type SiteNavItem,
+  type SiteRouteMatchRule,
+  type SiteSuite,
+  type SiteSuiteId,
+};
 
-export type SiteSuite = ConfigSiteSuite;
-export type SiteSuiteId = ConfigSiteSuiteId;
-export type SiteSuiteNavItem = ConfigSiteSuiteNavItem;
+const SUITE_BY_ID: Record<SiteSuiteId, SiteSuite> = {
+  general: SITE_SUITES[0],
+  railyard: SITE_SUITES[1],
+  registry: SITE_SUITES[2],
+  "template-mod": SITE_SUITES[3],
+  website: SITE_SUITES[4],
+};
+
+function normalizePathname(pathname: string): string {
+  if (!pathname) return "/";
+  const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  if (withLeadingSlash !== "/" && withLeadingSlash.endsWith("/")) {
+    return withLeadingSlash.slice(0, -1);
+  }
+  return withLeadingSlash;
+}
+
+function isRouteMatch(pathname: string, rule: SiteRouteMatchRule): boolean {
+  const normalizedPathname = normalizePathname(pathname);
+  const normalizedRulePath = normalizePathname(rule.path);
+
+  if (rule.kind === "exact") {
+    return normalizedPathname === normalizedRulePath;
+  }
+
+  return (
+    normalizedPathname === normalizedRulePath ||
+    normalizedPathname.startsWith(`${normalizedRulePath}/`)
+  );
+}
 
 export function getSuiteById(id: SiteSuiteId): SiteSuite {
-  return getSiteSuiteById(id);
+  return SUITE_BY_ID[id];
+}
+
+export function getItemsForSuite(suiteId: SiteSuiteId): SiteNavItem[] {
+  return SITE_NAV_ITEMS.filter((item) => item.suiteId === suiteId);
 }
 
 export function getActiveSuite(pathname: string): SiteSuite {
-  return resolveSiteSuite(pathname);
+  const normalizedPathname = normalizePathname(pathname);
+
+  for (const suite of SITE_SUITES) {
+    if (suite.id === "general") {
+      continue;
+    }
+
+    if (
+      normalizedPathname === normalizePathname(suite.href) ||
+      normalizedPathname.startsWith(`${normalizePathname(suite.href)}/`)
+    ) {
+      return suite;
+    }
+  }
+
+  return SUITE_BY_ID.general;
 }
 
-export function getActiveSuiteItem(pathname: string, suiteId?: SiteSuiteId): SiteSuiteNavItem {
-  return resolveSiteSuiteItem(pathname, suiteId);
+export function getMatchingItem(pathname: string, suiteId: SiteSuiteId): SiteNavItem | null {
+  const items = getItemsForSuite(suiteId);
+  const normalizedPathname = normalizePathname(pathname);
+
+  for (const item of items) {
+    if (!item.activeMatchRules?.length) {
+      if (normalizedPathname === normalizePathname(item.href)) {
+        return item;
+      }
+      continue;
+    }
+
+    if (item.activeMatchRules.some((rule) => isRouteMatch(pathname, rule))) {
+      return item;
+    }
+  }
+
+  return null;
 }
 
-export function getBreadcrumbLabel(pathname: string, suiteId?: SiteSuiteId): string {
-  return getSiteBreadcrumbLabel(pathname, suiteId);
+export function getActiveItem(pathname: string): SiteNavItem | null {
+  const activeSuite = getActiveSuite(pathname);
+  return getMatchingItem(pathname, activeSuite.id);
 }
 
-/**
- * Returns the nav item that actually matches the current pathname, or null.
- * Unlike getActiveSuiteItem, does NOT fall back to items[0].
- * Use for active-state highlighting only.
- */
-export function getMatchingNavItem(
-  pathname: string,
-  suiteId: SiteSuiteId,
-): SiteSuiteNavItem | null {
-  return getMatchingSiteSuiteItem(pathname, suiteId);
+export function getBreadcrumbLabel(pathname: string): string {
+  const activeItem = getActiveItem(pathname);
+  if (activeItem) {
+    return activeItem.breadcrumb;
+  }
+
+  return getActiveSuite(pathname).breadcrumbFallback;
 }

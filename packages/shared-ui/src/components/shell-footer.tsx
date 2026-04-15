@@ -21,6 +21,7 @@ type ShellFooterColumn = {
 
 type ShellFooterProps = {
   brand: {
+    href?: string;
     logoSrc: string;
     title: string;
     description: string;
@@ -74,20 +75,41 @@ export function ShellFooter({
   secondaryText,
   className,
 }: ShellFooterProps) {
+  const BrandTitle = (
+    <h2 className="text-lg font-semibold tracking-tight text-foreground">{brand.title}</h2>
+  );
+
   return (
     <footer className={cn("mt-16 border-t border-border bg-background", className)}>
       <div className="mx-auto w-full max-w-[1200px] px-5 pb-8 pt-9 sm:px-7 lg:px-10">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,2.65fr)]">
           <section className="max-w-md">
             <div className="flex items-start gap-4">
-              <img
-                src={brand.logoSrc}
-                alt=""
-                aria-hidden="true"
-                className="size-14 shrink-0 rounded-lg object-contain"
-              />
+              {brand.href ? (
+                <a href={brand.href} aria-label="Go to home" className="shrink-0 rounded-lg">
+                  <img
+                    src={brand.logoSrc}
+                    alt=""
+                    aria-hidden="true"
+                    className="size-14 rounded-lg object-contain"
+                  />
+                </a>
+              ) : (
+                <img
+                  src={brand.logoSrc}
+                  alt=""
+                  aria-hidden="true"
+                  className="size-14 shrink-0 rounded-lg object-contain"
+                />
+              )}
               <div className="min-w-0 pt-1">
-                <h2 className="text-lg font-semibold tracking-tight text-foreground">{brand.title}</h2>
+                {brand.href ? (
+                  <a href={brand.href} className="inline-block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    {BrandTitle}
+                  </a>
+                ) : (
+                  BrandTitle
+                )}
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{brand.description}</p>
                 <div className="mt-4 flex items-center gap-2">
                   {externalLinks.map((link) => (

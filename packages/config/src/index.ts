@@ -13,26 +13,6 @@ export {
 } from './navbar/content';
 export { isNavItemActive, isRouteMatch } from './navbar/route-match';
 export {
-	getSiteBreadcrumbLabel,
-	SITE_COMMUNITY_LINKS,
-	SITE_FOOTER_INTERNAL_GROUP,
-	SITE_SUITES,
-	getSiteSuiteById,
-	isSiteRouteMatch,
-	resolveSiteSuite,
-	resolveSiteSuiteItem,
-	getMatchingSiteSuiteItem,
-	type SiteColorSchemeId,
-	type SiteCommunityLink,
-	type SiteFooterLinkGroup,
-	type SiteIconKey,
-	type SiteRouteMatchRule,
-	type SiteSuiteAccent,
-	type SiteSuiteConfig,
-	type SiteSuiteId,
-	type SiteSuiteNavItem,
-} from './site/suites';
-export {
 	SEARCH_VIEW_MODES,
 	isSearchViewMode,
 	normalizeSearchViewMode,
