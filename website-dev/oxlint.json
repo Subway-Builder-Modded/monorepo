@@ -9,5 +9,5 @@
     "typescript/no-explicit-any": "off",
     "typescript/no-empty-object-type": "off"
   },
-  "ignorePatterns": ["dist/**", "node_modules/**", "coverage/**", "build/**"]
+  "ignorePatterns": ["dist/**", "node_modules/**", "coverage/**", "build/**", "test-results/**"]
 }

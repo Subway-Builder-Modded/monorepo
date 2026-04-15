@@ -1,6 +1,18 @@
 import type { ComponentType, ReactNode } from "react";
-import { Database, Github, Globe, House, LayoutGrid, TrainTrack, Handshake, Users, Heart, Scale } from "lucide-react";
-import { FaDiscord } from "react-icons/fa6";
+import {
+  Database,
+  Github,
+  Globe,
+  House,
+  LayoutGrid,
+  TrainTrack,
+  Handshake,
+  Users,
+  Heart,
+  Scale,
+  ChartLine,
+} from "lucide-react";
+import { FaDiscord as Discord } from "react-icons/fa6";
 
 export type SiteSuiteId = "general" | "railyard" | "registry" | "template-mod" | "website";
 
@@ -141,6 +153,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-home",
     suiteId: "general",
     title: "Home",
+    description: "Welcome to Subway Builder Modded, the complete hub for all things modded in Subway Builder.",
     href: "/",
     icon: House,
     breadcrumb: "Home",
@@ -150,6 +163,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-community",
     suiteId: "general",
     title: "Community",
+    description: "Join our Discord community for support, discussions, and the most up-to-date info.",
     href: "/community",
     icon: Handshake,
     breadcrumb: "Community",
@@ -159,6 +173,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-credits",
     suiteId: "general",
     title: "Credits",
+    description: "The maintainers and contributors helping Subway Builder Modded move forward.",
     href: "/credits",
     icon: Users,
     breadcrumb: "Credits",
@@ -168,6 +183,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-contribute",
     suiteId: "general",
     title: "Contribute",
+    description: "Help us build the future of Subway Builder Modded. Your support keeps the project going.",
     href: "/contribute",
     icon: Heart,
     breadcrumb: "Contribute",
@@ -177,14 +193,41 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-license",
     suiteId: "general",
     title: "License",
+    description: "Terms and licensing information for Subway Builder Modded projects.",
     href: "/license",
     icon: Scale,
     breadcrumb: "License",
     activeMatchRules: [{ kind: "exact", path: "/license" }],
   },
+  {
+    id: "railyard-download",
+    suiteId: "railyard",
+    title: "Home",
+    description: "The all-in-one Map and Mod Manager for Subway Builder.",
+    href: "/railyard",
+    icon: House,
+    breadcrumb: "Home",
+    activeMatchRules: [{ kind: "exact", path: "/railyard" }],
+  },
+  {
+    id: "railyard-analytics",
+    suiteId: "railyard",
+    title: "Analytics",
+    description: "In-depth release and download analytics for the Railyard desktop app.",
+    href: "/railyard/analytics",
+    icon: ChartLine,
+    breadcrumb: "Analytics",
+    activeMatchRules: [{ kind: "exact", path: "/railyard/analytics" }],
+  },
 ];
 
 export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
+  {
+    id: "discord",
+    title: "Discord",
+    href: "https://discord.gg/syG9YHMyeG",
+    icon: <Discord className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
+  },
   {
     id: "github",
     title: "GitHub",

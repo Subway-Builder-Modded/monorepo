@@ -1,4 +1,4 @@
-import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@/app/lib/router";
 import { motion, useReducedMotion } from "motion/react";
 import { House, Menu, MoonStar, Sun, X } from "lucide-react";
@@ -29,6 +29,10 @@ type FloatingNavbarProps = {
 const TOP_BAR_HEIGHT = 48;
 const TOP_BAR_SIDE_ZONE_DESKTOP = 248;
 const TOP_BAR_SIDE_ZONE_MOBILE = 188;
+const NAVBAR_TOP_OFFSET = 16;
+const PANEL_BODY_VERTICAL_PADDING = 20;
+const PANEL_MIN_HEIGHT = 56;
+const PANEL_VIEWPORT_BOTTOM_GUTTER = 24;
 const DISCORD_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "discord");
 const GITHUB_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "github");
 
@@ -51,14 +55,17 @@ function getCollapsedWidthClass(isMobile: boolean, suiteId: SiteSuiteId): string
 export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProps) {
   const prefersReducedMotion = useReducedMotion() ?? false;
   const isMobile = useMediaQuery("(max-width: 960px)");
-
-  const realSuite = useMemo(() => {
-    return getActiveSuite(pathname);
-  }, [pathname]);
+  const realSuite = getActiveSuite(pathname);
 
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
   const [isPinned, setIsPinned] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [panelContentHeight, setPanelContentHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() =>
+    typeof window === "undefined" ? 900 : window.innerHeight,
+  );
+
+  const panelMeasureRef = useRef<HTMLDivElement | null>(null);
 
   const onFullyClosed = useCallback(() => {
     setOpenSuiteId(realSuite.id);
@@ -103,6 +110,15 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       setIsDropdownOpen(false);
     }
   }, [phase]);
+
+  useEffect(() => {
+    const onResize = () => {
+      setViewportHeight(window.innerHeight);
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const onInteractiveRegionEnter = useCallback(() => {
     cancelClose();
@@ -172,6 +188,32 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   const breadcrumb = getBreadcrumbLabel(pathname);
   const displayedItems = useMemo(() => getItemsForSuite(displayedSuite.id), [displayedSuite.id]);
 
+  useEffect(() => {
+    const measure = () => {
+      const contentEl = panelMeasureRef.current;
+      if (!contentEl) {
+        return;
+      }
+
+      const nextHeight = Math.ceil(contentEl.scrollHeight);
+      setPanelContentHeight((prev) => (prev === nextHeight ? prev : nextHeight));
+    };
+
+    measure();
+
+    const contentEl = panelMeasureRef.current;
+    if (!contentEl || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      measure();
+    });
+
+    observer.observe(contentEl);
+    return () => observer.disconnect();
+  }, [displayedSuite.id, displayedItems.length, isMobile]);
+
   const suiteOptions = useMemo(
     () =>
       SITE_SUITES.map((suite) => ({
@@ -186,7 +228,16 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     [theme],
   );
 
-  const panelHeight = displayedItems.length > 1 ? 204 : displayedItems.length === 1 ? 150 : 84;
+  const maxPanelHeight = Math.max(
+    PANEL_MIN_HEIGHT,
+    viewportHeight - NAVBAR_TOP_OFFSET - TOP_BAR_HEIGHT - PANEL_VIEWPORT_BOTTOM_GUTTER,
+  );
+  const naturalPanelHeight = Math.max(
+    PANEL_MIN_HEIGHT,
+    panelContentHeight + PANEL_BODY_VERTICAL_PADDING,
+  );
+  const panelHeight = Math.min(naturalPanelHeight, maxPanelHeight);
+  const panelNeedsScroll = naturalPanelHeight > maxPanelHeight;
   const frameHeight = isFrameExpanded ? TOP_BAR_HEIGHT + panelHeight : TOP_BAR_HEIGHT;
   const sideZoneWidth = isMobile ? TOP_BAR_SIDE_ZONE_MOBILE : TOP_BAR_SIDE_ZONE_DESKTOP;
   const frameDuration = prefersReducedMotion
@@ -284,6 +335,15 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                     <House className="size-4" aria-hidden="true" />
                   </Link>
                   <a
+                    href={DISCORD_COMMUNITY_LINK?.href ?? "#"}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Discord"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {DISCORD_COMMUNITY_LINK?.icon}
+                  </a>
+                  <a
                     href={GITHUB_COMMUNITY_LINK?.href ?? "#"}
                     target="_blank"
                     rel="noreferrer"
@@ -322,24 +382,33 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
             <div
               className="overflow-hidden px-3 pb-3 pt-2"
-              style={{ height: Math.max(frameHeight - TOP_BAR_HEIGHT, 0) }}
+              style={{ height: isFrameExpanded ? panelHeight : 0 }}
             >
               <motion.div
                 animate={{ opacity: showPanelSurface ? 1 : 0 }}
                 transition={{
                   duration: prefersReducedMotion ? 0 : NAVBAR_MOTION.panelSurfaceExitMs / 1000,
                 }}
-                className={cn(!showPanelSurface && "pointer-events-none")}
+                className={cn("h-full", !showPanelSurface && "pointer-events-none")}
               >
-                <NavbarPanel
-                  items={displayedItems}
-                  activeItem={activeItem}
-                  accentColor={accentColor}
-                  mutedColor={mutedColor}
-                  rowsVisible={showRows}
-                  prefersReducedMotion={prefersReducedMotion}
-                  onRowClick={onRowClick}
-                />
+                <div
+                  className={cn(
+                    "h-full",
+                    panelNeedsScroll ? "overflow-y-auto pr-1" : "overflow-visible",
+                  )}
+                >
+                  <div ref={panelMeasureRef}>
+                    <NavbarPanel
+                      items={displayedItems}
+                      activeItem={activeItem}
+                      accentColor={accentColor}
+                      mutedColor={mutedColor}
+                      rowsVisible={showRows}
+                      prefersReducedMotion={prefersReducedMotion}
+                      onRowClick={onRowClick}
+                    />
+                  </div>
+                </div>
               </motion.div>
             </div>
           </motion.div>

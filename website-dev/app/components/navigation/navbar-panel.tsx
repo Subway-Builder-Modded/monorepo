@@ -27,7 +27,10 @@ export const NavbarPanel = memo(function NavbarPanel({
   prefersReducedMotion,
   onRowClick,
 }: NavbarPanelProps) {
-  const useRail = items.length > 1;
+  const gridClassName =
+    items.length <= 1
+      ? "grid grid-cols-1 gap-2 max-w-[24rem]"
+      : "grid grid-cols-1 items-stretch gap-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4";
 
   return (
     <div
@@ -40,14 +43,7 @@ export const NavbarPanel = memo(function NavbarPanel({
       }
     >
       <div className="relative rounded-xl bg-foreground/[0.03] p-2 dark:bg-muted/20">
-        <ul
-          role="list"
-          className={
-            items.length === 1
-              ? "max-w-sm space-y-1"
-              : "grid gap-x-3 gap-y-1 sm:grid-cols-2 xl:max-w-2xl"
-          }
-        >
+        <ul role="list" className={gridClassName}>
           {items.map((item, index) => {
             const isActive = activeItem !== null && activeItem.id === item.id;
             const delay = rowsVisible && !prefersReducedMotion ? index * ROW_STAGGER : 0;
@@ -55,21 +51,9 @@ export const NavbarPanel = memo(function NavbarPanel({
             const ItemIcon = item.icon;
 
             return (
-              <li key={item.id} className={useRail ? "relative py-0.5 pl-6" : "relative py-0.5"}>
-                {useRail ? (
-                  <span
-                    aria-hidden="true"
-                    className="absolute left-[0.5rem] top-1/2 rounded-full bg-[color:var(--suite-accent)]"
-                    style={{
-                      width: isActive ? "0.5rem" : "0.375rem",
-                      height: isActive ? "0.5rem" : "0.375rem",
-                      opacity: isActive ? 0.95 : 0.55,
-                      transform: "translateY(-50%)",
-                    }}
-                  />
-                ) : null}
-
+              <li key={item.id} className="h-full min-h-0 py-0.5">
                 <motion.div
+                  className="h-full"
                   animate={rowsVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
                   transition={{ duration, delay, ease: [0.22, 0.9, 0.35, 1] }}
                 >
@@ -77,13 +61,14 @@ export const NavbarPanel = memo(function NavbarPanel({
                     to={item.href}
                     onClick={onRowClick}
                     aria-current={isActive ? "page" : undefined}
-                    className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <ShellNavRow
                       title={item.title}
-                      description={item.description ?? ""}
+                      description={item.description}
                       icon={<ItemIcon className="size-5" aria-hidden={true} />}
                       active={isActive}
+                      className="h-full w-full"
                     />
                   </Link>
                 </motion.div>

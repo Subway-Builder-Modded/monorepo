@@ -4,7 +4,7 @@ import { cn } from "../lib/cn";
 
 type ShellNavRowProps = {
   title: string;
-  description: string;
+  description?: string;
   icon: ReactNode;
   active?: boolean;
   className?: string;
@@ -29,7 +29,7 @@ export function ShellNavRow({
   return (
     <div
       className={cn(
-        "group flex min-h-[3.25rem] items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-150",
+        "group flex h-full min-h-[3.25rem] items-start gap-3 rounded-lg px-3 py-2.5 transition-all duration-150",
         active
           ? "bg-[color:var(--suite-muted)] text-[color:var(--suite-accent)]"
           : "text-foreground hover:bg-[color:var(--suite-muted)] hover:translate-x-[1px]",
@@ -50,22 +50,24 @@ export function ShellNavRow({
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "truncate text-sm font-semibold leading-tight",
+            "text-sm font-semibold leading-tight",
             active ? "text-[color:var(--suite-accent)]" : "text-foreground",
           )}
         >
           {title}
         </p>
-        <p
-          className={cn(
-            "mt-0.5 truncate text-xs leading-relaxed",
-            active
-              ? "text-[color:color-mix(in_srgb,var(--suite-accent)_72%,var(--muted-foreground))]"
-              : "text-muted-foreground",
-          )}
-        >
-          {description}
-        </p>
+        {description ? (
+          <p
+            className={cn(
+              "mt-0.5 whitespace-normal break-words text-xs leading-relaxed",
+              active
+                ? "text-[color:color-mix(in_srgb,var(--suite-accent)_72%,var(--muted-foreground))]"
+                : "text-muted-foreground",
+            )}
+          >
+            {description}
+          </p>
+        ) : null}
       </div>
 
       <ChevronRight
