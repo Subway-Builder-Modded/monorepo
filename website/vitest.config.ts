@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'jsdom',
-    setupFiles: ['./tests/setup.ts'],
+    setupFiles: ['@testing-library/jest-dom/vitest', './tests/setup.ts'],
     include: ['**/*.test.ts', '**/*.test.tsx'],
     coverage: {
       provider: 'v8',

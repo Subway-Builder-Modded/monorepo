@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo } from "react";
+import { useMemo } from "react";
 import { NavbarTopBar, type NavDropdownOption } from "@subway-builder-modded/shared-ui";
 import type { SiteCommunityLink, SiteSuite, SiteSuiteId } from "@/app/config/site-navigation";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
@@ -32,7 +32,6 @@ const COLLAPSED_LEFT_ZONE_GENERAL = 200;
 const COLLAPSED_LEFT_ZONE_SUITE = 136;
 const COLLAPSED_LEFT_ZONE_MOBILE = 36;
 const CENTER_SAFE_GAP = 24;
-const collapsedOpticalOffset = { transform: "translateY(-0.5px)" };
 
 function getCollapsedLeftZoneWidth(isMobile: boolean, suiteId: SiteSuiteId): number {
   if (isMobile) {
@@ -68,6 +67,10 @@ export function NavbarTopbar({
   onSuiteChange,
   onThemeClick,
 }: NavbarTopbarProps) {
+  const selectedSuiteAccent = useMemo(() => {
+    return suiteOptions.find((option) => option.id === openSuiteId)?.tone?.color;
+  }, [openSuiteId, suiteOptions]);
+
   const { leftZoneWidth, rightZoneWidth, centerMaxWidth } = useMemo(() => {
     if (isExpanded) {
       const sideZoneWidth = getExpandedSideZoneWidth(isMobile);
@@ -90,25 +93,26 @@ export function NavbarTopbar({
   }, [isExpanded, isMobile, realSuite.id]);
 
   const leftContent = isExpanded ? (
-    <SuiteSwitcher
-      options={suiteOptions}
-      selectedId={openSuiteId}
-      isOpen={isDropdownOpen}
-      onOpenChange={onDropdownOpenChange}
-      onSelect={onSuiteChange}
-    />
+    <div style={{ color: selectedSuiteAccent ?? realAccent }}>
+      <SuiteSwitcher
+        options={suiteOptions}
+        selectedId={openSuiteId}
+        isOpen={isDropdownOpen}
+        onOpenChange={onDropdownOpenChange}
+        onSelect={onSuiteChange}
+      />
+    </div>
   ) : (
     <div
-      className="inline-flex h-full min-w-0 items-center gap-2 text-sm font-semibold leading-none"
-      style={
-        {
-          color: realAccent,
-          ...(collapsedOpticalOffset as CSSProperties),
-        } as CSSProperties
-      }
+      className="inline-flex h-full min-w-0 items-center gap-2 text-sm font-semibold leading-tight"
+      style={{ color: realAccent }}
     >
       <span className="shrink-0">{realSuite.icon}</span>
-      {!isMobile ? <span className="truncate leading-none">{realSuite.title}</span> : null}
+      {!isMobile ? (
+        <span className="inline-block max-w-full pb-[2px] text-ellipsis whitespace-nowrap leading-tight [overflow-x:hidden] [overflow-y:visible]">
+          {realSuite.title}
+        </span>
+      ) : null}
     </div>
   );
 
@@ -127,8 +131,8 @@ export function NavbarTopbar({
       }
       center={
         <p
-          className="truncate text-sm font-semibold leading-none text-foreground sm:text-base"
-          style={isExpanded ? undefined : collapsedOpticalOffset}
+          className="pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-semibold leading-snug text-foreground [overflow-x:hidden] [overflow-y:visible] sm:text-base"
+          style={{ transform: "translateY(-2px)" }}
         >
           {breadcrumb}
         </p>

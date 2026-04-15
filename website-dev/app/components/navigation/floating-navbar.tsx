@@ -123,11 +123,11 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   }, [cancelClose, isMobile, open]);
 
   const onInteractiveRegionLeave = useCallback(() => {
-    if (!allowHoverClose || isTransitionLocked || isMobile || isPinned) {
+    if (!allowHoverClose || isTransitionLocked || isMobile || isPinned || isDropdownOpen) {
       return;
     }
     scheduleClose();
-  }, [allowHoverClose, isTransitionLocked, isMobile, isPinned, scheduleClose]);
+  }, [allowHoverClose, isTransitionLocked, isMobile, isPinned, isDropdownOpen, scheduleClose]);
 
   const onMenuClick = useCallback(() => {
     cancelClose();

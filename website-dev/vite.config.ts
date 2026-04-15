@@ -8,6 +8,9 @@ import { defineConfig } from "vite-plus";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  build: {
+    outDir: "build/client",
+  },
   lint: {
     ignorePatterns: ["node_modules/**", "build/**", "coverage/**", "dist/**"],
     // tsgolint currently fails on this Windows workspace path; keep linting stable

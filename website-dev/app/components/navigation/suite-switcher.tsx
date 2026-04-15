@@ -23,7 +23,7 @@ export function SuiteSwitcher({
       onOpenChange={onOpenChange}
       onSelect={onSelect}
       triggerLabel="Select suite"
-      className="w-full text-[color:var(--suite-accent)]"
+      className="w-full"
       triggerClassName="w-full justify-start px-0"
       menuClassName="border border-border"
     />

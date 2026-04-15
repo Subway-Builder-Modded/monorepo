@@ -56,7 +56,9 @@ export function NavRow({ title, description, icon, active = false, className }: 
       <ChevronRight
         className={cn(
           'size-3.5 shrink-0 transition-transform duration-150 group-hover:translate-x-0.5',
-          active ? 'text-[color:var(--nav-accent)] opacity-60' : 'text-muted-foreground opacity-40',
+            active
+              ? 'text-[color:var(--nav-accent)] opacity-60'
+              : 'text-muted-foreground opacity-40 group-hover:text-foreground group-hover:opacity-60',
         )}
         aria-hidden="true"
       />
