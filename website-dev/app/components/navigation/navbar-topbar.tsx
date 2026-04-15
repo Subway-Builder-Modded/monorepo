@@ -131,21 +131,17 @@ export function NavbarTopbar({
 
   if (isMobile) {
     return (
-      <NavbarTopBar
-        className="h-full gap-1"
-        leftClassName="min-w-0 pr-1"
-        centerClassName="px-1"
-        rightClassName="pl-1"
-        left={
-          isExpanded ? (
+      <div className="grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1">
+        <div className="min-w-0 pr-1">
+          {isExpanded ? (
             <div className="min-w-0 max-w-[2.5rem]">{expandedLeftContent}</div>
           ) : (
             <div className="min-w-0">{collapsedLeftContent}</div>
-          )
-        }
-        center={breadcrumbNode}
-        right={<div className="shrink-0">{actionsNode}</div>}
-      />
+          )}
+        </div>
+        <div className="min-w-0 px-1">{breadcrumbNode}</div>
+        <div className="shrink-0 pl-1">{actionsNode}</div>
+      </div>
     );
   }
 

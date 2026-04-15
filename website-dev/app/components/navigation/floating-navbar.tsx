@@ -18,7 +18,7 @@ import { useDelayedClose } from "@/app/hooks/use-delayed-close";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
 import { cn } from "@/app/lib/utils";
 import { NavbarTopbar } from "./navbar-topbar";
-import { NavbarPanel } from "./navbar-panel";
+import { NavbarPanel, NavbarPanelContent, NavbarPanelShell } from "./navbar-panel";
 
 type FloatingNavbarProps = {
   pathname: string;
@@ -115,12 +115,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   }, [phase, realSuite.id]);
 
   useEffect(() => {
-    if (phase === "opening") {
-      setCanStartEnterMotion(false);
-    }
-  }, [phase]);
-
-  useEffect(() => {
     if (phase === "closing") {
       setIsDropdownOpen(false);
     }
@@ -210,6 +204,19 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       isMobile,
     });
 
+  useEffect(() => {
+    if (phase === "closed") {
+      setCanStartEnterMotion(false);
+      return;
+    }
+
+    setCanStartEnterMotion(
+      phase === "opening" &&
+        hasMeasuredCurrentPanel &&
+        committedPanelMetrics.key === panelMeasurementKey,
+    );
+  }, [committedPanelMetrics.key, hasMeasuredCurrentPanel, panelMeasurementKey, phase]);
+
   const suiteOptions = useMemo(
     () =>
       SITE_SUITES.map((suite) => ({
@@ -242,7 +249,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
         panelHeight: PANEL_MIN_HEIGHT,
         panelNeedsScroll: false,
       });
-      setCanStartEnterMotion(false);
       return;
     }
 
@@ -265,17 +271,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
         panelNeedsScroll: targetPanelNeedsScroll,
       };
     });
-
-    if (phase === "opening") {
-      setCanStartEnterMotion(true);
-    }
-  }, [
-    hasMeasuredCurrentPanel,
-    panelMeasurementKey,
-    phase,
-    targetPanelHeight,
-    targetPanelNeedsScroll,
-  ]);
+  }, [hasMeasuredCurrentPanel, panelMeasurementKey, targetPanelHeight, targetPanelNeedsScroll]);
 
   const panelHeight = committedPanelMetrics.panelHeight;
   const panelNeedsScroll = committedPanelMetrics.panelNeedsScroll;
@@ -390,16 +386,16 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             <div className="rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]">
               <div className="px-3 pb-3 pt-14">
                 <div ref={panelMeasureRef}>
-                  <NavbarPanel
-                    items={displayedItems}
-                    activeItem={activeItem}
-                    accentColor={accentColor}
-                    mutedColor={mutedColor}
-                    rowsVisible={true}
-                    staticRows
-                    prefersReducedMotion={true}
-                    onRowClick={() => undefined}
-                  />
+                  <NavbarPanelShell accentColor={accentColor} mutedColor={mutedColor}>
+                    <NavbarPanelContent
+                      items={displayedItems}
+                      activeItem={activeItem}
+                      rowsVisible={true}
+                      enableRowMotion={false}
+                      prefersReducedMotion={true}
+                      onRowClick={() => undefined}
+                    />
+                  </NavbarPanelShell>
                 </div>
               </div>
             </div>

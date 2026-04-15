@@ -15,7 +15,9 @@ export function useNavbarPanelHeight({
 }: UseNavbarPanelHeightOptions) {
   const [measuredPanelHeight, setMeasuredPanelHeight] = useState(0);
   const [measuredPanelKey, setMeasuredPanelKey] = useState<string | null>(null);
+  const [stableSampleCount, setStableSampleCount] = useState(0);
   const panelMeasureRef = useRef<HTMLDivElement | null>(null);
+  const lastMeasuredHeightRef = useRef<number | null>(null);
   const panelMeasurementKey = useMemo(
     () => `${suiteId}:${itemCount}:${isMobile ? "mobile" : "desktop"}`,
     [isMobile, itemCount, suiteId],
@@ -31,6 +33,16 @@ export function useNavbarPanelHeight({
     setMeasuredPanelHeight((previousHeight) =>
       previousHeight === nextHeight ? previousHeight : nextHeight,
     );
+
+    setStableSampleCount((previousCount) => {
+      if (lastMeasuredHeightRef.current !== nextHeight) {
+        lastMeasuredHeightRef.current = nextHeight;
+        return 1;
+      }
+
+      return previousCount >= 2 ? previousCount : previousCount + 1;
+    });
+
     setMeasuredPanelKey((previousKey) =>
       previousKey === panelMeasurementKey ? previousKey : panelMeasurementKey,
     );
@@ -38,11 +50,15 @@ export function useNavbarPanelHeight({
 
   useEffect(() => {
     setMeasuredPanelKey(null);
+    setStableSampleCount(0);
+    lastMeasuredHeightRef.current = null;
   }, [panelMeasurementKey]);
 
   useEffect(() => {
     if (!enabled) {
       setMeasuredPanelKey(null);
+      setStableSampleCount(0);
+      lastMeasuredHeightRef.current = null;
       return;
     }
 
@@ -67,7 +83,7 @@ export function useNavbarPanelHeight({
   }, [enabled, isMobile, itemCount, measurePanelHeight, suiteId]);
 
   return {
-    hasMeasuredCurrentPanel: measuredPanelKey === panelMeasurementKey,
+    hasMeasuredCurrentPanel: measuredPanelKey === panelMeasurementKey && stableSampleCount >= 2,
     measuredPanelHeight,
     panelMeasurementKey,
     panelMeasureRef,

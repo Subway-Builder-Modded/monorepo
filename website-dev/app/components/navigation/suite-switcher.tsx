@@ -27,7 +27,7 @@ export function SuiteSwitcher({
       onOpenChange={onOpenChange}
       onSelect={onSelect}
       triggerLabel="Select suite"
-      className="w-full"
+      className={compact ? "w-auto" : "w-full"}
       triggerClassName={cn("w-full justify-start px-0", compact && "w-auto gap-1.5")}
       menuClassName="border border-border"
     />
