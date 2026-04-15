@@ -1,6 +1,5 @@
 import { ShellFooter } from "@subway-builder-modded/shared-ui";
-import { SITE_COMMUNITY_LINKS, SITE_SUITES, getItemsForSuite } from "@/app/lib/site-navigation";
-import { SiteIcon } from "@/app/components/navigation/site-icon";
+import { SITE_COMMUNITY_LINKS, SITE_SUITES, getItemsForSuite } from "@/app/config/site-navigation";
 
 const SUITE_COLUMN_TITLES: Record<string, string> = {
   general: "General",
@@ -21,7 +20,7 @@ export function SiteFooter() {
       id: item.id,
       title: item.title,
       href: item.href,
-      icon: <SiteIcon iconKey={item.iconKey} className="size-4" />,
+      icon: item.icon,
       accentLight: suite.accent.light,
       accentDark: suite.accent.dark,
       mutedLight: suite.accent.mutedLight,
@@ -29,14 +28,7 @@ export function SiteFooter() {
     })),
   }));
 
-  const externalLinks = SITE_COMMUNITY_LINKS.filter(
-    (link) => link.id === "discord" || link.id === "github",
-  ).map((link) => ({
-    id: link.id,
-    title: link.title,
-    href: link.href,
-    icon: <SiteIcon iconKey={link.iconKey} className="size-4" />,
-  }));
+  const externalLinks = SITE_COMMUNITY_LINKS;
 
   return (
     <ShellFooter

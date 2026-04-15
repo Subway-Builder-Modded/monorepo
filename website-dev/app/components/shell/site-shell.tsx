@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useLocation } from "@/app/lib/router";
 import { SiteFooter } from "@/app/components/footer/site-footer";
 import { FloatingNavbar } from "@/app/components/navigation/floating-navbar";
-import { getActiveSuite } from "@/app/lib/site-navigation";
+import { getActiveSuite } from "@/app/config/site-navigation";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
 type SiteShellProps = {

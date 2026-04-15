@@ -117,10 +117,6 @@ export function navigate(to: string) {
   emitNavigation();
 }
 
-export function useNavigate() {
-  return useCallback((to: string) => navigate(to), []);
-}
-
 export function useLocation(): LocationState {
   const key = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 

@@ -2,8 +2,7 @@ import { type CSSProperties, memo } from "react";
 import { motion } from "motion/react";
 import { Link } from "@/app/lib/router";
 import { ShellNavRow } from "@subway-builder-modded/shared-ui";
-import { SiteIcon } from "./site-icon";
-import type { SiteNavItem } from "@/app/lib/site-navigation";
+import type { SiteNavItem } from "@/app/config/site-navigation";
 
 type NavbarPanelProps = {
   items: SiteNavItem[];
@@ -82,7 +81,7 @@ export const NavbarPanel = memo(function NavbarPanel({
                     <ShellNavRow
                       title={item.title}
                       description={item.description ?? ""}
-                      icon={<SiteIcon iconKey={item.iconKey} className="size-5" />}
+                      icon={item.icon}
                       active={isActive}
                     />
                   </Link>

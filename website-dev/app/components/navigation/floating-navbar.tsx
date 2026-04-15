@@ -10,16 +10,15 @@ import {
   getItemsForSuite,
   getMatchingItem,
   getSuiteById,
-} from "@/app/lib/site-navigation";
+  type SiteSuiteId,
+} from "@/app/config/site-navigation";
 import { ShellDropdown } from "@subway-builder-modded/shared-ui";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
 import { NAVBAR_MOTION, useNavbarPhase } from "@/app/hooks/use-navbar-phase";
 import { useDelayedClose } from "@/app/hooks/use-delayed-close";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
 import { cn } from "@/app/lib/utils";
-import { SiteIcon } from "./site-icon";
 import { NavbarPanel } from "./navbar-panel";
-import type { SiteSuiteId } from "@/app/lib/site-navigation";
 
 type FloatingNavbarProps = {
   pathname: string;
@@ -30,6 +29,8 @@ type FloatingNavbarProps = {
 const TOP_BAR_HEIGHT = 48;
 const TOP_BAR_SIDE_ZONE_DESKTOP = 248;
 const TOP_BAR_SIDE_ZONE_MOBILE = 188;
+const DISCORD_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "discord");
+const GITHUB_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "github");
 
 function getNextTheme(theme: ThemeMode): ThemeMode {
   return theme === "light" ? "dark" : "light";
@@ -58,17 +59,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
   const [isPinned, setIsPinned] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  const communityHrefById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const link of SITE_COMMUNITY_LINKS) {
-      map.set(link.id, link.href);
-    }
-    return map;
-  }, []);
-
-  const discordHref = communityHrefById.get("discord") ?? "https://discord.gg/syG9YHMyeG";
-  const githubHref = communityHrefById.get("github") ?? "https://github.com/Subway-Builder-Modded";
 
   const onFullyClosed = useCallback(() => {
     setOpenSuiteId(realSuite.id);
@@ -187,7 +177,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       SITE_SUITES.map((suite) => ({
         id: suite.id,
         label: suite.title,
-        icon: <SiteIcon iconKey={suite.iconKey} className="size-4" />,
+        icon: suite.icon,
         tone: {
           color: theme === "dark" ? suite.accent.dark : suite.accent.light,
           muted: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
@@ -267,7 +257,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                       className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold leading-tight"
                       style={{ color: realAccent }}
                     >
-                      <SiteIcon iconKey={realSuite.iconKey} className="size-4 shrink-0" />
+                      <span className="shrink-0">{realSuite.icon}</span>
                       {!isMobile ? (
                         <span className="truncate leading-normal">{realSuite.title}</span>
                       ) : null}
@@ -294,22 +284,22 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                     <House className="size-4" aria-hidden="true" />
                   </Link>
                   <a
-                    href={discordHref}
+                    href={DISCORD_COMMUNITY_LINK?.href ?? "#"}
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Open Discord"
                     className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <SiteIcon iconKey="discord" className="size-4" />
+                    {DISCORD_COMMUNITY_LINK?.icon}
                   </a>
                   <a
-                    href={githubHref}
+                    href={GITHUB_COMMUNITY_LINK?.href ?? "#"}
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Open GitHub"
                     className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <SiteIcon iconKey="github" className="size-4" />
+                    {GITHUB_COMMUNITY_LINK?.icon}
                   </a>
                   <button
                     type="button"
