@@ -25,28 +25,17 @@ type NavbarTopbarProps = {
 };
 
 const EXPANDED_SIDE_ZONE_DESKTOP = 248;
-const EXPANDED_SIDE_ZONE_MOBILE = 188;
 const COLLAPSED_RIGHT_ZONE_DESKTOP = 176;
-const COLLAPSED_RIGHT_ZONE_MOBILE = 176;
 const COLLAPSED_LEFT_ZONE_GENERAL = 200;
 const COLLAPSED_LEFT_ZONE_SUITE = 136;
-const COLLAPSED_LEFT_ZONE_MOBILE = 36;
 const CENTER_SAFE_GAP = 24;
 
-function getCollapsedLeftZoneWidth(isMobile: boolean, suiteId: SiteSuiteId): number {
-  if (isMobile) {
-    return COLLAPSED_LEFT_ZONE_MOBILE;
-  }
-
+function getCollapsedLeftZoneWidth(suiteId: SiteSuiteId): number {
   return suiteId === "general" ? COLLAPSED_LEFT_ZONE_GENERAL : COLLAPSED_LEFT_ZONE_SUITE;
 }
 
-function getCollapsedRightZoneWidth(isMobile: boolean): number {
-  return isMobile ? COLLAPSED_RIGHT_ZONE_MOBILE : COLLAPSED_RIGHT_ZONE_DESKTOP;
-}
-
-function getExpandedSideZoneWidth(isMobile: boolean): number {
-  return isMobile ? EXPANDED_SIDE_ZONE_MOBILE : EXPANDED_SIDE_ZONE_DESKTOP;
+function getExpandedSideZoneWidth(): number {
+  return EXPANDED_SIDE_ZONE_DESKTOP;
 }
 
 export function NavbarTopbar({
@@ -73,7 +62,7 @@ export function NavbarTopbar({
 
   const { leftZoneWidth, rightZoneWidth, centerMaxWidth } = useMemo(() => {
     if (isExpanded) {
-      const sideZoneWidth = getExpandedSideZoneWidth(isMobile);
+      const sideZoneWidth = getExpandedSideZoneWidth();
 
       return {
         leftZoneWidth: sideZoneWidth,
@@ -82,17 +71,17 @@ export function NavbarTopbar({
       };
     }
 
-    const collapsedLeftZoneWidth = getCollapsedLeftZoneWidth(isMobile, realSuite.id);
-    const collapsedRightZoneWidth = getCollapsedRightZoneWidth(isMobile);
+    const collapsedLeftZoneWidth = getCollapsedLeftZoneWidth(realSuite.id);
+    const collapsedRightZoneWidth = COLLAPSED_RIGHT_ZONE_DESKTOP;
 
     return {
       leftZoneWidth: collapsedLeftZoneWidth,
       rightZoneWidth: collapsedRightZoneWidth,
       centerMaxWidth: `calc(100% - ${collapsedLeftZoneWidth + collapsedRightZoneWidth + CENTER_SAFE_GAP}px)`,
     };
-  }, [isExpanded, isMobile, realSuite.id]);
+  }, [isExpanded, realSuite.id]);
 
-  const leftContent = isExpanded ? (
+  const expandedLeftContent = (
     <div style={{ color: selectedSuiteAccent ?? realAccent }}>
       <SuiteSwitcher
         options={suiteOptions}
@@ -100,9 +89,12 @@ export function NavbarTopbar({
         isOpen={isDropdownOpen}
         onOpenChange={onDropdownOpenChange}
         onSelect={onSuiteChange}
+        compact={isMobile}
       />
     </div>
-  ) : (
+  );
+
+  const collapsedLeftContent = (
     <div
       className="inline-flex h-full min-w-0 items-center gap-2 text-sm font-semibold leading-tight"
       style={{ color: realAccent }}
@@ -116,6 +108,47 @@ export function NavbarTopbar({
     </div>
   );
 
+  const breadcrumbNode = (
+    <p
+      className="pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-semibold leading-snug text-foreground [overflow-x:hidden] [overflow-y:visible] sm:text-base"
+      style={{ transform: "translateY(-2px)" }}
+    >
+      {breadcrumb}
+    </p>
+  );
+
+  const actionsNode = (
+    <NavbarActions
+      discordLink={discordLink}
+      githubLink={githubLink}
+      isExpanded={isExpanded}
+      theme={theme}
+      onThemeClick={onThemeClick}
+      onOpenMenu={onOpenMenu}
+      onCloseMenu={onCloseMenu}
+    />
+  );
+
+  if (isMobile) {
+    return (
+      <NavbarTopBar
+        className="h-full gap-1"
+        leftClassName="min-w-0 pr-1"
+        centerClassName="px-1"
+        rightClassName="pl-1"
+        left={
+          isExpanded ? (
+            <div className="min-w-0 max-w-[2.5rem]">{expandedLeftContent}</div>
+          ) : (
+            <div className="min-w-0">{collapsedLeftContent}</div>
+          )
+        }
+        center={breadcrumbNode}
+        right={<div className="shrink-0">{actionsNode}</div>}
+      />
+    );
+  }
+
   return (
     <NavbarTopBar
       overlayCenter
@@ -126,28 +159,13 @@ export function NavbarTopbar({
       centerStyle={{ maxWidth: centerMaxWidth }}
       left={
         <div className="min-w-0" style={{ width: leftZoneWidth }}>
-          {leftContent}
+          {isExpanded ? expandedLeftContent : collapsedLeftContent}
         </div>
       }
-      center={
-        <p
-          className="pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-semibold leading-snug text-foreground [overflow-x:hidden] [overflow-y:visible] sm:text-base"
-          style={{ transform: "translateY(-2px)" }}
-        >
-          {breadcrumb}
-        </p>
-      }
+      center={breadcrumbNode}
       right={
         <div className="min-w-0" style={{ width: rightZoneWidth }}>
-          <NavbarActions
-            discordLink={discordLink}
-            githubLink={githubLink}
-            isExpanded={isExpanded}
-            theme={theme}
-            onThemeClick={onThemeClick}
-            onOpenMenu={onOpenMenu}
-            onCloseMenu={onCloseMenu}
-          />
+          {actionsNode}
         </div>
       }
     />

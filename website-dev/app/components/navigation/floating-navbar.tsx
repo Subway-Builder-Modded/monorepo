@@ -31,8 +31,15 @@ const NAVBAR_TOP_OFFSET = 16;
 const PANEL_MIN_HEIGHT = 84;
 const PANEL_BODY_VERTICAL_PADDING = 20;
 const PANEL_VIEWPORT_BOTTOM_GUTTER = 24;
+const EXPANDED_FRAME_WIDTH_CLASS = "w-[min(72rem,calc(100vw-2rem))]";
 const DISCORD_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "discord");
 const GITHUB_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "github");
+
+type CommittedPanelMetrics = {
+  key: string | null;
+  panelHeight: number;
+  panelNeedsScroll: boolean;
+};
 
 function getNextTheme(theme: ThemeMode): ThemeMode {
   return theme === "light" ? "dark" : "light";
@@ -58,6 +65,12 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
   const [isPinned, setIsPinned] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [canStartEnterMotion, setCanStartEnterMotion] = useState(false);
+  const [committedPanelMetrics, setCommittedPanelMetrics] = useState<CommittedPanelMetrics>({
+    key: null,
+    panelHeight: PANEL_MIN_HEIGHT,
+    panelNeedsScroll: false,
+  });
   const [viewportHeight, setViewportHeight] = useState(() =>
     typeof window === "undefined" ? 900 : window.innerHeight,
   );
@@ -78,6 +91,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     allowHoverClose,
     isTransitionLocked,
   } = useNavbarPhase({
+    canStartEnterMotion,
     onFullyClosed,
     reducedMotion: prefersReducedMotion,
   });
@@ -99,6 +113,12 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       setOpenSuiteId(realSuite.id);
     }
   }, [phase, realSuite.id]);
+
+  useEffect(() => {
+    if (phase === "opening") {
+      setCanStartEnterMotion(false);
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (phase === "closing") {
@@ -165,7 +185,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [closeNavbar, phase]);
 
-  const displayedSuite = isFrameExpanded ? getSuiteById(openSuiteId) : realSuite;
+  const displayedSuite = phase === "closed" ? realSuite : getSuiteById(openSuiteId);
 
   const accentColor = theme === "dark" ? displayedSuite.accent.dark : displayedSuite.accent.light;
   const mutedColor =
@@ -182,11 +202,13 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
   const breadcrumb = getBreadcrumbLabel(pathname);
   const displayedItems = useMemo(() => getItemsForSuite(displayedSuite.id), [displayedSuite.id]);
-  const { panelContentHeight, panelMeasureRef } = useNavbarPanelHeight({
-    suiteId: displayedSuite.id,
-    itemCount: displayedItems.length,
-    isMobile,
-  });
+  const { hasMeasuredCurrentPanel, measuredPanelHeight, panelMeasurementKey, panelMeasureRef } =
+    useNavbarPanelHeight({
+      enabled: phase !== "closed",
+      suiteId: displayedSuite.id,
+      itemCount: displayedItems.length,
+      isMobile,
+    });
 
   const suiteOptions = useMemo(
     () =>
@@ -206,12 +228,57 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     PANEL_MIN_HEIGHT,
     viewportHeight - NAVBAR_TOP_OFFSET - TOP_BAR_HEIGHT - PANEL_VIEWPORT_BOTTOM_GUTTER,
   );
-  const naturalPanelHeight = Math.max(
+  const measuredNaturalPanelHeight = Math.max(
     PANEL_MIN_HEIGHT,
-    panelContentHeight + PANEL_BODY_VERTICAL_PADDING,
+    measuredPanelHeight + PANEL_BODY_VERTICAL_PADDING,
   );
-  const panelHeight = Math.min(naturalPanelHeight, maxPanelHeight);
-  const panelNeedsScroll = naturalPanelHeight > maxPanelHeight;
+  const targetPanelHeight = Math.min(measuredNaturalPanelHeight, maxPanelHeight);
+  const targetPanelNeedsScroll = measuredNaturalPanelHeight > maxPanelHeight;
+
+  useEffect(() => {
+    if (phase === "closed") {
+      setCommittedPanelMetrics({
+        key: null,
+        panelHeight: PANEL_MIN_HEIGHT,
+        panelNeedsScroll: false,
+      });
+      setCanStartEnterMotion(false);
+      return;
+    }
+
+    if (!hasMeasuredCurrentPanel) {
+      return;
+    }
+
+    setCommittedPanelMetrics((previousMetrics) => {
+      if (
+        previousMetrics.key === panelMeasurementKey &&
+        previousMetrics.panelHeight === targetPanelHeight &&
+        previousMetrics.panelNeedsScroll === targetPanelNeedsScroll
+      ) {
+        return previousMetrics;
+      }
+
+      return {
+        key: panelMeasurementKey,
+        panelHeight: targetPanelHeight,
+        panelNeedsScroll: targetPanelNeedsScroll,
+      };
+    });
+
+    if (phase === "opening") {
+      setCanStartEnterMotion(true);
+    }
+  }, [
+    hasMeasuredCurrentPanel,
+    panelMeasurementKey,
+    phase,
+    targetPanelHeight,
+    targetPanelNeedsScroll,
+  ]);
+
+  const panelHeight = committedPanelMetrics.panelHeight;
+  const panelNeedsScroll = committedPanelMetrics.panelNeedsScroll;
   const frameHeight = isFrameExpanded ? TOP_BAR_HEIGHT + panelHeight : TOP_BAR_HEIGHT;
   const frameDuration = prefersReducedMotion
     ? 0
@@ -240,7 +307,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
           className={cn(
             "relative mx-auto transition-[width] ease-[cubic-bezier(.22,.9,.35,1)]",
             isFrameExpanded
-              ? "w-[min(72rem,calc(100vw-2rem))]"
+              ? EXPANDED_FRAME_WIDTH_CLASS
               : getCollapsedWidthClass(isMobile, realSuite.id),
           )}
           style={{
@@ -297,22 +364,47 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                     panelNeedsScroll ? "overflow-y-auto pr-1" : "overflow-visible",
                   )}
                 >
-                  <div ref={panelMeasureRef}>
-                    <NavbarPanel
-                      items={displayedItems}
-                      activeItem={activeItem}
-                      accentColor={accentColor}
-                      mutedColor={mutedColor}
-                      rowsVisible={showRows}
-                      prefersReducedMotion={prefersReducedMotion}
-                      onRowClick={onRowClick}
-                    />
-                  </div>
+                  <NavbarPanel
+                    items={displayedItems}
+                    activeItem={activeItem}
+                    accentColor={accentColor}
+                    mutedColor={mutedColor}
+                    rowsVisible={showRows}
+                    prefersReducedMotion={prefersReducedMotion}
+                    onRowClick={onRowClick}
+                  />
                 </div>
               </motion.div>
             </div>
           </motion.div>
         </div>
+
+        {phase !== "closed" ? (
+          <div
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none invisible fixed left-1/2 top-4 -z-10 -translate-x-1/2",
+              EXPANDED_FRAME_WIDTH_CLASS,
+            )}
+          >
+            <div className="rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]">
+              <div className="px-3 pb-3 pt-14">
+                <div ref={panelMeasureRef}>
+                  <NavbarPanel
+                    items={displayedItems}
+                    activeItem={activeItem}
+                    accentColor={accentColor}
+                    mutedColor={mutedColor}
+                    rowsVisible={true}
+                    staticRows
+                    prefersReducedMotion={true}
+                    onRowClick={() => undefined}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </nav>
     </>
   );

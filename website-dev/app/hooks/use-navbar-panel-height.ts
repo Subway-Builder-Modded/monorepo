@@ -1,18 +1,25 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type UseNavbarPanelHeightOptions = {
+  enabled?: boolean;
   isMobile: boolean;
   itemCount: number;
   suiteId: string;
 };
 
 export function useNavbarPanelHeight({
+  enabled = true,
   isMobile,
   itemCount,
   suiteId,
 }: UseNavbarPanelHeightOptions) {
-  const [panelContentHeight, setPanelContentHeight] = useState(0);
+  const [measuredPanelHeight, setMeasuredPanelHeight] = useState(0);
+  const [measuredPanelKey, setMeasuredPanelKey] = useState<string | null>(null);
   const panelMeasureRef = useRef<HTMLDivElement | null>(null);
+  const panelMeasurementKey = useMemo(
+    () => `${suiteId}:${itemCount}:${isMobile ? "mobile" : "desktop"}`,
+    [isMobile, itemCount, suiteId],
+  );
 
   const measurePanelHeight = useCallback(() => {
     const contentElement = panelMeasureRef.current;
@@ -21,12 +28,24 @@ export function useNavbarPanelHeight({
     }
 
     const nextHeight = Math.ceil(contentElement.scrollHeight);
-    setPanelContentHeight((previousHeight) =>
+    setMeasuredPanelHeight((previousHeight) =>
       previousHeight === nextHeight ? previousHeight : nextHeight,
     );
-  }, []);
+    setMeasuredPanelKey((previousKey) =>
+      previousKey === panelMeasurementKey ? previousKey : panelMeasurementKey,
+    );
+  }, [panelMeasurementKey]);
 
   useEffect(() => {
+    setMeasuredPanelKey(null);
+  }, [panelMeasurementKey]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setMeasuredPanelKey(null);
+      return;
+    }
+
     measurePanelHeight();
 
     const frameId = window.requestAnimationFrame(measurePanelHeight);
@@ -45,10 +64,12 @@ export function useNavbarPanelHeight({
       window.cancelAnimationFrame(frameId);
       observer.disconnect();
     };
-  }, [isMobile, itemCount, measurePanelHeight, suiteId]);
+  }, [enabled, isMobile, itemCount, measurePanelHeight, suiteId]);
 
   return {
-    panelContentHeight,
+    hasMeasuredCurrentPanel: measuredPanelKey === panelMeasurementKey,
+    measuredPanelHeight,
+    panelMeasurementKey,
     panelMeasureRef,
   };
 }

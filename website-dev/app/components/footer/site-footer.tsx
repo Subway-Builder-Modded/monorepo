@@ -40,8 +40,7 @@ export function SiteFooter() {
         href: "/",
         logoSrc: "/logo.png",
         title: "Subway Builder Modded",
-        description:
-          "A unified transit-grade hub for Subway Builder Modded suites and community services.",
+        description: "The complete hub for everything modded in Subway Builder.",
       }}
       columns={columns}
       externalLinks={externalLinks}

@@ -22,19 +22,23 @@ export const NAVBAR_MOTION = {
  */
 
 type UseNavbarPhaseOptions = {
+  canStartEnterMotion?: boolean;
   onFullyClosed?: () => void;
   reducedMotion?: boolean;
 };
 
 export function useNavbarPhase({
+  canStartEnterMotion = true,
   onFullyClosed,
   reducedMotion = false,
 }: UseNavbarPhaseOptions = {}) {
   const [phase, setPhase] = useState<NavbarPhase>("closed");
+  const [isFrameExpanded, setIsFrameExpanded] = useState(false);
   const [showPanelSurface, setShowPanelSurface] = useState(false);
   const [showRows, setShowRows] = useState(false);
 
   const phaseRef = useRef<NavbarPhase>("closed");
+  const enterSequenceStartedRef = useRef(false);
   const openSurfaceTimerRef = useRef<number | null>(null);
   const openDoneTimerRef = useRef<number | null>(null);
   const closeSurfaceTimerRef = useRef<number | null>(null);
@@ -93,9 +97,20 @@ export function useNavbarPhase({
     }
 
     clearTimers();
+    enterSequenceStartedRef.current = false;
+    setIsFrameExpanded(false);
     setShowPanelSurface(false);
     setShowRows(false);
     setPhaseSync("opening");
+  }, [clearTimers, duration, setPhaseSync]);
+
+  useEffect(() => {
+    if (phase !== "opening" || !canStartEnterMotion || enterSequenceStartedRef.current) {
+      return;
+    }
+
+    enterSequenceStartedRef.current = true;
+    setIsFrameExpanded(true);
 
     openSurfaceTimerRef.current = window.setTimeout(() => {
       setShowPanelSurface(true);
@@ -107,7 +122,7 @@ export function useNavbarPhase({
       setPhaseSync("open");
       openDoneTimerRef.current = null;
     }, duration(NAVBAR_MOTION.frameExpandMs));
-  }, [clearTimers, duration, setPhaseSync]);
+  }, [canStartEnterMotion, duration, phase, setPhaseSync]);
 
   const close = useCallback(() => {
     const current = phaseRef.current;
@@ -117,7 +132,9 @@ export function useNavbarPhase({
     }
 
     clearTimers();
+    enterSequenceStartedRef.current = false;
     setPhaseSync("closing");
+    setIsFrameExpanded(false);
     setShowRows(false);
 
     closeSurfaceTimerRef.current = window.setTimeout(() => {
@@ -136,6 +153,8 @@ export function useNavbarPhase({
 
   useEffect(() => {
     if (phase === "closed") {
+      enterSequenceStartedRef.current = false;
+      setIsFrameExpanded(false);
       setShowPanelSurface(false);
       setShowRows(false);
     }
@@ -145,7 +164,7 @@ export function useNavbarPhase({
     phase,
     open,
     close,
-    isFrameExpanded: phase === "opening" || phase === "open",
+    isFrameExpanded,
     showPanelSurface,
     showRows,
     allowHoverClose: phase === "open",

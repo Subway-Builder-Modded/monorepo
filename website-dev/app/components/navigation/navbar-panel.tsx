@@ -11,6 +11,7 @@ type NavbarPanelProps = {
   mutedColor: string;
   /** When true rows animate to visible; when false rows animate out. */
   rowsVisible: boolean;
+  staticRows?: boolean;
   prefersReducedMotion: boolean;
   onRowClick: () => void;
 };
@@ -24,6 +25,7 @@ export const NavbarPanel = memo(function NavbarPanel({
   accentColor,
   mutedColor,
   rowsVisible,
+  staticRows = false,
   prefersReducedMotion,
   onRowClick,
 }: NavbarPanelProps) {
@@ -38,11 +40,7 @@ export const NavbarPanel = memo(function NavbarPanel({
 
           return (
             <li key={item.id} className="h-full min-h-0 py-0.5">
-              <motion.div
-                className="h-full"
-                animate={rowsVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
-                transition={{ duration, delay, ease: [0.22, 0.9, 0.35, 1] }}
-              >
+              {staticRows ? (
                 <Link
                   to={item.href}
                   onClick={onRowClick}
@@ -57,7 +55,28 @@ export const NavbarPanel = memo(function NavbarPanel({
                     className="h-full w-full"
                   />
                 </Link>
-              </motion.div>
+              ) : (
+                <motion.div
+                  className="h-full"
+                  animate={rowsVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
+                  transition={{ duration, delay, ease: [0.22, 0.9, 0.35, 1] }}
+                >
+                  <Link
+                    to={item.href}
+                    onClick={onRowClick}
+                    aria-current={isActive ? "page" : undefined}
+                    className="flex h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <NavRow
+                      title={item.title}
+                      description={item.description}
+                      icon={<ItemIcon className="size-5" aria-hidden={true} />}
+                      active={isActive}
+                      className="h-full w-full"
+                    />
+                  </Link>
+                </motion.div>
+              )}
             </li>
           );
         })}

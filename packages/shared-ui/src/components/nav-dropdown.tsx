@@ -26,6 +26,7 @@ export type NavDropdownOption = {
 type NavDropdownProps = {
   options: NavDropdownOption[];
   selectedId: string;
+  hideSelectedLabel?: boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSelect: (id: string) => void;
@@ -44,6 +45,7 @@ type MenuPosition = {
 export function NavDropdown({
   options,
   selectedId,
+  hideSelectedLabel = false,
   isOpen,
   onOpenChange,
   onSelect,
@@ -191,9 +193,11 @@ export function NavDropdown({
           )}
         >
           <span className="shrink-0">{selected?.icon}</span>
-          <span className="max-w-[9.5rem] overflow-hidden text-ellipsis sm:max-w-none">
-            {selected?.label}
-          </span>
+          {!hideSelectedLabel ? (
+            <span className="max-w-[9.5rem] overflow-hidden text-ellipsis sm:max-w-none">
+              {selected?.label}
+            </span>
+          ) : null}
           <ChevronDown
             aria-hidden="true"
             className={cn('size-4 shrink-0 transition-transform', isOpen && 'rotate-180')}
