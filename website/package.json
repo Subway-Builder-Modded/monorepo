@@ -13,9 +13,9 @@
     "analytics": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/generate-github-release-cache.mjs && node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/generate-registry-analytics-cache.mjs && node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/generate-railyard-analytics-cache.mjs && node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/generate-map-data-cache.mjs && node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/generate-website-analytics.mjs",
     "build": "next build",
     "start": "next start",
-    "test": "vp test run",
-    "test:watch": "vp test",
-    "test:coverage": "vp test run --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "format": "prettier --write \"**/*.{ts,tsx,mdx}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\"",
     "lint": "eslint --max-warnings=0 --no-error-on-unmatched-pattern \"**/*.{ts,tsx,mdx}\"",
@@ -107,7 +107,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "unified": "^11.0.5",
-    "vitest": "catalog:",
-    "vite-plus": "catalog:"
+    "vitest": "^4.0.0"
   }
 }

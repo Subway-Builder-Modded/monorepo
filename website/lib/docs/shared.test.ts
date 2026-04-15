@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it } from 'vitest';
 import { DOCS_INSTANCES } from '@/config/content/docs.instances';
 import {
   buildDocHref,

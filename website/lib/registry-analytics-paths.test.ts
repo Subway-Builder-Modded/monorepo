@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it } from 'vitest';
 import { resolveRegistryAnalyticsDir } from '@/lib/registry-analytics-paths';
 
 describe('resolveRegistryAnalyticsDir', () => {

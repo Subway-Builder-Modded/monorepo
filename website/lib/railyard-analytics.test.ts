@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 function writeJson(directory: string, filename: string, value: unknown) {
   writeFileSync(path.join(directory, filename), JSON.stringify(value, null, 2));

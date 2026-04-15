@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it } from 'vitest';
 import { THEME_HYDRATION_SCRIPT } from '@subway-builder-modded/lifecycle-web/theme-script';
 
 describe('THEME_HYDRATION_SCRIPT', () => {

@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react';
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it } from 'vitest';
 import {
   isImageIcon,
   isMaskIcon,

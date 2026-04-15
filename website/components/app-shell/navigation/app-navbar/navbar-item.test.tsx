@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vite-plus/test';
+import { describe, expect, it, vi } from 'vitest';
 import type { AppNavbarItem } from '@/config/navigation/navbar.types';
 import { NavbarItemView } from '@/components/app-shell/navigation/app-navbar/navbar-item';
 

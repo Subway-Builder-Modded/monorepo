@@ -1,5 +1,5 @@
 import { sortTaggedItemsByLastUpdated } from '@subway-builder-modded/asset-listings-ui';
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it } from 'vitest';
 
 import {
   buildTaggedItems,
