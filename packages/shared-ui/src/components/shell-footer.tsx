@@ -1,26 +1,33 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "../lib/cn";
 
 type ShellFooterLink = {
   id: string;
   title: string;
   href: string;
+  hoverColor?: string;
 };
 
-type ShellFooterGroup = {
+type ShellFooterColumn = {
   id: string;
   title: string;
+  accentColor: string;
   links: ShellFooterLink[];
 };
 
 type ShellFooterProps = {
   brand: {
-    icon: ReactNode;
+    logoSrc: string;
     title: string;
     description: string;
   };
-  groups: ShellFooterGroup[];
-  externalLinks: ShellFooterLink[];
+  columns: ShellFooterColumn[];
+  externalLinks: Array<{
+    id: string;
+    title: string;
+    href: string;
+    icon: ReactNode;
+  }>;
   copyright: string;
   secondaryText?: string;
   className?: string;
@@ -28,7 +35,7 @@ type ShellFooterProps = {
 
 export function ShellFooter({
   brand,
-  groups,
+  columns,
   externalLinks,
   copyright,
   secondaryText,
@@ -36,55 +43,67 @@ export function ShellFooter({
 }: ShellFooterProps) {
   return (
     <footer className={cn("mt-16 border-t border-border bg-background", className)}>
-      <div className="h-px w-full bg-[linear-gradient(90deg,transparent_0%,var(--suite-accent)_28%,transparent_72%)] opacity-50" />
-      <div className="mx-auto w-full max-w-[1200px] px-5 pb-8 pt-8 sm:px-7 lg:px-10">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)]">
-          <section>
-            <div className="flex items-center gap-3">
-              <span className="inline-flex size-10 items-center justify-center">{brand.icon}</span>
-              <h2 className="text-sm font-semibold tracking-tight">{brand.title}</h2>
+      <div className="mx-auto w-full max-w-[1200px] px-5 pb-8 pt-9 sm:px-7 lg:px-10">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,2.65fr)]">
+          <section className="max-w-md">
+            <div className="flex items-start gap-4">
+              <img
+                src={brand.logoSrc}
+                alt=""
+                aria-hidden="true"
+                className="size-14 shrink-0 rounded-lg object-contain"
+              />
+              <div className="min-w-0 pt-1">
+                <h2 className="text-lg font-semibold tracking-tight text-foreground">{brand.title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{brand.description}</p>
+                <div className="mt-4 flex items-center gap-2">
+                  {externalLinks.map((link) => (
+                    <a
+                      key={link.id}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={link.title}
+                      className="inline-flex size-8 items-center justify-center rounded-full border border-border text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {link.icon}
+                    </a>
+                  ))}
+                </div>
+              </div>
             </div>
-            <p className="mt-3 max-w-md text-sm text-muted-foreground">{brand.description}</p>
           </section>
 
-          {groups.map((group) => (
-            <section key={group.id}>
-              <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                {group.title}
-              </h3>
-              <ul className="mt-3 space-y-2">
-                {group.links.map((link) => (
-                  <li key={link.id}>
-                    <a
-                      href={link.href}
-                      className="text-sm text-foreground/85 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      {link.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-
-          <section>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Community
-            </h3>
-            <ul className="mt-3 space-y-2">
-              {externalLinks.map((link) => (
-                <li key={link.id}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm text-foreground/85 transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {link.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {columns.map((column) => (
+              <div key={column.id}>
+                <span
+                  aria-hidden="true"
+                  className="mb-2 block h-0.5 w-8 rounded-full"
+                  style={{ backgroundColor: column.accentColor }}
+                />
+                <h3 className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: column.accentColor }}>
+                  {column.title}
+                </h3>
+                <ul className="mt-3 space-y-2.5">
+                  {column.links.map((link) => (
+                    <li key={link.id}>
+                      <a
+                        href={link.href}
+                        className="text-sm text-foreground/85 transition hover:text-[color:var(--footer-hover-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        style={
+                          link.hoverColor
+                            ? ({ ["--footer-hover-color" as string]: link.hoverColor } as CSSProperties)
+                            : undefined
+                        }
+                      >
+                        {link.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </section>
         </div>
 

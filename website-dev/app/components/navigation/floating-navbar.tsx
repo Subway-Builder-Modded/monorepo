@@ -1,7 +1,16 @@
-import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
-import { Menu, MoonStar, Sun, X } from "lucide-react";
 import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { Link } from "@/app/lib/router";
+import { motion, useReducedMotion } from "motion/react";
+import { House, Menu, MoonStar, Sun, X } from "lucide-react";
+import {
+  SITE_COMMUNITY_LINKS,
   SITE_SUITES,
   getBreadcrumbLabel,
   getMatchingNavItem,
@@ -27,11 +36,30 @@ function getNextTheme(theme: ThemeMode): ThemeMode {
   return theme === "light" ? "dark" : "light";
 }
 
+function getCollapsedWidthClass(isMobile: boolean, suiteId: SiteSuiteId): string {
+  if (isMobile) {
+    return "w-[min(24.25rem,calc(100vw-0.75rem))]";
+  }
+
+  if (suiteId === "general") {
+    return "w-[min(38rem,calc(100vw-1.5rem))]";
+  }
+
+  return "w-[min(32rem,calc(100vw-1.5rem))]";
+}
+
+function ActionButtonFrame({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground">
+      {children}
+    </span>
+  );
+}
+
 export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProps) {
   const prefersReducedMotion = useReducedMotion() ?? false;
   const isMobile = useMediaQuery("(max-width: 960px)");
 
-  // --- Resolve the real suite from the current URL ---
   const realSuite = useMemo(() => {
     return (
       SITE_SUITES.find(
@@ -40,17 +68,36 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     );
   }, [pathname]);
 
-  // --- Suite shown in the open panel (may differ from realSuite via dropdown) ---
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
   const [isPinned, setIsPinned] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Called when navbar fully transitions to closed state
+  const communityHrefById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const link of SITE_COMMUNITY_LINKS) {
+      map.set(link.id, link.href);
+    }
+    return map;
+  }, []);
+
+  const discordHref = communityHrefById.get("discord") ?? "https://discord.gg/syG9YHMyeG";
+  const githubHref = communityHrefById.get("github") ?? "https://github.com/Subway-Builder-Modded";
+
   const onFullyClosed = useCallback(() => {
     setOpenSuiteId(realSuite.id);
+    setIsDropdownOpen(false);
+    setIsPinned(false);
   }, [realSuite.id]);
 
-  const { phase, open, close, isBarWide, isPanelMounted, areRowsVisible } = useNavbarPhase({
+  const {
+    phase,
+    open,
+    close,
+    isFrameExpanded,
+    isPanelShellMounted,
+    areRowsVisible,
+    isTransitionLocked,
+  } = useNavbarPhase({
     onFullyClosed,
     reducedMotion: prefersReducedMotion,
   });
@@ -67,14 +114,18 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     disabled: isMobile || isPinned,
   });
 
-  // Sync openSuiteId to realSuite when navbar starts opening
   useEffect(() => {
-    if (phase === "opening") {
+    if (phase === "closed") {
       setOpenSuiteId(realSuite.id);
     }
   }, [phase, realSuite.id]);
 
-  // --- Hover region handlers ---
+  useEffect(() => {
+    if (phase === "closingRows" || phase === "closingFrame") {
+      setIsDropdownOpen(false);
+    }
+  }, [phase]);
+
   const onInteractiveRegionEnter = useCallback(() => {
     cancelClose();
     if (!isMobile) {
@@ -83,10 +134,12 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   }, [cancelClose, isMobile, open]);
 
   const onInteractiveRegionLeave = useCallback(() => {
+    if (isTransitionLocked || isMobile || isPinned) {
+      return;
+    }
     scheduleClose();
-  }, [scheduleClose]);
+  }, [isTransitionLocked, isMobile, isPinned, scheduleClose]);
 
-  // --- Button handlers ---
   const onMenuClick = useCallback(() => {
     cancelClose();
     setIsPinned(true);
@@ -98,19 +151,20 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     setOpenSuiteId(suiteId as SiteSuiteId);
   }, []);
 
+  const onThemeClick = useCallback(() => {
+    setTheme(getNextTheme(theme));
+  }, [setTheme, theme]);
+
   const onRowClick = useCallback(() => {
     if (isMobile || isPinned) {
       closeNavbar();
     }
   }, [closeNavbar, isMobile, isPinned]);
 
-  const onThemeClick = useCallback(() => {
-    setTheme(getNextTheme(theme));
-  }, [setTheme, theme]);
-
-  // --- Escape key ---
   useEffect(() => {
-    if (phase === "closed") return;
+    if (phase === "closed") {
+      return;
+    }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -122,24 +176,17 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [closeNavbar, phase]);
 
-  // --- Derived values ---
-  const displayedSuite = isPanelMounted ? getSuiteById(openSuiteId) : realSuite;
+  const displayedSuite = isPanelShellMounted ? getSuiteById(openSuiteId) : realSuite;
 
   const accentColor = theme === "dark" ? displayedSuite.accent.dark : displayedSuite.accent.light;
-  const accentContrast =
-    theme === "dark"
-      ? displayedSuite.accent.textInvertedDark
-      : displayedSuite.accent.textInvertedLight;
-
+  const mutedColor =
+    theme === "dark" ? displayedSuite.accent.mutedDark : displayedSuite.accent.mutedLight;
   const realAccent = theme === "dark" ? realSuite.accent.dark : realSuite.accent.light;
 
-  const borderColor = isBarWide
+  const borderColor = isFrameExpanded
     ? `color-mix(in srgb, ${accentColor} 36%, var(--border))`
     : `color-mix(in srgb, ${realAccent} 36%, var(--border))`;
 
-  const barExpandDuration = prefersReducedMotion ? 0 : 300;
-
-  // Active item — null if no actual route match (not a fallback)
   const activeItem = useMemo(() => {
     return getMatchingNavItem(pathname, displayedSuite.id);
   }, [displayedSuite.id, pathname]);
@@ -160,17 +207,22 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     [theme],
   );
 
+  const collapsedLayerVisible =
+    phase === "closed" || phase === "openingFrame" || phase === "closingFrame";
+  const expandedLayerVisible =
+    phase === "openingPanel" || phase === "open" || phase === "closingRows";
+
+  const frameDuration = prefersReducedMotion ? 0 : 0.3;
+
   return (
     <>
-      {/* Overlay — only mounted during open/closing phases */}
-      {isPanelMounted ? (
+      {phase !== "closed" ? (
         <motion.button
-          key="navbar-overlay"
           type="button"
           aria-label="Close navigation"
-          className="fixed inset-0 z-40 bg-black/25"
+          className="fixed inset-0 z-40 bg-black/35 dark:bg-black/55"
           initial={{ opacity: 0 }}
-          animate={{ opacity: areRowsVisible ? 1 : 0 }}
+          animate={{ opacity: phase === "openingFrame" ? 0 : 1 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
           onClick={closeNavbar}
         />
@@ -182,32 +234,117 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
           onPointerLeave={onInteractiveRegionLeave}
           className={cn(
             "relative mx-auto transition-[width] ease-[cubic-bezier(.22,.9,.35,1)]",
-            isBarWide
+            isFrameExpanded
               ? "w-[min(72rem,calc(100vw-2rem))]"
-              : "w-[min(22rem,calc(100vw-1rem))] sm:w-[min(30rem,calc(100vw-1.5rem))]",
+              : getCollapsedWidthClass(isMobile, realSuite.id),
           )}
-          style={{ transitionDuration: `${barExpandDuration}ms` }}
+          style={{ transitionDuration: `${frameDuration * 1000}ms` }}
         >
-          {/* Top bar */}
           <div
             className={cn(
-              "bg-background px-3 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.28)]",
-              isBarWide
+              "relative overflow-hidden bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]",
+              isFrameExpanded
                 ? "rounded-t-2xl border-x-2 border-t-2 border-b-0"
                 : "rounded-full border-2",
             )}
             style={
               {
                 borderColor,
-                ["--suite-accent" as string]: isBarWide ? accentColor : realAccent,
-                ["--suite-accent-contrast" as string]: accentContrast,
+                ["--suite-accent" as string]: isFrameExpanded ? accentColor : realAccent,
+                ["--suite-muted" as string]: mutedColor,
               } as CSSProperties
             }
           >
-            <div className="relative flex h-12 items-center">
-              {/* Left: suite dropdown (open) or suite name (collapsed) */}
-              <div className="min-w-0 max-w-[46%]">
-                {isBarWide ? (
+            <div className="relative h-12">
+              <motion.div
+                aria-hidden={!collapsedLayerVisible}
+                className={cn(
+                  "absolute inset-0 flex items-center",
+                  collapsedLayerVisible ? "pointer-events-auto" : "pointer-events-none",
+                )}
+                initial={false}
+                animate={{ opacity: collapsedLayerVisible ? 1 : 0 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.16 }}
+              >
+                <div
+                  className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold"
+                  style={{ color: realAccent }}
+                >
+                  <SiteIcon iconKey={realSuite.iconKey} className="size-4 shrink-0" />
+                  {!isMobile ? <span className="truncate">{realSuite.title}</span> : null}
+                </div>
+
+                <p className="pointer-events-none absolute left-1/2 max-w-[44%] -translate-x-1/2 truncate text-sm font-semibold text-foreground sm:text-base">
+                  {breadcrumb}
+                </p>
+
+                <div className="ml-auto flex shrink-0 items-center gap-1">
+                  <Link
+                    to="/"
+                    aria-label="Go to home"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <House className="size-4" aria-hidden="true" />
+                  </Link>
+                  <a
+                    href={discordHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Discord"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <ActionButtonFrame>
+                      <SiteIcon iconKey="discord" className="size-4" />
+                    </ActionButtonFrame>
+                  </a>
+                  <a
+                    href={githubHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open GitHub"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <ActionButtonFrame>
+                      <SiteIcon iconKey="github" className="size-4" />
+                    </ActionButtonFrame>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={onThemeClick}
+                    aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {theme === "light" ? (
+                      <Sun className="size-4" aria-hidden="true" />
+                    ) : (
+                      <MoonStar className="size-4" aria-hidden="true" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Open navigation"
+                    onClick={onMenuClick}
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Menu className="size-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </motion.div>
+
+              <motion.div
+                aria-hidden={!expandedLayerVisible}
+                className={cn(
+                  "absolute inset-0 flex items-center",
+                  expandedLayerVisible ? "pointer-events-auto" : "pointer-events-none",
+                )}
+                initial={false}
+                animate={{ opacity: expandedLayerVisible ? 1 : 0 }}
+                transition={{
+                  duration: prefersReducedMotion ? 0 : 0.18,
+                  delay: phase === "openingPanel" ? 0.04 : 0,
+                }}
+              >
+                <div className="min-w-0 max-w-[46%]">
                   <ShellDropdown
                     options={suiteOptions}
                     selectedId={openSuiteId}
@@ -218,38 +355,54 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                     className="text-[color:var(--suite-accent)] [&>button]:px-0"
                     menuClassName="border border-border"
                   />
-                ) : (
-                  <div
-                    className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold"
-                    style={{ color: realAccent }}
+                </div>
+
+                <p className="pointer-events-none absolute left-1/2 max-w-[44%] -translate-x-1/2 truncate text-sm font-semibold text-foreground sm:text-base">
+                  {breadcrumb}
+                </p>
+
+                <div className="ml-auto flex shrink-0 items-center gap-1">
+                  <Link
+                    to="/"
+                    aria-label="Go to home"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <SiteIcon iconKey={realSuite.iconKey} className="size-4 shrink-0" />
-                    <span className="truncate">{realSuite.title}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Center: breadcrumb (absolute for true centering) */}
-              <p className="pointer-events-none absolute left-1/2 max-w-[50%] -translate-x-1/2 truncate text-base font-semibold text-foreground">
-                {breadcrumb}
-              </p>
-
-              {/* Right: theme toggle + open/close button */}
-              <div className="ml-auto flex shrink-0 items-center gap-1">
-                <button
-                  type="button"
-                  onClick={onThemeClick}
-                  aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
-                  className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  {theme === "light" ? (
-                    <Sun className="size-4" aria-hidden="true" />
-                  ) : (
-                    <MoonStar className="size-4" aria-hidden="true" />
-                  )}
-                </button>
-
-                {isBarWide ? (
+                    <House className="size-4" aria-hidden="true" />
+                  </Link>
+                  <a
+                    href={discordHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Discord"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <ActionButtonFrame>
+                      <SiteIcon iconKey="discord" className="size-4" />
+                    </ActionButtonFrame>
+                  </a>
+                  <a
+                    href={githubHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open GitHub"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <ActionButtonFrame>
+                      <SiteIcon iconKey="github" className="size-4" />
+                    </ActionButtonFrame>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={onThemeClick}
+                    aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {theme === "light" ? (
+                      <Sun className="size-4" aria-hidden="true" />
+                    ) : (
+                      <MoonStar className="size-4" aria-hidden="true" />
+                    )}
+                  </button>
                   <button
                     type="button"
                     aria-label="Close navigation"
@@ -258,31 +411,35 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                   >
                     <X className="size-4" aria-hidden="true" />
                   </button>
-                ) : (
-                  <button
-                    type="button"
-                    aria-label="Open navigation"
-                    onClick={onMenuClick}
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <Menu className="size-4" aria-hidden="true" />
-                  </button>
-                )}
-              </div>
+                </div>
+              </motion.div>
             </div>
           </div>
 
-          {/* Panel — only mounted during open and closing phases */}
-          {isPanelMounted ? (
-            <NavbarPanel
-              suite={displayedSuite}
-              activeItem={activeItem}
-              accentColor={accentColor}
-              accentContrast={accentContrast}
-              rowsVisible={areRowsVisible}
-              prefersReducedMotion={prefersReducedMotion}
-              onRowClick={onRowClick}
-            />
+          {isPanelShellMounted ? (
+            <motion.div
+              initial={false}
+              animate={phase === "closingRows" ? { opacity: 0, y: -6 } : { opacity: 1, y: 0 }}
+              transition={{
+                duration: prefersReducedMotion ? 0 : 0.18,
+                ease: [0.22, 0.9, 0.35, 1],
+              }}
+            >
+              <NavbarPanel
+                suite={displayedSuite}
+                activeItem={activeItem}
+                accentColor={accentColor}
+                accentContrast={
+                  theme === "dark"
+                    ? displayedSuite.accent.textInvertedDark
+                    : displayedSuite.accent.textInvertedLight
+                }
+                mutedColor={mutedColor}
+                rowsVisible={areRowsVisible}
+                prefersReducedMotion={prefersReducedMotion}
+                onRowClick={onRowClick}
+              />
+            </motion.div>
           ) : null}
         </div>
       </nav>

@@ -3,13 +3,14 @@ import { motion } from "motion/react";
 import { Link } from "@/app/lib/router";
 import { ShellNavRow } from "@subway-builder-modded/shared-ui";
 import { SiteIcon } from "./site-icon";
-import type { SiteSuiteConfig, SiteSuiteNavItem } from "@/app/lib/site-navigation";
+import type { SiteSuite, SiteSuiteNavItem } from "@/app/lib/site-navigation";
 
 type NavbarPanelProps = {
-  suite: SiteSuiteConfig;
+  suite: SiteSuite;
   activeItem: SiteSuiteNavItem | null;
   accentColor: string;
   accentContrast: string;
+  mutedColor: string;
   /** When true rows animate to visible; when false rows animate out. */
   rowsVisible: boolean;
   prefersReducedMotion: boolean;
@@ -24,6 +25,7 @@ export const NavbarPanel = memo(function NavbarPanel({
   activeItem,
   accentColor,
   accentContrast,
+  mutedColor,
   rowsVisible,
   prefersReducedMotion,
   onRowClick,
@@ -32,51 +34,68 @@ export const NavbarPanel = memo(function NavbarPanel({
 
   return (
     <div
-      className="rounded-b-2xl border-x-2 border-b-2 bg-background px-3 pb-3 pt-1"
+      className="rounded-b-2xl border-x-2 border-b-2 bg-background px-3 pb-3 pt-2"
       style={
         {
           borderColor: borderColor,
           ["--suite-accent" as string]: accentColor,
           ["--suite-accent-contrast" as string]: accentContrast,
+          ["--suite-muted" as string]: mutedColor,
         } as CSSProperties
       }
     >
-      {/* One or two column list, constrained so a single item doesn't span full width */}
-      <ul
-        role="list"
-        className={
-          suite.items.length === 1 ? "max-w-sm" : "grid gap-x-3 sm:grid-cols-2 xl:max-w-2xl"
-        }
+      <div
+        className="rounded-xl bg-[color:color-mix(in_srgb,var(--suite-muted)_60%,transparent)] p-2"
+        style={{
+          boxShadow: "inset 0 1px 0 color-mix(in srgb,var(--suite-accent) 12%, transparent)",
+        }}
       >
-        {suite.items.map((item, index) => {
-          const isActive = activeItem !== null && activeItem.id === item.id;
-          const delay = rowsVisible && !prefersReducedMotion ? index * ROW_STAGGER : 0;
-          const duration = prefersReducedMotion ? 0 : ROW_DURATION;
+        <div className="relative pl-3">
+          <span
+            aria-hidden="true"
+            className="absolute bottom-2 left-0 top-2 w-1 rounded-full bg-[color:color-mix(in_srgb,var(--suite-accent)_70%,transparent)]"
+          />
 
-          return (
-            <li key={item.id}>
-              <motion.div
-                animate={rowsVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
-                transition={{ duration, delay, ease: [0.22, 0.9, 0.35, 1] }}
-              >
-                <Link
-                  to={item.href}
-                  onClick={onRowClick}
-                  aria-current={isActive ? "page" : undefined}
-                  className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <ul
+            role="list"
+            className={
+              suite.items.length === 1 ? "max-w-sm" : "grid gap-x-3 sm:grid-cols-2 xl:max-w-2xl"
+            }
+          >
+            {suite.items.map((item, index) => {
+              const isActive = activeItem !== null && activeItem.id === item.id;
+              const delay = rowsVisible && !prefersReducedMotion ? index * ROW_STAGGER : 0;
+              const duration = prefersReducedMotion ? 0 : ROW_DURATION;
+
+              return (
+                <li
+                  key={item.id}
+                  className="border-b border-[color:color-mix(in_srgb,var(--suite-accent)_12%,var(--border))] py-0.5 last:border-b-0"
                 >
-                  <ShellNavRow
-                    title={item.title}
-                    description={item.description}
-                    icon={<SiteIcon iconKey={item.iconKey} className="size-5" />}
-                    active={isActive}
-                  />
-                </Link>
-              </motion.div>
-            </li>
-          );
-        })}
-      </ul>
+                  <motion.div
+                    animate={rowsVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
+                    transition={{ duration, delay, ease: [0.22, 0.9, 0.35, 1] }}
+                  >
+                    <Link
+                      to={item.href}
+                      onClick={onRowClick}
+                      aria-current={isActive ? "page" : undefined}
+                      className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <ShellNavRow
+                        title={item.title}
+                        description={item.description}
+                        icon={<SiteIcon iconKey={item.iconKey} className="size-5" />}
+                        active={isActive}
+                      />
+                    </Link>
+                  </motion.div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 });
