@@ -26,7 +26,7 @@ type FloatingNavbarProps = {
 };
 
 const TOP_BAR_HEIGHT = 48;
-const TOP_BAR_SIDE_ZONE_DESKTOP = 220;
+const TOP_BAR_SIDE_ZONE_DESKTOP = 248;
 const TOP_BAR_SIDE_ZONE_MOBILE = 188;
 
 function getNextTheme(theme: ThemeMode): ThemeMode {
@@ -260,12 +260,12 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                       onOpenChange={setIsDropdownOpen}
                       onSelect={onSuiteChange}
                       triggerLabel="Select suite"
-                      className="text-[color:var(--suite-accent)] [&>button]:px-0"
+                      className="w-full text-[color:var(--suite-accent)] [&>button]:px-0"
                       menuClassName="border border-border"
                     />
                   ) : (
                     <div
-                      className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold"
+                      className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold leading-none"
                       style={{ color: realAccent }}
                     >
                       <SiteIcon iconKey={realSuite.iconKey} className="size-4 shrink-0" />
@@ -275,7 +275,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                 </div>
 
                 <p
-                  className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate text-sm font-semibold text-foreground sm:text-base"
+                  className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate text-sm font-semibold leading-tight text-foreground sm:text-base"
                   style={{ maxWidth: `calc(100% - ${sideZoneWidth * 2 + 16}px)` }}
                 >
                   {breadcrumb}

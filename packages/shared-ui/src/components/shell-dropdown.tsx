@@ -182,16 +182,16 @@ export function ShellDropdown({
           aria-label={triggerLabel}
           onClick={() => onOpenChange(!isOpen)}
           className={cn(
-            "inline-flex items-center gap-2 rounded-lg px-1 py-0.5",
+            "inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-lg px-1 py-0.5",
             "text-sm font-semibold outline-none transition",
             "focus-visible:ring-2 focus-visible:ring-ring",
           )}
         >
-          {selected?.icon}
-          <span>{selected?.label}</span>
+          <span className="shrink-0">{selected?.icon}</span>
+          <span className="max-w-[9.5rem] overflow-hidden text-ellipsis sm:max-w-none">{selected?.label}</span>
           <ChevronDown
             aria-hidden="true"
-            className={cn("size-4 transition-transform", isOpen && "rotate-180")}
+            className={cn("size-4 shrink-0 transition-transform", isOpen && "rotate-180")}
           />
         </button>
       </div>

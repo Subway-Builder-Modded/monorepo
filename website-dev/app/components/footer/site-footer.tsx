@@ -22,8 +22,10 @@ export function SiteFooter() {
       title: item.title,
       href: item.href,
       icon: <SiteIcon iconKey={item.iconKey} className="size-4" />,
-      accentColor: suite.accent.light,
-      mutedColor: suite.accent.mutedLight,
+      accentLight: suite.accent.light,
+      accentDark: suite.accent.dark,
+      mutedLight: suite.accent.mutedLight,
+      mutedDark: suite.accent.mutedDark,
     })),
   }));
 

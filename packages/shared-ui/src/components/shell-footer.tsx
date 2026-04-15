@@ -6,8 +6,10 @@ type ShellFooterLink = {
   title: string;
   href: string;
   icon?: ReactNode;
-  accentColor?: string;
-  mutedColor?: string;
+  accentLight?: string;
+  accentDark?: string;
+  mutedLight?: string;
+  mutedDark?: string;
 };
 
 type ShellFooterColumn = {
@@ -37,10 +39,12 @@ type ShellFooterProps = {
 
 function FooterLinkRow({ link }: { link: ShellFooterLink }) {
   const style =
-    link.accentColor || link.mutedColor
+    link.accentLight || link.accentDark || link.mutedLight || link.mutedDark
       ? ({
-          ["--link-accent" as string]: link.accentColor ?? "currentColor",
-          ["--link-muted" as string]: link.mutedColor ?? "transparent",
+          ["--link-accent-light" as string]: link.accentLight ?? "currentColor",
+          ["--link-accent-dark" as string]: link.accentDark ?? link.accentLight ?? "currentColor",
+          ["--link-muted-light" as string]: link.mutedLight ?? "transparent",
+          ["--link-muted-dark" as string]: link.mutedDark ?? link.mutedLight ?? "transparent",
         } as CSSProperties)
       : undefined;
 
@@ -48,10 +52,10 @@ function FooterLinkRow({ link }: { link: ShellFooterLink }) {
     <a
       href={link.href}
       className={cn(
-        "inline-flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-sm text-foreground/85 transition",
+        "inline-flex min-h-7 w-full items-center gap-2 rounded-md px-2 text-sm text-foreground/85 transition",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        link.accentColor || link.mutedColor
-          ? "hover:bg-[color:var(--link-muted)] hover:text-[color:var(--link-accent)]"
+        link.accentLight || link.accentDark || link.mutedLight || link.mutedDark
+          ? "hover:bg-[color:var(--link-muted-light)] hover:text-[color:var(--link-accent-light)] dark:hover:bg-[color:var(--link-muted-dark)] dark:hover:text-[color:var(--link-accent-dark)]"
           : "hover:bg-accent/60 hover:text-foreground",
       )}
       style={style}
@@ -103,18 +107,23 @@ export function ShellFooter({
             </div>
           </section>
 
-          <section className="flex flex-wrap justify-center gap-x-4 gap-y-6">
+          <section className="mx-auto grid w-full max-w-[62rem] grid-cols-[repeat(auto-fit,minmax(8.75rem,9.5rem))] justify-center gap-x-4 gap-y-5">
             {columns.map((column) => (
-              <div key={column.id} className="w-[min(7rem,100%)]">
-                <span
-                  aria-hidden="true"
-                  className="mb-2 block h-0.5 w-8 rounded-full"
-                  style={{ backgroundColor: column.accentColor }}
-                />
-                <h3 className="text-xs font-semibold uppercase tracking-[0.14em]" style={{ color: column.accentColor }}>
-                  {column.title}
-                </h3>
-                <ul className="mt-3 space-y-2.5">
+              <div key={column.id} className="min-w-0">
+                <div className="min-h-[3rem]">
+                  <span
+                    aria-hidden="true"
+                    className="mb-1.5 block h-0.5 w-8 rounded-full"
+                    style={{ backgroundColor: column.accentColor }}
+                  />
+                  <h3
+                    className="text-xs font-semibold uppercase leading-tight tracking-[0.14em]"
+                    style={{ color: column.accentColor }}
+                  >
+                    {column.title}
+                  </h3>
+                </div>
+                <ul className="mt-2 space-y-1.5">
                   {column.links.map((link) => (
                     <li key={link.id}>
                       <FooterLinkRow link={link} />

@@ -41,17 +41,12 @@ export const NavbarPanel = memo(function NavbarPanel({
       }
     >
       <div className="relative rounded-xl bg-foreground/[0.03] p-2 dark:bg-muted/20">
-        {useRail ? (
-          <span
-            aria-hidden="true"
-            className="absolute bottom-2 left-4 top-2 w-[3px] rounded-full bg-[color:color-mix(in_srgb,var(--suite-accent)_55%,transparent)]"
-          />
-        ) : null}
-
         <ul
           role="list"
           className={
-            suite.items.length === 1 ? "max-w-sm" : "grid gap-x-3 sm:grid-cols-2 xl:max-w-2xl"
+            suite.items.length === 1
+              ? "max-w-sm space-y-1"
+              : "grid gap-x-3 gap-y-1 sm:grid-cols-2 xl:max-w-2xl"
           }
         >
           {suite.items.map((item, index) => {
@@ -60,14 +55,7 @@ export const NavbarPanel = memo(function NavbarPanel({
             const duration = prefersReducedMotion ? 0 : ROW_DURATION;
 
             return (
-              <li
-                key={item.id}
-                className={
-                  useRail
-                    ? "relative border-b border-[color:color-mix(in_srgb,var(--suite-accent)_12%,var(--border))] py-0.5 pl-6 last:border-b-0"
-                    : "relative border-b border-[color:color-mix(in_srgb,var(--suite-accent)_12%,var(--border))] py-0.5 last:border-b-0"
-                }
-              >
+              <li key={item.id} className={useRail ? "relative py-0.5 pl-6" : "relative py-0.5"}>
                 {useRail ? (
                   <span
                     aria-hidden="true"
