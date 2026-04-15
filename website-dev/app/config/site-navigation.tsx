@@ -153,7 +153,8 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-home",
     suiteId: "general",
     title: "Home",
-    description: "Welcome to Subway Builder Modded, the complete hub for all things modded in Subway Builder.",
+    description:
+      "Welcome to Subway Builder Modded, the complete hub for all things modded in Subway Builder.",
     href: "/",
     icon: House,
     breadcrumb: "Home",
@@ -163,7 +164,8 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-community",
     suiteId: "general",
     title: "Community",
-    description: "Join our Discord community for support, discussions, and the most up-to-date info.",
+    description:
+      "Join our Discord community for support, discussions, and the most up-to-date info.",
     href: "/community",
     icon: Handshake,
     breadcrumb: "Community",
@@ -183,7 +185,8 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "general-contribute",
     suiteId: "general",
     title: "Contribute",
-    description: "Help us build the future of Subway Builder Modded. Your support keeps the project going.",
+    description:
+      "Help us build the future of Subway Builder Modded. Your support keeps the project going.",
     href: "/contribute",
     icon: Heart,
     breadcrumb: "Contribute",
