@@ -28,9 +28,11 @@ export const NavbarPanel = memo(function NavbarPanel({
   prefersReducedMotion,
   onRowClick,
 }: NavbarPanelProps) {
+  const useRail = suite.items.length > 1;
+
   return (
     <div
-      className="px-3 pb-3 pt-2"
+      className="pb-1 pt-0.5"
       style={
         {
           ["--suite-accent" as string]: accentColor,
@@ -39,17 +41,17 @@ export const NavbarPanel = memo(function NavbarPanel({
       }
     >
       <div className="relative rounded-xl bg-foreground/[0.03] p-2 dark:bg-muted/20">
-        <span
-          aria-hidden="true"
-          className="absolute bottom-2 left-3 top-2 w-[3px] rounded-full bg-[color:color-mix(in_srgb,var(--suite-accent)_55%,transparent)]"
-        />
+        {useRail ? (
+          <span
+            aria-hidden="true"
+            className="absolute bottom-2 left-4 top-2 w-[3px] rounded-full bg-[color:color-mix(in_srgb,var(--suite-accent)_55%,transparent)]"
+          />
+        ) : null}
 
         <ul
           role="list"
           className={
-            suite.items.length === 1
-              ? "max-w-sm pl-8"
-              : "grid gap-x-3 pl-8 sm:grid-cols-2 xl:max-w-2xl"
+            suite.items.length === 1 ? "max-w-sm" : "grid gap-x-3 sm:grid-cols-2 xl:max-w-2xl"
           }
         >
           {suite.items.map((item, index) => {
@@ -60,18 +62,24 @@ export const NavbarPanel = memo(function NavbarPanel({
             return (
               <li
                 key={item.id}
-                className="relative border-b border-[color:color-mix(in_srgb,var(--suite-accent)_12%,var(--border))] py-0.5 last:border-b-0"
+                className={
+                  useRail
+                    ? "relative border-b border-[color:color-mix(in_srgb,var(--suite-accent)_12%,var(--border))] py-0.5 pl-6 last:border-b-0"
+                    : "relative border-b border-[color:color-mix(in_srgb,var(--suite-accent)_12%,var(--border))] py-0.5 last:border-b-0"
+                }
               >
-                <span
-                  aria-hidden="true"
-                  className="absolute left-[-1.25rem] top-1/2 rounded-full bg-[color:var(--suite-accent)]"
-                  style={{
-                    width: isActive ? "0.5rem" : "0.375rem",
-                    height: isActive ? "0.5rem" : "0.375rem",
-                    opacity: isActive ? 0.95 : 0.55,
-                    transform: "translateY(-50%)",
-                  }}
-                />
+                {useRail ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-[0.5rem] top-1/2 rounded-full bg-[color:var(--suite-accent)]"
+                    style={{
+                      width: isActive ? "0.5rem" : "0.375rem",
+                      height: isActive ? "0.5rem" : "0.375rem",
+                      opacity: isActive ? 0.95 : 0.55,
+                      transform: "translateY(-50%)",
+                    }}
+                  />
+                ) : null}
 
                 <motion.div
                   animate={rowsVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}

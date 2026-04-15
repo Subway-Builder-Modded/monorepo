@@ -21,7 +21,9 @@ export function SiteFooter() {
       id: item.id,
       title: item.title,
       href: item.href,
-      hoverColor: suite.accent.light,
+      icon: <SiteIcon iconKey={item.iconKey} className="size-4" />,
+      accentColor: suite.accent.light,
+      mutedColor: suite.accent.mutedLight,
     })),
   }));
 

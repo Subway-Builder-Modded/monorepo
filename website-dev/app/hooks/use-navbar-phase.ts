@@ -2,6 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type NavbarPhase = "closed" | "opening" | "open" | "closing";
 
+export const NAVBAR_MOTION = {
+  frameExpandMs: 300,
+  frameCollapseMs: 200,
+  panelSurfaceEnterMs: 170,
+  rowExitMs: 110,
+  panelSurfaceExitMs: 110,
+  closeSettleMs: 260,
+} as const;
+
 /**
  * Simplified disclosure machine for the unified navbar frame.
  *
@@ -11,12 +20,6 @@ export type NavbarPhase = "closed" | "opening" | "open" | "closing";
  * Timers are centralized in this hook and fully cleared on unmount.
  * Reopen requests during closing are ignored for stability.
  */
-
-const FRAME_EXPAND_MS = 320;
-const PANEL_SURFACE_ENTER_MS = 210;
-const ROW_EXIT_MS = 170;
-const PANEL_SURFACE_EXIT_MS = 110;
-const FRAME_COLLAPSE_MS = 250;
 
 type UseNavbarPhaseOptions = {
   onFullyClosed?: () => void;
@@ -97,13 +100,13 @@ export function useNavbarPhase({
     openSurfaceTimerRef.current = window.setTimeout(() => {
       setShowPanelSurface(true);
       openSurfaceTimerRef.current = null;
-    }, duration(PANEL_SURFACE_ENTER_MS));
+    }, duration(NAVBAR_MOTION.panelSurfaceEnterMs));
 
     openDoneTimerRef.current = window.setTimeout(() => {
       setShowRows(true);
       setPhaseSync("open");
       openDoneTimerRef.current = null;
-    }, duration(FRAME_EXPAND_MS));
+    }, duration(NAVBAR_MOTION.frameExpandMs));
   }, [clearTimers, duration, setPhaseSync]);
 
   const close = useCallback(() => {
@@ -120,18 +123,15 @@ export function useNavbarPhase({
     closeSurfaceTimerRef.current = window.setTimeout(() => {
       setShowPanelSurface(false);
       closeSurfaceTimerRef.current = null;
-    }, duration(ROW_EXIT_MS));
+    }, duration(NAVBAR_MOTION.rowExitMs));
 
-    closeDoneTimerRef.current = window.setTimeout(
-      () => {
-        setShowRows(false);
-        setShowPanelSurface(false);
-        setPhaseSync("closed");
-        closeDoneTimerRef.current = null;
-        onFullyClosedRef.current?.();
-      },
-      duration(ROW_EXIT_MS + PANEL_SURFACE_EXIT_MS + FRAME_COLLAPSE_MS),
-    );
+    closeDoneTimerRef.current = window.setTimeout(() => {
+      setShowRows(false);
+      setShowPanelSurface(false);
+      setPhaseSync("closed");
+      closeDoneTimerRef.current = null;
+      onFullyClosedRef.current?.();
+    }, duration(NAVBAR_MOTION.closeSettleMs));
   }, [clearTimers, duration, setPhaseSync]);
 
   useEffect(() => {
@@ -145,7 +145,7 @@ export function useNavbarPhase({
     phase,
     open,
     close,
-    isFrameExpanded: phase !== "closed",
+    isFrameExpanded: phase === "opening" || phase === "open",
     showPanelSurface,
     showRows,
     allowHoverClose: phase === "open",

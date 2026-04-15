@@ -11,7 +11,7 @@ import {
 } from "@/app/lib/site-navigation";
 import { ShellDropdown } from "@subway-builder-modded/shared-ui";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
-import { useNavbarPhase } from "@/app/hooks/use-navbar-phase";
+import { NAVBAR_MOTION, useNavbarPhase } from "@/app/hooks/use-navbar-phase";
 import { useDelayedClose } from "@/app/hooks/use-delayed-close";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
 import { cn } from "@/app/lib/utils";
@@ -26,6 +26,8 @@ type FloatingNavbarProps = {
 };
 
 const TOP_BAR_HEIGHT = 48;
+const TOP_BAR_SIDE_ZONE_DESKTOP = 220;
+const TOP_BAR_SIDE_ZONE_MOBILE = 188;
 
 function getNextTheme(theme: ThemeMode): ThemeMode {
   return theme === "light" ? "dark" : "light";
@@ -33,14 +35,14 @@ function getNextTheme(theme: ThemeMode): ThemeMode {
 
 function getCollapsedWidthClass(isMobile: boolean, suiteId: SiteSuiteId): string {
   if (isMobile) {
-    return "w-[min(24.25rem,calc(100vw-0.75rem))]";
+    return "w-[min(24.75rem,calc(100vw-0.75rem))]";
   }
 
   if (suiteId === "general") {
-    return "w-[min(38rem,calc(100vw-1.5rem))]";
+    return "w-[min(39.5rem,calc(100vw-1.5rem))]";
   }
 
-  return "w-[min(32rem,calc(100vw-1.5rem))]";
+  return "w-[min(33rem,calc(100vw-1.5rem))]";
 }
 
 export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProps) {
@@ -197,6 +199,12 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
   const panelHeight = displayedSuite.items.length > 1 ? 204 : 150;
   const frameHeight = isFrameExpanded ? TOP_BAR_HEIGHT + panelHeight : TOP_BAR_HEIGHT;
+  const sideZoneWidth = isMobile ? TOP_BAR_SIDE_ZONE_MOBILE : TOP_BAR_SIDE_ZONE_DESKTOP;
+  const frameDuration = prefersReducedMotion
+    ? 0
+    : isFrameExpanded
+      ? NAVBAR_MOTION.frameExpandMs / 1000
+      : NAVBAR_MOTION.frameCollapseMs / 1000;
 
   return (
     <>
@@ -222,12 +230,14 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
               ? "w-[min(72rem,calc(100vw-2rem))]"
               : getCollapsedWidthClass(isMobile, realSuite.id),
           )}
-          style={{ transitionDuration: `${prefersReducedMotion ? 0 : 300}ms` }}
+          style={{
+            transitionDuration: `${prefersReducedMotion ? 0 : isFrameExpanded ? NAVBAR_MOTION.frameExpandMs : NAVBAR_MOTION.frameCollapseMs}ms`,
+          }}
         >
           <motion.div
             className="relative overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]"
             animate={{ height: frameHeight }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.28, ease: [0.22, 0.9, 0.35, 1] }}
+            transition={{ duration: frameDuration, ease: [0.22, 0.9, 0.35, 1] }}
             style={
               {
                 borderColor,
@@ -237,8 +247,11 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             }
           >
             <div className="relative h-12">
-              <div className="absolute inset-0 flex items-center">
-                <div className="min-w-0 max-w-[44%]">
+              <div className="absolute inset-0">
+                <div
+                  className="absolute left-0 top-0 flex h-full min-w-0 items-center pr-2"
+                  style={{ width: sideZoneWidth }}
+                >
                   {isFrameExpanded ? (
                     <ShellDropdown
                       options={suiteOptions}
@@ -261,11 +274,17 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                   )}
                 </div>
 
-                <p className="pointer-events-none absolute left-1/2 max-w-[44%] -translate-x-1/2 truncate text-sm font-semibold text-foreground sm:text-base">
+                <p
+                  className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate text-sm font-semibold text-foreground sm:text-base"
+                  style={{ maxWidth: `calc(100% - ${sideZoneWidth * 2 + 16}px)` }}
+                >
                   {breadcrumb}
                 </p>
 
-                <div className="ml-auto flex shrink-0 items-center gap-1">
+                <div
+                  className="absolute right-0 top-0 flex h-full items-center justify-end gap-1 pl-2"
+                  style={{ width: sideZoneWidth }}
+                >
                   <Link
                     to="/"
                     aria-label="Go to home"
@@ -325,7 +344,9 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             >
               <motion.div
                 animate={{ opacity: showPanelSurface ? 1 : 0 }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.16 }}
+                transition={{
+                  duration: prefersReducedMotion ? 0 : NAVBAR_MOTION.panelSurfaceExitMs / 1000,
+                }}
                 className={cn(!showPanelSurface && "pointer-events-none")}
               >
                 <NavbarPanel

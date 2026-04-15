@@ -5,7 +5,9 @@ type ShellFooterLink = {
   id: string;
   title: string;
   href: string;
-  hoverColor?: string;
+  icon?: ReactNode;
+  accentColor?: string;
+  mutedColor?: string;
 };
 
 type ShellFooterColumn = {
@@ -32,6 +34,33 @@ type ShellFooterProps = {
   secondaryText?: string;
   className?: string;
 };
+
+function FooterLinkRow({ link }: { link: ShellFooterLink }) {
+  const style =
+    link.accentColor || link.mutedColor
+      ? ({
+          ["--link-accent" as string]: link.accentColor ?? "currentColor",
+          ["--link-muted" as string]: link.mutedColor ?? "transparent",
+        } as CSSProperties)
+      : undefined;
+
+  return (
+    <a
+      href={link.href}
+      className={cn(
+        "inline-flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-sm text-foreground/85 transition",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        link.accentColor || link.mutedColor
+          ? "hover:bg-[color:var(--link-muted)] hover:text-[color:var(--link-accent)]"
+          : "hover:bg-accent/60 hover:text-foreground",
+      )}
+      style={style}
+    >
+      {link.icon ? <span className="shrink-0 [&_svg]:size-4">{link.icon}</span> : null}
+      <span className="truncate">{link.title}</span>
+    </a>
+  );
+}
 
 export function ShellFooter({
   brand,
@@ -74,9 +103,9 @@ export function ShellFooter({
             </div>
           </section>
 
-          <section className="flex flex-wrap justify-center gap-x-6 gap-y-6">
+          <section className="flex flex-wrap justify-center gap-x-4 gap-y-6">
             {columns.map((column) => (
-              <div key={column.id} className="w-[min(11.25rem,100%)]">
+              <div key={column.id} className="w-[min(7rem,100%)]">
                 <span
                   aria-hidden="true"
                   className="mb-2 block h-0.5 w-8 rounded-full"
@@ -88,17 +117,7 @@ export function ShellFooter({
                 <ul className="mt-3 space-y-2.5">
                   {column.links.map((link) => (
                     <li key={link.id}>
-                      <a
-                        href={link.href}
-                        className="text-sm text-foreground/85 transition hover:text-[color:var(--footer-hover-color)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        style={
-                          link.hoverColor
-                            ? ({ ["--footer-hover-color" as string]: link.hoverColor } as CSSProperties)
-                            : undefined
-                        }
-                      >
-                        {link.title}
-                      </a>
+                      <FooterLinkRow link={link} />
                     </li>
                   ))}
                 </ul>

@@ -103,6 +103,15 @@ export const SITE_SUITES: SiteSuiteConfig[] = [
         breadcrumb: "Home",
         activeMatchRules: [{ kind: "exact", path: "/" }],
       },
+      {
+        id: "general-test",
+        title: "Test",
+        description: "Main entry for Subway Builder Modded. Main entry for Subway Builder Modded.",
+        href: "/test",
+        iconKey: "overview",
+        breadcrumb: "Test",
+        activeMatchRules: [{ kind: "exact", path: "/test" }],
+      },
     ],
   },
   {
