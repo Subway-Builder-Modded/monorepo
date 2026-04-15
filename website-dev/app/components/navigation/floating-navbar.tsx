@@ -1,11 +1,4 @@
-import {
-  type CSSProperties,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "@/app/lib/router";
 import { motion, useReducedMotion } from "motion/react";
 import { House, Menu, MoonStar, Sun, X } from "lucide-react";
@@ -32,6 +25,8 @@ type FloatingNavbarProps = {
   setTheme: (theme: ThemeMode) => void;
 };
 
+const TOP_BAR_HEIGHT = 48;
+
 function getNextTheme(theme: ThemeMode): ThemeMode {
   return theme === "light" ? "dark" : "light";
 }
@@ -46,14 +41,6 @@ function getCollapsedWidthClass(isMobile: boolean, suiteId: SiteSuiteId): string
   }
 
   return "w-[min(32rem,calc(100vw-1.5rem))]";
-}
-
-function ActionButtonFrame({ children }: { children: ReactNode }) {
-  return (
-    <span className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground">
-      {children}
-    </span>
-  );
 }
 
 export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProps) {
@@ -94,8 +81,9 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     open,
     close,
     isFrameExpanded,
-    isPanelShellMounted,
-    areRowsVisible,
+    showPanelSurface,
+    showRows,
+    allowHoverClose,
     isTransitionLocked,
   } = useNavbarPhase({
     onFullyClosed,
@@ -121,7 +109,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   }, [phase, realSuite.id]);
 
   useEffect(() => {
-    if (phase === "closingRows" || phase === "closingFrame") {
+    if (phase === "closing") {
       setIsDropdownOpen(false);
     }
   }, [phase]);
@@ -134,11 +122,11 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   }, [cancelClose, isMobile, open]);
 
   const onInteractiveRegionLeave = useCallback(() => {
-    if (isTransitionLocked || isMobile || isPinned) {
+    if (!allowHoverClose || isTransitionLocked || isMobile || isPinned) {
       return;
     }
     scheduleClose();
-  }, [isTransitionLocked, isMobile, isPinned, scheduleClose]);
+  }, [allowHoverClose, isTransitionLocked, isMobile, isPinned, scheduleClose]);
 
   const onMenuClick = useCallback(() => {
     cancelClose();
@@ -176,7 +164,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [closeNavbar, phase]);
 
-  const displayedSuite = isPanelShellMounted ? getSuiteById(openSuiteId) : realSuite;
+  const displayedSuite = isFrameExpanded ? getSuiteById(openSuiteId) : realSuite;
 
   const accentColor = theme === "dark" ? displayedSuite.accent.dark : displayedSuite.accent.light;
   const mutedColor =
@@ -207,12 +195,8 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     [theme],
   );
 
-  const collapsedLayerVisible =
-    phase === "closed" || phase === "openingFrame" || phase === "closingFrame";
-  const expandedLayerVisible =
-    phase === "openingPanel" || phase === "open" || phase === "closingRows";
-
-  const frameDuration = prefersReducedMotion ? 0 : 0.3;
+  const panelHeight = displayedSuite.items.length > 1 ? 204 : 150;
+  const frameHeight = isFrameExpanded ? TOP_BAR_HEIGHT + panelHeight : TOP_BAR_HEIGHT;
 
   return (
     <>
@@ -222,8 +206,8 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
           aria-label="Close navigation"
           className="fixed inset-0 z-40 bg-black/35 dark:bg-black/55"
           initial={{ opacity: 0 }}
-          animate={{ opacity: phase === "openingFrame" ? 0 : 1 }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+          animate={{ opacity: showPanelSurface ? 1 : 0 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.18 }}
           onClick={closeNavbar}
         />
       ) : null}
@@ -238,15 +222,12 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
               ? "w-[min(72rem,calc(100vw-2rem))]"
               : getCollapsedWidthClass(isMobile, realSuite.id),
           )}
-          style={{ transitionDuration: `${frameDuration * 1000}ms` }}
+          style={{ transitionDuration: `${prefersReducedMotion ? 0 : 300}ms` }}
         >
-          <div
-            className={cn(
-              "relative overflow-hidden bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]",
-              isFrameExpanded
-                ? "rounded-t-2xl border-x-2 border-t-2 border-b-0"
-                : "rounded-full border-2",
-            )}
+          <motion.div
+            className="relative overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]"
+            animate={{ height: frameHeight }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.28, ease: [0.22, 0.9, 0.35, 1] }}
             style={
               {
                 borderColor,
@@ -256,191 +237,109 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             }
           >
             <div className="relative h-12">
+              <div className="absolute inset-0 flex items-center">
+                <div className="min-w-0 max-w-[44%]">
+                  {isFrameExpanded ? (
+                    <ShellDropdown
+                      options={suiteOptions}
+                      selectedId={openSuiteId}
+                      isOpen={isDropdownOpen}
+                      onOpenChange={setIsDropdownOpen}
+                      onSelect={onSuiteChange}
+                      triggerLabel="Select suite"
+                      className="text-[color:var(--suite-accent)] [&>button]:px-0"
+                      menuClassName="border border-border"
+                    />
+                  ) : (
+                    <div
+                      className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold"
+                      style={{ color: realAccent }}
+                    >
+                      <SiteIcon iconKey={realSuite.iconKey} className="size-4 shrink-0" />
+                      {!isMobile ? <span className="truncate">{realSuite.title}</span> : null}
+                    </div>
+                  )}
+                </div>
+
+                <p className="pointer-events-none absolute left-1/2 max-w-[44%] -translate-x-1/2 truncate text-sm font-semibold text-foreground sm:text-base">
+                  {breadcrumb}
+                </p>
+
+                <div className="ml-auto flex shrink-0 items-center gap-1">
+                  <Link
+                    to="/"
+                    aria-label="Go to home"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <House className="size-4" aria-hidden="true" />
+                  </Link>
+                  <a
+                    href={discordHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open Discord"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <SiteIcon iconKey="discord" className="size-4" />
+                  </a>
+                  <a
+                    href={githubHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Open GitHub"
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <SiteIcon iconKey="github" className="size-4" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={onThemeClick}
+                    aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {theme === "light" ? (
+                      <Sun className="size-4" aria-hidden="true" />
+                    ) : (
+                      <MoonStar className="size-4" aria-hidden="true" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={isFrameExpanded ? "Close navigation" : "Open navigation"}
+                    onClick={isFrameExpanded ? closeNavbar : onMenuClick}
+                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {isFrameExpanded ? (
+                      <X className="size-4" aria-hidden="true" />
+                    ) : (
+                      <Menu className="size-4" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="overflow-hidden px-3 pb-3 pt-2"
+              style={{ height: Math.max(frameHeight - TOP_BAR_HEIGHT, 0) }}
+            >
               <motion.div
-                aria-hidden={!collapsedLayerVisible}
-                className={cn(
-                  "absolute inset-0 flex items-center",
-                  collapsedLayerVisible ? "pointer-events-auto" : "pointer-events-none",
-                )}
-                initial={false}
-                animate={{ opacity: collapsedLayerVisible ? 1 : 0 }}
+                animate={{ opacity: showPanelSurface ? 1 : 0 }}
                 transition={{ duration: prefersReducedMotion ? 0 : 0.16 }}
+                className={cn(!showPanelSurface && "pointer-events-none")}
               >
-                <div
-                  className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold"
-                  style={{ color: realAccent }}
-                >
-                  <SiteIcon iconKey={realSuite.iconKey} className="size-4 shrink-0" />
-                  {!isMobile ? <span className="truncate">{realSuite.title}</span> : null}
-                </div>
-
-                <p className="pointer-events-none absolute left-1/2 max-w-[44%] -translate-x-1/2 truncate text-sm font-semibold text-foreground sm:text-base">
-                  {breadcrumb}
-                </p>
-
-                <div className="ml-auto flex shrink-0 items-center gap-1">
-                  <Link
-                    to="/"
-                    aria-label="Go to home"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <House className="size-4" aria-hidden="true" />
-                  </Link>
-                  <a
-                    href={discordHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open Discord"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <ActionButtonFrame>
-                      <SiteIcon iconKey="discord" className="size-4" />
-                    </ActionButtonFrame>
-                  </a>
-                  <a
-                    href={githubHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open GitHub"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <ActionButtonFrame>
-                      <SiteIcon iconKey="github" className="size-4" />
-                    </ActionButtonFrame>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={onThemeClick}
-                    aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {theme === "light" ? (
-                      <Sun className="size-4" aria-hidden="true" />
-                    ) : (
-                      <MoonStar className="size-4" aria-hidden="true" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Open navigation"
-                    onClick={onMenuClick}
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <Menu className="size-4" aria-hidden="true" />
-                  </button>
-                </div>
-              </motion.div>
-
-              <motion.div
-                aria-hidden={!expandedLayerVisible}
-                className={cn(
-                  "absolute inset-0 flex items-center",
-                  expandedLayerVisible ? "pointer-events-auto" : "pointer-events-none",
-                )}
-                initial={false}
-                animate={{ opacity: expandedLayerVisible ? 1 : 0 }}
-                transition={{
-                  duration: prefersReducedMotion ? 0 : 0.18,
-                  delay: phase === "openingPanel" ? 0.04 : 0,
-                }}
-              >
-                <div className="min-w-0 max-w-[46%]">
-                  <ShellDropdown
-                    options={suiteOptions}
-                    selectedId={openSuiteId}
-                    isOpen={isDropdownOpen}
-                    onOpenChange={setIsDropdownOpen}
-                    onSelect={onSuiteChange}
-                    triggerLabel="Select suite"
-                    className="text-[color:var(--suite-accent)] [&>button]:px-0"
-                    menuClassName="border border-border"
-                  />
-                </div>
-
-                <p className="pointer-events-none absolute left-1/2 max-w-[44%] -translate-x-1/2 truncate text-sm font-semibold text-foreground sm:text-base">
-                  {breadcrumb}
-                </p>
-
-                <div className="ml-auto flex shrink-0 items-center gap-1">
-                  <Link
-                    to="/"
-                    aria-label="Go to home"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <House className="size-4" aria-hidden="true" />
-                  </Link>
-                  <a
-                    href={discordHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open Discord"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <ActionButtonFrame>
-                      <SiteIcon iconKey="discord" className="size-4" />
-                    </ActionButtonFrame>
-                  </a>
-                  <a
-                    href={githubHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open GitHub"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <ActionButtonFrame>
-                      <SiteIcon iconKey="github" className="size-4" />
-                    </ActionButtonFrame>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={onThemeClick}
-                    aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {theme === "light" ? (
-                      <Sun className="size-4" aria-hidden="true" />
-                    ) : (
-                      <MoonStar className="size-4" aria-hidden="true" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Close navigation"
-                    onClick={closeNavbar}
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <X className="size-4" aria-hidden="true" />
-                  </button>
-                </div>
+                <NavbarPanel
+                  suite={displayedSuite}
+                  activeItem={activeItem}
+                  accentColor={accentColor}
+                  mutedColor={mutedColor}
+                  rowsVisible={showRows}
+                  prefersReducedMotion={prefersReducedMotion}
+                  onRowClick={onRowClick}
+                />
               </motion.div>
             </div>
-          </div>
-
-          {isPanelShellMounted ? (
-            <motion.div
-              initial={false}
-              animate={phase === "closingRows" ? { opacity: 0, y: -6 } : { opacity: 1, y: 0 }}
-              transition={{
-                duration: prefersReducedMotion ? 0 : 0.18,
-                ease: [0.22, 0.9, 0.35, 1],
-              }}
-            >
-              <NavbarPanel
-                suite={displayedSuite}
-                activeItem={activeItem}
-                accentColor={accentColor}
-                accentContrast={
-                  theme === "dark"
-                    ? displayedSuite.accent.textInvertedDark
-                    : displayedSuite.accent.textInvertedLight
-                }
-                mutedColor={mutedColor}
-                rowsVisible={areRowsVisible}
-                prefersReducedMotion={prefersReducedMotion}
-                onRowClick={onRowClick}
-              />
-            </motion.div>
-          ) : null}
+          </motion.div>
         </div>
       </nav>
     </>

@@ -74,9 +74,9 @@ export function ShellFooter({
             </div>
           </section>
 
-          <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <section className="flex flex-wrap justify-center gap-x-6 gap-y-6">
             {columns.map((column) => (
-              <div key={column.id}>
+              <div key={column.id} className="w-[min(11.25rem,100%)]">
                 <span
                   aria-hidden="true"
                   className="mb-2 block h-0.5 w-8 rounded-full"

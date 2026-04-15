@@ -1,29 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type NavbarPhase =
-  | "closed"
-  | "openingFrame"
-  | "openingPanel"
-  | "open"
-  | "closingRows"
-  | "closingFrame";
+export type NavbarPhase = "closed" | "opening" | "open" | "closing";
 
 /**
- * Stricter disclosure machine with explicit frame/panel/rows phases.
+ * Simplified disclosure machine for the unified navbar frame.
  *
- * Opening: closed -> openingFrame -> openingPanel -> open
- * Closing: open -> closingRows -> closingFrame -> closed
+ * Opening: closed -> opening -> open
+ * Closing: open -> closing -> closed
  *
- * Locking behavior:
- * - During openingFrame, hover-leave closes can be ignored by callers.
- * - During closingRows/closingFrame, reopen requests are ignored to prevent flicker.
- * - Escape/overlay/X close requests still transition cleanly through closing phases.
+ * Timers are centralized in this hook and fully cleared on unmount.
+ * Reopen requests during closing are ignored for stability.
  */
 
 const FRAME_EXPAND_MS = 320;
-const PANEL_ENTER_MS = 130;
-const ROW_EXIT_MS = 180;
-const FRAME_COLLAPSE_MS = 260;
+const PANEL_SURFACE_ENTER_MS = 210;
+const ROW_EXIT_MS = 170;
+const PANEL_SURFACE_EXIT_MS = 110;
+const FRAME_COLLAPSE_MS = 250;
 
 type UseNavbarPhaseOptions = {
   onFullyClosed?: () => void;
@@ -35,12 +28,15 @@ export function useNavbarPhase({
   reducedMotion = false,
 }: UseNavbarPhaseOptions = {}) {
   const [phase, setPhase] = useState<NavbarPhase>("closed");
+  const [showPanelSurface, setShowPanelSurface] = useState(false);
+  const [showRows, setShowRows] = useState(false);
 
   const phaseRef = useRef<NavbarPhase>("closed");
-  const frameTimerRef = useRef<number | null>(null);
-  const panelTimerRef = useRef<number | null>(null);
-  const rowsTimerRef = useRef<number | null>(null);
-  const closeFrameTimerRef = useRef<number | null>(null);
+  const openSurfaceTimerRef = useRef<number | null>(null);
+  const openDoneTimerRef = useRef<number | null>(null);
+  const closeSurfaceTimerRef = useRef<number | null>(null);
+  const closeDoneTimerRef = useRef<number | null>(null);
+
   const onFullyClosedRef = useRef(onFullyClosed);
   onFullyClosedRef.current = onFullyClosed;
 
@@ -57,21 +53,24 @@ export function useNavbarPhase({
   }, []);
 
   const clearTimers = useCallback(() => {
-    if (frameTimerRef.current !== null) {
-      window.clearTimeout(frameTimerRef.current);
-      frameTimerRef.current = null;
+    if (openSurfaceTimerRef.current !== null) {
+      window.clearTimeout(openSurfaceTimerRef.current);
+      openSurfaceTimerRef.current = null;
     }
-    if (panelTimerRef.current !== null) {
-      window.clearTimeout(panelTimerRef.current);
-      panelTimerRef.current = null;
+
+    if (openDoneTimerRef.current !== null) {
+      window.clearTimeout(openDoneTimerRef.current);
+      openDoneTimerRef.current = null;
     }
-    if (rowsTimerRef.current !== null) {
-      window.clearTimeout(rowsTimerRef.current);
-      rowsTimerRef.current = null;
+
+    if (closeSurfaceTimerRef.current !== null) {
+      window.clearTimeout(closeSurfaceTimerRef.current);
+      closeSurfaceTimerRef.current = null;
     }
-    if (closeFrameTimerRef.current !== null) {
-      window.clearTimeout(closeFrameTimerRef.current);
-      closeFrameTimerRef.current = null;
+
+    if (closeDoneTimerRef.current !== null) {
+      window.clearTimeout(closeDoneTimerRef.current);
+      closeDoneTimerRef.current = null;
     }
   }, []);
 
@@ -82,71 +81,74 @@ export function useNavbarPhase({
   const open = useCallback(() => {
     const current = phaseRef.current;
 
-    if (current === "open" || current === "openingFrame" || current === "openingPanel") {
+    if (current === "open" || current === "opening") {
       return;
     }
 
-    if (current === "closingRows" || current === "closingFrame") {
+    if (current === "closing") {
       return;
     }
 
     clearTimers();
-    setPhaseSync("openingFrame");
-    frameTimerRef.current = window.setTimeout(() => {
-      setPhaseSync("openingPanel");
-      frameTimerRef.current = null;
+    setShowPanelSurface(false);
+    setShowRows(false);
+    setPhaseSync("opening");
 
-      panelTimerRef.current = window.setTimeout(() => {
-        setPhaseSync("open");
-        panelTimerRef.current = null;
-      }, duration(PANEL_ENTER_MS));
+    openSurfaceTimerRef.current = window.setTimeout(() => {
+      setShowPanelSurface(true);
+      openSurfaceTimerRef.current = null;
+    }, duration(PANEL_SURFACE_ENTER_MS));
+
+    openDoneTimerRef.current = window.setTimeout(() => {
+      setShowRows(true);
+      setPhaseSync("open");
+      openDoneTimerRef.current = null;
     }, duration(FRAME_EXPAND_MS));
   }, [clearTimers, duration, setPhaseSync]);
 
   const close = useCallback(() => {
     const current = phaseRef.current;
 
-    if (current === "closed" || current === "closingRows" || current === "closingFrame") {
+    if (current === "closed" || current === "closing") {
       return;
     }
 
     clearTimers();
+    setPhaseSync("closing");
+    setShowRows(false);
 
-    if (current === "openingFrame" || current === "openingPanel") {
-      setPhaseSync("closingFrame");
-      closeFrameTimerRef.current = window.setTimeout(() => {
-        setPhaseSync("closed");
-        closeFrameTimerRef.current = null;
-        onFullyClosedRef.current?.();
-      }, duration(FRAME_COLLAPSE_MS));
-      return;
-    }
-
-    setPhaseSync("closingRows");
-    rowsTimerRef.current = window.setTimeout(() => {
-      setPhaseSync("closingFrame");
-      rowsTimerRef.current = null;
-
-      closeFrameTimerRef.current = window.setTimeout(() => {
-        setPhaseSync("closed");
-        closeFrameTimerRef.current = null;
-        onFullyClosedRef.current?.();
-      }, duration(FRAME_COLLAPSE_MS));
+    closeSurfaceTimerRef.current = window.setTimeout(() => {
+      setShowPanelSurface(false);
+      closeSurfaceTimerRef.current = null;
     }, duration(ROW_EXIT_MS));
+
+    closeDoneTimerRef.current = window.setTimeout(
+      () => {
+        setShowRows(false);
+        setShowPanelSurface(false);
+        setPhaseSync("closed");
+        closeDoneTimerRef.current = null;
+        onFullyClosedRef.current?.();
+      },
+      duration(ROW_EXIT_MS + PANEL_SURFACE_EXIT_MS + FRAME_COLLAPSE_MS),
+    );
   }, [clearTimers, duration, setPhaseSync]);
+
+  useEffect(() => {
+    if (phase === "closed") {
+      setShowPanelSurface(false);
+      setShowRows(false);
+    }
+  }, [phase]);
 
   return {
     phase,
     open,
     close,
-    isFrameExpanded:
-      phase === "openingFrame" ||
-      phase === "openingPanel" ||
-      phase === "open" ||
-      phase === "closingRows",
-    isPanelShellMounted: phase === "openingPanel" || phase === "open" || phase === "closingRows",
-    areRowsVisible: phase === "open",
-    isTransitionLocked:
-      phase === "openingFrame" || phase === "closingRows" || phase === "closingFrame",
+    isFrameExpanded: phase !== "closed",
+    showPanelSurface,
+    showRows,
+    allowHoverClose: phase === "open",
+    isTransitionLocked: phase === "opening" || phase === "closing",
   };
 }
