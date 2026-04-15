@@ -265,11 +265,13 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                     />
                   ) : (
                     <div
-                      className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold leading-none"
+                      className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold leading-tight"
                       style={{ color: realAccent }}
                     >
                       <SiteIcon iconKey={realSuite.iconKey} className="size-4 shrink-0" />
-                      {!isMobile ? <span className="truncate">{realSuite.title}</span> : null}
+                      {!isMobile ? (
+                        <span className="truncate leading-normal">{realSuite.title}</span>
+                      ) : null}
                     </div>
                   )}
                 </div>

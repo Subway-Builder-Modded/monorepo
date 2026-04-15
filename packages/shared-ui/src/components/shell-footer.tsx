@@ -107,13 +107,13 @@ export function ShellFooter({
             </div>
           </section>
 
-          <section className="mx-auto grid w-full max-w-[62rem] grid-cols-[repeat(auto-fit,minmax(8.75rem,9.5rem))] justify-center gap-x-4 gap-y-5">
+          <section className="mx-auto grid w-full max-w-[62rem] grid-cols-[repeat(auto-fit,minmax(7.5rem,8.5rem))] justify-center gap-x-1 gap-y-5">
             {columns.map((column) => (
               <div key={column.id} className="min-w-0">
-                <div className="min-h-[3rem]">
+                <div className="min-h-[2.25rem]">
                   <span
                     aria-hidden="true"
-                    className="mb-1.5 block h-0.5 w-8 rounded-full"
+                    className="mb-1 block h-0.5 w-8 rounded-full"
                     style={{ backgroundColor: column.accentColor }}
                   />
                   <h3
@@ -123,7 +123,7 @@ export function ShellFooter({
                     {column.title}
                   </h3>
                 </div>
-                <ul className="mt-2 space-y-1.5">
+                <ul className="mt-0.5 space-y-1.5">
                   {column.links.map((link) => (
                     <li key={link.id}>
                       <FooterLinkRow link={link} />
