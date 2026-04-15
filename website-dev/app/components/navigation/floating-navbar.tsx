@@ -1,7 +1,5 @@
-import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@/app/lib/router";
+import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { House, Menu, MoonStar, Sun, X } from "lucide-react";
 import {
   SITE_COMMUNITY_LINKS,
   SITE_SUITES,
@@ -12,12 +10,14 @@ import {
   getSuiteById,
   type SiteSuiteId,
 } from "@/app/config/site-navigation";
-import { ShellDropdown } from "@subway-builder-modded/shared-ui";
+import type { NavDropdownOption } from "@subway-builder-modded/shared-ui";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
+import { useNavbarPanelHeight } from "@/app/hooks/use-navbar-panel-height";
 import { NAVBAR_MOTION, useNavbarPhase } from "@/app/hooks/use-navbar-phase";
 import { useDelayedClose } from "@/app/hooks/use-delayed-close";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
 import { cn } from "@/app/lib/utils";
+import { NavbarTopbar } from "./navbar-topbar";
 import { NavbarPanel } from "./navbar-panel";
 
 type FloatingNavbarProps = {
@@ -27,11 +27,9 @@ type FloatingNavbarProps = {
 };
 
 const TOP_BAR_HEIGHT = 48;
-const TOP_BAR_SIDE_ZONE_DESKTOP = 248;
-const TOP_BAR_SIDE_ZONE_MOBILE = 188;
 const NAVBAR_TOP_OFFSET = 16;
+const PANEL_MIN_HEIGHT = 84;
 const PANEL_BODY_VERTICAL_PADDING = 20;
-const PANEL_MIN_HEIGHT = 56;
 const PANEL_VIEWPORT_BOTTOM_GUTTER = 24;
 const DISCORD_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "discord");
 const GITHUB_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "github");
@@ -55,17 +53,14 @@ function getCollapsedWidthClass(isMobile: boolean, suiteId: SiteSuiteId): string
 export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProps) {
   const prefersReducedMotion = useReducedMotion() ?? false;
   const isMobile = useMediaQuery("(max-width: 960px)");
-  const realSuite = getActiveSuite(pathname);
+  const realSuite = useMemo(() => getActiveSuite(pathname), [pathname]);
 
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
   const [isPinned, setIsPinned] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [panelContentHeight, setPanelContentHeight] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(() =>
     typeof window === "undefined" ? 900 : window.innerHeight,
   );
-
-  const panelMeasureRef = useRef<HTMLDivElement | null>(null);
 
   const onFullyClosed = useCallback(() => {
     setOpenSuiteId(realSuite.id);
@@ -187,32 +182,11 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
   const breadcrumb = getBreadcrumbLabel(pathname);
   const displayedItems = useMemo(() => getItemsForSuite(displayedSuite.id), [displayedSuite.id]);
-
-  useEffect(() => {
-    const measure = () => {
-      const contentEl = panelMeasureRef.current;
-      if (!contentEl) {
-        return;
-      }
-
-      const nextHeight = Math.ceil(contentEl.scrollHeight);
-      setPanelContentHeight((prev) => (prev === nextHeight ? prev : nextHeight));
-    };
-
-    measure();
-
-    const contentEl = panelMeasureRef.current;
-    if (!contentEl || typeof ResizeObserver === "undefined") {
-      return;
-    }
-
-    const observer = new ResizeObserver(() => {
-      measure();
-    });
-
-    observer.observe(contentEl);
-    return () => observer.disconnect();
-  }, [displayedSuite.id, displayedItems.length, isMobile]);
+  const { panelContentHeight, panelMeasureRef } = useNavbarPanelHeight({
+    suiteId: displayedSuite.id,
+    itemCount: displayedItems.length,
+    isMobile,
+  });
 
   const suiteOptions = useMemo(
     () =>
@@ -224,7 +198,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
           color: theme === "dark" ? suite.accent.dark : suite.accent.light,
           muted: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
         },
-      })),
+      })) satisfies NavDropdownOption[],
     [theme],
   );
 
@@ -239,7 +213,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   const panelHeight = Math.min(naturalPanelHeight, maxPanelHeight);
   const panelNeedsScroll = naturalPanelHeight > maxPanelHeight;
   const frameHeight = isFrameExpanded ? TOP_BAR_HEIGHT + panelHeight : TOP_BAR_HEIGHT;
-  const sideZoneWidth = isMobile ? TOP_BAR_SIDE_ZONE_MOBILE : TOP_BAR_SIDE_ZONE_DESKTOP;
   const frameDuration = prefersReducedMotion
     ? 0
     : isFrameExpanded
@@ -287,97 +260,24 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             }
           >
             <div className="relative h-12">
-              <div className="absolute inset-0">
-                <div
-                  className="absolute left-0 top-0 flex h-full min-w-0 items-center pr-2"
-                  style={{ width: sideZoneWidth }}
-                >
-                  {isFrameExpanded ? (
-                    <ShellDropdown
-                      options={suiteOptions}
-                      selectedId={openSuiteId}
-                      isOpen={isDropdownOpen}
-                      onOpenChange={setIsDropdownOpen}
-                      onSelect={onSuiteChange}
-                      triggerLabel="Select suite"
-                      className="w-full text-[color:var(--suite-accent)] [&>button]:px-0"
-                      menuClassName="border border-border"
-                    />
-                  ) : (
-                    <div
-                      className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold leading-tight"
-                      style={{ color: realAccent }}
-                    >
-                      <span className="shrink-0">{realSuite.icon}</span>
-                      {!isMobile ? (
-                        <span className="truncate leading-normal">{realSuite.title}</span>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-
-                <p
-                  className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate text-sm font-semibold leading-tight text-foreground sm:text-base"
-                  style={{ maxWidth: `calc(100% - ${sideZoneWidth * 2 + 16}px)` }}
-                >
-                  {breadcrumb}
-                </p>
-
-                <div
-                  className="absolute right-0 top-0 flex h-full items-center justify-end gap-1 pl-2"
-                  style={{ width: sideZoneWidth }}
-                >
-                  <Link
-                    to="/"
-                    aria-label="Go to home"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <House className="size-4" aria-hidden="true" />
-                  </Link>
-                  <a
-                    href={DISCORD_COMMUNITY_LINK?.href ?? "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open Discord"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {DISCORD_COMMUNITY_LINK?.icon}
-                  </a>
-                  <a
-                    href={GITHUB_COMMUNITY_LINK?.href ?? "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open GitHub"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {GITHUB_COMMUNITY_LINK?.icon}
-                  </a>
-                  <button
-                    type="button"
-                    onClick={onThemeClick}
-                    aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {theme === "light" ? (
-                      <Sun className="size-4" aria-hidden="true" />
-                    ) : (
-                      <MoonStar className="size-4" aria-hidden="true" />
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={isFrameExpanded ? "Close navigation" : "Open navigation"}
-                    onClick={isFrameExpanded ? closeNavbar : onMenuClick}
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {isFrameExpanded ? (
-                      <X className="size-4" aria-hidden="true" />
-                    ) : (
-                      <Menu className="size-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-              </div>
+              <NavbarTopbar
+                breadcrumb={breadcrumb}
+                discordLink={DISCORD_COMMUNITY_LINK}
+                githubLink={GITHUB_COMMUNITY_LINK}
+                isDropdownOpen={isDropdownOpen}
+                isExpanded={isFrameExpanded}
+                isMobile={isMobile}
+                openSuiteId={openSuiteId}
+                realAccent={realAccent}
+                realSuite={realSuite}
+                suiteOptions={suiteOptions}
+                theme={theme}
+                onDropdownOpenChange={setIsDropdownOpen}
+                onOpenMenu={onMenuClick}
+                onCloseMenu={closeNavbar}
+                onSuiteChange={onSuiteChange}
+                onThemeClick={onThemeClick}
+              />
             </div>
 
             <div

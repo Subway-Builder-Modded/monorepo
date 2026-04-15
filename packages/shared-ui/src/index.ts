@@ -135,11 +135,31 @@ export {
   TooltipTrigger,
 } from './components/tooltip';
 export {
-  ShellDropdown,
-  type ShellDropdownOption,
-} from './components/shell-dropdown';
-export { ShellNavRow } from './components/shell-nav-row';
-export { ShellFooter } from './components/shell-footer';
+  NavDropdown,
+  type NavDropdownOption,
+} from './components/nav-dropdown';
+export { NavRow } from './components/nav-row';
+export {
+  NavbarActionButton,
+  NavbarActionGroup,
+  NavbarActionLink,
+  NAVBAR_ACTION_CLASS,
+} from './components/navbar-action';
+export {
+  NavbarPanelGrid,
+  NavbarPanelSurface,
+} from './components/navbar-panel';
+export {
+  NavbarTopBar,
+  type NavbarTopBarProps,
+} from './components/navbar-top-bar';
+export { AppFooter } from './components/app-footer';
+export {
+  FooterColumns,
+  type FooterColumn,
+  type FooterLink,
+} from './components/footer-columns';
+export { FooterBrandBlock } from './components/footer-brand-block';
 export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,

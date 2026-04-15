@@ -1,10 +1,10 @@
-import { SiteShell } from "@/app/components/shell/site-shell";
+import { SiteLayout } from "@/app/components/layout/site-layout";
 import HomePage from "@/app/routes/home";
 
 export default function App() {
   return (
-    <SiteShell>
+    <SiteLayout>
       <HomePage />
-    </SiteShell>
+    </SiteLayout>
   );
 }

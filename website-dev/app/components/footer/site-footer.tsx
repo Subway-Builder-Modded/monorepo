@@ -1,4 +1,4 @@
-import { ShellFooter } from "@subway-builder-modded/shared-ui";
+import { AppFooter } from "@subway-builder-modded/shared-ui";
 import { SITE_COMMUNITY_LINKS, SITE_SUITES, getItemsForSuite } from "@/app/config/site-navigation";
 
 const SUITE_COLUMN_TITLES: Record<string, string> = {
@@ -35,7 +35,7 @@ export function SiteFooter() {
   const externalLinks = SITE_COMMUNITY_LINKS;
 
   return (
-    <ShellFooter
+    <AppFooter
       brand={{
         href: "/",
         logoSrc: "/logo.png",
