@@ -284,15 +284,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                     <House className="size-4" aria-hidden="true" />
                   </Link>
                   <a
-                    href={DISCORD_COMMUNITY_LINK?.href ?? "#"}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label="Open Discord"
-                    className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {DISCORD_COMMUNITY_LINK?.icon}
-                  </a>
-                  <a
                     href={GITHUB_COMMUNITY_LINK?.href ?? "#"}
                     target="_blank"
                     rel="noreferrer"

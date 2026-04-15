@@ -52,6 +52,7 @@ export const NavbarPanel = memo(function NavbarPanel({
             const isActive = activeItem !== null && activeItem.id === item.id;
             const delay = rowsVisible && !prefersReducedMotion ? index * ROW_STAGGER : 0;
             const duration = prefersReducedMotion ? 0 : ROW_DURATION;
+            const ItemIcon = item.icon;
 
             return (
               <li key={item.id} className={useRail ? "relative py-0.5 pl-6" : "relative py-0.5"}>
@@ -81,7 +82,7 @@ export const NavbarPanel = memo(function NavbarPanel({
                     <ShellNavRow
                       title={item.title}
                       description={item.description ?? ""}
-                      icon={item.icon}
+                      icon={<ItemIcon className="size-5" aria-hidden={true} />}
                       active={isActive}
                     />
                   </Link>

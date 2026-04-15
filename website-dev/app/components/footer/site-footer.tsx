@@ -16,16 +16,20 @@ export function SiteFooter() {
     id: suite.id,
     title: SUITE_COLUMN_TITLES[suite.id] ?? suite.title,
     accentColor: `color-mix(in srgb, ${suite.accent.dark} 62%, ${suite.accent.light})`,
-    links: getItemsForSuite(suite.id).map((item) => ({
-      id: item.id,
-      title: item.title,
-      href: item.href,
-      icon: item.icon,
-      accentLight: suite.accent.light,
-      accentDark: suite.accent.dark,
-      mutedLight: suite.accent.mutedLight,
-      mutedDark: suite.accent.mutedDark,
-    })),
+    links: getItemsForSuite(suite.id).map((item) => {
+      const ItemIcon = item.icon;
+
+      return {
+        id: item.id,
+        title: item.title,
+        href: item.href,
+        icon: <ItemIcon className="size-4" aria-hidden={true} />,
+        accentLight: suite.accent.light,
+        accentDark: suite.accent.dark,
+        mutedLight: suite.accent.mutedLight,
+        mutedDark: suite.accent.mutedDark,
+      };
+    }),
   }));
 
   const externalLinks = SITE_COMMUNITY_LINKS;

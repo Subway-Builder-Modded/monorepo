@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Database, Github, Globe, House, LayoutGrid, TrainTrack } from "lucide-react";
+import type { ComponentType, ReactNode } from "react";
+import { Database, Github, Globe, House, LayoutGrid, TrainTrack, Handshake, Users, Heart, Scale } from "lucide-react";
 import { FaDiscord } from "react-icons/fa6";
 
 export type SiteSuiteId = "general" | "railyard" | "registry" | "template-mod" | "website";
@@ -35,7 +35,7 @@ export type SiteNavItem = {
   suiteId: SiteSuiteId;
   title: string;
   href: string;
-  icon: ReactNode;
+  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   breadcrumb: string;
   description?: string;
   activeMatchRules?: SiteRouteMatchRule[];
@@ -49,7 +49,6 @@ export type SiteCommunityLink = {
 };
 
 const SUITE_ICON_CLASS = "size-4";
-const NAV_ITEM_ICON_CLASS = "size-5";
 const EXTERNAL_ICON_CLASS = "size-4";
 
 const GENERAL_ACCENT: SiteSuiteAccent = {
@@ -143,9 +142,45 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     suiteId: "general",
     title: "Home",
     href: "/",
-    icon: <House className={NAV_ITEM_ICON_CLASS} aria-hidden="true" />,
+    icon: House,
     breadcrumb: "Home",
     activeMatchRules: [{ kind: "exact", path: "/" }],
+  },
+  {
+    id: "general-community",
+    suiteId: "general",
+    title: "Community",
+    href: "/community",
+    icon: Handshake,
+    breadcrumb: "Community",
+    activeMatchRules: [{ kind: "exact", path: "/community" }],
+  },
+  {
+    id: "general-credits",
+    suiteId: "general",
+    title: "Credits",
+    href: "/credits",
+    icon: Users,
+    breadcrumb: "Credits",
+    activeMatchRules: [{ kind: "exact", path: "/credits" }],
+  },
+  {
+    id: "general-contribute",
+    suiteId: "general",
+    title: "Contribute",
+    href: "/contribute",
+    icon: Heart,
+    breadcrumb: "Contribute",
+    activeMatchRules: [{ kind: "exact", path: "/contribute" }],
+  },
+  {
+    id: "general-license",
+    suiteId: "general",
+    title: "License",
+    href: "/license",
+    icon: Scale,
+    breadcrumb: "License",
+    activeMatchRules: [{ kind: "exact", path: "/license" }],
   },
 ];
 
@@ -155,12 +190,6 @@ export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
     title: "GitHub",
     href: "https://github.com/Subway-Builder-Modded",
     icon: <Github className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
-  },
-  {
-    id: "discord",
-    title: "Discord",
-    href: "https://discord.gg/syG9YHMyeG",
-    icon: <FaDiscord className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
   },
 ];
 
