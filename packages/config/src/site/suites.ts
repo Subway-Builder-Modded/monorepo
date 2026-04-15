@@ -42,6 +42,9 @@ export type SiteSuiteAccent = {
   dark: string;
   textInvertedLight: string;
   textInvertedDark: string;
+  /** Semi-transparent version of the accent, used for tinted hover/selected backgrounds. */
+  mutedLight: string;
+  mutedDark: string;
 };
 
 export type SiteSuiteConfig = {
@@ -77,6 +80,8 @@ const GENERAL_ACCENT: SiteSuiteAccent = {
   dark: "#ffffff",
   textInvertedLight: "#f2f2f2",
   textInvertedDark: "#232323",
+  mutedLight: "rgba(10,10,10,0.07)",
+  mutedDark: "rgba(255,255,255,0.09)",
 };
 
 export const SITE_SUITES: SiteSuiteConfig[] = [
@@ -111,6 +116,8 @@ export const SITE_SUITES: SiteSuiteConfig[] = [
       dark: "#19d89c",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
+      mutedLight: "rgba(15,143,104,0.11)",
+      mutedDark: "rgba(25,216,156,0.13)",
     },
     breadcrumbFallback: "Overview",
     items: [
@@ -136,6 +143,8 @@ export const SITE_SUITES: SiteSuiteConfig[] = [
       dark: "#c77dff",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
+      mutedLight: "rgba(157,78,221,0.11)",
+      mutedDark: "rgba(199,125,255,0.13)",
     },
     breadcrumbFallback: "Overview",
     items: [
@@ -161,6 +170,8 @@ export const SITE_SUITES: SiteSuiteConfig[] = [
       dark: "#93c5fd",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
+      mutedLight: "rgba(96,165,250,0.11)",
+      mutedDark: "rgba(147,197,253,0.13)",
     },
     breadcrumbFallback: "Overview",
     items: [
@@ -186,6 +197,8 @@ export const SITE_SUITES: SiteSuiteConfig[] = [
       dark: "#ffbe73",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
+      mutedLight: "rgba(242,153,46,0.11)",
+      mutedDark: "rgba(255,190,115,0.13)",
     },
     breadcrumbFallback: "Overview",
     items: [
@@ -294,4 +307,31 @@ export function resolveSiteSuiteItem(pathname: string, suiteId?: SiteSuiteId): S
 export function getSiteBreadcrumbLabel(pathname: string, suiteId?: SiteSuiteId): string {
   const suite = suiteId ? getSiteSuiteById(suiteId) : resolveSiteSuite(pathname);
   return resolveSiteSuiteItem(pathname, suite.id)?.breadcrumb ?? suite.breadcrumbFallback;
+}
+
+/**
+ * Returns the nav item that actually matches the current pathname for the given suite,
+ * or null if no item matches. Unlike resolveSiteSuiteItem, does NOT fall back to items[0].
+ * Use this for active-state highlighting only.
+ */
+export function getMatchingSiteSuiteItem(
+  pathname: string,
+  suiteId: SiteSuiteId,
+): SiteSuiteNavItem | null {
+  const suite = getSiteSuiteById(suiteId);
+
+  for (const item of suite.items) {
+    if (!item.activeMatchRules?.length) {
+      if (normalizePathname(pathname) === normalizePathname(item.href)) {
+        return item;
+      }
+      continue;
+    }
+
+    if (item.activeMatchRules.some((rule) => isSiteRouteMatch(pathname, rule))) {
+      return item;
+    }
+  }
+
+  return null;
 }

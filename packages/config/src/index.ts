@@ -21,6 +21,7 @@ export {
 	isSiteRouteMatch,
 	resolveSiteSuite,
 	resolveSiteSuiteItem,
+	getMatchingSiteSuiteItem,
 	type SiteColorSchemeId,
 	type SiteCommunityLink,
 	type SiteFooterLinkGroup,

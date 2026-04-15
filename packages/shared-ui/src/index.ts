@@ -139,6 +139,7 @@ export {
   type ShellDropdownOption,
 } from './components/shell-dropdown';
 export { ShellNavCard } from './components/shell-nav-card';
+export { ShellNavRow } from './components/shell-nav-row';
 export { ShellFooter } from './components/shell-footer';
 export {
   LOCAL_ACCENTS,

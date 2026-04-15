@@ -7,8 +7,10 @@ export type ShellDropdownOption = {
   label: string;
   icon?: ReactNode;
   tone?: {
+    /** Accent color used for text and icon. */
     color: string;
-    contrast: string;
+    /** Semi-transparent color used for hover/selected background. */
+    muted: string;
   };
 };
 
@@ -103,8 +105,8 @@ export function ShellDropdown({
               const isSelected = option.id === selectedId;
               const optionStyle = option.tone
                 ? ({
-                    ["--option-accent" as string]: option.tone.color,
-                    ["--option-contrast" as string]: option.tone.contrast,
+                    ["--option-color" as string]: option.tone.color,
+                    ["--option-muted" as string]: option.tone.muted,
                   } as CSSProperties)
                 : undefined;
 
@@ -122,12 +124,12 @@ export function ShellDropdown({
                       "flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm",
                       "outline-none transition",
                       option.tone
-                        ? "text-[color:var(--option-accent)] hover:bg-[color:var(--option-accent)] hover:text-[color:var(--option-contrast)]"
+                        ? "text-[color:var(--option-color)] hover:bg-[color:var(--option-muted)]"
                         : "hover:bg-accent hover:text-accent-foreground",
                       "focus-visible:ring-2 focus-visible:ring-ring",
                       isSelected &&
                         (option.tone
-                          ? "bg-[color:var(--option-accent)] text-[color:var(--option-contrast)]"
+                          ? "bg-[color:var(--option-muted)] font-medium"
                           : "bg-accent text-accent-foreground"),
                     )}
                     style={optionStyle}
