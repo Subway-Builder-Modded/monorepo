@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 import { NavbarTopBar, type NavDropdownOption } from "@subway-builder-modded/shared-ui";
 import type { SiteCommunityLink, SiteSuite, SiteSuiteId } from "@/app/config/site-navigation";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
@@ -24,6 +24,18 @@ type NavbarTopbarProps = {
   onThemeClick: () => void;
 };
 
+type SharedTopbarLayoutProps = {
+  actionsNode: ReactNode;
+  breadcrumbNode: ReactNode;
+  collapsedLeftContent: ReactNode;
+  expandedLeftContent: ReactNode;
+  isExpanded: boolean;
+};
+
+type DesktopNavbarTopbarProps = SharedTopbarLayoutProps & {
+  suiteId: SiteSuiteId;
+};
+
 const EXPANDED_SIDE_ZONE_DESKTOP = 248;
 const COLLAPSED_RIGHT_ZONE_DESKTOP = 176;
 const COLLAPSED_LEFT_ZONE_GENERAL = 200;
@@ -36,6 +48,80 @@ function getCollapsedLeftZoneWidth(suiteId: SiteSuiteId): number {
 
 function getExpandedSideZoneWidth(): number {
   return EXPANDED_SIDE_ZONE_DESKTOP;
+}
+
+function DesktopNavbarTopbar({
+  actionsNode,
+  breadcrumbNode,
+  collapsedLeftContent,
+  expandedLeftContent,
+  isExpanded,
+  suiteId,
+}: DesktopNavbarTopbarProps) {
+  const { leftZoneWidth, rightZoneWidth, centerMaxWidth } = useMemo(() => {
+    if (isExpanded) {
+      const sideZoneWidth = getExpandedSideZoneWidth();
+
+      return {
+        leftZoneWidth: sideZoneWidth,
+        rightZoneWidth: sideZoneWidth,
+        centerMaxWidth: `calc(100% - ${sideZoneWidth * 2 + CENTER_SAFE_GAP}px)`,
+      };
+    }
+
+    const collapsedLeftZoneWidth = getCollapsedLeftZoneWidth(suiteId);
+    const collapsedRightZoneWidth = COLLAPSED_RIGHT_ZONE_DESKTOP;
+
+    return {
+      leftZoneWidth: collapsedLeftZoneWidth,
+      rightZoneWidth: collapsedRightZoneWidth,
+      centerMaxWidth: `calc(100% - ${collapsedLeftZoneWidth + collapsedRightZoneWidth + CENTER_SAFE_GAP}px)`,
+    };
+  }, [isExpanded, suiteId]);
+
+  return (
+    <NavbarTopBar
+      overlayCenter
+      className="h-full"
+      leftClassName="min-w-0 pr-2"
+      centerClassName="w-full px-2"
+      rightClassName="min-w-0 pl-2"
+      centerStyle={{ maxWidth: centerMaxWidth }}
+      left={
+        <div className="min-w-0" style={{ width: leftZoneWidth }}>
+          {isExpanded ? expandedLeftContent : collapsedLeftContent}
+        </div>
+      }
+      center={breadcrumbNode}
+      right={
+        <div className="min-w-0" style={{ width: rightZoneWidth }}>
+          {actionsNode}
+        </div>
+      }
+    />
+  );
+}
+
+function MobileNavbarTopbar({
+  actionsNode,
+  breadcrumbNode,
+  collapsedLeftContent,
+  expandedLeftContent,
+  isExpanded,
+}: SharedTopbarLayoutProps) {
+  return (
+    <div className="grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1">
+      <div className="min-w-0 pr-1">
+        {isExpanded ? (
+          <div className="min-w-0 max-w-[2.5rem]">{expandedLeftContent}</div>
+        ) : (
+          <div className="min-w-0">{collapsedLeftContent}</div>
+        )}
+      </div>
+      <div className="min-w-0 px-1">{breadcrumbNode}</div>
+      <div className="shrink-0 pl-1">{actionsNode}</div>
+    </div>
+  );
 }
 
 export function NavbarTopbar({
@@ -59,27 +145,6 @@ export function NavbarTopbar({
   const selectedSuiteAccent = useMemo(() => {
     return suiteOptions.find((option) => option.id === openSuiteId)?.tone?.color;
   }, [openSuiteId, suiteOptions]);
-
-  const { leftZoneWidth, rightZoneWidth, centerMaxWidth } = useMemo(() => {
-    if (isExpanded) {
-      const sideZoneWidth = getExpandedSideZoneWidth();
-
-      return {
-        leftZoneWidth: sideZoneWidth,
-        rightZoneWidth: sideZoneWidth,
-        centerMaxWidth: `calc(100% - ${sideZoneWidth * 2 + CENTER_SAFE_GAP}px)`,
-      };
-    }
-
-    const collapsedLeftZoneWidth = getCollapsedLeftZoneWidth(realSuite.id);
-    const collapsedRightZoneWidth = COLLAPSED_RIGHT_ZONE_DESKTOP;
-
-    return {
-      leftZoneWidth: collapsedLeftZoneWidth,
-      rightZoneWidth: collapsedRightZoneWidth,
-      centerMaxWidth: `calc(100% - ${collapsedLeftZoneWidth + collapsedRightZoneWidth + CENTER_SAFE_GAP}px)`,
-    };
-  }, [isExpanded, realSuite.id]);
 
   const expandedLeftContent = (
     <div style={{ color: selectedSuiteAccent ?? realAccent }}>
@@ -131,39 +196,24 @@ export function NavbarTopbar({
 
   if (isMobile) {
     return (
-      <div className="grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1">
-        <div className="min-w-0 pr-1">
-          {isExpanded ? (
-            <div className="min-w-0 max-w-[2.5rem]">{expandedLeftContent}</div>
-          ) : (
-            <div className="min-w-0">{collapsedLeftContent}</div>
-          )}
-        </div>
-        <div className="min-w-0 px-1">{breadcrumbNode}</div>
-        <div className="shrink-0 pl-1">{actionsNode}</div>
-      </div>
+      <MobileNavbarTopbar
+        isExpanded={isExpanded}
+        actionsNode={actionsNode}
+        breadcrumbNode={breadcrumbNode}
+        collapsedLeftContent={collapsedLeftContent}
+        expandedLeftContent={expandedLeftContent}
+      />
     );
   }
 
   return (
-    <NavbarTopBar
-      overlayCenter
-      className="h-full"
-      leftClassName="min-w-0 pr-2"
-      centerClassName="w-full px-2"
-      rightClassName="min-w-0 pl-2"
-      centerStyle={{ maxWidth: centerMaxWidth }}
-      left={
-        <div className="min-w-0" style={{ width: leftZoneWidth }}>
-          {isExpanded ? expandedLeftContent : collapsedLeftContent}
-        </div>
-      }
-      center={breadcrumbNode}
-      right={
-        <div className="min-w-0" style={{ width: rightZoneWidth }}>
-          {actionsNode}
-        </div>
-      }
+    <DesktopNavbarTopbar
+      isExpanded={isExpanded}
+      suiteId={realSuite.id}
+      actionsNode={actionsNode}
+      breadcrumbNode={breadcrumbNode}
+      collapsedLeftContent={collapsedLeftContent}
+      expandedLeftContent={expandedLeftContent}
     />
   );
 }

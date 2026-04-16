@@ -102,7 +102,7 @@ export function useNavbarPhase({
     setShowPanelSurface(false);
     setShowRows(false);
     setPhaseSync("opening");
-  }, [clearTimers, duration, setPhaseSync]);
+  }, [clearTimers, setPhaseSync]);
 
   useEffect(() => {
     if (phase !== "opening" || !canStartEnterMotion || enterSequenceStartedRef.current) {
