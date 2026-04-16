@@ -1,9 +1,4 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": [
-    "node_modules/**",
-    "build/**",
-    "coverage/**",
-    ".react-router/**"
-  ]
+  "ignorePatterns": ["node_modules/**", "build/**", "coverage/**", "dist/**", "test-results/**"]
 }

@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vp test run",
+    "test:watch": "vp test"
   },
   "devDependencies": {
-    "vitest": "^4.0.0"
+    "vitest": "catalog:",
+    "vite-plus": "catalog:"
   },
   "exports": {
     ".": {
