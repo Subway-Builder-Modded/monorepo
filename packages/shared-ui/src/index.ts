@@ -52,6 +52,13 @@ export {
 } from './components/dialog';
 export { AppFrame } from './components/app-frame';
 export { AppDialog } from './components/app-dialog';
+export {
+  CreditsModal,
+  type CreditAuthor,
+  type CreditsModalProps,
+  type ContributorTier,
+  type ContributorTierConfig,
+} from './components/credits-modal';
 export { Input } from './components/input';
 export {
   ActiveRouteIndicator,
