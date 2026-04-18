@@ -50,10 +50,11 @@ type ModsResponse struct {
 
 // InstalledModInfo represents the information stored about an installed mod in the registry's installed_mods.json file.
 type InstalledModInfo struct {
-	ID                 string `json:"id"`
-	Version            string `json:"version"`
-	IsLocal            bool   `json:"isLocal"`                      // Unused for now
-	InstalledSizeBytes int64  `json:"installedSizeBytes,omitempty"` // Populated in response payloads only
+	ID                 string                 `json:"id"`
+	Version            string                 `json:"version"`
+	IsLocal            bool                   `json:"isLocal"` // Unused for now
+	Manifest           *MetroMakerModManifest `json:"manifest,omitempty"`
+	InstalledSizeBytes int64                  `json:"installedSizeBytes,omitempty"` // Populated in response payloads only
 }
 
 type InstalledModsResponse struct {

@@ -6,8 +6,8 @@ export function AddInstalledMap(arg1, arg2, arg3, arg4) {
   return window['go']['registry']['Registry']['AddInstalledMap'](arg1, arg2, arg3, arg4);
 }
 
-export function AddInstalledMod(arg1, arg2, arg3) {
-  return window['go']['registry']['Registry']['AddInstalledMod'](arg1, arg2, arg3);
+export function AddInstalledMod(arg1, arg2, arg3, arg4) {
+  return window['go']['registry']['Registry']['AddInstalledMod'](arg1, arg2, arg3, arg4);
 }
 
 export function BootstrapInstalledStateFromProfile(arg1) {

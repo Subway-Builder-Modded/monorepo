@@ -12,7 +12,6 @@ import {
 import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
-  filterVisibleListingValues,
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
@@ -63,6 +62,31 @@ import { useUIStore } from '@/stores/ui-store';
 import { OpenImportAssetDialog } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 
+function localManifestBase(
+  id: string,
+  name: string,
+  description: string,
+  authorAlias: string,
+) {
+  return {
+    schema_version: 1,
+    id,
+    name,
+    author: {
+      author_id: authorAlias,
+      author_alias: authorAlias,
+      attribution_link: '',
+    },
+    github_id: 0,
+    last_updated: 0,
+    description,
+    tags: [] as string[],
+    gallery: [] as string[],
+    source: '',
+    update: { type: 'local' as const },
+  };
+}
+
 function localMapManifestFromInstalled(
   installed: types.InstalledMapInfo,
 ): types.MapManifest | null {
@@ -72,21 +96,16 @@ function localMapManifestFromInstalled(
   }
 
   return {
-    schema_version: 1,
-    id: installed.id,
-    name: config.name,
-    author: {
-      author_id: config.creator,
-      author_alias: config.creator,
-      attribution_link: '',
-    },
-    github_id: 0,
-    last_updated: 0,
+    ...localManifestBase(
+      installed.id,
+      config.name,
+      config.description,
+      config.creator,
+    ),
     city_code: config.code,
     country: config.country ?? '',
     location: '',
     population: config.population,
-    description: config.description,
     data_source: '',
     source_quality: '',
     level_of_detail: '',
@@ -97,11 +116,25 @@ function localMapManifestFromInstalled(
       zoom: 0,
       bearing: 0,
     },
-    tags: [],
-    gallery: [],
-    source: '',
-    update: { type: 'local' },
   } as unknown as types.MapManifest;
+}
+
+function localModManifestFromInstalled(
+  installed: types.InstalledModInfo,
+): types.ModManifest | null {
+  const installedManifest = installed.manifest;
+  if (!installedManifest) {
+    return null;
+  }
+  const authorName = installedManifest.author?.name ?? '';
+  return {
+    ...localManifestBase(
+      installed.id,
+      installedManifest.name ?? installed.id,
+      installedManifest.description ?? '',
+      authorName,
+    ),
+  } as unknown as types.ModManifest;
 }
 
 function conflictSourceLabel(conflict: types.MapCodeConflict): string {
@@ -219,7 +252,9 @@ export function LibraryPage() {
 
   const installedItems = useMemo(() => {
     const modItems = installedMods.flatMap((installed) => {
-      const manifest = modManifestById.get(installed.id);
+      const manifest = installed.isLocal
+        ? localModManifestFromInstalled(installed)
+        : modManifestById.get(installed.id);
       return manifest
         ? [
             {
@@ -233,7 +268,9 @@ export function LibraryPage() {
         : [];
     });
     const mapItems = installedMaps.flatMap((installed) => {
-      const manifest = mapManifestById.get(installed.id);
+      const manifest = installed.isLocal
+        ? localMapManifestFromInstalled(installed)
+        : mapManifestById.get(installed.id);
       if (manifest) {
         return [
           {
@@ -246,24 +283,7 @@ export function LibraryPage() {
         ];
       }
 
-      if (!installed.isLocal) {
-        return [];
-      }
-
-      const localManifest = localMapManifestFromInstalled(installed);
-      if (!localManifest) {
-        return [];
-      }
-
-      return [
-        {
-          type: 'map' as const,
-          item: localManifest,
-          installedVersion: installed.version,
-          installedSizeBytes: installed.installedSizeBytes ?? 0,
-          isLocal: true,
-        },
-      ];
+      return [];
     });
 
     return [...modItems, ...mapItems];
@@ -279,6 +299,7 @@ export function LibraryPage() {
     setFilters,
     setType,
     setPage,
+    dimCounts: filteredDimCounts,
   } = useFilteredInstalledItems({
     items: installedItems,
     modDownloadTotals,
@@ -289,9 +310,6 @@ export function LibraryPage() {
     useBrowseStore.getState().setType(filters.type);
     navigate('/browse');
   }, [filters.type, navigate]);
-
-  const modCount = installedItems.filter((i) => i.type === 'mod').length;
-  const mapCount = installedItems.filter((i) => i.type === 'map').length;
 
   const installedModItems = useMemo(
     () =>
@@ -318,13 +336,7 @@ export function LibraryPage() {
     [installedMapItems],
   );
 
-  const {
-    modTagCounts,
-    mapLocationCounts,
-    mapSourceQualityCounts,
-    mapLevelOfDetailCounts,
-    mapSpecialDemandCounts,
-  } = useMemo(
+  const availableDimCounts = useMemo(
     () => buildAssetListingCounts(installedModItems, installedMapItems),
     [installedMapItems, installedModItems],
   );
@@ -445,19 +457,18 @@ export function LibraryPage() {
           onTypeChange={setType}
           availableTags={availableTags}
           availableSpecialDemand={availableSpecialDemand}
-          modTagCounts={modTagCounts}
-          mapLocationCounts={mapLocationCounts}
-          mapSourceQualityCounts={mapSourceQualityCounts}
-          mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-          mapSpecialDemandCounts={mapSpecialDemandCounts}
-          modCount={modCount}
-          mapCount={mapCount}
+          dimCounts={{
+            current: filteredDimCounts,
+            available: availableDimCounts,
+          }}
+          modCount={filteredDimCounts.modCount}
+          mapCount={filteredDimCounts.mapCount}
           locationValues={LOCATION_TAGS}
           sourceQualityValues={SOURCE_QUALITY_VALUES}
           levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
           formatSourceQuality={formatSourceQuality}
-          filterVisibleListingValues={filterVisibleListingValues}
           emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
+          minimumVisibleOptions={2}
         />
       </AssetSidebarPanel>
 

@@ -258,20 +258,64 @@ export function useFilteredItems({
         compareItems,
         accessors: {
           buildSearchText,
-          getModTags: (item) =>
-            item.type === 'mod' ? (item.item.tags ?? []) : undefined,
-          getMapLocation: (item) =>
-            item.type === 'map' ? (item.item.location ?? '') : undefined,
-          getMapQuality: (item) =>
-            item.type === 'map' ? (item.item.source_quality ?? '') : undefined,
-          getSelectedMapQuality: (mapFilters) => mapFilters.sourceQuality,
-          getMapLevelOfDetail: (item) =>
-            item.type === 'map' ? (item.item.level_of_detail ?? '') : undefined,
-          getSelectedMapLevelOfDetail: (mapFilters) => mapFilters.levelOfDetail,
-          getMapSpecialDemand: (item) =>
-            item.type === 'map' ? (item.item.special_demand ?? []) : undefined,
-          getSelectedMapSpecialDemand: (mapFilters) => mapFilters.specialDemand,
-          getSelectedMapLocations: (mapFilters) => mapFilters.locations,
+          dimensions: [
+            {
+              countKey: 'modTagCounts',
+              assetType: 'mod',
+              cardinality: 'multi',
+              getValue: (item) =>
+                item.type === 'mod' ? (item.item.tags ?? []) : undefined,
+              getSelected: (filters) => filters.mod.tags,
+              filterParent: 'mod',
+              filterKey: 'tags',
+            },
+            {
+              countKey: 'mapLocationCounts',
+              assetType: 'map',
+              cardinality: 'single',
+              getValue: (item) =>
+                item.type === 'map' ? (item.item.location ?? '') : undefined,
+              getSelected: (filters) => filters.map.locations,
+              filterParent: 'map',
+              filterKey: 'locations',
+            },
+            {
+              countKey: 'mapSourceQualityCounts',
+              assetType: 'map',
+              cardinality: 'single',
+              getValue: (item) =>
+                item.type === 'map'
+                  ? (item.item.source_quality ?? '')
+                  : undefined,
+              getSelected: (filters) => filters.map.sourceQuality,
+              filterParent: 'map',
+              filterKey: 'sourceQuality',
+            },
+            {
+              countKey: 'mapLevelOfDetailCounts',
+              assetType: 'map',
+              cardinality: 'single',
+              getValue: (item) =>
+                item.type === 'map'
+                  ? (item.item.level_of_detail ?? '')
+                  : undefined,
+              getSelected: (filters) => filters.map.levelOfDetail,
+              filterParent: 'map',
+              filterKey: 'levelOfDetail',
+            },
+            {
+              countKey: 'mapSpecialDemandCounts',
+              assetType: 'map',
+              cardinality: 'multi',
+              getValue: (item) =>
+                item.type === 'map'
+                  ? (item.item.special_demand ?? [])
+                  : undefined,
+              getSelected: (filters) => filters.map.specialDemand,
+              filterParent: 'map',
+              filterKey: 'specialDemand',
+            },
+          ],
         },
       }),
     [allItems, filters, mapDownloadTotals, modDownloadTotals, requestedPage],

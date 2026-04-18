@@ -767,10 +767,54 @@ export namespace types {
 		    return a;
 		}
 	}
+	export class MetroMakerModManifest {
+	    id: string;
+	    name: string;
+	    description: string;
+	    version: string;
+	    // Go type: struct { Name string "json:\"name\"" }
+	    author: any;
+	    main: string;
+	    dependencies?: Record<string, string>;
+	
+	    static createFrom(source: any = {}) {
+	        return new MetroMakerModManifest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.description = source["description"];
+	        this.version = source["version"];
+	        this.author = this.convertValues(source["author"], Object);
+	        this.main = source["main"];
+	        this.dependencies = source["dependencies"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class InstalledModInfo {
 	    id: string;
 	    version: string;
 	    isLocal: boolean;
+	    manifest?: MetroMakerModManifest;
 	    installedSizeBytes?: number;
 	
 	    static createFrom(source: any = {}) {
@@ -782,8 +826,27 @@ export namespace types {
 	        this.id = source["id"];
 	        this.version = source["version"];
 	        this.isLocal = source["isLocal"];
+	        this.manifest = this.convertValues(source["manifest"], MetroMakerModManifest);
 	        this.installedSizeBytes = source["installedSizeBytes"];
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class InstalledModsResponse {
 	    status: string;
@@ -1065,6 +1128,7 @@ export namespace types {
 		    return a;
 		}
 	}
+	
 	
 	export class ModManifest {
 	    schema_version: number;

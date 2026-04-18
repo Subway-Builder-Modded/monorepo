@@ -2,6 +2,8 @@ import Fuse, { type IFuseOptions } from 'fuse.js';
 
 import {
   ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  buildListingCounts,
+  type AssetListingCounts,
   type AssetType,
   type PerPage,
   type SortState,
@@ -68,17 +70,26 @@ export interface TaggedListingFilterState<TMapFilters, TSortState = SortState> {
   map: TMapFilters;
 }
 
+export interface AssetDimension<TItem, TMapFilters> {
+  countKey: keyof AssetListingCounts;
+  assetType: AssetType;
+  cardinality: 'single' | 'multi';
+  getValue: (item: TItem) => string | string[] | undefined;
+  getSelected: (filters: { mod: { tags: string[] }; map: TMapFilters }) => string[];
+  filterParent: 'mod' | 'map';
+  filterKey: string;
+}
+
 export interface TaggedListingAccessors<TItem, TMapFilters> {
   buildSearchText: (item: TItem) => string;
-  getModTags: (item: TItem) => string[] | undefined;
-  getMapLocation: (item: TItem) => string | undefined;
-  getMapQuality: (item: TItem, filters: TMapFilters) => string | undefined;
-  getSelectedMapQuality: (filters: TMapFilters) => string[];
-  getMapLevelOfDetail: (item: TItem) => string | undefined;
-  getSelectedMapLevelOfDetail: (filters: TMapFilters) => string[];
-  getMapSpecialDemand: (item: TItem) => string[] | undefined;
-  getSelectedMapSpecialDemand: (filters: TMapFilters) => string[];
-  getSelectedMapLocations: (filters: TMapFilters) => string[];
+  dimensions: AssetDimension<TItem, TMapFilters>[];
+}
+
+type DimensionSelections = Record<string, string[]>;
+
+export interface FilteredTaggedListingCounts extends AssetListingCounts {
+  modCount: number;
+  mapCount: number;
 }
 
 export interface FilterAndSortTaggedItemsParams<
@@ -115,6 +126,17 @@ export interface FilteredPageResult<TTaggedItem> {
   page: number;
   totalPages: number;
   totalResults: number;
+}
+
+interface FilterTaggedItemsParams<
+  TTaggedItem extends TaggedListingItem,
+  TMapFilters,
+  TSortState = SortState,
+> {
+  items: TTaggedItem[];
+  filters: TaggedListingFilterState<TMapFilters, TSortState>;
+  accessors: TaggedListingAccessors<TTaggedItem, TMapFilters>;
+  fuseOptions?: IFuseOptions<SearchableItem<TTaggedItem>>;
 }
 
 export function matchesSingleValueFilter(
@@ -161,61 +183,36 @@ export function sortItemsBySeed<TTaggedItem extends TaggedListingItem>(
   });
 }
 
-export function matchesMapAttributeFilters<TTaggedItem extends TaggedListingItem, TMapFilters>(
+function matchesDimensionFilters<TTaggedItem extends TaggedListingItem, TMapFilters>(
   item: TTaggedItem,
-  filters: TMapFilters,
-  accessors: TaggedListingAccessors<TTaggedItem, TMapFilters>,
+  filters: { mod: { tags: string[] }; map: TMapFilters },
+  dims: AssetDimension<TTaggedItem, TMapFilters>[],
 ): boolean {
-  if (item.type !== 'map') return true;
-
-  return (
-    matchesSingleValueFilter(
-      accessors.getMapLocation(item),
-      accessors.getSelectedMapLocations(filters),
-    ) &&
-    matchesSingleValueFilter(
-      accessors.getMapQuality(item, filters),
-      accessors.getSelectedMapQuality(filters),
-    ) &&
-    matchesSingleValueFilter(
-      accessors.getMapLevelOfDetail(item),
-      accessors.getSelectedMapLevelOfDetail(filters),
-    ) &&
-    matchesZeroOrManyValuesFilter(
-      accessors.getMapSpecialDemand(item),
-      accessors.getSelectedMapSpecialDemand(filters),
-    )
-  );
+  return dims.every((dims) => {
+    if (dims.assetType !== item.type) return true;
+    const selected = dims.getSelected(filters);
+    if (selected.length === 0) return true;
+    const value = dims.getValue(item);
+    return dims.cardinality === 'single'
+      ? matchesSingleValueFilter(value as string | undefined, selected)
+      : matchesZeroOrManyValuesFilter(value as string[] | undefined, selected);
+  });
 }
 
-export function filterAndSortTaggedItems<
+function filterTaggedItems<
   TTaggedItem extends TaggedListingItem,
   TMapFilters,
   TSortState = SortState,
 >({
   items,
   filters,
-  modDownloadTotals,
-  mapDownloadTotals,
-  compareItems,
   accessors,
   fuseOptions,
-}: FilterAndSortTaggedItemsParams<TTaggedItem, TMapFilters, TSortState>): TTaggedItem[] {
+}: FilterTaggedItemsParams<TTaggedItem, TMapFilters, TSortState>): TTaggedItem[] {
   let result = items.filter((item) => item.type === filters.type);
 
-  if (filters.mod.tags.length > 0) {
-    result = result.filter((item) =>
-      item.type === 'mod'
-        ? matchesZeroOrManyValuesFilter(
-            accessors.getModTags(item),
-            filters.mod.tags,
-          )
-        : true,
-    );
-  }
-
   result = result.filter((item) =>
-    matchesMapAttributeFilters(item, filters.map, accessors),
+    matchesDimensionFilters(item, filters, accessors.dimensions),
   );
 
   const query = filters.query.trim();
@@ -231,6 +228,81 @@ export function filterAndSortTaggedItems<
     );
     result = fuse.search(query).map(({ item }) => item.entry);
   }
+
+  return result;
+}
+
+export function buildFilteredTaggedListingCounts<
+  TTaggedItem extends TaggedListingItem,
+  TSortState = SortState,
+>({
+  items,
+  filters,
+  accessors,
+  fuseOptions,
+}: FilterTaggedItemsParams<
+  TTaggedItem,
+  DimensionSelections,
+  TSortState
+>): FilteredTaggedListingCounts {
+  const filterForType = (
+    type: AssetType,
+    nextFilters: typeof filters = filters,
+  ) =>
+    filterTaggedItems({
+      items,
+      filters: { ...nextFilters, type },
+      accessors,
+      fuseOptions,
+    });
+
+  const counts = {} as AssetListingCounts;
+  for (const dim of accessors.dimensions) {
+    const clearedFilters = {
+      ...filters,
+      [dim.filterParent]: {
+        ...(filters[dim.filterParent] as Record<string, unknown>),
+        [dim.filterKey]: [],
+      },
+    } as typeof filters;
+    const dimItems = filterForType(dim.assetType, clearedFilters);
+    counts[dim.countKey] = buildListingCounts({
+      valuesByItem: dimItems.map((item) => {
+        const val = dim.getValue(item);
+        return dim.cardinality === 'single'
+          ? [val as string | undefined]
+          : ((val as string[] | undefined) ?? []);
+      }),
+      dedupePerItem: dim.cardinality === 'multi',
+    });
+  }
+
+  return {
+    modCount: filterForType('mod').length,
+    mapCount: filterForType('map').length,
+    ...counts,
+  };
+}
+
+export function filterAndSortTaggedItems<
+  TTaggedItem extends TaggedListingItem,
+  TMapFilters,
+  TSortState = SortState,
+>({
+  items,
+  filters,
+  modDownloadTotals,
+  mapDownloadTotals,
+  compareItems,
+  accessors,
+  fuseOptions,
+}: FilterAndSortTaggedItemsParams<TTaggedItem, TMapFilters, TSortState>): TTaggedItem[] {
+  const result = filterTaggedItems({
+    items,
+    filters,
+    accessors,
+    fuseOptions,
+  });
 
   if ((filters.sort as SortState).field === 'random') {
     return sortItemsBySeed(result, filters.randomSeed);

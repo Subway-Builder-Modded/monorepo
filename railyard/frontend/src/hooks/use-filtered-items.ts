@@ -1,5 +1,4 @@
 import {
-  buildAssetSearchText,
   filterAndPaginateTaggedItems,
   type SourceAssetQueryFilterState,
 } from '@subway-builder-modded/asset-listings-state';
@@ -12,6 +11,10 @@ import {
   compareItems,
   type TaggedItem,
 } from '@/lib/tagged-items';
+import {
+  buildDimensionCounts,
+  createTaggedListingAccessors,
+} from '@/lib/tagged-listing-filters';
 import { type BrowseFilterState, useBrowseStore } from '@/stores/browse-store';
 import { useProfileStore } from '@/stores/profile-store';
 
@@ -36,10 +39,6 @@ export interface TaggedItemFilterState {
   map: BrowseFilterState['map'];
 }
 
-export function buildSearchText(item: TaggedItem): string {
-  return buildAssetSearchText(item, (entry) => entry.author.author_alias ?? '');
-}
-
 export function useFilteredItems({
   mods,
   maps,
@@ -59,6 +58,15 @@ export function useFilteredItems({
     () => buildTaggedItems(mods, maps),
     [mods, maps],
   );
+  const accessors = useMemo(
+    () => createTaggedListingAccessors<TaggedItem>(),
+    [],
+  );
+
+  const dimCounts = useMemo(
+    () => buildDimensionCounts({ items: allItems, filters, accessors }),
+    [accessors, allItems, filters],
+  );
 
   const filteredPage = useMemo(
     () =>
@@ -69,25 +77,9 @@ export function useFilteredItems({
         modDownloadTotals,
         mapDownloadTotals,
         compareItems,
-        accessors: {
-          buildSearchText,
-          getModTags: (item) =>
-            item.type === 'mod' ? (item.item.tags ?? []) : undefined,
-          getMapLocation: (item) =>
-            item.type === 'map' ? (item.item.location ?? '') : undefined,
-          getMapQuality: (item) =>
-            item.type === 'map' ? (item.item.source_quality ?? '') : undefined,
-          getSelectedMapQuality: (mapFilters) => mapFilters.sourceQuality,
-          getMapLevelOfDetail: (item) =>
-            item.type === 'map' ? (item.item.level_of_detail ?? '') : undefined,
-          getSelectedMapLevelOfDetail: (mapFilters) => mapFilters.levelOfDetail,
-          getMapSpecialDemand: (item) =>
-            item.type === 'map' ? (item.item.special_demand ?? []) : undefined,
-          getSelectedMapSpecialDemand: (mapFilters) => mapFilters.specialDemand,
-          getSelectedMapLocations: (mapFilters) => mapFilters.locations,
-        },
+        accessors,
       }),
-    [allItems, filters, mapDownloadTotals, modDownloadTotals, page],
+    [accessors, allItems, filters, mapDownloadTotals, modDownloadTotals, page],
   );
 
   return {
@@ -99,5 +91,6 @@ export function useFilteredItems({
     setFilters,
     setType,
     setPage,
+    dimCounts,
   };
 }

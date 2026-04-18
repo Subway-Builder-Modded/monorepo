@@ -55,7 +55,6 @@ import { useRegistry } from '@/hooks/use-registry';
 import {
   buildAssetListingCounts as buildSharedAssetListingCounts,
   DEFAULT_SORT_STATE,
-  filterVisibleListingValues,
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
@@ -146,13 +145,10 @@ export function BrowsePage() {
     [maps],
   );
 
-  const {
-    modTagCounts,
-    mapLocationCounts,
-    mapSourceQualityCounts,
-    mapLevelOfDetailCounts,
-    mapSpecialDemandCounts,
-  } = useMemo(() => buildSharedAssetListingCounts(mods, maps), [mods, maps]);
+  const availableDimCounts = useMemo(
+    () => buildSharedAssetListingCounts(mods, maps),
+    [mods, maps],
+  );
 
   const {
     items,
@@ -287,18 +283,16 @@ export function BrowsePage() {
             onTypeChange={setType}
             availableTags={allTags}
             availableSpecialDemand={availableSpecialDemand}
-            modTagCounts={modTagCounts}
-            mapLocationCounts={mapLocationCounts}
-            mapSourceQualityCounts={mapSourceQualityCounts}
-            mapLevelOfDetailCounts={mapLevelOfDetailCounts}
-            mapSpecialDemandCounts={mapSpecialDemandCounts}
+            dimCounts={{
+              current: availableDimCounts,
+              available: availableDimCounts,
+            }}
             modCount={mods.length}
             mapCount={maps.length}
             locationValues={LOCATION_TAGS}
             sourceQualityValues={SOURCE_QUALITY_VALUES}
             levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
             formatSourceQuality={formatSourceQuality}
-            filterVisibleListingValues={filterVisibleListingValues}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           />
         ),
