@@ -92,18 +92,19 @@ export function NavbarTopbar({
 
   const breadcrumbNode = (
     <p
-      className="flex items-center justify-center gap-1.5 pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-semibold leading-snug [overflow-x:hidden] [overflow-y:visible] sm:text-base"
+      className="flex items-center justify-center gap-1.5 pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-medium leading-snug [overflow-x:hidden] [overflow-y:visible] sm:text-base"
       style={{ color: realAccent, transform: "translateY(-2px)" }}
     >
       <span className="inline-flex shrink-0 items-center [&_svg]:size-3.5" aria-hidden="true">
         {realSuite.icon}
       </span>
-      <span className="max-w-[10.5rem] truncate">{realSuite.title}</span>
-      <span className="inline-flex shrink-0 items-center gap-1 opacity-75" aria-hidden="true">
-        <span className="h-px w-2.5 rounded-full bg-current" />
-        <span className="size-1.5 rounded-full border border-current" />
+      <span className="max-w-[10.5rem] truncate font-semibold">{realSuite.title}</span>
+      <span className="shrink-0 font-normal opacity-80" aria-hidden="true">
+        &gt;
       </span>
-      <span className="max-w-[11.5rem] truncate opacity-90 sm:max-w-[14rem]">{breadcrumb}</span>
+      <span className="max-w-[11.5rem] truncate font-normal opacity-90 sm:max-w-[14rem]">
+        {breadcrumb}
+      </span>
     </p>
   );
 

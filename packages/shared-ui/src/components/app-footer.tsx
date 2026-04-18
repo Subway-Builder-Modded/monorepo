@@ -3,6 +3,9 @@ import { cn } from '../lib/cn';
 import { FooterBrandBlock } from './footer-brand-block';
 import { FooterColumns, type FooterColumn } from './footer-columns';
 
+export const APP_SHELL_OUTER_CONTAINER_CLASS =
+  'mx-auto w-full max-w-[1360px] px-5 sm:px-7 lg:px-10 xl:px-12';
+
 type AppFooterProps = {
   brand: {
     href?: string;
@@ -32,7 +35,7 @@ export function AppFooter({
 }: AppFooterProps) {
   return (
     <footer className={cn('mt-16 border-t border-border bg-background', className)}>
-      <div className="mx-auto w-full max-w-[1360px] px-5 pb-8 pt-9 sm:px-7 lg:px-10 xl:px-12">
+      <div className={cn(APP_SHELL_OUTER_CONTAINER_CLASS, 'pb-8 pt-9')}>
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,2.65fr)]">
           <FooterBrandBlock brand={brand} externalLinks={externalLinks} />
           <FooterColumns columns={columns} />

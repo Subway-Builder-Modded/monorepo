@@ -160,7 +160,10 @@ export {
   NavbarTopBar,
   type NavbarTopBarProps,
 } from './components/navbar-top-bar';
-export { AppFooter } from './components/app-footer';
+export {
+  AppFooter,
+  APP_SHELL_OUTER_CONTAINER_CLASS,
+} from './components/app-footer';
 export {
   FooterColumns,
   type FooterColumn,
