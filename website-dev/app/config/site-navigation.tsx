@@ -14,6 +14,7 @@ import {
   BookText,
   Megaphone,
   TrendingUp,
+  Code,
 } from "lucide-react";
 import { FaDiscord as Discord } from "react-icons/fa6";
 function GithubIcon({ className }: { className?: string }) {
@@ -299,6 +300,16 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     breadcrumb: "World Map",
     activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
   },
+  {
+    id: "registry-markdown-playground",
+    suiteId: "registry",
+    title: "Playground",
+    description: "Experiment with Markdown content in a live preview environment.",
+    href: "/registry/markdown-playground",
+    icon: Code,
+    breadcrumb: "Playground",
+    activeMatchRules: [{ kind: "exact", path: "/registry/markdown-playground" }],
+  },
 ];
 
 export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
@@ -312,7 +323,7 @@ export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
     id: "github",
     title: "GitHub",
     href: "https://github.com/Subway-Builder-Modded",
-    icon: <GithubIcon className={EXTERNAL_ICON_CLASS} />,
+    icon: <GithubIcon className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
   },
 ];
 
