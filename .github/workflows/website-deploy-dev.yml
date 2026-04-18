@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - website-dev
-      - "jfk-*"
+    paths:
+      - "website-dev/**"
+      - "packages/**"
+      - ".github/workflows/website-deploy-dev.yml"
+  pull_request:
+    branches:
+      - main
     paths:
       - "website-dev/**"
       - "packages/**"
