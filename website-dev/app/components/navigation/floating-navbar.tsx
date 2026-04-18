@@ -1,4 +1,4 @@
-import { type CSSProperties, type MouseEvent, useCallback, useState } from "react";
+import { type CSSProperties, type MouseEvent, useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { APP_SHELL_OUTER_CONTAINER_CLASS } from "@subway-builder-modded/shared-ui";
 import { SITE_COMMUNITY_LINKS } from "@/app/config/site-navigation";
@@ -73,9 +73,15 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
   const isClosed = phase === "closed";
   const [isNavbarHovered, setIsNavbarHovered] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const isHoverAnimated = isNavbarHovered && !prefersReducedMotion;
   const frameScale = isHoverAnimated ? 1.007 : 1;
   const frameOffsetY = isHoverAnimated ? -0.5 : 0;
+  const disableInitialClosedAnimation = !hasMounted && isClosed;
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   return (
     <>
@@ -94,6 +100,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       <nav aria-label="Site navigation" className="fixed inset-x-0 top-4 z-50">
         <div className={cn(APP_SHELL_OUTER_CONTAINER_CLASS, "relative")}>
           <motion.div
+            initial={false}
             onClick={onCollapsedSurfaceClick}
             onHoverStart={() => setIsNavbarHovered(true)}
             onHoverEnd={() => setIsNavbarHovered(false)}
@@ -108,9 +115,18 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
               y: frameOffsetY,
             }}
             transition={{
-              height: { duration: frameDuration, ease: FRAME_EASE },
-              scale: { duration: prefersReducedMotion ? 0 : 0.16, ease: FRAME_EASE },
-              y: { duration: prefersReducedMotion ? 0 : 0.16, ease: FRAME_EASE },
+              height: {
+                duration: disableInitialClosedAnimation ? 0 : frameDuration,
+                ease: FRAME_EASE,
+              },
+              scale: {
+                duration: disableInitialClosedAnimation || prefersReducedMotion ? 0 : 0.16,
+                ease: FRAME_EASE,
+              },
+              y: {
+                duration: disableInitialClosedAnimation || prefersReducedMotion ? 0 : 0.16,
+                ease: FRAME_EASE,
+              },
             }}
             style={
               {
@@ -140,6 +156,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
               style={{ height: isFrameExpanded ? panelHeight : 0 }}
             >
               <motion.div
+                initial={false}
                 animate={{ opacity: showPanelSurface ? 1 : 0 }}
                 transition={{
                   duration: prefersReducedMotion ? 0 : NAVBAR_MOTION.panelSurfaceExitMs / 1000,
