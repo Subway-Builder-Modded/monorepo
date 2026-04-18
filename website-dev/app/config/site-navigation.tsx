@@ -10,8 +10,33 @@ import {
   Heart,
   Scale,
   ChartLine,
+  Compass,
+  BookText,
+  Megaphone,
+  TrendingUp,
 } from "lucide-react";
 import { FaDiscord as Discord } from "react-icons/fa6";
+function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={className ?? "size-5"}
+      style={{
+        backgroundColor: "currentColor",
+        display: "inline-block",
+        maskImage: "url('/assets/markdown.svg')",
+        maskPosition: "center",
+        maskRepeat: "no-repeat",
+        maskSize: "contain",
+        WebkitMaskImage: "url('/assets/markdown.svg')",
+        WebkitMaskPosition: "center",
+        WebkitMaskRepeat: "no-repeat",
+        WebkitMaskSize: "contain",
+      }}
+    />
+  );
+}
+
 function GithubIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -48,18 +73,20 @@ export type SiteSuite = {
   id: SiteSuiteId;
   title: string;
   href: string;
-  icon: ReactNode;
+  icon: SiteIcon;
   colorSchemeId: SiteColorSchemeId;
   accent: SiteSuiteAccent;
   breadcrumbFallback: string;
 };
+
+export type SiteIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 
 export type SiteNavItem = {
   id: string;
   suiteId: SiteSuiteId;
   title: string;
   href: string;
-  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  icon: SiteIcon;
   breadcrumb: string;
   description?: string;
   activeMatchRules?: SiteRouteMatchRule[];
@@ -72,7 +99,6 @@ export type SiteCommunityLink = {
   icon: ReactNode;
 };
 
-const SUITE_ICON_CLASS = "size-4";
 const EXTERNAL_ICON_CLASS = "size-4";
 
 const GENERAL_ACCENT: SiteSuiteAccent = {
@@ -80,16 +106,16 @@ const GENERAL_ACCENT: SiteSuiteAccent = {
   dark: "#ffffff",
   textInvertedLight: "#f2f2f2",
   textInvertedDark: "#232323",
-  mutedLight: "rgba(10,10,10,0.07)",
+  mutedLight: "rgba(10,10,10,0.14)",
   mutedDark: "rgba(255,255,255,0.09)",
 };
 
 export const SITE_SUITES: SiteSuite[] = [
   {
     id: "general",
-    title: "Subway Builder Modded",
+    title: "General",
     href: "/",
-    icon: <img src="/logo.png" alt="" aria-hidden="true" className="size-4 object-contain" />,
+    icon: Compass,
     colorSchemeId: "default",
     accent: GENERAL_ACCENT,
     breadcrumbFallback: "Home",
@@ -98,14 +124,14 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "railyard",
     title: "Railyard",
     href: "/railyard",
-    icon: <TrainTrack className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: TrainTrack,
     colorSchemeId: "railyard",
     accent: {
       light: "#0f8f68",
       dark: "#19d89c",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(15,143,104,0.11)",
+      mutedLight: "rgba(15,143,104,0.18)",
       mutedDark: "rgba(25,216,156,0.13)",
     },
     breadcrumbFallback: "Railyard",
@@ -114,14 +140,14 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "registry",
     title: "Registry",
     href: "/registry",
-    icon: <Database className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: Database,
     colorSchemeId: "registry",
     accent: {
       light: "#9d4edd",
       dark: "#c77dff",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(157,78,221,0.11)",
+      mutedLight: "rgba(157,78,221,0.18)",
       mutedDark: "rgba(199,125,255,0.13)",
     },
     breadcrumbFallback: "Registry",
@@ -130,14 +156,14 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "template-mod",
     title: "Template Mod",
     href: "/template-mod",
-    icon: <LayoutGrid className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: LayoutGrid,
     colorSchemeId: "template-mod",
     accent: {
       light: "#60a5fa",
       dark: "#93c5fd",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(96,165,250,0.11)",
+      mutedLight: "rgba(96,165,250,0.18)",
       mutedDark: "rgba(147,197,253,0.13)",
     },
     breadcrumbFallback: "Template Mod",
@@ -146,14 +172,14 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "website",
     title: "Website",
     href: "/website",
-    icon: <Globe className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: Globe,
     colorSchemeId: "website",
     accent: {
       light: "#f2992e",
       dark: "#ffbe73",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(242,153,46,0.11)",
+      mutedLight: "rgba(242,153,46,0.18)",
       mutedDark: "rgba(255,190,115,0.13)",
     },
     breadcrumbFallback: "Website",
@@ -215,24 +241,145 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "exact", path: "/license" }],
   },
   {
-    id: "railyard-download",
+    id: "railyard-home",
     suiteId: "railyard",
     title: "Home",
-    description: "The all-in-one Map and Mod Manager for Subway Builder.",
+    description:
+      "Discover and download the all-in-one manager for Subway Builder community-made content.",
     href: "/railyard",
     icon: House,
     breadcrumb: "Home",
     activeMatchRules: [{ kind: "exact", path: "/railyard" }],
   },
   {
+    id: "railyard-browse",
+    suiteId: "railyard",
+    title: "Browse",
+    description: "Browse our registry of community-made content for Subway Builder.",
+    href: "/railyard/browse",
+    icon: Compass,
+    breadcrumb: "Browse",
+    activeMatchRules: [{ kind: "prefix", path: "/railyard/browse" }],
+  },
+  {
+    id: "railyard-docs",
+    suiteId: "railyard",
+    title: "Docs",
+    description: "View the official documentation for Railyard.",
+    href: "/railyard/docs",
+    icon: BookText,
+    breadcrumb: "Docs",
+    activeMatchRules: [{ kind: "prefix", path: "/railyard/docs" }],
+  },
+  {
+    id: "railyard-updates",
+    suiteId: "railyard",
+    title: "Updates",
+    description: "View the changelogs and release notes for Railyard.",
+    href: "/railyard/updates",
+    icon: Megaphone,
+    breadcrumb: "Updates",
+    activeMatchRules: [{ kind: "prefix", path: "/railyard/updates" }],
+  },
+  {
     id: "railyard-analytics",
     suiteId: "railyard",
     title: "Analytics",
-    description: "In-depth release and download analytics for the Railyard desktop app.",
+    description: "In-depth release and download analytics for the Railyard app.",
     href: "/railyard/analytics",
     icon: ChartLine,
     breadcrumb: "Analytics",
     activeMatchRules: [{ kind: "exact", path: "/railyard/analytics" }],
+  },
+  {
+    id: "registry-analytics",
+    suiteId: "registry",
+    title: "Analytics",
+    description: "View in-depth analytics and insights for Registry-hosted content.",
+    href: "/registry/analytics",
+    icon: ChartLine,
+    breadcrumb: "Analytics",
+    activeMatchRules: [{ kind: "exact", path: "/registry/analytics" }],
+  },
+  {
+    id: "registry-trending",
+    suiteId: "registry",
+    title: "Trending",
+    description: "View the most trending content in the Registry based on recent activity.",
+    href: "/registry/trending",
+    icon: TrendingUp,
+    breadcrumb: "Trending",
+    activeMatchRules: [{ kind: "exact", path: "/registry/trending" }],
+  },
+  {
+    id: "registry-world-map",
+    suiteId: "registry",
+    title: "World Map",
+    description: "Interactively explore all of the user-submitted maps available in the Registry.",
+    href: "/registry/world-map",
+    icon: Globe,
+    breadcrumb: "World Map",
+    activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
+  },
+  {
+    id: "registry-markdown-playground",
+    suiteId: "registry",
+    title: "Playground",
+    description: "Experiment with Markdown content in a live preview environment.",
+    href: "/registry/markdown-playground",
+    icon: MarkdownIcon,
+    breadcrumb: "Playground",
+    activeMatchRules: [{ kind: "exact", path: "/registry/markdown-playground" }],
+  },
+  {
+    id: "template-mod-home",
+    suiteId: "template-mod",
+    title: "Home",
+    description: "Discover the all-inclusive TypeScript template for creating Subway Builder mods.",
+    href: "/template-mod",
+    icon: House,
+    breadcrumb: "Home",
+    activeMatchRules: [{ kind: "exact", path: "/template-mod" }],
+  },
+  {
+    id: "template-mod-docs",
+    suiteId: "template-mod",
+    title: "Docs",
+    description: "View the official documentation for the Template Mod.",
+    href: "/template-mod/docs",
+    icon: BookText,
+    breadcrumb: "Docs",
+    activeMatchRules: [{ kind: "prefix", path: "/template-mod/docs" }],
+  },
+  {
+    id: "template-mod-updates",
+    suiteId: "template-mod",
+    title: "Updates",
+    description: "View the changelogs and release notes for the Template Mod.",
+    href: "/template-mod/updates",
+    icon: Megaphone,
+    breadcrumb: "Updates",
+    activeMatchRules: [{ kind: "prefix", path: "/template-mod/updates" }],
+  },
+  {
+    id: "website-updates",
+    suiteId: "website",
+    title: "Updates",
+    description: "View the changelogs and release notes for the Website.",
+    href: "/website/updates",
+    icon: Megaphone,
+    breadcrumb: "Updates",
+    activeMatchRules: [{ kind: "prefix", path: "/website/updates" }],
+  },
+  {
+    id: "website-analytics",
+    suiteId: "website",
+    title: "Analytics",
+    description: "In-depth release and download analytics for the Website.",
+    href: "/website/analytics",
+    icon: ChartLine,
+    breadcrumb: "Analytics",
+    activeMatchRules: [{ kind: "exact", path: "/website/analytics" }],
   },
 ];
 
@@ -247,7 +394,7 @@ export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
     id: "github",
     title: "GitHub",
     href: "https://github.com/Subway-Builder-Modded",
-    icon: <GithubIcon className={EXTERNAL_ICON_CLASS} />,
+    icon: <GithubIcon className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
   },
 ];
 

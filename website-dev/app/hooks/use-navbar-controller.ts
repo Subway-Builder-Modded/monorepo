@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { NavDropdownOption } from "@subway-builder-modded/shared-ui";
-import {
-  SITE_SUITES,
-  getActiveSuite,
-  getBreadcrumbLabel,
-  getItemsForSuite,
-  getMatchingItem,
-  getSuiteById,
-  type SiteSuiteId,
-} from "@/app/config/site-navigation";
-import { useDelayedClose } from "@/app/hooks/use-delayed-close";
+import { SITE_NAV_ITEMS, getActiveSuite, type SiteSuiteId } from "@/app/config/site-navigation";
+import { buildNavbarDisplayModel } from "@/app/components/navigation/navbar-model";
 import { useNavbarPanelHeight } from "@/app/hooks/use-navbar-panel-height";
 import { NAVBAR_MOTION, useNavbarPhase } from "@/app/hooks/use-navbar-phase";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
@@ -34,6 +25,55 @@ type UseNavbarControllerOptions = {
   theme: ThemeMode;
 };
 
+type PanelMetricsInputs = {
+  viewportHeight: number;
+  measuredPanelHeight: number;
+};
+
+type NextCommittedPanelMetricsInputs = {
+  previous: CommittedPanelMetrics;
+  panelMeasurementKey: string;
+  targetPanelHeight: number;
+  targetPanelNeedsScroll: boolean;
+};
+
+function getTargetPanelMetrics({ viewportHeight, measuredPanelHeight }: PanelMetricsInputs) {
+  const maxPanelHeight = Math.max(
+    PANEL_MIN_HEIGHT,
+    viewportHeight - NAVBAR_TOP_OFFSET - TOP_BAR_HEIGHT - PANEL_VIEWPORT_BOTTOM_GUTTER,
+  );
+  const measuredNaturalPanelHeight = Math.max(
+    PANEL_MIN_HEIGHT,
+    measuredPanelHeight + PANEL_BODY_VERTICAL_PADDING,
+  );
+
+  return {
+    targetPanelHeight: Math.min(measuredNaturalPanelHeight, maxPanelHeight),
+    targetPanelNeedsScroll: measuredNaturalPanelHeight > maxPanelHeight,
+  };
+}
+
+function getNextCommittedPanelMetrics({
+  previous,
+  panelMeasurementKey,
+  targetPanelHeight,
+  targetPanelNeedsScroll,
+}: NextCommittedPanelMetricsInputs): CommittedPanelMetrics {
+  if (
+    previous.key === panelMeasurementKey &&
+    previous.panelHeight === targetPanelHeight &&
+    previous.panelNeedsScroll === targetPanelNeedsScroll
+  ) {
+    return previous;
+  }
+
+  return {
+    key: panelMeasurementKey,
+    panelHeight: targetPanelHeight,
+    panelNeedsScroll: targetPanelNeedsScroll,
+  };
+}
+
 function getNextTheme(theme: ThemeMode): ThemeMode {
   return theme === "light" ? "dark" : "light";
 }
@@ -48,8 +88,6 @@ export function useNavbarController({
   const realSuite = useMemo(() => getActiveSuite(pathname), [pathname]);
 
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
-  const [isPinned, setIsPinned] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [canStartEnterMotion, setCanStartEnterMotion] = useState(false);
   const [committedPanelMetrics, setCommittedPanelMetrics] = useState<CommittedPanelMetrics>({
     key: null,
@@ -62,48 +100,23 @@ export function useNavbarController({
 
   const onFullyClosed = useCallback(() => {
     setOpenSuiteId(realSuite.id);
-    setIsDropdownOpen(false);
-    setIsPinned(false);
   }, [realSuite.id]);
 
-  const {
-    phase,
-    open,
-    close,
-    isFrameExpanded,
-    showPanelSurface,
-    showRows,
-    allowHoverClose,
-    isTransitionLocked,
-  } = useNavbarPhase({
+  const { phase, open, close, isFrameExpanded, showPanelSurface, showRows } = useNavbarPhase({
     canStartEnterMotion,
     onFullyClosed,
     reducedMotion: prefersReducedMotion,
   });
 
   const closeNavbar = useCallback(() => {
-    setIsDropdownOpen(false);
-    setIsPinned(false);
     close();
   }, [close]);
-
-  const { schedule: scheduleClose, cancel: cancelClose } = useDelayedClose({
-    delayMs: 150,
-    onClose: closeNavbar,
-    disabled: isMobile || isPinned,
-  });
 
   useEffect(() => {
     if (phase === "closed") {
       setOpenSuiteId(realSuite.id);
     }
   }, [phase, realSuite.id]);
-
-  useEffect(() => {
-    if (phase === "closing") {
-      setIsDropdownOpen(false);
-    }
-  }, [phase]);
 
   useEffect(() => {
     const onResize = () => {
@@ -114,29 +127,23 @@ export function useNavbarController({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const onInteractiveRegionEnter = useCallback(() => {
-    cancelClose();
-    if (!isMobile) {
+  const openNavbar = useCallback(() => {
+    if (phase === "closed") {
+      setOpenSuiteId(realSuite.id);
       open();
     }
-  }, [cancelClose, isMobile, open]);
-
-  const onInteractiveRegionLeave = useCallback(() => {
-    if (!allowHoverClose || isTransitionLocked || isMobile || isPinned || isDropdownOpen) {
-      return;
-    }
-    scheduleClose();
-  }, [allowHoverClose, isTransitionLocked, isMobile, isPinned, isDropdownOpen, scheduleClose]);
+  }, [open, phase, realSuite.id]);
 
   const onMenuClick = useCallback(() => {
-    cancelClose();
-    setIsPinned(true);
-    setOpenSuiteId(realSuite.id);
-    open();
-  }, [cancelClose, open, realSuite.id]);
+    if (isFrameExpanded) {
+      closeNavbar();
+    } else {
+      openNavbar();
+    }
+  }, [closeNavbar, isFrameExpanded, openNavbar]);
 
-  const onSuiteChange = useCallback((suiteId: string) => {
-    setOpenSuiteId(suiteId as SiteSuiteId);
+  const onSuiteChange = useCallback((suiteId: SiteSuiteId) => {
+    setOpenSuiteId(suiteId);
   }, []);
 
   const onThemeClick = useCallback(() => {
@@ -144,10 +151,8 @@ export function useNavbarController({
   }, [setTheme, theme]);
 
   const onRowClick = useCallback(() => {
-    if (isMobile || isPinned) {
-      closeNavbar();
-    }
-  }, [closeNavbar, isMobile, isPinned]);
+    closeNavbar();
+  }, [closeNavbar]);
 
   useEffect(() => {
     if (phase === "closed") {
@@ -164,17 +169,39 @@ export function useNavbarController({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [closeNavbar, phase]);
 
-  const displayedSuite = phase === "closed" ? realSuite : getSuiteById(openSuiteId);
-  const displayedItems = useMemo(() => getItemsForSuite(displayedSuite.id), [displayedSuite.id]);
-  const activeItem = useMemo(() => {
-    return getMatchingItem(pathname, displayedSuite.id);
-  }, [displayedSuite.id, pathname]);
+  const displayModel = useMemo(
+    () =>
+      buildNavbarDisplayModel({
+        pathname,
+        openSuiteId,
+        phase,
+        theme,
+        isFrameExpanded,
+      }),
+    [isFrameExpanded, openSuiteId, pathname, phase, theme],
+  );
+
+  const {
+    displayedItems,
+    activeItem,
+    activeItemGlobal,
+    accentColor,
+    mutedColor,
+    realAccent,
+    borderColor,
+    suiteRailItems,
+    allSuiteGroups,
+    breadcrumb,
+  } = displayModel;
+
+  // For mobile: measurement uses all items; for desktop: current suite items
+  const totalItemCount = SITE_NAV_ITEMS.length;
 
   const { hasMeasuredCurrentPanel, measuredPanelHeight, panelMeasurementKey, panelMeasureRef } =
     useNavbarPanelHeight({
       enabled: phase !== "closed",
-      suiteId: displayedSuite.id,
-      itemCount: displayedItems.length,
+      suiteId: isMobile ? "all" : displayModel.displayedSuite.id,
+      itemCount: isMobile ? totalItemCount : displayedItems.length,
       isMobile,
     });
 
@@ -191,21 +218,10 @@ export function useNavbarController({
     );
   }, [committedPanelMetrics.key, hasMeasuredCurrentPanel, panelMeasurementKey, phase]);
 
-  const accentColor = theme === "dark" ? displayedSuite.accent.dark : displayedSuite.accent.light;
-  const mutedColor =
-    theme === "dark" ? displayedSuite.accent.mutedDark : displayedSuite.accent.mutedLight;
-  const realAccent = theme === "dark" ? realSuite.accent.dark : realSuite.accent.light;
-
-  const maxPanelHeight = Math.max(
-    PANEL_MIN_HEIGHT,
-    viewportHeight - NAVBAR_TOP_OFFSET - TOP_BAR_HEIGHT - PANEL_VIEWPORT_BOTTOM_GUTTER,
-  );
-  const measuredNaturalPanelHeight = Math.max(
-    PANEL_MIN_HEIGHT,
-    measuredPanelHeight + PANEL_BODY_VERTICAL_PADDING,
-  );
-  const targetPanelHeight = Math.min(measuredNaturalPanelHeight, maxPanelHeight);
-  const targetPanelNeedsScroll = measuredNaturalPanelHeight > maxPanelHeight;
+  const { targetPanelHeight, targetPanelNeedsScroll } = getTargetPanelMetrics({
+    viewportHeight,
+    measuredPanelHeight,
+  });
 
   useEffect(() => {
     if (phase === "closed") {
@@ -222,19 +238,12 @@ export function useNavbarController({
     }
 
     setCommittedPanelMetrics((previousMetrics) => {
-      if (
-        previousMetrics.key === panelMeasurementKey &&
-        previousMetrics.panelHeight === targetPanelHeight &&
-        previousMetrics.panelNeedsScroll === targetPanelNeedsScroll
-      ) {
-        return previousMetrics;
-      }
-
-      return {
-        key: panelMeasurementKey,
-        panelHeight: targetPanelHeight,
-        panelNeedsScroll: targetPanelNeedsScroll,
-      };
+      return getNextCommittedPanelMetrics({
+        previous: previousMetrics,
+        panelMeasurementKey,
+        targetPanelHeight,
+        targetPanelNeedsScroll,
+      });
     });
   }, [
     hasMeasuredCurrentPanel,
@@ -253,43 +262,24 @@ export function useNavbarController({
       ? NAVBAR_MOTION.frameExpandMs / 1000
       : NAVBAR_MOTION.frameCollapseMs / 1000;
 
-  const borderColor = isFrameExpanded
-    ? `color-mix(in srgb, ${accentColor} 36%, var(--border))`
-    : `color-mix(in srgb, ${realAccent} 36%, var(--border))`;
-
-  const suiteOptions = useMemo(
-    () =>
-      SITE_SUITES.map((suite) => ({
-        id: suite.id,
-        label: suite.title,
-        icon: suite.icon,
-        tone: {
-          color: theme === "dark" ? suite.accent.dark : suite.accent.light,
-          muted: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
-        },
-      })) satisfies NavDropdownOption[],
-    [theme],
-  );
-
   return {
     activeItem,
+    activeItemGlobal,
     accentColor,
+    allSuiteGroups,
     borderColor,
-    breadcrumb: getBreadcrumbLabel(pathname),
+    breadcrumb,
     closeNavbar,
     displayedItems,
     frameDuration,
     frameHeight,
-    isDropdownOpen,
     isFrameExpanded,
     mutedColor,
-    onDropdownOpenChange: setIsDropdownOpen,
-    onInteractiveRegionEnter,
-    onInteractiveRegionLeave,
     onMenuClick,
     onRowClick,
     onSuiteChange,
     onThemeClick,
+    openNavbar,
     openSuiteId,
     panelHeight,
     panelMeasureRef,
@@ -299,6 +289,6 @@ export function useNavbarController({
     realSuite,
     showPanelSurface,
     showRows,
-    suiteOptions,
+    suiteRailItems,
   };
 }

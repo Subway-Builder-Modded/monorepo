@@ -38,14 +38,14 @@ export function SiteFooter() {
     <AppFooter
       brand={{
         href: "/",
-        logoSrc: "/logo.png",
+        logoSrc: "/logo.svg",
         title: "Subway Builder Modded",
         description: "The complete hub for everything modded in Subway Builder.",
       }}
       columns={columns}
       externalLinks={externalLinks}
-      copyright={`© ${year} Subway Builder Modded.`}
-      secondaryText="Built with the community."
+      copyright={`© ${year} Subway Builder Modded. Not affiliated with Subway Builder or Redistricter, LLC.`}
+      secondaryText="All content is community-created and shared under appropriate licenses."
     />
   );
 }

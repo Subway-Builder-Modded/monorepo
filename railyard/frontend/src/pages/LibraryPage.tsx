@@ -483,7 +483,7 @@ export function LibraryPage() {
         <PageHeading
           icon={Inbox}
           title="Library"
-          description="Manage your installed maps and mods."
+          description="View and manage your installed community-made content."
         />
 
         {missingInstalledItems.length > 0 && (
@@ -529,7 +529,7 @@ export function LibraryPage() {
           <EmptyState
             icon={Inbox}
             title="No content installed"
-            description="Your library is empty. Browse the registry to discover and install community content."
+            description="Your library is empty. Browse the registry to discover and install community-made content."
           >
             <Button
               className={`gap-1.5 ${INSTALL_ACCENT.solidButton}`}

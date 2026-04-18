@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { APP_SHELL_OUTER_CONTAINER_CLASS } from '../lib/layout-tokens';
 import { FooterBrandBlock } from './footer-brand-block';
 import { FooterColumns, type FooterColumn } from './footer-columns';
 
@@ -32,7 +33,7 @@ export function AppFooter({
 }: AppFooterProps) {
   return (
     <footer className={cn('mt-16 border-t border-border bg-background', className)}>
-      <div className="mx-auto w-full max-w-[1200px] px-5 pb-8 pt-9 sm:px-7 lg:px-10">
+      <div className={cn(APP_SHELL_OUTER_CONTAINER_CLASS, 'pb-8 pt-9')}>
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,2.65fr)]">
           <FooterBrandBlock brand={brand} externalLinks={externalLinks} />
           <FooterColumns columns={columns} />
