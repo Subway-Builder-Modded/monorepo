@@ -1,4 +1,4 @@
-import { type CSSProperties, useCallback } from "react";
+import { type CSSProperties, type MouseEvent, useCallback } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { SITE_COMMUNITY_LINKS } from "@/app/config/site-navigation";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
@@ -16,7 +16,7 @@ type FloatingNavbarProps = {
   setTheme: (theme: ThemeMode) => void;
 };
 
-const UNIFIED_WIDTH_CLASS = "w-[min(72rem,calc(100vw-1.5rem))]";
+const UNIFIED_WIDTH_CLASS = "w-[min(90rem,calc(100vw-1.5rem))]";
 const DISCORD_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "discord");
 const GITHUB_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "github");
 const NOOP = () => undefined;
@@ -60,15 +60,21 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     theme,
   });
 
-  const onNavbarFocus = useCallback(() => {
-    if (phase === "closed") {
+  const onCollapsedSurfaceClick = useCallback(
+    (event: MouseEvent) => {
+      if (phase !== "closed") return;
+      const target = event.target as HTMLElement;
+      if (target.closest("a, button")) return;
       openNavbar();
-    }
-  }, [openNavbar, phase]);
+    },
+    [openNavbar, phase],
+  );
+
+  const isClosed = phase === "closed";
 
   return (
     <>
-      {phase !== "closed" ? (
+      {!isClosed ? (
         <motion.button
           type="button"
           aria-label="Close navigation"
@@ -80,14 +86,15 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
         />
       ) : null}
 
-      <nav
-        aria-label="Site navigation"
-        className="fixed left-1/2 top-4 z-50 -translate-x-1/2"
-        onFocusCapture={onNavbarFocus}
-      >
+      <nav aria-label="Site navigation" className="fixed left-1/2 top-4 z-50 -translate-x-1/2">
         <div className={cn("relative mx-auto", UNIFIED_WIDTH_CLASS)}>
           <motion.div
-            className="relative overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]"
+            onClick={onCollapsedSurfaceClick}
+            className={cn(
+              "relative overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]",
+              isClosed &&
+                "cursor-pointer transition-shadow duration-200 hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.45)]",
+            )}
             animate={{ height: frameHeight }}
             transition={{ duration: frameDuration, ease: [0.22, 0.9, 0.35, 1] }}
             style={

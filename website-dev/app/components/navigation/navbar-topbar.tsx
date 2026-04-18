@@ -24,7 +24,7 @@ type SharedTopbarLayoutProps = {
   breadcrumbNode: ReactNode;
 };
 
-const LEFT_ZONE_WIDTH = 200;
+const LEFT_ZONE_WIDTH = 240;
 const RIGHT_ZONE_WIDTH = 200;
 const CENTER_SAFE_GAP = 24;
 const CENTER_MAX_WIDTH = `calc(100% - ${LEFT_ZONE_WIDTH + RIGHT_ZONE_WIDTH + CENTER_SAFE_GAP}px)`;
@@ -79,13 +79,12 @@ export function NavbarTopbar({
     <Link
       to="/"
       aria-label="Go to home"
-      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg text-sm font-semibold leading-tight outline-none transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
-      style={{ color: realAccent }}
+      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg text-sm font-semibold leading-tight text-white outline-none transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <span className="shrink-0">{realSuite.icon}</span>
+      <img src="/logo.svg" alt="" aria-hidden="true" className="size-4 shrink-0 object-contain" />
       {!isMobile ? (
         <span className="inline-block max-w-full pb-[2px] text-ellipsis whitespace-nowrap leading-tight [overflow-x:hidden] [overflow-y:visible]">
-          {realSuite.title}
+          Subway Builder Modded
         </span>
       ) : null}
     </Link>
@@ -93,10 +92,18 @@ export function NavbarTopbar({
 
   const breadcrumbNode = (
     <p
-      className="pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-semibold leading-snug text-foreground [overflow-x:hidden] [overflow-y:visible] sm:text-base"
+      className="flex items-center justify-center gap-1.5 pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-semibold leading-snug [overflow-x:hidden] [overflow-y:visible] sm:text-base"
       style={{ transform: "translateY(-2px)" }}
     >
-      {breadcrumb}
+      <span
+        className="inline-flex shrink-0 items-center [&_svg]:size-3.5"
+        style={{ color: realAccent }}
+        aria-hidden="true"
+      >
+        {realSuite.icon}
+      </span>
+      <span className="text-muted-foreground">·</span>
+      <span className="text-foreground">{breadcrumb}</span>
     </p>
   );
 

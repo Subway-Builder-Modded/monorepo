@@ -14,9 +14,20 @@ import {
   BookText,
   Megaphone,
   TrendingUp,
-  Code,
 } from "lucide-react";
 import { FaDiscord as Discord } from "react-icons/fa6";
+function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boolean }) {
+  return (
+    <img
+      src="/assets/markdown.svg"
+      alt=""
+      aria-hidden="true"
+      className={className ?? "size-5"}
+      style={{ objectFit: "contain" }}
+    />
+  );
+}
+
 function GithubIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -92,9 +103,9 @@ const GENERAL_ACCENT: SiteSuiteAccent = {
 export const SITE_SUITES: SiteSuite[] = [
   {
     id: "general",
-    title: "Subway Builder Modded",
+    title: "General",
     href: "/",
-    icon: <img src="/logo.png" alt="" aria-hidden="true" className="size-4 object-contain" />,
+    icon: <Compass className={SUITE_ICON_CLASS} aria-hidden="true" />,
     colorSchemeId: "default",
     accent: GENERAL_ACCENT,
     breadcrumbFallback: "Home",
@@ -306,7 +317,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     title: "Playground",
     description: "Experiment with Markdown content in a live preview environment.",
     href: "/registry/markdown-playground",
-    icon: Code,
+    icon: MarkdownIcon,
     breadcrumb: "Playground",
     activeMatchRules: [{ kind: "exact", path: "/registry/markdown-playground" }],
   },

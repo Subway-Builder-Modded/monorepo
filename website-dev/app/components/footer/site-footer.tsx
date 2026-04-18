@@ -38,7 +38,7 @@ export function SiteFooter() {
     <AppFooter
       brand={{
         href: "/",
-        logoSrc: "/logo.png",
+        logoSrc: "/logo.svg",
         title: "Subway Builder Modded",
         description: "The complete hub for everything modded in Subway Builder.",
       }}
