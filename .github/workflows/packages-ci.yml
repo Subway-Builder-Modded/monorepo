@@ -8,6 +8,7 @@ on:
     paths:
       - "packages/**"
       - "website/**"
+      - "website-dev/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
       - "package.json"
@@ -15,9 +16,11 @@ on:
   push:
     branches:
       - main
+      - website-dev
     paths:
       - "packages/**"
       - "website/**"
+      - "website-dev/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
       - "package.json"
