@@ -44,8 +44,8 @@ export function SiteFooter() {
       }}
       columns={columns}
       externalLinks={externalLinks}
-      copyright={`© ${year} Subway Builder Modded.`}
-      secondaryText="Built with the community."
+      copyright={`© ${year} Subway Builder Modded. Not affiliated with Subway Builder or Redistricter, LLC.`}
+      secondaryText="All content is community-created and shared under appropriate licenses."
     />
   );
 }

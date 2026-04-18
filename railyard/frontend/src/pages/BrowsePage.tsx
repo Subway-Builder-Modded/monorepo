@@ -347,7 +347,7 @@ function BrowsePageContent({
           <PageHeading
             icon={Compass}
             title="Browse"
-            description="Discover and install maps and mods for Subway Builder."
+            description="Browse our registry of community-made content for Subway Builder."
           />
         ),
         error: error ? <ErrorBanner message={error} /> : undefined,

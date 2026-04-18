@@ -15,8 +15,7 @@ type NavbarActionsProps = {
   isExpanded: boolean;
   theme: ThemeMode;
   onThemeClick: () => void;
-  onOpenMenu: () => void;
-  onCloseMenu: () => void;
+  onMenuClick: () => void;
 };
 
 const collapsedActionOffset = { transform: "translateY(-0.5px)" };
@@ -27,8 +26,7 @@ export function NavbarActions({
   isExpanded,
   theme,
   onThemeClick,
-  onOpenMenu,
-  onCloseMenu,
+  onMenuClick,
 }: NavbarActionsProps) {
   return (
     <NavbarActionGroup style={isExpanded ? undefined : collapsedActionOffset}>
@@ -65,7 +63,7 @@ export function NavbarActions({
       <NavbarActionButton
         type="button"
         aria-label={isExpanded ? "Close navigation" : "Open navigation"}
-        onClick={isExpanded ? onCloseMenu : onOpenMenu}
+        onClick={onMenuClick}
       >
         {isExpanded ? (
           <X className="size-4" aria-hidden="true" />

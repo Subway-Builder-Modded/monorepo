@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { NavDropdownOption } from "@subway-builder-modded/shared-ui";
 import {
+  SITE_NAV_ITEMS,
   SITE_SUITES,
   getActiveSuite,
   getBreadcrumbLabel,
@@ -9,7 +9,8 @@ import {
   getSuiteById,
   type SiteSuiteId,
 } from "@/app/config/site-navigation";
-import { useDelayedClose } from "@/app/hooks/use-delayed-close";
+import type { SuiteRailItem } from "@/app/components/navigation/suite-rail";
+import type { SuiteGroup } from "@/app/components/navigation/mobile-navbar-panel";
 import { useNavbarPanelHeight } from "@/app/hooks/use-navbar-panel-height";
 import { NAVBAR_MOTION, useNavbarPhase } from "@/app/hooks/use-navbar-phase";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
@@ -48,8 +49,6 @@ export function useNavbarController({
   const realSuite = useMemo(() => getActiveSuite(pathname), [pathname]);
 
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
-  const [isPinned, setIsPinned] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [canStartEnterMotion, setCanStartEnterMotion] = useState(false);
   const [committedPanelMetrics, setCommittedPanelMetrics] = useState<CommittedPanelMetrics>({
     key: null,
@@ -62,48 +61,23 @@ export function useNavbarController({
 
   const onFullyClosed = useCallback(() => {
     setOpenSuiteId(realSuite.id);
-    setIsDropdownOpen(false);
-    setIsPinned(false);
   }, [realSuite.id]);
 
-  const {
-    phase,
-    open,
-    close,
-    isFrameExpanded,
-    showPanelSurface,
-    showRows,
-    allowHoverClose,
-    isTransitionLocked,
-  } = useNavbarPhase({
+  const { phase, open, close, isFrameExpanded, showPanelSurface, showRows } = useNavbarPhase({
     canStartEnterMotion,
     onFullyClosed,
     reducedMotion: prefersReducedMotion,
   });
 
   const closeNavbar = useCallback(() => {
-    setIsDropdownOpen(false);
-    setIsPinned(false);
     close();
   }, [close]);
-
-  const { schedule: scheduleClose, cancel: cancelClose } = useDelayedClose({
-    delayMs: 150,
-    onClose: closeNavbar,
-    disabled: isMobile || isPinned,
-  });
 
   useEffect(() => {
     if (phase === "closed") {
       setOpenSuiteId(realSuite.id);
     }
   }, [phase, realSuite.id]);
-
-  useEffect(() => {
-    if (phase === "closing") {
-      setIsDropdownOpen(false);
-    }
-  }, [phase]);
 
   useEffect(() => {
     const onResize = () => {
@@ -114,29 +88,23 @@ export function useNavbarController({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const onInteractiveRegionEnter = useCallback(() => {
-    cancelClose();
-    if (!isMobile) {
+  const openNavbar = useCallback(() => {
+    if (phase === "closed") {
+      setOpenSuiteId(realSuite.id);
       open();
     }
-  }, [cancelClose, isMobile, open]);
-
-  const onInteractiveRegionLeave = useCallback(() => {
-    if (!allowHoverClose || isTransitionLocked || isMobile || isPinned || isDropdownOpen) {
-      return;
-    }
-    scheduleClose();
-  }, [allowHoverClose, isTransitionLocked, isMobile, isPinned, isDropdownOpen, scheduleClose]);
+  }, [open, phase, realSuite.id]);
 
   const onMenuClick = useCallback(() => {
-    cancelClose();
-    setIsPinned(true);
-    setOpenSuiteId(realSuite.id);
-    open();
-  }, [cancelClose, open, realSuite.id]);
+    if (isFrameExpanded) {
+      closeNavbar();
+    } else {
+      openNavbar();
+    }
+  }, [closeNavbar, isFrameExpanded, openNavbar]);
 
-  const onSuiteChange = useCallback((suiteId: string) => {
-    setOpenSuiteId(suiteId as SiteSuiteId);
+  const onSuiteChange = useCallback((suiteId: SiteSuiteId) => {
+    setOpenSuiteId(suiteId);
   }, []);
 
   const onThemeClick = useCallback(() => {
@@ -144,10 +112,8 @@ export function useNavbarController({
   }, [setTheme, theme]);
 
   const onRowClick = useCallback(() => {
-    if (isMobile || isPinned) {
-      closeNavbar();
-    }
-  }, [closeNavbar, isMobile, isPinned]);
+    closeNavbar();
+  }, [closeNavbar]);
 
   useEffect(() => {
     if (phase === "closed") {
@@ -169,12 +135,18 @@ export function useNavbarController({
   const activeItem = useMemo(() => {
     return getMatchingItem(pathname, displayedSuite.id);
   }, [displayedSuite.id, pathname]);
+  const activeItemGlobal = useMemo(() => {
+    return getMatchingItem(pathname, realSuite.id);
+  }, [pathname, realSuite.id]);
+
+  // For mobile: measurement uses all items; for desktop: current suite items
+  const totalItemCount = SITE_NAV_ITEMS.length;
 
   const { hasMeasuredCurrentPanel, measuredPanelHeight, panelMeasurementKey, panelMeasureRef } =
     useNavbarPanelHeight({
       enabled: phase !== "closed",
-      suiteId: displayedSuite.id,
-      itemCount: displayedItems.length,
+      suiteId: isMobile ? "all" : displayedSuite.id,
+      itemCount: isMobile ? totalItemCount : displayedItems.length,
       isMobile,
     });
 
@@ -257,39 +229,47 @@ export function useNavbarController({
     ? `color-mix(in srgb, ${accentColor} 36%, var(--border))`
     : `color-mix(in srgb, ${realAccent} 36%, var(--border))`;
 
-  const suiteOptions = useMemo(
+  const suiteRailItems = useMemo(
     () =>
       SITE_SUITES.map((suite) => ({
         id: suite.id,
-        label: suite.title,
+        title: suite.title,
         icon: suite.icon,
-        tone: {
-          color: theme === "dark" ? suite.accent.dark : suite.accent.light,
-          muted: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
-        },
-      })) satisfies NavDropdownOption[],
+        accentColor: theme === "dark" ? suite.accent.dark : suite.accent.light,
+        mutedColor: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
+      })) satisfies SuiteRailItem[],
+    [theme],
+  );
+
+  const allSuiteGroups = useMemo(
+    () =>
+      SITE_SUITES.map((suite) => ({
+        suite,
+        items: getItemsForSuite(suite.id),
+        accentColor: theme === "dark" ? suite.accent.dark : suite.accent.light,
+        mutedColor: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
+      })) satisfies SuiteGroup[],
     [theme],
   );
 
   return {
     activeItem,
+    activeItemGlobal,
     accentColor,
+    allSuiteGroups,
     borderColor,
     breadcrumb: getBreadcrumbLabel(pathname),
     closeNavbar,
     displayedItems,
     frameDuration,
     frameHeight,
-    isDropdownOpen,
     isFrameExpanded,
     mutedColor,
-    onDropdownOpenChange: setIsDropdownOpen,
-    onInteractiveRegionEnter,
-    onInteractiveRegionLeave,
     onMenuClick,
     onRowClick,
     onSuiteChange,
     onThemeClick,
+    openNavbar,
     openSuiteId,
     panelHeight,
     panelMeasureRef,
@@ -299,6 +279,6 @@ export function useNavbarController({
     realSuite,
     showPanelSurface,
     showRows,
-    suiteOptions,
+    suiteRailItems,
   };
 }
