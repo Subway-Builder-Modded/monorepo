@@ -1,16 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  SITE_NAV_ITEMS,
-  SITE_SUITES,
-  getActiveSuite,
-  getBreadcrumbLabel,
-  getItemsForSuite,
-  getMatchingItem,
-  getSuiteById,
-  type SiteSuiteId,
-} from "@/app/config/site-navigation";
-import type { SuiteRailItem } from "@/app/components/navigation/suite-rail";
-import type { SuiteGroup } from "@/app/components/navigation/mobile-navbar-panel";
+import { SITE_NAV_ITEMS, getActiveSuite, type SiteSuiteId } from "@/app/config/site-navigation";
+import { buildNavbarDisplayModel } from "@/app/components/navigation/navbar-model";
 import { useNavbarPanelHeight } from "@/app/hooks/use-navbar-panel-height";
 import { NAVBAR_MOTION, useNavbarPhase } from "@/app/hooks/use-navbar-phase";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
@@ -34,6 +24,27 @@ type UseNavbarControllerOptions = {
   setTheme: (theme: ThemeMode) => void;
   theme: ThemeMode;
 };
+
+type PanelMetricsInputs = {
+  viewportHeight: number;
+  measuredPanelHeight: number;
+};
+
+function getTargetPanelMetrics({ viewportHeight, measuredPanelHeight }: PanelMetricsInputs) {
+  const maxPanelHeight = Math.max(
+    PANEL_MIN_HEIGHT,
+    viewportHeight - NAVBAR_TOP_OFFSET - TOP_BAR_HEIGHT - PANEL_VIEWPORT_BOTTOM_GUTTER,
+  );
+  const measuredNaturalPanelHeight = Math.max(
+    PANEL_MIN_HEIGHT,
+    measuredPanelHeight + PANEL_BODY_VERTICAL_PADDING,
+  );
+
+  return {
+    targetPanelHeight: Math.min(measuredNaturalPanelHeight, maxPanelHeight),
+    targetPanelNeedsScroll: measuredNaturalPanelHeight > maxPanelHeight,
+  };
+}
 
 function getNextTheme(theme: ThemeMode): ThemeMode {
   return theme === "light" ? "dark" : "light";
@@ -130,14 +141,30 @@ export function useNavbarController({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [closeNavbar, phase]);
 
-  const displayedSuite = phase === "closed" ? realSuite : getSuiteById(openSuiteId);
-  const displayedItems = useMemo(() => getItemsForSuite(displayedSuite.id), [displayedSuite.id]);
-  const activeItem = useMemo(() => {
-    return getMatchingItem(pathname, displayedSuite.id);
-  }, [displayedSuite.id, pathname]);
-  const activeItemGlobal = useMemo(() => {
-    return getMatchingItem(pathname, realSuite.id);
-  }, [pathname, realSuite.id]);
+  const displayModel = useMemo(
+    () =>
+      buildNavbarDisplayModel({
+        pathname,
+        openSuiteId,
+        phase,
+        theme,
+        isFrameExpanded,
+      }),
+    [isFrameExpanded, openSuiteId, pathname, phase, theme],
+  );
+
+  const {
+    displayedItems,
+    activeItem,
+    activeItemGlobal,
+    accentColor,
+    mutedColor,
+    realAccent,
+    borderColor,
+    suiteRailItems,
+    allSuiteGroups,
+    breadcrumb,
+  } = displayModel;
 
   // For mobile: measurement uses all items; for desktop: current suite items
   const totalItemCount = SITE_NAV_ITEMS.length;
@@ -145,7 +172,7 @@ export function useNavbarController({
   const { hasMeasuredCurrentPanel, measuredPanelHeight, panelMeasurementKey, panelMeasureRef } =
     useNavbarPanelHeight({
       enabled: phase !== "closed",
-      suiteId: isMobile ? "all" : displayedSuite.id,
+      suiteId: isMobile ? "all" : displayModel.displayedSuite.id,
       itemCount: isMobile ? totalItemCount : displayedItems.length,
       isMobile,
     });
@@ -163,21 +190,10 @@ export function useNavbarController({
     );
   }, [committedPanelMetrics.key, hasMeasuredCurrentPanel, panelMeasurementKey, phase]);
 
-  const accentColor = theme === "dark" ? displayedSuite.accent.dark : displayedSuite.accent.light;
-  const mutedColor =
-    theme === "dark" ? displayedSuite.accent.mutedDark : displayedSuite.accent.mutedLight;
-  const realAccent = theme === "dark" ? realSuite.accent.dark : realSuite.accent.light;
-
-  const maxPanelHeight = Math.max(
-    PANEL_MIN_HEIGHT,
-    viewportHeight - NAVBAR_TOP_OFFSET - TOP_BAR_HEIGHT - PANEL_VIEWPORT_BOTTOM_GUTTER,
-  );
-  const measuredNaturalPanelHeight = Math.max(
-    PANEL_MIN_HEIGHT,
-    measuredPanelHeight + PANEL_BODY_VERTICAL_PADDING,
-  );
-  const targetPanelHeight = Math.min(measuredNaturalPanelHeight, maxPanelHeight);
-  const targetPanelNeedsScroll = measuredNaturalPanelHeight > maxPanelHeight;
+  const { targetPanelHeight, targetPanelNeedsScroll } = getTargetPanelMetrics({
+    viewportHeight,
+    measuredPanelHeight,
+  });
 
   useEffect(() => {
     if (phase === "closed") {
@@ -225,40 +241,13 @@ export function useNavbarController({
       ? NAVBAR_MOTION.frameExpandMs / 1000
       : NAVBAR_MOTION.frameCollapseMs / 1000;
 
-  const borderColor = isFrameExpanded
-    ? `color-mix(in srgb, ${accentColor} 36%, var(--border))`
-    : `color-mix(in srgb, ${realAccent} 36%, var(--border))`;
-
-  const suiteRailItems = useMemo(
-    () =>
-      SITE_SUITES.map((suite) => ({
-        id: suite.id,
-        title: suite.title,
-        icon: suite.icon,
-        accentColor: theme === "dark" ? suite.accent.dark : suite.accent.light,
-        mutedColor: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
-      })) satisfies SuiteRailItem[],
-    [theme],
-  );
-
-  const allSuiteGroups = useMemo(
-    () =>
-      SITE_SUITES.map((suite) => ({
-        suite,
-        items: getItemsForSuite(suite.id),
-        accentColor: theme === "dark" ? suite.accent.dark : suite.accent.light,
-        mutedColor: theme === "dark" ? suite.accent.mutedDark : suite.accent.mutedLight,
-      })) satisfies SuiteGroup[],
-    [theme],
-  );
-
   return {
     activeItem,
     activeItemGlobal,
     accentColor,
     allSuiteGroups,
     borderColor,
-    breadcrumb: getBreadcrumbLabel(pathname),
+    breadcrumb,
     closeNavbar,
     displayedItems,
     frameDuration,

@@ -75,6 +75,8 @@ export function NavbarTopbar({
   onMenuClick,
   onThemeClick,
 }: NavbarTopbarProps) {
+  const SuiteIcon = realSuite.icon;
+
   const brandNode = (
     <Link
       to="/"
@@ -96,7 +98,7 @@ export function NavbarTopbar({
       style={{ color: realAccent, transform: "translateY(-2px)" }}
     >
       <span className="inline-flex shrink-0 items-center [&_svg]:size-3.5" aria-hidden="true">
-        {realSuite.icon}
+        <SuiteIcon className="size-3.5" aria-hidden={true} />
       </span>
       <span className="max-w-[10.5rem] truncate font-semibold">{realSuite.title}</span>
       <span className="shrink-0 font-normal opacity-80" aria-hidden="true">

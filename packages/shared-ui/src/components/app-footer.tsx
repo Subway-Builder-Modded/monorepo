@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { APP_SHELL_OUTER_CONTAINER_CLASS } from '../lib/layout-tokens';
 import { FooterBrandBlock } from './footer-brand-block';
 import { FooterColumns, type FooterColumn } from './footer-columns';
-
-export const APP_SHELL_OUTER_CONTAINER_CLASS =
-  'mx-auto w-full max-w-[1360px] px-5 sm:px-7 lg:px-10 xl:px-12';
 
 type AppFooterProps = {
   brand: {

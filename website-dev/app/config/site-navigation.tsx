@@ -73,18 +73,20 @@ export type SiteSuite = {
   id: SiteSuiteId;
   title: string;
   href: string;
-  icon: ReactNode;
+  icon: SiteIcon;
   colorSchemeId: SiteColorSchemeId;
   accent: SiteSuiteAccent;
   breadcrumbFallback: string;
 };
+
+export type SiteIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 
 export type SiteNavItem = {
   id: string;
   suiteId: SiteSuiteId;
   title: string;
   href: string;
-  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  icon: SiteIcon;
   breadcrumb: string;
   description?: string;
   activeMatchRules?: SiteRouteMatchRule[];
@@ -97,7 +99,6 @@ export type SiteCommunityLink = {
   icon: ReactNode;
 };
 
-const SUITE_ICON_CLASS = "size-4";
 const EXTERNAL_ICON_CLASS = "size-4";
 
 const GENERAL_ACCENT: SiteSuiteAccent = {
@@ -114,7 +115,7 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "general",
     title: "General",
     href: "/",
-    icon: <Compass className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: Compass,
     colorSchemeId: "default",
     accent: GENERAL_ACCENT,
     breadcrumbFallback: "Home",
@@ -123,7 +124,7 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "railyard",
     title: "Railyard",
     href: "/railyard",
-    icon: <TrainTrack className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: TrainTrack,
     colorSchemeId: "railyard",
     accent: {
       light: "#0f8f68",
@@ -139,7 +140,7 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "registry",
     title: "Registry",
     href: "/registry",
-    icon: <Database className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: Database,
     colorSchemeId: "registry",
     accent: {
       light: "#9d4edd",
@@ -155,7 +156,7 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "template-mod",
     title: "Template Mod",
     href: "/template-mod",
-    icon: <LayoutGrid className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: LayoutGrid,
     colorSchemeId: "template-mod",
     accent: {
       light: "#60a5fa",
@@ -171,7 +172,7 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "website",
     title: "Website",
     href: "/website",
-    icon: <Globe className={SUITE_ICON_CLASS} aria-hidden="true" />,
+    icon: Globe,
     colorSchemeId: "website",
     accent: {
       light: "#f2992e",
@@ -334,8 +335,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "template-mod-home",
     suiteId: "template-mod",
     title: "Home",
-    description:
-      "Discover the all-inclusive TypeScript template for creating Subway Builder mods.",
+    description: "Discover the all-inclusive TypeScript template for creating Subway Builder mods.",
     href: "/template-mod",
     icon: House,
     breadcrumb: "Home",

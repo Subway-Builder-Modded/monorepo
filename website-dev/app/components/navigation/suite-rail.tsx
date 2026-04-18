@@ -1,17 +1,9 @@
-import type { ReactNode } from "react";
 import type { SiteSuiteId } from "@/app/config/site-navigation";
+import type { NavbarSuiteRailItem } from "@/app/components/navigation/navbar-model";
 import { cn } from "@/app/lib/utils";
 
-export type SuiteRailItem = {
-  id: SiteSuiteId;
-  title: string;
-  icon: ReactNode;
-  accentColor: string;
-  mutedColor: string;
-};
-
 type SuiteRailProps = {
-  items: SuiteRailItem[];
+  items: NavbarSuiteRailItem[];
   selectedId: SiteSuiteId;
   onSelect: (id: SiteSuiteId) => void;
 };

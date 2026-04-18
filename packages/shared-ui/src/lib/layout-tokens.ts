@@ -11,6 +11,12 @@ export const APP_SHELL_WIDTH_CLASS =
 export const APP_SHELL_PADDING_CLASS = 'px-[clamp(1rem,2.8vw,2.5rem)]';
 
 /**
+ * Shared outer shell container used by shell-level navbar and footer.
+ */
+export const APP_SHELL_OUTER_CONTAINER_CLASS =
+  'mx-auto w-full max-w-[1360px] px-5 sm:px-7 lg:px-10 xl:px-12';
+
+/**
  * Fluid vertical spacing for main page content areas.
  */
 export const APP_CONTENT_SPACING_CLASS =

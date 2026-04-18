@@ -2,6 +2,7 @@
 export { cn, type ClassValue } from './lib/cn';
 export {
   APP_SHELL_PADDING_CLASS,
+  APP_SHELL_OUTER_CONTAINER_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from './lib/layout-tokens';
 
@@ -162,7 +163,6 @@ export {
 } from './components/navbar-top-bar';
 export {
   AppFooter,
-  APP_SHELL_OUTER_CONTAINER_CLASS,
 } from './components/app-footer';
 export {
   FooterColumns,
