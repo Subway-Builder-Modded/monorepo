@@ -31,9 +31,12 @@ export function SuiteRail({ items, selectedId, onSelect }: SuiteRailProps) {
             className={cn(
               "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               "outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              isSelected ? "font-semibold" : "hover:bg-foreground/[0.04] dark:hover:bg-muted/30",
+              isSelected
+                ? "font-semibold"
+                : "hover:bg-[color:var(--suite-muted)] dark:hover:bg-[color:var(--suite-muted)]",
             )}
             style={{
+              ["--suite-muted" as string]: item.mutedColor,
               color: item.accentColor,
               backgroundColor: isSelected ? item.mutedColor : undefined,
             }}

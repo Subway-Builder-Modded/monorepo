@@ -16,7 +16,7 @@ type FloatingNavbarProps = {
   setTheme: (theme: ThemeMode) => void;
 };
 
-const UNIFIED_WIDTH_CLASS = "w-[min(90rem,calc(100vw-1.5rem))]";
+const UNIFIED_WIDTH_CLASS = "w-[min(104rem,calc(100vw-1.25rem))]";
 const DISCORD_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "discord");
 const GITHUB_COMMUNITY_LINK = SITE_COMMUNITY_LINKS.find((link) => link.id === "github");
 const NOOP = () => undefined;
@@ -93,8 +93,10 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             className={cn(
               "relative overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]",
               isClosed &&
-                "cursor-pointer transition-shadow duration-200 hover:shadow-[0_12px_28px_-14px_rgba(0,0,0,0.45)]",
+                "cursor-pointer transition-[transform,box-shadow] duration-200 ease-out hover:shadow-[0_14px_30px_-14px_rgba(0,0,0,0.5)] hover:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--suite-accent)_38%,transparent)]",
             )}
+            whileHover={isClosed && !prefersReducedMotion ? { scale: 1.007, y: -0.5 } : undefined}
+            whileTap={isClosed && !prefersReducedMotion ? { scale: 0.998, y: 0 } : undefined}
             animate={{ height: frameHeight }}
             transition={{ duration: frameDuration, ease: [0.22, 0.9, 0.35, 1] }}
             style={

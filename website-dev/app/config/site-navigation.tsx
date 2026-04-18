@@ -18,12 +18,21 @@ import {
 import { FaDiscord as Discord } from "react-icons/fa6";
 function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boolean }) {
   return (
-    <img
-      src="/assets/markdown.svg"
-      alt=""
+    <span
       aria-hidden="true"
       className={className ?? "size-5"}
-      style={{ objectFit: "contain" }}
+      style={{
+        backgroundColor: "currentColor",
+        display: "inline-block",
+        maskImage: "url('/assets/markdown.svg')",
+        maskPosition: "center",
+        maskRepeat: "no-repeat",
+        maskSize: "contain",
+        WebkitMaskImage: "url('/assets/markdown.svg')",
+        WebkitMaskPosition: "center",
+        WebkitMaskRepeat: "no-repeat",
+        WebkitMaskSize: "contain",
+      }}
     />
   );
 }
@@ -96,7 +105,7 @@ const GENERAL_ACCENT: SiteSuiteAccent = {
   dark: "#ffffff",
   textInvertedLight: "#f2f2f2",
   textInvertedDark: "#232323",
-  mutedLight: "rgba(10,10,10,0.07)",
+  mutedLight: "rgba(10,10,10,0.14)",
   mutedDark: "rgba(255,255,255,0.09)",
 };
 
@@ -121,7 +130,7 @@ export const SITE_SUITES: SiteSuite[] = [
       dark: "#19d89c",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(15,143,104,0.11)",
+      mutedLight: "rgba(15,143,104,0.18)",
       mutedDark: "rgba(25,216,156,0.13)",
     },
     breadcrumbFallback: "Railyard",
@@ -137,7 +146,7 @@ export const SITE_SUITES: SiteSuite[] = [
       dark: "#c77dff",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(157,78,221,0.11)",
+      mutedLight: "rgba(157,78,221,0.18)",
       mutedDark: "rgba(199,125,255,0.13)",
     },
     breadcrumbFallback: "Registry",
@@ -153,7 +162,7 @@ export const SITE_SUITES: SiteSuite[] = [
       dark: "#93c5fd",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(96,165,250,0.11)",
+      mutedLight: "rgba(96,165,250,0.18)",
       mutedDark: "rgba(147,197,253,0.13)",
     },
     breadcrumbFallback: "Template Mod",
@@ -169,7 +178,7 @@ export const SITE_SUITES: SiteSuite[] = [
       dark: "#ffbe73",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(242,153,46,0.11)",
+      mutedLight: "rgba(242,153,46,0.18)",
       mutedDark: "rgba(255,190,115,0.13)",
     },
     breadcrumbFallback: "Website",

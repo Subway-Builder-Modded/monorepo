@@ -79,7 +79,7 @@ export function NavbarTopbar({
     <Link
       to="/"
       aria-label="Go to home"
-      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg text-sm font-semibold leading-tight text-white outline-none transition-colors hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
+      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg text-sm font-semibold leading-tight text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring dark:text-muted-foreground dark:hover:text-foreground"
     >
       <img src="/logo.svg" alt="" aria-hidden="true" className="size-4 shrink-0 object-contain" />
       {!isMobile ? (
@@ -93,17 +93,17 @@ export function NavbarTopbar({
   const breadcrumbNode = (
     <p
       className="flex items-center justify-center gap-1.5 pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-semibold leading-snug [overflow-x:hidden] [overflow-y:visible] sm:text-base"
-      style={{ transform: "translateY(-2px)" }}
+      style={{ color: realAccent, transform: "translateY(-2px)" }}
     >
-      <span
-        className="inline-flex shrink-0 items-center [&_svg]:size-3.5"
-        style={{ color: realAccent }}
-        aria-hidden="true"
-      >
+      <span className="inline-flex shrink-0 items-center [&_svg]:size-3.5" aria-hidden="true">
         {realSuite.icon}
       </span>
-      <span className="text-muted-foreground">·</span>
-      <span className="text-foreground">{breadcrumb}</span>
+      <span className="max-w-[10.5rem] truncate">{realSuite.title}</span>
+      <span className="inline-flex shrink-0 items-center gap-1 opacity-75" aria-hidden="true">
+        <span className="h-px w-2.5 rounded-full bg-current" />
+        <span className="size-1.5 rounded-full border border-current" />
+      </span>
+      <span className="max-w-[11.5rem] truncate opacity-90 sm:max-w-[14rem]">{breadcrumb}</span>
     </p>
   );
 
