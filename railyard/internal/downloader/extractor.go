@@ -166,6 +166,7 @@ func extractMod(d *Downloader, filePath string, modId string, version string) ty
 		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, types.InstallErrorExtractFailed, "Failed to extract mod zip", err, "file_path", filePath, "mod_id", modId)
 	}
 
+	d.Registry.AddInstalledMod(modId, version, false, &manifestData)
 	return d.installSuccess(types.AssetTypeMod, modId, version, types.ConfigData{}, "Mod extracted successfully", "file_path", filePath, "assetId", modId)
 }
 

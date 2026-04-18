@@ -1,4 +1,5 @@
-import { Separator } from '@subway-builder-modded/shared-ui';
+import type { AssetListingCounts } from "@subway-builder-modded/config";
+import { Separator } from "@subway-builder-modded/shared-ui";
 import {
   BadgeCheck,
   Check,
@@ -8,18 +9,17 @@ import {
   MapPin,
   Package,
   Tag,
-  X,
   type LucideIcon,
-} from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+} from "lucide-react";
+import { type ReactNode, useState } from "react";
 
-import { cn } from '@subway-builder-modded/shared-ui';
-import type { GalleryAssetType } from '../types';
+import { cn } from "@subway-builder-modded/shared-ui";
+import type { GalleryAssetType } from "../types";
 
 export const FILTER_SECTION_TITLE_CLASS =
-  'text-xs font-semibold uppercase tracking-widest text-muted-foreground';
+  "text-xs font-semibold uppercase tracking-widest text-muted-foreground";
 export const FILTER_COUNT_BADGE_CLASS =
-  'inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-border/65 bg-muted/45 px-1.5 text-[0.65rem] font-semibold tabular-nums text-muted-foreground transition-colors';
+  "inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-border/65 bg-muted/45 px-1.5 text-[0.65rem] font-semibold tabular-nums text-muted-foreground transition-colors";
 
 export interface SidebarFilterState {
   type: GalleryAssetType;
@@ -36,26 +36,22 @@ export interface SidebarFilterState {
 
 export interface SidebarFiltersProps {
   filters: SidebarFilterState;
-  onFiltersChange: (updater: (prev: SidebarFilterState) => SidebarFilterState) => void;
+  onFiltersChange: (
+    updater: (prev: SidebarFilterState) => SidebarFilterState,
+  ) => void;
   onTypeChange: (type: GalleryAssetType) => void;
   availableTags: string[];
   availableSpecialDemand: string[];
-  modTagCounts: Record<string, number>;
-  mapLocationCounts: Record<string, number>;
-  mapSourceQualityCounts: Record<string, number>;
-  mapLevelOfDetailCounts: Record<string, number>;
-  mapSpecialDemandCounts: Record<string, number>;
+  dimCounts: {
+    current: AssetListingCounts;
+    available?: AssetListingCounts;
+  };
   modCount: number;
   mapCount: number;
   locationValues: readonly string[];
   sourceQualityValues: readonly string[];
   levelOfDetailValues: readonly string[];
   formatSourceQuality: (value: string) => string;
-  filterVisibleListingValues: (
-    values: readonly string[],
-    counts: Record<string, number>,
-    selected: string[],
-  ) => string[];
   emptyLabels?: {
     generic?: string;
     tags?: string;
@@ -63,11 +59,16 @@ export interface SidebarFiltersProps {
   };
   collapsibleSections?: boolean;
   sourceQualityTitle?: string;
+  minimumVisibleOptions?: number;
 }
 
-const typeOptions: Array<{ value: GalleryAssetType; label: string; icon: LucideIcon }> = [
-  { value: 'map', label: 'Maps', icon: MapPin },
-  { value: 'mod', label: 'Mods', icon: Package },
+const typeOptions: Array<{
+  value: GalleryAssetType;
+  label: string;
+  icon: LucideIcon;
+}> = [
+  { value: "map", label: "Maps", icon: MapPin },
+  { value: "mod", label: "Mods", icon: Package },
 ];
 
 export function SidebarFilters({
@@ -76,35 +77,32 @@ export function SidebarFilters({
   onTypeChange,
   availableTags,
   availableSpecialDemand,
-  modTagCounts,
-  mapLocationCounts,
-  mapSourceQualityCounts,
-  mapLevelOfDetailCounts,
-  mapSpecialDemandCounts,
+  dimCounts,
   modCount,
   mapCount,
   locationValues,
   sourceQualityValues,
   levelOfDetailValues,
   formatSourceQuality,
-  filterVisibleListingValues,
   emptyLabels,
   collapsibleSections = true,
-  sourceQualityTitle = 'Source Quality',
+  sourceQualityTitle = "Source Quality",
+  minimumVisibleOptions = 1,
 }: SidebarFiltersProps) {
   const counts: Record<GalleryAssetType, number> = {
     mod: modCount,
     map: mapCount,
   };
+  const availableCounts = dimCounts.available ?? dimCounts.current;
 
   const checkboxRenderer = (checked: boolean) => (
     <span
       className={cn(
-        'peer size-4 shrink-0 rounded-sm border border-input shadow-xs',
-        'flex items-center justify-center transition-colors',
+        "peer size-4 shrink-0 rounded-sm border border-input shadow-xs",
+        "flex items-center justify-center transition-colors",
         checked
-          ? 'bg-primary border-primary text-primary-foreground'
-          : 'bg-background text-transparent dark:bg-input/30',
+          ? "bg-primary border-primary text-primary-foreground"
+          : "bg-background text-transparent dark:bg-input/30",
       )}
       aria-hidden="true"
     >
@@ -115,7 +113,10 @@ export function SidebarFilters({
   return (
     <div className="space-y-5">
       <div>
-        <p className={cn(FILTER_SECTION_TITLE_CLASS, 'mb-1 px-1 py-1.5')} aria-hidden>
+        <p
+          className={cn(FILTER_SECTION_TITLE_CLASS, "mb-1 px-1 py-1.5")}
+          aria-hidden
+        >
           Type
         </p>
         <nav className="space-y-0.5" aria-label="Content type filter">
@@ -126,17 +127,19 @@ export function SidebarFilters({
                 key={value}
                 type="button"
                 onClick={() => onTypeChange(value)}
-                aria-current={isCurrent ? 'true' : undefined}
+                aria-current={isCurrent ? "true" : undefined}
                 className="group relative w-full text-left"
               >
                 <span
                   className={cn(
-                    'mr-0.5 flex items-center gap-2 rounded-lg px-2',
-                    'py-[clamp(0.38rem,0.8vw,0.52rem)]',
-                    'text-[clamp(0.78rem,0.9vw,0.86rem)] font-semibold',
-                    'transition-all duration-150',
-                    'group-hover:bg-accent/45 group-hover:text-primary',
-                    isCurrent ? 'bg-accent/45 text-primary' : 'text-muted-foreground',
+                    "mr-0.5 flex items-center gap-2 rounded-lg px-2",
+                    "py-[clamp(0.38rem,0.8vw,0.52rem)]",
+                    "text-[clamp(0.78rem,0.9vw,0.86rem)] font-semibold",
+                    "transition-all duration-150",
+                    "group-hover:bg-accent/45 group-hover:text-primary",
+                    isCurrent
+                      ? "bg-accent/45 text-primary"
+                      : "text-muted-foreground",
                   )}
                 >
                   <Icon className="h-3.5 w-3.5 shrink-0 transition-colors" />
@@ -145,8 +148,8 @@ export function SidebarFilters({
                     className={cn(
                       FILTER_COUNT_BADGE_CLASS,
                       isCurrent
-                        ? 'border-primary/35 bg-accent/45 text-primary'
-                        : 'group-hover:border-primary/35 group-hover:bg-accent/45 group-hover:text-primary',
+                        ? "border-primary/35 bg-accent/45 text-primary"
+                        : "group-hover:border-primary/35 group-hover:bg-accent/45 group-hover:text-primary",
                     )}
                   >
                     {counts[value]}
@@ -164,14 +167,15 @@ export function SidebarFilters({
         </nav>
       </div>
 
-      {filters.type !== 'map' && (
+      {filters.type !== "map" && (
         <>
           <Separator />
           <ChecklistFilterSection
             title="Tag"
             icon={Tag}
             values={availableTags}
-            counts={modTagCounts}
+            counts={dimCounts.current.modTagCounts}
+            availableCounts={availableCounts.modTagCounts}
             selected={filters.mod.tags}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -179,22 +183,25 @@ export function SidebarFilters({
                 mod: { ...prev.mod, tags: values },
               }))
             }
-            emptyLabel={emptyLabels?.tags ?? emptyLabels?.generic ?? 'No values available'}
-            filterVisibleListingValues={filterVisibleListingValues}
+            emptyLabel={
+              emptyLabels?.tags ?? emptyLabels?.generic ?? "No values available"
+            }
             collapsible={collapsibleSections}
             renderCheckbox={checkboxRenderer}
+            minimumVisibleOptions={minimumVisibleOptions}
           />
         </>
       )}
 
-      {filters.type !== 'mod' && (
+      {filters.type !== "mod" && (
         <>
           <Separator />
           <ChecklistFilterSection
             title="Location"
             icon={MapPin}
             values={locationValues}
-            counts={mapLocationCounts}
+            counts={dimCounts.current.mapLocationCounts}
+            availableCounts={availableCounts.mapLocationCounts}
             selected={filters.map.locations}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -202,15 +209,16 @@ export function SidebarFilters({
                 map: { ...prev.map, locations: values },
               }))
             }
-            filterVisibleListingValues={filterVisibleListingValues}
             collapsible={collapsibleSections}
             renderCheckbox={checkboxRenderer}
+            minimumVisibleOptions={minimumVisibleOptions}
           />
           <ChecklistFilterSection
             title={sourceQualityTitle}
             icon={BadgeCheck}
             values={sourceQualityValues}
-            counts={mapSourceQualityCounts}
+            counts={dimCounts.current.mapSourceQualityCounts}
+            availableCounts={availableCounts.mapSourceQualityCounts}
             formatValue={formatSourceQuality}
             selected={filters.map.sourceQuality}
             onChange={(values) =>
@@ -219,15 +227,16 @@ export function SidebarFilters({
                 map: { ...prev.map, sourceQuality: values },
               }))
             }
-            filterVisibleListingValues={filterVisibleListingValues}
             collapsible={collapsibleSections}
             renderCheckbox={checkboxRenderer}
+            minimumVisibleOptions={minimumVisibleOptions}
           />
           <ChecklistFilterSection
             title="Level of Detail"
             icon={Layers3}
             values={levelOfDetailValues}
-            counts={mapLevelOfDetailCounts}
+            counts={dimCounts.current.mapLevelOfDetailCounts}
+            availableCounts={availableCounts.mapLevelOfDetailCounts}
             selected={filters.map.levelOfDetail}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -235,15 +244,16 @@ export function SidebarFilters({
                 map: { ...prev.map, levelOfDetail: values },
               }))
             }
-            filterVisibleListingValues={filterVisibleListingValues}
             collapsible={collapsibleSections}
             renderCheckbox={checkboxRenderer}
+            minimumVisibleOptions={minimumVisibleOptions}
           />
           <ChecklistFilterSection
             title="Special Demand"
             icon={GraduationCap}
             values={availableSpecialDemand}
-            counts={mapSpecialDemandCounts}
+            counts={dimCounts.current.mapSpecialDemandCounts}
+            availableCounts={availableCounts.mapSpecialDemandCounts}
             selected={filters.map.specialDemand}
             onChange={(values) =>
               onFiltersChange((prev) => ({
@@ -252,11 +262,13 @@ export function SidebarFilters({
               }))
             }
             emptyLabel={
-              emptyLabels?.specialDemand ?? emptyLabels?.generic ?? 'No values available'
+              emptyLabels?.specialDemand ??
+              emptyLabels?.generic ??
+              "No values available"
             }
-            filterVisibleListingValues={filterVisibleListingValues}
             collapsible={collapsibleSections}
             renderCheckbox={checkboxRenderer}
+            minimumVisibleOptions={minimumVisibleOptions}
           />
         </>
       )}
@@ -287,15 +299,15 @@ function CollapsibleFilterHeader({
       <span
         className={cn(
           FILTER_SECTION_TITLE_CLASS,
-          'flex-1 text-left transition-colors group-hover:text-primary',
+          "flex-1 text-left transition-colors group-hover:text-primary",
         )}
       >
         {title}
       </span>
       <ChevronDown
         className={cn(
-          'h-3.5 w-3.5 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-primary',
-          !open && '-rotate-90',
+          "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-all duration-200 group-hover:text-primary",
+          !open && "-rotate-90",
         )}
       />
     </button>
@@ -306,6 +318,7 @@ interface FilterSectionProps {
   title: string;
   values: readonly string[];
   counts: Record<string, number>;
+  availableCounts: Record<string, number>;
   selected: string[];
   icon: LucideIcon;
   onChange: (values: string[]) => void;
@@ -313,11 +326,17 @@ interface FilterSectionProps {
   formatValue?: (value: string) => string;
   collapsible: boolean;
   renderCheckbox: (checked: boolean) => ReactNode;
-  filterVisibleListingValues: (
-    values: readonly string[],
-    counts: Record<string, number>,
-    selected: string[],
-  ) => string[];
+  minimumVisibleOptions: number;
+}
+
+function getVisibleFilterValues(
+  values: readonly string[],
+  availableCounts: Record<string, number>,
+  selected: readonly string[],
+): string[] {
+  return [...new Set([...values, ...selected])].filter(
+    (value) => selected.includes(value) || (availableCounts[value] ?? 0) > 0,
+  );
 }
 
 function ChecklistFilterSection({
@@ -325,16 +344,25 @@ function ChecklistFilterSection({
   icon: Icon,
   values,
   counts,
+  availableCounts,
   selected,
   onChange,
-  emptyLabel = 'No values available',
+  emptyLabel = "No values available",
   formatValue = (value) => value,
   collapsible,
   renderCheckbox,
-  filterVisibleListingValues,
+  minimumVisibleOptions,
 }: FilterSectionProps) {
   const [open, setOpen] = useState(true);
-  const visibleValues = filterVisibleListingValues(values, counts, selected);
+  const visibleValues = getVisibleFilterValues(
+    values,
+    availableCounts,
+    selected,
+  );
+
+  if (visibleValues.length < minimumVisibleOptions && selected.length === 0) {
+    return null;
+  }
 
   const toggle = (value: string) => {
     onChange(
@@ -357,7 +385,7 @@ function ChecklistFilterSection({
         <p
           className={cn(
             FILTER_SECTION_TITLE_CLASS,
-            'mb-1 flex items-center gap-1.5 px-1 py-1.5',
+            "mb-1 flex items-center gap-1.5 px-1 py-1.5",
           )}
         >
           <Icon className="h-3.5 w-3.5" />
@@ -367,59 +395,58 @@ function ChecklistFilterSection({
 
       <div
         className={cn(
-          collapsible ? 'grid transition-all duration-200 ease-out' : 'block',
-          collapsible && open ? 'grid-rows-[1fr] opacity-100' : '',
-          collapsible && !open ? 'grid-rows-[0fr] opacity-0' : '',
+          collapsible ? "grid transition-all duration-200 ease-out" : "block",
+          collapsible && open ? "grid-rows-[1fr] opacity-100" : "",
+          collapsible && !open ? "grid-rows-[0fr] opacity-0" : "",
         )}
       >
-        <div className={cn(collapsible ? 'min-h-0 overflow-hidden' : '')}>
+        <div className={cn(collapsible ? "min-h-0 overflow-hidden" : "")}>
           {visibleValues.length === 0 ? (
-            <p className="px-1 py-1 text-xs text-muted-foreground">{emptyLabel}</p>
+            <p className="px-1 py-1 text-xs text-muted-foreground">
+              {emptyLabel}
+            </p>
           ) : (
             <div className="space-y-1 pt-1">
               {visibleValues.map((value) => {
                 const checked = selected.includes(value);
+                const disabled = !checked && (counts[value] ?? 0) === 0;
                 return (
                   <div
                     key={value}
                     role="button"
-                    tabIndex={0}
-                    onClick={() => toggle(value)}
+                    tabIndex={disabled ? -1 : 0}
+                    aria-disabled={disabled ? "true" : undefined}
+                    onClick={() => {
+                      if (disabled) return;
+                      toggle(value);
+                    }}
                     onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
+                      if (disabled) return;
+                      if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
                         toggle(value);
                       }
                     }}
                     className={cn(
-                      'flex w-full items-center justify-between rounded-md px-2 py-1 text-sm font-normal',
-                      'transition-colors cursor-pointer',
+                      "flex w-full items-center justify-between rounded-md px-2 py-1 text-sm font-normal",
+                      "transition-colors",
                       checked
-                        ? 'bg-muted/60 text-foreground'
-                        : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                        ? "bg-muted/60 text-foreground"
+                        : disabled
+                          ? "cursor-not-allowed opacity-50 text-muted-foreground"
+                          : "cursor-pointer text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                     )}
                   >
                     <span className="flex items-center gap-2">
                       {renderCheckbox(checked)}
                       <span>{formatValue(value)}</span>
                     </span>
-                    <span className={FILTER_COUNT_BADGE_CLASS}>{counts[value] ?? 0}</span>
+                    <span className={FILTER_COUNT_BADGE_CLASS}>
+                      {counts[value] ?? 0}
+                    </span>
                   </div>
                 );
               })}
-            </div>
-          )}
-
-          {selected.length > 0 && (
-            <div className="mt-2">
-              <button
-                type="button"
-                onClick={() => onChange([])}
-                className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border/60 px-2 py-0.5 text-[0.68rem] font-medium leading-none text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary"
-              >
-                <X className="h-2.5 w-2.5 shrink-0" />
-                <span>Clear</span>
-              </button>
             </div>
           )}
         </div>

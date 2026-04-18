@@ -46,19 +46,13 @@ func (r *Registry) bootstrapInstalledMods(subscriptions types.Subscriptions, mod
 
 	installedMods := make([]types.InstalledModInfo, 0, len(subscriptions.Mods))
 	for modID, version := range subscriptions.Mods {
-		registryManifest, err := r.GetMod(modID)
-		if err != nil {
-			r.logger.Warn("Skipping subscribed mod during installed-state bootstrap: missing registry manifest", "mod_id", modID, "error", err)
-			continue
-		}
-
 		modPath := paths.JoinLocalPath(modInstallRoot, modID)
 		if !r.hasAssetMarker(types.AssetTypeMod, modID, modInstallRoot, modID) {
 			continue
 		}
 		// Validate the manifest exists + matches the subscribed version to avoid bootstrapping out-of-date or corrupted mods
-		manifestMatch, manifestErr := modManifestVersionMatches(modPath, version)
-		if manifestErr != nil || !manifestMatch {
+		installedManifest, manifestErr := readInstalledModManifest(modPath, version)
+		if manifestErr != nil {
 			r.logger.Warn(
 				"Skipping subscribed mod during installed-state bootstrap: invalid/mismatched manifest",
 				"mod_id", modID,
@@ -69,7 +63,7 @@ func (r *Registry) bootstrapInstalledMods(subscriptions types.Subscriptions, mod
 			continue
 		}
 
-		installedMods = append(installedMods, installedModInfoFromManifest(modID, version, registryManifest))
+		installedMods = append(installedMods, installedModInfoFromManifest(modID, version, &installedManifest))
 	}
 
 	return installedMods
@@ -107,7 +101,7 @@ func (r *Registry) bootstrapMapSubscription(
 	installedMapByID map[string]types.InstalledMapInfo,
 ) (types.InstalledMapInfo, bool) {
 	var manifest *types.MapManifest
-	var localConfig *types.ConfigData
+	var diskConfig *types.ConfigData
 	cityCode := mapID
 
 	if isLocal {
@@ -116,7 +110,7 @@ func (r *Registry) bootstrapMapSubscription(
 		if !ok {
 			return types.InstalledMapInfo{}, false
 		}
-		localConfig = &cfg
+		diskConfig = &cfg
 	} else {
 		if resolvedManifest, err := r.GetMap(mapID); err == nil {
 			manifest = resolvedManifest
@@ -129,12 +123,14 @@ func (r *Registry) bootstrapMapSubscription(
 			}
 			cityCode = installed.MapConfig.Code
 		}
-		if _, ok := r.validateMapData(mapID, version, mapInstallRoot, cityCode, false); !ok {
+		cfg, ok := r.validateMapData(mapID, version, mapInstallRoot, cityCode, false)
+		if !ok {
 			return types.InstalledMapInfo{}, false
 		}
+		diskConfig = &cfg
 	}
 
-	config, ok := r.resolveConfig(installedMapByID[mapID], localConfig, manifest, version, cityCode)
+	config, ok := r.resolveConfig(installedMapByID[mapID], diskConfig, manifest, version, cityCode)
 	if !ok {
 		r.logger.Warn("Skipping subscribed map during installed-state bootstrap: invalid config", "map_id", mapID, "map_code", cityCode, "is_local", isLocal)
 		return types.InstalledMapInfo{}, false
@@ -144,29 +140,59 @@ func (r *Registry) bootstrapMapSubscription(
 
 func (r *Registry) resolveConfig(
 	installed types.InstalledMapInfo,
-	localConfig *types.ConfigData,
+	diskConfig *types.ConfigData,
 	manifest *types.MapManifest,
 	version string,
 	cityCode string,
 ) (types.ConfigData, bool) {
 	var config types.ConfigData
 	switch {
+	case diskConfig != nil:
+		config = *diskConfig
 	case installed.MapConfig.Code != "":
 		config = installed.MapConfig
-	case localConfig != nil:
-		config = *localConfig
 	case manifest != nil:
 		config = mapConfigFromManifest(manifest, version)
 	default:
 		return types.ConfigData{}, false
 	}
+
+	config.Name = types.Coalesce(config.Name, installed.MapConfig.Name)
+	config.Description = types.Coalesce(config.Description, installed.MapConfig.Description)
+	config.Population = types.Coalesce(config.Population, installed.MapConfig.Population)
+	config.Creator = types.Coalesce(config.Creator, installed.MapConfig.Creator)
+	config.Country = types.CoalescePtr(config.Country, installed.MapConfig.Country)
+	config.InitialViewState = types.CoalesceBy(
+		isZeroInitialViewState,
+		config.InitialViewState,
+		installed.MapConfig.InitialViewState,
+	)
+
 	config.Code = cityCode
 	config.Version = version
-	// Recover country from manifest if the config was tampered
-	if config.Country == nil && manifest != nil {
-		config.Country = &manifest.Country
+
+	if manifest != nil {
+		// Recover any missing metadata from the registry manifest, but prefer on-disk config.json.
+		config.Name = types.Coalesce(config.Name, manifest.Name)
+		config.Description = types.Coalesce(config.Description, manifest.Description)
+		config.Population = types.Coalesce(config.Population, manifest.Population)
+		config.Creator = types.Coalesce(config.Creator, manifest.Author.AuthorAlias)
+		config.Country = types.CoalescePtr(config.Country, types.Ptr(manifest.Country))
+		config.InitialViewState = types.CoalesceBy(
+			isZeroInitialViewState,
+			config.InitialViewState,
+			manifest.InitialViewState,
+		)
 	}
 	return config, true
+}
+
+func isZeroInitialViewState(state types.InitialViewState) bool {
+	return state.Latitude == 0 &&
+		state.Longitude == 0 &&
+		state.Zoom == 0 &&
+		state.Bearing == 0 &&
+		state.Pitch == nil
 }
 
 func (r *Registry) validateMapData(
@@ -195,19 +221,19 @@ func (r *Registry) validateMapData(
 	return configFromDisk, true
 }
 
-// modManifestVersionMatches checks if the manifest.json in the given mod path exists and has a version field matching the expected version (from profile state)
-func modManifestVersionMatches(modPath string, expectedVersion string) (bool, error) {
+// readInstalledModManifest reads the installed manifest.json and validates that its version matches the subscribed version.
+func readInstalledModManifest(modPath string, expectedVersion string) (types.MetroMakerModManifest, error) {
 	manifestPath := paths.JoinLocalPath(modPath, constants.MANIFEST_JSON)
 	manifest, err := files.ReadJSON[types.MetroMakerModManifest](manifestPath, "installed mod manifest", files.JSONReadOptions{})
 	if err != nil {
-		return false, err
+		return types.MetroMakerModManifest{}, err
 	}
 	semverExpected, semverActual := types.NormalizeSemver(expectedVersion), types.NormalizeSemver(manifest.Version)
 
 	if semverExpected != semverActual {
-		return false, fmt.Errorf("manifest version mismatch: expected %s, got %s", semverExpected, semverActual)
+		return types.MetroMakerModManifest{}, fmt.Errorf("manifest version mismatch: expected %s, got %s", semverExpected, semverActual)
 	}
-	return true, nil
+	return manifest, nil
 }
 
 // hasAssetMarker checks for the presence of the .railyard_asset marker file in the expected location for the given asset, logging a warning if it is missing to avoid bootstrapping assets that may not be managed by Railyard or are corrupted/missing

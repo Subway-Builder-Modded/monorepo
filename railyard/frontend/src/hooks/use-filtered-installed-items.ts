@@ -5,9 +5,13 @@ import {
 } from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 
-import { buildSearchText } from '@/hooks/use-filtered-items';
+import { type TaggedItemFilterState } from '@/hooks/use-filtered-items';
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
 import { compareItems } from '@/lib/tagged-items';
+import {
+  buildDimensionCounts,
+  createTaggedListingAccessors,
+} from '@/lib/tagged-listing-filters';
 import { useLibraryStore } from '@/stores/library-store';
 import { useProfileStore } from '@/stores/profile-store';
 
@@ -46,8 +50,22 @@ export function useFilteredInstalledItems({
   const setType = useLibraryStore((s) => s.setType);
   const page = useLibraryStore((s) => s.page);
   const setPage = useLibraryStore((s) => s.setPage);
+  const accessors = useMemo(
+    () => createTaggedListingAccessors<InstalledTaggedItem>(),
+    [],
+  );
 
   usePaginationSync({ defaultPerPage, filters, setFilters, setPage });
+
+  const dimCounts = useMemo(
+    () =>
+      buildDimensionCounts({
+        items,
+        filters: filters as TaggedItemFilterState,
+        accessors,
+      }),
+    [accessors, filters, items],
+  );
 
   const filtered = useMemo(() => {
     const result = filterAndSortTaggedItems({
@@ -58,23 +76,7 @@ export function useFilteredInstalledItems({
       compareItems: (left, right, sort, nextModTotals, nextMapTotals) =>
         compareItems(left, right, sort, nextModTotals, nextMapTotals),
       fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
-      accessors: {
-        buildSearchText,
-        getModTags: (item) =>
-          item.type === 'mod' ? (item.item.tags ?? []) : undefined,
-        getMapLocation: (item) =>
-          item.type === 'map' ? (item.item.location ?? '') : undefined,
-        getMapQuality: (item) =>
-          item.type === 'map' ? (item.item.source_quality ?? '') : undefined,
-        getSelectedMapQuality: (mapFilters) => mapFilters.sourceQuality,
-        getMapLevelOfDetail: (item) =>
-          item.type === 'map' ? (item.item.level_of_detail ?? '') : undefined,
-        getSelectedMapLevelOfDetail: (mapFilters) => mapFilters.levelOfDetail,
-        getMapSpecialDemand: (item) =>
-          item.type === 'map' ? (item.item.special_demand ?? []) : undefined,
-        getSelectedMapSpecialDemand: (mapFilters) => mapFilters.specialDemand,
-        getSelectedMapLocations: (mapFilters) => mapFilters.locations,
-      },
+      accessors,
     });
     if (filters.sort.field === 'size') {
       const dir = filters.sort.direction;
@@ -85,7 +87,7 @@ export function useFilteredInstalledItems({
       });
     }
     return result;
-  }, [items, filters, mapDownloadTotals, modDownloadTotals]);
+  }, [accessors, items, filters, mapDownloadTotals, modDownloadTotals]);
 
   const totalResults = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / filters.perPage));
@@ -105,5 +107,6 @@ export function useFilteredInstalledItems({
     setFilters,
     setType,
     setPage,
+    dimCounts,
   };
 }

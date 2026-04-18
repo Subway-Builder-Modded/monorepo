@@ -62,7 +62,7 @@ func (r *Registry) getInstalledMapsFromDisk() ([]types.InstalledMapInfo, error) 
 }
 
 // AddInstalledMod adds a mod to the in-memory list of installed mods. Remember to call WriteInstalledToDisk() to persist changes.
-func (r *Registry) AddInstalledMod(modID string, version string, isLocal bool) {
+func (r *Registry) AddInstalledMod(modID string, version string, isLocal bool, manifest *types.MetroMakerModManifest) {
 	// Upsert by ID so install-first updates replace metadata instead of accumulating duplicates.
 	for i := range r.installedMods {
 		if r.installedMods[i].ID != modID {
@@ -70,12 +70,14 @@ func (r *Registry) AddInstalledMod(modID string, version string, isLocal bool) {
 		}
 		r.installedMods[i].Version = version
 		r.installedMods[i].IsLocal = isLocal
+		r.installedMods[i].Manifest = manifest
 		return
 	}
 	r.installedMods = append(r.installedMods, types.InstalledModInfo{
-		ID:      modID,
-		Version: version,
-		IsLocal: isLocal,
+		ID:       modID,
+		Version:  version,
+		IsLocal:  isLocal,
+		Manifest: manifest,
 	})
 }
 

@@ -889,7 +889,6 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, extractResp.ErrorType, "Failed to extract mod zip: "+extractResp.Message, nil, "mod_id", modId, "version", version)
 	}
 	os.Remove(downloadResp.Path)
-	d.Registry.AddInstalledMod(modId, version, false)
 	if err := d.Registry.WriteInstalledToDisk(); err != nil {
 		d.Logger.Warn("Failed to persist installed state after installing mod", "error", err)
 	}

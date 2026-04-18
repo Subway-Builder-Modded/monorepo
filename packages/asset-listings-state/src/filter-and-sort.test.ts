@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vite-plus/test';
 
 import {
+  buildFilteredTaggedListingCounts,
   filterAndSortTaggedItems,
-  matchesMapAttributeFilters,
   matchesSingleValueFilter,
   matchesZeroOrManyValuesFilter,
   seededHash,
   sortItemsBySeed,
+  type AssetDimension,
+  type TaggedListingAccessors,
   type TaggedListingItem,
 } from './filter-and-sort';
 
@@ -69,17 +71,57 @@ const mapFilters: TestMapFilters = {
   specialDemand: [],
 };
 
-const accessors = {
-  buildSearchText: (item: TestTaggedItem) => item.item.name,
-  getModTags: (item: TestTaggedItem) => item.item.tags,
-  getMapLocation: (item: TestTaggedItem) => item.item.location,
-  getMapQuality: (item: TestTaggedItem) => item.item.quality,
-  getSelectedMapQuality: (filters: TestMapFilters) => filters.sourceQuality,
-  getMapLevelOfDetail: (item: TestTaggedItem) => item.item.levelOfDetail,
-  getSelectedMapLevelOfDetail: (filters: TestMapFilters) => filters.levelOfDetail,
-  getMapSpecialDemand: (item: TestTaggedItem) => item.item.specialDemand,
-  getSelectedMapSpecialDemand: (filters: TestMapFilters) => filters.specialDemand,
-  getSelectedMapLocations: (filters: TestMapFilters) => filters.locations,
+const testDimensions: AssetDimension<TestTaggedItem, TestMapFilters>[] = [
+  {
+    countKey: 'modTagCounts',
+    assetType: 'mod',
+    cardinality: 'multi',
+    getValue: (item) => item.item.tags,
+    getSelected: (filters) => filters.mod.tags,
+    filterParent: 'mod',
+    filterKey: 'tags',
+  },
+  {
+    countKey: 'mapLocationCounts',
+    assetType: 'map',
+    cardinality: 'single',
+    getValue: (item) => item.item.location,
+    getSelected: (filters) => filters.map.locations,
+    filterParent: 'map',
+    filterKey: 'locations',
+  },
+  {
+    countKey: 'mapSourceQualityCounts',
+    assetType: 'map',
+    cardinality: 'single',
+    getValue: (item) => item.item.quality,
+    getSelected: (filters) => filters.map.sourceQuality,
+    filterParent: 'map',
+    filterKey: 'sourceQuality',
+  },
+  {
+    countKey: 'mapLevelOfDetailCounts',
+    assetType: 'map',
+    cardinality: 'single',
+    getValue: (item) => item.item.levelOfDetail,
+    getSelected: (filters) => filters.map.levelOfDetail,
+    filterParent: 'map',
+    filterKey: 'levelOfDetail',
+  },
+  {
+    countKey: 'mapSpecialDemandCounts',
+    assetType: 'map',
+    cardinality: 'multi',
+    getValue: (item) => item.item.specialDemand,
+    getSelected: (filters) => filters.map.specialDemand,
+    filterParent: 'map',
+    filterKey: 'specialDemand',
+  },
+];
+
+const accessors: TaggedListingAccessors<TestTaggedItem, TestMapFilters> = {
+  buildSearchText: (item) => item.item.name,
+  dimensions: testDimensions,
 };
 
 const compareItems = (left: TestTaggedItem, right: TestTaggedItem) =>
@@ -91,33 +133,6 @@ describe('filter helpers', () => {
     expect(matchesSingleValueFilter('asia', ['europe'])).toBe(false);
     expect(matchesZeroOrManyValuesFilter(['ui', 'sim'], ['ui'])).toBe(true);
     expect(matchesZeroOrManyValuesFilter(['sim'], ['ui'])).toBe(false);
-  });
-
-  it('evaluates map attribute filters through accessors', () => {
-    expect(
-      matchesMapAttributeFilters(
-        items[2],
-        {
-          locations: ['europe'],
-          sourceQuality: ['verified'],
-          levelOfDetail: ['high'],
-          specialDemand: ['freight'],
-        },
-        accessors,
-      ),
-    ).toBe(true);
-    expect(
-      matchesMapAttributeFilters(
-        items[3],
-        {
-          locations: ['europe'],
-          sourceQuality: [],
-          levelOfDetail: [],
-          specialDemand: [],
-        },
-        accessors,
-      ),
-    ).toBe(false);
   });
 });
 
@@ -141,6 +156,7 @@ describe('filterAndSortTaggedItems', () => {
         type: 'map',
         sort: { field: 'name', direction: 'asc' },
         randomSeed: 1,
+        perPage: 12,
         mod: { tags: [] },
         map: {
           locations: ['europe'],
@@ -167,6 +183,7 @@ describe('filterAndSortTaggedItems', () => {
         type: 'mod',
         sort: { field: 'name', direction: 'asc' },
         randomSeed: 1,
+        perPage: 12,
         mod: { tags: [] },
         map: mapFilters,
       },
@@ -188,6 +205,7 @@ describe('filterAndSortTaggedItems', () => {
         type: 'mod',
         sort: { field: 'random', direction: 'asc' },
         randomSeed: 7,
+        perPage: 12,
         mod: { tags: [] },
         map: mapFilters,
       },
@@ -203,5 +221,60 @@ describe('filterAndSortTaggedItems', () => {
         (item) => item.item.id,
       ),
     );
+  });
+
+  it('builds dimension counts from the current filtered candidate set', () => {
+    const counts = buildFilteredTaggedListingCounts({
+      items: [
+        ...items,
+        {
+          type: 'map',
+          item: {
+            id: 'map-east-verified',
+            name: 'East Verified',
+            location: 'east-asia',
+            quality: 'verified',
+            levelOfDetail: 'high',
+            specialDemand: ['tram'],
+          },
+        },
+        {
+          type: 'map',
+          item: {
+            id: 'map-east-draft',
+            name: 'East Draft',
+            location: 'east-asia',
+            quality: 'draft',
+            levelOfDetail: 'low',
+            specialDemand: ['metro'],
+          },
+        },
+      ],
+      filters: {
+        query: 'east',
+        type: 'map',
+        sort: { field: 'name', direction: 'asc' },
+        randomSeed: 1,
+        perPage: 12,
+        mod: { tags: [] },
+        map: {
+          locations: ['east-asia'],
+          sourceQuality: ['verified'],
+          levelOfDetail: [],
+          specialDemand: [],
+        },
+      },
+      accessors,
+      fuseOptions: { keys: ['searchText'], threshold: 0.4 },
+    });
+
+    expect(counts.mapCount).toBe(1);
+    expect(counts.mapSourceQualityCounts).toEqual({
+      verified: 1,
+      draft: 1,
+    });
+    expect(counts.mapLevelOfDetailCounts).toEqual({ high: 1 });
+    expect(counts.mapSpecialDemandCounts).toEqual({ tram: 1 });
+    expect(counts.mapLocationCounts).toEqual({ 'east-asia': 1 });
   });
 });

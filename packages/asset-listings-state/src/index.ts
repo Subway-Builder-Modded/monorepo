@@ -1,9 +1,12 @@
 export {
+	buildFilteredTaggedListingCounts,
 	buildAssetSearchText,
 	filterAndPaginateTaggedItems,
 	filterAndSortTaggedItems,
 	type AssetSearchable,
+	type AssetDimension,
 	type FilterAndPaginateTaggedItemsParams,
+	type FilteredTaggedListingCounts,
 	type FilteredPageResult,
 	type FilterAndSortTaggedItemsParams,
 	type TaggedListingAccessors,

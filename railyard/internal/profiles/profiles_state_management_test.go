@@ -448,7 +448,7 @@ func TestListProfilesIncludesActiveSubscriptionSizeWhenArchiveMissing(t *testing
 	svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, state)
 	configureConfig(t, cfg)
 
-	reg.AddInstalledMod("mod-a", "1.0.0", false)
+	reg.AddInstalledMod("mod-a", "1.0.0", false, nil)
 	reg.AddInstalledMap("map-a", "1.0.0", false, types.ConfigData{Code: "AAA"})
 
 	modDir := paths.JoinLocalPath(paths.MetroMakerModsPath(cfg.Cfg.MetroMakerDataPath), "mod-a")
