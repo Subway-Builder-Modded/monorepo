@@ -39,6 +39,7 @@ const MobileNavbarPanelBase = memo(function MobileNavbarPanelBase({
     <div className="flex flex-col gap-5">
       {groups.map((group) => {
         if (group.items.length === 0) return null;
+        const GroupIcon = group.icon;
 
         return (
           <section key={group.id}>
@@ -46,7 +47,9 @@ const MobileNavbarPanelBase = memo(function MobileNavbarPanelBase({
               className="mb-1.5 flex items-center gap-2 px-2 text-xs font-bold uppercase tracking-wider"
               style={{ color: group.accentColor }}
             >
-              <span className="shrink-0">{group.icon}</span>
+              <span className="shrink-0">
+                <GroupIcon className="size-4" aria-hidden={true} />
+              </span>
               {group.title}
             </h3>
             <div

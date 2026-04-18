@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import {
   SITE_SUITES,
   getActiveSuite,
@@ -6,13 +5,12 @@ import {
   getItemsForSuite,
   getMatchingItem,
   getSuiteById,
+  type SiteIcon,
   type SiteNavItem,
   type SiteSuiteId,
 } from "@/app/config/site-navigation";
 import type { NavbarPhase } from "@/app/hooks/use-navbar-phase";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
-
-const SUITE_ICON_CLASS = "size-4";
 
 type BuildNavbarDisplayModelOptions = {
   pathname: string;
@@ -25,7 +23,7 @@ type BuildNavbarDisplayModelOptions = {
 export type NavbarSuiteRailItem = {
   id: SiteSuiteId;
   title: string;
-  icon: ReactNode;
+  icon: SiteIcon;
   accentColor: string;
   mutedColor: string;
 };
@@ -33,7 +31,7 @@ export type NavbarSuiteRailItem = {
 export type NavbarMobileSuiteGroup = {
   id: SiteSuiteId;
   title: string;
-  icon: ReactNode;
+  icon: SiteIcon;
   items: SiteNavItem[];
   accentColor: string;
   mutedColor: string;
@@ -82,26 +80,24 @@ export function buildNavbarDisplayModel({
     : `color-mix(in srgb, ${realAccent} 36%, var(--border))`;
 
   const suiteRailItems = SITE_SUITES.map((suite) => {
-    const SuiteIcon = suite.icon;
     const suiteColors = getSuiteAccent(theme, suite.accent);
 
     return {
       id: suite.id,
       title: suite.title,
-      icon: <SuiteIcon className={SUITE_ICON_CLASS} aria-hidden={true} />,
+      icon: suite.icon,
       accentColor: suiteColors.accentColor,
       mutedColor: suiteColors.mutedColor,
     } satisfies NavbarSuiteRailItem;
   });
 
   const allSuiteGroups = SITE_SUITES.map((suite) => {
-    const SuiteIcon = suite.icon;
     const suiteColors = getSuiteAccent(theme, suite.accent);
 
     return {
       id: suite.id,
       title: suite.title,
-      icon: <SuiteIcon className={SUITE_ICON_CLASS} aria-hidden={true} />,
+      icon: suite.icon,
       items: getItemsForSuite(suite.id),
       accentColor: suiteColors.accentColor,
       mutedColor: suiteColors.mutedColor,

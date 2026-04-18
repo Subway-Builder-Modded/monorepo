@@ -30,6 +30,13 @@ type PanelMetricsInputs = {
   measuredPanelHeight: number;
 };
 
+type NextCommittedPanelMetricsInputs = {
+  previous: CommittedPanelMetrics;
+  panelMeasurementKey: string;
+  targetPanelHeight: number;
+  targetPanelNeedsScroll: boolean;
+};
+
 function getTargetPanelMetrics({ viewportHeight, measuredPanelHeight }: PanelMetricsInputs) {
   const maxPanelHeight = Math.max(
     PANEL_MIN_HEIGHT,
@@ -43,6 +50,27 @@ function getTargetPanelMetrics({ viewportHeight, measuredPanelHeight }: PanelMet
   return {
     targetPanelHeight: Math.min(measuredNaturalPanelHeight, maxPanelHeight),
     targetPanelNeedsScroll: measuredNaturalPanelHeight > maxPanelHeight,
+  };
+}
+
+function getNextCommittedPanelMetrics({
+  previous,
+  panelMeasurementKey,
+  targetPanelHeight,
+  targetPanelNeedsScroll,
+}: NextCommittedPanelMetricsInputs): CommittedPanelMetrics {
+  if (
+    previous.key === panelMeasurementKey &&
+    previous.panelHeight === targetPanelHeight &&
+    previous.panelNeedsScroll === targetPanelNeedsScroll
+  ) {
+    return previous;
+  }
+
+  return {
+    key: panelMeasurementKey,
+    panelHeight: targetPanelHeight,
+    panelNeedsScroll: targetPanelNeedsScroll,
   };
 }
 
@@ -210,19 +238,12 @@ export function useNavbarController({
     }
 
     setCommittedPanelMetrics((previousMetrics) => {
-      if (
-        previousMetrics.key === panelMeasurementKey &&
-        previousMetrics.panelHeight === targetPanelHeight &&
-        previousMetrics.panelNeedsScroll === targetPanelNeedsScroll
-      ) {
-        return previousMetrics;
-      }
-
-      return {
-        key: panelMeasurementKey,
-        panelHeight: targetPanelHeight,
-        panelNeedsScroll: targetPanelNeedsScroll,
-      };
+      return getNextCommittedPanelMetrics({
+        previous: previousMetrics,
+        panelMeasurementKey,
+        targetPanelHeight,
+        targetPanelNeedsScroll,
+      });
     });
   }, [
     hasMeasuredCurrentPanel,

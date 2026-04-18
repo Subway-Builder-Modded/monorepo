@@ -13,6 +13,7 @@ export function SuiteRail({ items, selectedId, onSelect }: SuiteRailProps) {
     <nav aria-label="Suite categories" className="flex flex-col gap-1 py-1">
       {items.map((item) => {
         const isSelected = item.id === selectedId;
+        const ItemIcon = item.icon;
 
         return (
           <button
@@ -33,7 +34,9 @@ export function SuiteRail({ items, selectedId, onSelect }: SuiteRailProps) {
               backgroundColor: isSelected ? item.mutedColor : undefined,
             }}
           >
-            <span className="shrink-0">{item.icon}</span>
+            <span className="shrink-0">
+              <ItemIcon className="size-4" aria-hidden={true} />
+            </span>
             <span className="whitespace-nowrap">{item.title}</span>
           </button>
         );
