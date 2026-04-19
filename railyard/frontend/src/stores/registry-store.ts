@@ -5,7 +5,6 @@ import { create } from 'zustand';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetDownloadCountsByAssetType,
-  GetIntegrityReportResponse,
   GetMapsResponse,
   GetModsResponse,
   RefreshResponse,
@@ -14,8 +13,6 @@ import {
 interface RegistryState {
   mods: types.ModManifest[];
   maps: types.MapManifest[];
-  mapIntegrity: types.RegistryIntegrityReport | null;
-  modIntegrity: types.RegistryIntegrityReport | null;
   modDownloadTotals: Record<string, number>;
   mapDownloadTotals: Record<string, number>;
   downloadTotalsLoaded: boolean;
@@ -37,55 +34,10 @@ function emptyRecordByAssetType<T>(factory: () => T): Record<AssetType, T> {
   ) as Record<AssetType, T>;
 }
 
-function filterMapsAndModsByIntegrity(
-  maps: types.MapManifest[],
-  mods: types.ModManifest[],
-  mapIntegrity: types.RegistryIntegrityReport,
-  modIntegrity: types.RegistryIntegrityReport,
-) {
-  const finalMaps = [];
-  const finalMods = [];
-  let invalidCounter = 0;
-  for (const mod of mods) {
-    if (modIntegrity.listings[mod.id].has_complete_version) {
-      finalMods.push(mod);
-    } else {
-      invalidCounter++;
-    }
-  }
-  if (invalidCounter > 0) {
-    console.warn(
-      `Excluding ${invalidCounter} mods from registry due to incomplete versions`,
-    );
-  }
-
-  invalidCounter = 0;
-  for (const map of maps) {
-    if (mapIntegrity.listings[map.id].has_complete_version) {
-      finalMaps.push(map);
-    } else {
-      invalidCounter++;
-    }
-  }
-  if (invalidCounter > 0) {
-    console.warn(
-      `Excluding ${invalidCounter} maps from registry due to incomplete versions`,
-    );
-  }
-  return { finalMaps, finalMods };
-}
-
 async function loadRegistryData() {
-  const [
-    modsResponse,
-    mapsResponse,
-    mapIntegrityResponse,
-    modIntegrityResponse,
-  ] = await Promise.all([
+  const [modsResponse, mapsResponse] = await Promise.all([
     GetModsResponse(),
     GetMapsResponse(),
-    GetIntegrityReportResponse('map'),
-    GetIntegrityReportResponse('mod'),
   ]);
 
   if (modsResponse.status !== 'success') {
@@ -94,37 +46,16 @@ async function loadRegistryData() {
   if (mapsResponse.status !== 'success') {
     throw new Error(mapsResponse.message || 'Failed to load maps');
   }
-  if (mapIntegrityResponse.status !== 'success') {
-    throw new Error(
-      mapIntegrityResponse.message || 'Failed to load map integrity',
-    );
-  }
-  if (modIntegrityResponse.status !== 'success') {
-    throw new Error(
-      modIntegrityResponse.message || 'Failed to load mod integrity',
-    );
-  }
-
-  const { finalMaps, finalMods } = filterMapsAndModsByIntegrity(
-    mapsResponse.maps,
-    modsResponse.mods,
-    mapIntegrityResponse.report,
-    modIntegrityResponse.report,
-  );
 
   return {
-    mods: finalMods || [],
-    maps: finalMaps || [],
-    mapIntegrity: mapIntegrityResponse.report || null,
-    modIntegrity: modIntegrityResponse.report || null,
+    mods: modsResponse.mods || [],
+    maps: mapsResponse.maps || [],
   };
 }
 
 export const useRegistryStore = create<RegistryState>((set, get) => ({
   mods: [],
   maps: [],
-  mapIntegrity: null,
-  modIntegrity: null,
   modDownloadTotals: {},
   mapDownloadTotals: {},
   downloadTotalsLoaded: false,
@@ -204,13 +135,10 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
     if (get().initialized) return;
     set({ loading: true, error: null });
     try {
-      const { mods, maps, mapIntegrity, modIntegrity } =
-        await loadRegistryData();
+      const { mods, maps } = await loadRegistryData();
       set({
         mods,
         maps,
-        mapIntegrity,
-        modIntegrity,
         initialized: true,
         loading: false,
       });
@@ -232,13 +160,10 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
           refreshResponse.message || 'Failed to refresh registry',
         );
       }
-      const { mods, maps, mapIntegrity, modIntegrity } =
-        await loadRegistryData();
+      const { mods, maps } = await loadRegistryData();
       set({
         mods,
         maps,
-        mapIntegrity,
-        modIntegrity,
         initialized: true,
         loading: false,
       });

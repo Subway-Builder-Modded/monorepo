@@ -70,6 +70,13 @@ func (r *Registry) fetchFromDisk() error {
 		r.logger,
 	)
 
+	// Populate the in-memory registry view before deriving last_updated so
+	// installable version lookups can resolve manifests and integrity entries.
+	r.mods = mods
+	r.maps = maps
+	r.integrityMaps = mapIntegrity
+	r.integrityMods = modIntegrity
+
 	modLastUpdated, mapLastUpdated := r.loadLastUpdated(mods, maps)
 	updateManifestLastUpdated(mods, maps, modLastUpdated, mapLastUpdated)
 
@@ -170,8 +177,14 @@ func filterManifestsByIntegrity[T any](
 	filtered := make([]T, 0, len(manifests))
 	for _, manifest := range manifests {
 		assetID := idFn(manifest)
-		if _, ok := listings[assetID]; !ok {
+		listing, ok := listings[assetID]
+		if !ok {
 			logger.Warn("Skipping manifest missing integrity listing", "asset_type", assetType, "asset_id", assetID)
+			continue
+		}
+		// Only manifests that are listed as complete are valid and should be displayed to the user
+		if !listing.HasCompleteVersion {
+			logger.Warn("Skipping manifest without any complete integrity versions", "asset_type", assetType, "asset_id", assetID)
 			continue
 		}
 		filtered = append(filtered, manifest)

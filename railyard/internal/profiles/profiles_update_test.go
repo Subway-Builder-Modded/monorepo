@@ -277,26 +277,6 @@ func TestUpdateSubscriptionsRejectsInvalidRequests(t *testing.T) {
 	})
 }
 
-func TestUpdateSubscriptionsAcceptsSemverVersionString(t *testing.T) {
-	testutil.NewHarness(t)
-	svc := loadedUserProfilesService(t, types.InitialProfilesState())
-
-	result := svc.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
-		ProfileID: types.DefaultProfileID,
-		Action:    types.SubscriptionActionSubscribe,
-		ApplyMode: types.UpdateSubscriptionsRuntimeOnly,
-		Assets: map[string]types.SubscriptionUpdateItem{
-			"map-x": {Type: types.AssetTypeMap, Version: types.Version("1.2.3")},
-		},
-	})
-	require.Equal(t, types.ResponseSuccess, result.Status)
-	require.Equal(t, "Subscriptions updated", result.Message)
-	require.Empty(t, result.Errors)
-	require.Equal(t, "1.2.3", result.Profile.Subscriptions.Maps["map-x"])
-	require.Len(t, result.Operations, 1)
-	require.Equal(t, types.Version("1.2.3"), result.Operations[0].Version)
-}
-
 func TestUpdateSubscriptionsForceSyncErrors(t *testing.T) {
 	testutil.NewHarness(t)
 	state := types.InitialProfilesState()

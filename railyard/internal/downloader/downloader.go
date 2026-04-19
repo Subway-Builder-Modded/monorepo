@@ -840,9 +840,9 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 		source = modInfo.Update.Repo
 	}
 	d.Logger.Info("Fetching available versions", "mod_id", modId, "update_type", modInfo.Update.Type, "source", source)
-	versions, err := d.Registry.GetVersions(modInfo.Update.Type, source)
+	versions, err := d.Registry.GetInstallableVersions(types.AssetTypeMod, modId)
 	if err != nil {
-		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, types.InstallErrorVersionLookup, "Failed to get mod versions from registry", err, "mod_id", modId)
+		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, types.InstallErrorVersionLookup, "Mod has no installable versions in integrity cache", err, "mod_id", modId)
 	}
 
 	availableVersions := make([]string, len(versions))
@@ -977,9 +977,9 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 		source = mapInfo.Update.Repo
 	}
 	d.Logger.Info("Fetching available versions", "map_id", mapId, "update_type", mapInfo.Update.Type, "source", source)
-	versions, err := d.Registry.GetVersions(mapInfo.Update.Type, source)
+	versions, err := d.Registry.GetInstallableVersions(types.AssetTypeMap, mapId)
 	if err != nil {
-		return d.installError(types.AssetTypeMap, mapId, version, types.ConfigData{}, types.InstallErrorVersionLookup, "Failed to get map versions from registry", err, "map_id", mapId)
+		return d.installError(types.AssetTypeMap, mapId, version, types.ConfigData{}, types.InstallErrorVersionLookup, "Map has no installable versions in integrity cache", err, "map_id", mapId)
 	}
 
 	availableVersions := make([]string, len(versions))
@@ -1258,19 +1258,9 @@ func (d *Downloader) recursivelyComputeDependencies(modId string, version types.
 			return nil, fmt.Errorf("circular dependency detected: %s", strings.Join(cycle, " -> "))
 		}
 
-		depInfo, err := d.Registry.GetMod(depModID)
+		versions, err := d.Registry.GetInstallableVersions(types.AssetTypeMod, depModID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get mod info for dependency %s: %w", depModID, err)
-		}
-
-		var versions []types.VersionInfo
-		if depInfo.Update.Type == "github" {
-			versions, err = d.Registry.GetVersions("github", depInfo.Update.Repo)
-		} else {
-			versions, err = d.Registry.GetVersions(depInfo.Update.Type, depInfo.Update.URL)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("failed to get versions for dependency %s: %w", depModID, err)
+			return nil, fmt.Errorf("dependency %s has no installable versions in integrity cache: %w", depModID, err)
 		}
 
 		existingDep, exists := installList[depModID]

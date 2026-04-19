@@ -37,6 +37,7 @@ func setupDependencyResolverServer(t *testing.T, reg *registry.Registry, fixture
 
 	handler := http.NewServeMux()
 	mods := make([]types.ModManifest, 0, len(fixtures))
+	integrityListings := make(map[string]types.IntegrityListing, len(fixtures))
 
 	for modID, versions := range fixtures {
 		currentModID := modID
@@ -46,6 +47,17 @@ func setupDependencyResolverServer(t *testing.T, reg *registry.Registry, fixture
 		modManifest := registrytest.MockModManifestWithID(currentModID)
 		modManifest.Update = types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath}
 		mods = append(mods, modManifest)
+		completeVersions := make([]string, 0, len(currentVersions))
+		versionStatuses := make(map[string]types.IntegrityVersionStatus, len(currentVersions))
+		for _, version := range currentVersions {
+			completeVersions = append(completeVersions, version.Version)
+			versionStatuses[version.Version] = types.IntegrityVersionStatus{IsComplete: true}
+		}
+		integrityListings[currentModID] = types.IntegrityListing{
+			HasCompleteVersion: true,
+			CompleteVersions:   completeVersions,
+			Versions:           versionStatuses,
+		}
 
 		handler.HandleFunc(updatePath, func(w http.ResponseWriter, r *http.Request) {
 			payload := types.CustomUpdateFile{
@@ -70,6 +82,11 @@ func setupDependencyResolverServer(t *testing.T, reg *registry.Registry, fixture
 		mods[i].Update.URL = strings.ReplaceAll(mods[i].Update.URL, "{{BASE_URL}}", server.URL)
 	}
 	registrytest.SetManifestsForTest(t, reg, mods, []types.MapManifest{})
+	registrytest.SetUnexportedField(t, reg, "integrityMods", types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings:      integrityListings,
+	})
 
 	return server.Close
 }
@@ -896,6 +913,35 @@ func TestInstallAssetError(t *testing.T) {
 			expectedStatus:    types.ResponseError,
 			expectedErrorCode: types.InstallErrorVersionNotFound,
 		},
+		{
+			name:      "Integrity cache blocks install when no complete version exists",
+			assetType: types.AssetTypeMap,
+			assetID:   "map-a",
+			version:   "1.0.0",
+			setup: func(t *testing.T, d *Downloader, reg *registry.Registry) func() {
+				t.Helper()
+				configureDownloaderConfig(t, d.Config)
+				cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
+					{AssetID: "map-a", AssetType: types.AssetTypeMap, Versions: []string{"1.0.0"}, MapCode: "AAA"},
+				})
+				registrytest.SetUnexportedField(t, reg, "integrityMaps", types.RegistryIntegrityReport{
+					SchemaVersion: 1,
+					GeneratedAt:   "1970-01-01T00:00:00Z",
+					Listings: map[string]types.IntegrityListing{
+						"map-a": {
+							HasCompleteVersion: false,
+							CompleteVersions:   []string{},
+							Versions: map[string]types.IntegrityVersionStatus{
+								"1.0.0": {IsComplete: false},
+							},
+						},
+					},
+				})
+				return cleanup
+			},
+			expectedStatus:    types.ResponseError,
+			expectedErrorCode: types.InstallErrorVersionLookup,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1329,13 +1375,6 @@ func TestComputeDependencyListResolvesTransitiveDependencies(t *testing.T) {
 	})
 	defer cleanup()
 
-	depAMod, err := reg.GetMod("dep-a")
-	require.NoError(t, err)
-	depAVersions, err := reg.GetVersions(depAMod.Update.Type, depAMod.Update.Source())
-	require.NoError(t, err)
-	require.NotEmpty(t, depAVersions)
-	require.NotEmpty(t, depAVersions[0].Dependencies)
-
 	result := d.ComputeDependencyList("root", types.VersionInfo{
 		Version:      "1.0.0",
 		Dependencies: map[string]string{"dep-a": "1.0.0", "dep-b": "1.0.0"},
@@ -1368,13 +1407,6 @@ func TestComputeDependencyListFailsOnConflictingRanges(t *testing.T) {
 		},
 	})
 	defer cleanup()
-
-	depAMod, err := reg.GetMod("dep-a")
-	require.NoError(t, err)
-	depAVersions, err := reg.GetVersions(depAMod.Update.Type, depAMod.Update.Source())
-	require.NoError(t, err)
-	require.NotEmpty(t, depAVersions)
-	require.NotEmpty(t, depAVersions[0].Dependencies)
 
 	result := d.ComputeDependencyList("root", types.VersionInfo{
 		Version:      "1.0.0",

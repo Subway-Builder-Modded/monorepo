@@ -17,6 +17,10 @@ export function GetGalleryImage(arg1:string,arg2:string,arg3:string):Promise<str
 
 export function GetGalleryImageResponse(arg1:string,arg2:string,arg3:string):Promise<types.GalleryImageResponse>;
 
+export function GetInstallableVersions(arg1:types.AssetType,arg2:string):Promise<Array<types.VersionInfo>>;
+
+export function GetInstallableVersionsResponse(arg1:types.AssetType,arg2:string):Promise<types.VersionsResponse>;
+
 export function GetInstalledMapCodes():Promise<Array<string>>;
 
 export function GetInstalledMaps():Promise<Array<types.InstalledMapInfo>>;

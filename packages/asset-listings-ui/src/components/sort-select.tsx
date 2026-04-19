@@ -1,4 +1,11 @@
-import { cn } from '@subway-builder-modded/shared-ui';
+import {
+  cn,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@subway-builder-modded/shared-ui';
 import {
   ArrowDown,
   ArrowUp,
@@ -66,7 +73,9 @@ export function SortSelect({
   renderFieldControl,
 }: SortSelectProps) {
   const iconMap = fieldIcons ?? DEFAULT_FIELD_ICONS;
-  const textFieldsSet = new Set(textSortFields ?? ['name', 'author', 'country', 'city_code']);
+  const textFieldsSet = new Set(
+    textSortFields ?? ['name', 'author', 'country', 'city_code'],
+  );
 
   const currentFieldValid = fieldOptions.some((f) => f.field === value.field);
   const currentField = currentFieldValid
@@ -74,6 +83,7 @@ export function SortSelect({
     : (fieldOptions.find((opt) => Boolean(iconMap[opt.field]))?.field ??
       fieldOptions[0]?.field ??
       'name');
+  const currentOption = fieldOptions.find((opt) => opt.field === currentField);
   const isRandom = currentField === randomField;
 
   const handleFieldChange = (field: string) => {
@@ -86,7 +96,7 @@ export function SortSelect({
 
   const handleDirectionToggle = () => {
     onChange({
-      field: value.field,
+      field: currentField,
       direction: value.direction === 'asc' ? 'desc' : 'asc',
     });
   };
@@ -100,21 +110,27 @@ export function SortSelect({
           onFieldChange: handleFieldChange,
         })
       ) : (
-        <select
-          value={currentField}
-          onChange={(e) => handleFieldChange(e.target.value)}
-          className={cn(
-            'h-8 min-w-[8.5rem] border-0 bg-transparent px-3 text-xs font-semibold text-muted-foreground outline-none',
-            !isRandom && 'rounded-none border-r border-border/60',
-          )}
-          aria-label="Sort field"
-        >
-          {fieldOptions.map((opt) => (
-            <option key={opt.field} value={opt.field}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <Select value={currentField} onValueChange={handleFieldChange}>
+          <SelectTrigger
+            size="sm"
+            aria-label="Sort field"
+            className={cn(
+              'h-8 min-w-[8.5rem] rounded-none border-0 bg-transparent px-3 text-xs font-semibold text-muted-foreground shadow-none focus-visible:ring-0',
+              !isRandom && 'rounded-r-none border-r border-border/60',
+            )}
+          >
+            <SelectValue placeholder={currentOption?.label ?? currentField} />
+          </SelectTrigger>
+          <SelectContent align="start">
+            {fieldOptions.map((opt) => {
+              return (
+                <SelectItem key={opt.field} value={opt.field}>
+                  <span>{opt.label}</span>
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
       )}
 
       {!isRandom && (
@@ -123,8 +139,8 @@ export function SortSelect({
           onClick={handleDirectionToggle}
           aria-label={
             value.direction === 'asc'
-              ? 'Sort ascending — click to sort descending'
-              : 'Sort descending — click to sort ascending'
+              ? 'Sort ascending - click to sort descending'
+              : 'Sort descending - click to sort ascending'
           }
           className={cn(
             'flex h-8 w-8 items-center justify-center',
@@ -132,7 +148,7 @@ export function SortSelect({
             'hover:bg-accent/45 hover:text-primary',
           )}
         >
-          {directionArrow(value.field, value.direction, textFieldsSet)}
+          {directionArrow(currentField, value.direction, textFieldsSet)}
         </button>
       )}
     </div>

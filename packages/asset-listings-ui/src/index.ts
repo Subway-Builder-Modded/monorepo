@@ -100,6 +100,7 @@ export {
 } from './types';
 export {
 	DEFAULT_PROJECT_VERSION_SORT,
+	formatDetailedProjectVersionDate,
 	formatProjectVersionDate,
 	sortProjectVersions,
 	toggleProjectVersionSort,
