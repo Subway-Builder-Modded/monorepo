@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sync"
@@ -115,10 +116,19 @@ func (r *Registry) resolveLastUpdated(
 
 			latest, err := determineLatestTimestamp(r.logger, versions, current.updateType)
 			if err != nil {
-				r.logger.Warn("Failed to parse version dates for last updated", "asset_id", current.id, "version_count", len(versions), "error", err)
+				fallback, fallbackErr := r.latestIntegrityCheckedAt(current.assetType, current.id)
+				if fallbackErr != nil {
+					r.logger.Warn("Failed to parse version dates for last updated", "asset_id", current.id, "version_count", len(versions), "error", err)
+					mu.Lock()
+					warnings = append(warnings, fmt.Errorf("failed to resolve latest update for %q: %w", current.id, errors.Join(err, fallbackErr)))
+					results[current.id] = 0 // Default to epoch start if we can't parse version dates
+					mu.Unlock()
+					return
+				}
+
+				r.logger.Warn("Falling back to integrity checked_at for last updated", "asset_type", current.assetType, "asset_id", current.id, "error", err, "timestamp", fallback)
 				mu.Lock()
-				warnings = append(warnings, fmt.Errorf("failed to resolve latest update for %q: %w", current.id, err))
-				results[current.id] = 0 // Default to epoch start if we can't parse version dates
+				results[current.id] = fallback
 				mu.Unlock()
 				return
 			}
@@ -131,6 +141,35 @@ func (r *Registry) resolveLastUpdated(
 
 	wg.Wait()
 	return results, warnings
+}
+
+// latestIntegrityCheckedAt returns the latest complete-version checked_at timestamp for an asset.
+func (r *Registry) latestIntegrityCheckedAt(assetType types.AssetType, assetID string) (int64, error) {
+	listing, _ := r.getIntegrityListing(assetType, assetID)
+
+	best := int64(0)
+	for version, status := range listing.Versions {
+		if !status.IsComplete {
+			continue
+		}
+		if status.CheckedAt == "" {
+			return 0, fmt.Errorf("%s %q version %q is missing checked_at", assetType, assetID, version)
+		}
+		parsed, err := time.Parse(time.RFC3339, status.CheckedAt)
+		if err != nil {
+			return 0, fmt.Errorf("%s %q version %q has invalid checked_at %q: %w", assetType, assetID, version, status.CheckedAt, err)
+		}
+		timestamp := parsed.Unix()
+		if timestamp > best {
+			best = timestamp
+		}
+	}
+
+	if best == 0 {
+		return 0, fmt.Errorf("%s %q has no complete versions with checked_at", assetType, assetID)
+	}
+
+	return best, nil
 }
 
 // getLastUpdatedArgs converts manifests into the asset identifiers needed for installable version lookups.

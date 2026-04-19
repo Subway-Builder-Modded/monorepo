@@ -1,6 +1,7 @@
 import {
   EmptyState,
   ErrorBanner,
+  formatProjectVersionDate,
   MarkdownPanel,
 } from '@subway-builder-modded/asset-listings-ui';
 import {
@@ -322,15 +323,7 @@ export function ChangelogPage() {
 
   const formattedDate = useMemo(() => {
     if (!versionInfo?.date) return null;
-    try {
-      return new Date(versionInfo.date).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch {
-      return versionInfo.date;
-    }
+    return formatProjectVersionDate(versionInfo.date);
   }, [versionInfo?.date]);
 
   if (!item || !type) {
