@@ -15,10 +15,6 @@ import {
 } from "lucide-react";
 import { FaDiscord } from "react-icons/fa";
 
-// ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
-
 export type HeroSlideMod = {
   name: string;
   author: string;
@@ -80,6 +76,14 @@ export const HERO_CTA_DISCORD = {
   href: "https://discord.gg/syG9YHMyeG",
 } as const;
 
+export const HERO_CREDITS_TEXT = {
+  buttonAriaLabel: "View image credits and map information",
+  mapDetailsTitle: "Map Details",
+  creatorLabel: "Creator",
+  saveFileTitle: "Save File",
+  modsTitle: "Mods",
+} as const;
+
 export const HERO_SUITE_BARS = [
   { light: "#0f8f68", dark: "#19d89c" },
   { light: "#9d4edd", dark: "#c77dff" },
@@ -87,10 +91,6 @@ export const HERO_SUITE_BARS = [
   { light: "#f2992e", dark: "#ffbe73" },
   { light: "#d64545", dark: "#ff6b6b" },
 ] as const;
-
-// ---------------------------------------------------------------------------
-// Community / People section
-// ---------------------------------------------------------------------------
 
 export type PeopleDestination = {
   id: string;
@@ -136,10 +136,6 @@ export const PEOPLE_SECTION = {
     "Run completely by the community, for the community. Join us in building the future of modding for Subway Builder.",
 } as const;
 
-// ---------------------------------------------------------------------------
-// Open-source section
-// ---------------------------------------------------------------------------
-
 export const OPEN_SOURCE_SECTION = {
   title: "Open-source and transparent",
   description:
@@ -178,14 +174,34 @@ export const OPEN_SOURCE_CODE = `export const SUITE_PROJECTS = [
   },
 ] as const;`;
 
-// ---------------------------------------------------------------------------
-// Analytics section
-// ---------------------------------------------------------------------------
-
 export const ANALYTICS_SECTION = {
   title: "In-depth analytics and insights",
   description: "Download counts, recent trends, and community-content analytics for every project.",
   body: "Visualize detailed analytics for every project in the ecosystem, from Registry map download trends to per-page website traffic.",
+} as const;
+
+export type AnalyticsPreviewSeries = {
+  label: string;
+  color: string;
+  points: string;
+};
+
+export const ANALYTICS_PREVIEW = {
+  title: "analytics - downloads",
+  yLabels: ["8k", "6k", "4k", "2k", "0"],
+  xLabels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+  series: [
+    {
+      label: "Maps",
+      color: "#1c7ed6",
+      points: "40,150 112,135 184,115 256,100 328,82 400,65 470,48",
+    },
+    {
+      label: "Mods",
+      color: "#e03131",
+      points: "40,165 112,155 184,140 256,132 328,120 400,110 470,100",
+    },
+  ] as AnalyticsPreviewSeries[],
 } as const;
 
 export type AnalyticsLink = {
@@ -216,9 +232,11 @@ export const ANALYTICS_LINKS: AnalyticsLink[] = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Suite scrollytelling
-// ---------------------------------------------------------------------------
+export const SUITE_SCROLLYTELLING_SECTION = {
+  title: "The Subway Builder Modded ecosystem",
+  description:
+    "The complete suite of tools, resources, and projects for modding in Subway Builder, built and maintained by the community.",
+} as const;
 
 export type SuiteStep = {
   id: string;
@@ -361,10 +379,6 @@ export const SUITE_STEPS: SuiteStep[] = [
     },
   },
 ];
-
-// ---------------------------------------------------------------------------
-// Closing band
-// ---------------------------------------------------------------------------
 
 export const CLOSING_BAND = {
   title: "Choose your route",

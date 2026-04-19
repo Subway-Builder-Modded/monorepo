@@ -6,7 +6,11 @@ import { Link } from "@/app/lib/router";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 import { SectionHeader, HOMEPAGE_SHELL, CodeDisplay } from "@subway-builder-modded/shared-ui";
-import { SUITE_STEPS, type SuiteStep } from "@/app/features/home/data/homepage-content";
+import {
+  SUITE_SCROLLYTELLING_SECTION,
+  SUITE_STEPS,
+  type SuiteStep,
+} from "@/app/features/home/data/homepage-content";
 
 function StationSwitcher({
   steps,
@@ -262,8 +266,8 @@ export function SuiteScrollytellingSection() {
 
       <div className={cn("relative", HOMEPAGE_SHELL)}>
         <SectionHeader
-          title="The Subway Builder Modded ecosystem"
-          description="The complete suite of tools, resources, and projects for modding in Subway Builder, built and maintained by the community."
+          title={SUITE_SCROLLYTELLING_SECTION.title}
+          description={SUITE_SCROLLYTELLING_SECTION.description}
         />
 
         <div className="mt-12 lg:mt-16">

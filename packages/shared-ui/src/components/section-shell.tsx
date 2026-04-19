@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
+import { APP_SHELL_OUTER_CONTAINER_CLASS } from '../lib/layout-tokens';
 
 export type SectionShellProps = {
   children: ReactNode;
@@ -7,8 +8,7 @@ export type SectionShellProps = {
   surfaced?: boolean;
 };
 
-const HOMEPAGE_SHELL =
-  'mx-auto w-full max-w-[1800px] px-5 sm:px-7 lg:px-10 xl:px-14 2xl:px-16';
+const HOMEPAGE_SHELL = APP_SHELL_OUTER_CONTAINER_CLASS;
 
 export { HOMEPAGE_SHELL };
 

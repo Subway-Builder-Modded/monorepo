@@ -11,7 +11,6 @@ type NavbarPanelProps = {
   mutedColor: string;
   onRowClick: () => void;
   prefersReducedMotion: boolean;
-  /** When true rows animate to visible; when false rows animate out. */
   rowsVisible: boolean;
 };
 

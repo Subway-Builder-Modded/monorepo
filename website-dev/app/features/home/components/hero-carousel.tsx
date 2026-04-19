@@ -126,7 +126,6 @@ export function HeroCarousel() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Radial center blur for readability — emanates from center, dies off quickly */}
       <div
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
@@ -139,19 +138,16 @@ export function HeroCarousel() {
         aria-hidden="true"
       />
 
-      {/* Top darken gradient for nav readability */}
       <div
         className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/25 via-40% to-transparent"
         aria-hidden="true"
       />
 
-      {/* Bottom brighten/darken gradient */}
       <div
         className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background/70 via-background/15 via-25% to-transparent"
         aria-hidden="true"
       />
 
-      {/* Content: centered */}
       <motion.div
         className="relative z-10 flex h-full flex-col items-center justify-center text-center"
         style={prefersReducedMotion ? undefined : { y: contentY }}
@@ -207,12 +203,10 @@ export function HeroCarousel() {
         </div>
       </motion.div>
 
-      {/* Bottom-left: info icon — corner-pinned */}
       <div className="absolute bottom-5 left-5 z-20 sm:bottom-7 sm:left-7">
         <HeroCreditsTooltip slide={slide} />
       </div>
 
-      {/* Bottom-right: slide controls — corner-pinned */}
       {multi && (
         <div
           className="absolute bottom-5 right-5 z-20 flex items-center gap-2 sm:bottom-7 sm:right-7"
@@ -238,7 +232,6 @@ export function HeroCarousel() {
         </div>
       )}
 
-      {/* Suite-colored bottom rail */}
       <div className="absolute inset-x-0 bottom-0 z-30 flex h-1">
         {HERO_SUITE_BARS.map((bar, i) => (
           <div key={i} className="flex-1">

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
-import type { HeroSlide } from "@/app/features/home/data/homepage-content";
+import { HERO_CREDITS_TEXT, type HeroSlide } from "@/app/features/home/data/homepage-content";
 
 type HeroCreditsTooltipProps = {
   slide: HeroSlide;
@@ -18,56 +18,61 @@ export function HeroCreditsTooltip({ slide }: HeroCreditsTooltipProps) {
 function CreditsButton({ slide }: { slide: HeroSlide }) {
   const [pinned, setPinned] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [focusWithin, setFocusWithin] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const open = pinned || hovered;
-
-  const showHover = useCallback(() => {
-    clearTimeout(closeTimer.current);
-    setHovered(true);
-  }, []);
-
-  const hideHover = useCallback(() => {
-    closeTimer.current = setTimeout(() => setHovered(false), 220);
-  }, []);
-
-  useEffect(() => () => clearTimeout(closeTimer.current), []);
+  const open = pinned || hovered || focusWithin;
 
   useEffect(() => {
-    if (!open) return;
+    if (!pinned) return;
+
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         setPinned(false);
         setHovered(false);
+        setFocusWithin(false);
       }
     }
+
     function onClick(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setPinned(false);
         setHovered(false);
+        setFocusWithin(false);
       }
     }
+
     document.addEventListener("keydown", onKey);
     document.addEventListener("mousedown", onClick);
     return () => {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onClick);
     };
-  }, [open]);
+  }, [pinned]);
 
   return (
-    <div ref={containerRef} className="relative" onMouseEnter={showHover} onMouseLeave={hideHover}>
+    <div
+      ref={containerRef}
+      className="relative"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocusCapture={() => setFocusWithin(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+          setFocusWithin(false);
+        }
+      }}
+    >
       <button
         type="button"
         onClick={() => setPinned((v) => !v)}
-        onFocus={showHover}
-        onBlur={hideHover}
-        aria-label="View image credits and map information"
+        aria-label={HERO_CREDITS_TEXT.buttonAriaLabel}
         aria-expanded={open}
         className={cn(
           "flex size-8 items-center justify-center rounded-md border transition-colors sm:size-9",
-          "border-white/20 bg-black/30 text-white/70 backdrop-blur-sm",
+          open
+            ? "border-white/25 bg-black/55 text-white"
+            : "border-white/20 bg-black/30 text-white/70",
+          "backdrop-blur-sm",
           "hover:bg-black/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         )}
       >
@@ -89,62 +94,62 @@ function CreditsPlate({ slide }: { slide: HeroSlide }) {
         "animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-2",
       )}
     >
-      {/* top accent strip – signage-style */}
       <div className="h-0.5 w-full rounded-t-lg bg-foreground/20" aria-hidden="true" />
 
       <div className="space-y-2.5 p-3.5 text-[13px] leading-snug">
-        {/* Map name + creator */}
-        {slide.mapName && (
-          <section>
-            <h3 className="font-semibold text-foreground">
-              {slide.mapId ? (
-                <Link
-                  to={`/railyard/browse/maps/${slide.mapId}`}
-                  className="underline-offset-2 hover:underline"
-                >
-                  {slide.mapName}
-                </Link>
-              ) : (
-                slide.mapName
-              )}
-            </h3>
-            {slide.creator && (
-              <p className="mt-0.5 text-muted-foreground">
-                <span className="font-medium text-foreground/80">Creator:</span> {slide.creator}
-              </p>
-            )}
-          </section>
-        )}
-
-        {/* Save file */}
-        {slide.saveFileCreator && (
+        {(slide.mapName || slide.saveFileCreator) && (
           <section>
             <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Save File
+              {HERO_CREDITS_TEXT.mapDetailsTitle}
             </h3>
-            <p className="mt-0.5 text-muted-foreground">
-              <span className="font-medium text-foreground/80">Creator:</span>{" "}
-              {slide.saveFileCreator}
-            </p>
+
+            <ul className="mt-1 space-y-0.5">
+              {slide.mapName && (
+                <li className="text-muted-foreground">
+                  {slide.mapId ? (
+                    <Link
+                      to={`/railyard/browse/maps/${slide.mapId}`}
+                      className="font-bold text-foreground underline-offset-2 hover:underline"
+                    >
+                      {slide.mapName}
+                    </Link>
+                  ) : (
+                    <span className="font-bold text-foreground">{slide.mapName}</span>
+                  )}
+                  {slide.creator ? (
+                    <span className="text-muted-foreground">
+                      {" "}(by <span className="font-bold text-foreground">{slide.creator}</span>)
+                    </span>
+                  ) : null}
+                </li>
+              )}
+
+              {slide.saveFileCreator && (
+                <li className="text-muted-foreground">
+                  Save file by: <span className="font-bold text-foreground">{slide.saveFileCreator}</span>
+                </li>
+              )}
+            </ul>
           </section>
         )}
 
-        {/* Mods */}
         {slide.mods && slide.mods.length > 0 && (
           <section>
             <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Mods
+              {HERO_CREDITS_TEXT.modsTitle}
             </h3>
             <ul className="mt-1 space-y-0.5">
               {slide.mods.map((mod) => (
                 <li key={mod.modId} className="text-muted-foreground">
                   <Link
                     to={`/railyard/browse/mods/${mod.modId}`}
-                    className="font-medium text-foreground/80 underline-offset-2 hover:underline"
+                    className="font-bold text-foreground underline-offset-2 hover:underline"
                   >
                     {mod.name}
                   </Link>
-                  <span> (by {mod.author})</span>
+                  <span className="text-muted-foreground">
+                    {" "}(by <span className="font-bold text-foreground">{mod.author}</span>)
+                  </span>
                 </li>
               ))}
             </ul>
@@ -152,7 +157,6 @@ function CreditsPlate({ slide }: { slide: HeroSlide }) {
         )}
       </div>
 
-      {/* arrow nub */}
       <div
         className="absolute -bottom-1 left-4 size-2 rotate-45 border-b border-r border-border/50 bg-popover/95"
         aria-hidden="true"

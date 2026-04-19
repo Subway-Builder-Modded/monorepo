@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
 const STORAGE_KEY = "sbm-site-theme";
 
@@ -16,6 +16,56 @@ function resolveIsDark(theme: ThemeMode): boolean {
   return theme === "dark";
 }
 
+function resolveInitialTheme(): ThemeMode {
+  if (typeof window === "undefined") {
+    return "light";
+  }
+
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  if (stored === "light" || stored === "dark") {
+    return stored;
+  }
+
+  return getSystemPrefersDark() ? "dark" : "light";
+}
+
+let currentTheme: ThemeMode = "light";
+if (typeof window !== "undefined") {
+  currentTheme = resolveInitialTheme();
+}
+
+const listeners = new Set<() => void>();
+
+function notifyThemeListeners() {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+function subscribeTheme(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function getThemeSnapshot(): ThemeMode {
+  return currentTheme;
+}
+
+function getServerThemeSnapshot(): ThemeMode {
+  return "light";
+}
+
+function commitTheme(nextTheme: ThemeMode, persist: boolean) {
+  currentTheme = nextTheme;
+  applyTheme(nextTheme);
+
+  if (persist && typeof window !== "undefined") {
+    window.localStorage.setItem(STORAGE_KEY, nextTheme);
+  }
+
+  notifyThemeListeners();
+}
+
 function applyTheme(theme: ThemeMode) {
   if (typeof document === "undefined") {
     return;
@@ -28,49 +78,19 @@ function applyTheme(theme: ThemeMode) {
 }
 
 export function useThemeMode() {
-  const [theme, setThemeState] = useState<ThemeMode>(getSystemPrefersDark() ? "dark" : "light");
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") {
-      setThemeState(stored);
-      applyTheme(stored);
-      return;
-    }
-
-    const fallbackTheme: ThemeMode = getSystemPrefersDark() ? "dark" : "light";
-    setThemeState(fallbackTheme);
-    applyTheme(fallbackTheme);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    applyTheme(theme);
-  }, [theme]);
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getServerThemeSnapshot);
 
   const setTheme = useCallback((nextTheme: ThemeMode) => {
     if (typeof window === "undefined") {
-      setThemeState(nextTheme);
       return;
     }
 
-    setThemeState(nextTheme);
-    window.localStorage.setItem(STORAGE_KEY, nextTheme);
-    applyTheme(nextTheme);
+    commitTheme(nextTheme, true);
   }, []);
-
-  const resolvedTheme = useMemo<"light" | "dark">(() => theme, [theme]);
 
   return {
     theme,
-    resolvedTheme,
+    resolvedTheme: theme,
     setTheme,
   };
 }
@@ -80,11 +100,8 @@ export function initializeThemeFromStorage() {
     return;
   }
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  const theme: ThemeMode =
-    stored === "light" || stored === "dark" ? stored : getSystemPrefersDark() ? "dark" : "light";
-
-  applyTheme(theme);
+  const theme = resolveInitialTheme();
+  commitTheme(theme, false);
 }
 
 export function getThemeBootScript() {

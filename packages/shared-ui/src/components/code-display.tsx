@@ -46,7 +46,7 @@ export function CodeDisplay({
     <TerminalFrame title={title} className={className}>
       <div className="flex overflow-x-auto">
         <div
-          className="flex flex-col items-end border-r border-black/[0.04] px-3 py-4 font-mono text-[13px] leading-6 text-black/20 select-none dark:border-white/[0.04] dark:text-white/20"
+          className="flex flex-col items-end border-r border-black/[0.08] px-3 py-4 font-mono text-[13px] leading-6 text-black/42 select-none dark:border-white/[0.06] dark:text-white/26"
           aria-hidden="true"
         >
           {Array.from({ length: lineCount }, (_, i) => (
@@ -62,7 +62,7 @@ export function CodeDisplay({
           />
         ) : (
           <div className="flex-1 p-4">
-            <pre className="font-mono text-[13px] leading-6 text-black/40 dark:text-white/40">
+            <pre className="font-mono text-[13px] leading-6 text-black/72 dark:text-white/44">
               {code}
             </pre>
           </div>

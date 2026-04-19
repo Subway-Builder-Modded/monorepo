@@ -76,7 +76,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   const [hasMounted, setHasMounted] = useState(false);
   const isHoverAnimated = isNavbarHovered && !prefersReducedMotion && isClosed;
   const frameScale = isHoverAnimated ? 1.007 : 1;
-  const frameOffsetY = isHoverAnimated ? -0.5 : 0;
   const disableInitialClosedAnimation = !hasMounted && isClosed;
 
   useEffect(() => {
@@ -118,7 +117,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             animate={{
               height: frameHeight,
               scale: frameScale,
-              y: frameOffsetY,
             }}
             transition={{
               height: {
@@ -126,10 +124,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                 ease: FRAME_EASE,
               },
               scale: {
-                duration: disableInitialClosedAnimation || prefersReducedMotion ? 0 : 0.16,
-                ease: FRAME_EASE,
-              },
-              y: {
                 duration: disableInitialClosedAnimation || prefersReducedMotion ? 0 : 0.16,
                 ease: FRAME_EASE,
               },
@@ -201,8 +195,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             </div>
           </motion.div>
         </div>
-
-        {/* Ghost measurement element */}
         {phase !== "closed" ? (
           <div
             aria-hidden="true"

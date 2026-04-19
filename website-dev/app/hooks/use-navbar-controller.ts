@@ -216,7 +216,6 @@ export function useNavbarController({
     allSuiteGroups,
   } = displayModel;
 
-  // For mobile: measurement uses all items; for desktop: current suite items
   const totalItemCount = SITE_NAV_ITEMS.length;
 
   const { hasMeasuredCurrentPanel, measuredPanelHeight, panelMeasurementKey, panelMeasureRef } =

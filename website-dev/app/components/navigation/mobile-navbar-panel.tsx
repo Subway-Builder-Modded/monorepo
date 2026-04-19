@@ -128,7 +128,6 @@ export const MobileNavbarPanel = memo(function MobileNavbarPanel({
   );
 });
 
-/** Static version for ghost measurement (no row motion). */
 export const MobileNavbarPanelStatic = memo(function MobileNavbarPanelStatic({
   groups,
   activeItem,

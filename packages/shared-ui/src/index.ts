@@ -197,6 +197,11 @@ export {
   CodeDisplay,
   type CodeDisplayProps,
 } from './components/code-display';
+export {
+  AnalyticsPreview,
+  type AnalyticsPreviewProps,
+  type AnalyticsPreviewSeries,
+} from './components/analytics-preview';
 export { GithubIcon } from './components/github-icon';
 export {
   LOCAL_ACCENTS,

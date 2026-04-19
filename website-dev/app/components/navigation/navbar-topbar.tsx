@@ -30,7 +30,7 @@ function DesktopNavbarTopbar({ actionsNode, brandNode, suiteIndicator }: SharedT
       leftClassName="min-w-0 pr-2"
       rightClassName="min-w-0 pl-2"
       left={
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
           {brandNode}
           {suiteIndicator}
         </div>
@@ -69,11 +69,11 @@ export function NavbarTopbar({
     <Link
       to="/"
       aria-label="Go to home"
-      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg text-sm font-semibold leading-tight text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring dark:text-muted-foreground dark:hover:text-foreground"
+      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg py-0.5 text-sm font-semibold leading-none text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
     >
       <img src="/logo.svg" alt="" aria-hidden="true" className="size-4 shrink-0 object-contain" />
       {!isMobile ? (
-        <span className="inline-block max-w-full pb-[2px] text-ellipsis whitespace-nowrap leading-tight [overflow-x:hidden] [overflow-y:visible]">
+        <span className="block max-w-full truncate leading-none">
           Subway Builder Modded
         </span>
       ) : null}
@@ -82,7 +82,7 @@ export function NavbarTopbar({
 
   const suiteIndicator = (
     <span
-      className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold"
+      className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 text-xs font-semibold leading-none"
       style={{ color: realAccent, backgroundColor: `${realAccent}14` }}
     >
       <SuiteIcon className="size-3.5" aria-hidden={true} />
