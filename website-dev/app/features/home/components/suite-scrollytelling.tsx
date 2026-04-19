@@ -31,10 +31,10 @@ function StationSwitcher({
           <div key={step.id} className="flex flex-col items-center">
             {i > 0 && (
               <div
-                className="w-[3px] rounded-full transition-colors duration-300"
+                className="w-[3px] rounded-full"
                 style={{
                   height: 36,
-                  backgroundColor: i <= activeIdx ? accent : "var(--border)",
+                  backgroundColor: "var(--border)",
                 }}
                 aria-hidden="true"
               />
@@ -129,7 +129,7 @@ function StoryPanel({ step }: { step: SuiteStep }) {
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link
           to={step.primaryAction.href}
-          className="inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-sm font-bold tracking-[-0.01em] text-white shadow-sm transition-all hover:brightness-110"
+          className="inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-sm font-bold tracking-[-0.01em] text-foreground shadow-sm transition-all hover:brightness-110"
           style={{ backgroundColor: accent }}
         >
           <PrimaryIcon className="size-4" aria-hidden="true" />
@@ -240,7 +240,7 @@ export function SuiteScrollytellingSection() {
   const steps = SUITE_STEPS;
 
   return (
-    <section className="relative py-20 lg:py-32">
+    <section className="relative pt-20 pb-10 lg:pt-32 lg:pb-16">
       <div
         className="pointer-events-none absolute inset-0 border-y border-border/40 bg-muted/15"
         aria-hidden="true"

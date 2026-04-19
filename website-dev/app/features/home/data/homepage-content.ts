@@ -8,7 +8,7 @@ import {
   FolderGit2,
   GitPullRequestArrow,
   Globe,
-  LayoutGrid,
+  Package,
   TrainTrack,
 } from "lucide-react";
 
@@ -79,12 +79,12 @@ export const SUITE_STEPS: SuiteStep[] = [
       "Pre-configured project scaffold with build tooling ready to go.",
       "Full documentation for getting started and publishing.",
     ],
-    icon: LayoutGrid,
+    icon: Package,
     accent: { light: "#60a5fa", dark: "#93c5fd" },
     imageLight: "/images/shared/template-mod-light.png",
     imageDark: "/images/shared/template-mod-dark.png",
     imageAlt: "Template Mod project structure",
-    primaryAction: { label: "Template Mod", href: "/template-mod", icon: LayoutGrid },
+    primaryAction: { label: "Template Mod", href: "/template-mod", icon: Package },
     secondaryAction: { label: "Documentation", href: "/template-mod/docs", icon: BookText },
   },
   {

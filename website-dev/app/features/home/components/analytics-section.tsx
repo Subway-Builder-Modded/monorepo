@@ -1,19 +1,14 @@
-import { ChartLine } from "lucide-react";
 import { Link } from "@/app/lib/router";
 import { SectionShell, SectionHeader } from "@subway-builder-modded/shared-ui";
 import { ANALYTICS_LINKS } from "@/app/features/home/data/homepage-content";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
+const MAP_COLOR = "#1c7ed6";
+const MOD_COLOR = "#e03131";
+
 function AnalyticsGraphic() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === "dark";
-
-  const suiteColors = [
-    isDark ? "#19d89c" : "#0f8f68",
-    isDark ? "#c77dff" : "#9d4edd",
-    isDark ? "#93c5fd" : "#60a5fa",
-    isDark ? "#ffbe73" : "#f2992e",
-  ];
 
   const gridColor = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)";
   const axisColor = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)";
@@ -83,60 +78,45 @@ function AnalyticsGraphic() {
             </text>
           ))}
 
+          {/* Maps line */}
           <polyline
-            points="40,140 112,120 184,100 256,85 328,70 400,55 470,42"
+            points="40,150 112,135 184,115 256,100 328,82 400,65 470,48"
             fill="none"
-            stroke={suiteColors[0]}
+            stroke={MAP_COLOR}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+          {/* Mods line */}
           <polyline
-            points="40,160 112,148 184,130 256,125 328,115 400,108 470,100"
+            points="40,165 112,155 184,140 256,132 328,120 400,110 470,100"
             fill="none"
-            stroke={suiteColors[1]}
+            stroke={MOD_COLOR}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
-          />
-          <polyline
-            points="40,170 112,162 184,155 256,148 328,142 400,135 470,130"
-            fill="none"
-            stroke={suiteColors[2]}
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="6 3"
-          />
-          <polyline
-            points="40,175 112,170 184,165 256,158 328,150 400,145 470,138"
-            fill="none"
-            stroke={suiteColors[3]}
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="6 3"
           />
 
-          {suiteColors.map((color, ci) => {
-            const labels = ["Railyard", "Registry", "Template Mod", "Website"];
-            return (
-              <g key={ci}>
-                <rect
-                  x={70 + ci * 100}
-                  y={4}
-                  width={8}
-                  height={8}
-                  rx={2}
-                  fill={color}
-                  opacity={0.8}
-                />
-                <text x={82 + ci * 100} y={12} fill={textColor} fontSize={9} fontFamily="monospace">
-                  {labels[ci]}
-                </text>
-              </g>
-            );
-          })}
+          {/* Legend */}
+          {[
+            { label: "Maps", color: MAP_COLOR },
+            { label: "Mods", color: MOD_COLOR },
+          ].map((item, ci) => (
+            <g key={ci}>
+              <rect
+                x={70 + ci * 100}
+                y={4}
+                width={8}
+                height={8}
+                rx={2}
+                fill={item.color}
+                opacity={0.8}
+              />
+              <text x={82 + ci * 100} y={12} fill={textColor} fontSize={9} fontFamily="monospace">
+                {item.label}
+              </text>
+            </g>
+          ))}
         </svg>
       </div>
     </div>
@@ -162,7 +142,7 @@ export function AnalyticsSection() {
             Every project exposes analytics — download volumes, install trends, and growth metrics —
             so contributors and users can track ecosystem health at a glance.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-col gap-2.5 sm:max-w-xs">
             {ANALYTICS_LINKS.map((link) => {
               const Icon = link.icon;
               const color = isDark ? link.accent.dark : link.accent.light;
@@ -179,7 +159,6 @@ export function AnalyticsSection() {
                 >
                   <Icon className="size-3.5" aria-hidden="true" />
                   {link.label}
-                  <ChartLine className="ml-0.5 size-3 opacity-40" aria-hidden="true" />
                 </Link>
               );
             })}

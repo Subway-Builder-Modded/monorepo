@@ -32,7 +32,7 @@ export function SuiteButton({
   const color = isDark ? accent.dark : accent.light;
 
   const solidClass =
-    'border-transparent text-white shadow-sm hover:brightness-110';
+    'border-transparent shadow-sm hover:brightness-110';
   const outlineClass =
     'bg-transparent hover:bg-[var(--suite-btn-hover)]';
 

@@ -28,9 +28,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     mapId: "yukina-osaka",
     creator: "Yukina-",
     saveFileCreator: "mygetaway",
-    mods: [
-      { name: "Regions", author: "Yukina-", modId: "subwaybuilder-regions" },
-    ],
+    mods: [{ name: "Regions", author: "Yukina-", modId: "subwaybuilder-regions" }],
   },
   {
     id: "san-juan",

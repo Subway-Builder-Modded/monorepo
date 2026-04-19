@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import { FaDiscord } from "react-icons/fa";
 import { HERO_SLIDES, HERO_AUTO_ROTATE_MS } from "@/app/features/home/data/hero-slides";
 import { HERO_SUITE_BARS } from "@/app/features/home/data/homepage-content";
 import { HeroCreditsTooltip } from "@/app/features/home/components/hero-credits-tooltip";
@@ -25,6 +25,8 @@ export function HeroCarousel() {
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  const idxRef = useRef(idx);
+  idxRef.current = idx;
 
   usePreloadImages(slides);
 
@@ -37,14 +39,12 @@ export function HeroCarousel() {
     (n: number) => setIdx((n + slides.length) % slides.length),
     [slides.length],
   );
-  const next = useCallback(() => go(idx + 1), [idx, go]);
-  const prev = useCallback(() => go(idx - 1), [idx, go]);
 
   useEffect(() => {
     if (!multi || paused || prefersReducedMotion) return;
-    const timer = setInterval(next, HERO_AUTO_ROTATE_MS);
+    const timer = setInterval(() => go(idxRef.current + 1), HERO_AUTO_ROTATE_MS);
     return () => clearInterval(timer);
-  }, [multi, paused, prefersReducedMotion, next]);
+  }, [multi, paused, prefersReducedMotion, go]);
 
   useEffect(() => {
     if (!multi) return;
@@ -56,16 +56,16 @@ export function HeroCarousel() {
         return;
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        prev();
+        go(idxRef.current - 1);
       }
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        next();
+        go(idxRef.current + 1);
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [multi, next, prev]);
+  }, [multi, go]);
 
   const slide = slides[idx];
 
@@ -118,33 +118,31 @@ export function HeroCarousel() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Top readability: strong gradient + heavy blur tapering downward */}
+      {/* Even blur across entire image */}
       <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/90 via-background/40 via-45% to-transparent"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-72 backdrop-blur-sm [mask-image:linear-gradient(to_bottom,black_0%,black_30%,transparent_100%)]"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-40 backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_100%)]"
+        className="pointer-events-none absolute inset-0 z-[1] backdrop-blur-[3px]"
         aria-hidden="true"
       />
 
-      {/* Bottom gradient */}
+      {/* Top darken gradient for nav readability */}
       <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background/80 via-background/20 via-25% to-transparent"
+        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/25 via-40% to-transparent"
         aria-hidden="true"
       />
 
-      {/* Content: title, description centered */}
+      {/* Bottom brighten/darken gradient */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background/70 via-background/15 via-25% to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Content: centered */}
       <motion.div
-        className="relative z-10 flex h-full flex-col items-start justify-center px-5 sm:px-7 lg:px-14 xl:px-20"
+        className="relative z-10 flex h-full flex-col items-center justify-center text-center"
         style={prefersReducedMotion ? undefined : { y: contentY }}
       >
-        <div className="max-w-3xl">
-          <div className="mb-5 flex items-center gap-1.5" aria-hidden="true">
+        <div className="max-w-3xl px-5 sm:px-7">
+          <div className="mb-5 flex items-center justify-center gap-1.5" aria-hidden="true">
             {HERO_SUITE_BARS.map((c, i) => (
               <span
                 key={i}
@@ -167,68 +165,63 @@ export function HeroCarousel() {
             Modded
           </h1>
 
-          <p className="mt-5 max-w-xl text-[clamp(1.05rem,2vw,1.2rem)] leading-relaxed text-foreground/70">
+          <p className="mx-auto mt-5 max-w-xl text-[clamp(1.05rem,2vw,1.2rem)] leading-relaxed text-foreground/70">
             The complete hub for everything modded in Subway Builder.
           </p>
+
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <a
+              href="https://github.com/Subway-Builder-Modded"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-foreground/90 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-background shadow-lg backdrop-blur-sm transition-all hover:bg-foreground"
+            >
+              <GithubIcon className="size-[18px]" />
+              GitHub
+            </a>
+            <a
+              href="https://discord.gg/syG9YHMyeG"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 rounded-xl border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-foreground/90 backdrop-blur-sm transition-all hover:border-foreground/40 hover:bg-foreground/10"
+            >
+              <FaDiscord className="size-[18px]" />
+              Discord
+            </a>
+          </div>
         </div>
       </motion.div>
 
-      {/* Bottom-left: info icon */}
-      <div className="absolute bottom-5 left-5 z-20 sm:bottom-7 sm:left-7 lg:bottom-8 lg:left-14 xl:left-20">
+      {/* Bottom-left: info icon — corner-pinned */}
+      <div className="absolute bottom-5 left-5 z-20 sm:bottom-7 sm:left-7">
         <HeroCreditsTooltip slide={slide} />
       </div>
 
-      {/* Bottom-right: actions + slide controls */}
-      <div className="absolute bottom-5 right-5 z-20 flex items-end gap-4 sm:bottom-7 sm:right-7 lg:bottom-8 lg:right-14 xl:right-20">
-        <div className="flex items-center gap-3">
-          <a
-            href="https://github.com/Subway-Builder-Modded"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-foreground/90 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-background shadow-lg backdrop-blur-sm transition-all hover:bg-foreground"
-          >
-            <GithubIcon className="size-[18px]" />
-            GitHub
-          </a>
+      {/* Bottom-right: slide controls — corner-pinned */}
+      {multi && (
+        <div
+          className="absolute bottom-5 right-5 z-20 flex items-center gap-2 sm:bottom-7 sm:right-7"
+          role="tablist"
+          aria-label="Hero slides"
+        >
+          {slides.map((s, i) => (
+            <button
+              key={s.id}
+              type="button"
+              role="tab"
+              aria-selected={i === idx}
+              aria-label={`Slide ${i + 1}`}
+              onClick={() => go(i)}
+              className={cn(
+                "relative size-3 rounded-full border-2 transition-all duration-300",
+                i === idx
+                  ? "scale-125 border-foreground bg-foreground"
+                  : "border-foreground/40 bg-transparent hover:border-foreground/70",
+              )}
+            />
+          ))}
         </div>
-
-        {multi && (
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-1.5" role="tablist" aria-label="Hero slides">
-              {slides.map((s, i) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === idx}
-                  aria-label={`Slide ${i + 1}`}
-                  onClick={() => go(i)}
-                  className={cn(
-                    "h-0.5 rounded-full transition-all duration-300",
-                    i === idx ? "w-8 bg-foreground" : "w-4 bg-foreground/30 hover:bg-foreground/50",
-                  )}
-                />
-              ))}
-            </div>
-            <div className="flex gap-1">
-              {[
-                { label: "Previous slide", icon: ChevronLeft, fn: prev },
-                { label: "Next slide", icon: ChevronRight, fn: next },
-              ].map(({ label, icon: Icon, fn }) => (
-                <button
-                  key={label}
-                  type="button"
-                  aria-label={label}
-                  onClick={fn}
-                  className="rounded-lg bg-foreground/10 p-2 backdrop-blur-sm transition-colors hover:bg-foreground/20"
-                >
-                  <Icon className="size-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Suite-colored bottom rail */}
       <div className="absolute inset-x-0 bottom-0 z-30 flex h-1">
