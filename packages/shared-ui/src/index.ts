@@ -165,6 +165,10 @@ export {
   AppFooter,
 } from './components/app-footer';
 export {
+  SectionHeader,
+  type SectionHeaderProps,
+} from './components/section-header';
+export {
   FooterColumns,
   type FooterColumn,
   type FooterLink,

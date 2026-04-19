@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import {
   Database,
+  Flame,
   Globe,
   House,
   LayoutGrid,
@@ -51,9 +52,21 @@ function GithubIcon({ className }: { className?: string }) {
   );
 }
 
-export type SiteSuiteId = "general" | "railyard" | "registry" | "template-mod" | "website";
+export type SiteSuiteId =
+  | "general"
+  | "railyard"
+  | "registry"
+  | "template-mod"
+  | "website"
+  | "foundry";
 
-export type SiteColorSchemeId = "default" | "railyard" | "registry" | "template-mod" | "website";
+export type SiteColorSchemeId =
+  | "default"
+  | "railyard"
+  | "registry"
+  | "template-mod"
+  | "website"
+  | "foundry";
 
 export type SiteRouteMatchRule = {
   kind: "exact" | "prefix";
@@ -183,6 +196,22 @@ export const SITE_SUITES: SiteSuite[] = [
       mutedDark: "rgba(255,190,115,0.13)",
     },
     breadcrumbFallback: "Website",
+  },
+  {
+    id: "foundry",
+    title: "Foundry",
+    href: "/foundry",
+    icon: Flame,
+    colorSchemeId: "foundry",
+    accent: {
+      light: "#d64545",
+      dark: "#ff6b6b",
+      textInvertedLight: "#f2f2f2",
+      textInvertedDark: "#232323",
+      mutedLight: "rgba(214,69,69,0.18)",
+      mutedDark: "rgba(255,107,107,0.13)",
+    },
+    breadcrumbFallback: "Foundry",
   },
 ];
 
@@ -404,6 +433,7 @@ const SUITE_BY_ID: Record<SiteSuiteId, SiteSuite> = {
   registry: SITE_SUITES[2],
   "template-mod": SITE_SUITES[3],
   website: SITE_SUITES[4],
+  foundry: SITE_SUITES[5],
 };
 
 function normalizePathname(pathname: string): string {

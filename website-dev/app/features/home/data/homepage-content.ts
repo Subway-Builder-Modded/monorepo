@@ -12,10 +12,6 @@ import {
   TrainTrack,
 } from "lucide-react";
 
-/* ------------------------------------------------------------------ */
-/*  Suite scrollytelling data                                         */
-/* ------------------------------------------------------------------ */
-
 export type SuiteStep = {
   id: string;
   title: string;
@@ -115,12 +111,38 @@ export const SUITE_STEPS: SuiteStep[] = [
   },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Analytics destinations (real routes only)                           */
-/* ------------------------------------------------------------------ */
+export type AnalyticsLink = {
+  label: string;
+  href: string;
+  icon: ComponentType<{ className?: string }>;
+  accent: { light: string; dark: string };
+};
 
-export const ANALYTICS_LINKS = [
-  { label: "Railyard Analytics", href: "/railyard/analytics", icon: ChartLine },
-  { label: "Registry Analytics", href: "/registry/analytics", icon: ChartLine },
-  { label: "Website Analytics", href: "/website/analytics", icon: ChartLine },
+export const ANALYTICS_LINKS: AnalyticsLink[] = [
+  {
+    label: "Railyard",
+    href: "/railyard/analytics",
+    icon: ChartLine,
+    accent: { light: "#0f8f68", dark: "#19d89c" },
+  },
+  {
+    label: "Registry",
+    href: "/registry/analytics",
+    icon: ChartLine,
+    accent: { light: "#9d4edd", dark: "#c77dff" },
+  },
+  {
+    label: "Website",
+    href: "/website/analytics",
+    icon: ChartLine,
+    accent: { light: "#f2992e", dark: "#ffbe73" },
+  },
+];
+
+export const HERO_SUITE_BARS = [
+  { light: "#0f8f68", dark: "#19d89c" },
+  { light: "#9d4edd", dark: "#c77dff" },
+  { light: "#60a5fa", dark: "#93c5fd" },
+  { light: "#f2992e", dark: "#ffbe73" },
+  { light: "#d64545", dark: "#ff6b6b" },
 ] as const;

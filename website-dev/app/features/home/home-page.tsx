@@ -1,31 +1,18 @@
 import { HeroCarousel } from "@/app/features/home/components/hero-carousel";
-import {
-  CommunityHubSection,
-  CreditsContributeHubSection,
-  OpenSourceHubSection,
-} from "@/app/features/home/components/hub-sections";
+import { PeopleSection } from "@/app/features/home/components/hub-sections";
+import { OpenSourceSection } from "@/app/features/home/components/open-source-section";
+import { AnalyticsSection } from "@/app/features/home/components/analytics-section";
 import { SuiteScrollytellingSection } from "@/app/features/home/components/suite-scrollytelling";
 import { ClosingBand } from "@/app/features/home/components/closing-band";
 
 export function HomePage() {
   return (
     <>
-      {/* 1 — Full-bleed hero */}
       <HeroCarousel />
-
-      {/* 2A — Community */}
-      <CommunityHubSection />
-
-      {/* 2B — Credits + Contribute */}
-      <CreditsContributeHubSection />
-
-      {/* 2C — Open Source + Analytics */}
-      <OpenSourceHubSection />
-
-      {/* 3 — Suite scrollytelling */}
+      <PeopleSection />
+      <OpenSourceSection />
+      <AnalyticsSection />
       <SuiteScrollytellingSection />
-
-      {/* 4 — Closing band */}
       <ClosingBand />
     </>
   );
