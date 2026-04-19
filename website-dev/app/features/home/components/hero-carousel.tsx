@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { FaDiscord } from "react-icons/fa6";
 import { cn } from "@/app/lib/utils";
 import { HERO_SLIDES, HERO_AUTO_ROTATE_MS } from "@/app/features/home/data/hero-slides";
 import { HERO_SUITE_BARS } from "@/app/features/home/data/homepage-content";
@@ -84,7 +83,6 @@ export function HeroCarousel() {
       aria-roledescription="carousel"
       aria-label="Hero showcase"
     >
-      {/* Persistent scroll-responsive wrapper — never remounts on slide change */}
       <motion.div
         className="absolute inset-0"
         style={prefersReducedMotion ? undefined : { y: imgY, scale: imgScale }}
@@ -120,81 +118,82 @@ export function HeroCarousel() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Top readability treatment — darkens/brightens strongest at top, fades down */}
+      {/* Top readability: strong gradient + heavy blur tapering downward */}
       <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/30 via-40% to-transparent"
+        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/90 via-background/40 via-45% to-transparent"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-48 backdrop-blur-[2px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_100%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-72 backdrop-blur-sm [mask-image:linear-gradient(to_bottom,black_0%,black_30%,transparent_100%)]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-40 backdrop-blur-[6px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_100%)]"
         aria-hidden="true"
       />
 
-      {/* Bottom gradient for content readability */}
+      {/* Bottom gradient */}
       <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background via-background/20 via-30% to-transparent"
+        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background/80 via-background/20 via-25% to-transparent"
         aria-hidden="true"
       />
 
-      {/* Centered content */}
+      {/* Content: title, description centered */}
       <motion.div
-        className="relative z-10 flex h-full flex-col items-center justify-center px-5 text-center sm:px-7"
+        className="relative z-10 flex h-full flex-col items-start justify-center px-5 sm:px-7 lg:px-14 xl:px-20"
         style={prefersReducedMotion ? undefined : { y: contentY }}
       >
-        <div>
-          <div className="mb-5 flex items-center justify-center gap-2" aria-hidden="true">
+        <div className="max-w-3xl">
+          <div className="mb-5 flex items-center gap-1.5" aria-hidden="true">
             {HERO_SUITE_BARS.map((c, i) => (
               <span
                 key={i}
-                className="hidden h-1.5 w-8 rounded-full dark:block sm:w-10"
+                className="hidden h-1 w-10 rounded-sm dark:block sm:w-12"
                 style={{ backgroundColor: c.dark }}
               />
             ))}
             {HERO_SUITE_BARS.map((c, i) => (
               <span
                 key={`l${i}`}
-                className="block h-1.5 w-8 rounded-full dark:hidden sm:w-10"
+                className="block h-1 w-10 rounded-sm dark:hidden sm:w-12"
                 style={{ backgroundColor: c.light }}
               />
             ))}
           </div>
 
-          <h1 className="text-[clamp(2.8rem,8vw,5.5rem)] font-extrabold leading-[0.92] tracking-[-0.035em] text-foreground">
-            Subway Builder Modded
+          <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.93] tracking-[-0.04em] text-foreground">
+            Subway Builder
+            <br />
+            Modded
           </h1>
 
-          <p className="mx-auto mt-5 max-w-lg text-[clamp(1.05rem,2.2vw,1.25rem)] leading-relaxed text-foreground/75">
+          <p className="mt-5 max-w-xl text-[clamp(1.05rem,2vw,1.2rem)] leading-relaxed text-foreground/70">
             The complete hub for everything modded in Subway Builder.
           </p>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="https://github.com/Subway-Builder-Modded"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 rounded-lg border border-transparent bg-foreground px-6 py-3 text-[15px] font-semibold text-background shadow-sm transition-colors hover:bg-foreground/90"
-            >
-              <GithubIcon className="size-[18px]" />
-              GitHub
-            </a>
-            <a
-              href="https://discord.gg/syG9YHMyeG"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 rounded-lg border border-foreground/15 bg-background/20 px-6 py-3 text-[15px] font-semibold text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-background/40"
-            >
-              <FaDiscord className="size-[18px]" aria-hidden="true" />
-              Discord
-            </a>
-          </div>
         </div>
       </motion.div>
 
-      {/* Bottom bar */}
-      <div className="absolute inset-x-0 bottom-0 z-20 flex items-end justify-between px-5 pb-5 sm:px-7 sm:pb-7 lg:px-10">
+      {/* Bottom-left: info icon */}
+      <div className="absolute bottom-5 left-5 z-20 sm:bottom-7 sm:left-7 lg:bottom-8 lg:left-14 xl:left-20">
         <HeroCreditsTooltip slide={slide} />
+      </div>
+
+      {/* Bottom-right: actions + slide controls */}
+      <div className="absolute bottom-5 right-5 z-20 flex items-end gap-4 sm:bottom-7 sm:right-7 lg:bottom-8 lg:right-14 xl:right-20">
+        <div className="flex items-center gap-3">
+          <a
+            href="https://github.com/Subway-Builder-Modded"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-foreground/90 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-background shadow-lg backdrop-blur-sm transition-all hover:bg-foreground"
+          >
+            <GithubIcon className="size-[18px]" />
+            GitHub
+          </a>
+        </div>
+
         {multi && (
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-1.5" role="tablist" aria-label="Hero slides">
               {slides.map((s, i) => (
                 <button
@@ -221,9 +220,9 @@ export function HeroCarousel() {
                   type="button"
                   aria-label={label}
                   onClick={fn}
-                  className="rounded-full bg-foreground/10 p-1.5 backdrop-blur-sm transition-colors hover:bg-foreground/20"
+                  className="rounded-lg bg-foreground/10 p-2 backdrop-blur-sm transition-colors hover:bg-foreground/20"
                 >
-                  <Icon className="size-3.5" />
+                  <Icon className="size-4" />
                 </button>
               ))}
             </div>
@@ -231,7 +230,7 @@ export function HeroCarousel() {
         )}
       </div>
 
-      {/* Suite-colored hero bars */}
+      {/* Suite-colored bottom rail */}
       <div className="absolute inset-x-0 bottom-0 z-30 flex h-1">
         {HERO_SUITE_BARS.map((bar, i) => (
           <div key={i} className="flex-1">

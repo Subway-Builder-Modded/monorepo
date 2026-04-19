@@ -5,10 +5,8 @@ import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
-import { SectionHeader } from "@subway-builder-modded/shared-ui";
+import { SectionHeader, HOMEPAGE_SHELL } from "@subway-builder-modded/shared-ui";
 import { SUITE_STEPS, type SuiteStep } from "@/app/features/home/data/homepage-content";
-
-const HOMEPAGE_SHELL = "mx-auto w-full max-w-[1600px] px-5 sm:px-7 lg:px-10 xl:px-12";
 
 function StationSwitcher({
   steps,
@@ -33,9 +31,9 @@ function StationSwitcher({
           <div key={step.id} className="flex flex-col items-center">
             {i > 0 && (
               <div
-                className="w-0.5 transition-colors"
+                className="w-[3px] rounded-full transition-colors duration-300"
                 style={{
-                  height: 28,
+                  height: 36,
                   backgroundColor: i <= activeIdx ? accent : "var(--border)",
                 }}
                 aria-hidden="true"
@@ -45,18 +43,22 @@ function StationSwitcher({
               type="button"
               onClick={() => onSelect(i)}
               className={cn(
-                "relative flex size-10 items-center justify-center rounded-lg border-2 transition-all",
-                isActive ? "scale-110" : "hover:scale-105",
+                "relative flex size-14 items-center justify-center rounded-xl border-2 transition-all duration-300 xl:size-16",
+                isActive ? "scale-110 shadow-lg" : "hover:scale-105",
               )}
               style={{
                 borderColor: isActive ? accent : "var(--border)",
-                backgroundColor: isActive ? `${accent}18` : "var(--card)",
+                backgroundColor: isActive ? `${accent}20` : "var(--card)",
                 color: isActive ? accent : "var(--muted-foreground)",
+                boxShadow: isActive ? `0 4px 20px ${accent}25` : undefined,
               }}
               aria-current={isActive ? "step" : undefined}
               aria-label={step.title}
             >
-              <StepIcon className="size-4" aria-hidden="true" />
+              <StepIcon
+                className={cn("size-5 xl:size-6", isActive && "drop-shadow-sm")}
+                aria-hidden="true"
+              />
             </button>
           </div>
         );
@@ -75,8 +77,8 @@ function StoryPanel({ step }: { step: SuiteStep }) {
   return (
     <div className="flex flex-col">
       <div
-        className="relative mb-5 overflow-hidden rounded-xl border border-border/40 bg-muted/30"
-        style={{ boxShadow: `0 0 0 1px ${accent}15, 0 8px 30px ${accent}10` }}
+        className="relative mb-6 overflow-hidden rounded-xl border border-border/40 bg-muted/30"
+        style={{ boxShadow: `0 0 0 1px ${accent}10, 0 8px 30px ${accent}08` }}
       >
         <div className="h-[3px] w-full" style={{ backgroundColor: accent }} aria-hidden="true" />
         <div className="relative aspect-video">
@@ -97,23 +99,25 @@ function StoryPanel({ step }: { step: SuiteStep }) {
         </div>
       </div>
 
-      <div className="mb-2 flex items-center gap-2.5">
+      <div className="mb-2.5 flex items-center gap-3">
         <span
-          className="flex size-7 items-center justify-center rounded-md"
+          className="flex size-9 items-center justify-center rounded-lg"
           style={{ backgroundColor: `${accent}18`, color: accent }}
         >
-          <step.icon className="size-3.5" aria-hidden="true" />
+          <step.icon className="size-4" aria-hidden="true" />
         </span>
-        <h3 className="text-lg font-extrabold tracking-[-0.02em] text-foreground">{step.title}</h3>
+        <h3 className="text-xl font-extrabold tracking-[-0.03em] text-foreground lg:text-2xl">
+          {step.title}
+        </h3>
       </div>
 
-      <p className="text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+      <p className="text-[15px] leading-relaxed text-muted-foreground">{step.description}</p>
 
-      <ul className="mt-3 space-y-1.5">
+      <ul className="mt-4 space-y-2">
         {step.bullets.map((b) => (
-          <li key={b} className="flex items-start gap-2 text-sm text-muted-foreground">
+          <li key={b} className="flex items-start gap-2.5 text-[15px] text-muted-foreground">
             <span
-              className="mt-[7px] size-1 shrink-0 rounded-full"
+              className="mt-[7px] size-1.5 shrink-0 rounded-full"
               style={{ backgroundColor: accent }}
               aria-hidden="true"
             />
@@ -122,13 +126,13 @@ function StoryPanel({ step }: { step: SuiteStep }) {
         ))}
       </ul>
 
-      <div className="mt-5 flex flex-wrap items-center gap-2.5">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link
           to={step.primaryAction.href}
-          className="inline-flex items-center gap-2 rounded-lg border border-transparent px-5 py-2.5 text-sm font-semibold transition-colors"
-          style={{ backgroundColor: accent, color: "#fff" }}
+          className="inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-sm font-bold tracking-[-0.01em] text-white shadow-sm transition-all hover:brightness-110"
+          style={{ backgroundColor: accent }}
         >
-          <PrimaryIcon className="size-3.5" aria-hidden="true" />
+          <PrimaryIcon className="size-4" aria-hidden="true" />
           {step.primaryAction.label}
         </Link>
         {step.secondaryAction.external ? (
@@ -136,18 +140,18 @@ function StoryPanel({ step }: { step: SuiteStep }) {
             href={step.secondaryAction.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/50"
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted/50"
           >
-            <SecondaryIcon className="size-3.5" aria-hidden="true" />
+            <SecondaryIcon className="size-4" aria-hidden="true" />
             {step.secondaryAction.label}
             <ExternalLink className="size-3 opacity-50" aria-hidden="true" />
           </a>
         ) : (
           <Link
             to={step.secondaryAction.href}
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/50"
+            className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted/50"
           >
-            <SecondaryIcon className="size-3.5" aria-hidden="true" />
+            <SecondaryIcon className="size-4" aria-hidden="true" />
             {step.secondaryAction.label}
           </Link>
         )}
@@ -158,7 +162,7 @@ function StoryPanel({ step }: { step: SuiteStep }) {
 
 function MobileStack({ steps }: { steps: SuiteStep[] }) {
   return (
-    <div className="space-y-10">
+    <div className="space-y-14">
       {steps.map((step) => (
         <StoryPanel key={step.id} step={step} />
       ))}
@@ -196,12 +200,12 @@ function DesktopSwitcher({ steps }: { steps: SuiteStep[] }) {
   }
 
   return (
-    <div className="grid grid-cols-[56px_1fr] items-start gap-8 xl:gap-12">
-      <div className="sticky top-[calc(50%-120px)] flex justify-center self-start">
+    <div className="grid grid-cols-[80px_1fr] items-start gap-10 xl:grid-cols-[96px_1fr] xl:gap-14">
+      <div className="sticky top-[calc(50vh-160px)] flex justify-center self-start">
         <StationSwitcher steps={steps} activeIdx={activeIdx} onSelect={scrollToPanel} />
       </div>
 
-      <div className="space-y-20">
+      <div className="space-y-24">
         {steps.map((step, i) => (
           <div
             key={step.id}
@@ -215,10 +219,10 @@ function DesktopSwitcher({ steps }: { steps: SuiteStep[] }) {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={step.id}
-                  initial={{ opacity: 0.4, y: 12 }}
+                  initial={{ opacity: 0.3, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ margin: "-30% 0px -30% 0px", once: false }}
-                  transition={{ duration: 0.45, ease: "easeOut" }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
                 >
                   <StoryPanel step={step} />
                 </motion.div>
@@ -236,17 +240,19 @@ export function SuiteScrollytellingSection() {
   const steps = SUITE_STEPS;
 
   return (
-    <section className="relative py-16 lg:py-24">
-      <div className="pointer-events-none absolute inset-0 bg-muted/20" aria-hidden="true" />
+    <section className="relative py-20 lg:py-32">
+      <div
+        className="pointer-events-none absolute inset-0 border-y border-border/40 bg-muted/15"
+        aria-hidden="true"
+      />
 
       <div className={cn("relative", HOMEPAGE_SHELL)}>
         <SectionHeader
-          kicker="The Suite"
           title="Four projects, one ecosystem"
           description="Each project handles a different part of the modding experience — from downloading and managing content to creating and publishing it."
         />
 
-        <div className="mt-10 lg:mt-14">
+        <div className="mt-12 lg:mt-16">
           {isDesktop ? <DesktopSwitcher steps={steps} /> : <MobileStack steps={steps} />}
         </div>
       </div>

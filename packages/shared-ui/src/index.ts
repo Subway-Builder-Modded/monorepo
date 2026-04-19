@@ -169,6 +169,17 @@ export {
   type SectionHeaderProps,
 } from './components/section-header';
 export {
+  SectionShell,
+  HOMEPAGE_SHELL,
+  type SectionShellProps,
+} from './components/section-shell';
+export {
+  SuiteButton,
+  type SuiteAccent,
+  type SuiteButtonVariant,
+  type SuiteButtonProps,
+} from './components/suite-button';
+export {
   FooterColumns,
   type FooterColumn,
   type FooterLink,

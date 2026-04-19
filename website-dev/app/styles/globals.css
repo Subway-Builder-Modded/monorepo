@@ -66,9 +66,10 @@
 }
 
 :root {
-  --font-sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Inter", "SF Pro Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono:
-    "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    "JetBrains Mono", "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.13 0 0);
   --card: oklch(1 0 0);
