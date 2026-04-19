@@ -18,6 +18,7 @@ export interface ProjectVersionRowLike {
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Formats UTC date parts into a compact display string. */
 function formatUTCDate(parts: {
   year: number;
   month: number;
@@ -29,13 +30,14 @@ function formatUTCDate(parts: {
   const month = String(parts.month).padStart(2, '0');
   const day = String(parts.day).padStart(2, '0');
   if (parts.hours === undefined || parts.minutes === undefined) {
-    return `${year}-${month}-${day} UTC`;
+    return `${year}-${month}-${day}Z`;
   }
   const hours = String(parts.hours).padStart(2, '0');
   const minutes = String(parts.minutes).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
+  return `${year}-${month}-${day}T${hours}:${minutes}Z`;
 }
 
+/** Parses project version dates as UTC timestamps. */
 export function parseProjectVersionDate(date: string): number | null {
   if (DATE_ONLY_PATTERN.test(date)) {
     const [year, month, day] = date.split('-').map(Number);
@@ -46,6 +48,7 @@ export function parseProjectVersionDate(date: string): number | null {
   return Number.isFinite(timestamp) ? timestamp : null;
 }
 
+/** Toggles project version sorting for the requested column. */
 export function toggleProjectVersionSort(
   previous: ProjectVersionSortState,
   field: ProjectVersionSortField,
@@ -60,6 +63,7 @@ export function toggleProjectVersionSort(
   return { field, direction: 'desc' };
 }
 
+/** Sorts project versions using parsed UTC dates when needed. */
 export function sortProjectVersions<T extends ProjectVersionRowLike>(
   versions: T[],
   sort: ProjectVersionSortState,
@@ -79,13 +83,14 @@ export function sortProjectVersions<T extends ProjectVersionRowLike>(
       comparison = compareVersion(left.version, right.version);
     }
 
-    return sort.direction === 'asc' ? comparison : -comparison;
+  return sort.direction === 'asc' ? comparison : -comparison;
   });
 }
 
+/** Formats project version dates for consistent UTC display. */
 export function formatProjectVersionDate(date: string): string {
   if (DATE_ONLY_PATTERN.test(date)) {
-    return `${date} UTC`;
+    return `${date}Z`;
   }
 
   const timestamp = parseProjectVersionDate(date);
