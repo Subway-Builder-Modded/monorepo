@@ -1,6 +1,10 @@
 import { Link } from "@/app/lib/router";
 import { SectionShell, SectionHeader } from "@subway-builder-modded/shared-ui";
-import { PEOPLE_DESTINATIONS, PEOPLE_SECTION } from "@/app/features/home/data/homepage-content";
+import {
+  getHomeIcon,
+  PEOPLE_DESTINATIONS,
+  PEOPLE_SECTION,
+} from "@/app/features/home/data/homepage-content";
 
 export function PeopleSection() {
   return (
@@ -10,7 +14,7 @@ export function PeopleSection() {
       <div className="grid gap-px overflow-hidden rounded-xl border border-border/60 bg-border/40 sm:grid-cols-3">
         <div className="col-span-full h-[3px] bg-foreground/15" aria-hidden="true" />
         {PEOPLE_DESTINATIONS.map((d) => {
-          const Icon = d.icon;
+          const Icon = getHomeIcon(d.icon);
           return (
             <Link
               key={d.id}

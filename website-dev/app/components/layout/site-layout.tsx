@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { APP_SHELL_OUTER_CONTAINER_CLASS } from "@subway-builder-modded/shared-ui";
+import { SITE_SHELL_CLASS } from "@subway-builder-modded/shared-ui";
 import { SiteFooter } from "@/app/components/footer/site-footer";
 import { FloatingNavbar } from "@/app/components/navigation/floating-navbar";
 import { getActiveSuite } from "@/app/config/site-navigation";
@@ -29,7 +29,7 @@ export function SiteLayout({ children }: SiteLayoutProps) {
         className={
           isHome
             ? "relative min-h-[70vh] w-full"
-            : `relative min-h-[70vh] w-full pb-8 pt-24 ${APP_SHELL_OUTER_CONTAINER_CLASS}`
+            : `relative min-h-[70vh] w-full pb-8 pt-24 ${SITE_SHELL_CLASS}`
         }
       >
         {children}

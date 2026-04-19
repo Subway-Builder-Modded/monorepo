@@ -5,8 +5,10 @@ import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
-import { SectionHeader, HOMEPAGE_SHELL, CodeDisplay } from "@subway-builder-modded/shared-ui";
+import { CodeDisplay, SectionHeader, SectionShell } from "@subway-builder-modded/shared-ui";
 import {
+  getHomeIcon,
+  getHomepageSuiteAccent,
   SUITE_SCROLLYTELLING_SECTION,
   SUITE_STEPS,
   type SuiteStep,
@@ -28,8 +30,9 @@ function StationSwitcher({
     <nav className="relative flex flex-col items-center" aria-label="Suite navigation">
       {steps.map((step, i) => {
         const isActive = i === activeIdx;
-        const accent = isDark ? step.accent.dark : step.accent.light;
-        const StepIcon = step.icon;
+        const accent = getHomepageSuiteAccent(step.accentSuiteId);
+        const tone = isDark ? accent.dark : accent.light;
+        const StepIcon = getHomeIcon(step.icon);
 
         return (
           <div key={step.id} className="flex flex-col items-center">
@@ -51,10 +54,10 @@ function StationSwitcher({
                 isActive ? "scale-110 shadow-lg" : "hover:scale-105",
               )}
               style={{
-                borderColor: isActive ? accent : "var(--border)",
-                backgroundColor: isActive ? `${accent}20` : "var(--card)",
-                color: isActive ? accent : "var(--muted-foreground)",
-                boxShadow: isActive ? `0 4px 20px ${accent}25` : undefined,
+                borderColor: isActive ? tone : "var(--border)",
+                backgroundColor: isActive ? `${tone}20` : "var(--card)",
+                color: isActive ? tone : "var(--muted-foreground)",
+                boxShadow: isActive ? `0 4px 20px ${tone}25` : undefined,
               }}
               aria-current={isActive ? "step" : undefined}
               aria-label={step.title}
@@ -74,41 +77,40 @@ function StationSwitcher({
 function StoryPanel({ step }: { step: SuiteStep }) {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === "dark";
-  const accent = isDark ? step.accent.dark : step.accent.light;
-  const PrimaryIcon = step.primaryAction.icon;
-  const SecondaryIcon = step.secondaryAction.icon;
+  const accent = getHomepageSuiteAccent(step.accentSuiteId);
+  const tone = isDark ? accent.dark : accent.light;
+  const StepIcon = getHomeIcon(step.icon);
+  const PrimaryIcon = getHomeIcon(step.primaryAction.icon);
+  const SecondaryIcon = getHomeIcon(step.secondaryAction.icon);
 
   return (
     <div className="flex flex-col">
-      {step.mediaKind === "code" && step.codeContent ? (
-        <div
-          className="relative mb-6 overflow-hidden rounded-xl"
-          style={{ boxShadow: `0 0 0 1px ${accent}10, 0 8px 30px ${accent}08` }}
-        >
-          <CodeDisplay
-            code={step.codeContent}
-            lang={step.codeLang ?? "tsx"}
-            title={step.codeFileName}
-            resolvedTheme={resolvedTheme}
-          />
-        </div>
+      {step.media.kind === "code" ? (
+        <CodeDisplay
+          code={step.media.code.content}
+          lang={step.media.code.lang}
+          title={step.media.code.fileName}
+          resolvedTheme={resolvedTheme}
+          className="mb-6"
+          style={{ boxShadow: `0 0 0 1px ${tone}10, 0 8px 30px ${tone}08` }}
+        />
       ) : (
         <div
           className="relative mb-6 overflow-hidden rounded-xl border border-border/40 bg-muted/30"
-          style={{ boxShadow: `0 0 0 1px ${accent}10, 0 8px 30px ${accent}08` }}
+          style={{ boxShadow: `0 0 0 1px ${tone}10, 0 8px 30px ${tone}08` }}
         >
-          <div className="h-[3px] w-full" style={{ backgroundColor: accent }} aria-hidden="true" />
+          <div className="h-[3px] w-full" style={{ backgroundColor: tone }} aria-hidden="true" />
           <div className="relative aspect-video">
             <img
-              src={step.imageLight}
-              alt={step.imageAlt}
+              src={step.media.imageLight}
+              alt={step.media.imageAlt}
               className="absolute inset-0 block size-full object-cover object-top dark:hidden"
               loading="lazy"
               draggable={false}
             />
             <img
-              src={step.imageDark}
-              alt={step.imageAlt}
+              src={step.media.imageDark}
+              alt={step.media.imageAlt}
               className="absolute inset-0 hidden size-full object-cover object-top dark:block"
               loading="lazy"
               draggable={false}
@@ -120,9 +122,9 @@ function StoryPanel({ step }: { step: SuiteStep }) {
       <div className="mb-2.5 flex items-center gap-3">
         <span
           className="flex size-9 items-center justify-center rounded-lg"
-          style={{ backgroundColor: `${accent}18`, color: accent }}
+          style={{ backgroundColor: `${tone}18`, color: tone }}
         >
-          <step.icon className="size-4" aria-hidden="true" />
+          <StepIcon className="size-4" aria-hidden="true" />
         </span>
         <h3 className="text-xl font-extrabold tracking-[-0.03em] text-foreground lg:text-2xl">
           {step.title}
@@ -136,7 +138,7 @@ function StoryPanel({ step }: { step: SuiteStep }) {
           <li key={b} className="flex items-start gap-2.5 text-[15px] text-muted-foreground">
             <span
               className="mt-[7px] size-1.5 shrink-0 rounded-full"
-              style={{ backgroundColor: accent }}
+              style={{ backgroundColor: tone }}
               aria-hidden="true"
             />
             {b}
@@ -148,7 +150,7 @@ function StoryPanel({ step }: { step: SuiteStep }) {
         <Link
           to={step.primaryAction.href}
           className="inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-sm font-bold tracking-[-0.01em] shadow-sm transition-all hover:brightness-110"
-          style={{ backgroundColor: accent, color: "var(--background)" }}
+          style={{ backgroundColor: tone, color: "var(--background)" }}
         >
           <PrimaryIcon className="size-4" aria-hidden="true" />
           {step.primaryAction.label}
@@ -258,22 +260,15 @@ export function SuiteScrollytellingSection() {
   const steps = SUITE_STEPS;
 
   return (
-    <section className="relative pt-20 pb-10 lg:pt-32 lg:pb-16">
-      <div
-        className="pointer-events-none absolute inset-0 border-y border-border/40 bg-muted/15"
-        aria-hidden="true"
+    <SectionShell surfaced className="pt-20 pb-10 lg:pt-32 lg:pb-16">
+      <SectionHeader
+        title={SUITE_SCROLLYTELLING_SECTION.title}
+        description={SUITE_SCROLLYTELLING_SECTION.description}
       />
 
-      <div className={cn("relative", HOMEPAGE_SHELL)}>
-        <SectionHeader
-          title={SUITE_SCROLLYTELLING_SECTION.title}
-          description={SUITE_SCROLLYTELLING_SECTION.description}
-        />
-
-        <div className="mt-12 lg:mt-16">
-          {isDesktop ? <DesktopSwitcher steps={steps} /> : <MobileStack steps={steps} />}
-        </div>
+      <div className="mt-12 lg:mt-16">
+        {isDesktop ? <DesktopSwitcher steps={steps} /> : <MobileStack steps={steps} />}
       </div>
-    </section>
+    </SectionShell>
   );
 }

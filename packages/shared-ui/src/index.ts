@@ -1,12 +1,14 @@
-// Utilities
 export { cn, type ClassValue } from './lib/cn';
 export {
+  SITE_CONTENT_WIDTH_CLASS,
+  SITE_GUTTER_X_CLASS,
+  SITE_MAIN_SPACING_CLASS,
+  SITE_SECTION_SPACING_CLASS,
+  SITE_SHELL_CLASS,
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_OUTER_CONTAINER_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from './lib/layout-tokens';
-
-// Components
 export { Badge } from './components/badge';
 export { Checkbox } from './components/checkbox';
 export {
@@ -170,7 +172,6 @@ export {
 } from './components/section-header';
 export {
   SectionShell,
-  HOMEPAGE_SHELL,
   type SectionShellProps,
 } from './components/section-shell';
 export {

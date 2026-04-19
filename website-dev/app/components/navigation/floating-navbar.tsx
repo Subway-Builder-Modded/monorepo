@@ -1,6 +1,6 @@
 import { type CSSProperties, type MouseEvent, useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { APP_SHELL_OUTER_CONTAINER_CLASS } from "@subway-builder-modded/shared-ui";
+import { SITE_SHELL_CLASS } from "@subway-builder-modded/shared-ui";
 import { SITE_COMMUNITY_LINKS } from "@/app/config/site-navigation";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
 import { NAVBAR_MOTION } from "@/app/hooks/use-navbar-phase";
@@ -97,7 +97,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       ) : null}
 
       <nav aria-label="Site navigation" className="fixed inset-x-0 top-4 z-50">
-        <div className={cn(APP_SHELL_OUTER_CONTAINER_CLASS, "relative")}>
+        <div className={cn(SITE_SHELL_CLASS, "relative")}>
           <motion.div
             initial={false}
             onClick={onCollapsedSurfaceClick}
@@ -200,7 +200,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             aria-hidden="true"
             className={cn(
               "pointer-events-none invisible fixed inset-x-0 top-4 -z-10",
-              APP_SHELL_OUTER_CONTAINER_CLASS,
+              SITE_SHELL_CLASS,
             )}
           >
             <div className="rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]">

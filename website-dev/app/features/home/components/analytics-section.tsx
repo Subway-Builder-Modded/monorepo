@@ -9,6 +9,8 @@ import {
   ANALYTICS_LINKS,
   ANALYTICS_PREVIEW,
   ANALYTICS_SECTION,
+  getHomeIcon,
+  getHomepageSuiteAccent,
 } from "@/app/features/home/data/homepage-content";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
@@ -43,8 +45,9 @@ export function AnalyticsSection() {
             </p>
             <div className="mt-6 flex flex-col gap-2.5 sm:max-w-xs">
               {ANALYTICS_LINKS.map((link) => {
-                const Icon = link.icon;
-                const color = isDark ? link.accent.dark : link.accent.light;
+                const Icon = getHomeIcon(link.icon);
+                const accent = getHomepageSuiteAccent(link.accentSuiteId);
+                const color = isDark ? accent.dark : accent.light;
                 return (
                   <Link
                     key={link.href}

@@ -5,7 +5,6 @@ export type TwoColumnSectionProps = {
   left: ReactNode;
   right: ReactNode;
   className?: string;
-  /** Reverse column order on desktop (right content appears first visually on mobile) */
   reverseOnDesktop?: boolean;
 };
 

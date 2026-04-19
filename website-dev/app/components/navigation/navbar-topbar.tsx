@@ -69,11 +69,20 @@ export function NavbarTopbar({
     <Link
       to="/"
       aria-label="Go to home"
-      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg py-0.5 text-sm font-semibold leading-none text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      className="inline-flex h-full min-w-0 items-center gap-2.5 rounded-lg py-1 text-sm font-semibold text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:gap-3"
     >
-      <img src="/logo.svg" alt="" aria-hidden="true" className="size-4 shrink-0 object-contain" />
+      <img
+        src="/logo.svg"
+        alt=""
+        aria-hidden="true"
+        className="size-4.5 shrink-0 object-contain lg:size-5"
+      />
       {!isMobile ? (
-        <span className="block max-w-full truncate leading-none">Subway Builder Modded</span>
+        <span className="min-w-0 overflow-hidden">
+          <span className="block truncate pb-px leading-[1.08] lg:text-[15px]">
+            Subway Builder Modded
+          </span>
+        </span>
       ) : null}
     </Link>
   );

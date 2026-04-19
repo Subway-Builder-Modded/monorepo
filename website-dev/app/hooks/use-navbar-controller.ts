@@ -1,21 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SITE_NAV_ITEMS, getActiveSuite, type SiteSuiteId } from "@/app/config/site-navigation";
+import { useEffect, useMemo, useState } from "react";
+import { SITE_NAV_ITEMS, getActiveSuite } from "@/app/config/site-navigation";
 import { buildNavbarDisplayModel } from "@/app/components/navigation/navbar-model";
+import { TOP_BAR_HEIGHT } from "@/app/hooks/navbar-controller/constants";
+import { getTargetPanelMetrics } from "@/app/hooks/navbar-controller/panel-metrics";
+import { useCommittedPanelMetrics } from "@/app/hooks/navbar-controller/use-committed-panel-metrics";
+import { useNavbarEscapeKey } from "@/app/hooks/navbar-controller/use-navbar-escape-key";
+import { useNavbarInteractions } from "@/app/hooks/navbar-controller/use-navbar-interactions";
+import { useNavbarViewportHeight } from "@/app/hooks/navbar-controller/use-navbar-viewport-height";
 import { useNavbarPanelHeight } from "@/app/hooks/use-navbar-panel-height";
 import { NAVBAR_MOTION, useNavbarPhase } from "@/app/hooks/use-navbar-phase";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
-
-const TOP_BAR_HEIGHT = 48;
-const NAVBAR_TOP_OFFSET = 16;
-const PANEL_MIN_HEIGHT = 84;
-const PANEL_BODY_VERTICAL_PADDING = 20;
-const PANEL_VIEWPORT_BOTTOM_GUTTER = 24;
-
-type CommittedPanelMetrics = {
-  key: string | null;
-  panelHeight: number;
-  panelNeedsScroll: boolean;
-};
 
 type UseNavbarControllerOptions = {
   isMobile: boolean;
@@ -24,59 +18,6 @@ type UseNavbarControllerOptions = {
   setTheme: (theme: ThemeMode) => void;
   theme: ThemeMode;
 };
-
-type PanelMetricsInputs = {
-  viewportHeight: number;
-  measuredPanelHeight: number;
-};
-
-type NextCommittedPanelMetricsInputs = {
-  previous: CommittedPanelMetrics;
-  panelMeasurementKey: string;
-  targetPanelHeight: number;
-  targetPanelNeedsScroll: boolean;
-};
-
-function getTargetPanelMetrics({ viewportHeight, measuredPanelHeight }: PanelMetricsInputs) {
-  const maxPanelHeight = Math.max(
-    PANEL_MIN_HEIGHT,
-    viewportHeight - NAVBAR_TOP_OFFSET - TOP_BAR_HEIGHT - PANEL_VIEWPORT_BOTTOM_GUTTER,
-  );
-  const measuredNaturalPanelHeight = Math.max(
-    PANEL_MIN_HEIGHT,
-    measuredPanelHeight + PANEL_BODY_VERTICAL_PADDING,
-  );
-
-  return {
-    targetPanelHeight: Math.min(measuredNaturalPanelHeight, maxPanelHeight),
-    targetPanelNeedsScroll: measuredNaturalPanelHeight > maxPanelHeight,
-  };
-}
-
-function getNextCommittedPanelMetrics({
-  previous,
-  panelMeasurementKey,
-  targetPanelHeight,
-  targetPanelNeedsScroll,
-}: NextCommittedPanelMetricsInputs): CommittedPanelMetrics {
-  if (
-    previous.key === panelMeasurementKey &&
-    previous.panelHeight === targetPanelHeight &&
-    previous.panelNeedsScroll === targetPanelNeedsScroll
-  ) {
-    return previous;
-  }
-
-  return {
-    key: panelMeasurementKey,
-    panelHeight: targetPanelHeight,
-    panelNeedsScroll: targetPanelNeedsScroll,
-  };
-}
-
-function getNextTheme(theme: ThemeMode): ThemeMode {
-  return theme === "light" ? "dark" : "light";
-}
 
 export function useNavbarController({
   isMobile,
@@ -87,110 +28,38 @@ export function useNavbarController({
 }: UseNavbarControllerOptions) {
   const realSuite = useMemo(() => getActiveSuite(pathname), [pathname]);
 
-  const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuite.id);
   const [canStartEnterMotion, setCanStartEnterMotion] = useState(false);
-  const [committedPanelMetrics, setCommittedPanelMetrics] = useState<CommittedPanelMetrics>({
-    key: null,
-    panelHeight: PANEL_MIN_HEIGHT,
-    panelNeedsScroll: false,
-  });
-  const [viewportHeight, setViewportHeight] = useState(() =>
-    typeof window === "undefined" ? 900 : window.innerHeight,
-  );
-
-  const onFullyClosed = useCallback(() => {
-    setOpenSuiteId(realSuite.id);
-  }, [realSuite.id]);
 
   const { phase, open, close, isFrameExpanded, showPanelSurface, showRows, allowHoverClose } =
     useNavbarPhase({
       canStartEnterMotion,
-      onFullyClosed,
       reducedMotion: prefersReducedMotion,
     });
 
-  const isPinnedRef = useRef(false);
+  const viewportHeight = useNavbarViewportHeight();
+  const {
+    closeNavbar,
+    onFrameClick,
+    onFrameHoverEnd,
+    onFrameHoverStart,
+    onMenuClick,
+    onRowClick,
+    onSuiteChange,
+    onThemeClick,
+    openNavbar,
+    openSuiteId,
+  } = useNavbarInteractions({
+    allowHoverClose,
+    close,
+    isFrameExpanded,
+    open,
+    phase,
+    realSuiteId: realSuite.id,
+    setTheme,
+    theme,
+  });
 
-  const closeNavbar = useCallback(() => {
-    isPinnedRef.current = false;
-    close();
-  }, [close]);
-
-  useEffect(() => {
-    if (phase === "closed") {
-      setOpenSuiteId(realSuite.id);
-    }
-  }, [phase, realSuite.id]);
-
-  useEffect(() => {
-    const onResize = () => {
-      setViewportHeight(window.innerHeight);
-    };
-
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  const openNavbar = useCallback(() => {
-    if (phase === "closed") {
-      setOpenSuiteId(realSuite.id);
-      open();
-    }
-  }, [open, phase, realSuite.id]);
-
-  const onMenuClick = useCallback(() => {
-    if (isFrameExpanded) {
-      closeNavbar();
-    } else {
-      isPinnedRef.current = true;
-      openNavbar();
-    }
-  }, [closeNavbar, isFrameExpanded, openNavbar]);
-
-  const onFrameHoverStart = useCallback(() => {
-    if (phase === "closed") {
-      openNavbar();
-    }
-  }, [openNavbar, phase]);
-
-  const onFrameHoverEnd = useCallback(() => {
-    if (allowHoverClose && !isPinnedRef.current) {
-      close();
-    }
-  }, [allowHoverClose, close]);
-
-  const onFrameClick = useCallback(() => {
-    if (isFrameExpanded && !isPinnedRef.current) {
-      isPinnedRef.current = true;
-    }
-  }, [isFrameExpanded]);
-
-  const onSuiteChange = useCallback((suiteId: SiteSuiteId) => {
-    setOpenSuiteId(suiteId);
-  }, []);
-
-  const onThemeClick = useCallback(() => {
-    setTheme(getNextTheme(theme));
-  }, [setTheme, theme]);
-
-  const onRowClick = useCallback(() => {
-    closeNavbar();
-  }, [closeNavbar]);
-
-  useEffect(() => {
-    if (phase === "closed") {
-      return;
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        closeNavbar();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeNavbar, phase]);
+  useNavbarEscapeKey({ onEscape: closeNavbar, phase });
 
   const displayModel = useMemo(
     () =>
@@ -226,6 +95,19 @@ export function useNavbarController({
       isMobile,
     });
 
+  const { targetPanelHeight, targetPanelNeedsScroll } = getTargetPanelMetrics({
+    viewportHeight,
+    measuredPanelHeight,
+  });
+
+  const committedPanelMetrics = useCommittedPanelMetrics({
+    hasMeasuredCurrentPanel,
+    panelMeasurementKey,
+    phase,
+    targetPanelHeight,
+    targetPanelNeedsScroll,
+  });
+
   useEffect(() => {
     if (phase === "closed") {
       setCanStartEnterMotion(false);
@@ -238,41 +120,6 @@ export function useNavbarController({
         committedPanelMetrics.key === panelMeasurementKey,
     );
   }, [committedPanelMetrics.key, hasMeasuredCurrentPanel, panelMeasurementKey, phase]);
-
-  const { targetPanelHeight, targetPanelNeedsScroll } = getTargetPanelMetrics({
-    viewportHeight,
-    measuredPanelHeight,
-  });
-
-  useEffect(() => {
-    if (phase === "closed") {
-      setCommittedPanelMetrics({
-        key: null,
-        panelHeight: PANEL_MIN_HEIGHT,
-        panelNeedsScroll: false,
-      });
-      return;
-    }
-
-    if (!hasMeasuredCurrentPanel) {
-      return;
-    }
-
-    setCommittedPanelMetrics((previousMetrics) => {
-      return getNextCommittedPanelMetrics({
-        previous: previousMetrics,
-        panelMeasurementKey,
-        targetPanelHeight,
-        targetPanelNeedsScroll,
-      });
-    });
-  }, [
-    hasMeasuredCurrentPanel,
-    panelMeasurementKey,
-    phase,
-    targetPanelHeight,
-    targetPanelNeedsScroll,
-  ]);
 
   const panelHeight = committedPanelMetrics.panelHeight;
   const panelNeedsScroll = committedPanelMetrics.panelNeedsScroll;

@@ -7,7 +7,7 @@ import {
   CodeDisplay,
   GithubIcon,
 } from "@subway-builder-modded/shared-ui";
-import { OPEN_SOURCE_SECTION, OPEN_SOURCE_CODE } from "@/app/features/home/data/homepage-content";
+import { OPEN_SOURCE_SECTION } from "@/app/features/home/data/homepage-content";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
 function CodeSurface() {
@@ -15,9 +15,9 @@ function CodeSurface() {
 
   return (
     <CodeDisplay
-      code={OPEN_SOURCE_CODE}
-      lang="typescript"
-      title="homepage-content.ts"
+      code={OPEN_SOURCE_SECTION.codeSample.content}
+      lang={OPEN_SOURCE_SECTION.codeSample.lang}
+      title={OPEN_SOURCE_SECTION.codeSample.title}
       resolvedTheme={resolvedTheme}
     />
   );
