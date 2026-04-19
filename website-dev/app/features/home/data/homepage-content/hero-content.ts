@@ -23,6 +23,17 @@ export const HERO_SLIDES: HeroSlide[] = [
     saveFileCreator: "slurry",
     mods: [{ name: "Advanced Analytics", author: "Steno", modId: "advanced-analytics" }],
   },
+  {
+    id: "vancouver",
+    imageLight: "/images/home/vancouver-light.png",
+    imageDark: "/images/home/vancouver-dark.png",
+    alt: "Vancouver",
+    mapName: "Vancouver",
+    mapId: "vancouver",
+    creator: "devenperez",
+    saveFileCreator: "seraphina_.",
+    mods: [{ name: "Station Dots", author: "naz", modId: "station-dots" }],
+  },
 ];
 
 export const HERO_AUTO_ROTATE_MS = 10_000;
