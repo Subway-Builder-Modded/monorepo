@@ -5,13 +5,11 @@ import { useRegistryStore } from './registry-store';
 const {
   mockGetModsResponse,
   mockGetMapsResponse,
-  mockGetIntegrityReportResponse,
   mockRefreshResponse,
   mockGetDownloadCountsByAssetType,
 } = vi.hoisted(() => ({
   mockGetModsResponse: vi.fn(),
   mockGetMapsResponse: vi.fn(),
-  mockGetIntegrityReportResponse: vi.fn(),
   mockRefreshResponse: vi.fn(),
   mockGetDownloadCountsByAssetType: vi.fn(),
 }));
@@ -19,7 +17,6 @@ const {
 vi.mock('../../wailsjs/go/registry/Registry', () => ({
   GetModsResponse: mockGetModsResponse,
   GetMapsResponse: mockGetMapsResponse,
-  GetIntegrityReportResponse: mockGetIntegrityReportResponse,
   RefreshResponse: mockRefreshResponse,
   GetDownloadCountsByAssetType: mockGetDownloadCountsByAssetType,
 }));
@@ -31,8 +28,6 @@ describe('useRegistryStore download totals', () => {
     useRegistryStore.setState({
       mods: [],
       maps: [],
-      mapIntegrity: null,
-      modIntegrity: null,
       modDownloadTotals: {},
       mapDownloadTotals: {},
       downloadTotalsLoaded: false,
@@ -146,17 +141,6 @@ describe('useRegistryStore download totals', () => {
       message: 'ok',
       maps: [],
     });
-    mockGetIntegrityReportResponse
-      .mockResolvedValueOnce({
-        status: 'success',
-        message: 'ok',
-        report: { listings: {} },
-      })
-      .mockResolvedValueOnce({
-        status: 'success',
-        message: 'ok',
-        report: { listings: {} },
-      });
     mockGetDownloadCountsByAssetType
       .mockResolvedValueOnce({
         status: 'success',
@@ -177,9 +161,6 @@ describe('useRegistryStore download totals', () => {
     expect(mockRefreshResponse).toHaveBeenCalledTimes(1);
     expect(mockGetModsResponse).toHaveBeenCalledTimes(1);
     expect(mockGetMapsResponse).toHaveBeenCalledTimes(1);
-    expect(mockGetIntegrityReportResponse).toHaveBeenCalledTimes(2);
-    expect(mockGetIntegrityReportResponse).toHaveBeenNthCalledWith(1, 'map');
-    expect(mockGetIntegrityReportResponse).toHaveBeenNthCalledWith(2, 'mod');
     expect(state.modDownloadTotals).toEqual({ mod_c: 9 });
     expect(state.mapDownloadTotals).toEqual({ map_c: 10 });
     expect(state.downloadTotalsLoaded).toBe(true);

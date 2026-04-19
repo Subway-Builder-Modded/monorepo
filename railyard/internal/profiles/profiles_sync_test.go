@@ -44,7 +44,7 @@ func TestSyncActionErrorIgnoresWarnings(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("Non-duplicate warning still returns error", func(t *testing.T) {
+	t.Run("Non-duplicate warning is tolerated", func(t *testing.T) {
 		err := syncInstallActionError(
 			types.SubscriptionActionSubscribe,
 			types.AssetTypeMap,

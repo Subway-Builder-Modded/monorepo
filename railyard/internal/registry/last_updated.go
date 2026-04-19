@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sync"
@@ -12,9 +13,9 @@ import (
 const lastUpdatedWorkerLimit = 6
 
 type lastUpdatedArgs struct {
+	assetType  types.AssetType
 	id         string
 	updateType string
-	source     string
 }
 
 func (r *Registry) loadLastUpdated(
@@ -31,13 +32,15 @@ func (r *Registry) loadLastUpdated(
 
 	mapSources := getLastUpdatedArgs(
 		maps,
+		func(manifest types.MapManifest) types.AssetType { return types.AssetTypeMap },
 		func(manifest types.MapManifest) string { return manifest.ID },
-		func(manifest types.MapManifest) types.UpdateConfig { return manifest.Update },
+		func(manifest types.MapManifest) string { return manifest.Update.Type },
 	)
 	modSources := getLastUpdatedArgs(
 		mods,
+		func(manifest types.ModManifest) types.AssetType { return types.AssetTypeMod },
 		func(manifest types.ModManifest) string { return manifest.ID },
-		func(manifest types.ModManifest) types.UpdateConfig { return manifest.Update },
+		func(manifest types.ModManifest) string { return manifest.Update.Type },
 	)
 
 	mapEntries, mapWarnings := r.resolveLastUpdated(mapSources)
@@ -101,9 +104,9 @@ func (r *Registry) resolveLastUpdated(
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			versions, err := r.GetVersions(current.updateType, current.source)
+			versions, err := r.GetInstallableVersions(current.assetType, current.id)
 			if err != nil {
-				r.logger.Warn("Failed to fetch versions for last updated", "asset_id", current.id, "update_type", current.updateType, "source", current.source, "error", err)
+				r.logger.Warn("Failed to fetch installable versions for last updated", "asset_type", current.assetType, "asset_id", current.id, "error", err)
 				mu.Lock()
 				warnings = append(warnings, fmt.Errorf("failed to fetch versions for %q: %w", current.id, err))
 				results[current.id] = 0 // Default to epoch start if we can't fetch version
@@ -113,10 +116,19 @@ func (r *Registry) resolveLastUpdated(
 
 			latest, err := determineLatestTimestamp(r.logger, versions, current.updateType)
 			if err != nil {
-				r.logger.Warn("Failed to parse version dates for last updated", "asset_id", current.id, "version_count", len(versions), "error", err)
+				fallback, fallbackErr := r.latestIntegrityCheckedAt(current.assetType, current.id)
+				if fallbackErr != nil {
+					r.logger.Warn("Failed to parse version dates for last updated", "asset_id", current.id, "version_count", len(versions), "error", err)
+					mu.Lock()
+					warnings = append(warnings, fmt.Errorf("failed to resolve latest update for %q: %w", current.id, errors.Join(err, fallbackErr)))
+					results[current.id] = 0 // Default to epoch start if we can't parse version dates
+					mu.Unlock()
+					return
+				}
+
+				r.logger.Warn("Falling back to integrity checked_at for last updated", "asset_type", current.assetType, "asset_id", current.id, "error", err, "timestamp", fallback)
 				mu.Lock()
-				warnings = append(warnings, fmt.Errorf("failed to resolve latest update for %q: %w", current.id, err))
-				results[current.id] = 0 // Default to epoch start if we can't parse version dates
+				results[current.id] = fallback
 				mu.Unlock()
 				return
 			}
@@ -131,23 +143,48 @@ func (r *Registry) resolveLastUpdated(
 	return results, warnings
 }
 
-// getLastUpdatedArgs retrieves the Source and UpdateType for a list of manifests, converting each into the lastUpdatedArgs function input struct.
+// latestIntegrityCheckedAt returns the latest complete-version checked_at timestamp for an asset.
+func (r *Registry) latestIntegrityCheckedAt(assetType types.AssetType, assetID string) (int64, error) {
+	listing, _ := r.getIntegrityListing(assetType, assetID)
+
+	best := int64(0)
+	for version, status := range listing.Versions {
+		if !status.IsComplete {
+			continue
+		}
+		if status.CheckedAt == "" {
+			return 0, fmt.Errorf("%s %q version %q is missing checked_at", assetType, assetID, version)
+		}
+		parsed, err := time.Parse(time.RFC3339, status.CheckedAt)
+		if err != nil {
+			return 0, fmt.Errorf("%s %q version %q has invalid checked_at %q: %w", assetType, assetID, version, status.CheckedAt, err)
+		}
+		timestamp := parsed.Unix()
+		if timestamp > best {
+			best = timestamp
+		}
+	}
+
+	if best == 0 {
+		return 0, fmt.Errorf("%s %q has no complete versions with checked_at", assetType, assetID)
+	}
+
+	return best, nil
+}
+
+// getLastUpdatedArgs converts manifests into the asset identifiers needed for installable version lookups.
 func getLastUpdatedArgs[T any](
 	manifests []T,
+	assetTypeFn func(manifest T) types.AssetType,
 	idFn func(manifest T) string,
-	updateFn func(manifest T) types.UpdateConfig,
+	updateTypeFn func(manifest T) string,
 ) []lastUpdatedArgs {
 	sources := make([]lastUpdatedArgs, 0, len(manifests))
 	for _, manifest := range manifests {
-		id := idFn(manifest)
-		update := updateFn(manifest)
-		updateType := update.Type
-		source := update.Source()
-
 		sources = append(sources, lastUpdatedArgs{
-			id:         id,
-			updateType: updateType,
-			source:     source,
+			assetType:  assetTypeFn(manifest),
+			id:         idFn(manifest),
+			updateType: updateTypeFn(manifest),
 		})
 	}
 	return sources

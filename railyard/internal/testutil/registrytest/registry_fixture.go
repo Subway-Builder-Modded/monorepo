@@ -174,11 +174,12 @@ func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 
 func buildIntegrityReport(ids []string) types.RegistryIntegrityReport {
 	listings := make(map[string]types.IntegrityListing, len(ids))
+	hasComplete := true
 	for _, id := range ids {
 		listings[id] = types.IntegrityListing{
-			HasCompleteVersion:   false,
+			HasCompleteVersion:   true,
 			LatestSemverVersion:  nil,
-			LatestSemverComplete: nil,
+			LatestSemverComplete: &hasComplete,
 			CompleteVersions:     []string{},
 			IncompleteVersions:   []string{},
 			Versions:             map[string]types.IntegrityVersionStatus{},
@@ -206,4 +207,16 @@ func SetManifestsForTest(t *testing.T, registryValue any, mods []types.ModManife
 	t.Helper()
 	SetUnexportedField(t, registryValue, "mods", mods)
 	SetUnexportedField(t, registryValue, "maps", maps)
+
+	modIDs := make([]string, 0, len(mods))
+	for _, mod := range mods {
+		modIDs = append(modIDs, mod.ID)
+	}
+	mapIDs := make([]string, 0, len(maps))
+	for _, item := range maps {
+		mapIDs = append(mapIDs, item.ID)
+	}
+
+	SetUnexportedField(t, registryValue, "integrityMods", buildIntegrityReport(modIDs))
+	SetUnexportedField(t, registryValue, "integrityMaps", buildIntegrityReport(mapIDs))
 }

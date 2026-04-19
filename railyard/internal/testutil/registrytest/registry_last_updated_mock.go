@@ -27,6 +27,8 @@ func MockLastUpdatedServer(t *testing.T, reg any, fixtures []LastUpdatedFixture)
 	mux := http.NewServeMux()
 	mods := make([]types.ModManifest, 0)
 	maps := make([]types.MapManifest, 0)
+	modListings := make(map[string]types.IntegrityListing)
+	mapListings := make(map[string]types.IntegrityListing)
 
 	for _, fixture := range fixtures {
 		current := fixture
@@ -52,6 +54,17 @@ func MockLastUpdatedServer(t *testing.T, reg any, fixtures []LastUpdatedFixture)
 			Type: "custom",
 			URL:  server.URL + fixture.Path,
 		}
+		completeVersions := make([]string, 0, len(fixture.Versions))
+		versionStatuses := make(map[string]types.IntegrityVersionStatus, len(fixture.Versions))
+		for _, version := range fixture.Versions {
+			completeVersions = append(completeVersions, version.Version)
+			versionStatuses[version.Version] = types.IntegrityVersionStatus{IsComplete: true}
+		}
+		listing := types.IntegrityListing{
+			HasCompleteVersion: true,
+			CompleteVersions:   completeVersions,
+			Versions:           versionStatuses,
+		}
 		switch fixture.AssetType {
 		case types.AssetTypeMap:
 			maps = append(maps, types.MapManifest{
@@ -60,6 +73,7 @@ func MockLastUpdatedServer(t *testing.T, reg any, fixtures []LastUpdatedFixture)
 					Update: update,
 				},
 			})
+			mapListings[fixture.AssetID] = listing
 		case types.AssetTypeMod:
 			mods = append(mods, types.ModManifest{
 				AssetManifest: types.AssetManifest{
@@ -67,10 +81,21 @@ func MockLastUpdatedServer(t *testing.T, reg any, fixtures []LastUpdatedFixture)
 					Update: update,
 				},
 			})
+			modListings[fixture.AssetID] = listing
 		}
 	}
 
 	SetUnexportedField(t, reg, "httpClient", server.Client())
 	SetManifestsForTest(t, reg, mods, maps)
+	SetUnexportedField(t, reg, "integrityMods", types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings:      modListings,
+	})
+	SetUnexportedField(t, reg, "integrityMaps", types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings:      mapListings,
+	})
 	return server.Close
 }

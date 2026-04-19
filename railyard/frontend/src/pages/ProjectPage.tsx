@@ -32,7 +32,7 @@ import { GetGameVersion } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetAssetDownloadCounts,
-  GetVersionsResponse,
+  GetInstallableVersionsResponse,
 } from '../../wailsjs/go/registry/Registry';
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
@@ -40,8 +40,6 @@ export function ProjectPage() {
   const [, params] = useRoute('/project/:type/:id');
   const mods = useRegistryStore((s) => s.mods);
   const maps = useRegistryStore((s) => s.maps);
-  const mapIntegrity = useRegistryStore((s) => s.mapIntegrity);
-  const modIntegrity = useRegistryStore((s) => s.modIntegrity);
   const modDownloadTotals = useRegistryStore((s) => s.modDownloadTotals);
   const mapDownloadTotals = useRegistryStore((s) => s.mapDownloadTotals);
   const ensureDownloadTotals = useRegistryStore((s) => s.ensureDownloadTotals);
@@ -67,19 +65,6 @@ export function ProjectPage() {
   const [versionsError, setVersionsError] = useState<string | null>(null);
   const [gameVersion, setGameVersion] = useState<string>('');
 
-  const filterInvalidVersions = (vs: types.VersionInfo[]) => {
-    if (type === 'mod' && modIntegrity && id) {
-      return vs.filter((v) =>
-        modIntegrity.listings[id].complete_versions.includes(v.version),
-      );
-    }
-    if (type === 'map' && mapIntegrity && id) {
-      return vs.filter((v) =>
-        mapIntegrity.listings[id].complete_versions.includes(v.version),
-      );
-    }
-  };
-
   useEffect(() => {
     ensureDownloadTotals();
   }, [ensureDownloadTotals]);
@@ -96,17 +81,10 @@ export function ProjectPage() {
 
   useEffect(() => {
     if (!item || !type) return;
-    const source =
-      item.update.type === 'github' ? item.update.repo : item.update.url;
-    if (!source) {
-      setVersionsLoading(false);
-      setVersionsError('No update source configured');
-      return;
-    }
     let cancelled = false;
     setVersionsLoading(true);
     setVersionsError(null);
-    GetVersionsResponse(item.update.type, source)
+    GetInstallableVersionsResponse(type, item.id)
       .then(async (response) => {
         if (cancelled) return;
         if (response.status !== 'success') {
@@ -141,7 +119,7 @@ export function ProjectPage() {
         }
 
         if (!cancelled) {
-          setVersions(filterInvalidVersions(mergedVersions) || mergedVersions);
+          setVersions(mergedVersions);
           setVersionsLoading(false);
         }
       })
@@ -154,7 +132,7 @@ export function ProjectPage() {
     return () => {
       cancelled = true;
     };
-  }, [type, item?.id, item?.update.type, item?.update.repo, item?.update.url]);
+  }, [type, item?.id]);
 
   const latestVersion = versions[0];
   const latestCompatibleVersion = useMemo(() => {

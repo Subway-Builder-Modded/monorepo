@@ -1,6 +1,8 @@
 import {
   EmptyState,
   ErrorBanner,
+  formatDetailedProjectVersionDate,
+  formatProjectVersionDate,
   MarkdownPanel,
 } from '@subway-builder-modded/asset-listings-ui';
 import {
@@ -71,7 +73,7 @@ import { ComputeDependencyList } from '../../wailsjs/go/downloader/Downloader';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetAssetDownloadCounts,
-  GetVersionsResponse,
+  GetInstallableVersionsResponse,
 } from '../../wailsjs/go/registry/Registry';
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
@@ -109,8 +111,6 @@ export function ChangelogPage() {
   const [, params] = useRoute('/project/:type/:id/changelog/:version');
   const mods = useRegistryStore((s) => s.mods);
   const maps = useRegistryStore((s) => s.maps);
-  const modIntegrity = useRegistryStore((s) => s.modIntegrity);
-  const mapIntegrity = useRegistryStore((s) => s.mapIntegrity);
 
   const routeType = params?.type;
   const type = routeType ? listingPathToAssetType(routeType) : undefined;
@@ -176,17 +176,10 @@ export function ChangelogPage() {
 
   useEffect(() => {
     if (!item || !type || !versionParam) return;
-    const source =
-      item.update.type === 'github' ? item.update.repo : item.update.url;
-    if (!source) {
-      setFetchError('No update source configured');
-      setLoading(false);
-      return;
-    }
     let cancelled = false;
     setLoading(true);
     setFetchError(null);
-    GetVersionsResponse(item.update.type, source)
+    GetInstallableVersionsResponse(type, item.id)
       .then(async (response) => {
         if (cancelled) return;
         if (response.status !== 'success') {
@@ -211,14 +204,7 @@ export function ChangelogPage() {
         } catch {}
 
         if (!cancelled) {
-          const integrity = type === 'mod' ? modIntegrity : mapIntegrity;
-          const completeVersions =
-            integrity && id ? integrity.listings[id]?.complete_versions : null;
-          const filtered = completeVersions
-            ? mergedVersions.filter((v) => completeVersions.includes(v.version))
-            : mergedVersions;
-
-          const found = filtered.find((v) => v.version === versionParam);
+          const found = mergedVersions.find((v) => v.version === versionParam);
           setVersionInfo(found ?? null);
           setLoading(false);
         }
@@ -232,14 +218,7 @@ export function ChangelogPage() {
     return () => {
       cancelled = true;
     };
-  }, [
-    type,
-    item?.id,
-    item?.update.type,
-    item?.update.repo,
-    item?.update.url,
-    versionParam,
-  ]);
+  }, [type, item?.id, versionParam]);
 
   useEffect(() => {
     setResolvedDeps(null);
@@ -345,15 +324,12 @@ export function ChangelogPage() {
 
   const formattedDate = useMemo(() => {
     if (!versionInfo?.date) return null;
-    try {
-      return new Date(versionInfo.date).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch {
-      return versionInfo.date;
-    }
+    return formatProjectVersionDate(versionInfo.date);
+  }, [versionInfo?.date]);
+
+  const formattedPublishedDate = useMemo(() => {
+    if (!versionInfo?.date) return null;
+    return formatDetailedProjectVersionDate(versionInfo.date);
   }, [versionInfo?.date]);
 
   if (!item || !type) {
@@ -653,9 +629,9 @@ export function ChangelogPage() {
                       {versionInfo.downloads.toLocaleString()}
                     </MetaRow>
 
-                    {formattedDate && (
+                    {formattedPublishedDate && (
                       <MetaRow icon={Calendar} label="Published">
-                        {formattedDate}
+                        {formattedPublishedDate}
                       </MetaRow>
                     )}
                   </div>

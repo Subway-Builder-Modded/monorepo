@@ -112,3 +112,31 @@ func TestLoadLastUpdatedFallsBackToEpochOnFailures(t *testing.T) {
 	require.Equal(t, int64(0), modLastUpdated["mod-bad"])
 	require.Equal(t, int64(0), mapLastUpdated["map-bad"])
 }
+
+func TestLoadLastUpdatedFallsBackToIntegrityCheckedAtWhenVersionDatesDoNotParse(t *testing.T) {
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
+	closeServer := registrytest.MockLastUpdatedServer(t, reg, []registrytest.LastUpdatedFixture{
+		{
+			AssetID:   "map-a",
+			AssetType: types.AssetTypeMap,
+			Path:      "/updates/map-a.json",
+			Versions: []types.CustomUpdateVersion{
+				{Version: "1.0.0", Date: "2026-04-14T00:00:00Z"},
+			},
+			Status: http.StatusOK,
+		},
+	})
+	defer closeServer()
+
+	integrity := reg.integrityMaps
+	listing := integrity.Listings["map-a"]
+	status := listing.Versions["1.0.0"]
+	status.CheckedAt = "2026-04-15T03:51:46Z"
+	listing.Versions["1.0.0"] = status
+	integrity.Listings["map-a"] = listing
+	reg.integrityMaps = integrity
+
+	_, mapLastUpdated := reg.loadLastUpdated(reg.mods, reg.maps)
+	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), mapLastUpdated["map-a"])
+}
