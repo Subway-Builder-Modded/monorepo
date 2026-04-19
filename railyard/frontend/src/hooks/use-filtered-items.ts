@@ -70,15 +70,22 @@ export function useFilteredItems({
         : { ...filters, query: deferredQuery },
     [deferredQuery, filters],
   );
+  const countFilters = useMemo(
+    () =>
+      deferredFilters.query
+        ? { ...deferredFilters, query: '' }
+        : deferredFilters,
+    [deferredFilters],
+  );
 
   const dimCounts = useMemo(
     () =>
       buildDimensionCounts({
         items: allItems,
-        filters: deferredFilters,
+        filters: countFilters,
         accessors,
       }),
-    [accessors, allItems, deferredFilters],
+    [accessors, allItems, countFilters],
   );
 
   const filteredPage = useMemo(

@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   buildAssetSearchText,
@@ -233,14 +227,6 @@ export function useFilteredItems({
   const [scopedByType, setScopedByType] = useState<FilterByAssetType>(
     initialState.scopedByType,
   );
-  const deferredQuery = useDeferredValue(filters.query);
-  const deferredFilters = useMemo(
-    () =>
-      deferredQuery === filters.query
-        ? filters
-        : { ...filters, query: deferredQuery },
-    [deferredQuery, filters],
-  );
 
   const allItems = useMemo<TaggedItem[]>(
     () => buildTaggedItems(mods, maps),
@@ -266,7 +252,7 @@ export function useFilteredItems({
       filterAndPaginateTaggedItems({
         items: allItems,
         page: requestedPage,
-        filters: deferredFilters,
+        filters,
         modDownloadTotals,
         mapDownloadTotals,
         compareItems,
@@ -332,13 +318,7 @@ export function useFilteredItems({
           ],
         },
       }),
-    [
-      allItems,
-      deferredFilters,
-      mapDownloadTotals,
-      modDownloadTotals,
-      requestedPage,
-    ],
+    [allItems, filters, mapDownloadTotals, modDownloadTotals, requestedPage],
   );
 
   const setFilters = useCallback((updater: SearchFilterUpdater) => {

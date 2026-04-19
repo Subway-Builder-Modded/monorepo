@@ -505,6 +505,7 @@ export function LibraryPage() {
               }
               placeholder={SEARCH_BAR_PLACEHOLDER}
               ariaLabel="Search installed mods and maps"
+              debounceMs={150}
             />
           </div>
           <Button

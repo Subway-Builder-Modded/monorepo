@@ -18,16 +18,6 @@ function getCacheKey(type: AssetType, id: string, imagePath: string) {
   return `${type}:${id}:${imagePath}`;
 }
 
-async function preloadBrowserImage(imageUrl: string): Promise<void> {
-  await new Promise<void>((resolve) => {
-    const img = new Image();
-    img.decoding = 'async';
-    img.onload = () => resolve();
-    img.onerror = () => resolve();
-    img.src = imageUrl;
-  });
-}
-
 async function requestGalleryImage(
   type: AssetType,
   id: string,
@@ -44,9 +34,6 @@ async function requestGalleryImage(
     }
 
     const imageUrl = response.imageUrl || null;
-    if (imageUrl) {
-      await preloadBrowserImage(imageUrl);
-    }
     return { imageUrl, error: false };
   } catch {
     return { imageUrl: null, error: true };

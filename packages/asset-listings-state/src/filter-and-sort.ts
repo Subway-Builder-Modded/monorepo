@@ -14,6 +14,8 @@ type SearchableItem<TItem> = {
   searchText: string;
 };
 
+const normalizedSearchTextCache = new WeakMap<object, string>();
+
 export interface TaggedListingItem<TItem = { id: string }> {
   type: AssetType;
   item: TItem;
@@ -56,6 +58,40 @@ export function buildAssetSearchText<TItem extends AssetSearchable>(
   }
 
   return values.filter(Boolean).join(' ');
+}
+
+function getNormalizedSearchText<TTaggedItem extends TaggedListingItem>(
+  item: TTaggedItem,
+  buildSearchText: (item: TTaggedItem) => string,
+): string {
+  const cached = normalizedSearchTextCache.get(item as object);
+  if (cached) {
+    return cached;
+  }
+
+  const normalized = buildSearchText(item).toLowerCase();
+  normalizedSearchTextCache.set(item as object, normalized);
+  return normalized;
+}
+
+function filterByQueryFastPath<TTaggedItem extends TaggedListingItem>(
+  items: TTaggedItem[],
+  query: string,
+  buildSearchText: (item: TTaggedItem) => string,
+): TTaggedItem[] {
+  const normalizedTerms = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (normalizedTerms.length === 0) {
+    return items;
+  }
+
+  return items.filter((item) => {
+    const searchText = getNormalizedSearchText(item, buildSearchText);
+    return normalizedTerms.every((term) => searchText.includes(term));
+  });
 }
 
 export interface TaggedListingFilterState<TMapFilters, TSortState = SortState> {
@@ -217,16 +253,25 @@ function filterTaggedItems<
 
   const query = filters.query.trim();
   if (query) {
-    const searchable: SearchableItem<TTaggedItem>[] = result.map((entry) => ({
-      entry,
-      searchText: accessors.buildSearchText(entry),
-    }));
-
-    const fuse = new Fuse(
-      searchable,
-      fuseOptions ?? ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+    const fastMatches = filterByQueryFastPath(
+      result,
+      query,
+      accessors.buildSearchText,
     );
-    result = fuse.search(query).map(({ item }) => item.entry);
+    if (fastMatches.length > 0) {
+      result = fastMatches;
+    } else {
+      const searchable: SearchableItem<TTaggedItem>[] = result.map((entry) => ({
+        entry,
+        searchText: accessors.buildSearchText(entry),
+      }));
+
+      const fuse = new Fuse(
+        searchable,
+        fuseOptions ?? ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+      );
+      result = fuse.search(query).map(({ item }) => item.entry);
+    }
   }
 
   return result;
