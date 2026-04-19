@@ -126,17 +126,11 @@ export function HeroCarousel() {
         </AnimatePresence>
       </motion.div>
 
-      <div
-        className="pointer-events-none absolute inset-0 z-[1]"
-        style={{
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
-          maskImage: "radial-gradient(ellipse 55% 50% at 50% 50%, black 0%, transparent 100%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 55% 50% at 50% 50%, black 0%, transparent 100%)",
-        }}
-        aria-hidden="true"
-      />
+      <div className="pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
+        <div className="absolute left-1/2 top-[53%] h-[clamp(20rem,44vw,44rem)] w-[clamp(20rem,44vw,44rem)] -translate-x-1/2 -translate-y-1/2 rounded-[2.75rem] backdrop-blur-[12px]" />
+        <div className="absolute left-1/2 top-[53%] h-[clamp(24rem,50vw,50rem)] w-[clamp(24rem,50vw,50rem)] -translate-x-1/2 -translate-y-1/2 rounded-[3.5rem] backdrop-blur-[7px] opacity-80" />
+        <div className="absolute left-1/2 top-[53%] h-[clamp(28rem,58vw,58rem)] w-[clamp(28rem,58vw,58rem)] -translate-x-1/2 -translate-y-1/2 rounded-[4.5rem] backdrop-blur-[3px] opacity-45" />
+      </div>
 
       <div
         className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/25 via-40% to-transparent"
@@ -152,7 +146,7 @@ export function HeroCarousel() {
         className="relative z-10 flex h-full flex-col items-center justify-center text-center"
         style={prefersReducedMotion ? undefined : { y: contentY }}
       >
-        <div className="max-w-3xl px-5 sm:px-7">
+        <div className="max-w-3xl px-5 sm:px-7 min-[1920px]:max-w-[58rem]">
           <div className="mb-5 flex items-center justify-center gap-1.5" aria-hidden="true">
             {HERO_SUITE_BARS.map((c, i) => (
               <span
@@ -170,13 +164,13 @@ export function HeroCarousel() {
             ))}
           </div>
 
-          <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.93] tracking-[-0.04em] text-foreground">
+          <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.93] tracking-[-0.04em] text-foreground min-[1920px]:text-[clamp(4.6rem,4.5vw,6rem)] min-[2560px]:text-[clamp(5.2rem,4vw,7rem)]">
             {HERO_TITLE_LINE_1}
             <br />
             {HERO_TITLE_LINE_2}
           </h1>
 
-          <p className="mx-auto mt-5 max-w-xl text-[clamp(1.05rem,2vw,1.2rem)] leading-relaxed text-foreground/70">
+          <p className="mx-auto mt-5 max-w-xl text-[clamp(1.05rem,2vw,1.2rem)] leading-relaxed text-foreground/70 min-[1920px]:max-w-2xl min-[1920px]:text-[clamp(1.2rem,1.4vw,1.5rem)]">
             {HERO_DESCRIPTION}
           </p>
 

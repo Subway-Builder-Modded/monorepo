@@ -33,15 +33,15 @@ export function OpenSourceSection() {
 
       <TwoColumnSection
         reverseOnDesktop
-        className="xl:mx-auto xl:max-w-[1180px] xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] xl:gap-12"
+        className="lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] min-[1920px]:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"
         left={
-          <div className="mx-auto w-full max-w-3xl lg:mx-0 lg:max-w-none">
+          <div className="w-full max-w-3xl min-w-0">
             <CodeSurface />
           </div>
         }
         right={
-          <div className="mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:ml-auto lg:max-w-md lg:items-end lg:text-right">
-            <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground lg:ml-auto">
+          <div className="w-full max-w-md min-w-0 text-center lg:text-left">
+            <p className="text-[15px] leading-relaxed text-muted-foreground lg:text-[16px] min-[1920px]:text-[17px]">
               {OPEN_SOURCE_SECTION.body}
             </p>
             <div className="mt-6 lg:mt-7">

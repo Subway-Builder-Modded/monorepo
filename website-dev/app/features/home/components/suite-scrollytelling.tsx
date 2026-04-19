@@ -84,14 +84,14 @@ function StoryPanel({ step }: { step: SuiteStep }) {
   const SecondaryIcon = getHomeIcon(step.secondaryAction.icon);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-w-0 flex-col">
       {step.media.kind === "code" ? (
         <CodeDisplay
           code={step.media.code.content}
           lang={step.media.code.lang}
           title={step.media.code.fileName}
           resolvedTheme={resolvedTheme}
-          className="mb-6"
+          className="mb-6 w-full min-w-0"
           style={{ boxShadow: `0 0 0 1px ${tone}10, 0 8px 30px ${tone}08` }}
         />
       ) : (
@@ -182,7 +182,7 @@ function StoryPanel({ step }: { step: SuiteStep }) {
 
 function MobileStack({ steps }: { steps: SuiteStep[] }) {
   return (
-    <div className="space-y-14">
+    <div className="mx-auto max-w-3xl space-y-12 sm:space-y-14">
       {steps.map((step) => (
         <StoryPanel key={step.id} step={step} />
       ))}
@@ -220,12 +220,12 @@ function DesktopSwitcher({ steps }: { steps: SuiteStep[] }) {
   }
 
   return (
-    <div className="grid grid-cols-[80px_1fr] items-start gap-10 xl:grid-cols-[96px_1fr] xl:gap-14">
+    <div className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-10 xl:grid-cols-[96px_minmax(0,1fr)] xl:gap-14 min-[1920px]:gap-20">
       <div className="sticky top-[calc(50vh-160px)] flex justify-center self-start">
         <StationSwitcher steps={steps} activeIdx={activeIdx} onSelect={scrollToPanel} />
       </div>
 
-      <div className="space-y-24">
+      <div className="min-w-0 space-y-24 min-[1920px]:space-y-28">
         {steps.map((step, i) => (
           <div
             key={step.id}

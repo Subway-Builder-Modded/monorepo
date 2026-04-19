@@ -26,6 +26,7 @@ export function SectionShell({
   return (
     <section
       className={cn(
+        'relative overflow-x-clip',
         SITE_SECTION_SPACING_CLASS,
         surfaced &&
           'relative border-y border-border/40 bg-muted/20',

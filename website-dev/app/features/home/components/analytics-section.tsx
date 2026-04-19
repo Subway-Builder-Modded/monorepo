@@ -38,13 +38,13 @@ export function AnalyticsSection() {
 
       <TwoColumnSection
         reverseOnDesktop
-        className="xl:mx-auto xl:max-w-[1180px] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] xl:gap-12"
+        className="lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] min-[1920px]:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]"
         left={
-          <div className="mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:mr-auto lg:max-w-md lg:items-start lg:text-left">
-            <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
+          <div className="w-full max-w-md min-w-0 text-center lg:text-left">
+            <p className="text-[15px] leading-relaxed text-muted-foreground lg:text-[16px] min-[1920px]:text-[17px]">
               {ANALYTICS_SECTION.body}
             </p>
-            <div className="mt-6 flex w-full flex-col gap-2.5 sm:max-w-xs lg:mt-7">
+            <div className="mx-auto mt-6 flex w-full max-w-xs flex-col gap-2.5 lg:mx-0 lg:mt-7">
               {ANALYTICS_LINKS.map((link) => {
                 const Icon = getHomeIcon(link.icon);
                 const accent = getHomepageSuiteAccent(link.accentSuiteId);
@@ -69,7 +69,7 @@ export function AnalyticsSection() {
           </div>
         }
         right={
-          <div className="mx-auto w-full max-w-3xl lg:mx-0 lg:max-w-none">
+          <div className="w-full max-w-3xl min-w-0">
             <AnalyticsGraphic />
           </div>
         }
