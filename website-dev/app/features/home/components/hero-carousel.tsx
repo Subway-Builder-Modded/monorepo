@@ -118,9 +118,16 @@ export function HeroCarousel() {
         </AnimatePresence>
       </motion.div>
 
-      {/* Even blur across entire image */}
+      {/* Radial center blur for readability — emanates from center, dies off quickly */}
       <div
-        className="pointer-events-none absolute inset-0 z-[1] backdrop-blur-[3px]"
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          maskImage: "radial-gradient(ellipse 55% 50% at 50% 50%, black 0%, transparent 100%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 55% 50% at 50% 50%, black 0%, transparent 100%)",
+        }}
         aria-hidden="true"
       />
 

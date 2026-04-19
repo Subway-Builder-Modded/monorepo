@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { SectionShell, SectionHeader } from "@subway-builder-modded/shared-ui";
+import {
+  SectionShell,
+  SectionHeader,
+  TwoColumnSection,
+  TerminalFrame,
+} from "@subway-builder-modded/shared-ui";
 import { GithubIcon } from "@/app/features/home/components/icons";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
@@ -60,13 +65,7 @@ function CodeSurface() {
   const lineCount = CODE_SOURCE.split("\n").length;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/60 bg-[#0d0d0d] shadow-2xl dark:bg-[#0a0a0a]">
-      <div className="flex items-center gap-1.5 border-b border-white/[0.06] px-4 py-2.5">
-        <span className="size-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="size-2.5 rounded-full bg-[#febc2e]" />
-        <span className="size-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-3 text-[11px] font-medium text-white/30">homepage-content.ts</span>
-      </div>
+    <TerminalFrame title="homepage-content.ts">
       <div className="flex overflow-x-auto">
         <div
           className="flex flex-col items-end border-r border-white/[0.04] px-3 py-4 font-mono text-[13px] leading-6 text-white/20 select-none"
@@ -89,7 +88,7 @@ function CodeSurface() {
           </div>
         )}
       </div>
-    </div>
+    </TerminalFrame>
   );
 }
 
@@ -101,33 +100,33 @@ export function OpenSourceSection() {
         description="Every project is public, every decision transparent. Explore the code or contribute directly."
       />
 
-      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-        <div className="order-2 lg:order-1">
-          <CodeSurface />
-        </div>
-
-        <div className="order-1 lg:order-2">
-          <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-            All codebases are open with clear contributor workflows — docs, changelogs, and roadmaps
-            maintained by the community. No gatekeeping, no exceptions.
-          </p>
-          <div className="mt-6">
-            <a
-              href="https://github.com/Subway-Builder-Modded"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                "inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-[15px] font-bold tracking-[-0.01em] transition-colors",
-                "bg-foreground text-background hover:bg-foreground/90",
-              )}
-            >
-              <GithubIcon className="size-4" />
-              View on GitHub
-              <ExternalLink className="size-3 opacity-50" aria-hidden="true" />
-            </a>
+      <TwoColumnSection
+        reverseOnDesktop
+        left={<CodeSurface />}
+        right={
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
+              All codebases are open with clear contributor workflows — docs, changelogs, and
+              roadmaps maintained by the community. No gatekeeping, no exceptions.
+            </p>
+            <div className="mt-6">
+              <a
+                href="https://github.com/Subway-Builder-Modded"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-[15px] font-bold tracking-[-0.01em] transition-colors",
+                  "bg-foreground text-background hover:bg-foreground/90",
+                )}
+              >
+                <GithubIcon className="size-4" />
+                View on GitHub
+                <ExternalLink className="size-3 opacity-50" aria-hidden="true" />
+              </a>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
     </SectionShell>
   );
 }

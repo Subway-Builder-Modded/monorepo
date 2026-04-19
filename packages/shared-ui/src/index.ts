@@ -186,6 +186,14 @@ export {
 } from './components/footer-columns';
 export { FooterBrandBlock } from './components/footer-brand-block';
 export {
+  TwoColumnSection,
+  type TwoColumnSectionProps,
+} from './components/two-column-section';
+export {
+  TerminalFrame,
+  type TerminalFrameProps,
+} from './components/terminal-frame';
+export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,
   getToneVarsClass,

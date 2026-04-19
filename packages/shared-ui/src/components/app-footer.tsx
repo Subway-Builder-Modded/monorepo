@@ -32,7 +32,7 @@ export function AppFooter({
   className,
 }: AppFooterProps) {
   return (
-    <footer className={cn('mt-16 border-t border-border bg-background', className)}>
+    <footer className={cn('border-t border-border bg-background', className)}>
       <div className={cn(APP_SHELL_OUTER_CONTAINER_CLASS, 'pb-8 pt-9')}>
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,2.65fr)]">
           <FooterBrandBlock brand={brand} externalLinks={externalLinks} />

@@ -44,7 +44,7 @@ export function SuiteButton({
 
   const style: React.CSSProperties =
     variant === 'solid'
-      ? { backgroundColor: color }
+      ? { backgroundColor: color, color: 'var(--background)' }
       : {
           borderColor: `${color}40`,
           color,

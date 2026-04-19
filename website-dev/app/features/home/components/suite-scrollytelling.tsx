@@ -129,8 +129,8 @@ function StoryPanel({ step }: { step: SuiteStep }) {
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Link
           to={step.primaryAction.href}
-          className="inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-sm font-bold tracking-[-0.01em] text-foreground shadow-sm transition-all hover:brightness-110"
-          style={{ backgroundColor: accent }}
+          className="inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-sm font-bold tracking-[-0.01em] shadow-sm transition-all hover:brightness-110"
+          style={{ backgroundColor: accent, color: "var(--background)" }}
         >
           <PrimaryIcon className="size-4" aria-hidden="true" />
           {step.primaryAction.label}

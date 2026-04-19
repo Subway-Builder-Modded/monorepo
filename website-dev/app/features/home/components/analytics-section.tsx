@@ -1,5 +1,10 @@
 import { Link } from "@/app/lib/router";
-import { SectionShell, SectionHeader } from "@subway-builder-modded/shared-ui";
+import {
+  SectionShell,
+  SectionHeader,
+  TwoColumnSection,
+  TerminalFrame,
+} from "@subway-builder-modded/shared-ui";
 import { ANALYTICS_LINKS } from "@/app/features/home/data/homepage-content";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
@@ -15,13 +20,7 @@ function AnalyticsGraphic() {
   const textColor = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/60 bg-[#0d0d0d] shadow-2xl dark:bg-[#0a0a0a]">
-      <div className="flex items-center gap-1.5 border-b border-white/[0.06] px-4 py-2.5">
-        <span className="size-2.5 rounded-full bg-[#ff5f57]" />
-        <span className="size-2.5 rounded-full bg-[#febc2e]" />
-        <span className="size-2.5 rounded-full bg-[#28c840]" />
-        <span className="ml-3 text-[11px] font-medium text-white/30">analytics — downloads</span>
-      </div>
+    <TerminalFrame title="analytics — downloads">
       <div className="p-5 sm:p-6">
         <svg viewBox="0 0 480 200" className="w-full" aria-hidden="true">
           {[0, 1, 2, 3, 4].map((i) => (
@@ -119,7 +118,7 @@ function AnalyticsGraphic() {
           ))}
         </svg>
       </div>
-    </div>
+    </TerminalFrame>
   );
 }
 
@@ -134,37 +133,38 @@ export function AnalyticsSection() {
         description="Real-time download counts, install trends, and usage data across every project."
       />
 
-      <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-        <AnalyticsGraphic />
-
-        <div>
-          <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-            Every project exposes analytics — download volumes, install trends, and growth metrics —
-            so contributors and users can track ecosystem health at a glance.
-          </p>
-          <div className="mt-6 flex flex-col gap-2.5 sm:max-w-xs">
-            {ANALYTICS_LINKS.map((link) => {
-              const Icon = link.icon;
-              const color = isDark ? link.accent.dark : link.accent.light;
-              return (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className="inline-flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition-all hover:brightness-110"
-                  style={{
-                    borderColor: `${color}40`,
-                    color,
-                    backgroundColor: `${color}08`,
-                  }}
-                >
-                  <Icon className="size-3.5" aria-hidden="true" />
-                  {link.label}
-                </Link>
-              );
-            })}
+      <TwoColumnSection
+        left={<AnalyticsGraphic />}
+        right={
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
+              Every project exposes analytics — download volumes, install trends, and growth metrics
+              — so contributors and users can track ecosystem health at a glance.
+            </p>
+            <div className="mt-6 flex flex-col gap-2.5 sm:max-w-xs">
+              {ANALYTICS_LINKS.map((link) => {
+                const Icon = link.icon;
+                const color = isDark ? link.accent.dark : link.accent.light;
+                return (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="inline-flex items-center gap-2 rounded-lg border px-5 py-2.5 text-sm font-semibold transition-all hover:brightness-110"
+                    style={{
+                      borderColor: `${color}40`,
+                      color,
+                      backgroundColor: `${color}08`,
+                    }}
+                  >
+                    <Icon className="size-3.5" aria-hidden="true" />
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
     </SectionShell>
   );
 }
