@@ -51,6 +51,7 @@ type App struct {
 
 	gameMu        sync.Mutex
 	gameCmd       *exec.Cmd
+	gameStarting  bool
 	pmtilesServer *http.Server
 	startupMu     sync.RWMutex
 	startupReady  bool
@@ -58,6 +59,11 @@ type App struct {
 	deepLinks deepLinkQueue
 
 	cachedGameVersion types.GameVersionResponse
+
+	// Test-only hooks for controlling the launch-starting window and event sink.
+	launchGameTestReady chan<- struct{}
+	launchGameTestBlock <-chan struct{}
+	emitEventFunc       func(name string, optionalData ...interface{})
 }
 
 // NewApp creates a new App application struct
@@ -102,21 +108,21 @@ func (a *App) startup(ctx context.Context) {
 	}
 
 	a.Downloader.OnExtractProgress = func(itemId string, extracted int64, total int64) {
-		wailsruntime.EventsEmit(ctx, "extract:progress", map[string]interface{}{
+		a.emitEvent("extract:progress", map[string]interface{}{
 			"itemId":          itemId,
 			"amountExtracted": extracted,
 			"total":           total,
 		})
 	}
 	a.Downloader.OnProgress = func(itemId string, received int64, total int64) {
-		wailsruntime.EventsEmit(ctx, "download:progress", map[string]interface{}{
+		a.emitEvent("download:progress", map[string]interface{}{
 			"itemId":   itemId,
 			"received": received,
 			"total":    total,
 		})
 	}
 	a.Downloader.OnCancelled = func(itemId string, assetType types.AssetType, phase string) {
-		wailsruntime.EventsEmit(ctx, "download:cancelled", map[string]interface{}{
+		a.emitEvent("download:cancelled", map[string]interface{}{
 			"itemId":    itemId,
 			"assetType": string(assetType),
 			"phase":     phase,
@@ -126,7 +132,7 @@ func (a *App) startup(ctx context.Context) {
 		return a.GetGameVersion()
 	}
 	a.Downloader.OnRegistryUpdate = func() {
-		wailsruntime.EventsEmit(ctx, "registry:update")
+		a.emitEvent("registry:update")
 	}
 	if _, err := a.Config.ResolveConfig(); err != nil {
 		log.Printf("Warning: failed to resolve config on startup: %v", err)
@@ -172,6 +178,19 @@ func (a *App) setStartupReady(ready bool) {
 	a.startupMu.Lock()
 	defer a.startupMu.Unlock()
 	a.startupReady = ready
+}
+
+// emitEvent forwards frontend events through Wails, with a test override.
+func (a *App) emitEvent(name string, optionalData ...interface{}) {
+	if a.emitEventFunc != nil {
+		a.emitEventFunc(name, optionalData...)
+		return
+	}
+	if a.ctx == nil {
+		a.Logger.Warn("dropping event without Wails context", "event", name)
+		return
+	}
+	wailsruntime.EventsEmit(a.ctx, name, optionalData...)
 }
 
 // IsStartupReady reports whether backend startup routines have completed.
@@ -411,11 +430,38 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 
 func (a *App) LaunchGame() types.GenericResponse {
 	a.gameMu.Lock()
+	if a.gameStarting {
+		a.gameMu.Unlock()
+		return types.ErrorResponse("game is already starting")
+	}
 	if a.gameCmd != nil && a.gameCmd.ProcessState == nil {
 		a.gameMu.Unlock()
 		return types.ErrorResponse("game is already running")
 	}
+	a.gameStarting = true
 	a.gameMu.Unlock()
+
+	started := false
+	defer func() {
+		if started {
+			return
+		}
+		a.gameMu.Lock()
+		a.gameStarting = false
+		a.gameMu.Unlock()
+		a.emitEvent("game:status", "stopped")
+	}()
+
+	a.emitEvent("game:status", "starting")
+	if a.launchGameTestReady != nil {
+		select {
+		case a.launchGameTestReady <- struct{}{}:
+		default:
+		}
+	}
+	if a.launchGameTestBlock != nil {
+		<-a.launchGameTestBlock
+	}
 
 	cfg := a.Config.GetConfig()
 	if !cfg.Validation.ExecutablePathValid {
@@ -439,7 +485,7 @@ func (a *App) LaunchGame() types.GenericResponse {
 		return types.ErrorResponse(err.Error())
 	}
 
-	wailsruntime.EventsEmit(a.ctx, "server:port", port)
+	a.emitEvent("server:port", port)
 	a.Logger.Info(fmt.Sprintf("Debug thumbnails: http://127.0.0.1:%d/debug/thumbnails", port))
 
 	a.generateMissingThumbnails(port)
@@ -523,11 +569,13 @@ func (a *App) LaunchGame() types.GenericResponse {
 
 	a.gameMu.Lock()
 	a.gameCmd = cmd
+	a.gameStarting = false
 	a.gameMu.Unlock()
+	started = true
 
-	wailsruntime.EventsEmit(a.ctx, "game:status", "running")
+	a.emitEvent("game:status", "running")
 
-	wailsruntime.EventsEmit(a.ctx, "game:log", map[string]string{
+	a.emitEvent("game:log", map[string]string{
 		"stream": "stdout",
 		"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),
 	})
@@ -541,6 +589,7 @@ func (a *App) LaunchGame() types.GenericResponse {
 		err := cmd.Wait()
 		a.gameMu.Lock()
 		a.gameCmd = nil
+		a.gameStarting = false
 		a.gameMu.Unlock()
 
 		exitCode := 0
@@ -552,8 +601,8 @@ func (a *App) LaunchGame() types.GenericResponse {
 		} else {
 			a.Logger.Info("Game exited normally")
 		}
-		wailsruntime.EventsEmit(a.ctx, "game:exit", exitCode)
-		wailsruntime.EventsEmit(a.ctx, "game:status", "stopped")
+		a.emitEvent("game:exit", exitCode)
+		a.emitEvent("game:status", "stopped")
 	}()
 
 	return types.SuccessResponse("Game launched")
@@ -563,7 +612,7 @@ func (a *App) streamGameOutput(r io.Reader, stream string) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
-		wailsruntime.EventsEmit(a.ctx, "game:log", map[string]string{
+		a.emitEvent("game:log", map[string]string{
 			"stream": stream,
 			"line":   line,
 		})
@@ -583,7 +632,13 @@ func (a *App) StopGame() types.GenericResponse {
 	a.Logger.Info("Killing game process")
 	a.gameMu.Lock()
 	cmd := a.gameCmd
+	starting := a.gameStarting
 	a.gameMu.Unlock()
+
+	if starting && cmd == nil {
+		a.Logger.Warn("Game is still starting and cannot be stopped yet")
+		return types.ErrorResponse("game is still starting")
+	}
 
 	if cmd == nil || cmd.ProcessState != nil {
 		a.Logger.Warn("No game process to kill")
@@ -601,7 +656,10 @@ func (a *App) StopGame() types.GenericResponse {
 	}
 
 	a.Logger.Info("Game process killed successfully")
+	a.gameMu.Lock()
 	a.gameCmd = nil
+	a.gameStarting = false
+	a.gameMu.Unlock()
 	return types.SuccessResponse("Game stopped")
 }
 

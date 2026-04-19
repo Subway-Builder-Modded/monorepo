@@ -49,6 +49,7 @@ function createNewSessionPatch(
 
 interface GameState {
   running: boolean;
+  starting: boolean;
   sessions: GameLogSession[];
   selectedSessionId: string | null;
   maxLogs: number;
@@ -61,8 +62,9 @@ interface GameState {
   clearLogs: () => void;
 }
 
-export const useGameStore = create<GameState>((set) => ({
+export const useGameStore = create<GameState>((set, get) => ({
   running: false,
+  starting: false,
   sessions: [],
   selectedSessionId: null,
   maxLogs: 5000,
@@ -116,7 +118,7 @@ export const useGameStore = create<GameState>((set) => ({
     // Check initial state
     IsGameRunning().then((response) => {
       if (response.status !== 'success' || !response.running) {
-        set({ running: false });
+        set({ running: false, starting: false });
         return;
       }
 
@@ -126,7 +128,7 @@ export const useGameStore = create<GameState>((set) => ({
           (session) => session.endedAt === null,
         );
         if (hasActiveSession) {
-          return { running: true };
+          return { running: true, starting: false };
         }
 
         const { sessionId, sessions } = createNewSessionPatch(
@@ -135,6 +137,7 @@ export const useGameStore = create<GameState>((set) => ({
         );
         return {
           running: true,
+          starting: false,
           selectedSessionId: sessionId,
           sessions,
         };
@@ -143,6 +146,11 @@ export const useGameStore = create<GameState>((set) => ({
 
     // Listen for events from backend
     EventsOn('game:status', (status: string) => {
+      if (status === 'starting') {
+        set({ starting: true });
+        return;
+      }
+
       if (status === 'running') {
         const now = Date.now();
         set((state) => {
@@ -150,7 +158,7 @@ export const useGameStore = create<GameState>((set) => ({
             (session) => session.endedAt === null,
           );
           if (hasActiveSession) {
-            return { running: true };
+            return { running: true, starting: false };
           }
 
           const { sessionId, sessions } = createNewSessionPatch(
@@ -159,6 +167,7 @@ export const useGameStore = create<GameState>((set) => ({
           );
           return {
             running: true,
+            starting: false,
             selectedSessionId: sessionId,
             sessions,
           };
@@ -171,7 +180,7 @@ export const useGameStore = create<GameState>((set) => ({
           (session) => session.endedAt === null,
         );
         if (activeIndex === -1) {
-          return { running: false, serverPort: null };
+          return { running: false, starting: false, serverPort: null };
         }
 
         const nextSessions = [...state.sessions];
@@ -182,6 +191,7 @@ export const useGameStore = create<GameState>((set) => ({
 
         return {
           running: false,
+          starting: false,
           serverPort: null,
           sessions: nextSessions,
         };
@@ -210,9 +220,20 @@ export const useGameStore = create<GameState>((set) => ({
   },
 
   launch: async () => {
-    const response = await LaunchGame();
-    if (response.status === 'error') {
-      throw new Error(response.message || 'Failed to launch game');
+    if (get().running || get().starting) {
+      return;
+    }
+
+    set({ starting: true });
+
+    try {
+      const response = await LaunchGame();
+      if (response.status === 'error') {
+        throw new Error(response.message || 'Failed to launch game');
+      }
+    } catch (error) {
+      set({ starting: false });
+      throw error;
     }
   },
 

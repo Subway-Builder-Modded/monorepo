@@ -102,6 +102,7 @@ export function Navbar() {
   const refreshing = useRegistryStore((s) => s.refreshing);
   const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
   const running = useGameStore((s) => s.running);
+  const starting = useGameStore((s) => s.starting);
   const launch = useGameStore((s) => s.launch);
   const stop = useGameStore((s) => s.stop);
   const installedMaps = useInstalledStore((s) => s.installedMaps);
@@ -241,6 +242,16 @@ export function Navbar() {
                   />
                 </Button>
               </NavbarItem>
+            ) : starting ? (
+              <NavbarItem
+                asChild
+                className="bg-[color-mix(in_srgb,var(--install-primary)_14%,transparent)] text-[var(--install-primary)]"
+              >
+                <Button variant="ghost" size="sm" disabled>
+                  <Play className="mr-1.5 h-[1.125rem] w-[1.125rem] animate-pulse" />
+                  Starting
+                </Button>
+              </NavbarItem>
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -250,7 +261,7 @@ export function Navbar() {
                         variant="ghost"
                         size="sm"
                         onClick={handleLaunch}
-                        disabled={!canLaunch}
+                        disabled={!canLaunch || starting}
                         className="disabled:opacity-50"
                       >
                         <Play className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
