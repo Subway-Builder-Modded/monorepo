@@ -50,6 +50,10 @@ export function GetInstalledModsResponse() {
   return window['go']['registry']['Registry']['GetInstalledModsResponse']();
 }
 
+export function GetInstallableVersionsResponse(arg1, arg2) {
+  return window['go']['registry']['Registry']['GetInstallableVersionsResponse'](arg1, arg2);
+}
+
 export function GetIntegrityReport(arg1) {
   return window['go']['registry']['Registry']['GetIntegrityReport'](arg1);
 }

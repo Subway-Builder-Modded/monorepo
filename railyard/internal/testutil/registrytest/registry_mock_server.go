@@ -94,6 +94,8 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 	zipByDownloadPath := map[string][]byte{}
 	mods := []types.ModManifest{}
 	maps := []types.MapManifest{}
+	modIntegrityListings := map[string]types.IntegrityListing{}
+	mapIntegrityListings := map[string]types.IntegrityListing{}
 	handler := http.NewServeMux()
 
 	for _, fixture := range fixtures {
@@ -118,6 +120,7 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 				},
 				CityCode: mapCode,
 			})
+			mapIntegrityListings[current.AssetID] = integrityListingFromFixture(current)
 		} else {
 			mods = append(mods, types.ModManifest{
 				AssetManifest: types.AssetManifest{
@@ -125,6 +128,7 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 					Update: types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
 				},
 			})
+			modIntegrityListings[current.AssetID] = integrityListingFromFixture(current)
 		}
 
 		handler.HandleFunc(updatePath, func(w http.ResponseWriter, r *http.Request) {
@@ -191,5 +195,34 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 	}
 
 	SetManifestsForTest(t, reg, mods, maps)
+	SetUnexportedField(t, reg, "integrityMods", types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings:      modIntegrityListings,
+	})
+	SetUnexportedField(t, reg, "integrityMaps", types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings:      mapIntegrityListings,
+	})
 	return server.Close
+}
+
+func integrityListingFromFixture(fixture UpdateFixture) types.IntegrityListing {
+	hasComplete := len(fixture.Versions) > 0 && !fixture.FailVersions
+	latestComplete := hasComplete
+	completeVersions := append([]string{}, fixture.Versions...)
+	versions := make(map[string]types.IntegrityVersionStatus, len(fixture.Versions))
+	for _, version := range fixture.Versions {
+		versions[version] = types.IntegrityVersionStatus{IsComplete: hasComplete}
+	}
+
+	return types.IntegrityListing{
+		HasCompleteVersion:   hasComplete,
+		LatestSemverVersion:  nil,
+		LatestSemverComplete: &latestComplete,
+		CompleteVersions:     completeVersions,
+		IncompleteVersions:   []string{},
+		Versions:             versions,
+	}
 }

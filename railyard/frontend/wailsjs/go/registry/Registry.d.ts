@@ -27,6 +27,8 @@ export function GetInstalledMods():Promise<Array<types.InstalledModInfo>>;
 
 export function GetInstalledModsResponse():Promise<types.InstalledModsResponse>;
 
+export function GetInstallableVersionsResponse(arg1:types.AssetType,arg2:string):Promise<types.VersionsResponse>;
+
 export function GetIntegrityReport(arg1:types.AssetType):Promise<types.RegistryIntegrityReport>;
 
 export function GetIntegrityReportResponse(arg1:types.AssetType):Promise<types.RegistryIntegrityReportResponse>;

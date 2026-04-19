@@ -134,7 +134,7 @@ func TestFetchFromDiskFiltersOutAssetsMissingIntegrityListings(t *testing.T) {
 			SchemaVersion: 1,
 			GeneratedAt:   "1970-01-01T00:00:00Z",
 			Listings: map[string]types.IntegrityListing{
-				"mod-a": {Versions: map[string]types.IntegrityVersionStatus{}},
+				"mod-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
 			},
 		},
 	))
@@ -145,7 +145,55 @@ func TestFetchFromDiskFiltersOutAssetsMissingIntegrityListings(t *testing.T) {
 			SchemaVersion: 1,
 			GeneratedAt:   "1970-01-01T00:00:00Z",
 			Listings: map[string]types.IntegrityListing{
-				"map-a": {Versions: map[string]types.IntegrityVersionStatus{}},
+				"map-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
+			},
+		},
+	))
+
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
+	require.NoError(t, reg.fetchFromDisk())
+
+	require.Len(t, reg.GetMods(), 1)
+	require.Equal(t, "mod-a", reg.GetMods()[0].ID)
+	require.Len(t, reg.GetMaps(), 1)
+	require.Equal(t, "map-a", reg.GetMaps()[0].ID)
+}
+
+func TestFetchFromDiskFiltersOutAssetsWithoutCompleteIntegrityVersions(t *testing.T) {
+	testutil.NewHarness(t)
+	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
+		Mods: []types.ModManifest{
+			testModManifest("mod-a"),
+			testModManifest("mod-b"),
+		},
+		Maps: []types.MapManifest{
+			testMapManifest("map-a"),
+			testMapManifest("map-b"),
+		},
+	})
+
+	require.NoError(t, files.WriteJSON(
+		filepath.Join(paths.RegistryRepoPath(), "mods", constants.INTEGRITY_JSON),
+		"mods integrity report",
+		types.RegistryIntegrityReport{
+			SchemaVersion: 1,
+			GeneratedAt:   "1970-01-01T00:00:00Z",
+			Listings: map[string]types.IntegrityListing{
+				"mod-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
+				"mod-b": {HasCompleteVersion: false, Versions: map[string]types.IntegrityVersionStatus{}},
+			},
+		},
+	))
+	require.NoError(t, files.WriteJSON(
+		filepath.Join(paths.RegistryRepoPath(), "maps", constants.INTEGRITY_JSON),
+		"maps integrity report",
+		types.RegistryIntegrityReport{
+			SchemaVersion: 1,
+			GeneratedAt:   "1970-01-01T00:00:00Z",
+			Listings: map[string]types.IntegrityListing{
+				"map-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
+				"map-b": {HasCompleteVersion: false, Versions: map[string]types.IntegrityVersionStatus{}},
 			},
 		},
 	))
