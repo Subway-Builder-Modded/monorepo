@@ -40,7 +40,7 @@ export function AnalyticsSection() {
         reverseOnDesktop
         className="xl:mx-auto xl:max-w-[1180px] xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] xl:gap-12"
         left={
-          <div className="mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:max-w-md lg:items-start lg:text-left">
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:mr-auto lg:max-w-md lg:items-start lg:text-left">
             <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
               {ANALYTICS_SECTION.body}
             </p>

@@ -40,7 +40,7 @@ export function OpenSourceSection() {
           </div>
         }
         right={
-          <div className="mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:max-w-md lg:items-end lg:text-right">
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:ml-auto lg:max-w-md lg:items-end lg:text-right">
             <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground lg:ml-auto">
               {OPEN_SOURCE_SECTION.body}
             </p>
