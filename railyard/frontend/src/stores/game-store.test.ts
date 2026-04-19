@@ -2,17 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useGameStore } from './game-store';
 
-const {
-  mockIsGameRunning,
-  mockLaunchGame,
-  mockStopGame,
-  mockEventsOn,
-} = vi.hoisted(() => ({
-  mockIsGameRunning: vi.fn(),
-  mockLaunchGame: vi.fn(),
-  mockStopGame: vi.fn(),
-  mockEventsOn: vi.fn(),
-}));
+const { mockIsGameRunning, mockLaunchGame, mockStopGame, mockEventsOn } =
+  vi.hoisted(() => ({
+    mockIsGameRunning: vi.fn(),
+    mockLaunchGame: vi.fn(),
+    mockStopGame: vi.fn(),
+    mockEventsOn: vi.fn(),
+  }));
 
 const eventHandlers = new Map<string, (payload: unknown) => void>();
 

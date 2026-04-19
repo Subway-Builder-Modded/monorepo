@@ -60,6 +60,7 @@ type App struct {
 
 	cachedGameVersion types.GameVersionResponse
 
+	// Test-only hooks for controlling the launch-starting window and event sink.
 	launchGameTestReady chan<- struct{}
 	launchGameTestBlock <-chan struct{}
 	emitEventFunc       func(name string, optionalData ...interface{})
@@ -179,12 +180,14 @@ func (a *App) setStartupReady(ready bool) {
 	a.startupReady = ready
 }
 
+// emitEvent forwards frontend events through Wails, with a test override.
 func (a *App) emitEvent(name string, optionalData ...interface{}) {
 	if a.emitEventFunc != nil {
 		a.emitEventFunc(name, optionalData...)
 		return
 	}
 	if a.ctx == nil {
+		a.Logger.Warn("dropping event without Wails context", "event", name)
 		return
 	}
 	wailsruntime.EventsEmit(a.ctx, name, optionalData...)
