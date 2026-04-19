@@ -33,13 +33,18 @@ export function OpenSourceSection() {
 
       <TwoColumnSection
         reverseOnDesktop
-        left={<CodeSurface />}
+        className="xl:mx-auto xl:max-w-[1180px] xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] xl:gap-12"
+        left={
+          <div className="mx-auto w-full max-w-3xl lg:mx-0 lg:max-w-none">
+            <CodeSurface />
+          </div>
+        }
         right={
-          <div className="flex flex-col items-center text-center">
-            <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center text-center lg:mx-0 lg:max-w-md lg:items-end lg:text-right">
+            <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground lg:ml-auto">
               {OPEN_SOURCE_SECTION.body}
             </p>
-            <div className="mt-6">
+            <div className="mt-6 lg:mt-7">
               <a
                 href={OPEN_SOURCE_SECTION.cta.href}
                 target="_blank"

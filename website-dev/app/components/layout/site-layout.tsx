@@ -4,6 +4,7 @@ import { SiteFooter } from "@/app/components/footer/site-footer";
 import { FloatingNavbar } from "@/app/components/navigation/floating-navbar";
 import { getActiveSuite } from "@/app/config/site-navigation";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
+import { usePageMetadata } from "@/app/hooks/use-page-metadata";
 import { useLocation } from "@/app/lib/router";
 
 type SiteLayoutProps = {
@@ -15,6 +16,7 @@ export function SiteLayout({ children }: SiteLayoutProps) {
   const pathname = location.pathname;
   const activeSuite = getActiveSuite(pathname);
   const { theme, setTheme } = useThemeMode();
+  usePageMetadata({ pathname });
 
   const isHome = pathname === "/" || pathname === "";
 

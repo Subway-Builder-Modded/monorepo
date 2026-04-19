@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
@@ -19,11 +19,38 @@ function CreditsButton({ slide }: { slide: HeroSlide }) {
   const [pinned, setPinned] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focusWithin, setFocusWithin] = useState(false);
+  const hoverLeaveTimerRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const open = pinned || hovered || focusWithin;
 
+  const clearHoverLeaveTimer = useCallback(() => {
+    if (hoverLeaveTimerRef.current !== null) {
+      window.clearTimeout(hoverLeaveTimerRef.current);
+      hoverLeaveTimerRef.current = null;
+    }
+  }, []);
+
+  const onHoverRegionEnter = useCallback(() => {
+    clearHoverLeaveTimer();
+    setHovered(true);
+  }, [clearHoverLeaveTimer]);
+
+  const onHoverRegionLeave = useCallback(() => {
+    clearHoverLeaveTimer();
+    hoverLeaveTimerRef.current = window.setTimeout(() => {
+      setHovered(false);
+      hoverLeaveTimerRef.current = null;
+    }, 140);
+  }, [clearHoverLeaveTimer]);
+
   useEffect(() => {
-    if (!pinned) return;
+    return () => {
+      clearHoverLeaveTimer();
+    };
+  }, [clearHoverLeaveTimer]);
+
+  useEffect(() => {
+    if (!open) return;
 
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
@@ -47,15 +74,18 @@ function CreditsButton({ slide }: { slide: HeroSlide }) {
       document.removeEventListener("keydown", onKey);
       document.removeEventListener("mousedown", onClick);
     };
-  }, [pinned]);
+  }, [open]);
 
   return (
     <div
       ref={containerRef}
       className="relative"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onFocusCapture={() => setFocusWithin(true)}
+      onMouseEnter={onHoverRegionEnter}
+      onMouseLeave={onHoverRegionLeave}
+      onFocusCapture={() => {
+        clearHoverLeaveTimer();
+        setFocusWithin(true);
+      }}
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
           setFocusWithin(false);
@@ -79,15 +109,31 @@ function CreditsButton({ slide }: { slide: HeroSlide }) {
         <Info className="size-3.5 sm:size-4" aria-hidden="true" />
       </button>
 
-      {open && <CreditsPlate slide={slide} />}
+      {open && (
+        <CreditsPlate
+          slide={slide}
+          onMouseEnter={onHoverRegionEnter}
+          onMouseLeave={onHoverRegionLeave}
+        />
+      )}
     </div>
   );
 }
 
-function CreditsPlate({ slide }: { slide: HeroSlide }) {
+function CreditsPlate({
+  slide,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  slide: HeroSlide;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}) {
   return (
     <div
       role="tooltip"
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       className={cn(
         "absolute bottom-full left-0 mb-2 w-64 origin-bottom-left sm:w-72",
         "rounded-lg border border-border/50 bg-popover/95 text-popover-foreground shadow-lg backdrop-blur-md",

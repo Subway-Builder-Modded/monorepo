@@ -3,7 +3,6 @@ name: Website Deploy (Dev)
 on:
   push:
     branches:
-      - main
       - website-dev
     paths:
       - "website-dev/**"
