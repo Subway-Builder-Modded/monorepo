@@ -26,21 +26,13 @@ func (r *Registry) resolveAssetUpdateSource(assetType types.AssetType, assetID s
 		if err != nil {
 			return "", "", err
 		}
-		source := manifest.Update.Source()
-		if source == "" {
-			return "", "", fmt.Errorf("mod %q has no update source configured", assetID)
-		}
-		return manifest.Update.Type, source, nil
+		return manifest.Update.Type, manifest.Update.Source(), nil
 	case types.AssetTypeMap:
 		manifest, err := r.GetMap(assetID)
 		if err != nil {
 			return "", "", err
 		}
-		source := manifest.Update.Source()
-		if source == "" {
-			return "", "", fmt.Errorf("map %q has no update source configured", assetID)
-		}
-		return manifest.Update.Type, source, nil
+		return manifest.Update.Type, manifest.Update.Source(), nil
 	default:
 		return "", "", fmt.Errorf("invalid asset type: %s", assetType)
 	}
@@ -67,12 +59,6 @@ func (r *Registry) filterVersionsByIntegrity(
 		if status.IsComplete {
 			allowedVersions[version] = struct{}{}
 		}
-	}
-
-	// Backward-compatible fallback for older integrity snapshots that declare
-	// completeness at the listing level but omit per-version data.
-	if len(allowedVersions) == 0 {
-		return cloneVersionInfos(versions), nil
 	}
 
 	filtered := make([]types.VersionInfo, 0, len(versions))
