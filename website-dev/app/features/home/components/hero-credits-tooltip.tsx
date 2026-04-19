@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
-import type { HeroSlide } from "@/app/features/home/data/hero-slides";
+import type { HeroSlide } from "@/app/features/home/data/homepage-content";
 
 type HeroCreditsTooltipProps = {
   slide: HeroSlide;
@@ -16,17 +16,20 @@ export function HeroCreditsTooltip({ slide }: HeroCreditsTooltipProps) {
 }
 
 function CreditsButton({ slide }: { slide: HeroSlide }) {
-  const [open, setOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const show = useCallback(() => {
+  const open = pinned || hovered;
+
+  const showHover = useCallback(() => {
     clearTimeout(closeTimer.current);
-    setOpen(true);
+    setHovered(true);
   }, []);
 
-  const scheduleHide = useCallback(() => {
-    closeTimer.current = setTimeout(() => setOpen(false), 220);
+  const hideHover = useCallback(() => {
+    closeTimer.current = setTimeout(() => setHovered(false), 220);
   }, []);
 
   useEffect(() => () => clearTimeout(closeTimer.current), []);
@@ -34,10 +37,16 @@ function CreditsButton({ slide }: { slide: HeroSlide }) {
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setPinned(false);
+        setHovered(false);
+      }
     }
     function onClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setPinned(false);
+        setHovered(false);
+      }
     }
     document.addEventListener("keydown", onKey);
     document.addEventListener("mousedown", onClick);
@@ -48,12 +57,12 @@ function CreditsButton({ slide }: { slide: HeroSlide }) {
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative" onMouseEnter={show} onMouseLeave={scheduleHide}>
+    <div ref={containerRef} className="relative" onMouseEnter={showHover} onMouseLeave={hideHover}>
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        onFocus={show}
-        onBlur={scheduleHide}
+        onClick={() => setPinned((v) => !v)}
+        onFocus={showHover}
+        onBlur={hideHover}
         aria-label="View image credits and map information"
         aria-expanded={open}
         className={cn(

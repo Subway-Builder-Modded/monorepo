@@ -1,49 +1,15 @@
-import { Heart, Users } from "lucide-react";
-import { FaDiscord } from "react-icons/fa";
 import { Link } from "@/app/lib/router";
 import { SectionShell, SectionHeader } from "@subway-builder-modded/shared-ui";
-
-const DESTINATIONS = [
-  {
-    id: "community",
-    icon: FaDiscord,
-    title: "Community",
-    description:
-      "Get support, share feedback, show off your creations, and help shape the roadmap alongside other builders.",
-    href: "/community",
-    label: "Community Hub",
-  },
-  {
-    id: "credits",
-    icon: Users,
-    title: "Credits",
-    description:
-      "The maintainers, collaborators, and contributors who keep us moving forward.",
-    href: "/credits",
-    label: "View Credits",
-  },
-  {
-    id: "contribute",
-    icon: Heart,
-    title: "Contribute",
-    description:
-      "Support ongoing development and help ship new features faster while keeping everything free and open for everyone.",
-    href: "/contribute",
-    label: "Support the Project",
-  },
-] as const;
+import { PEOPLE_DESTINATIONS, PEOPLE_SECTION } from "@/app/features/home/data/homepage-content";
 
 export function PeopleSection() {
   return (
     <SectionShell>
-      <SectionHeader
-        title="Built by the community, for the community"
-        description="Subway Builder Modded is run completely by the community, for the community. Join us in building the future of modding for Subway Builder."
-      />
+      <SectionHeader title={PEOPLE_SECTION.title} description={PEOPLE_SECTION.description} />
 
       <div className="grid gap-px overflow-hidden rounded-xl border border-border/60 bg-border/40 sm:grid-cols-3">
         <div className="col-span-full h-[3px] bg-foreground/15" aria-hidden="true" />
-        {DESTINATIONS.map((d) => {
+        {PEOPLE_DESTINATIONS.map((d) => {
           const Icon = d.icon;
           return (
             <Link

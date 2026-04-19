@@ -17,7 +17,7 @@ export function NavRow({ title, description, icon, active = false, className }: 
         'group flex h-full min-h-[3.25rem] items-start gap-3 rounded-lg px-3 py-2.5 transition-all duration-150',
         active
           ? 'bg-[color:var(--nav-muted)] text-[color:var(--nav-accent)]'
-          : 'text-foreground hover:bg-[color:var(--nav-muted)] hover:translate-x-[1px]',
+          : 'text-foreground hover:bg-[color:var(--nav-muted)]',
         className,
       )}
     >
@@ -55,7 +55,7 @@ export function NavRow({ title, description, icon, active = false, className }: 
 
       <ChevronRight
         className={cn(
-          'size-3.5 shrink-0 transition-transform duration-150 group-hover:translate-x-0.5',
+          'size-3.5 shrink-0 transition-transform duration-150',
             active
               ? 'text-[color:var(--nav-accent)] opacity-60'
               : 'text-muted-foreground opacity-40 group-hover:text-foreground group-hover:opacity-60',

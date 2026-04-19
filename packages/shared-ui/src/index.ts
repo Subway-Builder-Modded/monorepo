@@ -194,6 +194,11 @@ export {
   type TerminalFrameProps,
 } from './components/terminal-frame';
 export {
+  CodeDisplay,
+  type CodeDisplayProps,
+} from './components/code-display';
+export { GithubIcon } from './components/github-icon';
+export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,
   getToneVarsClass,

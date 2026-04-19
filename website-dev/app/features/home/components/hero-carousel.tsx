@@ -2,10 +2,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/app/lib/utils";
 import { FaDiscord } from "react-icons/fa";
-import { HERO_SLIDES, HERO_AUTO_ROTATE_MS } from "@/app/features/home/data/hero-slides";
-import { HERO_SUITE_BARS } from "@/app/features/home/data/homepage-content";
+import { GithubIcon } from "@subway-builder-modded/shared-ui";
+import {
+  HERO_SLIDES,
+  HERO_AUTO_ROTATE_MS,
+  HERO_SUITE_BARS,
+  HERO_TITLE_LINE_1,
+  HERO_TITLE_LINE_2,
+  HERO_DESCRIPTION,
+  HERO_CTA_GITHUB,
+  HERO_CTA_DISCORD,
+} from "@/app/features/home/data/homepage-content";
 import { HeroCreditsTooltip } from "@/app/features/home/components/hero-credits-tooltip";
-import { GithubIcon } from "@/app/features/home/components/icons";
 
 function usePreloadImages(slides: typeof HERO_SLIDES) {
   useEffect(() => {
@@ -167,33 +175,33 @@ export function HeroCarousel() {
           </div>
 
           <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.93] tracking-[-0.04em] text-foreground">
-            Subway Builder
+            {HERO_TITLE_LINE_1}
             <br />
-            Modded
+            {HERO_TITLE_LINE_2}
           </h1>
 
           <p className="mx-auto mt-5 max-w-xl text-[clamp(1.05rem,2vw,1.2rem)] leading-relaxed text-foreground/70">
-            The complete hub for everything modded in Subway Builder.
+            {HERO_DESCRIPTION}
           </p>
 
           <div className="mt-8 flex items-center justify-center gap-3">
             <a
-              href="https://github.com/Subway-Builder-Modded"
+              href={HERO_CTA_GITHUB.href}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-foreground/90 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-background shadow-lg backdrop-blur-sm transition-all hover:bg-foreground"
             >
               <GithubIcon className="size-[18px]" />
-              GitHub
+              {HERO_CTA_GITHUB.label}
             </a>
             <a
-              href="https://discord.gg/syG9YHMyeG"
+              href={HERO_CTA_DISCORD.href}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 rounded-xl border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-foreground/90 backdrop-blur-sm transition-all hover:border-foreground/40 hover:bg-foreground/10"
             >
               <FaDiscord className="size-[18px]" />
-              Discord
+              {HERO_CTA_DISCORD.label}
             </a>
           </div>
         </div>

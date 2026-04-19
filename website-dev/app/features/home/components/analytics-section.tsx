@@ -5,7 +5,7 @@ import {
   TwoColumnSection,
   TerminalFrame,
 } from "@subway-builder-modded/shared-ui";
-import { ANALYTICS_LINKS } from "@/app/features/home/data/homepage-content";
+import { ANALYTICS_LINKS, ANALYTICS_SECTION } from "@/app/features/home/data/homepage-content";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
 const MAP_COLOR = "#1c7ed6";
@@ -15,9 +15,9 @@ function AnalyticsGraphic() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === "dark";
 
-  const gridColor = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.05)";
-  const axisColor = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)";
-  const textColor = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)";
+  const gridColor = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.06)";
+  const axisColor = isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.14)";
+  const textColor = isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.35)";
 
   return (
     <TerminalFrame title="analytics — downloads">
@@ -77,7 +77,6 @@ function AnalyticsGraphic() {
             </text>
           ))}
 
-          {/* Maps line */}
           <polyline
             points="40,150 112,135 184,115 256,100 328,82 400,65 470,48"
             fill="none"
@@ -86,7 +85,6 @@ function AnalyticsGraphic() {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          {/* Mods line */}
           <polyline
             points="40,165 112,155 184,140 256,132 328,120 400,110 470,100"
             fill="none"
@@ -96,7 +94,6 @@ function AnalyticsGraphic() {
             strokeLinejoin="round"
           />
 
-          {/* Legend */}
           {[
             { label: "Maps", color: MAP_COLOR },
             { label: "Mods", color: MOD_COLOR },
@@ -128,17 +125,14 @@ export function AnalyticsSection() {
 
   return (
     <SectionShell>
-      <SectionHeader
-        title="In-depth analytics and insights"
-        description="Download counts, recent trends, and community-content analytics for every project."
-      />
+      <SectionHeader title={ANALYTICS_SECTION.title} description={ANALYTICS_SECTION.description} />
 
       <TwoColumnSection
-        left={<AnalyticsGraphic />}
-        right={
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+        reverseOnDesktop
+        left={
+          <div className="flex flex-col items-center text-center">
             <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-              Visualized detailed analytics for every project in the ecosystem, from Registry map download trends to per-page website traffic.
+              {ANALYTICS_SECTION.body}
             </p>
             <div className="mt-6 flex flex-col gap-2.5 sm:max-w-xs">
               {ANALYTICS_LINKS.map((link) => {
@@ -163,6 +157,7 @@ export function AnalyticsSection() {
             </div>
           </div>
         }
+        right={<AnalyticsGraphic />}
       />
     </SectionShell>
   );

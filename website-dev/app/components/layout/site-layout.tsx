@@ -28,7 +28,7 @@ export function SiteLayout({ children }: SiteLayoutProps) {
         className={
           isHome
             ? "relative min-h-[70vh] w-full"
-            : "relative mx-auto min-h-[70vh] w-full max-w-[1200px] px-5 pb-8 pt-24 sm:px-7 lg:px-1042"
+            : "relative mx-auto min-h-[70vh] w-full max-w-[1360px] px-5 pb-8 pt-24 sm:px-7 lg:px-10 xl:px-12"
         }
       >
         {children}

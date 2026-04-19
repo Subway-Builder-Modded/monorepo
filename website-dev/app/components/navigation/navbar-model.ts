@@ -1,7 +1,6 @@
 import {
   SITE_SUITES,
   getActiveSuite,
-  getBreadcrumbLabel,
   getItemsForSuite,
   getMatchingItem,
   getSuiteById,
@@ -43,7 +42,6 @@ export type NavbarDisplayModel = {
   displayedItems: SiteNavItem[];
   activeItem: SiteNavItem | null;
   activeItemGlobal: SiteNavItem | null;
-  breadcrumb: string;
   accentColor: string;
   mutedColor: string;
   realAccent: string;
@@ -110,7 +108,6 @@ export function buildNavbarDisplayModel({
     displayedItems,
     activeItem,
     activeItemGlobal,
-    breadcrumb: getBreadcrumbLabel(pathname),
     accentColor,
     mutedColor,
     realAccent,

@@ -5,7 +5,7 @@ import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
-import { SectionHeader, HOMEPAGE_SHELL } from "@subway-builder-modded/shared-ui";
+import { SectionHeader, HOMEPAGE_SHELL, CodeDisplay } from "@subway-builder-modded/shared-ui";
 import { SUITE_STEPS, type SuiteStep } from "@/app/features/home/data/homepage-content";
 
 function StationSwitcher({
@@ -76,28 +76,42 @@ function StoryPanel({ step }: { step: SuiteStep }) {
 
   return (
     <div className="flex flex-col">
-      <div
-        className="relative mb-6 overflow-hidden rounded-xl border border-border/40 bg-muted/30"
-        style={{ boxShadow: `0 0 0 1px ${accent}10, 0 8px 30px ${accent}08` }}
-      >
-        <div className="h-[3px] w-full" style={{ backgroundColor: accent }} aria-hidden="true" />
-        <div className="relative aspect-video">
-          <img
-            src={step.imageLight}
-            alt={step.imageAlt}
-            className="absolute inset-0 block size-full object-cover object-top dark:hidden"
-            loading="lazy"
-            draggable={false}
-          />
-          <img
-            src={step.imageDark}
-            alt={step.imageAlt}
-            className="absolute inset-0 hidden size-full object-cover object-top dark:block"
-            loading="lazy"
-            draggable={false}
+      {step.mediaKind === "code" && step.codeContent ? (
+        <div
+          className="relative mb-6 overflow-hidden rounded-xl"
+          style={{ boxShadow: `0 0 0 1px ${accent}10, 0 8px 30px ${accent}08` }}
+        >
+          <CodeDisplay
+            code={step.codeContent}
+            lang={step.codeLang ?? "tsx"}
+            title={step.codeFileName}
+            resolvedTheme={resolvedTheme}
           />
         </div>
-      </div>
+      ) : (
+        <div
+          className="relative mb-6 overflow-hidden rounded-xl border border-border/40 bg-muted/30"
+          style={{ boxShadow: `0 0 0 1px ${accent}10, 0 8px 30px ${accent}08` }}
+        >
+          <div className="h-[3px] w-full" style={{ backgroundColor: accent }} aria-hidden="true" />
+          <div className="relative aspect-video">
+            <img
+              src={step.imageLight}
+              alt={step.imageAlt}
+              className="absolute inset-0 block size-full object-cover object-top dark:hidden"
+              loading="lazy"
+              draggable={false}
+            />
+            <img
+              src={step.imageDark}
+              alt={step.imageAlt}
+              className="absolute inset-0 hidden size-full object-cover object-top dark:block"
+              loading="lazy"
+              draggable={false}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="mb-2.5 flex items-center gap-3">
         <span

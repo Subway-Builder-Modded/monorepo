@@ -17,6 +17,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { FaDiscord as Discord } from "react-icons/fa6";
+import { GithubIcon } from "@subway-builder-modded/shared-ui";
+
 function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boolean }) {
   return (
     <span
@@ -35,20 +37,6 @@ function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boole
         WebkitMaskSize: "contain",
       }}
     />
-  );
-}
-
-function GithubIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      aria-hidden="true"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-    </svg>
   );
 }
 
@@ -89,7 +77,6 @@ export type SiteSuite = {
   icon: SiteIcon;
   colorSchemeId: SiteColorSchemeId;
   accent: SiteSuiteAccent;
-  breadcrumbFallback: string;
 };
 
 export type SiteIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
@@ -100,7 +87,6 @@ export type SiteNavItem = {
   title: string;
   href: string;
   icon: SiteIcon;
-  breadcrumb: string;
   description?: string;
   activeMatchRules?: SiteRouteMatchRule[];
 };
@@ -131,7 +117,6 @@ export const SITE_SUITES: SiteSuite[] = [
     icon: Compass,
     colorSchemeId: "default",
     accent: GENERAL_ACCENT,
-    breadcrumbFallback: "Home",
   },
   {
     id: "railyard",
@@ -147,7 +132,6 @@ export const SITE_SUITES: SiteSuite[] = [
       mutedLight: "rgba(15,143,104,0.18)",
       mutedDark: "rgba(25,216,156,0.13)",
     },
-    breadcrumbFallback: "Railyard",
   },
   {
     id: "registry",
@@ -163,7 +147,6 @@ export const SITE_SUITES: SiteSuite[] = [
       mutedLight: "rgba(157,78,221,0.18)",
       mutedDark: "rgba(199,125,255,0.13)",
     },
-    breadcrumbFallback: "Registry",
   },
   {
     id: "template-mod",
@@ -179,7 +162,6 @@ export const SITE_SUITES: SiteSuite[] = [
       mutedLight: "rgba(96,165,250,0.18)",
       mutedDark: "rgba(147,197,253,0.13)",
     },
-    breadcrumbFallback: "Template Mod",
   },
   {
     id: "website",
@@ -195,7 +177,6 @@ export const SITE_SUITES: SiteSuite[] = [
       mutedLight: "rgba(242,153,46,0.18)",
       mutedDark: "rgba(255,190,115,0.13)",
     },
-    breadcrumbFallback: "Website",
   },
   {
     id: "foundry",
@@ -211,7 +192,6 @@ export const SITE_SUITES: SiteSuite[] = [
       mutedLight: "rgba(214,69,69,0.18)",
       mutedDark: "rgba(255,107,107,0.13)",
     },
-    breadcrumbFallback: "Foundry",
   },
 ];
 
@@ -224,7 +204,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
       "Welcome to Subway Builder Modded, the complete hub for all things modded in Subway Builder.",
     href: "/",
     icon: House,
-    breadcrumb: "Home",
     activeMatchRules: [{ kind: "exact", path: "/" }],
   },
   {
@@ -235,7 +214,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
       "Join our Discord community for support, discussions, and the most up-to-date info.",
     href: "/community",
     icon: Handshake,
-    breadcrumb: "Community",
     activeMatchRules: [{ kind: "exact", path: "/community" }],
   },
   {
@@ -245,7 +223,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "The maintainers and contributors helping Subway Builder Modded move forward.",
     href: "/credits",
     icon: Users,
-    breadcrumb: "Credits",
     activeMatchRules: [{ kind: "exact", path: "/credits" }],
   },
   {
@@ -256,7 +233,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
       "Help us build the future of Subway Builder Modded. Your support keeps the project going.",
     href: "/contribute",
     icon: Heart,
-    breadcrumb: "Contribute",
     activeMatchRules: [{ kind: "exact", path: "/contribute" }],
   },
   {
@@ -266,7 +242,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "Terms and licensing information for Subway Builder Modded projects.",
     href: "/license",
     icon: Scale,
-    breadcrumb: "License",
     activeMatchRules: [{ kind: "exact", path: "/license" }],
   },
   {
@@ -277,7 +252,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
       "Discover and download the all-in-one manager for Subway Builder community-made content.",
     href: "/railyard",
     icon: House,
-    breadcrumb: "Home",
     activeMatchRules: [{ kind: "exact", path: "/railyard" }],
   },
   {
@@ -287,7 +261,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "Browse our registry of community-made content for Subway Builder.",
     href: "/railyard/browse",
     icon: Compass,
-    breadcrumb: "Browse",
     activeMatchRules: [{ kind: "prefix", path: "/railyard/browse" }],
   },
   {
@@ -297,7 +270,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "View the official documentation for Railyard.",
     href: "/railyard/docs",
     icon: BookText,
-    breadcrumb: "Docs",
     activeMatchRules: [{ kind: "prefix", path: "/railyard/docs" }],
   },
   {
@@ -307,7 +279,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "View the changelogs and release notes for Railyard.",
     href: "/railyard/updates",
     icon: Megaphone,
-    breadcrumb: "Updates",
     activeMatchRules: [{ kind: "prefix", path: "/railyard/updates" }],
   },
   {
@@ -317,7 +288,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "In-depth release and download analytics for the Railyard app.",
     href: "/railyard/analytics",
     icon: ChartLine,
-    breadcrumb: "Analytics",
     activeMatchRules: [{ kind: "exact", path: "/railyard/analytics" }],
   },
   {
@@ -327,7 +297,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "View in-depth analytics and insights for Registry-hosted content.",
     href: "/registry/analytics",
     icon: ChartLine,
-    breadcrumb: "Analytics",
     activeMatchRules: [{ kind: "exact", path: "/registry/analytics" }],
   },
   {
@@ -337,7 +306,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "View the most trending content in the Registry based on recent activity.",
     href: "/registry/trending",
     icon: TrendingUp,
-    breadcrumb: "Trending",
     activeMatchRules: [{ kind: "exact", path: "/registry/trending" }],
   },
   {
@@ -347,7 +315,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "Interactively explore all of the user-submitted maps available in the Registry.",
     href: "/registry/world-map",
     icon: Globe,
-    breadcrumb: "World Map",
     activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
   },
   {
@@ -357,7 +324,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "Experiment with Markdown content in a live preview environment.",
     href: "/registry/markdown-playground",
     icon: MarkdownIcon,
-    breadcrumb: "Playground",
     activeMatchRules: [{ kind: "exact", path: "/registry/markdown-playground" }],
   },
   {
@@ -367,7 +333,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "Discover the all-inclusive TypeScript template for creating Subway Builder mods.",
     href: "/template-mod",
     icon: House,
-    breadcrumb: "Home",
     activeMatchRules: [{ kind: "exact", path: "/template-mod" }],
   },
   {
@@ -377,7 +342,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "View the official documentation for the Template Mod.",
     href: "/template-mod/docs",
     icon: BookText,
-    breadcrumb: "Docs",
     activeMatchRules: [{ kind: "prefix", path: "/template-mod/docs" }],
   },
   {
@@ -387,7 +351,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "View the changelogs and release notes for the Template Mod.",
     href: "/template-mod/updates",
     icon: Megaphone,
-    breadcrumb: "Updates",
     activeMatchRules: [{ kind: "prefix", path: "/template-mod/updates" }],
   },
   {
@@ -397,7 +360,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "View the changelogs and release notes for the Website.",
     href: "/website/updates",
     icon: Megaphone,
-    breadcrumb: "Updates",
     activeMatchRules: [{ kind: "prefix", path: "/website/updates" }],
   },
   {
@@ -407,18 +369,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     description: "In-depth release and download analytics for the Website.",
     href: "/website/analytics",
     icon: ChartLine,
-    breadcrumb: "Analytics",
     activeMatchRules: [{ kind: "exact", path: "/website/analytics" }],
   },
   {
     id: "foundry-home",
     suiteId: "foundry",
     title: "Home",
-    description:
-      "Discover and download the unified suite for Subway Builder map creation.",
+    description: "Discover and download the unified suite for Subway Builder map creation.",
     href: "/foundry",
     icon: House,
-    breadcrumb: "Home",
     activeMatchRules: [{ kind: "exact", path: "/foundry" }],
   },
 ];
@@ -513,17 +472,4 @@ export function getMatchingItem(pathname: string, suiteId: SiteSuiteId): SiteNav
   }
 
   return null;
-}
-
-export function getActiveItem(pathname: string): SiteNavItem | null {
-  return getMatchingItem(pathname, getActiveSuite(pathname).id);
-}
-
-export function getBreadcrumbLabel(pathname: string): string {
-  const activeItem = getActiveItem(pathname);
-  if (activeItem) {
-    return activeItem.breadcrumb;
-  }
-
-  return getActiveSuite(pathname).breadcrumbFallback;
 }

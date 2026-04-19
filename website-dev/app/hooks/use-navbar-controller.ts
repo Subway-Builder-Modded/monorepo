@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE_NAV_ITEMS, getActiveSuite, type SiteSuiteId } from "@/app/config/site-navigation";
 import { buildNavbarDisplayModel } from "@/app/components/navigation/navbar-model";
 import { useNavbarPanelHeight } from "@/app/hooks/use-navbar-panel-height";
@@ -102,13 +102,17 @@ export function useNavbarController({
     setOpenSuiteId(realSuite.id);
   }, [realSuite.id]);
 
-  const { phase, open, close, isFrameExpanded, showPanelSurface, showRows } = useNavbarPhase({
-    canStartEnterMotion,
-    onFullyClosed,
-    reducedMotion: prefersReducedMotion,
-  });
+  const { phase, open, close, isFrameExpanded, showPanelSurface, showRows, allowHoverClose } =
+    useNavbarPhase({
+      canStartEnterMotion,
+      onFullyClosed,
+      reducedMotion: prefersReducedMotion,
+    });
+
+  const isPinnedRef = useRef(false);
 
   const closeNavbar = useCallback(() => {
+    isPinnedRef.current = false;
     close();
   }, [close]);
 
@@ -138,9 +142,28 @@ export function useNavbarController({
     if (isFrameExpanded) {
       closeNavbar();
     } else {
+      isPinnedRef.current = true;
       openNavbar();
     }
   }, [closeNavbar, isFrameExpanded, openNavbar]);
+
+  const onFrameHoverStart = useCallback(() => {
+    if (phase === "closed") {
+      openNavbar();
+    }
+  }, [openNavbar, phase]);
+
+  const onFrameHoverEnd = useCallback(() => {
+    if (allowHoverClose && !isPinnedRef.current) {
+      close();
+    }
+  }, [allowHoverClose, close]);
+
+  const onFrameClick = useCallback(() => {
+    if (isFrameExpanded && !isPinnedRef.current) {
+      isPinnedRef.current = true;
+    }
+  }, [isFrameExpanded]);
 
   const onSuiteChange = useCallback((suiteId: SiteSuiteId) => {
     setOpenSuiteId(suiteId);
@@ -191,7 +214,6 @@ export function useNavbarController({
     borderColor,
     suiteRailItems,
     allSuiteGroups,
-    breadcrumb,
   } = displayModel;
 
   // For mobile: measurement uses all items; for desktop: current suite items
@@ -268,13 +290,15 @@ export function useNavbarController({
     accentColor,
     allSuiteGroups,
     borderColor,
-    breadcrumb,
     closeNavbar,
     displayedItems,
     frameDuration,
     frameHeight,
     isFrameExpanded,
     mutedColor,
+    onFrameClick,
+    onFrameHoverEnd,
+    onFrameHoverStart,
     onMenuClick,
     onRowClick,
     onSuiteChange,

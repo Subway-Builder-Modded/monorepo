@@ -31,7 +31,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     accentColor,
     allSuiteGroups,
     borderColor,
-    breadcrumb,
     closeNavbar,
     displayedItems,
     frameDuration,
@@ -39,11 +38,13 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
     phase,
     isFrameExpanded,
     mutedColor,
+    onFrameClick,
+    onFrameHoverEnd,
+    onFrameHoverStart,
     onMenuClick,
     onRowClick,
     onSuiteChange,
     onThemeClick,
-    openNavbar,
     openSuiteId,
     panelHeight,
     panelMeasureRef,
@@ -63,18 +64,17 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
   const onCollapsedSurfaceClick = useCallback(
     (event: MouseEvent) => {
-      if (phase !== "closed") return;
       const target = event.target as HTMLElement;
       if (target.closest("a, button")) return;
-      openNavbar();
+      onFrameClick();
     },
-    [openNavbar, phase],
+    [onFrameClick],
   );
 
   const isClosed = phase === "closed";
   const [isNavbarHovered, setIsNavbarHovered] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
-  const isHoverAnimated = isNavbarHovered && !prefersReducedMotion;
+  const isHoverAnimated = isNavbarHovered && !prefersReducedMotion && isClosed;
   const frameScale = isHoverAnimated ? 1.007 : 1;
   const frameOffsetY = isHoverAnimated ? -0.5 : 0;
   const disableInitialClosedAnimation = !hasMounted && isClosed;
@@ -102,8 +102,14 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
           <motion.div
             initial={false}
             onClick={onCollapsedSurfaceClick}
-            onHoverStart={() => setIsNavbarHovered(true)}
-            onHoverEnd={() => setIsNavbarHovered(false)}
+            onHoverStart={() => {
+              setIsNavbarHovered(true);
+              onFrameHoverStart();
+            }}
+            onHoverEnd={() => {
+              setIsNavbarHovered(false);
+              onFrameHoverEnd();
+            }}
             className={cn(
               "relative w-full overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]",
               isClosed && "cursor-pointer transition-shadow duration-200 ease-out",
@@ -138,7 +144,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
           >
             <div className="relative h-12">
               <NavbarTopbar
-                breadcrumb={breadcrumb}
                 discordLink={DISCORD_COMMUNITY_LINK}
                 githubLink={GITHUB_COMMUNITY_LINK}
                 isExpanded={isFrameExpanded}

@@ -1,10 +1,8 @@
 import { Compass, ExternalLink } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
-import { GithubIcon } from "@/app/features/home/components/icons";
-import { HERO_SUITE_BARS } from "@/app/features/home/data/homepage-content";
-
-const HOMEPAGE_SHELL = "mx-auto w-full max-w-[1600px] px-5 sm:px-7 lg:px-10 xl:px-12";
+import { GithubIcon, HOMEPAGE_SHELL } from "@subway-builder-modded/shared-ui";
+import { HERO_SUITE_BARS, CLOSING_BAND } from "@/app/features/home/data/homepage-content";
 
 export function ClosingBand() {
   return (
@@ -27,34 +25,34 @@ export function ClosingBand() {
       </div>
 
       <h2 className="text-2xl font-extrabold tracking-[-0.025em] text-foreground sm:text-3xl">
-        Choose your route
+        {CLOSING_BAND.title}
       </h2>
       <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
-        Start with the content manager, explore the registry, or dive into the source.
+        {CLOSING_BAND.description}
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-2.5">
         <Link
-          to="/railyard"
+          to={CLOSING_BAND.primaryCta.href}
           className={cn(
             "inline-flex items-center gap-2 rounded-lg border border-transparent px-5 py-2.5 text-[15px] font-semibold transition-colors",
             "bg-foreground text-background hover:bg-foreground/90",
           )}
         >
           <Compass className="size-4" aria-hidden="true" />
-          Get Railyard
+          {CLOSING_BAND.primaryCta.label}
         </Link>
         <Link
-          to="/railyard/browse"
+          to={CLOSING_BAND.secondaryCta.href}
           className={cn(
             "inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors",
             "border-border text-foreground hover:bg-muted/50",
           )}
         >
-          Browse Content
+          {CLOSING_BAND.secondaryCta.label}
         </Link>
         <a
-          href="https://github.com/Subway-Builder-Modded"
+          href={CLOSING_BAND.githubCta.href}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
@@ -63,7 +61,7 @@ export function ClosingBand() {
           )}
         >
           <GithubIcon className="size-3.5" />
-          GitHub
+          {CLOSING_BAND.githubCta.label}
           <ExternalLink className="size-3 opacity-50" aria-hidden="true" />
         </a>
       </div>

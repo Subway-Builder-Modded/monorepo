@@ -1,94 +1,25 @@
-import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import {
   SectionShell,
   SectionHeader,
   TwoColumnSection,
-  TerminalFrame,
+  CodeDisplay,
+  GithubIcon,
 } from "@subway-builder-modded/shared-ui";
-import { GithubIcon } from "@/app/features/home/components/icons";
+import { OPEN_SOURCE_SECTION, OPEN_SOURCE_CODE } from "@/app/features/home/data/homepage-content";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
-
-const CODE_SOURCE = `export const SUITE_PROJECTS = [
-  {
-    id: "railyard",
-    title: "Railyard",
-    description: "All-in-one content manager",
-    openSource: true,
-  },
-  {
-    id: "registry",
-    title: "Registry",
-    description: "GitHub-hosted content registry",
-    openSource: true,
-  },
-  {
-    id: "template-mod",
-    title: "Template Mod",
-    description: "TypeScript mod scaffold",
-    openSource: true,
-  },
-  {
-    id: "website",
-    title: "Website",
-    description: "Central hub and docs",
-    openSource: true,
-  },
-] as const;`;
-
-function useShikiHighlight(code: string, theme: string) {
-  const [html, setHtml] = useState<string>("");
-
-  useEffect(() => {
-    let cancelled = false;
-    async function highlight() {
-      const { codeToHtml } = await import("shiki");
-      const result = await codeToHtml(code, {
-        lang: "typescript",
-        theme: theme === "dark" ? "github-dark-default" : "github-light-default",
-      });
-      if (!cancelled) setHtml(result);
-    }
-    highlight();
-    return () => {
-      cancelled = true;
-    };
-  }, [code, theme]);
-
-  return html;
-}
 
 function CodeSurface() {
   const { resolvedTheme } = useThemeMode();
-  const highlighted = useShikiHighlight(CODE_SOURCE, resolvedTheme);
-  const lineCount = CODE_SOURCE.split("\n").length;
 
   return (
-    <TerminalFrame title="homepage-content.ts">
-      <div className="flex overflow-x-auto">
-        <div
-          className="flex flex-col items-end border-r border-white/[0.04] px-3 py-4 font-mono text-[13px] leading-6 text-white/20 select-none"
-          aria-hidden="true"
-        >
-          {Array.from({ length: lineCount }, (_, i) => (
-            <span key={i} className="block h-6 tabular-nums">
-              {i + 1}
-            </span>
-          ))}
-        </div>
-        {highlighted ? (
-          <div
-            className="min-w-0 flex-1 overflow-x-auto p-4 font-mono text-[13px] leading-6 [&_pre]:!bg-transparent [&_pre]:!p-0 [&_code]:!bg-transparent"
-            dangerouslySetInnerHTML={{ __html: highlighted }}
-          />
-        ) : (
-          <div className="flex-1 p-4">
-            <pre className="font-mono text-[13px] leading-6 text-white/40">{CODE_SOURCE}</pre>
-          </div>
-        )}
-      </div>
-    </TerminalFrame>
+    <CodeDisplay
+      code={OPEN_SOURCE_CODE}
+      lang="typescript"
+      title="homepage-content.ts"
+      resolvedTheme={resolvedTheme}
+    />
   );
 }
 
@@ -96,21 +27,21 @@ export function OpenSourceSection() {
   return (
     <SectionShell surfaced>
       <SectionHeader
-        title="Open-source and transparent"
-        description="Every project is public, every decision transparent. Explore the code or contribute directly."
+        title={OPEN_SOURCE_SECTION.title}
+        description={OPEN_SOURCE_SECTION.description}
       />
 
       <TwoColumnSection
         reverseOnDesktop
         left={<CodeSurface />}
         right={
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          <div className="flex flex-col items-center text-center">
             <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-              All Subway Builder Modded projects are fully open-source and developed on GitHub. Check out the code, follow along with development, or contribute directly to help shape the future of modding for Subway Builder.
+              {OPEN_SOURCE_SECTION.body}
             </p>
             <div className="mt-6">
               <a
-                href="https://github.com/Subway-Builder-Modded"
+                href={OPEN_SOURCE_SECTION.cta.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
@@ -119,7 +50,7 @@ export function OpenSourceSection() {
                 )}
               >
                 <GithubIcon className="size-4" />
-                View on GitHub
+                {OPEN_SOURCE_SECTION.cta.label}
                 <ExternalLink className="size-3 opacity-50" aria-hidden="true" />
               </a>
             </div>
