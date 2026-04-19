@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  formatDetailedProjectVersionDate,
   formatProjectVersionDate,
   parseProjectVersionDate,
   sortProjectVersions,
@@ -12,11 +13,17 @@ describe('project version dates', () => {
   });
 
   it('formats date-only values consistently in UTC', () => {
-    expect(formatProjectVersionDate('2026-04-14')).toBe('2026-04-14Z');
+    expect(formatProjectVersionDate('2026-04-14')).toBe('2026-04-14');
   });
 
-  it('formats timestamp values consistently in UTC', () => {
+  it('formats timestamp values as UTC calendar dates by default', () => {
     expect(formatProjectVersionDate('2026-04-14T03:51:46Z')).toBe(
+      '2026-04-14',
+    );
+  });
+
+  it('formats timestamp values with explicit UTC time detail when requested', () => {
+    expect(formatDetailedProjectVersionDate('2026-04-14T03:51:46Z')).toBe(
       '2026-04-14T03:51Z',
     );
   });

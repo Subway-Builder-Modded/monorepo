@@ -30,6 +30,14 @@ export function GetGalleryImageResponse(arg1, arg2, arg3) {
   return window['go']['registry']['Registry']['GetGalleryImageResponse'](arg1, arg2, arg3);
 }
 
+export function GetInstallableVersions(arg1, arg2) {
+  return window['go']['registry']['Registry']['GetInstallableVersions'](arg1, arg2);
+}
+
+export function GetInstallableVersionsResponse(arg1, arg2) {
+  return window['go']['registry']['Registry']['GetInstallableVersionsResponse'](arg1, arg2);
+}
+
 export function GetInstalledMapCodes() {
   return window['go']['registry']['Registry']['GetInstalledMapCodes']();
 }
@@ -48,10 +56,6 @@ export function GetInstalledMods() {
 
 export function GetInstalledModsResponse() {
   return window['go']['registry']['Registry']['GetInstalledModsResponse']();
-}
-
-export function GetInstallableVersionsResponse(arg1, arg2) {
-  return window['go']['registry']['Registry']['GetInstallableVersionsResponse'](arg1, arg2);
 }
 
 export function GetIntegrityReport(arg1) {

@@ -1,6 +1,7 @@
 import {
   EmptyState,
   ErrorBanner,
+  formatDetailedProjectVersionDate,
   formatProjectVersionDate,
   MarkdownPanel,
 } from '@subway-builder-modded/asset-listings-ui';
@@ -326,6 +327,11 @@ export function ChangelogPage() {
     return formatProjectVersionDate(versionInfo.date);
   }, [versionInfo?.date]);
 
+  const formattedPublishedDate = useMemo(() => {
+    if (!versionInfo?.date) return null;
+    return formatDetailedProjectVersionDate(versionInfo.date);
+  }, [versionInfo?.date]);
+
   if (!item || !type) {
     return (
       <EmptyState
@@ -623,9 +629,9 @@ export function ChangelogPage() {
                       {versionInfo.downloads.toLocaleString()}
                     </MetaRow>
 
-                    {formattedDate && (
+                    {formattedPublishedDate && (
                       <MetaRow icon={Calendar} label="Published">
-                        {formattedDate}
+                        {formattedPublishedDate}
                       </MetaRow>
                     )}
                   </div>

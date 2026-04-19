@@ -93,8 +93,8 @@ export function ProjectVersionRow({
 				)}
 			</div>
 
-			<div className="w-[7rem] shrink-0 hidden sm:block">
-				<span className="text-sm text-muted-foreground">
+			<div className="w-[11rem] shrink-0 hidden sm:block">
+				<span className="text-sm text-muted-foreground whitespace-nowrap tabular-nums">
 					{formatProjectVersionDate(date)}
 				</span>
 			</div>

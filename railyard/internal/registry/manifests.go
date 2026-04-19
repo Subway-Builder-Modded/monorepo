@@ -70,6 +70,13 @@ func (r *Registry) fetchFromDisk() error {
 		r.logger,
 	)
 
+	// Populate the in-memory registry view before deriving last_updated so
+	// installable version lookups can resolve manifests and integrity entries.
+	r.mods = mods
+	r.maps = maps
+	r.integrityMaps = mapIntegrity
+	r.integrityMods = modIntegrity
+
 	modLastUpdated, mapLastUpdated := r.loadLastUpdated(mods, maps)
 	updateManifestLastUpdated(mods, maps, modLastUpdated, mapLastUpdated)
 

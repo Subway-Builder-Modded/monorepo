@@ -30,7 +30,7 @@ function formatUTCDate(parts: {
   const month = String(parts.month).padStart(2, '0');
   const day = String(parts.day).padStart(2, '0');
   if (parts.hours === undefined || parts.minutes === undefined) {
-    return `${year}-${month}-${day}Z`;
+    return `${year}-${month}-${day}`;
   }
   const hours = String(parts.hours).padStart(2, '0');
   const minutes = String(parts.minutes).padStart(2, '0');
@@ -83,16 +83,25 @@ export function sortProjectVersions<T extends ProjectVersionRowLike>(
       comparison = compareVersion(left.version, right.version);
     }
 
-  return sort.direction === 'asc' ? comparison : -comparison;
+    return sort.direction === 'asc' ? comparison : -comparison;
   });
 }
 
 /** Formats project version dates for consistent UTC display. */
 export function formatProjectVersionDate(date: string): string {
-  if (DATE_ONLY_PATTERN.test(date)) {
-    return `${date}Z`;
-  }
+  const timestamp = parseProjectVersionDate(date);
+  if (timestamp === null) return date;
 
+  const parsed = new Date(timestamp);
+  return formatUTCDate({
+    year: parsed.getUTCFullYear(),
+    month: parsed.getUTCMonth() + 1,
+    day: parsed.getUTCDate(),
+  });
+}
+
+/** Formats project version timestamps with explicit UTC time detail. */
+export function formatDetailedProjectVersionDate(date: string): string {
   const timestamp = parseProjectVersionDate(date);
   if (timestamp === null) return date;
 
