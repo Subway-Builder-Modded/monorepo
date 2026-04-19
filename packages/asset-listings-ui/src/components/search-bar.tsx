@@ -20,48 +20,48 @@ export function SearchBar({
   ariaLabel = DEFAULT_ARIA_LABEL,
   debounceMs = 0,
 }: SearchBarProps) {
-  const [draftQuery, setDraftQuery] = useState(query);
+  const [pendingQuery, setPendingQuery] = useState(query);
 
   useEffect(() => {
-    setDraftQuery(query);
+    setPendingQuery(query);
   }, [query]);
 
   useEffect(() => {
-    if (draftQuery === query) return;
+    if (pendingQuery === query) return;
 
     if (debounceMs <= 0) {
       startTransition(() => {
-        onQueryChange(draftQuery);
+        onQueryChange(pendingQuery);
       });
       return;
     }
 
     const timeoutId = window.setTimeout(() => {
       startTransition(() => {
-        onQueryChange(draftQuery);
+        onQueryChange(pendingQuery);
       });
     }, debounceMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [debounceMs, draftQuery, onQueryChange, query]);
+  }, [debounceMs, onQueryChange, pendingQuery, query]);
 
   return (
     <div className="relative group">
       <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none transition-colors group-focus-within:text-primary" />
       <input
         placeholder={placeholder}
-        value={draftQuery}
-        onChange={(e) => setDraftQuery(e.target.value)}
+        value={pendingQuery}
+        onChange={(e) => setPendingQuery(e.target.value)}
         aria-label={ariaLabel}
         className="h-11 w-full rounded-xl border border-border bg-card pl-11 pr-11 text-sm text-foreground shadow-xs placeholder:text-muted-foreground transition-[border-color,box-shadow] outline-none focus:border-ring focus:ring-[3px] focus:ring-ring/25 dark:bg-input/30"
       />
-      {draftQuery && (
+      {pendingQuery && (
         <Button
           variant="ghost"
           size="icon"
           className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
           onClick={() => {
-            setDraftQuery('');
+            setPendingQuery('');
             startTransition(() => {
               onQueryChange('');
             });

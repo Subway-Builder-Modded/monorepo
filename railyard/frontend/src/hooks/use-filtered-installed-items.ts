@@ -55,8 +55,7 @@ export function useFilteredInstalledItems({
     [],
   );
   const countFilters = useMemo(
-    () =>
-      filters.query ? { ...filters, query: '' } : filters,
+    () => (filters.query ? { ...filters, query: '' } : filters),
     [filters],
   );
 

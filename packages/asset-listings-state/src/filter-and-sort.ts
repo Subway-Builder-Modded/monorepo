@@ -60,6 +60,7 @@ export function buildAssetSearchText<TItem extends AssetSearchable>(
   return values.filter(Boolean).join(' ');
 }
 
+// Cache lowercased search text per tagged item to avoid rebuilding it on each query.
 function getNormalizedSearchText<TTaggedItem extends TaggedListingItem>(
   item: TTaggedItem,
   buildSearchText: (item: TTaggedItem) => string,
@@ -74,6 +75,7 @@ function getNormalizedSearchText<TTaggedItem extends TaggedListingItem>(
   return normalized;
 }
 
+// Prefer a cheap token-inclusion match before falling back to fuzzy search.
 function filterByQueryFastPath<TTaggedItem extends TaggedListingItem>(
   items: TTaggedItem[],
   query: string,
