@@ -353,6 +353,7 @@ function BrowsePageContent({
             onQueryChange={handleQueryChange}
             placeholder={SEARCH_BAR_PLACEHOLDER}
             ariaLabel="Search mods and maps"
+            debounceMs={150}
           />
         ),
         controlsLeft: (

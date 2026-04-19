@@ -625,7 +625,11 @@ export const ItemCard = memo(function ItemCard({
               showDownloads={presentation.showDownloads}
               totalDownloads={totalDownloads}
             />
-            <ItemBadges badges={presentation.badges} maxWidthPercentage={0.65} />
+            <ItemBadges
+              badges={presentation.badges}
+              fixedVisibleCount={3}
+              maxWidthPercentage={0.65}
+            />
           </div>
         </div>
       </article>

@@ -54,6 +54,10 @@ export function useFilteredInstalledItems({
     () => createTaggedListingAccessors<InstalledTaggedItem>(),
     [],
   );
+  const countFilters = useMemo(
+    () => (filters.query ? { ...filters, query: '' } : filters),
+    [filters],
+  );
 
   usePaginationSync({ defaultPerPage, filters, setFilters, setPage });
 
@@ -61,10 +65,10 @@ export function useFilteredInstalledItems({
     () =>
       buildDimensionCounts({
         items,
-        filters: filters as TaggedItemFilterState,
+        filters: countFilters as TaggedItemFilterState,
         accessors,
       }),
-    [accessors, filters, items],
+    [accessors, countFilters, items],
   );
 
   const filtered = useMemo(() => {

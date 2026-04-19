@@ -68,10 +68,13 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
       switchFilter(state.filters, state.page, state.scopedByType, type),
     ),
   setPage: (page) =>
-    set((state) => ({
-      page,
-      scopedByType: syncFilter(state.scopedByType, state.filters, page),
-    })),
+    set((state) => {
+      if (state.page === page) return state;
+      return {
+        page,
+        scopedByType: syncFilter(state.scopedByType, state.filters, page),
+      };
+    }),
   toggleSelected: (id) =>
     set((state) => {
       const next = new Set(state.selectedIds);

@@ -88,5 +88,13 @@ export function GalleryImage({
     );
   }
 
-  return <img src={imageUrl} alt="" className={cn('w-full object-cover', className)} />;
+  return (
+    <img
+      src={imageUrl}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className={cn('w-full object-cover', className)}
+    />
+  );
 }

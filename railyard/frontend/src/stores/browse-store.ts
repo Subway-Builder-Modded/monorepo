@@ -55,10 +55,13 @@ export const useBrowseStore = create<
       switchFilter(state.filters, state.page, state.scopedByType, type),
     ),
   setPage: (page) =>
-    set((state) => ({
-      page,
-      scopedByType: syncFilter(state.scopedByType, state.filters, page),
-    })),
+    set((state) => {
+      if (state.page === page) return state;
+      return {
+        page,
+        scopedByType: syncFilter(state.scopedByType, state.filters, page),
+      };
+    }),
   setViewMode: (viewMode) => set({ viewMode, viewModeInitialized: true }),
   initializeViewMode: (viewMode) => {
     if (get().viewModeInitialized) return;
