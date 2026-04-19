@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"archive/zip"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -40,6 +41,78 @@ func reportExtractProgress(fn ExtractProgressFunc, itemID string, extracted int6
 		return
 	}
 	fn(itemID, extracted, total)
+}
+
+// countReservedMapPayloadFiles counts optional helper payload files that are copied into the map data directory.
+func countReservedMapPayloadFiles(zipFiles []*zip.File) (int, error) {
+	count := 0
+	for _, file := range zipFiles {
+		relPath, isHelperEntry, err := files.ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		if err != nil {
+			return 0, err
+		}
+		if !isHelperEntry || relPath == "" || file.FileInfo().IsDir() {
+			continue
+		}
+		count++
+	}
+
+	return count, nil
+}
+
+// copyReservedMapPayload copies optional .railyard_map entries into the staged map directory.
+func copyReservedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode string, progress *atomic.Int64, total int64, onProgress ExtractProgressFunc) error {
+	helperRoot := paths.JoinLocalPath(stagingFolder, files.ReservedAssetPayloadDir(types.AssetTypeMap))
+
+	for _, file := range zipFiles {
+		relPath, isHelperEntry, err := files.ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		if err != nil {
+			return err
+		}
+		if !isHelperEntry {
+			continue
+		}
+
+		if relPath == "" {
+			if !file.FileInfo().IsDir() {
+				return fmt.Errorf("reserved payload root %q must be a directory", files.ReservedAssetPayloadDir(types.AssetTypeMap))
+			}
+			if err := os.MkdirAll(helperRoot, os.ModePerm); err != nil {
+				return err
+			}
+			continue
+		}
+
+		destinationPath := paths.JoinLocalPath(helperRoot, relPath)
+		if file.FileInfo().IsDir() {
+			if err := os.MkdirAll(destinationPath, os.ModePerm); err != nil {
+				return err
+			}
+			continue
+		}
+
+		if err := os.MkdirAll(filepath.Dir(destinationPath), os.ModePerm); err != nil {
+			return err
+		}
+
+		srcFile, err := file.Open()
+		if err != nil {
+			return err
+		}
+
+		writeErr := files.WriteArchiveStream(destinationPath, srcFile, false)
+		closeErr := srcFile.Close()
+		if writeErr != nil {
+			return writeErr
+		}
+		if closeErr != nil {
+			return closeErr
+		}
+
+		reportExtractProgress(onProgress, cityCode, progress.Add(1), total)
+	}
+
+	return nil
 }
 
 // extractMod processes the downloaded mod zip file, extracts it to the appropriate location.
@@ -192,6 +265,11 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 			filesCount++
 		}
 	}
+	reservedPayloadFileCount, err := countReservedMapPayloadFiles(reader.File)
+	if err != nil {
+		return d.installError(types.AssetTypeMap, mapId, version, configData, types.InstallErrorInvalidArchive, "Failed map archive inspection", err, "file_path", filePath)
+	}
+	filesCount += reservedPayloadFileCount
 	if configData.ThumbnailBbox != nil {
 		if fileStruct, ok := filesFound[files.MapArchiveKeyThumbnail]; !ok || !fileStruct.Found {
 			filesCount++
@@ -276,6 +354,10 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 				close(errChan)
 				if len(errChan) > 0 {
 					return <-errChan
+				}
+
+				if err := copyReservedMapPayload(stagingFolder, reader.File, configData.Code, &extractCount, int64(filesCount), d.OnExtractProgress); err != nil {
+					return err
 				}
 
 				return createAssetMarker(paths.JoinLocalPath(stagingFolder, constants.RailyardAssetMarker))

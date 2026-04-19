@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"strings"
 
 	"railyard/internal/paths"
 	"railyard/internal/types"
@@ -48,7 +49,16 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 	}
 
 	for _, file := range zipFiles {
-		switch file.Name {
+		if _, isHelperEntry, _ := ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name); isHelperEntry {
+			continue
+		}
+
+		normalizedName := strings.ReplaceAll(strings.TrimSuffix(file.Name, "/"), "\\", "/")
+		if normalizedName == "" || strings.Contains(normalizedName, "/") {
+			continue
+		}
+
+		switch normalizedName {
 		case MapConfigFileName:
 			filesFound[MapArchiveKeyConfig] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		case MapDemandFileName:
@@ -62,10 +72,10 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 		case MapOceanDepthFileName:
 			filesFound[MapArchiveKeyOceanDepth] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		}
-		if path.Ext(file.Name) == MapTileFileExt {
+		if path.Ext(normalizedName) == MapTileFileExt {
 			filesFound[MapArchiveKeyTiles] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		}
-		if path.Ext(file.Name) == MapThumbnailFileExt {
+		if path.Ext(normalizedName) == MapThumbnailFileExt {
 			filesFound[MapArchiveKeyThumbnail] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		}
 	}
@@ -86,6 +96,16 @@ func ValidateMapArchive(filePath string) (types.ConfigData, types.DownloaderErro
 
 	if !requiredFilesPresent(filesFound) {
 		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{"The map archive is missing one or more required files."}}
+	}
+
+	for _, file := range reader.File {
+		relPath, isHelperEntry, helperErr := ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		if helperErr != nil {
+			return configData, types.InstallErrorInvalidArchive, helperErr
+		}
+		if isHelperEntry && relPath == "" && !file.FileInfo().IsDir() {
+			return configData, types.InstallErrorInvalidArchive, fmt.Errorf("reserved payload root %q must be a directory", ReservedAssetPayloadDir(types.AssetTypeMap))
+		}
 	}
 
 	configReader, err := filesFound[MapArchiveKeyConfig].FileObject.Open()

@@ -241,6 +241,28 @@ func seedInstalledLocalMap(t *testing.T, d *Downloader, reg *registry.Registry, 
 	require.NoError(t, os.WriteFile(filepath.Join(localMapDir, constants.RailyardAssetMarker), []byte("marker"), 0o644))
 }
 
+func mockMapZipWithReservedPayload(t *testing.T, code string) []byte {
+	t.Helper()
+
+	configJSON, err := json.Marshal(types.ConfigData{
+		Code: code,
+		Name: "Fixture Map",
+	})
+	require.NoError(t, err)
+
+	return registrytest.MockZip(t, map[string][]byte{
+		"config.json":                           configJSON,
+		"demand_data.json":                      []byte("{}"),
+		"roads.geojson":                         []byte(`{"type":"FeatureCollection","features":[]}`),
+		"runways_taxiways.geojson":              []byte(`{"type":"FeatureCollection","features":[]}`),
+		"buildings_index.json":                  []byte("{}"),
+		"tiles.pmtiles":                         []byte("tiles"),
+		"thumbnail.svg":                         []byte("<svg></svg>"),
+		".railyard_map/data/example.json":       []byte(`{"ok":true}`),
+		".railyard_map/nested/notes/readme.txt": []byte("payload"),
+	})
+}
+
 func assertFilesExist(t *testing.T, basePath string, names []string, messagePrefix string) {
 	t.Helper()
 	for _, name := range names {
@@ -1107,6 +1129,67 @@ func TestMapContractFilesWritten(t *testing.T) {
 				_, err := os.Stat(filepath.Join(mapDir, fileName))
 				require.True(t, errors.Is(err, fs.ErrNotExist), "expected map data file to be absent: %s", fileName)
 			}
+		})
+	}
+}
+
+func TestMapReservedPayloadCopied(t *testing.T) {
+	testCases := []struct {
+		name       string
+		runInstall func(t *testing.T, d *Downloader, reg *registry.Registry) types.AssetInstallResponse
+	}{
+		{
+			name: "downloaded map install",
+			runInstall: func(t *testing.T, d *Downloader, reg *registry.Registry) types.AssetInstallResponse {
+				t.Helper()
+				cleanup := registrytest.MockRegistryServer(t, reg, []registrytest.UpdateFixture{
+					{
+						AssetID:      "map-a",
+						AssetType:    types.AssetTypeMap,
+						Versions:     []string{"1.0.0"},
+						MapCode:      "AAA",
+						ArchiveBytes: mockMapZipWithReservedPayload(t, "AAA"),
+					},
+				})
+				defer cleanup()
+				return d.InstallAsset(types.InstallAssetRequest{
+					AssetType: types.AssetTypeMap,
+					AssetID:   "map-a",
+					Version:   "1.0.0",
+				})
+			},
+		},
+		{
+			name: "local map import",
+			runInstall: func(t *testing.T, d *Downloader, _ *registry.Registry) types.AssetInstallResponse {
+				t.Helper()
+				zipPath := filepath.Join(t.TempDir(), "local-map.zip")
+				require.NoError(t, os.WriteFile(zipPath, mockMapZipWithReservedPayload(t, "AAA"), 0o644))
+				return d.ImportAsset(types.AssetTypeMap, zipPath, false)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			d, reg, _ := newConfiguredDownloader(t, true)
+
+			resp := tc.runInstall(t, d, reg)
+			require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
+
+			helperRoot := filepath.Join(d.getMapDataPath(), "AAA", ".railyard_map")
+			assertFilesExist(t, helperRoot, []string{
+				filepath.Join("data", "example.json"),
+				filepath.Join("nested", "notes", "readme.txt"),
+			}, "expected reserved payload file")
+
+			payloadJSON, err := os.ReadFile(filepath.Join(helperRoot, "data", "example.json"))
+			require.NoError(t, err)
+			require.JSONEq(t, `{"ok":true}`, string(payloadJSON))
+
+			payloadText, err := os.ReadFile(filepath.Join(helperRoot, "nested", "notes", "readme.txt"))
+			require.NoError(t, err)
+			require.Equal(t, "payload", string(payloadText))
 		})
 	}
 }

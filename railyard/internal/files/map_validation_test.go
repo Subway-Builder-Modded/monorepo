@@ -40,6 +40,17 @@ func TestValidateMapArchive(t *testing.T) {
 			wantCode:    "AAA",
 		},
 		{
+			name: "valid archive with reserved payload",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map/data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: "",
+			wantErr:     false,
+			wantCode:    "AAA",
+		},
+		{
 			name: "missing required file",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
@@ -70,6 +81,36 @@ func TestValidateMapArchive(t *testing.T) {
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
 				delete(f, "AAA.pmtiles")
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "rejects nested reserved payload folder",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f["nested/.railyard_map/data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "rejects unsafe reserved payload path traversal",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map/../data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "rejects reserved payload root file",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map"] = []byte(`not-a-dir`)
 				return f
 			}(),
 			wantErrType: types.InstallErrorInvalidArchive,
