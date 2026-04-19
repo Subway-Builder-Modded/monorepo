@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path"
-	"strings"
 
 	"railyard/internal/paths"
 	"railyard/internal/types"
@@ -49,12 +48,12 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 	}
 
 	for _, file := range zipFiles {
-		if _, isHelperEntry, _ := ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name); isHelperEntry {
+		if _, isHelperEntry, _ := SharedAssetPayloadRelativePath(types.AssetTypeMap, file.Name); isHelperEntry {
 			continue
 		}
 
-		normalizedName := strings.ReplaceAll(strings.TrimSuffix(file.Name, "/"), "\\", "/")
-		if normalizedName == "" || strings.Contains(normalizedName, "/") {
+		normalizedName, ok := NormalizeArchiveEntryPath(file.Name)
+		if !ok || path.Base(normalizedName) != normalizedName {
 			continue
 		}
 
@@ -99,12 +98,12 @@ func ValidateMapArchive(filePath string) (types.ConfigData, types.DownloaderErro
 	}
 
 	for _, file := range reader.File {
-		relPath, isHelperEntry, helperErr := ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		relPath, isHelperEntry, helperErr := SharedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
 		if helperErr != nil {
 			return configData, types.InstallErrorInvalidArchive, helperErr
 		}
 		if isHelperEntry && relPath == "" && !file.FileInfo().IsDir() {
-			return configData, types.InstallErrorInvalidArchive, fmt.Errorf("reserved payload root %q must be a directory", ReservedAssetPayloadDir(types.AssetTypeMap))
+			return configData, types.InstallErrorInvalidArchive, fmt.Errorf("shared payload root %q must be a directory", SharedAssetPayloadDir(types.AssetTypeMap))
 		}
 	}
 

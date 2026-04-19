@@ -43,11 +43,11 @@ func reportExtractProgress(fn ExtractProgressFunc, itemID string, extracted int6
 	fn(itemID, extracted, total)
 }
 
-// countReservedMapPayloadFiles counts optional helper payload files that are copied into the map data directory.
-func countReservedMapPayloadFiles(zipFiles []*zip.File) (int, error) {
+// countSharedMapPayloadFiles counts optional shared payload files that are copied into the map data directory.
+func countSharedMapPayloadFiles(zipFiles []*zip.File) (int, error) {
 	count := 0
 	for _, file := range zipFiles {
-		relPath, isHelperEntry, err := files.ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
 		if err != nil {
 			return 0, err
 		}
@@ -60,12 +60,12 @@ func countReservedMapPayloadFiles(zipFiles []*zip.File) (int, error) {
 	return count, nil
 }
 
-// copyReservedMapPayload copies optional .railyard_map entries into the staged map directory.
-func copyReservedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode string, progress *atomic.Int64, total int64, onProgress ExtractProgressFunc) error {
-	helperRoot := paths.JoinLocalPath(stagingFolder, files.ReservedAssetPayloadDir(types.AssetTypeMap))
+// copySharedMapPayload copies optional .railyard_map entries into the staged map directory.
+func copySharedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode string, progress *atomic.Int64, total int64, onProgress ExtractProgressFunc) error {
+	helperRoot := paths.JoinLocalPath(stagingFolder, files.SharedAssetPayloadDir(types.AssetTypeMap))
 
 	for _, file := range zipFiles {
-		relPath, isHelperEntry, err := files.ReservedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
 		if err != nil {
 			return err
 		}
@@ -75,7 +75,7 @@ func copyReservedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode
 
 		if relPath == "" {
 			if !file.FileInfo().IsDir() {
-				return fmt.Errorf("reserved payload root %q must be a directory", files.ReservedAssetPayloadDir(types.AssetTypeMap))
+				return fmt.Errorf("shared payload root %q must be a directory", files.SharedAssetPayloadDir(types.AssetTypeMap))
 			}
 			if err := os.MkdirAll(helperRoot, os.ModePerm); err != nil {
 				return err
@@ -265,11 +265,11 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 			filesCount++
 		}
 	}
-	reservedPayloadFileCount, err := countReservedMapPayloadFiles(reader.File)
+	sharedPayloadFileCount, err := countSharedMapPayloadFiles(reader.File)
 	if err != nil {
 		return d.installError(types.AssetTypeMap, mapId, version, configData, types.InstallErrorInvalidArchive, "Failed map archive inspection", err, "file_path", filePath)
 	}
-	filesCount += reservedPayloadFileCount
+	filesCount += sharedPayloadFileCount
 	if configData.ThumbnailBbox != nil {
 		if fileStruct, ok := filesFound[files.MapArchiveKeyThumbnail]; !ok || !fileStruct.Found {
 			filesCount++
@@ -356,7 +356,7 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 					return <-errChan
 				}
 
-				if err := copyReservedMapPayload(stagingFolder, reader.File, configData.Code, &extractCount, int64(filesCount), d.OnExtractProgress); err != nil {
+				if err := copySharedMapPayload(stagingFolder, reader.File, configData.Code, &extractCount, int64(filesCount), d.OnExtractProgress); err != nil {
 					return err
 				}
 

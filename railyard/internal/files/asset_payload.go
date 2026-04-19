@@ -7,58 +7,96 @@ import (
 	"railyard/internal/types"
 )
 
-// ReservedAssetPayloadDir returns the reserved helper-folder name for an asset type.
-func ReservedAssetPayloadDir(assetType types.AssetType) string {
+// NormalizeArchiveEntryPath normalizes a ZIP entry path and reports whether it contains a usable value.
+func NormalizeArchiveEntryPath(entryName string) (string, bool) {
+	normalized := strings.ReplaceAll(entryName, "\\", "/")
+	if normalized == "" {
+		return "", false
+	}
+
+	trimmed := strings.TrimSuffix(normalized, "/")
+	if trimmed == "" {
+		return "", false
+	}
+
+	return trimmed, true
+}
+
+// ArchiveEntryParts normalizes a ZIP entry path and splits it into path segments.
+func ArchiveEntryParts(entryName string) (string, []string, bool) {
+	normalized, ok := NormalizeArchiveEntryPath(entryName)
+	if !ok {
+		return "", nil, false
+	}
+
+	return normalized, strings.Split(normalized, "/"), true
+}
+
+// HasInvalidArchivePathSegments reports whether a normalized archive path contains unsafe segments.
+func HasInvalidArchivePathSegments(parts []string) bool {
+	for _, part := range parts {
+		if part == "" || part == "." || part == ".." {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasArchivePathPrefix(normalized string) bool {
+	return strings.HasPrefix(normalized, "/")
+}
+
+func pathSegmentIndex(parts []string, target string) int {
+	for i, part := range parts {
+		if part == target {
+			return i
+		}
+	}
+
+	return -1
+}
+
+// SharedAssetPayloadDir returns the shared helper-folder name for an asset type.
+func SharedAssetPayloadDir(assetType types.AssetType) string {
 	switch assetType {
 	case types.AssetTypeMap:
 		return ".railyard_map"
 	case types.AssetTypeMod:
 		return ".railyard_mod"
 	default:
-		panic("unsupported asset type for reserved payload dir: " + string(assetType))
+		panic("unsupported asset type for shared payload dir: " + string(assetType))
 	}
 }
 
-// ReservedAssetPayloadRelativePath validates a reserved helper-folder entry and returns its relative path.
-func ReservedAssetPayloadRelativePath(assetType types.AssetType, entryName string) (string, bool, error) {
-	reservedDir := ReservedAssetPayloadDir(assetType)
-	normalized := strings.ReplaceAll(entryName, "\\", "/")
-	if normalized == "" {
+// SharedAssetPayloadRelativePath validates a shared helper-folder entry and returns its relative path.
+func SharedAssetPayloadRelativePath(assetType types.AssetType, entryName string) (string, bool, error) {
+	payloadDir := SharedAssetPayloadDir(assetType)
+	normalized, parts, ok := ArchiveEntryParts(entryName)
+	if !ok {
 		return "", false, nil
 	}
 
-	if strings.HasPrefix(normalized, "/") {
-		if strings.Contains(normalized, reservedDir) {
-			return "", true, fmt.Errorf("reserved payload entry %q must not be absolute", entryName)
+	payloadIndex := pathSegmentIndex(parts, payloadDir)
+	if hasArchivePathPrefix(normalized) {
+		if payloadIndex >= 0 {
+			return "", true, fmt.Errorf("shared payload entry %q must not be absolute", entryName)
 		}
 		return "", false, nil
 	}
 
-	trimmed := strings.TrimSuffix(normalized, "/")
-	if trimmed == "" {
+	if HasInvalidArchivePathSegments(parts) {
+		if payloadIndex >= 0 {
+			return "", true, fmt.Errorf("shared payload entry %q contains an invalid path segment", entryName)
+		}
 		return "", false, nil
 	}
 
-	parts := strings.Split(trimmed, "/")
-	hasReservedDir := false
-	for i, part := range parts {
-		if part == "" || part == "." || part == ".." {
-			if hasReservedDir || strings.Contains(normalized, reservedDir) {
-				return "", true, fmt.Errorf("reserved payload entry %q contains an invalid path segment", entryName)
-			}
-			return "", false, nil
-		}
-		if part != reservedDir {
-			continue
-		}
-		hasReservedDir = true
-		if i != 0 {
-			return "", true, fmt.Errorf("reserved payload directory %q must be at archive root", reservedDir)
-		}
-	}
-
-	if !hasReservedDir {
+	if payloadIndex < 0 {
 		return "", false, nil
+	}
+	if payloadIndex != 0 {
+		return "", true, fmt.Errorf("shared payload directory %q must be at archive root", payloadDir)
 	}
 
 	if len(parts) == 1 {

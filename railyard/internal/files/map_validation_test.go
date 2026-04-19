@@ -40,7 +40,7 @@ func TestValidateMapArchive(t *testing.T) {
 			wantCode:    "AAA",
 		},
 		{
-			name: "valid archive with reserved payload",
+			name: "valid archive with shared payload",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
 				f[".railyard_map/data/example.json"] = []byte(`{"ok":true}`)
@@ -87,7 +87,18 @@ func TestValidateMapArchive(t *testing.T) {
 			wantErr:     true,
 		},
 		{
-			name: "rejects nested reserved payload folder",
+			name: "accepts shared payload with windows separators",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map\\data\\example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: "",
+			wantErr:     false,
+			wantCode:    "AAA",
+		},
+		{
+			name: "rejects nested shared payload folder",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
 				f["nested/.railyard_map/data/example.json"] = []byte(`{"ok":true}`)
@@ -97,7 +108,17 @@ func TestValidateMapArchive(t *testing.T) {
 			wantErr:     true,
 		},
 		{
-			name: "rejects unsafe reserved payload path traversal",
+			name: "rejects absolute shared payload path",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f["/.railyard_map/data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "rejects unsafe shared payload path traversal",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
 				f[".railyard_map/../data/example.json"] = []byte(`{"ok":true}`)
@@ -107,7 +128,7 @@ func TestValidateMapArchive(t *testing.T) {
 			wantErr:     true,
 		},
 		{
-			name: "rejects reserved payload root file",
+			name: "rejects shared payload root file",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
 				f[".railyard_map"] = []byte(`not-a-dir`)

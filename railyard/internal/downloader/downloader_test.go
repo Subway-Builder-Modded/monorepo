@@ -1181,7 +1181,7 @@ func TestMapReservedPayloadCopied(t *testing.T) {
 			assertFilesExist(t, helperRoot, []string{
 				filepath.Join("data", "example.json"),
 				filepath.Join("nested", "notes", "readme.txt"),
-			}, "expected reserved payload file")
+			}, "expected shared payload file")
 
 			payloadJSON, err := os.ReadFile(filepath.Join(helperRoot, "data", "example.json"))
 			require.NoError(t, err)
