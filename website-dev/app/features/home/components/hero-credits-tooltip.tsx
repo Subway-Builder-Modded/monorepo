@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
@@ -118,7 +118,8 @@ function CreditsPlate({ slide }: { slide: HeroSlide }) {
                   )}
                   {slide.creator ? (
                     <span className="text-muted-foreground">
-                      {" "}(by <span className="font-bold text-foreground">{slide.creator}</span>)
+                      {" "}
+                      (by <span className="font-bold text-foreground">{slide.creator}</span>)
                     </span>
                   ) : null}
                 </li>
@@ -126,7 +127,8 @@ function CreditsPlate({ slide }: { slide: HeroSlide }) {
 
               {slide.saveFileCreator && (
                 <li className="text-muted-foreground">
-                  Save file by: <span className="font-bold text-foreground">{slide.saveFileCreator}</span>
+                  Save file by:{" "}
+                  <span className="font-bold text-foreground">{slide.saveFileCreator}</span>
                 </li>
               )}
             </ul>
@@ -148,7 +150,8 @@ function CreditsPlate({ slide }: { slide: HeroSlide }) {
                     {mod.name}
                   </Link>
                   <span className="text-muted-foreground">
-                    {" "}(by <span className="font-bold text-foreground">{mod.author}</span>)
+                    {" "}
+                    (by <span className="font-bold text-foreground">{mod.author}</span>)
                   </span>
                 </li>
               ))}

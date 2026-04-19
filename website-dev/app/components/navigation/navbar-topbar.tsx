@@ -73,9 +73,7 @@ export function NavbarTopbar({
     >
       <img src="/logo.svg" alt="" aria-hidden="true" className="size-4 shrink-0 object-contain" />
       {!isMobile ? (
-        <span className="block max-w-full truncate leading-none">
-          Subway Builder Modded
-        </span>
+        <span className="block max-w-full truncate leading-none">Subway Builder Modded</span>
       ) : null}
     </Link>
   );
