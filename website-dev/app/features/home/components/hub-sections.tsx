@@ -18,7 +18,7 @@ const DESTINATIONS = [
     icon: Users,
     title: "Credits",
     description:
-      "The maintainers, collaborators, contributors, and financial supporters who keep the ecosystem moving forward.",
+      "The maintainers, collaborators, and contributors who keep us moving forward.",
     href: "/credits",
     label: "View Credits",
   },
@@ -27,7 +27,7 @@ const DESTINATIONS = [
     icon: Heart,
     title: "Contribute",
     description:
-      "Support ongoing development and help ship new features faster while keeping everything free and open.",
+      "Support ongoing development and help ship new features faster while keeping everything free and open for everyone.",
     href: "/contribute",
     label: "Support the Project",
   },
@@ -38,7 +38,7 @@ export function PeopleSection() {
     <SectionShell>
       <SectionHeader
         title="Built by the community, for the community"
-        description="Meet the people behind Subway Builder Modded — and find your way to join them."
+        description="Subway Builder Modded is run completely by the community, for the community. Join us in building the future of modding for Subway Builder."
       />
 
       <div className="grid gap-px overflow-hidden rounded-xl border border-border/60 bg-border/40 sm:grid-cols-3">

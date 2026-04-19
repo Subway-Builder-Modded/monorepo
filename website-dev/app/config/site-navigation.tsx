@@ -1,7 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import {
   Database,
-  Flame,
+  Anvil,
   Globe,
   House,
   LayoutGrid,
@@ -201,7 +201,7 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "foundry",
     title: "Foundry",
     href: "/foundry",
-    icon: Flame,
+    icon: Anvil,
     colorSchemeId: "foundry",
     accent: {
       light: "#d64545",
@@ -409,6 +409,17 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     icon: ChartLine,
     breadcrumb: "Analytics",
     activeMatchRules: [{ kind: "exact", path: "/website/analytics" }],
+  },
+  {
+    id: "foundry-home",
+    suiteId: "foundry",
+    title: "Home",
+    description:
+      "Discover and download the unified suite for Subway Builder map creation.",
+    href: "/foundry",
+    icon: House,
+    breadcrumb: "Home",
+    activeMatchRules: [{ kind: "exact", path: "/foundry" }],
   },
 ];
 

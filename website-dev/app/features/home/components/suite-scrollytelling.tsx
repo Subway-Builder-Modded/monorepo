@@ -248,8 +248,8 @@ export function SuiteScrollytellingSection() {
 
       <div className={cn("relative", HOMEPAGE_SHELL)}>
         <SectionHeader
-          title="Four projects, one ecosystem"
-          description="Each project handles a different part of the modding experience — from downloading and managing content to creating and publishing it."
+          title="The Subway Builder Modded ecosystem"
+          description="The complete suite of tools, resources, and projects for modding in Subway Builder, built and maintained by the community."
         />
 
         <div className="mt-12 lg:mt-16">

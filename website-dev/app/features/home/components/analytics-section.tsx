@@ -129,8 +129,8 @@ export function AnalyticsSection() {
   return (
     <SectionShell>
       <SectionHeader
-        title="Ecosystem at a glance"
-        description="Real-time download counts, install trends, and usage data across every project."
+        title="In-depth analytics and insights"
+        description="Download counts, recent trends, and community-content analytics for every project."
       />
 
       <TwoColumnSection
@@ -138,8 +138,7 @@ export function AnalyticsSection() {
         right={
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-              Every project exposes analytics — download volumes, install trends, and growth metrics
-              — so contributors and users can track ecosystem health at a glance.
+              Visualized detailed analytics for every project in the ecosystem, from Registry map download trends to per-page website traffic.
             </p>
             <div className="mt-6 flex flex-col gap-2.5 sm:max-w-xs">
               {ANALYTICS_LINKS.map((link) => {

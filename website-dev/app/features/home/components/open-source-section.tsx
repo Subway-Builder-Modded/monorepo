@@ -96,7 +96,7 @@ export function OpenSourceSection() {
   return (
     <SectionShell surfaced>
       <SectionHeader
-        title="Open source, open process"
+        title="Open-source and transparent"
         description="Every project is public, every decision transparent. Explore the code or contribute directly."
       />
 
@@ -106,8 +106,7 @@ export function OpenSourceSection() {
         right={
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <p className="max-w-lg text-[15px] leading-relaxed text-muted-foreground">
-              All codebases are open with clear contributor workflows — docs, changelogs, and
-              roadmaps maintained by the community. No gatekeeping, no exceptions.
+              All Subway Builder Modded projects are fully open-source and developed on GitHub. Check out the code, follow along with development, or contribute directly to help shape the future of modding for Subway Builder.
             </p>
             <div className="mt-6">
               <a
