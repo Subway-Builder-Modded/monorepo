@@ -56,6 +56,7 @@ export function LogsPage() {
     selectedSessionId,
     selectSession,
     running,
+    starting,
     launch,
     stop,
     clearLogs,
@@ -142,8 +143,11 @@ export function LogsPage() {
 
       <div className="relative z-10 mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Badge variant={running ? 'success' : 'secondary'} size="sm">
-            {running ? 'Running' : 'Stopped'}
+          <Badge
+            variant={running ? 'success' : starting ? 'default' : 'secondary'}
+            size="sm"
+          >
+            {running ? 'Running' : starting ? 'Starting' : 'Stopped'}
           </Badge>
           {logs.length > 0 && (
             <span className="tabular-nums text-xs text-muted-foreground">
@@ -169,11 +173,13 @@ export function LogsPage() {
                     variant="ghost"
                     size="sm"
                     onClick={handleLaunch}
-                    disabled={!canLaunch}
+                    disabled={!canLaunch || starting}
                     className="h-7 gap-1.5 px-2.5 text-xs font-semibold hover:bg-accent/45 hover:text-primary disabled:opacity-50"
                   >
-                    <Play className="h-3 w-3" />
-                    Launch
+                    <Play
+                      className={cn('h-3 w-3', starting && 'animate-pulse')}
+                    />
+                    {starting ? 'Starting' : 'Launch'}
                   </Button>
                 </span>
               </TooltipTrigger>
