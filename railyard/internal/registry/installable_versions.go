@@ -6,6 +6,7 @@ import (
 	"railyard/internal/types"
 )
 
+// getIntegrityListing returns the integrity entry for the requested asset.
 func (r *Registry) getIntegrityListing(assetType types.AssetType, assetID string) (types.IntegrityListing, bool) {
 	switch assetType {
 	case types.AssetTypeMod:
@@ -19,6 +20,7 @@ func (r *Registry) getIntegrityListing(assetType types.AssetType, assetID string
 	}
 }
 
+// resolveAssetUpdateSource resolves the raw update source for an asset manifest.
 func (r *Registry) resolveAssetUpdateSource(assetType types.AssetType, assetID string) (string, string, error) {
 	switch assetType {
 	case types.AssetTypeMod:
@@ -38,6 +40,7 @@ func (r *Registry) resolveAssetUpdateSource(assetType types.AssetType, assetID s
 	}
 }
 
+// filterVersionsByIntegrity keeps only versions marked complete in the integrity cache.
 func (r *Registry) filterVersionsByIntegrity(
 	assetType types.AssetType,
 	assetID string,
@@ -70,6 +73,7 @@ func (r *Registry) filterVersionsByIntegrity(
 	return filtered, nil
 }
 
+// GetInstallableVersions returns the integrity-approved versions for an asset.
 func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID string) ([]types.VersionInfo, error) {
 	updateType, source, err := r.resolveAssetUpdateSource(assetType, assetID)
 	if err != nil {
@@ -84,6 +88,7 @@ func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID str
 	return r.filterVersionsByIntegrity(assetType, assetID, versions)
 }
 
+// GetInstallableVersionsResponse returns installable versions with response metadata.
 func (r *Registry) GetInstallableVersionsResponse(assetType types.AssetType, assetID string) types.VersionsResponse {
 	versions, err := r.GetInstallableVersions(assetType, assetID)
 	if err != nil {
