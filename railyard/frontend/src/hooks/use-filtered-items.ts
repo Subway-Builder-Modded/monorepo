@@ -3,7 +3,7 @@ import {
   type SourceAssetQueryFilterState,
 } from '@subway-builder-modded/asset-listings-state';
 import { type PerPage } from '@subway-builder-modded/config';
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
 import {
@@ -62,10 +62,23 @@ export function useFilteredItems({
     () => createTaggedListingAccessors<TaggedItem>(),
     [],
   );
+  const deferredQuery = useDeferredValue(filters.query);
+  const deferredFilters = useMemo(
+    () =>
+      deferredQuery === filters.query
+        ? filters
+        : { ...filters, query: deferredQuery },
+    [deferredQuery, filters],
+  );
 
   const dimCounts = useMemo(
-    () => buildDimensionCounts({ items: allItems, filters, accessors }),
-    [accessors, allItems, filters],
+    () =>
+      buildDimensionCounts({
+        items: allItems,
+        filters: deferredFilters,
+        accessors,
+      }),
+    [accessors, allItems, deferredFilters],
   );
 
   const filteredPage = useMemo(
@@ -73,13 +86,20 @@ export function useFilteredItems({
       filterAndPaginateTaggedItems({
         items: allItems,
         page,
-        filters,
+        filters: deferredFilters,
         modDownloadTotals,
         mapDownloadTotals,
         compareItems,
         accessors,
       }),
-    [accessors, allItems, filters, mapDownloadTotals, modDownloadTotals, page],
+    [
+      accessors,
+      allItems,
+      deferredFilters,
+      mapDownloadTotals,
+      modDownloadTotals,
+      page,
+    ],
   );
 
   return {
