@@ -176,10 +176,32 @@ export {
 } from './components/section-shell';
 export {
   SuiteButton,
-  type SuiteAccent,
   type SuiteButtonVariant,
   type SuiteButtonProps,
 } from './components/suite-button';
+export {
+  SUITE_ACCENT_TEXT_CLASS,
+  SuiteAccentButton,
+  SuiteAccentInlineAction,
+  SuiteAccentLink,
+  SuiteAccentScope,
+  getSuiteAccentStyle,
+  type SuiteAccent,
+  type SuiteAccentButtonProps,
+  type SuiteAccentButtonTone,
+  type SuiteAccentInlineActionProps,
+  type SuiteAccentLinkProps,
+  type SuiteAccentScopeProps,
+} from './components/suite-accent';
+export {
+  SuiteBadge,
+  SuiteStatusChip,
+  type SuiteBadgeProps,
+  type SuiteBadgeSize,
+  type SuiteBadgeTone,
+  type SuiteStatus,
+  type SuiteStatusChipProps,
+} from './components/suite-badge';
 export {
   FooterColumns,
   type FooterColumn,

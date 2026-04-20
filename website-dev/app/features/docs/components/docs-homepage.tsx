@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { SuiteBadge, SuiteStatusChip } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { getSuiteById } from "@/app/config/site-navigation";
@@ -76,16 +77,23 @@ function Signboard({
                     )}
                   >
                     {v.label}
-                    {isDeprecated && <span className="text-[10px] uppercase opacity-70">deprecated</span>}
+                    {isDeprecated ? (
+                      <SuiteStatusChip
+                        status="deprecated"
+                        deprecatedTone="gray"
+                        size="sm"
+                        className="opacity-80"
+                      />
+                    ) : null}
                   </Link>
                 );
               })}
             </div>
           )}
           {isVersioned && versions.length <= 1 && versionConfig && (
-            <span className="mt-2 inline-flex rounded-full bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 px-2.5 py-0.5 text-xs font-medium text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]">
+            <SuiteBadge className="mt-2 normal-case tracking-normal">
               {versionConfig.label}
-            </span>
+            </SuiteBadge>
           )}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { NavbarTopBar } from "@subway-builder-modded/shared-ui";
+import { NavbarTopBar, SuiteBadge } from "@subway-builder-modded/shared-ui";
 import type { SiteCommunityLink, SiteSuite } from "@/app/config/site-navigation";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
 import { Link } from "@/app/lib/router";
@@ -88,13 +88,13 @@ export function NavbarTopbar({
   );
 
   const suiteIndicator = (
-    <span
-      className="inline-flex h-7 shrink-0 -translate-y-px items-center self-center gap-1.5 rounded-md px-2 text-xs font-semibold leading-none"
-      style={{ color: realAccent, backgroundColor: `${realAccent}14` }}
+    <SuiteBadge
+      className="h-7 shrink-0 -translate-y-px self-center gap-1.5 rounded-md px-2 normal-case tracking-normal"
+      accent={{ light: realAccent, dark: realAccent }}
     >
       <SuiteIcon className="size-3.5" aria-hidden={true} />
       <span className="max-w-[8rem] truncate">{realSuite.title}</span>
-    </span>
+    </SuiteBadge>
   );
 
   const actionsNode = (

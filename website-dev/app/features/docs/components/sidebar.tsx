@@ -7,6 +7,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { SuiteStatusChip } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
@@ -150,14 +151,12 @@ function VersionSwitcher({
         <span className="flex items-center gap-2">
           <span>{currentVersion}</span>
           {statusLabel && (
-            <span className={cn(
-              "rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none",
-              currentConfig?.status === "latest"
-                ? "bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
-                : "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-            )}>
-              {statusLabel}
-            </span>
+            <SuiteStatusChip
+              status={currentConfig?.status === "latest" ? "latest" : "deprecated"}
+              deprecatedTone="gray"
+              size="sm"
+              label={statusLabel}
+            />
           )}
         </span>
         <ChevronDown className={cn("size-3.5 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden="true" />
@@ -189,14 +188,10 @@ function VersionSwitcher({
                   >
                     <span>{v.label}</span>
                     {v.status === "deprecated" && (
-                      <span className="rounded px-1 py-0.5 text-[10px] font-semibold uppercase leading-none bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                        deprecated
-                      </span>
+                      <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
                     )}
                     {v.status === "latest" && (
-                      <span className="rounded px-1 py-0.5 text-[10px] font-semibold uppercase leading-none bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]">
-                        latest
-                      </span>
+                      <SuiteStatusChip status="latest" size="sm" />
                     )}
                   </button>
                 </li>
