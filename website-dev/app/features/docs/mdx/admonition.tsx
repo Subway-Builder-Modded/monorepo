@@ -5,7 +5,6 @@ import {
   Lightbulb,
   AlertTriangle,
   AlertCircle,
-  ShieldAlert,
   Flame,
   CheckCircle2,
   Clock,
@@ -173,7 +172,11 @@ export function Admonition({ variant, title, children }: AdmonitionProps) {
 // Create named component wrappers for each variant for MDX registry
 function makeAdmonitionComponent(variant: AdmonitionVariant) {
   function VariantAdmonition({ title, children }: { title?: string; children: ReactNode }) {
-    return <Admonition variant={variant} title={title}>{children}</Admonition>;
+    return (
+      <Admonition variant={variant} title={title}>
+        {children}
+      </Admonition>
+    );
   }
   VariantAdmonition.displayName = variant.charAt(0).toUpperCase() + variant.slice(1);
   return VariantAdmonition;

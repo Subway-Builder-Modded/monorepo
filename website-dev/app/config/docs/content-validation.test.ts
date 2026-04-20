@@ -38,7 +38,9 @@ describe("collectDocsContent", () => {
     writeMdx(root, "registry/publishing-projects.mdx", "title: Publishing\ndescription: Test");
 
     const result = collectDocsContent(root);
-    expect(result.errors.some((e) => e.includes("missing required frontmatter field \"icon\""))).toBe(true);
+    expect(result.errors.some((e) => e.includes('missing required frontmatter field "icon"'))).toBe(
+      true,
+    );
   });
 
   it("fails when icon name is invalid", () => {
@@ -50,7 +52,7 @@ describe("collectDocsContent", () => {
     );
 
     const result = collectDocsContent(root);
-    expect(result.errors.some((e) => e.includes("invalid icon \"NotARealIcon\""))).toBe(true);
+    expect(result.errors.some((e) => e.includes('invalid icon "NotARealIcon"'))).toBe(true);
   });
 
   it("fails when a folder is missing same-basename landing page", () => {
@@ -62,7 +64,9 @@ describe("collectDocsContent", () => {
     );
 
     const result = collectDocsContent(root);
-    expect(result.errors.some((e) => e.includes("missing required landing page \"players.mdx\""))).toBe(true);
+    expect(
+      result.errors.some((e) => e.includes('missing required landing page "players.mdx"')),
+    ).toBe(true);
   });
 
   it("fails when non-versioned suite uses version folder", () => {

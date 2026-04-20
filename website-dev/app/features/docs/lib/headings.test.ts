@@ -7,9 +7,7 @@ describe("slugify", () => {
   });
 
   it("handles special characters", () => {
-    expect(slugify("Step 1 - Downloading Railyard")).toBe(
-      "step-1-downloading-railyard",
-    );
+    expect(slugify("Step 1 - Downloading Railyard")).toBe("step-1-downloading-railyard");
   });
 
   it("handles empty string", () => {

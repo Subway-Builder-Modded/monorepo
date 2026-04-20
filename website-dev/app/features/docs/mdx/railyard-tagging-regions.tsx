@@ -218,7 +218,9 @@ const REGIONS: RegionEntry[] = [
 ];
 
 function codeToEmoji(code: string): string {
-  return [...code.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0))).join("");
+  return [...code.toUpperCase()]
+    .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
+    .join("");
 }
 
 export function RailyardTaggingRegions() {
@@ -236,9 +238,7 @@ export function RailyardTaggingRegions() {
 
   const visibleCountries = useMemo(() => {
     if (!normalizedSearch) return activeRegion.countries;
-    return activeRegion.countries.filter((c) =>
-      c.name.toLowerCase().includes(normalizedSearch),
-    );
+    return activeRegion.countries.filter((c) => c.name.toLowerCase().includes(normalizedSearch));
   }, [activeRegion, normalizedSearch]);
 
   const handleSearchChange = (value: string) => {
@@ -271,10 +271,15 @@ export function RailyardTaggingRegions() {
               )}
             >
               {REGIONS.map((r) => (
-                <option key={r.id} value={r.id}>{r.label}</option>
+                <option key={r.id} value={r.id}>
+                  {r.label}
+                </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <ChevronDown
+              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
           </div>
         </div>
 
@@ -286,7 +291,10 @@ export function RailyardTaggingRegions() {
             Country Search
           </label>
           <div className="relative">
-            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Search
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
             <input
               id="tagging-country-search"
               type="text"

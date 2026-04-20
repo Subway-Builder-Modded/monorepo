@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { cn } from "@/app/lib/utils";
 import { resolveIcon, getDocsTree, getVisibleNodes } from "@/app/features/docs/lib";
 import type { DocsSuiteId } from "@/app/config/docs";

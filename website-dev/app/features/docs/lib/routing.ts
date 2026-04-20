@@ -99,10 +99,7 @@ export function matchDocsRoute(pathname: string, search: string): DocsRouteMatch
   };
 }
 
-export function resolveDocsRoute(
-  pathname: string,
-  search: string,
-): ResolvedDocsRoute | null {
+export function resolveDocsRoute(pathname: string, search: string): ResolvedDocsRoute | null {
   const match = matchDocsRoute(pathname, search);
 
   switch (match.kind) {
@@ -132,28 +129,10 @@ export function getDocsHomepageUrl(suiteId: string, version?: string | null): st
   return `/${suiteId}/docs`;
 }
 
-export function getDocPageUrl(
-  suiteId: string,
-  version: string | null,
-  slug: string,
-): string {
+export function getDocPageUrl(suiteId: string, version: string | null, slug: string): string {
   if (version && isDocsSuiteId(suiteId) && isVersionedDocsSuite(suiteId)) {
     return `/${suiteId}/docs/${version}/${slug}`;
   }
 
   return `/${suiteId}/docs/${slug}`;
-}
-
-export function findSamePathInVersion(
-  suiteId: DocsSuiteId,
-  targetVersion: string,
-  slug: string,
-): string | null {
-  const suite = getDocsSuiteConfig(suiteId);
-  if (!suite || !suite.versioned) return null;
-
-  const versionConfig = getDocsVersion(suiteId, targetVersion);
-  if (!versionConfig) return null;
-
-  return `/${suiteId}/docs/${targetVersion}/${slug}`;
 }

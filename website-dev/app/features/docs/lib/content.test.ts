@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vite-plus/test";
-import { findTreeNode, getVisibleNodes, getAllNodes, getDocSourcePath } from "@/app/features/docs/lib/content";
+import {
+  findTreeNode,
+  getVisibleNodes,
+  getAllNodes,
+  getDocSourcePath,
+} from "@/app/features/docs/lib/content";
 import type { DocsTree, DocsTreeNode } from "@/app/features/docs/lib/types";
 
 function makeNode(overrides: Partial<DocsTreeNode> & { slug: string }): DocsTreeNode {

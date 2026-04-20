@@ -32,10 +32,7 @@ export function isVersionedDocsSuite(suiteId: DocsSuiteId): boolean {
   return suite?.versioned === true;
 }
 
-export function getDocsVersion(
-  suiteId: DocsSuiteId,
-  version: string,
-): DocsVersionConfig | null {
+export function getDocsVersion(suiteId: DocsSuiteId, version: string): DocsVersionConfig | null {
   const suite = getDocsSuiteConfig(suiteId);
   if (!suite || !suite.versioned) return null;
   return suite.versions.find((v) => v.value === version) ?? null;

@@ -20,7 +20,7 @@ export const { useState, useEffect, useCallback, useMemo, useRef } = React;
 Vite is configured to alias all `react` imports to this shim, so you can write standard React:
 
 ```tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 ```
 
 This just works — the import gets redirected to the shim at build time, and at runtime it uses the
@@ -34,8 +34,10 @@ The game exposes a set of styled UI components. Access them from the API:
 const api = window.SubwayBuilderAPI;
 
 // Cast to any since the components work at runtime but don't have strict prop types
-const { Button, Card, CardHeader, CardTitle, CardContent } = api.utils
-  .components as Record<string, React.ComponentType<any>>;
+const { Button, Card, CardHeader, CardTitle, CardContent } = api.utils.components as Record<
+  string,
+  React.ComponentType<any>
+>;
 ```
 
 ### Available Components {#available-components}
@@ -64,15 +66,12 @@ const { Button, Card, CardHeader, CardTitle, CardContent } = api.utils
 ### Button Example {#button-example}
 
 ```tsx
-const { Button } = api.utils.components as Record<
-  string,
-  React.ComponentType<any>
->;
+const { Button } = api.utils.components as Record<string, React.ComponentType<any>>;
 
 function MyPanel() {
   return (
     <div className="flex flex-col gap-2">
-      <Button onClick={() => console.log('click')}>Default</Button>
+      <Button onClick={() => console.log("click")}>Default</Button>
       <Button variant="secondary">Secondary</Button>
       <Button variant="destructive">Delete</Button>
       <Button variant="outline">Outline</Button>
@@ -85,8 +84,10 @@ function MyPanel() {
 ### Card Example {#card-example}
 
 ```tsx
-const { Card, CardHeader, CardTitle, CardContent } = api.utils
-  .components as Record<string, React.ComponentType<any>>;
+const { Card, CardHeader, CardTitle, CardContent } = api.utils.components as Record<
+  string,
+  React.ComponentType<any>
+>;
 
 function StatsCard() {
   const stats = api.gameState.getRidershipStats();
@@ -135,9 +136,9 @@ directly:
 
 ```ts
 api.ui.addFloatingPanel({
-  id: 'my-panel',
-  icon: 'Train', // String name, not the component
-  title: 'My Panel',
+  id: "my-panel",
+  icon: "Train", // String name, not the component
+  title: "My Panel",
   render: MyPanel,
 });
 ```
@@ -148,15 +149,8 @@ The game bundles [Recharts](https://recharts.org/) for data visualization. All t
 components are available:
 
 ```tsx
-const {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} = api.utils.charts;
+const { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } =
+  api.utils.charts;
 
 function RidershipChart() {
   const metrics = api.gameState.getLineMetrics();
@@ -239,9 +233,9 @@ function MyPanel() {
 
 // Registering it
 api.ui.addFloatingPanel({
-  id: 'my-panel',
-  title: 'My Mod',
-  icon: 'Puzzle',
+  id: "my-panel",
+  title: "My Mod",
+  icon: "Puzzle",
   render: MyPanel,
 });
 ```
@@ -262,8 +256,8 @@ function MySettingsSection() {
   );
 }
 
-api.ui.registerComponent('settings-menu', {
-  id: 'my-settings',
+api.ui.registerComponent("settings-menu", {
+  id: "my-settings",
   component: MySettingsSection,
 });
 ```

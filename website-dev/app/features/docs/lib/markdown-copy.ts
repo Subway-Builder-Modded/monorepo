@@ -33,10 +33,7 @@ export function mdxToMarkdown(raw: string): string {
     /<Image\s+(?:[^>]*?)alt="([^"]*)"(?:[^>]*?)src="([^"]+)"(?:[^>]*?)\/?\s*>/g,
     "![$1]($2)",
   );
-  md = md.replace(
-    /<Image\s+(?:[^>]*?)src="([^"]+)"(?:[^>]*?)\/?\s*>/g,
-    "![]($1)",
-  );
+  md = md.replace(/<Image\s+(?:[^>]*?)src="([^"]+)"(?:[^>]*?)\/?\s*>/g, "![]($1)");
 
   // Remove <p align="center"> wrappers
   md = md.replace(/<p\s+align="center">\s*/g, "");
@@ -97,10 +94,7 @@ function flattenTabs(md: string): string {
   md = md.replace(/<\/?Tabs>/g, "");
 
   // Convert <TabItem value="..." label="..." default?> to ### label
-  md = md.replace(
-    /<TabItem\s+[^>]*label="([^"]+)"[^>]*>/g,
-    "\n### $1\n",
-  );
+  md = md.replace(/<TabItem\s+[^>]*label="([^"]+)"[^>]*>/g, "\n### $1\n");
   md = md.replace(/<\/TabItem>/g, "");
 
   return md;

@@ -6,10 +6,9 @@ import { fileURLToPath } from "node:url";
 import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkDirective from "remark-directive";
-import { remarkHeadingIds } from "./app/features/docs/mdx/remark-heading-ids";
-import { remarkStripFrontmatter } from "./app/features/docs/mdx/remark-strip-frontmatter";
-import { remarkAdmonitionDirectives } from "./app/features/docs/mdx/remark-admonitions";
-import { collectDocsContent, assertDocsContentValid } from "./app/config/docs/content-validation";
+import { remarkHeadingIds } from "./app/features/docs/mdx/remark-heading-ids.ts";
+import { remarkStripFrontmatter } from "./app/features/docs/mdx/remark-strip-frontmatter.ts";
+import { remarkAdmonitionDirectives } from "./app/features/docs/mdx/remark-admonitions.ts";
 import { defineConfig } from "vite-plus";
 import type { Plugin } from "vite-plus";
 
@@ -26,15 +25,17 @@ function mdxRawContentPlugin(): Plugin {
   const contentDir = path.join(__dirname, "content", "docs");
   return {
     name: "mdx-raw-content",
-    buildStart() {
+    async buildStart() {
+      const { assertDocsContentValid } = await import("./app/config/docs/content-validation.ts");
       assertDocsContentValid(contentDir);
     },
     resolveId(id) {
       if (id === VIRTUAL_RAW_MDX_ID) return RESOLVED_VIRTUAL_RAW_MDX_ID;
     },
-    load(id) {
+    async load(id) {
       if (id !== RESOLVED_VIRTUAL_RAW_MDX_ID) return;
 
+      const { collectDocsContent } = await import("./app/config/docs/content-validation.ts");
       const { rawByPath, frontmatterByPath, errors } = collectDocsContent(contentDir);
       if (errors.length > 0) {
         const details = errors.map((e) => ` - ${e}`).join("\n");

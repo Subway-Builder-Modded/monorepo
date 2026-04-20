@@ -1,4 +1,10 @@
-export type { DocsFrontmatter, DocsTreeNode, DocsTree, DocsTocHeading, ResolvedDocsRoute } from "./types";
+export type {
+  DocsFrontmatter,
+  DocsTreeNode,
+  DocsTree,
+  DocsTocHeading,
+  ResolvedDocsRoute,
+} from "./types";
 export {
   getDocsTree,
   findTreeNode,
@@ -10,13 +16,7 @@ export {
   getEditUrl,
   validateFolderLandingPages,
 } from "./content";
-export {
-  matchDocsRoute,
-  resolveDocsRoute,
-  getDocsHomepageUrl,
-  getDocPageUrl,
-  findSamePathInVersion,
-} from "./routing";
+export { matchDocsRoute, resolveDocsRoute, getDocsHomepageUrl, getDocPageUrl } from "./routing";
 export { extractHeadings, slugify } from "./headings";
 export { mdxToMarkdown } from "./markdown-copy";
 export { resolveIcon } from "./icon-resolver";

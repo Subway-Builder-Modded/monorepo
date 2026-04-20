@@ -418,7 +418,7 @@ function SidebarNavEntry({
                 ),
           )}
           style={{
-            ...(activeStyle ?? {}),
+            ...activeStyle,
             ['--docs-sidebar-hover-bg' as string]: hoverBackground,
             ['--docs-sidebar-hover-fg' as string]: accent,
           }}
@@ -510,7 +510,7 @@ function SidebarNavEntry({
       <div
         className={rowClassName}
         style={{
-          ...(activeStyle ?? {}),
+          ...activeStyle,
           ['--docs-sidebar-hover-bg' as string]: hoverBackground,
           ['--docs-sidebar-hover-fg' as string]: accent,
         }}

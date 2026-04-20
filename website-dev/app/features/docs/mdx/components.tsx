@@ -28,7 +28,9 @@ function extractTextFromChildren(children: ReactNode): string {
   if (!children) return "";
   if (Array.isArray(children)) return children.map(extractTextFromChildren).join("");
   if (typeof children === "object" && children !== null && "props" in children) {
-    return extractTextFromChildren((children as { props: { children?: ReactNode } }).props.children);
+    return extractTextFromChildren(
+      (children as { props: { children?: ReactNode } }).props.children,
+    );
   }
   return "";
 }
@@ -45,10 +47,7 @@ function createHeading(level: 2 | 3 | 4) {
     const resolvedId = id ?? slugify(extractTextFromChildren(children));
 
     return (
-      <Tag
-        id={resolvedId}
-        className={cn("group scroll-mt-24 text-foreground", sizeClass)}
-      >
+      <Tag id={resolvedId} className={cn("group scroll-mt-24 text-foreground", sizeClass)}>
         <a
           href={`#${resolvedId}`}
           className="inline-flex items-center gap-2 no-underline hover:underline"
@@ -67,7 +66,15 @@ function createHeading(level: 2 | 3 | 4) {
   return Heading;
 }
 
-function MdxLink({ href, children, ...props }: { href?: string; children?: ReactNode; [key: string]: unknown }) {
+function MdxLink({
+  href,
+  children,
+  ...props
+}: {
+  href?: string;
+  children?: ReactNode;
+  [key: string]: unknown;
+}) {
   if (!href) return <span {...props}>{children}</span>;
 
   const isExternal = href.startsWith("http://") || href.startsWith("https://");
@@ -124,19 +131,35 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
 
   // Prose elements
   p: ({ children, ...props }) => (
-    <p className="my-3 leading-relaxed text-foreground/90" {...props}>{children as ReactNode}</p>
+    <p className="my-3 leading-relaxed text-foreground/90" {...props}>
+      {children as ReactNode}
+    </p>
   ),
   ul: ({ children, ...props }) => (
-    <ul className="my-3 ml-6 list-disc space-y-1 text-foreground/90 marker:text-muted-foreground" {...props}>{children as ReactNode}</ul>
+    <ul
+      className="my-3 ml-6 list-disc space-y-1 text-foreground/90 marker:text-muted-foreground"
+      {...props}
+    >
+      {children as ReactNode}
+    </ul>
   ),
   ol: ({ children, ...props }) => (
-    <ol className="my-3 ml-6 list-decimal space-y-1 text-foreground/90 marker:text-muted-foreground" {...props}>{children as ReactNode}</ol>
+    <ol
+      className="my-3 ml-6 list-decimal space-y-1 text-foreground/90 marker:text-muted-foreground"
+      {...props}
+    >
+      {children as ReactNode}
+    </ol>
   ),
   li: ({ children, ...props }) => (
-    <li className="leading-relaxed" {...props}>{children as ReactNode}</li>
+    <li className="leading-relaxed" {...props}>
+      {children as ReactNode}
+    </li>
   ),
   strong: ({ children, ...props }) => (
-    <strong className="font-semibold text-foreground" {...props}>{children as ReactNode}</strong>
+    <strong className="font-semibold text-foreground" {...props}>
+      {children as ReactNode}
+    </strong>
   ),
 
   // Links and images
@@ -149,7 +172,11 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
   code: ({ children, className, ...props }) => {
     if (className) {
       // Syntax highlighted code inside pre — passthrough
-      return <code className={className as string} {...props}>{children as ReactNode}</code>;
+      return (
+        <code className={className as string} {...props}>
+          {children as ReactNode}
+        </code>
+      );
     }
     return (
       <code
@@ -164,17 +191,25 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
   // Table
   table: ({ children, ...props }) => (
     <div className="my-4 overflow-x-auto rounded-lg border border-border/50">
-      <table className="w-full text-sm" {...props}>{children as ReactNode}</table>
+      <table className="w-full text-sm" {...props}>
+        {children as ReactNode}
+      </table>
     </div>
   ),
   thead: ({ children, ...props }) => (
-    <thead className="border-b border-border/50 bg-muted/30" {...props}>{children as ReactNode}</thead>
+    <thead className="border-b border-border/50 bg-muted/30" {...props}>
+      {children as ReactNode}
+    </thead>
   ),
   th: ({ children, ...props }) => (
-    <th className="px-4 py-2.5 text-left font-semibold text-foreground" {...props}>{children as ReactNode}</th>
+    <th className="px-4 py-2.5 text-left font-semibold text-foreground" {...props}>
+      {children as ReactNode}
+    </th>
   ),
   td: ({ children, ...props }) => (
-    <td className="px-4 py-2.5 text-foreground/85 border-t border-border/30" {...props}>{children as ReactNode}</td>
+    <td className="px-4 py-2.5 text-foreground/85 border-t border-border/30" {...props}>
+      {children as ReactNode}
+    </td>
   ),
 
   // Blockquote
@@ -192,12 +227,18 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
 
   // Details/summary (used in old docs)
   details: ({ children, ...props }) => (
-    <details className="my-4 rounded-lg border border-border/50 p-4 [&[open]>summary]:mb-3" {...props}>
+    <details
+      className="my-4 rounded-lg border border-border/50 p-4 [&[open]>summary]:mb-3"
+      {...props}
+    >
       {children as ReactNode}
     </details>
   ),
   summary: ({ children, ...props }) => (
-    <summary className="cursor-pointer font-semibold text-sm text-foreground hover:text-[var(--suite-accent-light)] dark:hover:text-[var(--suite-accent-dark)] transition-colors" {...props}>
+    <summary
+      className="cursor-pointer font-semibold text-sm text-foreground hover:text-[var(--suite-accent-light)] dark:hover:text-[var(--suite-accent-dark)] transition-colors"
+      {...props}
+    >
       {children as ReactNode}
     </summary>
   ),

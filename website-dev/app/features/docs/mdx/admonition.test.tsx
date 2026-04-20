@@ -1,6 +1,5 @@
-import { describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { Note, Tip, Warning, Danger, Caution, Important } from "@/app/features/docs/mdx/admonition";
 
 describe("Admonition components", () => {

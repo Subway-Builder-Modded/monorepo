@@ -15,15 +15,13 @@ type RawContentVirtualModule = {
 };
 
 const mdxModules = import.meta.glob("/content/docs/**/*.mdx") as GlobResult;
-const mdxRawModules: Record<string, string> =
-  (rawContentData as RawContentVirtualModule).rawByPath;
-const mdxFrontmatterModules: Record<string, DocsFrontmatter> =
-  (rawContentData as RawContentVirtualModule).frontmatterByPath;
+const mdxRawModules: Record<string, string> = (rawContentData as RawContentVirtualModule).rawByPath;
+const mdxFrontmatterModules: Record<string, DocsFrontmatter> = (
+  rawContentData as RawContentVirtualModule
+).frontmatterByPath;
 
 function getContentKey(filePath: string): string {
-  return filePath
-    .replace(/^\/content\/docs\//, "")
-    .replace(/\.mdx$/, "");
+  return filePath.replace(/^\/content\/docs\//, "").replace(/\.mdx$/, "");
 }
 
 type ContentEntry = {
@@ -57,9 +55,7 @@ function getEntriesForSuiteVersion(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned
-    ? `${suiteId}/${version}/`
-    : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
 
   return entries.filter((e) => e.key.startsWith(prefix));
 }
@@ -73,12 +69,8 @@ function buildTreeFromEntries(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned
-    ? `${suiteId}/${version}/`
-    : `${suiteId}/`;
-  const basePath = suiteConfig.versioned
-    ? `/${suiteId}/docs/${version}`
-    : `/${suiteId}/docs`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
+  const basePath = suiteConfig.versioned ? `/${suiteId}/docs/${version}` : `/${suiteId}/docs`;
 
   const entryBySlug = new Map<string, ContentEntry>();
   for (const entry of entries) {
@@ -102,9 +94,7 @@ function buildTreeFromEntries(
       if (!entry) continue;
 
       const hasChildren = children && children.length > 0;
-      const childNodes = hasChildren
-        ? buildNodes(children, slug, depth + 1)
-        : [];
+      const childNodes = hasChildren ? buildNodes(children, slug, depth + 1) : [];
 
       nodes.push({
         kind: hasChildren ? "landing" : "page",
@@ -151,10 +141,7 @@ export function getDocsTree(suiteId: DocsSuiteId, version: DocsRouteVersion): Do
   return tree;
 }
 
-export function findTreeNode(
-  tree: DocsTree,
-  slug: string,
-): DocsTreeNode | null {
+export function findTreeNode(tree: DocsTree, slug: string): DocsTreeNode | null {
   function search(nodes: DocsTreeNode[]): DocsTreeNode | null {
     for (const node of nodes) {
       if (node.slug === slug) return node;
@@ -182,9 +169,7 @@ export function getAllNodes(tree: DocsTree): DocsTreeNode[] {
   return result;
 }
 
-export async function loadDocContent(
-  sourcePath: string,
-): Promise<React.ComponentType | null> {
+export async function loadDocContent(sourcePath: string): Promise<React.ComponentType | null> {
   const loader = mdxModules[sourcePath];
   if (!loader) return null;
 
@@ -213,11 +198,7 @@ export function getDocSourcePath(
   return `/${DOCS_CONTENT_ROOT}/${suiteId}/${version}/${slug}.mdx`;
 }
 
-export function getEditUrl(
-  suiteId: DocsSuiteId,
-  version: DocsRouteVersion,
-  slug: string,
-): string {
+export function getEditUrl(suiteId: DocsSuiteId, version: DocsRouteVersion, slug: string): string {
   const config = getDocsSuiteConfig(suiteId);
   if (!config) return "#";
 
@@ -236,9 +217,7 @@ export function validateFolderLandingPages(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned
-    ? `${suiteId}/${version}/`
-    : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
   const slugs = new Set<string>();
   const folders = new Set<string>();
 

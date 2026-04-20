@@ -63,21 +63,21 @@ function normalizeFrontmatter(filePath: string, raw: string, errors: string[]): 
   const hidden = parsed.hidden;
 
   if (typeof title !== "string" || !title.trim()) {
-    errors.push(`${filePath}: missing required frontmatter field \"title\"`);
+    errors.push(`${filePath}: missing required frontmatter field "title"`);
   }
 
   if (typeof description !== "string" || !description.trim()) {
-    errors.push(`${filePath}: missing required frontmatter field \"description\"`);
+    errors.push(`${filePath}: missing required frontmatter field "description"`);
   }
 
   if (typeof icon !== "string" || !icon.trim()) {
-    errors.push(`${filePath}: missing required frontmatter field \"icon\"`);
+    errors.push(`${filePath}: missing required frontmatter field "icon"`);
   } else if (!isValidIconExport(icon)) {
-    errors.push(`${filePath}: invalid icon \"${icon}\" (must match a lucide-react export)`);
+    errors.push(`${filePath}: invalid icon "${icon}" (must match a lucide-react export)`);
   }
 
   if (hidden !== undefined && typeof hidden !== "boolean") {
-    errors.push(`${filePath}: frontmatter \"hidden\" must be a boolean when provided`);
+    errors.push(`${filePath}: frontmatter "hidden" must be a boolean when provided`);
   }
 
   return {
@@ -104,7 +104,7 @@ function parseDocsPath(
 
   const suiteCandidate = segments[0];
   if (!(suiteCandidate in DOCS_CONFIG.suites)) {
-    errors.push(`${absolutePath}: unknown docs suite \"${suiteCandidate}\"`);
+    errors.push(`${absolutePath}: unknown docs suite "${suiteCandidate}"`);
     return null;
   }
 
@@ -113,13 +113,15 @@ function parseDocsPath(
 
   if (suite.versioned) {
     if (segments.length < 3) {
-      errors.push(`${absolutePath}: versioned suite \"${suiteId}\" requires /<suite>/<version>/<slug>.mdx`);
+      errors.push(
+        `${absolutePath}: versioned suite "${suiteId}" requires /<suite>/<version>/<slug>.mdx`,
+      );
       return null;
     }
 
     const version = segments[1];
     if (!suite.versions.some((v) => v.value === version)) {
-      errors.push(`${absolutePath}: unknown version \"${version}\" for suite \"${suiteId}\"`);
+      errors.push(`${absolutePath}: unknown version "${version}" for suite "${suiteId}"`);
       return null;
     }
 
@@ -138,12 +140,14 @@ function parseDocsPath(
   }
 
   if (segments.length < 2) {
-    errors.push(`${absolutePath}: non-versioned suite \"${suiteId}\" requires /<suite>/<slug>.mdx`);
+    errors.push(`${absolutePath}: non-versioned suite "${suiteId}" requires /<suite>/<slug>.mdx`);
     return null;
   }
 
   if (segments.length >= 3 && VERSION_PATTERN.test(segments[1])) {
-    errors.push(`${absolutePath}: non-versioned suite \"${suiteId}\" must not use version folder \"${segments[1]}\"`);
+    errors.push(
+      `${absolutePath}: non-versioned suite "${suiteId}" must not use version folder "${segments[1]}"`,
+    );
     return null;
   }
 
@@ -186,7 +190,9 @@ function validateLandingPages(files: ParsedContentFile[], errors: string[]) {
 
     for (const folder of folders) {
       if (!slugs.has(folder)) {
-        errors.push(`${groupKey}: folder \"${folder}\" is missing required landing page \"${folder}.mdx\"`);
+        errors.push(
+          `${groupKey}: folder "${folder}" is missing required landing page "${folder}.mdx"`,
+        );
       }
     }
   }

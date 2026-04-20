@@ -1,11 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vite-plus/test";
 import { AnalyticsSection } from "@/app/features/home/components/analytics-section";
-import {
-  ANALYTICS_LINKS,
-  ANALYTICS_PREVIEW,
-  ANALYTICS_SECTION,
-} from "@/app/config/home";
+import { ANALYTICS_LINKS, ANALYTICS_PREVIEW, ANALYTICS_SECTION } from "@/app/config/home";
 
 describe("AnalyticsSection", () => {
   it("renders analytics content and all suite analytics links", () => {

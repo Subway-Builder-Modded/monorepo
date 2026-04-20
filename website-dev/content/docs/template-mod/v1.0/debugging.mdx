@@ -29,7 +29,7 @@ stations). If your mod gets into a weird state, restarting the game fully is the
 Use `console.log` with a tag prefix to identify your mod's output:
 
 ```ts
-const TAG = '[MyMod]';
+const TAG = "[MyMod]";
 console.log(`${TAG} Initialized`);
 console.warn(`${TAG} Something unexpected`, someData);
 console.error(`${TAG} Failed to load`, error);
@@ -61,7 +61,7 @@ api.hooks.onMapReady((_map) => {
     console.log(`${TAG} Initialized successfully.`);
   } catch (err) {
     console.error(`${TAG} Failed to initialize:`, err);
-    api.ui.showNotification('My Mod failed to load. Check console.', 'error');
+    api.ui.showNotification("My Mod failed to load. Check console.", "error");
   }
 });
 ```

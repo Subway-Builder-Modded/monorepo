@@ -41,8 +41,8 @@ export function formatListingDescriptionPreview(description: string): string {
   const markdownAsText = htmlAsText
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/`([^`]+)`/g, '$1')
-    .replace(/!\[([^\]]*)\]\([^\)]*\)/g, '$1')
-    .replace(/\[([^\]]+)\]\([^\)]*\)/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
     .replace(/^\s{0,3}#{1,6}\s+/gm, '')
     .replace(/^\s{0,3}>\s?/gm, '')
     .replace(/^\s*([-*+]|\d+\.)\s+/gm, '')

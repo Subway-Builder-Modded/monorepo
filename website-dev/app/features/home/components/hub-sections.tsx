@@ -1,10 +1,6 @@
 import { Link } from "@/app/lib/router";
 import { SectionShell, SectionHeader } from "@subway-builder-modded/shared-ui";
-import {
-  getHomeIcon,
-  PEOPLE_DESTINATIONS,
-  PEOPLE_SECTION,
-} from "@/app/config/home";
+import { getHomeIcon, PEOPLE_DESTINATIONS, PEOPLE_SECTION } from "@/app/config/home";
 
 export function PeopleSection() {
   return (

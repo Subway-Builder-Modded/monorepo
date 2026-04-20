@@ -1,10 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vite-plus/test";
 import { SuiteScrollytellingSection } from "@/app/features/home/components/suite-scrollytelling";
-import {
-  SUITE_SCROLLYTELLING_SECTION,
-  SUITE_STEPS,
-} from "@/app/config/home";
+import { SUITE_SCROLLYTELLING_SECTION, SUITE_STEPS } from "@/app/config/home";
 
 describe("SuiteScrollytellingSection", () => {
   it("renders section copy and all suite story steps", () => {

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vite-plus/test";
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { CodeBlock } from "@/app/features/docs/mdx/code-block";
 
 describe("CodeBlock component", () => {

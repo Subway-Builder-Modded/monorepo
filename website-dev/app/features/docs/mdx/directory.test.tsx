@@ -1,0 +1,53 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vite-plus/test";
+import { Directory } from "@/app/features/docs/mdx/directory";
+
+vi.mock("@/app/lib/router", () => ({
+  Link: ({ to, children, ...props }: { to: string; children: React.ReactNode }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock("@/app/features/docs/lib", () => ({
+  getDocsTree: vi.fn(() => ({
+    suiteId: "railyard",
+    version: "v0.2",
+    nodes: [
+      {
+        kind: "page",
+        key: "players",
+        slug: "players",
+        routePath: "/railyard/docs/v0.2/players",
+        sourcePath: "/content/docs/railyard/v0.2/players.mdx",
+        frontmatter: {
+          title: "Players",
+          description: "Manage players",
+          icon: "FileText",
+        },
+        suiteId: "railyard",
+        version: "v0.2",
+        children: [],
+        depth: 0,
+      },
+    ],
+  })),
+  getVisibleNodes: vi.fn((nodes) => nodes),
+  resolveIcon: () => () => <svg data-testid="directory-icon" />,
+}));
+
+describe("Directory MDX component", () => {
+  it("renders directory cards and links", () => {
+    render(<Directory suiteId="railyard" version="v0.2" />);
+
+    const players = screen.getByRole("link", { name: /Players/i });
+    expect(players).toHaveAttribute("href", "/railyard/docs/v0.2/players");
+    expect(screen.getByTestId("directory-icon")).toBeInTheDocument();
+  });
+
+  it("returns null when the target folder has no children", () => {
+    const { container } = render(<Directory suiteId="railyard" version="v0.2" path="/missing" />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});

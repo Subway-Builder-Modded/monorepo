@@ -18,7 +18,7 @@ Always check that it exists before using it:
 
 ```ts
 if (!api) {
-  console.error('[MyMod] SubwayBuilderAPI not found!');
+  console.error("[MyMod] SubwayBuilderAPI not found!");
 } else {
   // Safe to use api
 }
@@ -37,7 +37,7 @@ api.hooks.onMapReady((map) => {
   initialized = true;
 
   // Your setup code here
-  console.log('[MyMod] Initialized!');
+  console.log("[MyMod] Initialized!");
 });
 ```
 
@@ -56,9 +56,9 @@ The most common way to add a mod UI. Creates a draggable panel accessible from t
 
 ```ts
 api.ui.addFloatingPanel({
-  id: 'my-panel',
-  title: 'My Panel',
-  icon: 'Settings', // Lucide icon name (PascalCase)
+  id: "my-panel",
+  title: "My Panel",
+  icon: "Settings", // Lucide icon name (PascalCase)
   render: MyComponent, // A React component
 });
 ```
@@ -69,11 +69,11 @@ Add a button to the main in-game toolbar:
 
 ```ts
 api.ui.addToolbarButton({
-  id: 'my-button',
-  icon: 'Zap',
-  tooltip: 'Do something',
+  id: "my-button",
+  icon: "Zap",
+  tooltip: "Do something",
   onClick: () => {
-    api.ui.showNotification('Button clicked!', 'info');
+    api.ui.showNotification("Button clicked!", "info");
   },
 });
 ```
@@ -83,9 +83,9 @@ api.ui.addToolbarButton({
 Add a button to the in-game escape/pause menu:
 
 ```ts
-api.ui.addButton('escape-menu', {
-  id: 'my-menu-btn',
-  label: 'My Mod Settings',
+api.ui.addButton("escape-menu", {
+  id: "my-menu-btn",
+  label: "My Mod Settings",
   onClick: () => {
     // Open settings, toggle features, etc.
   },
@@ -97,24 +97,24 @@ api.ui.addButton('escape-menu', {
 Add toggles, sliders, and selects to the settings panel:
 
 ```ts
-api.ui.addToggle('settings-menu', {
-  id: 'my-toggle',
-  label: 'Enable feature',
+api.ui.addToggle("settings-menu", {
+  id: "my-toggle",
+  label: "Enable feature",
   defaultValue: true,
   onChange: (enabled) => {
-    console.log('Feature:', enabled);
+    console.log("Feature:", enabled);
   },
 });
 
-api.ui.addSlider('settings-menu', {
-  id: 'my-slider',
-  label: 'Speed multiplier',
+api.ui.addSlider("settings-menu", {
+  id: "my-slider",
+  label: "Speed multiplier",
   min: 1,
   max: 10,
   step: 0.5,
   defaultValue: 1,
   onChange: (value) => {
-    console.log('Speed:', value);
+    console.log("Speed:", value);
   },
 });
 ```
@@ -138,10 +138,10 @@ The `placement` argument controls where UI elements appear:
 Show a toast message to the player:
 
 ```ts
-api.ui.showNotification('Map loaded successfully!', 'success');
-api.ui.showNotification('Something went wrong.', 'error');
-api.ui.showNotification('Tip: try building underground.', 'info');
-api.ui.showNotification('Running low on funds!', 'warning');
+api.ui.showNotification("Map loaded successfully!", "success");
+api.ui.showNotification("Something went wrong.", "error");
+api.ui.showNotification("Tip: try building underground.", "info");
+api.ui.showNotification("Running low on funds!", "warning");
 ```
 
 ## Reading Game State {#reading-game-state}
@@ -178,9 +178,9 @@ const stations = api.gameState.getStations();
 
 for (const station of stations) {
   console.log(station.name, station.coords); // [longitude, latitude]
-  console.log('Tracks:', station.trackIds.length);
+  console.log("Tracks:", station.trackIds.length);
   console.log(
-    'Nearby:',
+    "Nearby:",
     station.nearbyStations.map((n) => n.stationId),
   );
 }
@@ -194,11 +194,11 @@ const stats = api.gameState.getRidershipStats();
 console.log(`${stats.totalRidersPerHour} riders/hour`);
 
 // Per-station
-const stationData = api.gameState.getStationRidership('station-uuid-here');
+const stationData = api.gameState.getStationRidership("station-uuid-here");
 console.log(`${stationData.total} riders at this station`);
 
 // Per-route
-const routeData = api.gameState.getRouteRidership('route-uuid-here');
+const routeData = api.gameState.getRouteRidership("route-uuid-here");
 ```
 
 ## Reacting to Events {#reacting-to-events}
@@ -213,8 +213,8 @@ api.hooks.onStationBuilt((station) => {
 
 // React to money changes
 api.hooks.onMoneyChanged((balance, change, type, category) => {
-  if (type === 'expense' && change > 1000000) {
-    api.ui.showNotification('Big purchase!', 'info');
+  if (type === "expense" && change > 1000000) {
+    api.ui.showNotification("Big purchase!", "info");
   }
 });
 
@@ -268,12 +268,12 @@ Use `api.actions` to change game state:
 ```ts
 // Money
 api.actions.setMoney(5000000);
-api.actions.addMoney(1000000, 'grant');
-api.actions.subtractMoney(500000, 'maintenance');
+api.actions.addMoney(1000000, "grant");
+api.actions.subtractMoney(500000, "maintenance");
 
 // Game control
 api.actions.setPause(true);
-api.actions.setSpeed('fast'); // 'slow' | 'normal' | 'fast' | 'ultrafast'
+api.actions.setSpeed("fast"); // 'slow' | 'normal' | 'fast' | 'ultrafast'
 
 // Ticket price
 api.actions.setTicketPrice(5);
@@ -312,7 +312,7 @@ const result = api.build.placeBlueprintTracks([
       [-74.006, 40.7128],
       [-74.009, 40.715],
     ], // [lng, lat] pairs
-    trackType: 'heavy-metro',
+    trackType: "heavy-metro",
     startElevation: -15, // underground
     endElevation: -15,
   },
@@ -323,9 +323,7 @@ if (result.success) {
 
   // Build the blueprints (costs money)
   const buildResult = await api.build.buildBlueprints();
-  console.log(
-    `Built ${buildResult.builtTrackCount} tracks, cost: $${buildResult.totalCost}`,
-  );
+  console.log(`Built ${buildResult.builtTrackCount} tracks, cost: $${buildResult.totalCost}`);
 }
 ```
 
@@ -334,16 +332,16 @@ if (result.success) {
 ```ts
 // Create a new route
 const route = api.build.createRoute({
-  bullet: 'A',
-  color: '#0039A6',
-  textColor: '#FFFFFF',
-  shape: 'circle',
-  trainType: 'heavy-metro',
+  bullet: "A",
+  color: "#0039A6",
+  textColor: "#FFFFFF",
+  shape: "circle",
+  trainType: "heavy-metro",
 });
 
 if (route.success && route.route) {
   // Buy trains and add them to the route
-  api.build.buyTrains(4, 'heavy-metro');
+  api.build.buyTrains(4, "heavy-metro");
   api.build.addTrainToRoute(route.route.id, 0); // Add at first station
 }
 ```
@@ -360,18 +358,18 @@ Save mod data between sessions (desktop app only):
 
 ```ts
 // Save
-await api.storage.set('highScore', 42);
-await api.storage.set('settings', { sound: true, difficulty: 'hard' });
+await api.storage.set("highScore", 42);
+await api.storage.set("settings", { sound: true, difficulty: "hard" });
 
 // Load
-const score = await api.storage.get('highScore', 0);
-const settings = await api.storage.get('settings', {
+const score = await api.storage.get("highScore", 0);
+const settings = await api.storage.get("settings", {
   sound: true,
-  difficulty: 'normal',
+  difficulty: "normal",
 });
 
 // Delete
-await api.storage.delete('highScore');
+await api.storage.delete("highScore");
 
 // List all keys
 const keys = await api.storage.keys();

@@ -7,16 +7,16 @@ import { useEffect, Component, type ReactNode } from "react";
 
 class DocsErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state: { error: Error | null } = { error: null };
-  static getDerivedStateFromError(error: Error) { return { error }; }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
   render() {
     if (this.state.error) {
       return (
         <div className="flex flex-col items-center gap-4 py-20 text-center">
           <AlertCircle className="size-12 text-destructive/60" aria-hidden="true" />
           <h1 className="text-lg font-bold text-foreground">Something went wrong</h1>
-          <p className="text-sm text-muted-foreground max-w-md">
-            {this.state.error.message}
-          </p>
+          <p className="text-sm text-muted-foreground max-w-md">{this.state.error.message}</p>
         </div>
       );
     }
@@ -38,21 +38,10 @@ export function DocsRoute() {
   const inner = (() => {
     switch (match.kind) {
       case "homepage":
-        return (
-          <DocsHomepage
-            suiteId={match.suiteId}
-            version={match.version}
-          />
-        );
+        return <DocsHomepage suiteId={match.suiteId} version={match.version} />;
 
       case "doc":
-        return (
-          <DocPageLayout
-            suiteId={match.suiteId}
-            version={match.version}
-            slug={match.slug}
-          />
-        );
+        return <DocPageLayout suiteId={match.suiteId} version={match.version} slug={match.slug} />;
 
       case "redirect":
         return null;

@@ -25,14 +25,7 @@ import { mdxComponents } from "@/app/features/docs/mdx/components";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { DocsSidebar, MobileDocsSidebar } from "./sidebar";
 import { OnThisPage } from "./on-this-page";
-import {
-  Pencil,
-  Copy,
-  Check,
-  AlertTriangle,
-  ChevronRight,
-  FileQuestion,
-} from "lucide-react";
+import { Pencil, Copy, Check, AlertTriangle, ChevronRight, FileQuestion } from "lucide-react";
 
 function DeprecatedBanner({ version }: { version: string }) {
   return (
@@ -90,9 +83,7 @@ function Breadcrumbs({
           })}
         <li className="flex items-center gap-1">
           <ChevronRight className="size-3" aria-hidden="true" />
-          <span className="text-foreground font-medium truncate max-w-[200px]">
-            {title}
-          </span>
+          <span className="text-foreground font-medium truncate max-w-[200px]">{title}</span>
         </li>
       </ol>
     </nav>
@@ -125,11 +116,7 @@ function CopyButton({ content }: { content: string }) {
   );
 }
 
-function DocContent({
-  sourcePath,
-}: {
-  sourcePath: string;
-}) {
+function DocContent({ sourcePath }: { sourcePath: string }) {
   const [Content, setContent] = useState<React.ComponentType<any> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -206,10 +193,7 @@ export function DocPageLayout({
 
   const sourcePath = node?.sourcePath ?? getDocSourcePath(suiteId, version, slug);
   const rawContent = getDocRawContent(sourcePath);
-  const headings = useMemo(
-    () => (rawContent ? extractHeadings(rawContent) : []),
-    [rawContent],
-  );
+  const headings = useMemo(() => (rawContent ? extractHeadings(rawContent) : []), [rawContent]);
   const editUrl = getEditUrl(suiteId, version, slug);
   const suite = getSuiteById(suiteId);
   const Icon = node ? resolveIcon(node.frontmatter.icon) : null;
@@ -217,7 +201,7 @@ export function DocPageLayout({
   if (!node) {
     return (
       <SuiteAccentScope accent={suite.accent}>
-        <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}> 
+        <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}>
           <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)_15rem]">
             <DocsSidebar
               tree={tree}
@@ -231,7 +215,8 @@ export function DocPageLayout({
                 <FileQuestion className="size-12 text-muted-foreground" aria-hidden={true} />
                 <h1 className="text-lg font-bold text-foreground">Page Not Found</h1>
                 <p className="text-sm text-muted-foreground">
-                  The documentation page &quot;{slug}&quot; was not found{version ? ` in ${version}` : ""}.
+                  The documentation page &quot;{slug}&quot; was not found
+                  {version ? ` in ${version}` : ""}.
                 </p>
                 <SuiteAccentLink asChild>
                   <Link to={getDocsHomepageUrl(suiteId, version)}>Return to docs home</Link>
@@ -246,14 +231,9 @@ export function DocPageLayout({
 
   return (
     <SuiteAccentScope accent={suite.accent}>
-      <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}> 
+      <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}>
         <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)_15rem]">
-          <DocsSidebar
-            tree={tree}
-            suiteId={suiteId}
-            currentVersion={version}
-            currentSlug={slug}
-          />
+          <DocsSidebar tree={tree} suiteId={suiteId} currentVersion={version} currentSlug={slug} />
 
           <article className="min-w-0">
             <MobileDocsSidebar

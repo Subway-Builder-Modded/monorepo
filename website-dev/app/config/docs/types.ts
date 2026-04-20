@@ -14,9 +14,7 @@ export type DocsVersionConfig = {
   badgeText?: string;
 };
 
-export type DocsSidebarOrderItem =
-  | string
-  | { key: string; children?: DocsSidebarOrderItem[] };
+export type DocsSidebarOrderItem = string | { key: string; children?: DocsSidebarOrderItem[] };
 
 export type DocsHomepageConfig = {
   description: string;

@@ -39,6 +39,13 @@ describe("matchDocsRoute", () => {
     });
   });
 
+  it("canonicalizes non-versioned registry when version query is provided", () => {
+    expect(matchDocsRoute("/registry/docs", "?version=v0.2")).toEqual({
+      kind: "redirect",
+      to: "/registry/docs",
+    });
+  });
+
   it("matches docs homepage with version query param for versioned suites", () => {
     const result = matchDocsRoute("/railyard/docs", "?version=v0.1");
     expect(result).toEqual({
@@ -66,6 +73,15 @@ describe("matchDocsRoute", () => {
     expect(result).toEqual({
       kind: "redirect",
       to: "/railyard/docs?version=v0.2",
+    });
+  });
+
+  it("keeps explicit deprecated version query and does not force latest", () => {
+    const result = matchDocsRoute("/railyard/docs", "?version=v0.1");
+    expect(result).toEqual({
+      kind: "homepage",
+      suiteId: "railyard",
+      version: "v0.1",
     });
   });
 
@@ -98,6 +114,13 @@ describe("matchDocsRoute", () => {
       suiteId: "registry",
       version: null,
       slug: "latest",
+    });
+
+    expect(matchDocsRoute("/registry/docs/v1.0/publishing-projects", "")).toEqual({
+      kind: "doc",
+      suiteId: "registry",
+      version: null,
+      slug: "v1.0/publishing-projects",
     });
   });
 

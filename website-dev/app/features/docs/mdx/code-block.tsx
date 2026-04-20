@@ -25,9 +25,7 @@ export function CodeBlock({ children, className, title, "data-language": lang }:
     <div className="group relative my-4 overflow-hidden rounded-lg border border-border/50 bg-[#0d1117] dark:bg-[#0d1117]">
       {(title || lang) && (
         <div className="flex items-center justify-between border-b border-border/30 bg-[#161b22] px-4 py-2">
-          <span className="text-xs font-medium text-muted-foreground">
-            {title ?? lang}
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">{title ?? lang}</span>
         </div>
       )}
       <div className="relative">

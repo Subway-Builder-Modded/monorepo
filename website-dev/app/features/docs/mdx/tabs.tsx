@@ -1,4 +1,12 @@
-import { type ReactNode, type ReactElement, useState, useCallback, useEffect, Children, isValidElement } from "react";
+import {
+  type ReactNode,
+  type ReactElement,
+  useState,
+  useCallback,
+  useEffect,
+  Children,
+  isValidElement,
+} from "react";
 import { cn } from "@/app/lib/utils";
 
 const TAB_STORAGE_PREFIX = "sbm-docs-tabs:";
@@ -105,9 +113,7 @@ export function Tabs({ groupId, children }: TabsProps) {
               className={cn(
                 "relative px-4 py-2 text-sm font-medium transition-colors",
                 "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                isActive
-                  ? "text-foreground"
-                  : "text-muted-foreground",
+                isActive ? "text-foreground" : "text-muted-foreground",
               )}
             >
               {item.props.label}

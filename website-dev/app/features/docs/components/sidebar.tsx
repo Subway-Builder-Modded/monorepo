@@ -1,23 +1,12 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import {
-  ChevronRight,
-  ChevronDown,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Menu,
-  X,
-} from "lucide-react";
+import { ChevronRight, ChevronDown, PanelLeftClose, PanelLeftOpen, Menu, X } from "lucide-react";
 import { SuiteBadge, SuiteStatusChip } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
-import {
-  getVisibleVersions,
-  isVersionedDocsSuite,
-  type DocsRouteVersion,
-} from "@/app/config/docs";
+import { getVisibleVersions, isVersionedDocsSuite, type DocsRouteVersion } from "@/app/config/docs";
 import { getSuiteById } from "@/app/config/site-navigation";
 import type { DocsTreeNode, DocsTree } from "@/app/features/docs/lib/types";
 import type { DocsSuiteId } from "@/app/config/docs";
@@ -45,10 +34,7 @@ function useCollapsedSections(treeKey: string) {
           next.add(slug);
         }
         try {
-          sessionStorage.setItem(
-            `sbm:docs-collapsed:${treeKey}`,
-            JSON.stringify([...next]),
-          );
+          sessionStorage.setItem(`sbm:docs-collapsed:${treeKey}`, JSON.stringify([...next]));
         } catch {
           // ignore
         }
@@ -143,7 +129,10 @@ function VersionDropdown({
             <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
           ) : null}
         </span>
-        <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} aria-hidden="true" />
+        <ChevronDown
+          className={cn("size-3.5 transition-transform", open && "rotate-180")}
+          aria-hidden="true"
+        />
       </button>
 
       {open ? (
@@ -253,7 +242,11 @@ function SidebarItem({
               aria-label={isCollapsed ? "Expand section" : "Collapse section"}
               aria-expanded={!isCollapsed}
             >
-              {isCollapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+              {isCollapsed ? (
+                <ChevronRight className="size-3.5" />
+              ) : (
+                <ChevronDown className="size-3.5" />
+              )}
             </button>
           ) : null}
         </div>
@@ -320,7 +313,10 @@ function MiniRail({
         <PanelLeftOpen className="size-4" />
       </button>
 
-      <nav className="mt-1 flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-thin" aria-label="Collapsed documentation navigation">
+      <nav
+        className="mt-1 flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
+        aria-label="Collapsed documentation navigation"
+      >
         <ul className="space-y-1">
           {nodes.map((node) => {
             const Icon = resolveIcon(node.frontmatter.icon);

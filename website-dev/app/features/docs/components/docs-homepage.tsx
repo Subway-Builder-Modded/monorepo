@@ -101,7 +101,10 @@ function VersionDropdown({
             <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
           ) : null}
         </span>
-        <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} aria-hidden="true" />
+        <ChevronDown
+          className={cn("size-3.5 transition-transform", open && "rotate-180")}
+          aria-hidden="true"
+        />
       </button>
 
       {open ? (
@@ -151,13 +154,7 @@ function VersionDropdown({
   );
 }
 
-function Signboard({
-  suiteId,
-  version,
-}: {
-  suiteId: DocsSuiteId;
-  version: string | null;
-}) {
+function Signboard({ suiteId, version }: { suiteId: DocsSuiteId; version: string | null }) {
   const suite = getSuiteById(suiteId);
   const config = getDocsSuiteConfig(suiteId)!;
   const isVersioned = isVersionedDocsSuite(suiteId);
@@ -181,19 +178,15 @@ function Signboard({
         ) : undefined
       }
       actions={
-        isVersioned && version ? <VersionDropdown suiteId={suiteId} currentVersion={version} /> : undefined
+        isVersioned && version ? (
+          <VersionDropdown suiteId={suiteId} currentVersion={version} />
+        ) : undefined
       }
     />
   );
 }
 
-function DocsCardGrid({
-  suiteId,
-  version,
-}: {
-  suiteId: DocsSuiteId;
-  version: string | null;
-}) {
+function DocsCardGrid({ suiteId, version }: { suiteId: DocsSuiteId; version: string | null }) {
   const tree = getDocsTree(suiteId, version);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
 
@@ -221,7 +214,8 @@ function DocsCardGrid({
             )}
             style={{
               ["--nav-accent" as string]: "var(--suite-accent-light)",
-              ["--nav-muted" as string]: "color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)",
+              ["--nav-muted" as string]:
+                "color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)",
             }}
           >
             <NavRow

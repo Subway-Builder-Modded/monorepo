@@ -7,9 +7,18 @@ import type { Plugin } from "unified";
 import { visit } from "unist-util-visit";
 
 const ADMONITION_TYPES = new Set([
-  "note", "tip", "important", "warning", "caution",
-  "danger", "info", "success", "deprecated", "bug",
-  "example", "announcement",
+  "note",
+  "tip",
+  "important",
+  "warning",
+  "caution",
+  "danger",
+  "info",
+  "success",
+  "deprecated",
+  "bug",
+  "example",
+  "announcement",
 ]);
 
 const TYPE_TO_COMPONENT: Record<string, string> = {
@@ -39,9 +48,7 @@ function isDirectiveNode(node: unknown): node is DirectiveNode {
   if (!node || typeof node !== "object") return false;
   const n = node as { type?: string };
   return (
-    n.type === "containerDirective" ||
-    n.type === "leafDirective" ||
-    n.type === "textDirective"
+    n.type === "containerDirective" || n.type === "leafDirective" || n.type === "textDirective"
   );
 }
 
@@ -65,8 +72,7 @@ export const remarkAdmonitionDirectives: Plugin<[], Root> = () => {
       if (
         firstChild &&
         "data" in firstChild &&
-        (firstChild as { data?: { directiveLabel?: boolean } }).data
-          ?.directiveLabel
+        (firstChild as { data?: { directiveLabel?: boolean } }).data?.directiveLabel
       ) {
         // Extract text from the label paragraph
         const labelParagraph = firstChild as Parent;
