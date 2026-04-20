@@ -241,7 +241,7 @@ func seedInstalledLocalMap(t *testing.T, d *Downloader, reg *registry.Registry, 
 	require.NoError(t, os.WriteFile(filepath.Join(localMapDir, constants.RailyardAssetMarker), []byte("marker"), 0o644))
 }
 
-func mockMapZipWithReservedPayload(t *testing.T, code string) []byte {
+func mockMapZipWithSharedPayload(t *testing.T, code string) []byte {
 	t.Helper()
 
 	configJSON, err := json.Marshal(types.ConfigData{
@@ -1148,7 +1148,7 @@ func TestMapReservedPayloadCopied(t *testing.T) {
 						AssetType:    types.AssetTypeMap,
 						Versions:     []string{"1.0.0"},
 						MapCode:      "AAA",
-						ArchiveBytes: mockMapZipWithReservedPayload(t, "AAA"),
+						ArchiveBytes: mockMapZipWithSharedPayload(t, "AAA"),
 					},
 				})
 				defer cleanup()
@@ -1164,7 +1164,7 @@ func TestMapReservedPayloadCopied(t *testing.T) {
 			runInstall: func(t *testing.T, d *Downloader, _ *registry.Registry) types.AssetInstallResponse {
 				t.Helper()
 				zipPath := filepath.Join(t.TempDir(), "local-map.zip")
-				require.NoError(t, os.WriteFile(zipPath, mockMapZipWithReservedPayload(t, "AAA"), 0o644))
+				require.NoError(t, os.WriteFile(zipPath, mockMapZipWithSharedPayload(t, "AAA"), 0o644))
 				return d.ImportAsset(types.AssetTypeMap, zipPath, false)
 			},
 		},
