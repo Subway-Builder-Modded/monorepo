@@ -2,12 +2,12 @@ import { useMemo } from "react";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { getSuiteById } from "@/app/config/site-navigation";
-import { getDocsSuiteConfig, getVisibleVersions, getDocsVersion } from "@/app/features/docs/config";
-import type { DocsSuiteId } from "@/app/features/docs/config";
+import { getDocsSuiteConfig, getVisibleVersions, getDocsVersion } from "@/app/config/docs";
+import type { DocsSuiteId } from "@/app/config/docs";
 import { getDocsTree, getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocPageUrl, getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
-import { BookText, ArrowRight, AlertTriangle } from "lucide-react";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 
 function DeprecatedBanner({ version }: { version: string }) {
   return (
@@ -25,46 +25,63 @@ function DeprecatedBanner({ version }: { version: string }) {
   );
 }
 
-function VersionCards({
+function Signboard({
   suiteId,
-  currentVersion,
+  version,
 }: {
   suiteId: DocsSuiteId;
-  currentVersion: string;
+  version: string;
 }) {
+  const suite = getSuiteById(suiteId);
+  const config = getDocsSuiteConfig(suiteId)!;
+  const versionConfig = getDocsVersion(suiteId, version);
   const versions = getVisibleVersions(suiteId);
-  if (versions.length <= 1) return null;
+  const SuiteIcon = suite.icon;
 
   return (
-    <div className="mb-8">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        Versions
-      </h2>
-      <div className="flex flex-wrap gap-2">
-        {versions.map((v) => {
-          const isActive = v.value === currentVersion;
-          const vConfig = getDocsVersion(suiteId, v.value);
-          const isDeprecated = vConfig?.status === "deprecated";
+    <div className="relative mb-8 overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-[var(--suite-accent-light)]/6 via-transparent to-[var(--suite-accent-light)]/3 dark:from-[var(--suite-accent-dark)]/8 dark:to-[var(--suite-accent-dark)]/4 p-6 sm:p-8">
+      <div className="flex items-start gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 ring-1 ring-[var(--suite-accent-light)]/20 dark:ring-[var(--suite-accent-dark)]/20">
+          <SuiteIcon className="size-6 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]" aria-hidden={true} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
+            {config.homepage.heroTitle ?? `${suite.title} Documentation`}
+          </h1>
+          <p className="mt-1 text-sm text-foreground/70 leading-relaxed max-w-lg">
+            {config.homepage.description}
+          </p>
+          {versions.length > 1 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {versions.map((v) => {
+                const isActive = v.value === version;
+                const isDeprecated = getDocsVersion(suiteId, v.value)?.status === "deprecated";
 
-          return (
-            <Link
-              key={v.value}
-              to={getDocsHomepageUrl(suiteId, v.value)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                isActive
-                  ? "bg-[var(--suite-accent-light)]/15 dark:bg-[var(--suite-accent-dark)]/15 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] ring-1 ring-[var(--suite-accent-light)]/30 dark:ring-[var(--suite-accent-dark)]/30"
-                  : "bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground",
-                isDeprecated && !isActive && "opacity-60",
-              )}
-            >
-              {v.label}
-              {isDeprecated && (
-                <span className="text-[10px] uppercase tracking-wide opacity-70">deprecated</span>
-              )}
-            </Link>
-          );
-        })}
+                return (
+                  <Link
+                    key={v.value}
+                    to={getDocsHomepageUrl(suiteId, v.value)}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+                      isActive
+                        ? "bg-[var(--suite-accent-light)]/15 dark:bg-[var(--suite-accent-dark)]/15 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] ring-1 ring-[var(--suite-accent-light)]/30 dark:ring-[var(--suite-accent-dark)]/30"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                      isDeprecated && !isActive && "opacity-60",
+                    )}
+                  >
+                    {v.label}
+                    {isDeprecated && <span className="text-[10px] uppercase opacity-70">deprecated</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+          {versions.length <= 1 && versionConfig && (
+            <span className="mt-2 inline-flex rounded-full bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 px-2.5 py-0.5 text-xs font-medium text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]">
+              {versionConfig.label}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -134,8 +151,6 @@ export function DocsHomepage({
   suiteId: DocsSuiteId;
   version: string;
 }) {
-  const suite = getSuiteById(suiteId);
-  const config = getDocsSuiteConfig(suiteId)!;
   const versionConfig = getDocsVersion(suiteId, version);
   const isDeprecated = versionConfig?.status === "deprecated";
 
@@ -143,26 +158,7 @@ export function DocsHomepage({
     <div className="mx-auto max-w-3xl py-6">
       {isDeprecated && <DeprecatedBanner version={version} />}
 
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--suite-accent-light)]/10 dark:bg-[var(--suite-accent-dark)]/10">
-            <BookText className="size-5 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]" aria-hidden="true" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">
-              {config.homepage.heroTitle ?? `${suite.title} Documentation`}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {versionConfig?.label ?? version}
-            </p>
-          </div>
-        </div>
-        <p className="text-sm text-foreground/80 leading-relaxed">
-          {config.homepage.description}
-        </p>
-      </div>
-
-      <VersionCards suiteId={suiteId} currentVersion={version} />
+      <Signboard suiteId={suiteId} version={version} />
 
       <div>
         <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">

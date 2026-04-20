@@ -1,5 +1,6 @@
 import type { DocsConfig, DocsSuiteConfig, DocsSuiteId, DocsVersionConfig } from "./types";
 import { railyardDocsConfig } from "./suites/railyard";
+import { registryDocsConfig } from "./suites/registry";
 import { templateModDocsConfig } from "./suites/template-mod";
 
 export type { DocsConfig, DocsSuiteConfig, DocsSuiteId, DocsVersionConfig };
@@ -9,6 +10,7 @@ export { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "./shared";
 export const DOCS_CONFIG: DocsConfig = {
   suites: {
     railyard: railyardDocsConfig,
+    registry: registryDocsConfig,
     "template-mod": templateModDocsConfig,
   },
 };
@@ -46,4 +48,10 @@ export function getSidebarOrder(suiteId: DocsSuiteId, version: string) {
 
 export function isDocsSuiteId(id: string): id is DocsSuiteId {
   return id in DOCS_CONFIG.suites;
+}
+
+export function getEnabledDocsSuiteIds(): DocsSuiteId[] {
+  return (Object.keys(DOCS_CONFIG.suites) as DocsSuiteId[]).filter(
+    (id) => DOCS_CONFIG.suites[id].enabled,
+  );
 }

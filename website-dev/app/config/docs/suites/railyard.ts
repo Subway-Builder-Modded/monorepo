@@ -1,5 +1,5 @@
-import type { DocsSuiteConfig } from "@/app/features/docs/config/types";
-import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "@/app/features/docs/config/shared";
+import type { DocsSuiteConfig } from "@/app/config/docs/types";
+import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "@/app/config/docs/shared";
 
 export const railyardDocsConfig: DocsSuiteConfig = {
   suiteId: "railyard",
@@ -33,16 +33,6 @@ export const railyardDocsConfig: DocsSuiteConfig = {
           "country-flag-emojis",
           "importing-custom-assets",
           "profile-management",
-        ],
-      },
-      {
-        key: "developers",
-        children: [
-          "publishing-projects",
-          "using-custom-url",
-          "tagging",
-          "data-quality",
-          "dependencies",
         ],
       },
     ],

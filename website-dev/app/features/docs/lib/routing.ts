@@ -1,10 +1,10 @@
-import type { DocsSuiteId } from "@/app/features/docs/config";
+import type { DocsSuiteId } from "@/app/config/docs";
 import {
   isDocsSuiteId,
   getDocsSuiteConfig,
   getDocsVersion,
   getLatestVersion,
-} from "@/app/features/docs/config";
+} from "@/app/config/docs";
 import type { ResolvedDocsRoute } from "./types";
 
 type DocsRouteMatch =

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -12,11 +12,50 @@ import { cn } from "@/app/lib/utils";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
-import { getVisibleVersions, getDocsVersion } from "@/app/features/docs/config";
+import { getVisibleVersions, getDocsVersion, getEnabledDocsSuiteIds } from "@/app/config/docs";
+import { getSuiteById } from "@/app/config/site-navigation";
 import type { DocsTreeNode, DocsTree } from "@/app/features/docs/lib/types";
-import type { DocsSuiteId } from "@/app/features/docs/config";
+import type { DocsSuiteId } from "@/app/config/docs";
 
 const SIDEBAR_COLLAPSED_KEY = "sbm:docs-sidebar-collapsed";
+
+function SuiteRail({
+  activeSuiteId,
+  currentVersion,
+}: {
+  activeSuiteId: DocsSuiteId;
+  currentVersion: string;
+}) {
+  const suiteIds = getEnabledDocsSuiteIds();
+
+  return (
+    <div className="flex flex-col items-center gap-1 border-r border-border/30 px-1.5 py-3">
+      {suiteIds.map((id) => {
+        const suite = getSuiteById(id);
+        const isActive = id === activeSuiteId;
+        const SuiteIcon = suite.icon;
+
+        return (
+          <Link
+            key={id}
+            to={getDocsHomepageUrl(id, id === activeSuiteId ? currentVersion : undefined)}
+            className={cn(
+              "flex size-9 items-center justify-center rounded-lg transition-colors",
+              isActive
+                ? "bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40",
+            )}
+            aria-label={`${suite.title} docs`}
+            aria-current={isActive ? "true" : undefined}
+            data-color-scheme={id}
+          >
+            <SuiteIcon className="size-4" aria-hidden={true} />
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
 
 function useCollapsedSections(treeKey: string) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => {
@@ -63,35 +102,102 @@ function VersionSwitcher({
   currentVersion: string;
 }) {
   const versions = getVisibleVersions(suiteId);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   if (versions.length <= 1) return null;
 
+  const currentConfig = getDocsVersion(suiteId, currentVersion);
+  const statusLabel = currentConfig?.status === "latest" ? "latest" : currentConfig?.status;
+
   return (
-    <div className="mb-4">
-      <select
-        value={currentVersion}
-        onChange={(e) => {
-          const url = getDocsHomepageUrl(suiteId, e.target.value);
-          window.history.pushState({}, "", url);
-          window.dispatchEvent(new Event("sbm:navigate"));
-        }}
+    <div ref={containerRef} className="relative mb-4">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
         className={cn(
-          "h-8 w-full appearance-none rounded-md border border-border/50 bg-muted/30",
+          "flex h-8 w-full items-center justify-between rounded-md border border-border/50 bg-muted/30",
           "px-2.5 text-xs font-medium text-foreground outline-none transition-colors",
           "hover:border-border focus-visible:ring-2 focus-visible:ring-ring/60",
         )}
+        aria-haspopup="listbox"
+        aria-expanded={open}
         aria-label="Select documentation version"
       >
-        {versions.map((v) => {
-          const versionConfig = getDocsVersion(suiteId, v.value);
-          const suffix = versionConfig?.status === "deprecated" ? " (deprecated)" : "";
-          return (
-            <option key={v.value} value={v.value}>
-              {v.label}{suffix}
-            </option>
-          );
-        })}
-      </select>
+        <span className="flex items-center gap-2">
+          <span>{currentVersion}</span>
+          {statusLabel && (
+            <span className={cn(
+              "rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none",
+              currentConfig?.status === "latest"
+                ? "bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                : "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+            )}>
+              {statusLabel}
+            </span>
+          )}
+        </span>
+        <ChevronDown className={cn("size-3.5 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-40 mt-1 rounded-lg border border-border bg-background p-1 shadow-lg animate-in fade-in-0 zoom-in-95 duration-150">
+          <ul role="listbox" aria-label="Documentation versions">
+            {versions.map((v) => {
+              const isSelected = v.value === currentVersion;
+              return (
+                <li key={v.value}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    onClick={() => {
+                      setOpen(false);
+                      const url = getDocsHomepageUrl(suiteId, v.value);
+                      window.history.pushState({}, "", url);
+                      window.dispatchEvent(new Event("sbm:navigate"));
+                    }}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs transition-colors",
+                      isSelected
+                        ? "bg-[var(--suite-accent-light)]/10 dark:bg-[var(--suite-accent-dark)]/10 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] font-medium"
+                        : "text-foreground/80 hover:bg-muted/50 hover:text-foreground",
+                    )}
+                  >
+                    <span>{v.label}</span>
+                    {v.status === "deprecated" && (
+                      <span className="rounded px-1 py-0.5 text-[10px] font-semibold uppercase leading-none bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                        deprecated
+                      </span>
+                    )}
+                    {v.status === "latest" && (
+                      <span className="rounded px-1 py-0.5 text-[10px] font-semibold uppercase leading-none bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]">
+                        latest
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -198,58 +304,67 @@ export function DocsSidebar({
     });
   }, []);
 
+  const suite = getSuiteById(suiteId);
+
   if (sidebarHidden) {
     return (
-      <div className="hidden lg:block">
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          className="fixed left-4 top-20 z-30 flex size-8 items-center justify-center rounded-md border border-border/50 bg-background/80 backdrop-blur-sm text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Open sidebar"
-        >
-          <PanelLeftOpen className="size-4" />
-        </button>
+      <div className="hidden lg:flex shrink-0">
+        <div className="sticky top-20 max-h-[calc(100vh-6rem)]">
+          <SuiteRail activeSuiteId={suiteId} currentVersion={currentVersion} />
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="mt-2 mx-auto flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors"
+            aria-label="Open sidebar"
+          >
+            <PanelLeftOpen className="size-4" />
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <aside className="hidden lg:block w-64 shrink-0">
-      <nav
-        className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overscroll-contain pr-2 pb-8 scrollbar-thin"
-        aria-label="Documentation navigation"
-      >
-        <div className="flex items-center justify-between mb-3">
-          <Link
-            to={getDocsHomepageUrl(suiteId, currentVersion)}
-            className="text-xs font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Documentation
-          </Link>
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Collapse sidebar"
-          >
-            <PanelLeftClose className="size-3.5" />
-          </button>
-        </div>
+    <aside className="hidden lg:flex shrink-0">
+      <div className="sticky top-20 flex max-h-[calc(100vh-6rem)]">
+        <SuiteRail activeSuiteId={suiteId} currentVersion={currentVersion} />
 
-        <VersionSwitcher suiteId={suiteId} currentVersion={currentVersion} />
+        <nav
+          className="w-56 overflow-y-auto overscroll-contain pl-3 pr-2 pb-8 scrollbar-thin"
+          aria-label="Documentation navigation"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <Link
+              to={getDocsHomepageUrl(suiteId, currentVersion)}
+              className="text-xs font-bold uppercase tracking-wider text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] hover:opacity-80 transition-opacity"
+            >
+              {suite.title}
+            </Link>
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose className="size-3.5" />
+            </button>
+          </div>
 
-        <ul className="space-y-0.5">
-          {visibleNodes.map((node) => (
-            <SidebarItem
-              key={node.slug}
-              node={node}
-              currentSlug={currentSlug}
-              collapsed={collapsed}
-              onToggle={toggle}
-            />
-          ))}
-        </ul>
-      </nav>
+          <VersionSwitcher suiteId={suiteId} currentVersion={currentVersion} />
+
+          <ul className="space-y-0.5">
+            {visibleNodes.map((node) => (
+              <SidebarItem
+                key={node.slug}
+                node={node}
+                currentSlug={currentSlug}
+                collapsed={collapsed}
+                onToggle={toggle}
+              />
+            ))}
+          </ul>
+        </nav>
+      </div>
     </aside>
   );
 }
@@ -294,36 +409,39 @@ export function MobileDocsSidebar({
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-background border-r border-border/50 shadow-xl overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-border/30">
-              <Link
-                to={getDocsHomepageUrl(suiteId, currentVersion)}
-                className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-              >
-                Documentation
-              </Link>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Close navigation menu"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <div className="p-4">
-              <VersionSwitcher suiteId={suiteId} currentVersion={currentVersion} />
-              <ul className="space-y-0.5">
-                {visibleNodes.map((node) => (
-                  <SidebarItem
-                    key={node.slug}
-                    node={node}
-                    currentSlug={currentSlug}
-                    collapsed={collapsed}
-                    onToggle={toggle}
-                  />
-                ))}
-              </ul>
+          <div className="fixed inset-y-0 left-0 z-50 flex max-w-[85vw] bg-background border-r border-border/50 shadow-xl">
+            <SuiteRail activeSuiteId={suiteId} currentVersion={currentVersion} />
+            <div className="w-60 overflow-y-auto">
+              <div className="flex items-center justify-between p-4 border-b border-border/30">
+                <Link
+                  to={getDocsHomepageUrl(suiteId, currentVersion)}
+                  className="text-xs font-bold uppercase tracking-wider text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                >
+                  {getSuiteById(suiteId).title}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Close navigation menu"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <div className="p-4">
+                <VersionSwitcher suiteId={suiteId} currentVersion={currentVersion} />
+                <ul className="space-y-0.5">
+                  {visibleNodes.map((node) => (
+                    <SidebarItem
+                      key={node.slug}
+                      node={node}
+                      currentSlug={currentSlug}
+                      collapsed={collapsed}
+                      onToggle={toggle}
+                    />
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </>

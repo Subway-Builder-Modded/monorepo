@@ -52,25 +52,31 @@ export function OnThisPage({ headings }: { headings: DocsTocHeading[] }) {
         <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
           On this page
         </h3>
-        <ul className="space-y-1">
-          {headings.map((heading) => (
-            <li key={heading.id}>
-              <button
-                type="button"
-                onClick={() => scrollTo(heading.id)}
-                className={cn(
-                  "block w-full text-left text-[12px] leading-snug py-1 transition-colors",
-                  heading.level === 3 && "pl-3",
-                  heading.level === 4 && "pl-6",
-                  activeId === heading.id
-                    ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] font-medium"
-                    : "text-muted-foreground hover:text-foreground",
+        <ul className="relative border-l border-border/30 space-y-0.5">
+          {headings.map((heading) => {
+            const isActive = activeId === heading.id;
+            return (
+              <li key={heading.id} className="relative">
+                {isActive && (
+                  <span className="absolute left-0 top-1 h-4 w-px -translate-x-px bg-[var(--suite-accent-light)] dark:bg-[var(--suite-accent-dark)] transition-all" />
                 )}
-              >
-                {heading.text}
-              </button>
-            </li>
-          ))}
+                <button
+                  type="button"
+                  onClick={() => scrollTo(heading.id)}
+                  className={cn(
+                    "block w-full text-left text-[12px] leading-snug py-1 pl-3 transition-colors",
+                    heading.level === 3 && "pl-6",
+                    heading.level === 4 && "pl-9",
+                    isActive
+                      ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] font-medium"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {heading.text}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </aside>

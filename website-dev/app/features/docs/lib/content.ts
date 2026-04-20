@@ -1,6 +1,6 @@
 import type { DocsFrontmatter, DocsTreeNode, DocsTree } from "./types";
-import type { DocsSidebarOrderItem, DocsSuiteId } from "@/app/features/docs/config";
-import { getDocsSuiteConfig, getSidebarOrder, DOCS_CONTENT_ROOT } from "@/app/features/docs/config";
+import type { DocsSidebarOrderItem, DocsSuiteId } from "@/app/config/docs";
+import { getDocsSuiteConfig, getSidebarOrder, DOCS_CONTENT_ROOT } from "@/app/config/docs";
 // @ts-expect-error -- virtual module provided by mdxRawContentPlugin in vite.config
 import rawContentMap from "virtual:mdx-raw-content";
 

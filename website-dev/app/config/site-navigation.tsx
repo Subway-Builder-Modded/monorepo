@@ -291,6 +291,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "exact", path: "/railyard/analytics" }],
   },
   {
+    id: "registry-docs",
+    suiteId: "registry",
+    title: "Docs",
+    description: "View the official documentation for the Railyard Registry.",
+    href: "/registry/docs",
+    icon: BookText,
+    activeMatchRules: [{ kind: "prefix", path: "/registry/docs" }],
+  },
+  {
     id: "registry-analytics",
     suiteId: "registry",
     title: "Analytics",

@@ -7,8 +7,8 @@ import {
 } from "@/app/config/site-navigation";
 import { matchDocsRoute } from "@/app/features/docs/lib/routing";
 import { getDocsTree, findTreeNode } from "@/app/features/docs/lib/content";
-import { getDocsSuiteConfig } from "@/app/features/docs/config";
-import type { DocsSuiteId } from "@/app/features/docs/config";
+import { getDocsSuiteConfig } from "@/app/config/docs";
+import type { DocsSuiteId } from "@/app/config/docs";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";

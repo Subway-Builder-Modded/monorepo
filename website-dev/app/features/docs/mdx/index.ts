@@ -5,3 +5,4 @@ export { CodeBlock } from "./code-block";
 export { Directory } from "./directory";
 export { RailyardTaggingRegions } from "./railyard-tagging-regions";
 export { remarkAdmonitionDirectives } from "./remark-admonitions";
+export { remarkHeadingIds } from "./remark-heading-ids";

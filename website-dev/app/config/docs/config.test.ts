@@ -6,11 +6,12 @@ import {
   getVisibleVersions,
   getSidebarOrder,
   isDocsSuiteId,
-} from "@/app/features/docs/config";
+} from "@/app/config/docs";
 
 describe("isDocsSuiteId", () => {
   it("returns true for valid suite ids", () => {
     expect(isDocsSuiteId("railyard")).toBe(true);
+    expect(isDocsSuiteId("registry")).toBe(true);
     expect(isDocsSuiteId("template-mod")).toBe(true);
   });
 
@@ -28,6 +29,13 @@ describe("getDocsSuiteConfig", () => {
     expect(config!.suiteId).toBe("railyard");
     expect(config!.enabled).toBe(true);
     expect(config!.latestVersion).toBe("v0.2");
+  });
+
+  it("returns config for registry", () => {
+    const config = getDocsSuiteConfig("registry");
+    expect(config).not.toBeNull();
+    expect(config!.suiteId).toBe("registry");
+    expect(config!.latestVersion).toBe("v1.0");
   });
 
   it("returns config for template-mod", () => {
@@ -86,7 +94,7 @@ describe("getSidebarOrder", () => {
   it("returns sidebar order for railyard v0.2", () => {
     const order = getSidebarOrder("railyard", "v0.2");
     expect(order).toBeDefined();
-    expect(order.length).toBe(2);
+    expect(order.length).toBe(1);
     // First item should be players section
     expect(typeof order[0]).toBe("object");
     if (typeof order[0] === "object") {
@@ -98,6 +106,12 @@ describe("getSidebarOrder", () => {
     const order = getSidebarOrder("template-mod", "v1.0");
     expect(order.length).toBe(6);
     expect(order[0]).toBe("getting-started");
+  });
+
+  it("returns sidebar order for registry v1.0", () => {
+    const order = getSidebarOrder("registry", "v1.0");
+    expect(order.length).toBe(5);
+    expect(order[0]).toBe("publishing-projects");
   });
 
   it("returns empty array for unknown version", () => {

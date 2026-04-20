@@ -4,7 +4,9 @@ import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import remarkGfm from "remark-gfm";
+import remarkFrontmatter from "remark-frontmatter";
 import remarkDirective from "remark-directive";
+import { remarkHeadingIds } from "./app/features/docs/mdx/remark-heading-ids";
 import { remarkAdmonitionDirectives } from "./app/features/docs/mdx/remark-admonitions";
 import { defineConfig } from "vite-plus";
 import type { Plugin } from "vite-plus";
@@ -54,6 +56,40 @@ function mdxRawContentPlugin(): Plugin {
   };
 }
 
+/**
+ * Strips static heading ID syntax `{#some-id}` from MDX content before compilation.
+ * MDX interprets `{...}` as JSX expressions, causing parse errors.
+ * The IDs are preserved in raw content (via mdxRawContentPlugin) for extractHeadings(),
+ * and slugify() in the heading component produces matching IDs.
+ */
+const HEADING_ID_RE = /^(#{2,4}\s+.+?)\s+\{#[a-z0-9][a-z0-9-]*\}\s*$/gm;
+
+function stripHeadingIds(code: string): string {
+  if (!code.includes("{#")) return code;
+  return code.replace(HEADING_ID_RE, "$1");
+}
+
+/**
+ * Wraps the @mdx-js/rollup plugin to strip {#id} from headings before MDX parsing.
+ * Uses a load hook to intercept MDX file content before @mdx-js/rollup's transform.
+ * This works because Rollup's load hook provides the source code that transform receives.
+ */
+function mdxHeadingIdStripPlugin(): Plugin {
+  return {
+    name: "mdx-heading-id-strip",
+    load(id) {
+      if (typeof id !== "string" || !id.endsWith(".mdx")) return;
+      if (id.startsWith("\0")) return;
+      try {
+        const content = fs.readFileSync(id, "utf-8");
+        return stripHeadingIds(content);
+      } catch {
+        return;
+      }
+    },
+  };
+}
+
 export default defineConfig({
   build: {
     outDir: "build/client",
@@ -72,9 +108,16 @@ export default defineConfig({
   },
   plugins: [
     mdxRawContentPlugin(),
+    mdxHeadingIdStripPlugin(),
     tailwindcss(),
     mdx({
-      remarkPlugins: [remarkGfm, remarkDirective, remarkAdmonitionDirectives],
+      remarkPlugins: [
+        remarkFrontmatter,
+        remarkHeadingIds,
+        remarkGfm,
+        remarkDirective,
+        remarkAdmonitionDirectives,
+      ],
     }),
   ],
   resolve: {

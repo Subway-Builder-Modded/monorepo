@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import { Link } from "@/app/lib/router";
-import { cn } from "@/app/lib/utils";
 import { getSuiteById } from "@/app/config/site-navigation";
-import { getDocsVersion } from "@/app/features/docs/config";
-import type { DocsSuiteId } from "@/app/features/docs/config";
+import { getDocsVersion } from "@/app/config/docs";
+import type { DocsSuiteId } from "@/app/config/docs";
 import {
   getDocsTree,
   findTreeNode,
@@ -14,7 +13,7 @@ import {
 } from "@/app/features/docs/lib/content";
 import { extractHeadings } from "@/app/features/docs/lib/headings";
 import { mdxToMarkdown } from "@/app/features/docs/lib/markdown-copy";
-import { getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
+import { getDocsHomepageUrl, getDocPageUrl } from "@/app/features/docs/lib/routing";
 import { mdxComponents } from "@/app/features/docs/mdx/components";
 import { DocsSidebar, MobileDocsSidebar } from "./sidebar";
 import { OnThisPage } from "./on-this-page";
@@ -59,7 +58,7 @@ function Breadcrumbs({
       <ol className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
         <li>
           <Link
-            to={`/${suiteId}`}
+            to={getDocsHomepageUrl(suiteId, version)}
             className="hover:text-foreground transition-colors"
           >
             {suite.title}
@@ -69,20 +68,23 @@ function Breadcrumbs({
           <ChevronRight className="size-3" />
         </li>
         <li>
-          <Link
-            to={getDocsHomepageUrl(suiteId, version)}
-            className="hover:text-foreground transition-colors"
-          >
-            Docs
-          </Link>
+          <span className="text-muted-foreground/70">{version}</span>
         </li>
         {parts.length > 1 &&
-          parts.slice(0, -1).map((part, i) => (
-            <li key={i} className="flex items-center gap-1">
-              <ChevronRight className="size-3" aria-hidden="true" />
-              <span className="capitalize">{part.replace(/-/g, " ")}</span>
-            </li>
-          ))}
+          parts.slice(0, -1).map((part, i) => {
+            const parentSlug = parts.slice(0, i + 1).join("/");
+            return (
+              <li key={i} className="flex items-center gap-1">
+                <ChevronRight className="size-3" aria-hidden="true" />
+                <Link
+                  to={getDocPageUrl(suiteId, version, parentSlug)}
+                  className="capitalize hover:text-foreground transition-colors"
+                >
+                  {part.replace(/-/g, " ")}
+                </Link>
+              </li>
+            );
+          })}
         <li className="flex items-center gap-1">
           <ChevronRight className="size-3" aria-hidden="true" />
           <span className="text-foreground font-medium truncate max-w-[200px]">

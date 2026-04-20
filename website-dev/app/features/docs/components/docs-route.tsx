@@ -1,20 +1,23 @@
-import { useLocation, navigate } from "@/app/lib/router";
+import { useLocation } from "@/app/lib/router";
 import { matchDocsRoute } from "@/app/features/docs/lib/routing";
-import type { DocsSuiteId } from "@/app/features/docs/config";
 import { DocsHomepage } from "./docs-homepage";
 import { DocPageLayout } from "./doc-page-layout";
-import { FileQuestion } from "lucide-react";
+import { FileQuestion, AlertCircle } from "lucide-react";
 import { useEffect, Component, type ReactNode } from "react";
 
-class DebugErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+class DocsErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   state: { error: Error | null } = { error: null };
   static getDerivedStateFromError(error: Error) { return { error }; }
   render() {
     if (this.state.error) {
       return (
-        <pre style={{ whiteSpace: "pre-wrap", padding: 20, color: "red", fontSize: 12 }}>
-          {this.state.error.message}{"\n\n"}{this.state.error.stack}
-        </pre>
+        <div className="flex flex-col items-center gap-4 py-20 text-center">
+          <AlertCircle className="size-12 text-destructive/60" aria-hidden="true" />
+          <h1 className="text-lg font-bold text-foreground">Something went wrong</h1>
+          <p className="text-sm text-muted-foreground max-w-md">
+            {this.state.error.message}
+          </p>
+        </div>
       );
     }
     return this.props.children;
@@ -68,5 +71,5 @@ export function DocsRoute() {
     }
   })();
 
-  return <DebugErrorBoundary>{inner}</DebugErrorBoundary>;
+  return <DocsErrorBoundary>{inner}</DocsErrorBoundary>;
 }

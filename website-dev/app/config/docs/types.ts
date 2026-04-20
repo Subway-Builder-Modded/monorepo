@@ -1,6 +1,6 @@
 import type { SiteSuiteId } from "@/app/config/site-navigation";
 
-export type DocsSuiteId = Extract<SiteSuiteId, "railyard" | "template-mod">;
+export type DocsSuiteId = Extract<SiteSuiteId, "railyard" | "registry" | "template-mod">;
 
 export type DocsVersionStatus = "latest" | "supported" | "deprecated";
 
