@@ -72,6 +72,8 @@ func SharedAssetPayloadDir(assetType types.AssetType) string {
 // SharedAssetPayloadRelativePath validates a shared helper-folder entry and returns its relative path.
 func SharedAssetPayloadRelativePath(assetType types.AssetType, entryName string) (string, bool, error) {
 	payloadDir := SharedAssetPayloadDir(assetType)
+	// ZIP paths are slash-separated by convention, but some Windows tools emit
+	// backslashes; normalize before applying archive-path policy.
 	normalized, parts, ok := ArchiveEntryParts(entryName)
 	if !ok {
 		return "", false, nil
@@ -79,6 +81,8 @@ func SharedAssetPayloadRelativePath(assetType types.AssetType, entryName string)
 
 	payloadIndex := pathSegmentIndex(parts, payloadDir)
 	if hasArchivePathPrefix(normalized) {
+		// Absolute archive paths are not valid shared payload entries. If the
+		// payload folder appears there, fail the archive instead of ignoring it.
 		if payloadIndex >= 0 {
 			return "", true, fmt.Errorf("shared payload entry %q must not be absolute", entryName)
 		}
@@ -86,6 +90,8 @@ func SharedAssetPayloadRelativePath(assetType types.AssetType, entryName string)
 	}
 
 	if HasInvalidArchivePathSegments(parts) {
+		// Traversal-like entries are only this helper's concern when they target
+		// the shared payload folder; other archive validation remains separate.
 		if payloadIndex >= 0 {
 			return "", true, fmt.Errorf("shared payload entry %q contains an invalid path segment", entryName)
 		}
@@ -96,6 +102,8 @@ func SharedAssetPayloadRelativePath(assetType types.AssetType, entryName string)
 		return "", false, nil
 	}
 	if payloadIndex != 0 {
+		// v1 intentionally supports only a root-level .railyard_<asset> folder so
+		// consumers have one stable, discoverable path to probe.
 		return "", true, fmt.Errorf("shared payload directory %q must be at archive root", payloadDir)
 	}
 

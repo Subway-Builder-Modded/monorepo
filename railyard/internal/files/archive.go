@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"railyard/internal/logger"
 	"railyard/internal/types"
-	"strings"
 )
 
 // WriteArchiveStream writes an archive entry stream to a destination path, conditionally using gzip compression based on the useGzip flag.
@@ -204,8 +203,8 @@ func ReadJSONFromTarArchive[T any](archivePath string, targetFileName string) (T
 			continue
 		}
 
-		normalizedName := strings.ReplaceAll(header.Name, "\\", "/")
-		if path.Base(normalizedName) != targetFileName {
+		normalizedName, ok := NormalizeArchiveEntryPath(header.Name)
+		if !ok || path.Base(normalizedName) != targetFileName {
 			continue
 		}
 

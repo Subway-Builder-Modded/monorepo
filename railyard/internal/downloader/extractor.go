@@ -43,14 +43,18 @@ func reportExtractProgress(fn ExtractProgressFunc, itemID string, extracted int6
 	fn(itemID, extracted, total)
 }
 
-// countSharedMapPayloadFiles counts optional shared payload files that are copied into the map data directory.
-func countSharedMapPayloadFiles(zipFiles []*zip.File) (int, error) {
+// countSharedAssetPayloadFiles counts optional shared payload files that are copied into an asset directory.
+func countSharedAssetPayloadFiles(assetType types.AssetType, zipFiles []*zip.File) (int, error) {
 	count := 0
 	for _, file := range zipFiles {
-		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		// Reuse the shared payload parser here so progress accounting follows
+		// the same acceptance rules as validation and extraction.
+		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(assetType, file.Name)
 		if err != nil {
 			return 0, err
 		}
+		// isHelperEntry means this archive entry targets .railyard_<asset>;
+		// non-helper entries are counted by their normal extraction paths.
 		if !isHelperEntry || relPath == "" || file.FileInfo().IsDir() {
 			continue
 		}
@@ -60,22 +64,28 @@ func countSharedMapPayloadFiles(zipFiles []*zip.File) (int, error) {
 	return count, nil
 }
 
-// copySharedMapPayload copies optional .railyard_map entries into the staged map directory.
-func copySharedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode string, progress *atomic.Int64, total int64, onProgress ExtractProgressFunc) error {
-	helperRoot := paths.JoinLocalPath(stagingFolder, files.SharedAssetPayloadDir(types.AssetTypeMap))
+// copySharedAssetPayload copies optional .railyard_<asset> entries into the staged asset directory.
+func copySharedAssetPayload(assetType types.AssetType, stagingFolder string, zipFiles []*zip.File, itemID string, progress *atomic.Int64, total int64, onProgress ExtractProgressFunc) error {
+	helperRoot := paths.JoinLocalPath(stagingFolder, files.SharedAssetPayloadDir(assetType))
 
 	for _, file := range zipFiles {
-		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(types.AssetTypeMap, file.Name)
+		// Parser identifies .railyard_<asset> entries and strips the helper
+		// root so the remaining path can be copied under the staged asset folder.
+		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(assetType, file.Name)
 		if err != nil {
 			return err
 		}
+		// isHelperEntry distinguishes shared payload files from normal asset
+		// archive contents, which continue through the existing extractors.
 		if !isHelperEntry {
 			continue
 		}
 
+		// relPath == "" identifies the .railyard_<asset> root entry itself;
+		// only directories are valid there because files need a path below it.
 		if relPath == "" {
 			if !file.FileInfo().IsDir() {
-				return fmt.Errorf("shared payload root %q must be a directory", files.SharedAssetPayloadDir(types.AssetTypeMap))
+				return fmt.Errorf("shared payload root %q must be a directory", files.SharedAssetPayloadDir(assetType))
 			}
 			if err := os.MkdirAll(helperRoot, os.ModePerm); err != nil {
 				return err
@@ -85,6 +95,8 @@ func copySharedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode s
 
 		destinationPath := paths.JoinLocalPath(helperRoot, relPath)
 		if file.FileInfo().IsDir() {
+			// Preserve explicit directories from the archive so nested payload
+			// layouts remain byte-for-byte discoverable by mods at runtime.
 			if err := os.MkdirAll(destinationPath, os.ModePerm); err != nil {
 				return err
 			}
@@ -100,6 +112,8 @@ func copySharedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode s
 			return err
 		}
 
+		// Shared payload files are data for other assets to read, so copy them
+		// uncompressed instead of using the game's gzipped city-data convention.
 		writeErr := files.WriteArchiveStream(destinationPath, srcFile, false)
 		closeErr := srcFile.Close()
 		if writeErr != nil {
@@ -109,7 +123,7 @@ func copySharedMapPayload(stagingFolder string, zipFiles []*zip.File, cityCode s
 			return closeErr
 		}
 
-		reportExtractProgress(onProgress, cityCode, progress.Add(1), total)
+		reportExtractProgress(onProgress, itemID, progress.Add(1), total)
 	}
 
 	return nil
@@ -265,7 +279,7 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 			filesCount++
 		}
 	}
-	sharedPayloadFileCount, err := countSharedMapPayloadFiles(reader.File)
+	sharedPayloadFileCount, err := countSharedAssetPayloadFiles(types.AssetTypeMap, reader.File)
 	if err != nil {
 		return d.installError(types.AssetTypeMap, mapId, version, configData, types.InstallErrorInvalidArchive, "Failed map archive inspection", err, "file_path", filePath)
 	}
@@ -356,7 +370,7 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 					return <-errChan
 				}
 
-				if err := copySharedMapPayload(stagingFolder, reader.File, configData.Code, &extractCount, int64(filesCount), d.OnExtractProgress); err != nil {
+				if err := copySharedAssetPayload(types.AssetTypeMap, stagingFolder, reader.File, configData.Code, &extractCount, int64(filesCount), d.OnExtractProgress); err != nil {
 					return err
 				}
 
