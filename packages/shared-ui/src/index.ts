@@ -1,12 +1,14 @@
-// Utilities
 export { cn, type ClassValue } from './lib/cn';
 export {
+  SITE_CONTENT_WIDTH_CLASS,
+  SITE_GUTTER_X_CLASS,
+  SITE_MAIN_SPACING_CLASS,
+  SITE_SECTION_SPACING_CLASS,
+  SITE_SHELL_CLASS,
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_OUTER_CONTAINER_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from './lib/layout-tokens';
-
-// Components
 export { Badge } from './components/badge';
 export { Checkbox } from './components/checkbox';
 export {
@@ -165,11 +167,43 @@ export {
   AppFooter,
 } from './components/app-footer';
 export {
+  SectionHeader,
+  type SectionHeaderProps,
+} from './components/section-header';
+export {
+  SectionShell,
+  type SectionShellProps,
+} from './components/section-shell';
+export {
+  SuiteButton,
+  type SuiteAccent,
+  type SuiteButtonVariant,
+  type SuiteButtonProps,
+} from './components/suite-button';
+export {
   FooterColumns,
   type FooterColumn,
   type FooterLink,
 } from './components/footer-columns';
 export { FooterBrandBlock } from './components/footer-brand-block';
+export {
+  TwoColumnSection,
+  type TwoColumnSectionProps,
+} from './components/two-column-section';
+export {
+  TerminalFrame,
+  type TerminalFrameProps,
+} from './components/terminal-frame';
+export {
+  CodeDisplay,
+  type CodeDisplayProps,
+} from './components/code-display';
+export {
+  AnalyticsPreview,
+  type AnalyticsPreviewProps,
+  type AnalyticsPreviewSeries,
+} from './components/analytics-preview';
+export { GithubIcon } from './components/github-icon';
 export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,

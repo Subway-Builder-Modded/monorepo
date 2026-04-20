@@ -21,6 +21,7 @@ export function SuiteRail({ items, selectedId, onSelect }: SuiteRailProps) {
             type="button"
             aria-current={isSelected ? "true" : undefined}
             onClick={() => onSelect(item.id)}
+            onMouseEnter={() => onSelect(item.id)}
             className={cn(
               "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               "outline-none focus-visible:ring-2 focus-visible:ring-ring",

@@ -94,7 +94,6 @@ export const DesktopNavbarPanel = memo(function DesktopNavbarPanel({
   );
 });
 
-/** Static version for ghost measurement (no row motion). */
 export const DesktopNavbarPanelStatic = memo(function DesktopNavbarPanelStatic({
   suiteRailItems,
   selectedSuiteId,

@@ -2,9 +2,8 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { cn } from '../lib/cn';
 import {
-  APP_CONTENT_SPACING_CLASS,
-  APP_SHELL_PADDING_CLASS,
-  APP_SHELL_WIDTH_CLASS,
+  SITE_MAIN_SPACING_CLASS,
+  SITE_SHELL_CLASS,
 } from '../lib/layout-tokens';
 
 interface AppFrameProps {
@@ -31,9 +30,8 @@ export function AppFrame({
         style={{ paddingTop: topOffset } as CSSProperties}
         className={cn(
           'flex-1',
-          APP_SHELL_WIDTH_CLASS,
-          APP_SHELL_PADDING_CLASS,
-          APP_CONTENT_SPACING_CLASS,
+          SITE_SHELL_CLASS,
+          SITE_MAIN_SPACING_CLASS,
           mainClassName,
         )}
       >

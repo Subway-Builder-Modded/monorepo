@@ -6,7 +6,6 @@ import { Link } from "@/app/lib/router";
 import { NavbarActions } from "./navbar-actions";
 
 type NavbarTopbarProps = {
-  breadcrumb: string;
   discordLink?: SiteCommunityLink;
   githubLink?: SiteCommunityLink;
   isExpanded: boolean;
@@ -21,50 +20,39 @@ type NavbarTopbarProps = {
 type SharedTopbarLayoutProps = {
   actionsNode: ReactNode;
   brandNode: ReactNode;
-  breadcrumbNode: ReactNode;
+  suiteIndicator: ReactNode;
 };
 
-const LEFT_ZONE_WIDTH = 240;
-const RIGHT_ZONE_WIDTH = 200;
-const CENTER_SAFE_GAP = 24;
-const CENTER_MAX_WIDTH = `calc(100% - ${LEFT_ZONE_WIDTH + RIGHT_ZONE_WIDTH + CENTER_SAFE_GAP}px)`;
-
-function DesktopNavbarTopbar({ actionsNode, brandNode, breadcrumbNode }: SharedTopbarLayoutProps) {
+function DesktopNavbarTopbar({ actionsNode, brandNode, suiteIndicator }: SharedTopbarLayoutProps) {
   return (
     <NavbarTopBar
-      overlayCenter
       className="h-full"
       leftClassName="min-w-0 pr-2"
-      centerClassName="w-full px-2"
       rightClassName="min-w-0 pl-2"
-      centerStyle={{ maxWidth: CENTER_MAX_WIDTH }}
       left={
-        <div className="min-w-0" style={{ width: LEFT_ZONE_WIDTH }}>
+        <div className="flex min-w-0 items-center gap-2.5">
           {brandNode}
+          {suiteIndicator}
         </div>
       }
-      center={breadcrumbNode}
-      right={
-        <div className="min-w-0" style={{ width: RIGHT_ZONE_WIDTH }}>
-          {actionsNode}
-        </div>
-      }
+      right={actionsNode}
     />
   );
 }
 
-function MobileNavbarTopbar({ actionsNode, brandNode, breadcrumbNode }: SharedTopbarLayoutProps) {
+function MobileNavbarTopbar({ actionsNode, brandNode, suiteIndicator }: SharedTopbarLayoutProps) {
   return (
-    <div className="grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1">
-      <div className="min-w-0 pr-1">{brandNode}</div>
-      <div className="min-w-0 px-1">{breadcrumbNode}</div>
-      <div className="shrink-0 pl-1">{actionsNode}</div>
+    <div className="flex h-full items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {brandNode}
+        {suiteIndicator}
+      </div>
+      <div className="shrink-0">{actionsNode}</div>
     </div>
   );
 }
 
 export function NavbarTopbar({
-  breadcrumb,
   discordLink,
   githubLink,
   isExpanded,
@@ -81,33 +69,32 @@ export function NavbarTopbar({
     <Link
       to="/"
       aria-label="Go to home"
-      className="inline-flex h-full min-w-0 items-center gap-2 rounded-lg text-sm font-semibold leading-tight text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring dark:text-muted-foreground dark:hover:text-foreground"
+      className="inline-flex h-full min-w-0 items-center gap-2.5 rounded-lg py-1 text-sm font-semibold text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:gap-3"
     >
-      <img src="/logo.svg" alt="" aria-hidden="true" className="size-4 shrink-0 object-contain" />
+      <img
+        src="/logo.svg"
+        alt=""
+        aria-hidden="true"
+        className="size-4.5 shrink-0 object-contain lg:size-5"
+      />
       {!isMobile ? (
-        <span className="inline-block max-w-full pb-[2px] text-ellipsis whitespace-nowrap leading-tight [overflow-x:hidden] [overflow-y:visible]">
-          Subway Builder Modded
+        <span className="min-w-0 overflow-hidden">
+          <span className="block truncate pb-px leading-[1.08] lg:text-[15px]">
+            Subway Builder Modded
+          </span>
         </span>
       ) : null}
     </Link>
   );
 
-  const breadcrumbNode = (
-    <p
-      className="flex items-center justify-center gap-1.5 pb-[3px] text-ellipsis whitespace-nowrap text-center text-sm font-medium leading-snug [overflow-x:hidden] [overflow-y:visible] sm:text-base"
-      style={{ color: realAccent, transform: "translateY(-2px)" }}
+  const suiteIndicator = (
+    <span
+      className="inline-flex h-7 shrink-0 -translate-y-px items-center self-center gap-1.5 rounded-md px-2 text-xs font-semibold leading-none"
+      style={{ color: realAccent, backgroundColor: `${realAccent}14` }}
     >
-      <span className="inline-flex shrink-0 items-center [&_svg]:size-3.5" aria-hidden="true">
-        <SuiteIcon className="size-3.5" aria-hidden={true} />
-      </span>
-      <span className="max-w-[10.5rem] truncate font-semibold">{realSuite.title}</span>
-      <span className="shrink-0 font-normal opacity-80" aria-hidden="true">
-        &gt;
-      </span>
-      <span className="max-w-[11.5rem] truncate font-normal opacity-90 sm:max-w-[14rem]">
-        {breadcrumb}
-      </span>
-    </p>
+      <SuiteIcon className="size-3.5" aria-hidden={true} />
+      <span className="max-w-[8rem] truncate">{realSuite.title}</span>
+    </span>
   );
 
   const actionsNode = (
@@ -126,7 +113,7 @@ export function NavbarTopbar({
       <MobileNavbarTopbar
         actionsNode={actionsNode}
         brandNode={brandNode}
-        breadcrumbNode={breadcrumbNode}
+        suiteIndicator={suiteIndicator}
       />
     );
   }
@@ -135,7 +122,7 @@ export function NavbarTopbar({
     <DesktopNavbarTopbar
       actionsNode={actionsNode}
       brandNode={brandNode}
-      breadcrumbNode={breadcrumbNode}
+      suiteIndicator={suiteIndicator}
     />
   );
 }

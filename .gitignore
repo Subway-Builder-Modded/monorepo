@@ -8,5 +8,6 @@
 tmp/
 foundry/schemas/dist/
 foundry/schemas/.npm-cache/
+.idea/
 
 node_modules/

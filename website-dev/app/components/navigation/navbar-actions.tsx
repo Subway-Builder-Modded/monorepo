@@ -16,8 +16,6 @@ type NavbarActionsProps = {
   onMenuClick: () => void;
 };
 
-const collapsedActionOffset = { transform: "translateY(-0.5px)" };
-
 export function NavbarActions({
   discordLink,
   githubLink,
@@ -27,7 +25,7 @@ export function NavbarActions({
   onMenuClick,
 }: NavbarActionsProps) {
   return (
-    <NavbarActionGroup style={isExpanded ? undefined : collapsedActionOffset}>
+    <NavbarActionGroup>
       <NavbarActionLink
         href={discordLink?.href ?? "#"}
         target="_blank"

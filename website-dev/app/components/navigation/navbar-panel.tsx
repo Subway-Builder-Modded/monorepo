@@ -1,8 +1,8 @@
 import { memo, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { Link } from "@/app/lib/router";
-import { NavbarPanelGrid, NavbarPanelSurface, NavRow } from "@subway-builder-modded/shared-ui";
+import { NavbarPanelGrid, NavbarPanelSurface } from "@subway-builder-modded/shared-ui";
 import type { SiteNavItem } from "@/app/config/site-navigation";
+import { NavbarLinkRow } from "./navbar-link-row";
 
 type NavbarPanelProps = {
   activeItem: SiteNavItem | null;
@@ -11,7 +11,6 @@ type NavbarPanelProps = {
   mutedColor: string;
   onRowClick: () => void;
   prefersReducedMotion: boolean;
-  /** When true rows animate to visible; when false rows animate out. */
   rowsVisible: boolean;
 };
 
@@ -41,22 +40,13 @@ export const NavbarPanelContent = memo(function NavbarPanelContent({
         const isActive = activeItem !== null && activeItem.id === item.id;
         const delay = rowsVisible && !prefersReducedMotion ? index * ROW_STAGGER : 0;
         const duration = prefersReducedMotion ? 0 : ROW_DURATION;
-        const ItemIcon = item.icon;
         const rowContent = (
-          <Link
-            to={item.href}
+          <NavbarLinkRow
+            active={isActive}
+            item={item}
             onClick={onRowClick}
-            aria-current={isActive ? "page" : undefined}
-            className="flex h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <NavRow
-              title={item.title}
-              description={item.description}
-              icon={<ItemIcon className="size-5" aria-hidden={true} />}
-              active={isActive}
-              className="h-full w-full"
-            />
-          </Link>
+            className="h-full w-full"
+          />
         );
 
         return (

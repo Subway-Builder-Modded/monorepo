@@ -1,19 +1,33 @@
 name: Website CI
 
 on:
+  push:
+    branches:
+      - main
+      - website-dev
+    paths:
+      - "website-dev/**"
+      - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/website-ci.yml"
   pull_request:
     branches:
       - main
       - website-dev
     paths:
-      - "website/**"
+      - "website-dev/**"
       - "packages/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
       - ".github/workflows/website-ci.yml"
   workflow_dispatch:
 
 concurrency:
-  group: website-build-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: website-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   check:
@@ -21,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: website
+        working-directory: website-dev
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,45 +56,3 @@ jobs:
 
       - name: Run quality control checks
         run: pnpm run check
-
-  build:
-    name: Build Site
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: website
-    env:
-      CLOUDFLARE_ZONE_TAG: ${{ secrets.CLOUDFLARE_ZONE_TAG }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Restore Next.js build cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ${{ github.workspace }}/website/.next/cache
-          key: ${{ runner.os }}-website-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('website/**/*.js', 'website/**/*.jsx', 'website/**/*.ts', 'website/**/*.tsx') }}
-          restore-keys: |
-            ${{ runner.os }}-website-nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
-
-      - name: Install dependencies
-        working-directory: .
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        env:
-          RAILYARD_GITHUB_TOKEN: ${{ secrets.RAILYARD_GITHUB_TOKEN }}
-        run: pnpm run build

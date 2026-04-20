@@ -1,9 +1,8 @@
 import { type CSSProperties, memo } from "react";
 import { motion } from "motion/react";
-import { NavRow } from "@subway-builder-modded/shared-ui";
 import type { NavbarMobileSuiteGroup } from "@/app/components/navigation/navbar-model";
 import type { SiteNavItem } from "@/app/config/site-navigation";
-import { Link } from "@/app/lib/router";
+import { NavbarLinkRow } from "./navbar-link-row";
 
 type MobileNavbarPanelProps = {
   groups: NavbarMobileSuiteGroup[];
@@ -67,22 +66,13 @@ const MobileNavbarPanelBase = memo(function MobileNavbarPanelBase({
                   const delay =
                     rowsVisible && !prefersReducedMotion ? currentIndex * ROW_STAGGER : 0;
                   const duration = prefersReducedMotion ? 0 : ROW_DURATION;
-                  const ItemIcon = item.icon;
                   const rowContent = (
-                    <Link
-                      to={item.href}
+                    <NavbarLinkRow
+                      active={isActive}
+                      item={item}
                       onClick={onRowClick}
-                      aria-current={isActive ? "page" : undefined}
-                      className="flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <NavRow
-                        title={item.title}
-                        description={item.description}
-                        icon={<ItemIcon className="size-5" aria-hidden={true} />}
-                        active={isActive}
-                        className="w-full"
-                      />
-                    </Link>
+                      className="w-full"
+                    />
                   );
 
                   return (
@@ -128,7 +118,6 @@ export const MobileNavbarPanel = memo(function MobileNavbarPanel({
   );
 });
 
-/** Static version for ghost measurement (no row motion). */
 export const MobileNavbarPanelStatic = memo(function MobileNavbarPanelStatic({
   groups,
   activeItem,

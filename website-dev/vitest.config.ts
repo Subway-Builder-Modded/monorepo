@@ -14,6 +14,7 @@ export default defineConfig({
         "config/**/*.ts",
         "components/**/*.ts",
         "components/**/*.tsx",
+        "app/**/*.ts",
         "app/**/*.tsx",
       ],
       exclude: [
