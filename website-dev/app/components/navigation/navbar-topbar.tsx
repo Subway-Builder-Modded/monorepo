@@ -89,7 +89,7 @@ export function NavbarTopbar({
 
   const suiteIndicator = (
     <span
-      className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2 text-xs font-semibold leading-none"
+      className="inline-flex h-7 shrink-0 -translate-y-px items-center self-center gap-1.5 rounded-md px-2 text-xs font-semibold leading-none"
       style={{ color: realAccent, backgroundColor: `${realAccent}14` }}
     >
       <SuiteIcon className="size-3.5" aria-hidden={true} />
