@@ -7,7 +7,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { SuiteStatusChip } from "@subway-builder-modded/shared-ui";
+import { SuiteBadge, SuiteStatusChip } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
@@ -15,8 +15,6 @@ import { getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
 import {
   getVisibleVersions,
-  getDocsVersion,
-  getEnabledDocsSuiteIds,
   isVersionedDocsSuite,
   type DocsRouteVersion,
 } from "@/app/config/docs";
@@ -25,44 +23,6 @@ import type { DocsTreeNode, DocsTree } from "@/app/features/docs/lib/types";
 import type { DocsSuiteId } from "@/app/config/docs";
 
 const SIDEBAR_COLLAPSED_KEY = "sbm:docs-sidebar-collapsed";
-
-function SuiteRail({
-  activeSuiteId,
-  currentVersion,
-}: {
-  activeSuiteId: DocsSuiteId;
-  currentVersion: DocsRouteVersion;
-}) {
-  const suiteIds = getEnabledDocsSuiteIds();
-
-  return (
-    <div className="flex flex-col items-center gap-1 border-r border-border/30 px-1.5 py-3">
-      {suiteIds.map((id) => {
-        const suite = getSuiteById(id);
-        const isActive = id === activeSuiteId;
-        const SuiteIcon = suite.icon;
-
-        return (
-          <Link
-            key={id}
-            to={getDocsHomepageUrl(id, id === activeSuiteId ? currentVersion : null)}
-            className={cn(
-              "flex size-9 items-center justify-center rounded-lg transition-colors",
-              isActive
-                ? "bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
-                : "text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/40",
-            )}
-            aria-label={`${suite.title} docs`}
-            aria-current={isActive ? "true" : undefined}
-            data-color-scheme={id}
-          >
-            <SuiteIcon className="size-4" aria-hidden={true} />
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
 
 function useCollapsedSections(treeKey: string) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => {
@@ -101,26 +61,51 @@ function useCollapsedSections(treeKey: string) {
   return { collapsed, toggle };
 }
 
-function VersionSwitcher({
+function nodeHasActiveDescendant(node: DocsTreeNode, currentSlug: string | null): boolean {
+  for (const child of getVisibleNodes(node.children)) {
+    if (child.slug === currentSlug) {
+      return true;
+    }
+    if (nodeHasActiveDescendant(child, currentSlug)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function nodeIsActiveInMiniRail(node: DocsTreeNode, currentSlug: string | null): boolean {
+  if (node.slug === currentSlug) {
+    return true;
+  }
+  return nodeHasActiveDescendant(node, currentSlug);
+}
+
+function VersionDropdown({
   suiteId,
   currentVersion,
 }: {
   suiteId: DocsSuiteId;
-  currentVersion: DocsRouteVersion;
+  currentVersion: string;
 }) {
-  const isVersioned = isVersionedDocsSuite(suiteId);
   const versions = getVisibleVersions(suiteId);
   const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
     };
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
     };
+
     window.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("keydown", onKeyDown);
     return () => {
@@ -129,77 +114,81 @@ function VersionSwitcher({
     };
   }, [open]);
 
-  if (!isVersioned || !currentVersion || versions.length <= 1) return null;
+  if (versions.length <= 1) {
+    return null;
+  }
 
-  const currentConfig = getDocsVersion(suiteId, currentVersion);
-  const statusLabel = currentConfig?.status === "latest" ? "latest" : currentConfig?.status;
+  const selected = versions.find((item) => item.value === currentVersion) ?? versions[0];
+  const selectedDeprecated = selected.status === "deprecated";
 
   return (
-    <div ref={containerRef} className="relative mb-4">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((prev) => !prev)}
         className={cn(
-          "flex h-8 w-full items-center justify-between rounded-md border border-border/50 bg-muted/30",
-          "px-2.5 text-xs font-medium text-foreground outline-none transition-colors",
-          "hover:border-border focus-visible:ring-2 focus-visible:ring-ring/60",
+          "flex h-9 w-full items-center justify-between rounded-lg border px-3 text-sm font-semibold transition-colors",
+          "outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          selectedDeprecated
+            ? "border-border/70 bg-muted/35 text-muted-foreground hover:bg-muted/50"
+            : "border-[color-mix(in_srgb,var(--suite-accent-light)_35%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] text-[var(--suite-accent-light)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_16%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:text-[var(--suite-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_20%,transparent)]",
         )}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Select documentation version"
       >
-        <span className="flex items-center gap-2">
-          <span>{currentVersion}</span>
-          {statusLabel && (
-            <SuiteStatusChip
-              status={currentConfig?.status === "latest" ? "latest" : "deprecated"}
-              deprecatedTone="gray"
-              size="sm"
-              label={statusLabel}
-            />
-          )}
+        <span className="inline-flex items-center gap-1.5">
+          <span>{selected.label}</span>
+          {selected.status === "latest" ? <SuiteStatusChip status="latest" size="sm" /> : null}
+          {selected.status === "deprecated" ? (
+            <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
+          ) : null}
         </span>
-        <ChevronDown className={cn("size-3.5 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden="true" />
+        <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} aria-hidden="true" />
       </button>
 
-      {open && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-1 rounded-lg border border-border bg-background p-1 shadow-lg animate-in fade-in-0 zoom-in-95 duration-150">
-          <ul role="listbox" aria-label="Documentation versions">
-            {versions.map((v) => {
-              const isSelected = v.value === currentVersion;
-              return (
-                <li key={v.value}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => {
-                      setOpen(false);
-                      const url = getDocsHomepageUrl(suiteId, v.value);
-                      window.history.pushState({}, "", url);
-                      window.dispatchEvent(new Event("sbm:navigate"));
-                    }}
-                    className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-xs transition-colors",
-                      isSelected
-                        ? "bg-[var(--suite-accent-light)]/10 dark:bg-[var(--suite-accent-dark)]/10 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] font-medium"
-                        : "text-foreground/80 hover:bg-muted/50 hover:text-foreground",
-                    )}
-                  >
-                    <span>{v.label}</span>
-                    {v.status === "deprecated" && (
-                      <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
-                    )}
-                    {v.status === "latest" && (
-                      <SuiteStatusChip status="latest" size="sm" />
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
+      {open ? (
+        <ul
+          role="listbox"
+          aria-label="Documentation versions"
+          className="absolute left-0 right-0 z-30 mt-2 rounded-xl border border-border/70 bg-background p-1 shadow-lg"
+        >
+          {versions.map((item) => {
+            const selectedItem = item.value === currentVersion;
+            const deprecated = item.status === "deprecated";
+            return (
+              <li key={item.value}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={selectedItem}
+                  onClick={() => {
+                    const url = getDocsHomepageUrl(suiteId, item.value);
+                    setOpen(false);
+                    window.history.pushState({}, "", url);
+                    window.dispatchEvent(new Event("sbm:navigate"));
+                  }}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
+                    deprecated
+                      ? "text-muted-foreground hover:bg-muted/50"
+                      : "text-[var(--suite-accent-light)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:text-[var(--suite-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]",
+                    selectedItem &&
+                      (deprecated
+                        ? "bg-muted/45"
+                        : "bg-[color-mix(in_srgb,var(--suite-accent-light)_16%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_20%,transparent)]"),
+                  )}
+                >
+                  <span>{item.label}</span>
+                  {item.status === "latest" ? <SuiteStatusChip status="latest" size="sm" /> : null}
+                  {item.status === "deprecated" ? (
+                    <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 }
@@ -209,65 +198,161 @@ function SidebarItem({
   currentSlug,
   collapsed,
   onToggle,
+  depth = 0,
 }: {
   node: DocsTreeNode;
   currentSlug: string | null;
   collapsed: Set<string>;
   onToggle: (slug: string) => void;
+  depth?: number;
 }) {
-  const isActive = currentSlug === node.slug;
-  const hasChildren = node.children.length > 0;
-  const isCollapsed = collapsed.has(node.slug);
   const visibleChildren = getVisibleNodes(node.children);
-
+  const hasChildren = visibleChildren.length > 0;
+  const isCollapsed = collapsed.has(node.slug);
+  const isSelfActive = currentSlug === node.slug;
+  const hasActiveDescendant = hasChildren && nodeHasActiveDescendant(node, currentSlug);
+  const isRowActive = isSelfActive || (isCollapsed && hasActiveDescendant);
   const Icon = resolveIcon(node.frontmatter.icon);
 
   return (
     <li>
-      <div className="flex items-center">
-        <Link
-          to={node.routePath}
-          className={cn(
-            "flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-[13px] leading-snug transition-colors",
-            isActive
-              ? "bg-[var(--suite-accent-light)]/10 dark:bg-[var(--suite-accent-dark)]/10 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] font-medium"
-              : "text-foreground/70 hover:bg-muted/50 hover:text-foreground",
-          )}
-          aria-current={isActive ? "page" : undefined}
-        >
-          <Icon className="size-3.5 shrink-0 opacity-60" aria-hidden={true} />
-          <span className="truncate">{node.frontmatter.title}</span>
-        </Link>
-        {hasChildren && visibleChildren.length > 0 && (
-          <button
-            type="button"
-            onClick={() => onToggle(node.slug)}
-            className="flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-            aria-label={isCollapsed ? "Expand section" : "Collapse section"}
-            aria-expanded={!isCollapsed}
-          >
-            {isCollapsed ? (
-              <ChevronRight className="size-3.5" />
-            ) : (
-              <ChevronDown className="size-3.5" />
-            )}
-          </button>
+      <div
+        className={cn(
+          "group/row rounded-lg border border-transparent transition-colors",
+          isRowActive
+            ? "border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]"
+            : "hover:border-border/60 hover:bg-muted/45",
         )}
+      >
+        <div className="flex min-w-0 items-center">
+          <Link
+            to={node.routePath}
+            aria-current={isSelfActive ? "page" : undefined}
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] leading-snug transition-colors",
+              isRowActive
+                ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                : "text-foreground/75 group-hover/row:text-foreground",
+            )}
+            style={{ paddingLeft: `${0.6 + depth * 0.65}rem` }}
+          >
+            <Icon className="size-3.5 shrink-0 opacity-75" aria-hidden={true} />
+            <span className="truncate font-medium">{node.frontmatter.title}</span>
+          </Link>
+
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => onToggle(node.slug)}
+              className={cn(
+                "mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md transition-colors",
+                isRowActive
+                  ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                  : "text-muted-foreground group-hover/row:text-foreground",
+              )}
+              aria-label={isCollapsed ? "Expand section" : "Collapse section"}
+              aria-expanded={!isCollapsed}
+            >
+              {isCollapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+            </button>
+          ) : null}
+        </div>
       </div>
-      {hasChildren && !isCollapsed && visibleChildren.length > 0 && (
-        <ul className="ml-3 mt-0.5 border-l border-border/30 pl-2.5 space-y-0.5">
-          {visibleChildren.map((child) => (
-            <SidebarItem
-              key={child.slug}
-              node={child}
-              currentSlug={currentSlug}
-              collapsed={collapsed}
-              onToggle={onToggle}
-            />
-          ))}
-        </ul>
-      )}
+
+      {hasChildren ? (
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity,margin] duration-200 ease-out",
+            isCollapsed ? "mt-0 grid-rows-[0fr] opacity-0" : "mt-1 grid-rows-[1fr] opacity-100",
+          )}
+        >
+          <ul className="overflow-hidden border-l border-border/35 pl-2.5 space-y-1">
+            {visibleChildren.map((child) => (
+              <SidebarItem
+                key={child.slug}
+                node={child}
+                currentSlug={currentSlug}
+                collapsed={collapsed}
+                onToggle={onToggle}
+                depth={depth + 1}
+              />
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </li>
+  );
+}
+
+function MiniRail({
+  nodes,
+  currentSlug,
+  suiteId,
+  currentVersion,
+  onExpand,
+}: {
+  nodes: DocsTreeNode[];
+  currentSlug: string | null;
+  suiteId: DocsSuiteId;
+  currentVersion: DocsRouteVersion;
+  onExpand: () => void;
+}) {
+  const suite = getSuiteById(suiteId);
+  const SuiteIcon = suite.icon;
+
+  return (
+    <div className="flex h-full flex-col items-center gap-2 px-2 py-2">
+      <SuiteBadge
+        size="sm"
+        className="h-8 w-8 items-center justify-center rounded-lg p-0 tracking-normal"
+        accent={suite.accent}
+        aria-label={`${suite.title} documentation`}
+      >
+        <SuiteIcon className="size-4" aria-hidden={true} />
+      </SuiteBadge>
+
+      <button
+        type="button"
+        onClick={onExpand}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] text-[var(--suite-accent-light)] transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:text-[var(--suite-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]"
+        aria-label="Expand sidebar"
+      >
+        <PanelLeftOpen className="size-4" />
+      </button>
+
+      <nav className="mt-1 flex-1 w-full overflow-y-auto overflow-x-hidden scrollbar-thin" aria-label="Collapsed documentation navigation">
+        <ul className="space-y-1">
+          {nodes.map((node) => {
+            const Icon = resolveIcon(node.frontmatter.icon);
+            const active = nodeIsActiveInMiniRail(node, currentSlug);
+            return (
+              <li key={node.slug}>
+                <Link
+                  to={node.routePath}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "mx-auto flex h-9 w-9 items-center justify-center rounded-lg border border-transparent transition-colors",
+                    active
+                      ? "border-[color-mix(in_srgb,var(--suite-accent-light)_35%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_14%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)] dark:text-[var(--suite-accent-dark)]"
+                      : "text-muted-foreground hover:bg-muted/45 hover:text-foreground",
+                  )}
+                  title={node.frontmatter.title}
+                >
+                  <Icon className="size-4" aria-hidden={true} />
+                  <span className="sr-only">{node.frontmatter.title}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {isVersionedDocsSuite(suiteId) && currentVersion ? (
+        <span className="pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          {currentVersion}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -285,8 +370,9 @@ export function DocsSidebar({
   const treeKey = `${suiteId}:${currentVersion ?? "__no_version__"}`;
   const { collapsed, toggle } = useCollapsedSections(treeKey);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
+  const suite = getSuiteById(suiteId);
 
-  const [sidebarHidden, setSidebarHidden] = useState(() => {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
       return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
     } catch {
@@ -294,78 +380,79 @@ export function DocsSidebar({
     }
   });
 
-  const toggleSidebar = useCallback(() => {
-    setSidebarHidden((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
-      } catch {
-        // ignore
-      }
-      return next;
-    });
+  const setCollapsedState = useCallback((next: boolean) => {
+    setSidebarCollapsed(next);
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+    } catch {
+      // ignore
+    }
   }, []);
 
-  const suite = getSuiteById(suiteId);
-
-  if (sidebarHidden) {
-    return (
-      <div className="hidden lg:flex shrink-0">
-        <div className="sticky top-20 max-h-[calc(100vh-6rem)]">
-          <SuiteRail activeSuiteId={suiteId} currentVersion={currentVersion} />
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            className="mt-2 mx-auto flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors"
-            aria-label="Open sidebar"
-          >
-            <PanelLeftOpen className="size-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <aside className="hidden lg:flex shrink-0">
-      <div className="sticky top-20 flex max-h-[calc(100vh-6rem)]">
-        <SuiteRail activeSuiteId={suiteId} currentVersion={currentVersion} />
+    <aside className="hidden shrink-0 lg:block">
+      <div
+        className={cn(
+          "transition-[width] duration-300 ease-[cubic-bezier(.22,.9,.35,1)]",
+          sidebarCollapsed ? "w-[4.75rem]" : "w-[19rem]",
+        )}
+      >
+        <div className="sticky top-20 h-[calc(100vh-6rem)] rounded-2xl border-2 border-border/70 bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md">
+          {sidebarCollapsed ? (
+            <MiniRail
+              nodes={visibleNodes}
+              currentSlug={currentSlug}
+              suiteId={suiteId}
+              currentVersion={currentVersion}
+              onExpand={() => setCollapsedState(false)}
+            />
+          ) : (
+            <div className="flex h-full flex-col overflow-hidden">
+              <div className="border-b border-border/50 px-3 py-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="min-w-0">
+                    <SuiteBadge
+                      accent={suite.accent}
+                      className="max-w-full gap-1.5 rounded-lg normal-case tracking-normal"
+                    >
+                      <suite.icon className="size-3.5" aria-hidden={true} />
+                      <span className="truncate">{suite.title} Documentation</span>
+                    </SuiteBadge>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setCollapsedState(true)}
+                    className="inline-flex size-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] text-[var(--suite-accent-light)] transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:text-[var(--suite-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]"
+                    aria-label="Collapse sidebar"
+                  >
+                    <PanelLeftClose className="size-4" />
+                  </button>
+                </div>
 
-        <nav
-          className="w-56 overflow-y-auto overscroll-contain pl-3 pr-2 pb-8 scrollbar-thin"
-          aria-label="Documentation navigation"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <Link
-              to={getDocsHomepageUrl(suiteId, currentVersion)}
-              className="text-xs font-bold uppercase tracking-wider text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] hover:opacity-80 transition-opacity"
-            >
-              {suite.title}
-            </Link>
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Collapse sidebar"
-            >
-              <PanelLeftClose className="size-3.5" />
-            </button>
-          </div>
+                {isVersionedDocsSuite(suiteId) && currentVersion ? (
+                  <VersionDropdown suiteId={suiteId} currentVersion={currentVersion} />
+                ) : null}
+              </div>
 
-          <VersionSwitcher suiteId={suiteId} currentVersion={currentVersion} />
-
-          <ul className="space-y-0.5">
-            {visibleNodes.map((node) => (
-              <SidebarItem
-                key={node.slug}
-                node={node}
-                currentSlug={currentSlug}
-                collapsed={collapsed}
-                onToggle={toggle}
-              />
-            ))}
-          </ul>
-        </nav>
+              <nav
+                className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
+                aria-label="Documentation navigation"
+              >
+                <ul className="space-y-1">
+                  {visibleNodes.map((node) => (
+                    <SidebarItem
+                      key={node.slug}
+                      node={node}
+                      currentSlug={currentSlug}
+                      collapsed={collapsed}
+                      onToggle={toggle}
+                    />
+                  ))}
+                </ul>
+              </nav>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );
@@ -386,8 +473,8 @@ export function MobileDocsSidebar({
   const treeKey = `${suiteId}:${currentVersion ?? "__no_version__"}`;
   const { collapsed, toggle } = useCollapsedSections(treeKey);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
+  const suite = getSuiteById(suiteId);
 
-  // Close on navigation
   useEffect(() => {
     setOpen(false);
   }, [currentSlug, currentVersion]);
@@ -397,42 +484,54 @@ export function MobileDocsSidebar({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-md border border-border/50 bg-muted/30 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/50"
+        className="inline-flex h-9 items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] px-3 text-xs font-semibold text-[var(--suite-accent-light)] transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_14%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:text-[var(--suite-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)]"
         aria-label="Open navigation menu"
       >
         <Menu className="size-3.5" />
-        Menu
+        Documentation Menu
       </button>
 
-      {open && (
+      {open ? (
         <>
           <div
             className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="fixed inset-y-0 left-0 z-50 flex max-w-[85vw] bg-background border-r border-border/50 shadow-xl">
-            <SuiteRail activeSuiteId={suiteId} currentVersion={currentVersion} />
-            <div className="w-60 overflow-y-auto">
-              <div className="flex items-center justify-between p-4 border-b border-border/30">
-                <Link
-                  to={getDocsHomepageUrl(suiteId, currentVersion)}
-                  className="text-xs font-bold uppercase tracking-wider text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
-                >
-                  {getSuiteById(suiteId).title}
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Close navigation menu"
-                >
-                  <X className="size-4" />
-                </button>
+
+          <aside className="fixed inset-y-0 left-0 z-50 w-[min(86vw,22rem)] rounded-r-2xl border-r-2 border-border/70 bg-background/95 shadow-xl backdrop-blur-md">
+            <div className="flex h-full flex-col overflow-hidden">
+              <div className="border-b border-border/50 px-3 py-3">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="min-w-0">
+                    <SuiteBadge
+                      accent={suite.accent}
+                      className="max-w-full gap-1.5 rounded-lg normal-case tracking-normal"
+                    >
+                      <suite.icon className="size-3.5" aria-hidden={true} />
+                      <span className="truncate">{suite.title} Documentation</span>
+                    </SuiteBadge>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="inline-flex size-8 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] text-[var(--suite-accent-light)] transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:text-[var(--suite-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]"
+                    aria-label="Close navigation menu"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+
+                {isVersionedDocsSuite(suiteId) && currentVersion ? (
+                  <VersionDropdown suiteId={suiteId} currentVersion={currentVersion} />
+                ) : null}
               </div>
-              <div className="p-4">
-                <VersionSwitcher suiteId={suiteId} currentVersion={currentVersion} />
-                <ul className="space-y-0.5">
+
+              <nav
+                className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
+                aria-label="Documentation navigation"
+              >
+                <ul className="space-y-1">
                   {visibleNodes.map((node) => (
                     <SidebarItem
                       key={node.slug}
@@ -443,11 +542,11 @@ export function MobileDocsSidebar({
                     />
                   ))}
                 </ul>
-              </div>
+              </nav>
             </div>
-          </div>
+          </aside>
         </>
-      )}
+      ) : null}
     </div>
   );
 }

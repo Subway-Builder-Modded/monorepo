@@ -1,5 +1,12 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
+import {
+  SITE_SHELL_CLASS,
+  SuiteAccentInlineAction,
+  SuiteAccentLink,
+  SuiteAccentScope,
+} from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
+import { cn } from "@/app/lib/utils";
 import { getSuiteById } from "@/app/config/site-navigation";
 import { getDocsVersion, isVersionedDocsSuite } from "@/app/config/docs";
 import type { DocsSuiteId } from "@/app/config/docs";
@@ -15,6 +22,7 @@ import { extractHeadings } from "@/app/features/docs/lib/headings";
 import { mdxToMarkdown } from "@/app/features/docs/lib/markdown-copy";
 import { getDocsHomepageUrl, getDocPageUrl } from "@/app/features/docs/lib/routing";
 import { mdxComponents } from "@/app/features/docs/mdx/components";
+import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { DocsSidebar, MobileDocsSidebar } from "./sidebar";
 import { OnThisPage } from "./on-this-page";
 import {
@@ -53,40 +61,30 @@ function Breadcrumbs({
   const suite = getSuiteById(suiteId);
   const parts = slug.split("/");
   const showVersion = isVersionedDocsSuite(suiteId) && !!version;
+  const breadcrumbVersion = version?.startsWith("v") ? version : version ? `v${version}` : null;
+  const firstCrumb = showVersion
+    ? `${suite.title} Documentation (${breadcrumbVersion})`
+    : `${suite.title} Documentation`;
 
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
-      <ol className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
         <li>
-          <Link
-            to={getDocsHomepageUrl(suiteId, version)}
-            className="hover:text-foreground transition-colors"
-          >
-            {suite.title}
-          </Link>
+          <SuiteAccentLink asChild>
+            <Link to={getDocsHomepageUrl(suiteId, version)}>{firstCrumb}</Link>
+          </SuiteAccentLink>
         </li>
-        {showVersion && (
-          <>
-            <li aria-hidden="true">
-              <ChevronRight className="size-3" />
-            </li>
-            <li>
-              <span className="text-muted-foreground/70">{version}</span>
-            </li>
-          </>
-        )}
         {parts.length > 1 &&
           parts.slice(0, -1).map((part, i) => {
             const parentSlug = parts.slice(0, i + 1).join("/");
             return (
               <li key={i} className="flex items-center gap-1">
                 <ChevronRight className="size-3" aria-hidden="true" />
-                <Link
-                  to={getDocPageUrl(suiteId, version, parentSlug)}
-                  className="capitalize hover:text-foreground transition-colors"
-                >
-                  {part.replace(/-/g, " ")}
-                </Link>
+                <SuiteAccentLink asChild>
+                  <Link to={getDocPageUrl(suiteId, version, parentSlug)} className="capitalize">
+                    {part.replace(/-/g, " ")}
+                  </Link>
+                </SuiteAccentLink>
               </li>
             );
           })}
@@ -116,19 +114,14 @@ function CopyButton({ content }: { content: string }) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-      aria-label="Copy page as Markdown"
-    >
+    <SuiteAccentInlineAction onClick={handleCopy} aria-label="Copy page as Markdown">
       {copied ? (
         <Check className="size-3" aria-hidden="true" />
       ) : (
         <Copy className="size-3" aria-hidden="true" />
       )}
       {copied ? "Copied" : "Copy"}
-    </button>
+    </SuiteAccentInlineAction>
   );
 }
 
@@ -218,90 +211,109 @@ export function DocPageLayout({
     [rawContent],
   );
   const editUrl = getEditUrl(suiteId, version, slug);
+  const suite = getSuiteById(suiteId);
+  const Icon = node ? resolveIcon(node.frontmatter.icon) : null;
 
   if (!node) {
     return (
-      <div className="mx-auto flex max-w-5xl gap-8 py-6">
-        <DocsSidebar
-          tree={tree}
-          suiteId={suiteId}
-          currentVersion={version}
-          currentSlug={null}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-col items-center gap-4 py-20 text-center">
-            <FileQuestion className="size-12 text-muted-foreground" aria-hidden="true" />
-            <h1 className="text-lg font-bold text-foreground">Page Not Found</h1>
-            <p className="text-sm text-muted-foreground">
-              The documentation page &quot;{slug}&quot; was not found{version ? ` in ${version}` : ""}.
-            </p>
-            <Link
-              to={getDocsHomepageUrl(suiteId, version)}
-              className="text-sm text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] hover:underline"
-            >
-              Return to docs home
-            </Link>
+      <SuiteAccentScope accent={suite.accent}>
+        <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}> 
+          <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)_15rem]">
+            <DocsSidebar
+              tree={tree}
+              suiteId={suiteId}
+              currentVersion={version}
+              currentSlug={null}
+            />
+
+            <div className="min-w-0 rounded-2xl border-2 border-border/60 bg-background/75 p-8 text-center">
+              <div className="flex flex-col items-center gap-4 py-12">
+                <FileQuestion className="size-12 text-muted-foreground" aria-hidden={true} />
+                <h1 className="text-lg font-bold text-foreground">Page Not Found</h1>
+                <p className="text-sm text-muted-foreground">
+                  The documentation page &quot;{slug}&quot; was not found{version ? ` in ${version}` : ""}.
+                </p>
+                <SuiteAccentLink asChild>
+                  <Link to={getDocsHomepageUrl(suiteId, version)}>Return to docs home</Link>
+                </SuiteAccentLink>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </SuiteAccentScope>
     );
   }
 
   return (
-    <div className="mx-auto flex max-w-[1400px] gap-8 py-6 px-4 lg:px-8">
-      <DocsSidebar
-        tree={tree}
-        suiteId={suiteId}
-        currentVersion={version}
-        currentSlug={slug}
-      />
+    <SuiteAccentScope accent={suite.accent}>
+      <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}> 
+        <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)_15rem]">
+          <DocsSidebar
+            tree={tree}
+            suiteId={suiteId}
+            currentVersion={version}
+            currentSlug={slug}
+          />
 
-      <article className="flex-1 min-w-0">
-        <MobileDocsSidebar
-          tree={tree}
-          suiteId={suiteId}
-          currentVersion={version}
-          currentSlug={slug}
-        />
+          <article className="min-w-0">
+            <MobileDocsSidebar
+              tree={tree}
+              suiteId={suiteId}
+              currentVersion={version}
+              currentSlug={slug}
+            />
 
-        {isDeprecated && version && <DeprecatedBanner version={version} />}
+            {isDeprecated && version ? <DeprecatedBanner version={version} /> : null}
 
-        <Breadcrumbs
-          suiteId={suiteId}
-          version={version}
-          slug={slug}
-          title={node.frontmatter.title}
-        />
+            <Breadcrumbs
+              suiteId={suiteId}
+              version={version}
+              slug={slug}
+              title={node.frontmatter.title}
+            />
 
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground mb-2">
-            {node.frontmatter.title}
-          </h1>
-          {node.frontmatter.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {node.frontmatter.description}
-            </p>
-          )}
-          <div className="mt-3 flex items-center gap-2">
-            <a
-              href={editUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
-            >
-              <Pencil className="size-3" aria-hidden="true" />
-              Edit on GitHub
-            </a>
-            {rawContent && <CopyButton content={rawContent} />}
-          </div>
+            <header className="mb-4 rounded-2xl border-2 border-border/65 bg-background/72 p-4 shadow-[0_8px_20px_-14px_rgba(0,0,0,0.35)] sm:p-5">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_13%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)] dark:text-[var(--suite-accent-dark)]">
+                  {Icon ? <Icon className="size-5" aria-hidden={true} /> : null}
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl font-black tracking-[-0.02em] text-foreground sm:text-3xl">
+                    {node.frontmatter.title}
+                  </h1>
+                  {node.frontmatter.description ? (
+                    <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
+                      {node.frontmatter.description}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <SuiteAccentLink
+                  href={editUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-8 gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)] px-2 no-underline decoration-transparent hover:no-underline dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)]"
+                >
+                  <Pencil className="size-3" aria-hidden="true" />
+                  Edit on GitHub
+                </SuiteAccentLink>
+                {rawContent ? <CopyButton content={rawContent} /> : null}
+              </div>
+            </header>
+
+            <section className="rounded-2xl border border-border/60 bg-background/50 px-4 py-5 sm:px-6 sm:py-6">
+              <div className="prose-docs max-w-none">
+                <DocContent sourcePath={sourcePath} />
+              </div>
+            </section>
+          </article>
+
+          <OnThisPage headings={headings} editUrl={editUrl} rawContent={rawContent} />
         </div>
-
-        <div className="prose-docs max-w-none">
-          <DocContent sourcePath={sourcePath} />
-        </div>
-      </article>
-
-      <OnThisPage headings={headings} />
-    </div>
+      </div>
+    </SuiteAccentScope>
   );
 }

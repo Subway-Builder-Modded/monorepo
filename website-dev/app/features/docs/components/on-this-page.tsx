@@ -1,5 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { ArrowUpToLine, Copy, Pencil } from "lucide-react";
+import { SuiteAccentInlineAction, SuiteAccentLink } from "@subway-builder-modded/shared-ui";
 import { cn } from "@/app/lib/utils";
+import { mdxToMarkdown } from "@/app/features/docs/lib/markdown-copy";
 import type { DocsTocHeading } from "@/app/features/docs/lib/types";
 
 function useActiveHeading(headings: DocsTocHeading[]) {
@@ -10,18 +13,20 @@ function useActiveHeading(headings: DocsTocHeading[]) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (visible.length > 0) {
+          setActiveId(visible[0].target.id);
         }
       },
-      { rootMargin: "-80px 0px -65% 0px", threshold: 0 },
+      { rootMargin: "-92px 0px -62% 0px", threshold: [0, 0.25, 0.5, 1] },
     );
 
     for (const heading of headings) {
-      const el = document.getElementById(heading.id);
-      if (el) observer.observe(el);
+      const element = document.getElementById(heading.id);
+      if (element) observer.observe(element);
     }
 
     return () => observer.disconnect();
@@ -30,55 +35,108 @@ function useActiveHeading(headings: DocsTocHeading[]) {
   return activeId;
 }
 
-export function OnThisPage({ headings }: { headings: DocsTocHeading[] }) {
-  const activeId = useActiveHeading(headings);
+export function OnThisPage({
+  headings,
+  editUrl,
+  rawContent,
+}: {
+  headings: DocsTocHeading[];
+  editUrl?: string;
+  rawContent?: string | null;
+}) {
+  const filteredHeadings = useMemo(
+    () => headings.filter((heading) => heading.level >= 2 && heading.level <= 4),
+    [headings],
+  );
+  const activeId = useActiveHeading(filteredHeadings);
+  const [copied, setCopied] = useState(false);
 
   const scrollTo = useCallback((id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
       window.history.replaceState(null, "", `#${id}`);
     }
   }, []);
 
-  if (headings.length === 0) return null;
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const copyMarkdown = useCallback(async () => {
+    if (!rawContent) return;
+    try {
+      const markdown = mdxToMarkdown(rawContent);
+      await navigator.clipboard.writeText(markdown);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // ignore
+    }
+  }, [rawContent]);
+
+  if (filteredHeadings.length === 0) return null;
 
   return (
-    <aside className="hidden xl:block w-52 shrink-0">
-      <nav
-        className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pb-8 scrollbar-thin"
-        aria-label="On this page"
-      >
-        <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-          On this page
-        </h3>
-        <ul className="relative border-l border-border/30 space-y-0.5">
-          {headings.map((heading) => {
-            const isActive = activeId === heading.id;
-            return (
-              <li key={heading.id} className="relative">
-                {isActive && (
-                  <span className="absolute left-0 top-1 h-4 w-px -translate-x-px bg-[var(--suite-accent-light)] dark:bg-[var(--suite-accent-dark)] transition-all" />
-                )}
-                <button
-                  type="button"
-                  onClick={() => scrollTo(heading.id)}
-                  className={cn(
-                    "block w-full text-left text-[12px] leading-snug py-1 pl-3 transition-colors",
-                    heading.level === 3 && "pl-6",
-                    heading.level === 4 && "pl-9",
-                    isActive
-                      ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] font-medium"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {heading.text}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+    <aside className="hidden lg:block w-60 shrink-0">
+      <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overflow-x-hidden pb-8 scrollbar-thin">
+        <div className="rounded-2xl border border-border/60 bg-background/78 p-3 backdrop-blur-sm">
+          <h3 className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            On This Page
+          </h3>
+
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            <SuiteAccentInlineAction onClick={scrollToTop} className="h-7 px-2 text-[11px]">
+              <ArrowUpToLine className="size-3" aria-hidden="true" />
+              Top
+            </SuiteAccentInlineAction>
+
+            {editUrl ? (
+              <SuiteAccentLink
+                href={editUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-7 gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)] px-2 text-[11px] no-underline decoration-transparent hover:no-underline dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)]"
+              >
+                <Pencil className="size-3" aria-hidden="true" />
+                Edit
+              </SuiteAccentLink>
+            ) : null}
+
+            {rawContent ? (
+              <SuiteAccentInlineAction onClick={copyMarkdown} className="h-7 px-2 text-[11px]">
+                <Copy className="size-3" aria-hidden="true" />
+                {copied ? "Copied" : "Copy"}
+              </SuiteAccentInlineAction>
+            ) : null}
+          </div>
+
+          <ul className="relative space-y-1 border-l border-border/35 pl-2">
+            {filteredHeadings.map((heading) => {
+              const isActive = activeId === heading.id;
+              return (
+                <li key={heading.id} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => scrollTo(heading.id)}
+                    className={cn(
+                      "w-full rounded-md py-1 text-left text-[12px] leading-snug transition-colors",
+                      heading.level === 2 && "pl-2",
+                      heading.level === 3 && "pl-4",
+                      heading.level === 4 && "pl-6",
+                      isActive
+                        ? "bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] font-semibold text-[var(--suite-accent-light)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_17%,transparent)] dark:text-[var(--suite-accent-dark)]"
+                        : "text-muted-foreground hover:bg-muted/45 hover:text-foreground",
+                    )}
+                  >
+                    {heading.text}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
     </aside>
   );
 }
