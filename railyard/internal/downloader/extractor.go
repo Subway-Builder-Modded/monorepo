@@ -47,15 +47,11 @@ func reportExtractProgress(fn ExtractProgressFunc, itemID string, extracted int6
 func countSharedAssetPayloadFiles(assetType types.AssetType, zipFiles []*zip.File) (int, error) {
 	count := 0
 	for _, file := range zipFiles {
-		// Reuse the shared payload parser here so progress accounting follows
-		// the same acceptance rules as validation and extraction.
-		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(assetType, file.Name)
+		relPath, isSharedEntry, err := files.SharedAssetPayloadRelativePath(assetType, file.Name)
 		if err != nil {
 			return 0, err
 		}
-		// isHelperEntry means this archive entry targets .railyard_<asset>;
-		// non-helper entries are counted by their normal extraction paths.
-		if !isHelperEntry || relPath == "" || file.FileInfo().IsDir() {
+		if !isSharedEntry || relPath == "" || file.FileInfo().IsDir() {
 			continue
 		}
 		count++
