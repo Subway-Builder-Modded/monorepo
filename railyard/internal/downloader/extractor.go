@@ -69,20 +69,18 @@ func copySharedAssetPayload(assetType types.AssetType, stagingFolder string, zip
 	helperRoot := paths.JoinLocalPath(stagingFolder, files.SharedAssetPayloadDir(assetType))
 
 	for _, file := range zipFiles {
-		// Parser identifies .railyard_<asset> entries and strips the helper
-		// root so the remaining path can be copied under the staged asset folder.
-		relPath, isHelperEntry, err := files.SharedAssetPayloadRelativePath(assetType, file.Name)
+		// Parser identifies .railyard_<asset> entries and strips the helper root
+		relPath, isSharedEntry, err := files.SharedAssetPayloadRelativePath(assetType, file.Name)
 		if err != nil {
 			return err
 		}
-		// isHelperEntry distinguishes shared payload files from normal asset
-		// archive contents, which continue through the existing extractors.
-		if !isHelperEntry {
+		// ignore normal asset archive entries
+		if !isSharedEntry {
 			continue
 		}
 
-		// relPath == "" identifies the .railyard_<asset> root entry itself;
-		// only directories are valid there because files need a path below it.
+		// Identify the .railyard_<asset> root entry itself;
+		// Only directories are valid there because files need a path below it.
 		if relPath == "" {
 			if !file.FileInfo().IsDir() {
 				return fmt.Errorf("shared payload root %q must be a directory", files.SharedAssetPayloadDir(assetType))
@@ -96,7 +94,7 @@ func copySharedAssetPayload(assetType types.AssetType, stagingFolder string, zip
 		destinationPath := paths.JoinLocalPath(helperRoot, relPath)
 		if file.FileInfo().IsDir() {
 			// Preserve explicit directories from the archive so nested payload
-			// layouts remain byte-for-byte discoverable by mods at runtime.
+			// layouts remain discoverable by other assets at runtime.
 			if err := os.MkdirAll(destinationPath, os.ModePerm); err != nil {
 				return err
 			}
@@ -112,8 +110,7 @@ func copySharedAssetPayload(assetType types.AssetType, stagingFolder string, zip
 			return err
 		}
 
-		// Shared payload files are data for other assets to read, so copy them
-		// uncompressed instead of using the game's gzipped city-data convention.
+		// Payload files are data for other assets to read, so copy them uncompressed.
 		writeErr := files.WriteArchiveStream(destinationPath, srcFile, false)
 		closeErr := srcFile.Close()
 		if writeErr != nil {
