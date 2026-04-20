@@ -1,0 +1,150 @@
+---
+title: Type Reference
+description: Organization of the template's full TypeScript type definitions for the Subway Builder Modding API.
+icon: BookType
+---
+
+The template includes full TypeScript type definitions for the Subway Builder Modding API v1.0.0.
+Here's how they're organized.
+
+## File Structure {#file-structure}
+
+Types are split across multiple `.d.ts` files in `src/types/`, grouped by API namespace:
+
+| **File**                 | **What it covers**                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------- |
+| `api.d.ts`               | The main `ModdingAPI` interface — ties everything together                                      |
+| `index.d.ts`             | Re-exports all types + declares `window.SubwayBuilderAPI`                                       |
+| `core.d.ts`              | Primitives: `Coordinate`, `BoundingBox`, `GameSpeed`, `BuildType`, `ElevationType`              |
+| `game-state.d.ts`        | Entity types: `Station`, `Track`, `Train`, `Route`, `DemandData`, ridership types               |
+| `game-constants.d.ts`    | `GameConstants`, `ConstructionCosts`, `HighSlopeSpeedMultiplier`                                |
+| `game-actions.d.ts`      | `Bond`, `BondType`, `BondResult`                                                                |
+| ~~`build.d.ts`~~         | ~~Build automation: `BlueprintTrackInput`, `PlaceBlueprintResult`, `CreateRouteOptions`, etc.~~ |
+| `ui.d.ts`                | UI system: `UIPlacement`, button/toggle/slider/panel option types                               |
+| `cities.d.ts`            | `City`, `CityConfig`, `CityTab`, `CityDataFiles`, `ViewState`                                   |
+| `trains.d.ts`            | `TrainTypeConfig`, `TrainTypeStats`                                                             |
+| `stations.d.ts`          | `StationTypeConfig`                                                                             |
+| `map.d.ts`               | Map types: `MapSource`, `MapLayer`, `TileURLOverride`, `RoutingServiceOverride`                 |
+| `career.d.ts`            | `MissionConfig`, `StarConfig`, `CareerMetrics`, `CareerOperators`                               |
+| `content-templates.d.ts` | `NewspaperTemplate`, `TweetTemplate`                                                            |
+| `pop-timing.d.ts`        | `CommuteTimeRange`                                                                              |
+| ~~`storage.d.ts`~~       | ~~Mod storage: `set`, `get`, `delete`, and `keys` methods for persistent mod data storage~~     |
+| `i18n.d.ts`              | `I18nAPI`                                                                                       |
+| `utils.d.ts`             | `RechartsComponents`                                                                            |
+| `schemas.d.ts`           | `GameSchemas` (Zod validation schemas)                                                          |
+| `electron.d.ts`          | `ElectronAPI`, `ElectronAPIExtended`                                                            |
+| `manifest.d.ts`          | `ModManifest`                                                                                   |
+
+:::warning
+
+The build/storage API types are listed on the official API documentation but are
+currently unusable at runtime.
+
+:::
+
+## How It Works {#how-it-works}
+
+`index.d.ts` re-exports everything and declares the global `Window` interface:
+
+```ts
+declare global {
+  interface Window {
+    SubwayBuilderAPI: ModdingAPI;
+    electron?: ElectronAPI;
+    electronAPI?: ElectronAPIExtended;
+  }
+}
+```
+
+This gives you full autocomplete when you type `window.SubwayBuilderAPI.` in your editor.
+
+## Key Types at a Glance {#key-types-at-a-glance}
+
+### Game Entities {#game-entities}
+
+```ts
+interface Station {
+  id: string;
+  name: string;
+  coords: [number, number]; // [longitude, latitude]
+  trackIds: string[];
+  routeIds: string[];
+  nearbyStations: NearbyStation[];
+  buildType: string;
+  createdAt: number;
+  // ...
+}
+
+interface Track {
+  id: string;
+  coords: [number, number][]; // Start and end points
+  trackType: string; // 'heavy-metro', 'light-metro', etc.
+  startElevation: number;
+  endElevation: number;
+  length: number;
+  // ...
+}
+
+interface Route {
+  id: string;
+  bullet: string; // Display label ('A', '1', etc.)
+  color: string; // Hex color
+  stations: RouteStation[];
+  trainIds: string[];
+  // ...
+}
+
+interface Train {
+  id: string;
+  routeId: string;
+  position: Coordinate;
+  speed: number;
+  // ...
+}
+```
+
+### Core Primitives {#core-primitives}
+
+```ts
+type Coordinate = [number, number]; // [longitude, latitude]
+type BoundingBox = [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
+type GameSpeed = 'slow' | 'normal' | 'fast' | 'ultrafast';
+type BuildType = 'blueprint' | 'built';
+```
+
+### UI Types {#ui-types}
+
+```ts
+type UIPlacement =
+  | 'settings-menu'
+  | 'escape-menu'
+  | 'escape-menu-buttons'
+  | 'main-menu'
+  | 'bottom-bar'
+  | 'top-bar'
+  | 'debug-panel'
+  | 'menu-items'
+  | 'pause-menu'
+  | 'debug';
+
+type NotificationType = 'success' | 'error' | 'info' | 'warning';
+```
+
+## Extending Types {#extending-types}
+
+If you need to extend the API types (e.g., adding fields you've discovered at runtime), you can use
+TypeScript declaration merging in your own `.d.ts` file:
+
+```ts
+// src/types/my-extensions.d.ts
+declare module './game-state' {
+  interface Station {
+    myCustomField?: string;
+  }
+}
+```
+
+## Official Documentation {#official-documentation}
+
+For the most up-to-date API reference, see the
+[official Subway Builder modding docs](https://www.subwaybuilder.com/docs/v1.0.0).

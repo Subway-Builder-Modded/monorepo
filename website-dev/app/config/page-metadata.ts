@@ -5,6 +5,10 @@ import {
   type SiteSuite,
   type SiteSuiteId,
 } from "@/app/config/site-navigation";
+import { matchDocsRoute } from "@/app/features/docs/lib/routing";
+import { getDocsTree, findTreeNode } from "@/app/features/docs/lib/content";
+import { getDocsSuiteConfig } from "@/app/features/docs/config";
+import type { DocsSuiteId } from "@/app/features/docs/config";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
@@ -57,6 +61,39 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
   const override = PAGE_METADATA_OVERRIDES[normalizedPathname];
   const activeSuite = getActiveSuite(normalizedPathname);
   const matchedItem = getMatchingItem(normalizedPathname, activeSuite.id);
+
+  const docsMatch = matchDocsRoute(normalizedPathname, "");
+  if (docsMatch.kind === "homepage" || docsMatch.kind === "doc") {
+    const suite = getSuiteById(docsMatch.suiteId);
+    const config = getDocsSuiteConfig(docsMatch.suiteId as DocsSuiteId);
+
+    if (docsMatch.kind === "homepage") {
+      const title = config?.homepage.heroTitle ?? `${suite.title} Documentation`;
+      return {
+        pathname: normalizedPathname,
+        title,
+        description: config?.homepage.description ?? DEFAULT_SITE_DESCRIPTION,
+        suite,
+        pageTitle: `${title} | ${suite.title}`,
+        imagePath: getSuiteImagePath(docsMatch.suiteId),
+      };
+    }
+
+    // doc page
+    const tree = getDocsTree(docsMatch.suiteId as DocsSuiteId, docsMatch.version);
+    const node = findTreeNode(tree, docsMatch.slug);
+    const title = node?.frontmatter.title ?? "Documentation";
+    const description = node?.frontmatter.description ?? DEFAULT_SITE_DESCRIPTION;
+
+    return {
+      pathname: normalizedPathname,
+      title,
+      description,
+      suite,
+      pageTitle: `${title} | ${suite.title} Docs`,
+      imagePath: getSuiteImagePath(docsMatch.suiteId),
+    };
+  }
 
   const resolvedSuiteId = override?.suiteId ?? matchedItem?.suiteId ?? activeSuite.id;
   const suite = getSuiteById(resolvedSuiteId);

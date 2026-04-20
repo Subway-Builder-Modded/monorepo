@@ -1,0 +1,122 @@
+---
+title: macOS
+description: Learn how to install Railyard on macOS-based systems.
+icon: ArrowDownToLine
+---
+
+This guide will walk you through installing and setting up Railyard on macOS.
+
+## Step 1 - Downloading Railyard {#downloading-railyard}
+
+To install Railyard on macOS, navigate to the [download page](https://subwaybuildermodded.com/railyard). You should see a button with the auto-detected download for your operating system.
+
+## Step 2 - Dequarantining Railyard {#dequarantining-railyard}
+
+### First Launch {#first-launch}
+
+When you first try to open Railyard, macOS will show a dialog saying the app "can't be opened because Apple cannot check it for malicious software." This is expected for unsigned apps.
+
+#### Option A: Right-Click to Open (Recommended) {#right-click-to-open}
+
+1. Open **Finder** and navigate to **Applications**.
+2. **Right-click** (or Control-click) on **Railyard**.
+3. Select **Open** from the context menu.
+4. A dialog will appear with an **Open** button — click it.
+
+You only need to do this once. After the first launch, you can open Railyard normally.
+
+#### Option B: System Settings {#system-settings}
+
+1. Try to open Railyard normally (it will be blocked).
+2. Open **System Settings** > **Privacy & Security**.
+3. Scroll down to the **Security** section. You should see a message about Railyard being blocked.
+4. Click **Open Anyway** and confirm.
+
+#### Option C: Terminal {#terminal}
+
+If neither option above works, you can remove the quarantine attribute:
+
+```bash
+xattr -cr /Applications/railyard.app
+```
+
+Then open Railyard normally.
+
+### Install from ZIP {#install-from-zip}
+
+If you prefer not to use the DMG:
+
+1. Download `railyard-macos-universal.zip` from the download page.
+2. Extract the ZIP (double-click it in Finder).
+3. Move `railyard.app` to your **Applications** folder.
+4. Follow the **First launch** steps above.
+
+### Uninstalling {#uninstalling}
+
+Drag **Railyard** from Applications to the Trash. To remove app data:
+
+```bash
+rm -rf ~/Library/Application\ Support/railyard
+```
+
+## Step 3 - Setting Up Railyard {#setting-up-railyard}
+
+When you first launch Railyard, you will be asked to select your `metro-maker4` folder.
+
+<p align="center">
+  <Image
+    width="400"
+    alt="image"
+    src="/images/docs/railyard/v0.2/railyard-setup-mm4.png"
+  />
+</p>
+
+If you did not manually modify this, click "Auto-Detect". Otherwise, select the location of this folder. Railyard will automatically validate it.
+
+After, you will be asked to select your game executable. Once again, click "Auto-Detect" if you have not modified this. Otherwise, select the location of your game executable.
+
+<p align="center">
+  <Image
+    width="400"
+    alt="image"
+    src="/images/docs/railyard/v0.2/railyard-setup-exec.png"
+  />
+</p>
+
+The next prompt will ask you to input your GitHub token. This is optional, but recommended to avoid hitting GitHub's API rate limits when using Railyard. If you do not have a token or do not wish to use one, simply click "Next" to continue with the setup process. You can always add a token later via the settings menu. To set up a GitHub token, see the [GitHub Token guide](https://subwaybuildermodded.com/railyard/docs/v0.2/players/github-token).
+
+The final prompt will ask you whether you want to enable automatic updates. This will allow Railyard to prompt you every time a new version is released, allowing you to easily stay up to date with the latest features and bug fixes.
+
+:::note
+It is recommended to keep this enabled to ensure you have the latest features and bug fixes. This can be toggled at any time via the settings menu.
+:::
+
+## Step 4 - Launching Subway Builder {#launching-subway-builder}
+
+Once you install content through Railyard, you must launch the game through Railyard for the content to work properly. To do this, simply click the "Launch" button located on the Railyard navbar.
+
+:::important
+
+If you launch the game executable directly, the game will still launch and some mods may even work. However, maps will load without the necessary data needed to load in-game and any custom command-line arguments set through Railyard will not be applied.
+
+:::
+
+When the game is launched, open Settings in-game. Scroll until you see "Mod Manager".
+
+<p align="center">
+  <Image
+    width="600"
+    alt="image"
+    src="/images/docs/railyard/v0.2/subwaybuilder-mod-manager.png"
+  />
+</p>
+
+In that menu, enable the `Railyard Map Loader` mod.
+
+:::danger
+
+This is required to load maps installed through Railyard. If you do not enable this mod, maps will fail to load data properly in-game.
+
+:::
+
+After that, you're ready to play! If you have any questions or run into any issues, feel free to ask questions in the [Discord](https://discord.gg/jrNQpbytUQ) or [raise an issue on GitHub](https://github.com/Subway-Builder-Modded/monorepo/issues).

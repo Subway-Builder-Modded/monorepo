@@ -1,0 +1,134 @@
+---
+title: Getting Started
+description: Get started with the Subway Builder Modded Template Mod.
+icon: Rocket
+---
+
+This guide walks you through setting up your first Subway Builder mod using the community TypeScript
+template.
+
+:::note[Prerequisites]
+
+Before you start, you should have a basic grasp of **JavaScript** or
+**TypeScript**. If you've never written JS/TS before, we recommend working through a beginner
+tutorial first — the modding API is straightforward, but you do need to understand variables,
+functions, and basic syntax.
+
+You'll also need:
+
+- [Node.js](https://nodejs.org/) v22 or later
+- [pnpm](https://pnpm.io/) package manager (`npm install -g pnpm`)
+- [Subway Builder](https://subwaybuilder.com) v1.1.0 or later
+- A code editor (we recommend [VS Code](https://code.visualstudio.com/))
+
+:::
+
+## Step 1 - Clone the Template {#clone-the-template}
+
+```bash
+git clone https://github.com/Subway-Builder-Modded/template-mod.git my-mod
+cd my-mod
+```
+
+## Step 2 - Install Dependencies {#install-dependencies}
+
+```bash
+pnpm install
+```
+
+This installs the build toolchain (Vite/Rolldown, TypeScript, etc.). The game's APIs are accessed at
+runtime — there's no SDK package to install.
+
+## Step 3 - Configure Your Mod {#configure-your-mod}
+
+Edit `manifest.json` with your mod's identity:
+
+```json
+{
+  "id": "com.yourname.yourmod",
+  "name": "My Cool Mod",
+  "description": "Does something cool",
+  "version": "1.0.0",
+  "author": { "name": "Your Name" },
+  "main": "index.js"
+}
+```
+
+The `id` should be a unique reverse-domain identifier. The `main` field should always be
+`"index.js"` — that's what the build outputs.
+
+## Step 4 - Build {#build}
+
+```bash
+pnpm build
+```
+
+This compiles your TypeScript + React code into a single `dist/index.js` file, and copies
+`manifest.json` into `dist/`.
+
+## Step 5 - Link to the Game {#link-to-the-game}
+
+```bash
+pnpm dev:link
+```
+
+This creates a symlink from `dist/` to the game's mods folder. The mods folder location depends on
+your OS:
+
+| OS          | Path                                               |
+| ----------- | -------------------------------------------------- |
+| **macOS**   | `~/Library/Application Support/metro-maker4/mods/` |
+| **Windows** | `%APPDATA%\metro-maker4\mods\`                     |
+| **Linux**   | `~/.config/metro-maker4/mods/`                     |
+
+The symlink means every time you rebuild, the game sees your latest code without you copying files.
+
+:::tip
+
+On Windows, you may need to run your terminal as Administrator for the symlink to work.
+
+:::
+
+## Step 6 - Enable Your Mod {#enable-your-mod}
+
+1. Launch Subway Builder
+2. Go to **Settings > Mods**
+3. Toggle your mod **on**
+4. Restart the game (or load a city)
+
+You should see your mod's log messages in the game's developer console.
+
+## Step 7 - Development Workflow {#development-workflow}
+
+For active development, use the `dev` command which watches for file changes and launches the game
+with logging:
+
+```bash
+pnpm dev
+```
+
+This runs two processes simultaneously:
+
+- **Vite watcher** — rebuilds on every file save
+- **Game launcher** — starts Subway Builder with logging to `debug/latest.log`
+
+After making changes, reload mods in-game with **Ctrl+Shift+R** (or **Cmd+Shift+R** on Mac) to see
+your updates without restarting the game.
+
+## Step 8 - Unlink When Done {#unlink-when-done}
+
+To remove the symlink:
+
+```bash
+pnpm dev:unlink
+```
+
+## Available Scripts {#available-scripts}
+
+| **Command**       | **Description**                       |
+| ----------------- | ------------------------------------- |
+| `pnpm build`      | Build the mod to `dist/`              |
+| `pnpm dev`        | Watch mode + launch game with logging |
+| `pnpm dev:link`   | Symlink `dist/` to game's mods folder |
+| `pnpm dev:unlink` | Remove the symlink                    |
+| `pnpm typecheck`  | Run TypeScript type checking          |
