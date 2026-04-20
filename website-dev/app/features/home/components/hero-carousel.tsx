@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/app/lib/utils";
 import { FaDiscord } from "react-icons/fa";
@@ -14,6 +14,18 @@ import {
   HERO_CTA_DISCORD,
 } from "@/app/features/home/data/homepage-content";
 import { HeroCreditsTooltip } from "@/app/features/home/components/hero-credits-tooltip";
+
+const HERO_BLUR_MASK =
+  "radial-gradient(ellipse 70% 66% at 50% 50%, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.92) 20%, rgba(0,0,0,0.7) 42%, rgba(0,0,0,0.34) 68%, transparent 100%)";
+
+function getHeroBlurLayerStyle(blurPx: number): CSSProperties {
+  return {
+    backdropFilter: `blur(${blurPx}px)`,
+    WebkitBackdropFilter: `blur(${blurPx}px)`,
+    maskImage: HERO_BLUR_MASK,
+    WebkitMaskImage: HERO_BLUR_MASK,
+  };
+}
 
 function usePreloadImages(slides: typeof HERO_SLIDES) {
   useEffect(() => {
@@ -127,9 +139,22 @@ export function HeroCarousel() {
       </motion.div>
 
       <div className="pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
-        <div className="absolute left-1/2 top-[53%] h-[clamp(20rem,44vw,44rem)] w-[clamp(20rem,44vw,44rem)] -translate-x-1/2 -translate-y-1/2 rounded-[2.75rem] backdrop-blur-[12px]" />
-        <div className="absolute left-1/2 top-[53%] h-[clamp(24rem,50vw,50rem)] w-[clamp(24rem,50vw,50rem)] -translate-x-1/2 -translate-y-1/2 rounded-[3.5rem] backdrop-blur-[7px] opacity-80" />
-        <div className="absolute left-1/2 top-[53%] h-[clamp(28rem,58vw,58rem)] w-[clamp(28rem,58vw,58rem)] -translate-x-1/2 -translate-y-1/2 rounded-[4.5rem] backdrop-blur-[3px] opacity-45" />
+        <div
+          className="absolute left-1/2 top-[53%] h-[clamp(22rem,46vw,46rem)] w-[clamp(22rem,46vw,46rem)] -translate-x-1/2 -translate-y-1/2 rounded-[3rem]"
+          style={getHeroBlurLayerStyle(4)}
+        />
+        <div
+          className="absolute left-1/2 top-[53%] h-[clamp(30rem,60vw,60rem)] w-[clamp(30rem,60vw,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-[4.5rem] opacity-72"
+          style={getHeroBlurLayerStyle(2.5)}
+        />
+        <div
+          className="absolute left-1/2 top-[53%] h-[clamp(40rem,78vw,78rem)] w-[clamp(40rem,78vw,78rem)] -translate-x-1/2 -translate-y-1/2 rounded-[6.5rem] opacity-42"
+          style={getHeroBlurLayerStyle(1.5)}
+        />
+        <div
+          className="absolute left-1/2 top-[53%] h-[clamp(52rem,98vw,100rem)] w-[clamp(52rem,98vw,100rem)] -translate-x-1/2 -translate-y-1/2 rounded-[8rem] opacity-20"
+          style={getHeroBlurLayerStyle(0.75)}
+        />
       </div>
 
       <div
