@@ -12,7 +12,7 @@ import type { Root, Heading, PhrasingContent } from "mdast";
 import type { Plugin } from "unified";
 import { visit } from "unist-util-visit";
 
-const HEADING_ID_PATTERN = /\s*\{#([a-z0-9][a-z0-9-]*)\}\s*$/;
+const HEADING_ID_PATTERN = /\s*\{#([A-Za-z0-9._-]+)\}\s*$/;
 
 export const remarkHeadingIds: Plugin<[], Root> = () => {
   return (tree: Root) => {

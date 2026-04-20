@@ -12,7 +12,13 @@ import { cn } from "@/app/lib/utils";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
-import { getVisibleVersions, getDocsVersion, getEnabledDocsSuiteIds } from "@/app/config/docs";
+import {
+  getVisibleVersions,
+  getDocsVersion,
+  getEnabledDocsSuiteIds,
+  isVersionedDocsSuite,
+  type DocsRouteVersion,
+} from "@/app/config/docs";
 import { getSuiteById } from "@/app/config/site-navigation";
 import type { DocsTreeNode, DocsTree } from "@/app/features/docs/lib/types";
 import type { DocsSuiteId } from "@/app/config/docs";
@@ -24,7 +30,7 @@ function SuiteRail({
   currentVersion,
 }: {
   activeSuiteId: DocsSuiteId;
-  currentVersion: string;
+  currentVersion: DocsRouteVersion;
 }) {
   const suiteIds = getEnabledDocsSuiteIds();
 
@@ -38,7 +44,7 @@ function SuiteRail({
         return (
           <Link
             key={id}
-            to={getDocsHomepageUrl(id, id === activeSuiteId ? currentVersion : undefined)}
+            to={getDocsHomepageUrl(id, id === activeSuiteId ? currentVersion : null)}
             className={cn(
               "flex size-9 items-center justify-center rounded-lg transition-colors",
               isActive
@@ -99,8 +105,9 @@ function VersionSwitcher({
   currentVersion,
 }: {
   suiteId: DocsSuiteId;
-  currentVersion: string;
+  currentVersion: DocsRouteVersion;
 }) {
+  const isVersioned = isVersionedDocsSuite(suiteId);
   const versions = getVisibleVersions(suiteId);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -121,7 +128,7 @@ function VersionSwitcher({
     };
   }, [open]);
 
-  if (versions.length <= 1) return null;
+  if (!isVersioned || !currentVersion || versions.length <= 1) return null;
 
   const currentConfig = getDocsVersion(suiteId, currentVersion);
   const statusLabel = currentConfig?.status === "latest" ? "latest" : currentConfig?.status;
@@ -277,10 +284,10 @@ export function DocsSidebar({
 }: {
   tree: DocsTree;
   suiteId: DocsSuiteId;
-  currentVersion: string;
+  currentVersion: DocsRouteVersion;
   currentSlug: string | null;
 }) {
-  const treeKey = `${suiteId}:${currentVersion}`;
+  const treeKey = `${suiteId}:${currentVersion ?? "__no_version__"}`;
   const { collapsed, toggle } = useCollapsedSections(treeKey);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
 
@@ -377,11 +384,11 @@ export function MobileDocsSidebar({
 }: {
   tree: DocsTree;
   suiteId: DocsSuiteId;
-  currentVersion: string;
+  currentVersion: DocsRouteVersion;
   currentSlug: string | null;
 }) {
   const [open, setOpen] = useState(false);
-  const treeKey = `${suiteId}:${currentVersion}`;
+  const treeKey = `${suiteId}:${currentVersion ?? "__no_version__"}`;
   const { collapsed, toggle } = useCollapsedSections(treeKey);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
 

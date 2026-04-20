@@ -8,7 +8,7 @@ import {
   OPEN_SOURCE_SECTION,
   PEOPLE_SECTION,
   SUITE_SCROLLYTELLING_SECTION,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 
 describe("HomePage", () => {
   it("renders the full homepage composition", () => {

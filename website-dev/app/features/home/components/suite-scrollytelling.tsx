@@ -12,7 +12,7 @@ import {
   SUITE_SCROLLYTELLING_SECTION,
   SUITE_STEPS,
   type SuiteStep,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 
 function StationSwitcher({
   steps,

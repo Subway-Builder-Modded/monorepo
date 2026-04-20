@@ -2,7 +2,12 @@ import { useMemo } from "react";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { getSuiteById } from "@/app/config/site-navigation";
-import { getDocsSuiteConfig, getVisibleVersions, getDocsVersion } from "@/app/config/docs";
+import {
+  getDocsSuiteConfig,
+  getDocsVersion,
+  getVisibleVersions,
+  isVersionedDocsSuite,
+} from "@/app/config/docs";
 import type { DocsSuiteId } from "@/app/config/docs";
 import { getDocsTree, getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocPageUrl, getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
@@ -30,11 +35,12 @@ function Signboard({
   version,
 }: {
   suiteId: DocsSuiteId;
-  version: string;
+  version: string | null;
 }) {
   const suite = getSuiteById(suiteId);
   const config = getDocsSuiteConfig(suiteId)!;
-  const versionConfig = getDocsVersion(suiteId, version);
+  const isVersioned = isVersionedDocsSuite(suiteId);
+  const versionConfig = version ? getDocsVersion(suiteId, version) : null;
   const versions = getVisibleVersions(suiteId);
   const SuiteIcon = suite.icon;
 
@@ -51,7 +57,7 @@ function Signboard({
           <p className="mt-1 text-sm text-foreground/70 leading-relaxed max-w-lg">
             {config.homepage.description}
           </p>
-          {versions.length > 1 && (
+          {isVersioned && versions.length > 1 && version && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {versions.map((v) => {
                 const isActive = v.value === version;
@@ -76,7 +82,7 @@ function Signboard({
               })}
             </div>
           )}
-          {versions.length <= 1 && versionConfig && (
+          {isVersioned && versions.length <= 1 && versionConfig && (
             <span className="mt-2 inline-flex rounded-full bg-[var(--suite-accent-light)]/12 dark:bg-[var(--suite-accent-dark)]/12 px-2.5 py-0.5 text-xs font-medium text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]">
               {versionConfig.label}
             </span>
@@ -92,7 +98,7 @@ function DocsCardGrid({
   version,
 }: {
   suiteId: DocsSuiteId;
-  version: string;
+  version: string | null;
 }) {
   const tree = getDocsTree(suiteId, version);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
@@ -149,14 +155,14 @@ export function DocsHomepage({
   version,
 }: {
   suiteId: DocsSuiteId;
-  version: string;
+  version: string | null;
 }) {
-  const versionConfig = getDocsVersion(suiteId, version);
+  const versionConfig = version ? getDocsVersion(suiteId, version) : null;
   const isDeprecated = versionConfig?.status === "deprecated";
 
   return (
     <div className="mx-auto max-w-3xl py-6">
-      {isDeprecated && <DeprecatedBanner version={version} />}
+      {isDeprecated && version && <DeprecatedBanner version={version} />}
 
       <Signboard suiteId={suiteId} version={version} />
 

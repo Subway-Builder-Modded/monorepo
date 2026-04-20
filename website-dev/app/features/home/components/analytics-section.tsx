@@ -11,7 +11,7 @@ import {
   ANALYTICS_SECTION,
   getHomeIcon,
   getHomepageSuiteAccent,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 import { useThemeMode } from "@/app/hooks/use-theme-mode";
 
 function AnalyticsGraphic() {

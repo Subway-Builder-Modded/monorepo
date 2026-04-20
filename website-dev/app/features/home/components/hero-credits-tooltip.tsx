@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
-import { HERO_CREDITS_TEXT, type HeroSlide } from "@/app/features/home/data/homepage-content";
+import { HERO_CREDITS_TEXT, type HeroSlide } from "@/app/config/home";
 
 type HeroCreditsTooltipProps = {
   slide: HeroSlide;

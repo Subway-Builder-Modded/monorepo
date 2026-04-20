@@ -13,14 +13,14 @@ export type DocsTreeNode = {
   sourcePath: string;
   frontmatter: DocsFrontmatter;
   suiteId: string;
-  version: string;
+  version: string | null;
   children: DocsTreeNode[];
   depth: number;
 };
 
 export type DocsTree = {
   suiteId: string;
-  version: string;
+  version: string | null;
   nodes: DocsTreeNode[];
 };
 
@@ -32,7 +32,7 @@ export type DocsTocHeading = {
 
 export type ResolvedDocsRoute = {
   suiteId: string;
-  version: string;
+  version: string | null;
   docSlug: string | null;
   isHomepage: boolean;
 };

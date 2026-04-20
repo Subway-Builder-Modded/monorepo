@@ -30,6 +30,10 @@ export default defineConfig({
     alias: [
       { find: "@", replacement: path.resolve(__dirname, ".") },
       {
+        find: "virtual:mdx-raw-content",
+        replacement: path.resolve(__dirname, "./tests/virtual-mdx-raw-content.ts"),
+      },
+      {
         find: /^@subway-builder-modded\/(.+)$/,
         replacement: path.resolve(__dirname, "../packages/$1/src/index.ts"),
       },

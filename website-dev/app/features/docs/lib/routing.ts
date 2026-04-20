@@ -1,16 +1,17 @@
-import type { DocsSuiteId } from "@/app/config/docs";
+import type { DocsRouteVersion, DocsSuiteId } from "@/app/config/docs";
 import {
-  isDocsSuiteId,
   getDocsSuiteConfig,
   getDocsVersion,
+  isDocsSuiteId,
+  isVersionedDocsSuite,
   getLatestVersion,
 } from "@/app/config/docs";
 import type { ResolvedDocsRoute } from "./types";
 
 type DocsRouteMatch =
   | { kind: "none" }
-  | { kind: "homepage"; suiteId: DocsSuiteId; version: string }
-  | { kind: "doc"; suiteId: DocsSuiteId; version: string; slug: string }
+  | { kind: "homepage"; suiteId: DocsSuiteId; version: DocsRouteVersion }
+  | { kind: "doc"; suiteId: DocsSuiteId; version: DocsRouteVersion; slug: string }
   | { kind: "redirect"; to: string }
   | { kind: "not-found"; suiteId: DocsSuiteId; reason: string };
 
@@ -31,13 +32,30 @@ export function matchDocsRoute(pathname: string, search: string): DocsRouteMatch
     return { kind: "none" };
   }
 
+  const params = new URLSearchParams(search);
+  const versionParam = params.get("version");
+
+  if (!config.versioned) {
+    // Canonical homepage for non-versioned suites is /<suite>/docs with no query.
+    if (segments.length === 2) {
+      if (versionParam) {
+        return { kind: "redirect", to: `/${suiteId}/docs` };
+      }
+      return { kind: "homepage", suiteId, version: null };
+    }
+
+    const slug = segments.slice(2).join("/");
+    if (!slug) {
+      return { kind: "homepage", suiteId, version: null };
+    }
+
+    return { kind: "doc", suiteId, version: null, slug };
+  }
+
   const latest = getLatestVersion(suiteId)!;
 
   // /<suite>/docs
   if (segments.length === 2) {
-    const params = new URLSearchParams(search);
-    const versionParam = params.get("version");
-
     if (versionParam) {
       if (versionParam === "latest") {
         return { kind: "redirect", to: `/${suiteId}/docs?version=${latest}` };
@@ -59,7 +77,6 @@ export function matchDocsRoute(pathname: string, search: string): DocsRouteMatch
     if (segments.length === 3) {
       return { kind: "redirect", to: `/${suiteId}/docs?version=${latest}` };
     }
-    // /<suite>/docs/latest/...slug
     const slug = segments.slice(3).join("/");
     return { kind: "redirect", to: `/${suiteId}/docs/${latest}/${slug}` };
   }
@@ -67,17 +84,14 @@ export function matchDocsRoute(pathname: string, search: string): DocsRouteMatch
   const versionConfig = getDocsVersion(suiteId, maybeVersion);
 
   if (versionConfig) {
-    // /<suite>/docs/<version> — redirect to homepage with query
     if (segments.length === 3) {
       return { kind: "redirect", to: `/${suiteId}/docs?version=${maybeVersion}` };
     }
 
-    // /<suite>/docs/<version>/...slug
     const slug = segments.slice(3).join("/");
     return { kind: "doc", suiteId, version: maybeVersion, slug };
   }
 
-  // Unknown version — could be a slug attempt without version, show not-found
   return {
     kind: "not-found",
     suiteId,
@@ -111,8 +125,8 @@ export function resolveDocsRoute(
   }
 }
 
-export function getDocsHomepageUrl(suiteId: string, version?: string): string {
-  if (version) {
+export function getDocsHomepageUrl(suiteId: string, version?: string | null): string {
+  if (version && isDocsSuiteId(suiteId) && isVersionedDocsSuite(suiteId)) {
     return `/${suiteId}/docs?version=${version}`;
   }
   return `/${suiteId}/docs`;
@@ -120,10 +134,14 @@ export function getDocsHomepageUrl(suiteId: string, version?: string): string {
 
 export function getDocPageUrl(
   suiteId: string,
-  version: string,
+  version: string | null,
   slug: string,
 ): string {
-  return `/${suiteId}/docs/${version}/${slug}`;
+  if (version && isDocsSuiteId(suiteId) && isVersionedDocsSuite(suiteId)) {
+    return `/${suiteId}/docs/${version}/${slug}`;
+  }
+
+  return `/${suiteId}/docs/${slug}`;
 }
 
 export function findSamePathInVersion(
@@ -131,8 +149,11 @@ export function findSamePathInVersion(
   targetVersion: string,
   slug: string,
 ): string | null {
+  const suite = getDocsSuiteConfig(suiteId);
+  if (!suite || !suite.versioned) return null;
+
   const versionConfig = getDocsVersion(suiteId, targetVersion);
   if (!versionConfig) return null;
-  // This will be checked against actual tree content by the caller
+
   return `/${suiteId}/docs/${targetVersion}/${slug}`;
 }

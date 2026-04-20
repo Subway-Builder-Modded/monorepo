@@ -4,7 +4,7 @@ import { SuiteScrollytellingSection } from "@/app/features/home/components/suite
 import {
   SUITE_SCROLLYTELLING_SECTION,
   SUITE_STEPS,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 
 describe("SuiteScrollytellingSection", () => {
   it("renders section copy and all suite story steps", () => {

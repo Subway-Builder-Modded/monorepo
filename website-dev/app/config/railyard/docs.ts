@@ -1,9 +1,10 @@
-import type { DocsSuiteConfig } from "@/app/features/docs/config/types";
-import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "@/app/features/docs/config/shared";
+import type { DocsSuiteConfig } from "../docs/types";
+import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const railyardDocsConfig: DocsSuiteConfig = {
   suiteId: "railyard",
   enabled: true,
+  versioned: true,
   editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/railyard`,
   latestVersion: "v0.2",
   versions: [
@@ -20,7 +21,7 @@ export const railyardDocsConfig: DocsSuiteConfig = {
       releaseDate: "2026-01-20",
     },
   ],
-  sidebarOrder: {
+  sidebarOrderByVersion: {
     "v0.2": [
       {
         key: "players",
@@ -35,16 +36,6 @@ export const railyardDocsConfig: DocsSuiteConfig = {
           "profile-management",
         ],
       },
-      {
-        key: "developers",
-        children: [
-          "publishing-projects",
-          "using-custom-url",
-          "tagging",
-          "data-quality",
-          "dependencies",
-        ],
-      },
     ],
     "v0.1": [
       {
@@ -55,10 +46,6 @@ export const railyardDocsConfig: DocsSuiteConfig = {
           "install-guide-linux",
           "github-token",
         ],
-      },
-      {
-        key: "developers",
-        children: ["publishing-projects", "using-custom-url", "data-quality"],
       },
     ],
   },

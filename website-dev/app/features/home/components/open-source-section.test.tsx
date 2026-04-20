@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vite-plus/test";
 import { OpenSourceSection } from "@/app/features/home/components/open-source-section";
-import { OPEN_SOURCE_SECTION } from "@/app/features/home/data/homepage-content";
+import { OPEN_SOURCE_SECTION } from "@/app/config/home";
 
 describe("OpenSourceSection", () => {
   it("renders open-source content from unified homepage data", () => {

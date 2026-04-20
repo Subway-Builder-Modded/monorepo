@@ -5,7 +5,7 @@ import {
   ANALYTICS_LINKS,
   ANALYTICS_PREVIEW,
   ANALYTICS_SECTION,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 
 describe("AnalyticsSection", () => {
   it("renders analytics content and all suite analytics links", () => {

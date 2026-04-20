@@ -1,9 +1,16 @@
-import type { DocsConfig, DocsSuiteConfig, DocsSuiteId, DocsVersionConfig } from "./types";
-import { railyardDocsConfig } from "./suites/railyard";
-import { registryDocsConfig } from "./suites/registry";
-import { templateModDocsConfig } from "./suites/template-mod";
+import type {
+  DocsConfig,
+  DocsRouteVersion,
+  DocsSidebarOrderItem,
+  DocsSuiteConfig,
+  DocsSuiteId,
+  DocsVersionConfig,
+} from "./types";
+import { railyardDocsConfig } from "../railyard/docs";
+import { registryDocsConfig } from "../registry/docs";
+import { templateModDocsConfig } from "../template-mod/docs";
 
-export type { DocsConfig, DocsSuiteConfig, DocsSuiteId, DocsVersionConfig };
+export type { DocsConfig, DocsSuiteConfig, DocsSuiteId, DocsVersionConfig, DocsRouteVersion };
 export type { DocsSidebarOrderItem, DocsVersionStatus, DocsHomepageConfig } from "./types";
 export { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "./shared";
 
@@ -20,30 +27,54 @@ export function getDocsSuiteConfig(suiteId: DocsSuiteId): DocsSuiteConfig | null
   return config?.enabled ? config : null;
 }
 
+export function isVersionedDocsSuite(suiteId: DocsSuiteId): boolean {
+  const suite = getDocsSuiteConfig(suiteId);
+  return suite?.versioned === true;
+}
+
 export function getDocsVersion(
   suiteId: DocsSuiteId,
   version: string,
 ): DocsVersionConfig | null {
   const suite = getDocsSuiteConfig(suiteId);
-  if (!suite) return null;
+  if (!suite || !suite.versioned) return null;
   return suite.versions.find((v) => v.value === version) ?? null;
 }
 
 export function getLatestVersion(suiteId: DocsSuiteId): string | null {
   const suite = getDocsSuiteConfig(suiteId);
-  return suite?.latestVersion ?? null;
+  if (!suite || !suite.versioned) return null;
+  return suite.latestVersion;
 }
 
 export function getVisibleVersions(suiteId: DocsSuiteId): DocsVersionConfig[] {
   const suite = getDocsSuiteConfig(suiteId);
-  if (!suite) return [];
+  if (!suite || !suite.versioned) return [];
   return suite.versions.filter((v) => !v.hidden);
 }
 
-export function getSidebarOrder(suiteId: DocsSuiteId, version: string) {
+export function getSidebarOrder(
+  suiteId: DocsSuiteId,
+  version: DocsRouteVersion,
+): DocsSidebarOrderItem[] {
   const suite = getDocsSuiteConfig(suiteId);
   if (!suite) return [];
-  return suite.sidebarOrder[version] ?? [];
+
+  if (!suite.versioned) {
+    return suite.sidebarOrder;
+  }
+
+  if (!version) {
+    return [];
+  }
+
+  return suite.sidebarOrderByVersion[version] ?? [];
+}
+
+export function getDefaultRouteVersion(suiteId: DocsSuiteId): DocsRouteVersion {
+  const suite = getDocsSuiteConfig(suiteId);
+  if (!suite) return null;
+  return suite.versioned ? suite.latestVersion : null;
 }
 
 export function isDocsSuiteId(id: string): id is DocsSuiteId {

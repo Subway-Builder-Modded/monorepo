@@ -1,6 +1,7 @@
 import type { SiteSuiteId } from "@/app/config/site-navigation";
 
 export type DocsSuiteId = Extract<SiteSuiteId, "railyard" | "registry" | "template-mod">;
+export type DocsRouteVersion = string | null;
 
 export type DocsVersionStatus = "latest" | "supported" | "deprecated";
 
@@ -22,15 +23,26 @@ export type DocsHomepageConfig = {
   heroTitle?: string;
 };
 
-export type DocsSuiteConfig = {
+type DocsSuiteConfigBase = {
   suiteId: DocsSuiteId;
   enabled: boolean;
   editSourceBaseUrl: string;
-  latestVersion: string;
-  versions: DocsVersionConfig[];
-  sidebarOrder: Record<string, DocsSidebarOrderItem[]>;
   homepage: DocsHomepageConfig;
 };
+
+export type VersionedDocsSuiteConfig = DocsSuiteConfigBase & {
+  versioned: true;
+  latestVersion: string;
+  versions: DocsVersionConfig[];
+  sidebarOrderByVersion: Record<string, DocsSidebarOrderItem[]>;
+};
+
+export type NonVersionedDocsSuiteConfig = DocsSuiteConfigBase & {
+  versioned: false;
+  sidebarOrder: DocsSidebarOrderItem[];
+};
+
+export type DocsSuiteConfig = VersionedDocsSuiteConfig | NonVersionedDocsSuiteConfig;
 
 export type DocsConfig = {
   suites: Record<DocsSuiteId, DocsSuiteConfig>;

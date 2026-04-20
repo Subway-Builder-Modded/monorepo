@@ -12,7 +12,7 @@ import {
   HERO_DESCRIPTION,
   HERO_CTA_GITHUB,
   HERO_CTA_DISCORD,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 import { HeroCreditsTooltip } from "@/app/features/home/components/hero-credits-tooltip";
 
 const HERO_BLUR_MASK =

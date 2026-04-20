@@ -1,9 +1,10 @@
-import type { DocsSuiteConfig } from "@/app/features/docs/config/types";
-import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "@/app/features/docs/config/shared";
+import type { DocsSuiteConfig } from "../docs/types";
+import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const templateModDocsConfig: DocsSuiteConfig = {
   suiteId: "template-mod",
   enabled: true,
+  versioned: true,
   editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/template-mod`,
   latestVersion: "v1.0",
   versions: [
@@ -14,7 +15,7 @@ export const templateModDocsConfig: DocsSuiteConfig = {
       releaseDate: "2026-02-10",
     },
   ],
-  sidebarOrder: {
+  sidebarOrderByVersion: {
     "v1.0": [
       "getting-started",
       "project-structure",

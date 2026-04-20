@@ -1,6 +1,5 @@
 import * as icons from "lucide-react";
 import type { ComponentType } from "react";
-import { FileQuestion } from "lucide-react";
 
 type IconProps = { className?: string; "aria-hidden"?: boolean };
 type LucideIcon = ComponentType<IconProps>;
@@ -13,14 +12,14 @@ export function resolveIcon(name: string): LucideIcon {
   }
 
   const resolved = (icons as Record<string, unknown>)[name];
-  if (typeof resolved === "function") {
+  if (
+    resolved != null &&
+    (typeof resolved === "function" ||
+      (typeof resolved === "object" && "$$typeof" in (resolved as object)))
+  ) {
     iconCache.set(name, resolved as LucideIcon);
     return resolved as LucideIcon;
   }
 
-  if (import.meta.env.DEV) {
-    console.warn(`[docs] Unknown icon name: "${name}". Using fallback.`);
-  }
-
-  return FileQuestion;
+  throw new Error(`[docs] Unknown icon name: "${name}"`);
 }

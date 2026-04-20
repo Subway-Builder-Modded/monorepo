@@ -73,10 +73,9 @@ Some text.
   });
 
   it("ignores invalid id syntax", () => {
-    // Capital letters not matched by the pattern
-    const tree = parseWithPlugin("## Heading {#Invalid}");
+    // Spaces are not valid in explicit IDs
+    const tree = parseWithPlugin("## Heading {#invalid id}");
     const headings = getHeadings(tree);
-    // The pattern requires lowercase start: [a-z0-9]
     expect(headings[0].data).toBeUndefined();
   });
 });

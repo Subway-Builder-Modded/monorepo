@@ -6,6 +6,7 @@ import {
   getVisibleVersions,
   getSidebarOrder,
   isDocsSuiteId,
+  isVersionedDocsSuite,
 } from "@/app/config/docs";
 
 describe("isDocsSuiteId", () => {
@@ -35,7 +36,7 @@ describe("getDocsSuiteConfig", () => {
     const config = getDocsSuiteConfig("registry");
     expect(config).not.toBeNull();
     expect(config!.suiteId).toBe("registry");
-    expect(config!.latestVersion).toBe("v1.0");
+    expect(config!.versioned).toBe(false);
   });
 
   it("returns config for template-mod", () => {
@@ -63,6 +64,10 @@ describe("getDocsVersion", () => {
   it("returns null for nonexistent version", () => {
     expect(getDocsVersion("railyard", "v9.9")).toBeNull();
   });
+
+  it("returns null for non-versioned registry", () => {
+    expect(getDocsVersion("registry", "v1.0")).toBeNull();
+  });
 });
 
 describe("getLatestVersion", () => {
@@ -72,6 +77,10 @@ describe("getLatestVersion", () => {
 
   it("returns latest version for template-mod", () => {
     expect(getLatestVersion("template-mod")).toBe("v1.0");
+  });
+
+  it("returns null for non-versioned registry", () => {
+    expect(getLatestVersion("registry")).toBeNull();
   });
 });
 
@@ -87,6 +96,11 @@ describe("getVisibleVersions", () => {
     const versions = getVisibleVersions("template-mod");
     expect(versions.length).toBe(1);
     expect(versions[0].value).toBe("v1.0");
+  });
+
+  it("returns empty array for non-versioned registry", () => {
+    const versions = getVisibleVersions("registry");
+    expect(versions).toEqual([]);
   });
 });
 
@@ -108,8 +122,8 @@ describe("getSidebarOrder", () => {
     expect(order[0]).toBe("getting-started");
   });
 
-  it("returns sidebar order for registry v1.0", () => {
-    const order = getSidebarOrder("registry", "v1.0");
+  it("returns sidebar order for non-versioned registry", () => {
+    const order = getSidebarOrder("registry", null);
     expect(order.length).toBe(5);
     expect(order[0]).toBe("publishing-projects");
   });
@@ -117,5 +131,16 @@ describe("getSidebarOrder", () => {
   it("returns empty array for unknown version", () => {
     const order = getSidebarOrder("railyard", "v9.9");
     expect(order).toEqual([]);
+  });
+});
+
+describe("isVersionedDocsSuite", () => {
+  it("returns true for versioned suites", () => {
+    expect(isVersionedDocsSuite("railyard")).toBe(true);
+    expect(isVersionedDocsSuite("template-mod")).toBe(true);
+  });
+
+  it("returns false for non-versioned suite", () => {
+    expect(isVersionedDocsSuite("registry")).toBe(false);
   });
 });

@@ -4,7 +4,7 @@ import {
   getHomeIcon,
   PEOPLE_DESTINATIONS,
   PEOPLE_SECTION,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 
 export function PeopleSection() {
   return (

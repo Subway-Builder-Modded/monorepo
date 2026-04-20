@@ -1,6 +1,6 @@
 import type { DocsTocHeading } from "./types";
 
-const HEADING_REGEX = /^(#{2,4})\s+(.+?)(?:\s+\{#([a-z0-9-]+)\})?$/gm;
+const HEADING_REGEX = /^(#{2,4})\s+(.+?)(?:\s+\{#([A-Za-z0-9._-]+)\})?$/gm;
 
 export function extractHeadings(raw: string): DocsTocHeading[] {
   const headings: DocsTocHeading[] = [];

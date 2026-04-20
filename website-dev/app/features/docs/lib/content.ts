@@ -1,47 +1,24 @@
 import type { DocsFrontmatter, DocsTreeNode, DocsTree } from "./types";
-import type { DocsSidebarOrderItem, DocsSuiteId } from "@/app/config/docs";
+import type { DocsRouteVersion, DocsSidebarOrderItem, DocsSuiteId } from "@/app/config/docs";
 import { getDocsSuiteConfig, getSidebarOrder, DOCS_CONTENT_ROOT } from "@/app/config/docs";
 // @ts-expect-error -- virtual module provided by mdxRawContentPlugin in vite.config
-import rawContentMap from "virtual:mdx-raw-content";
+import rawContentData from "virtual:mdx-raw-content";
 
 type RawMdxModule = {
   default: React.ComponentType;
 };
 
 type GlobResult = Record<string, () => Promise<RawMdxModule>>;
+type RawContentVirtualModule = {
+  rawByPath: Record<string, string>;
+  frontmatterByPath: Record<string, DocsFrontmatter>;
+};
 
 const mdxModules = import.meta.glob("/content/docs/**/*.mdx") as GlobResult;
-const mdxRawModules: Record<string, string> = rawContentMap;
-
-/**
- * Minimal browser-safe YAML frontmatter parser.
- * Handles simple key: value pairs from --- delimited blocks.
- * gray-matter uses Node.js Buffer which doesn't exist in browsers.
- */
-function parseSimpleFrontmatter(raw: string): Record<string, string | boolean> {
-  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!match) return {};
-  const data: Record<string, string | boolean> = {};
-  for (const line of match[1].split(/\r?\n/)) {
-    const m = line.match(/^(\w+)\s*:\s*(.+)/);
-    if (!m) continue;
-    const val = m[2].trim().replace(/^["']|["']$/g, "");
-    if (val === "true") data[m[1]] = true;
-    else if (val === "false") data[m[1]] = false;
-    else data[m[1]] = val;
-  }
-  return data;
-}
-
-function parseFrontmatter(raw: string): DocsFrontmatter {
-  const data = parseSimpleFrontmatter(raw);
-  return {
-    title: (data.title as string) ?? "Untitled",
-    description: (data.description as string) ?? "",
-    icon: (data.icon as string) ?? "FileText",
-    hidden: data.hidden === true,
-  };
-}
+const mdxRawModules: Record<string, string> =
+  (rawContentData as RawContentVirtualModule).rawByPath;
+const mdxFrontmatterModules: Record<string, DocsFrontmatter> =
+  (rawContentData as RawContentVirtualModule).frontmatterByPath;
 
 function getContentKey(filePath: string): string {
   return filePath
@@ -62,17 +39,11 @@ function discoverContent(): ContentEntry[] {
 
   for (const [filePath, loader] of Object.entries(mdxModules)) {
     const raw = mdxRawModules[filePath];
-    if (!raw) continue;
+    const frontmatter = mdxFrontmatterModules[filePath];
+    if (!raw || !frontmatter) continue;
 
     const key = getContentKey(filePath);
-    try {
-      const frontmatter = parseFrontmatter(raw);
-      entries.push({ key, filePath, frontmatter, loader, raw });
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      const stack = e instanceof Error ? e.stack : "";
-      throw new Error(`discoverContent failed on ${filePath}: ${msg}\n\nStack: ${stack}`);
-    }
+    entries.push({ key, filePath, frontmatter, loader, raw });
   }
 
   return entries;
@@ -80,21 +51,34 @@ function discoverContent(): ContentEntry[] {
 
 function getEntriesForSuiteVersion(
   entries: ContentEntry[],
-  suiteId: string,
-  version: string,
+  suiteId: DocsSuiteId,
+  version: DocsRouteVersion,
 ): ContentEntry[] {
-  const prefix = `${suiteId}/${version}/`;
+  const suiteConfig = getDocsSuiteConfig(suiteId);
+  if (!suiteConfig) return [];
+
+  const prefix = suiteConfig.versioned
+    ? `${suiteId}/${version}/`
+    : `${suiteId}/`;
+
   return entries.filter((e) => e.key.startsWith(prefix));
 }
 
 function buildTreeFromEntries(
   entries: ContentEntry[],
-  suiteId: string,
-  version: string,
+  suiteId: DocsSuiteId,
+  version: DocsRouteVersion,
   order: DocsSidebarOrderItem[],
 ): DocsTreeNode[] {
-  const prefix = `${suiteId}/${version}/`;
-  const basePath = `/${suiteId}/docs/${version}`;
+  const suiteConfig = getDocsSuiteConfig(suiteId);
+  if (!suiteConfig) return [];
+
+  const prefix = suiteConfig.versioned
+    ? `${suiteId}/${version}/`
+    : `${suiteId}/`;
+  const basePath = suiteConfig.versioned
+    ? `/${suiteId}/docs/${version}`
+    : `/${suiteId}/docs`;
 
   const entryBySlug = new Map<string, ContentEntry>();
   for (const entry of entries) {
@@ -152,8 +136,8 @@ function getContentEntries(): ContentEntry[] {
   return contentEntries;
 }
 
-export function getDocsTree(suiteId: DocsSuiteId, version: string): DocsTree {
-  const cacheKey = `${suiteId}:${version}`;
+export function getDocsTree(suiteId: DocsSuiteId, version: DocsRouteVersion): DocsTree {
+  const cacheKey = `${suiteId}:${version ?? "__no_version__"}`;
   const cached = treeCache.get(cacheKey);
   if (cached) return cached;
 
@@ -213,29 +197,48 @@ export function getDocRawContent(sourcePath: string): string | null {
 }
 
 export function getDocSourcePath(
-  suiteId: string,
-  version: string,
+  suiteId: DocsSuiteId,
+  version: DocsRouteVersion,
   slug: string,
 ): string {
+  const suiteConfig = getDocsSuiteConfig(suiteId);
+  if (!suiteConfig) {
+    return `/${DOCS_CONTENT_ROOT}/${suiteId}/${slug}.mdx`;
+  }
+
+  if (!suiteConfig.versioned) {
+    return `/${DOCS_CONTENT_ROOT}/${suiteId}/${slug}.mdx`;
+  }
+
   return `/${DOCS_CONTENT_ROOT}/${suiteId}/${version}/${slug}.mdx`;
 }
 
 export function getEditUrl(
   suiteId: DocsSuiteId,
-  version: string,
+  version: DocsRouteVersion,
   slug: string,
 ): string {
   const config = getDocsSuiteConfig(suiteId);
   if (!config) return "#";
+
+  if (!config.versioned) {
+    return `${config.editSourceBaseUrl}/${slug}.mdx`;
+  }
+
   return `${config.editSourceBaseUrl}/${version}/${slug}.mdx`;
 }
 
 export function validateFolderLandingPages(
   suiteId: DocsSuiteId,
-  version: string,
+  version: DocsRouteVersion,
 ): string[] {
   const entries = getContentEntries();
-  const prefix = `${suiteId}/${version}/`;
+  const suiteConfig = getDocsSuiteConfig(suiteId);
+  if (!suiteConfig) return [];
+
+  const prefix = suiteConfig.versioned
+    ? `${suiteId}/${version}/`
+    : `${suiteId}/`;
   const slugs = new Set<string>();
   const folders = new Set<string>();
 

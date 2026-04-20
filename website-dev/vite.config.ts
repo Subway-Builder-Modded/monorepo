@@ -7,7 +7,9 @@ import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkDirective from "remark-directive";
 import { remarkHeadingIds } from "./app/features/docs/mdx/remark-heading-ids";
+import { remarkStripFrontmatter } from "./app/features/docs/mdx/remark-strip-frontmatter";
 import { remarkAdmonitionDirectives } from "./app/features/docs/mdx/remark-admonitions";
+import { collectDocsContent, assertDocsContentValid } from "./app/config/docs/content-validation";
 import { defineConfig } from "vite-plus";
 import type { Plugin } from "vite-plus";
 
@@ -16,42 +18,30 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const VIRTUAL_RAW_MDX_ID = "virtual:mdx-raw-content";
 const RESOLVED_VIRTUAL_RAW_MDX_ID = "\0" + VIRTUAL_RAW_MDX_ID;
 
-function findMdxFiles(dir: string): string[] {
-  const results: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...findMdxFiles(fullPath));
-    } else if (entry.name.endsWith(".mdx")) {
-      results.push(fullPath);
-    }
-  }
-  return results;
-}
-
 /**
- * Vite plugin that provides raw MDX file content as a virtual module.
- * This avoids using import.meta.glob with ?raw which conflicts with
- * @mdx-js/rollup (its createFilter strips query params before matching,
- * causing it to compile raw imports as React components).
+ * Vite plugin that exposes validated raw MDX source and parsed frontmatter
+ * through a virtual module for runtime docs tree construction.
  */
 function mdxRawContentPlugin(): Plugin {
   const contentDir = path.join(__dirname, "content", "docs");
   return {
     name: "mdx-raw-content",
+    buildStart() {
+      assertDocsContentValid(contentDir);
+    },
     resolveId(id) {
       if (id === VIRTUAL_RAW_MDX_ID) return RESOLVED_VIRTUAL_RAW_MDX_ID;
     },
     load(id) {
       if (id !== RESOLVED_VIRTUAL_RAW_MDX_ID) return;
 
-      const files = findMdxFiles(contentDir);
-      const content: Record<string, string> = {};
-      for (const file of files) {
-        const relPath = "/" + path.relative(__dirname, file).replace(/\\/g, "/");
-        content[relPath] = fs.readFileSync(file, "utf-8");
+      const { rawByPath, frontmatterByPath, errors } = collectDocsContent(contentDir);
+      if (errors.length > 0) {
+        const details = errors.map((e) => ` - ${e}`).join("\n");
+        throw new Error(`[docs-content] Validation failed:\n${details}`);
       }
-      return `export default ${JSON.stringify(content)};`;
+
+      return `export default ${JSON.stringify({ rawByPath, frontmatterByPath })};`;
     },
   };
 }
@@ -62,7 +52,7 @@ function mdxRawContentPlugin(): Plugin {
  * The IDs are preserved in raw content (via mdxRawContentPlugin) for extractHeadings(),
  * and slugify() in the heading component produces matching IDs.
  */
-const HEADING_ID_RE = /^(#{2,4}\s+.+?)\s+\{#[a-z0-9][a-z0-9-]*\}\s*$/gm;
+const HEADING_ID_RE = /^(#{2,4}\s+.+?)\s+\{#[A-Za-z0-9._-]+\}\s*$/gm;
 
 function stripHeadingIds(code: string): string {
   if (!code.includes("{#")) return code;
@@ -113,6 +103,7 @@ export default defineConfig({
     mdx({
       remarkPlugins: [
         remarkFrontmatter,
+        remarkStripFrontmatter,
         remarkHeadingIds,
         remarkGfm,
         remarkDirective,

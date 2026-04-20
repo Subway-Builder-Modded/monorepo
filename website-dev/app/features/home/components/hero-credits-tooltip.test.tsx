@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { HeroCreditsTooltip } from "@/app/features/home/components/hero-credits-tooltip";
-import { HERO_SLIDES } from "@/app/features/home/data/homepage-content";
+import { HERO_SLIDES } from "@/app/config/home";
 
 describe("HeroCreditsTooltip", () => {
   const slide = HERO_SLIDES[0];

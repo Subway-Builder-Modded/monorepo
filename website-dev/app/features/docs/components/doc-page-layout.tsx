@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import { Link } from "@/app/lib/router";
 import { getSuiteById } from "@/app/config/site-navigation";
-import { getDocsVersion } from "@/app/config/docs";
+import { getDocsVersion, isVersionedDocsSuite } from "@/app/config/docs";
 import type { DocsSuiteId } from "@/app/config/docs";
 import {
   getDocsTree,
@@ -46,12 +46,13 @@ function Breadcrumbs({
   title,
 }: {
   suiteId: DocsSuiteId;
-  version: string;
+  version: string | null;
   slug: string;
   title: string;
 }) {
   const suite = getSuiteById(suiteId);
   const parts = slug.split("/");
+  const showVersion = isVersionedDocsSuite(suiteId) && !!version;
 
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
@@ -64,12 +65,16 @@ function Breadcrumbs({
             {suite.title}
           </Link>
         </li>
-        <li aria-hidden="true">
-          <ChevronRight className="size-3" />
-        </li>
-        <li>
-          <span className="text-muted-foreground/70">{version}</span>
-        </li>
+        {showVersion && (
+          <>
+            <li aria-hidden="true">
+              <ChevronRight className="size-3" />
+            </li>
+            <li>
+              <span className="text-muted-foreground/70">{version}</span>
+            </li>
+          </>
+        )}
         {parts.length > 1 &&
           parts.slice(0, -1).map((part, i) => {
             const parentSlug = parts.slice(0, i + 1).join("/");
@@ -198,12 +203,12 @@ export function DocPageLayout({
   slug,
 }: {
   suiteId: DocsSuiteId;
-  version: string;
+  version: string | null;
   slug: string;
 }) {
   const tree = getDocsTree(suiteId, version);
   const node = findTreeNode(tree, slug);
-  const versionConfig = getDocsVersion(suiteId, version);
+  const versionConfig = version ? getDocsVersion(suiteId, version) : null;
   const isDeprecated = versionConfig?.status === "deprecated";
 
   const sourcePath = node?.sourcePath ?? getDocSourcePath(suiteId, version, slug);
@@ -228,7 +233,7 @@ export function DocPageLayout({
             <FileQuestion className="size-12 text-muted-foreground" aria-hidden="true" />
             <h1 className="text-lg font-bold text-foreground">Page Not Found</h1>
             <p className="text-sm text-muted-foreground">
-              The documentation page &quot;{slug}&quot; was not found in {version}.
+              The documentation page &quot;{slug}&quot; was not found{version ? ` in ${version}` : ""}.
             </p>
             <Link
               to={getDocsHomepageUrl(suiteId, version)}
@@ -259,7 +264,7 @@ export function DocPageLayout({
           currentSlug={slug}
         />
 
-        {isDeprecated && <DeprecatedBanner version={version} />}
+        {isDeprecated && version && <DeprecatedBanner version={version} />}
 
         <Breadcrumbs
           suiteId={suiteId}

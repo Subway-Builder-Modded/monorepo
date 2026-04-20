@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vite-plus/test";
-import { matchDocsRoute, resolveDocsRoute, getDocsHomepageUrl, getDocPageUrl } from "@/app/features/docs/lib/routing";
+import {
+  getDocPageUrl,
+  getDocsHomepageUrl,
+  matchDocsRoute,
+  resolveDocsRoute,
+} from "@/app/features/docs/lib/routing";
 
 describe("matchDocsRoute", () => {
   it("returns none for non-docs paths", () => {
@@ -12,25 +17,29 @@ describe("matchDocsRoute", () => {
     expect(matchDocsRoute("/unknown/docs", "")).toEqual({ kind: "none" });
   });
 
-  it("matches railyard docs homepage", () => {
-    const result = matchDocsRoute("/railyard/docs", "");
-    expect(result).toEqual({
+  it("matches versioned docs homepages", () => {
+    expect(matchDocsRoute("/railyard/docs", "")).toEqual({
       kind: "homepage",
       suiteId: "railyard",
       version: "v0.2",
     });
-  });
 
-  it("matches template-mod docs homepage", () => {
-    const result = matchDocsRoute("/template-mod/docs", "");
-    expect(result).toEqual({
+    expect(matchDocsRoute("/template-mod/docs", "")).toEqual({
       kind: "homepage",
       suiteId: "template-mod",
       version: "v1.0",
     });
   });
 
-  it("matches docs homepage with version query param", () => {
+  it("matches non-versioned registry homepage", () => {
+    expect(matchDocsRoute("/registry/docs", "")).toEqual({
+      kind: "homepage",
+      suiteId: "registry",
+      version: null,
+    });
+  });
+
+  it("matches docs homepage with version query param for versioned suites", () => {
     const result = matchDocsRoute("/railyard/docs", "?version=v0.1");
     expect(result).toEqual({
       kind: "homepage",
@@ -39,15 +48,20 @@ describe("matchDocsRoute", () => {
     });
   });
 
-  it("redirects latest alias to actual version", () => {
-    const result = matchDocsRoute("/railyard/docs", "?version=latest");
-    expect(result).toEqual({
+  it("redirects latest alias only for versioned suites", () => {
+    expect(matchDocsRoute("/railyard/docs", "?version=latest")).toEqual({
       kind: "redirect",
       to: "/railyard/docs?version=v0.2",
     });
+
+    // Non-versioned suites canonicalize to no query
+    expect(matchDocsRoute("/registry/docs", "?version=latest")).toEqual({
+      kind: "redirect",
+      to: "/registry/docs",
+    });
   });
 
-  it("redirects unknown version param to latest", () => {
+  it("redirects unknown version query param to latest for versioned suites", () => {
     const result = matchDocsRoute("/railyard/docs", "?version=v9.9");
     expect(result).toEqual({
       kind: "redirect",
@@ -55,19 +69,15 @@ describe("matchDocsRoute", () => {
     });
   });
 
-  it("matches doc page with version and slug", () => {
-    const result = matchDocsRoute("/railyard/docs/v0.2/players", "");
-    expect(result).toEqual({
+  it("matches versioned doc pages", () => {
+    expect(matchDocsRoute("/railyard/docs/v0.2/players", "")).toEqual({
       kind: "doc",
       suiteId: "railyard",
       version: "v0.2",
       slug: "players",
     });
-  });
 
-  it("matches doc page with deep slug", () => {
-    const result = matchDocsRoute("/railyard/docs/v0.2/players/github-token", "");
-    expect(result).toEqual({
+    expect(matchDocsRoute("/railyard/docs/v0.2/players/github-token", "")).toEqual({
       kind: "doc",
       suiteId: "railyard",
       version: "v0.2",
@@ -75,23 +85,35 @@ describe("matchDocsRoute", () => {
     });
   });
 
-  it("redirects /latest/ paths to actual version", () => {
-    const result = matchDocsRoute("/railyard/docs/latest", "");
-    expect(result).toEqual({
-      kind: "redirect",
-      to: "/railyard/docs?version=v0.2",
+  it("matches non-versioned registry doc pages", () => {
+    expect(matchDocsRoute("/registry/docs/publishing-projects", "")).toEqual({
+      kind: "doc",
+      suiteId: "registry",
+      version: null,
+      slug: "publishing-projects",
+    });
+
+    expect(matchDocsRoute("/registry/docs/latest", "")).toEqual({
+      kind: "doc",
+      suiteId: "registry",
+      version: null,
+      slug: "latest",
     });
   });
 
-  it("redirects /latest/slug paths to versioned slug", () => {
-    const result = matchDocsRoute("/railyard/docs/latest/players/github-token", "");
-    expect(result).toEqual({
+  it("redirects /latest aliases only for versioned suites", () => {
+    expect(matchDocsRoute("/railyard/docs/latest", "")).toEqual({
+      kind: "redirect",
+      to: "/railyard/docs?version=v0.2",
+    });
+
+    expect(matchDocsRoute("/railyard/docs/latest/players/github-token", "")).toEqual({
       kind: "redirect",
       to: "/railyard/docs/v0.2/players/github-token",
     });
   });
 
-  it("returns not-found for unknown version in path", () => {
+  it("returns not-found for unknown version in versioned path", () => {
     const result = matchDocsRoute("/railyard/docs/v9.9/something", "");
     expect(result).toEqual({
       kind: "not-found",
@@ -102,7 +124,7 @@ describe("matchDocsRoute", () => {
 });
 
 describe("resolveDocsRoute", () => {
-  it("resolves homepage to ResolvedDocsRoute", () => {
+  it("resolves versioned homepage", () => {
     const result = resolveDocsRoute("/railyard/docs", "");
     expect(result).toEqual({
       suiteId: "railyard",
@@ -112,12 +134,28 @@ describe("resolveDocsRoute", () => {
     });
   });
 
-  it("resolves doc page to ResolvedDocsRoute", () => {
-    const result = resolveDocsRoute("/railyard/docs/v0.2/players/github-token", "");
+  it("resolves non-versioned homepage", () => {
+    const result = resolveDocsRoute("/registry/docs", "");
     expect(result).toEqual({
+      suiteId: "registry",
+      version: null,
+      docSlug: null,
+      isHomepage: true,
+    });
+  });
+
+  it("resolves doc pages", () => {
+    expect(resolveDocsRoute("/railyard/docs/v0.2/players/github-token", "")).toEqual({
       suiteId: "railyard",
       version: "v0.2",
       docSlug: "players/github-token",
+      isHomepage: false,
+    });
+
+    expect(resolveDocsRoute("/registry/docs/publishing-projects", "")).toEqual({
+      suiteId: "registry",
+      version: null,
+      docSlug: "publishing-projects",
       isHomepage: false,
     });
   });
@@ -127,23 +165,25 @@ describe("resolveDocsRoute", () => {
     expect(resolveDocsRoute("/railyard", "")).toBeNull();
   });
 
-  it("returns null for redirect (caller handles redirect)", () => {
+  it("returns null for redirects", () => {
     expect(resolveDocsRoute("/railyard/docs/latest", "")).toBeNull();
   });
 });
 
 describe("URL helpers", () => {
-  it("getDocsHomepageUrl without version", () => {
+  it("builds homepage URLs for versioned and non-versioned suites", () => {
     expect(getDocsHomepageUrl("railyard")).toBe("/railyard/docs");
-  });
-
-  it("getDocsHomepageUrl with version", () => {
     expect(getDocsHomepageUrl("railyard", "v0.1")).toBe("/railyard/docs?version=v0.1");
+    expect(getDocsHomepageUrl("registry", null)).toBe("/registry/docs");
   });
 
-  it("getDocPageUrl builds correct URL", () => {
+  it("builds doc page URLs for versioned and non-versioned suites", () => {
     expect(getDocPageUrl("railyard", "v0.2", "players/github-token")).toBe(
       "/railyard/docs/v0.2/players/github-token",
+    );
+
+    expect(getDocPageUrl("registry", null, "publishing-projects")).toBe(
+      "/registry/docs/publishing-projects",
     );
   });
 });

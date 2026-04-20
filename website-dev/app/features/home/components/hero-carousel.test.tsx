@@ -6,7 +6,7 @@ import {
   HERO_SLIDES,
   HERO_TITLE_LINE_1,
   HERO_TITLE_LINE_2,
-} from "@/app/features/home/data/homepage-content";
+} from "@/app/config/home";
 
 describe("HeroCarousel", () => {
   beforeEach(() => {
