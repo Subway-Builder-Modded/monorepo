@@ -11,7 +11,7 @@ import { registryDocsConfig } from "../registry/docs";
 import { templateModDocsConfig } from "../template-mod/docs";
 
 export type { DocsConfig, DocsSuiteConfig, DocsSuiteId, DocsVersionConfig, DocsRouteVersion };
-export type { DocsSidebarOrderItem, DocsVersionStatus, DocsHomepageConfig } from "./types";
+export type { DocsSidebarOrderItem, DocsVersionStatus, DocsHomepageConfig, DocsFrontmatter } from "./types";
 export { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "./shared";
 
 export const DOCS_CONFIG: DocsConfig = {

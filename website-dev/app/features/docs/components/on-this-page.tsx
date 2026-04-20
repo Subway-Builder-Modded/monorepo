@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowUpToLine, Copy, Pencil } from "lucide-react";
-import { SuiteAccentInlineAction, SuiteAccentLink } from "@subway-builder-modded/shared-ui";
+import { SuiteAccentButton, SuiteAccentInlineAction } from "@subway-builder-modded/shared-ui";
 import { cn } from "@/app/lib/utils";
 import { mdxToMarkdown } from "@/app/features/docs/lib/markdown-copy";
 import type { DocsTocHeading } from "@/app/features/docs/lib/types";
@@ -92,15 +92,12 @@ export function OnThisPage({
             </SuiteAccentInlineAction>
 
             {editUrl ? (
-              <SuiteAccentLink
-                href={editUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-7 gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)] px-2 text-[11px] no-underline decoration-transparent hover:no-underline dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)]"
-              >
-                <Pencil className="size-3" aria-hidden="true" />
-                Edit
-              </SuiteAccentLink>
+              <SuiteAccentButton asChild tone="outline" className="h-7 gap-1.5 rounded-md px-2 text-[11px]">
+                <a href={editUrl} target="_blank" rel="noopener noreferrer">
+                  <Pencil className="size-3" aria-hidden="true" />
+                  Edit
+                </a>
+              </SuiteAccentButton>
             ) : null}
 
             {rawContent ? (

@@ -35,6 +35,13 @@ describe("docs config ownership and architecture", () => {
     expect(fs.existsSync(legacyPath)).toBe(false);
   });
 
+  it("keeps docs config-layer types independent from feature-layer imports", () => {
+    const validationPath = workspacePath("app", "config", "docs", "content-validation.ts");
+    const source = fs.readFileSync(validationPath, "utf-8");
+
+    expect(source).not.toContain("features/docs/lib/types");
+  });
+
   it("covers both versioned and non-versioned suites in one canonical config map", () => {
     expect(DOCS_CONFIG.suites.railyard.versioned).toBe(true);
     expect(DOCS_CONFIG.suites["template-mod"].versioned).toBe(true);

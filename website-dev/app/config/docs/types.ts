@@ -5,6 +5,13 @@ export type DocsRouteVersion = string | null;
 
 export type DocsVersionStatus = "latest" | "supported" | "deprecated";
 
+export type DocsFrontmatter = {
+  title: string;
+  description: string;
+  icon: string;
+  hidden?: boolean;
+};
+
 export type DocsVersionConfig = {
   value: string;
   label: string;

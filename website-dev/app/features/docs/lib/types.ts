@@ -1,9 +1,4 @@
-export type DocsFrontmatter = {
-  title: string;
-  description: string;
-  icon: string;
-  hidden?: boolean;
-};
+import type { DocsFrontmatter } from "@/app/config/docs";
 
 export type DocsTreeNode = {
   kind: "page" | "landing";

@@ -3,8 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import * as icons from "lucide-react";
 import { DOCS_CONFIG } from "./index";
-import type { DocsRouteVersion, DocsSuiteId } from "./types";
-import type { DocsFrontmatter } from "../../features/docs/lib/types";
+import type { DocsRouteVersion, DocsSuiteId, DocsFrontmatter } from "./types";
 
 type ParsedContentFile = {
   absolutePath: string;
