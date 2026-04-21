@@ -1,5 +1,7 @@
+'use client';
+
 import { useEffect, useState, type CSSProperties } from 'react';
-import { cn } from '../lib/cn';
+
 import { TerminalFrame } from './terminal-frame';
 
 export type CodeDisplayProps = {
