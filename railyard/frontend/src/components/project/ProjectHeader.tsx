@@ -132,7 +132,12 @@ export function ProjectHeader({
   const installedVersion = getInstalledVersion(item.id);
   const installing = isInstalling(item.id);
   const uninstalling = isUninstalling(item.id);
-  const effectiveVersion = latestCompatibleVersion ?? latestVersion;
+  const noCompatibleVersion = Boolean(
+    gameVersion && latestVersion && !latestCompatibleVersion,
+  );
+  const effectiveVersion = noCompatibleVersion
+    ? undefined
+    : (latestCompatibleVersion ?? latestVersion);
   const [pendingLatestVersion, setPendingLatestVersion] = useState<
     string | null
   >(null);
@@ -176,8 +181,6 @@ export function ProjectHeader({
     installedVersion !== updateTargetVersion;
   const authorAlias = item.author.author_alias;
   const authorAttributionLink = item.author.attribution_link;
-  const noCompatibleVersion =
-    gameVersion && latestVersion && !latestCompatibleVersion;
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
     try {
@@ -311,7 +314,9 @@ export function ProjectHeader({
         installUpdateTooltip = 'Uninstalling...';
         break;
       case !!noCompatibleVersion:
-        installUpdateTooltip = `No compatible version (game ${gameVersion})`;
+        installUpdateTooltip = latestVersion?.game_version
+          ? `Not compatible with your game version (you have ${gameVersion}, need ${latestVersion.game_version})`
+          : `No compatible version for game ${gameVersion}`;
         break;
       case !!effectiveVersion:
         installUpdateTooltip = `Install ${effectiveVersion!.version}`;
@@ -369,30 +374,32 @@ export function ProjectHeader({
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className={cn(
-                  installing
-                    ? cn(
-                        UNINSTALL_ACCENT.iconButton,
-                        '!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)]',
-                      )
-                    : cn(installUpdateAccent.iconButton, ACTION_ICON_BASE),
-                )}
-                disabled={installUpdateDisabled}
-                onClick={() => {
-                  void handleInstallUpdateClick();
-                }}
-              >
-                {installing ? (
-                  <X />
-                ) : isInstalled ? (
-                  <CircleFadingArrowUp />
-                ) : (
-                  <Download />
-                )}
-              </Button>
+              <span className="inline-flex">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className={cn(
+                    installing
+                      ? cn(
+                          UNINSTALL_ACCENT.iconButton,
+                          '!bg-[color-mix(in_srgb,var(--local-tone-primary)_20%,transparent)]',
+                        )
+                      : cn(installUpdateAccent.iconButton, ACTION_ICON_BASE),
+                  )}
+                  disabled={installUpdateDisabled}
+                  onClick={() => {
+                    void handleInstallUpdateClick();
+                  }}
+                >
+                  {installing ? (
+                    <X />
+                  ) : isInstalled ? (
+                    <CircleFadingArrowUp />
+                  ) : (
+                    <Download />
+                  )}
+                </Button>
+              </span>
             </TooltipTrigger>
             <TooltipContent>{installUpdateTooltip}</TooltipContent>
           </Tooltip>

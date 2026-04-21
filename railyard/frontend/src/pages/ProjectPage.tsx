@@ -24,7 +24,7 @@ import { Link, useRoute } from 'wouter';
 import { ProjectGallery } from '@/components/project/ProjectGallery';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
 import { ProjectVersions } from '@/components/project/ProjectVersions';
-import { isCompatible } from '@/lib/semver';
+import { selectLatestCompatibleVersion } from '@/lib/version-compatibility';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
@@ -136,13 +136,8 @@ export function ProjectPage() {
 
   const latestVersion = versions[0];
   const latestCompatibleVersion = useMemo(() => {
-    if (!gameVersion) return latestVersion;
-    return (
-      versions.find(
-        (v) => isCompatible(gameVersion, v.game_version) !== false,
-      ) ?? latestVersion
-    );
-  }, [versions, gameVersion, latestVersion]);
+    return selectLatestCompatibleVersion(versions, gameVersion);
+  }, [versions, gameVersion]);
 
   const totalDownloads = id
     ? type === 'mod'
