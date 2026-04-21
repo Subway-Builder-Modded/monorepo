@@ -35,6 +35,12 @@ type NavDropdownProps = {
   className?: string;
   triggerClassName?: string;
   menuClassName?: string;
+  /**
+   * Inline style applied to the portaled menu container. Use this to inject
+   * CSS variables (e.g. suite accent vars) that would otherwise not cascade
+   * because the menu is rendered into document.body.
+   */
+  menuStyle?: CSSProperties;
 };
 
 type MenuPosition = {
@@ -54,6 +60,7 @@ export function NavDropdown({
   className,
   triggerClassName,
   menuClassName,
+  menuStyle,
 }: NavDropdownProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -127,6 +134,7 @@ export function NavDropdown({
               left: menuPosition.left,
               top: menuPosition.top,
               minWidth: menuPosition.minWidth,
+              ...menuStyle,
             }}
           >
             <ul id={listboxId} role="listbox" aria-label={triggerLabel} className="space-y-1">

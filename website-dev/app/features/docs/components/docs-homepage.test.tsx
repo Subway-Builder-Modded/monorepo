@@ -98,7 +98,7 @@ describe("DocsHomepage", () => {
     expect(cardsRegion).toBeTruthy();
   });
 
-  it("renders stacked utility-style hero actions with configured icons", () => {
+  it("renders stacked, right-aligned utility-style hero actions with configured icons", () => {
     render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
     const heading = screen.getByRole("heading", { level: 1 });
@@ -117,6 +117,9 @@ describe("DocsHomepage", () => {
 
     const actionsWrap = download.parentElement;
     expect(actionsWrap?.className).toContain("flex-col");
+    // Actions stack must be right-aligned (items aligned to the end of the
+    // column) so they read as utility actions and not left-justified buttons.
+    expect(actionsWrap?.className).toContain("items-end");
     expect(actionsWrap?.contains(analytics)).toBe(true);
   });
 
@@ -136,12 +139,19 @@ describe("DocsHomepage", () => {
   it("hero title and icon are sourced from shared identity (not duplicated per suite docs config)", () => {
     render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
-    // Title combines the shared "Documentation" with the suite's own title from
-    // site-navigation. We never want each suite docs config to redeclare these.
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Railyard Documentation");
+    // Title is the shared docs identity. Suite identity is reflected in the
+    // adjacent SuiteBadge, never redeclared per suite docs config.
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Documentation");
+    expect(screen.getByText("Railyard").closest('[data-slot="suite-badge"]')).toBeTruthy();
 
-    // Icon is the shared docs identity icon. The hero also has a SuiteBadge
-    // showing the suite icon for branding identity.
+    // Icon is the shared docs identity icon.
     expect(screen.getByTestId("docs-homepage-hero-icon")).toBeInTheDocument();
+  });
+
+  it("hero description is sourced from the shared site-navigation docs entry", () => {
+    render(<DocsHomepage suiteId="railyard" version="v0.2" />);
+    expect(
+      screen.getByText("The official documentation for the Railyard app."),
+    ).toBeInTheDocument();
   });
 });

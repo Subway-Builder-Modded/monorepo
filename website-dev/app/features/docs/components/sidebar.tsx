@@ -120,24 +120,28 @@ export function DocsSidebar({
             DOCS_SURFACE_BORDER_CLASS,
           )}
         >
+          {/*
+            Collapse button is absolutely positioned in the top-right corner so
+            it never competes for inline space inside the header rows. Without
+            this, the suite badge could be squeezed/truncated by the button.
+          */}
+          <button
+            type="button"
+            onClick={() => setCollapsedState(true)}
+            className={cn(
+              "absolute right-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors",
+              "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
+              "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
+            )}
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="size-4" />
+          </button>
+
           <div className="border-b border-border/50 px-3 py-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                Documentation
-              </span>
-              <button
-                type="button"
-                onClick={() => setCollapsedState(true)}
-                className={cn(
-                  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors",
-                  "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
-                  "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
-                )}
-                aria-label="Collapse sidebar"
-              >
-                <PanelLeftClose className="size-4" />
-              </button>
-            </div>
+            <span className="block pr-9 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Documentation
+            </span>
 
             <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="mt-2 block min-w-0">
               <SuiteBadge

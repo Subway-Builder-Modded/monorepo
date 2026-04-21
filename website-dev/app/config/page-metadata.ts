@@ -2,12 +2,12 @@ import {
   getActiveSuite,
   getMatchingItem,
   getSuiteById,
+  getSuiteDocsNavItem,
   type SiteSuite,
   type SiteSuiteId,
 } from "@/app/config/site-navigation";
 import { matchDocsRoute } from "@/app/features/docs/lib/routing";
 import { getDocsTree, findTreeNode } from "@/app/features/docs/lib/content";
-import { getDocsSuiteConfig } from "@/app/config/docs";
 import { DOCS_HOMEPAGE_TITLE } from "@/app/config/docs/shared";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
@@ -65,14 +65,13 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
   const docsMatch = matchDocsRoute(normalizedPathname, "");
   if (docsMatch.kind === "homepage" || docsMatch.kind === "doc") {
     const suite = getSuiteById(docsMatch.suiteId);
-    const config = getDocsSuiteConfig(docsMatch.suiteId);
 
     if (docsMatch.kind === "homepage") {
-      const title = `${DOCS_HOMEPAGE_TITLE}`;
+      const title = DOCS_HOMEPAGE_TITLE;
       return {
         pathname: normalizedPathname,
         title,
-        description: config?.homepage.description ?? DEFAULT_SITE_DESCRIPTION,
+        description: getSuiteDocsNavItem(docsMatch.suiteId)?.description ?? DEFAULT_SITE_DESCRIPTION,
         suite,
         pageTitle: `${title} | ${suite.title}`,
         imagePath: getSuiteImagePath(docsMatch.suiteId),

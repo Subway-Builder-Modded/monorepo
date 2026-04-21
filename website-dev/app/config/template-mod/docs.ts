@@ -28,7 +28,6 @@ export const templateModDocsConfig: DocsSuiteConfig = {
     ],
   },
   homepage: {
-    description: "The official documentation for the Subway Builder Modded Template Mod.",
     actions: [
       {
         label: "Create From Template",

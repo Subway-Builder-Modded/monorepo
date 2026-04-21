@@ -4,7 +4,7 @@ import { ExternalLink } from "lucide-react";
 import { getDocsSuiteConfig, getDocsVersion, hasMultipleVisibleVersions } from "@/app/config/docs";
 import { DOCS_HOMEPAGE_ICON, DOCS_HOMEPAGE_TITLE } from "@/app/config/docs/shared";
 import type { DocsSuiteId } from "@/app/config/docs";
-import { getSuiteById } from "@/app/config/site-navigation";
+import { getSuiteById, getSuiteDocsNavItem } from "@/app/config/site-navigation";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { DocsDeprecatedNotice } from "@/app/features/docs/components/docs-deprecated-notice";
@@ -28,7 +28,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
   const actions = config.homepage.actions ?? [];
   const SuiteIcon = suite.icon;
   const HeroIcon = DOCS_HOMEPAGE_ICON;
-  const heroTitle = `${DOCS_HOMEPAGE_TITLE}`;
+  const description = getSuiteDocsNavItem(suiteId)?.description;
   const hasVersionChooser = hasMultipleVisibleVersions(suiteId) && version;
 
   return (
@@ -51,23 +51,23 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 pb-1">
             <h1 className="text-2xl font-bold tracking-[-0.015em] text-foreground sm:text-[1.6rem]">
-              {heroTitle}
+              {DOCS_HOMEPAGE_TITLE}
             </h1>
             <SuiteBadge className={SHARED_SUITE_BADGE_CLASS} accent={suite.accent}>
               <SuiteIcon className="size-3.5" aria-hidden={true} />
               <span className="max-w-[8rem] truncate">{suite.title}</span>
             </SuiteBadge>
           </div>
-          {config.homepage.description ? (
+          {description ? (
             <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {config.homepage.description}
+              {description}
             </p>
           ) : null}
         </div>
 
         {actions.length > 0 ? (
           <div className="hidden shrink-0 sm:block">
-            <div className="flex min-w-[8.75rem] flex-col items-stretch gap-1">
+            <div className="flex flex-col items-end gap-1">
               {actions.map((action) => {
                 const ActionIcon = action.icon;
                 const isExternal = action.external === true;
@@ -77,10 +77,10 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
                     href={action.href}
                     target={isExternal ? "_blank" : undefined}
                     rel={isExternal ? "noopener noreferrer" : undefined}
-                    className={cn(ACTION_CLASS, "justify-start")}
+                    className={ACTION_CLASS}
                   >
                     {ActionIcon ? <ActionIcon className="size-3" aria-hidden="true" /> : null}
-                    <span className="flex-1 text-left">{action.label}</span>
+                    <span>{action.label}</span>
                     {isExternal ? <ExternalLink className="size-3" aria-hidden="true" /> : null}
                   </a>
                 );

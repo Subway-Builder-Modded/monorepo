@@ -17,7 +17,6 @@ export const registryDocsConfig: DocsSuiteConfig = {
     "analytics-overview",
   ],
   homepage: {
-    description: "The official documentation for the Registry powering Subway Builder Modded.",
     actions: [
       {
         label: "View Registry",

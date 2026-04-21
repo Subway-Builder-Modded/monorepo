@@ -39,7 +39,6 @@ export const railyardDocsConfig: DocsSuiteConfig = {
     "v0.1": ["install-guide-windows", "install-guide-macos", "install-guide-linux", "github-token"],
   },
   homepage: {
-    description: "The official documentation for the Railyard app.",
     actions: [
       {
         label: "Download Railyard",

@@ -25,17 +25,19 @@ describe("docs config ownership and architecture", () => {
     expect(fs.existsSync(registryConfig)).toBe(true);
     expect(fs.existsSync(templateModConfig)).toBe(true);
 
-    // Suite-specific identity (description) lives in the suite docs config.
-    expect(DOCS_CONFIG.suites.railyard.homepage.description).toBeTruthy();
-    expect(DOCS_CONFIG.suites.registry.homepage.description).toBeTruthy();
-    expect(DOCS_CONFIG.suites["template-mod"].homepage.description).toBeTruthy();
-
-    // Hero title/icon are NOT duplicated per suite — they come from the shared docs identity
-    // and the shared site-navigation suite identity instead.
+    // Suite docs configs should NOT redeclare hero text. Title/icon come from
+    // the shared docs identity, and the description comes from each suite's
+    // `*-docs` entry in site-navigation (single source of truth).
     for (const suite of Object.values(DOCS_CONFIG.suites)) {
       expect("heroTitle" in suite.homepage).toBe(false);
       expect("heroIcon" in suite.homepage).toBe(false);
+      expect("description" in suite.homepage).toBe(false);
     }
+
+    const { getSuiteDocsNavItem } = await import("@/app/config/site-navigation");
+    expect(getSuiteDocsNavItem("railyard")?.description).toBeTruthy();
+    expect(getSuiteDocsNavItem("registry")?.description).toBeTruthy();
+    expect(getSuiteDocsNavItem("template-mod")?.description).toBeTruthy();
 
     const { DOCS_HOMEPAGE_TITLE, DOCS_HOMEPAGE_ICON } = await import("@/app/config/docs/shared");
     expect(DOCS_HOMEPAGE_TITLE).toBeTruthy();

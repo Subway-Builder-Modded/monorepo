@@ -38,7 +38,6 @@ export type DocsHomepageActions =
 export type DocsSidebarOrderItem = string | { key: string; children?: DocsSidebarOrderItem[] };
 
 export type DocsHomepageConfig = {
-  description: string;
   actions?: DocsHomepageActions;
 };
 

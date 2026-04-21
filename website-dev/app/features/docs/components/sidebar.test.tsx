@@ -64,8 +64,11 @@ describe("DocsSidebar", () => {
     expect(badge?.parentElement?.className).toContain("block");
 
     const collapseBtn = screen.getByRole("button", { name: "Collapse sidebar" });
-    // Collapse button must NOT share the same row as the badge.
-    expect(collapseBtn.parentElement?.contains(badge as Node)).toBe(false);
+    // Collapse button must not claim inline space inside any row that holds the
+    // badge: it is absolutely positioned in the card's top-right corner.
+    expect(collapseBtn.className).toContain("absolute");
+    const badgeRow = badge?.parentElement;
+    expect(badgeRow?.contains(collapseBtn)).toBe(false);
 
     const nav = screen.getByLabelText("Documentation navigation");
     // The nav must NOT be the inner scroll-panel of a fixed-height card.

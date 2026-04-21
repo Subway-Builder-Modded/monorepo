@@ -482,3 +482,12 @@ export function getMatchingItem(pathname: string, suiteId: SiteSuiteId): SiteNav
 
   return null;
 }
+
+/**
+ * Returns the site-navigation entry that owns a suite's `Docs` link. Used as
+ * the single source of truth for the docs hero/page metadata description so
+ * each suite docs config does not redeclare the same line.
+ */
+export function getSuiteDocsNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
+  return SITE_NAV_ITEMS.find((item) => item.id === `${suiteId}-docs`) ?? null;
+}

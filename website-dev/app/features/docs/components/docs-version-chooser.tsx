@@ -1,8 +1,13 @@
 import { useMemo, useState } from "react";
-import { NavDropdown, SuiteStatusChip } from "@subway-builder-modded/shared-ui";
+import {
+  NavDropdown,
+  SuiteStatusChip,
+  getSuiteAccentStyle,
+} from "@subway-builder-modded/shared-ui";
 import { cn } from "@/app/lib/utils";
 import { getDocsHomepageUrl, getVersionSwitchUrl } from "@/app/features/docs/lib/routing";
 import { getVisibleVersions, type DocsSuiteId } from "@/app/config/docs";
+import { getSuiteById } from "@/app/config/site-navigation";
 
 type DocsVersionChooserProps = {
   suiteId: DocsSuiteId;
@@ -30,6 +35,11 @@ export function DocsVersionChooser({
 }: DocsVersionChooserProps) {
   const [open, setOpen] = useState(false);
   const versions = getVisibleVersions(suiteId);
+  const suite = getSuiteById(suiteId);
+  // The dropdown menu portals into document.body, escaping any SuiteAccentScope
+  // wrapper. Inject the suite accent CSS variables onto the menu container so
+  // option tones and `LATEST` chips render with the correct suite color.
+  const accentStyle = useMemo(() => getSuiteAccentStyle(suite.accent), [suite.accent]);
 
   const options = useMemo(
     () =>
@@ -73,6 +83,7 @@ export function DocsVersionChooser({
       triggerLabel={triggerLabel}
       triggerClassName={cn(DEFAULT_TRIGGER_CLASS, triggerClassName)}
       menuClassName={MENU_CLASS}
+      menuStyle={accentStyle}
       onSelect={(version) => {
         const url = homepageMode
           ? getDocsHomepageUrl(suiteId, version)
