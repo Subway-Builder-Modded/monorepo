@@ -31,8 +31,9 @@ export function SuiteBadge({
       data-size={size}
       className={cn(
         'inline-flex w-fit shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-full border font-semibold uppercase tracking-[0.06em]',
-        // Keep extra descender room to avoid clipping letters like g/y across shared uses.
-        'leading-[1.15] pb-px',
+        // Add a small top nudge so text sits visually centered within the badge
+        // and descenders on letters like y/g/j have space at the bottom.
+        'leading-[1.15] pt-px',
         size === 'sm' ? 'h-5 px-1.5 text-[10px]' : 'h-6 px-2.5 text-[11px]',
         tone === 'soft' &&
           'border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_34%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)] dark:text-[var(--suite-accent-dark)]',

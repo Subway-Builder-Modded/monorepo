@@ -33,7 +33,7 @@ describe("SiteLayout", () => {
     mockUseLocation.mockReturnValue({ pathname: "/", search: "" });
   });
 
-  it("applies shared shell bounds on homepage and docs routes", () => {
+  it("applies shared shell bounds on homepage and docs routes without extra bottom padding", () => {
     const { rerender } = render(
       <SiteLayout>
         <div>child</div>
@@ -43,6 +43,9 @@ describe("SiteLayout", () => {
     const mainAtHome = screen.getByText("child").closest("main");
     expect(mainAtHome?.className).toContain("mx-auto");
     expect(mainAtHome?.className).toContain("px-5");
+    // No pb-8 on main: sections and pages control their own bottom spacing,
+    // preventing a background-colored strip between the last section and the footer.
+    expect(mainAtHome?.className).not.toContain("pb-8");
 
     mockUseLocation.mockReturnValue({ pathname: "/railyard/docs", search: "" });
     rerender(

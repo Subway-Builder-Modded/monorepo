@@ -66,16 +66,19 @@ describe("DocsHomepage", () => {
     expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs?version=v0.2");
   });
 
-  it("renders the responsive nav-row card grid without route-board decorations", () => {
+  it("renders the DISCOVER separator and a responsive card grid (max 4 columns)", () => {
     const { container } = render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
-    expect(screen.queryByText("Discover")).not.toBeInTheDocument();
+    // DISCOVER separator must be present with its label text.
+    expect(screen.getByText("DISCOVER")).toBeInTheDocument();
+    expect(screen.getByTestId("discover-separator")).toBeInTheDocument();
 
     const cardsLink = screen.getByRole("link", { name: /Players/i });
     expect(cardsLink.className).toContain("var(--suite-accent-light)");
 
-    const cardsGrid = container.querySelector(".grid");
-    expect(cardsGrid?.className).toContain("minmax(14.5rem,1fr)");
+    // Grid is capped at 4 columns via explicit responsive breakpoints.
+    const cardsGrid = container.querySelector(".xl\\:grid-cols-4");
+    expect(cardsGrid).toBeTruthy();
 
     expect(
       screen.getByRole("button", { name: "Choose documentation version" }),

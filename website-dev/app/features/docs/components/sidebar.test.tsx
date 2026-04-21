@@ -38,7 +38,7 @@ describe("DocsSidebar", () => {
     sessionStorage.clear();
   });
 
-  it("renders the eyebrow label, suite badge on its own row, and a content-height sticky surface (no internal scroll panel)", () => {
+  it("renders title+badge header and moves collapse button to the bottom with label text", () => {
     render(
       <DocsSidebar
         tree={makeTree([
@@ -53,28 +53,31 @@ describe("DocsSidebar", () => {
       />,
     );
 
+    // Title text is present as a proper label alongside the suite badge.
     expect(screen.getByText("Documentation")).toBeInTheDocument();
     expect(screen.getByText("Railyard")).toBeInTheDocument();
 
     const badge = document.querySelector('[data-slot="suite-badge"]') as HTMLElement | null;
     expect(badge).toBeTruthy();
-    // Badge gets a full-width row to itself so the suite title can never be
-    // squeezed/truncated by the collapse button next to it.
-    expect(badge?.className).toContain("w-full");
-    expect(badge?.parentElement?.className).toContain("block");
+    // Badge is NOT full-width – it sits inline beside the title text.
+    expect(badge?.className).not.toContain("w-full");
 
+    // Collapse button must NOT be absolutely positioned inside the header.
     const collapseBtn = screen.getByRole("button", { name: "Collapse sidebar" });
-    // Collapse button must not claim inline space inside any row that holds the
-    // badge: it is absolutely positioned in the card's top-right corner.
-    expect(collapseBtn.className).toContain("absolute");
-    const badgeRow = badge?.parentElement;
-    expect(badgeRow?.contains(collapseBtn)).toBe(false);
+    expect(collapseBtn.className).not.toContain("absolute");
+    // Collapse button must carry visible label text (icon + "Collapse Sidebar").
+    expect(collapseBtn.textContent).toContain("Collapse Sidebar");
 
+    // The header region (parent of the badge) must NOT also contain the collapse button.
+    const headerDiv = badge?.closest(".border-b");
+    expect(headerDiv?.contains(collapseBtn)).toBe(false);
+
+    // The nav must not be an internal-scroll box.
     const nav = screen.getByLabelText("Documentation navigation");
-    // The nav must NOT be the inner scroll-panel of a fixed-height card.
     expect(nav.className).not.toContain("overflow-y-auto");
     expect(nav.className).not.toContain("max-h");
 
+    // The sticky card must be content-height (no max-h, no overflow on the frame).
     const stickyFrame = nav.parentElement;
     expect(stickyFrame?.className).toContain("sticky");
     expect(stickyFrame?.className).toContain("self-start");

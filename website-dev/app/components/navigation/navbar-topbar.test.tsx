@@ -24,4 +24,26 @@ describe("NavbarTopbar", () => {
     const suiteBadge = screen.getByText("Registry").closest('[data-slot="suite-badge"]');
     expect(suiteBadge?.className).not.toContain("-translate-y");
   });
+
+  it("uses sufficient line-height on brand text to prevent descender clipping", () => {
+    render(
+      <NavbarTopbar
+        isExpanded={false}
+        isMobile={false}
+        realAccent="#222"
+        realSuite={getSuiteById("railyard")}
+        theme="light"
+        onMenuClick={vi.fn()}
+        onThemeClick={vi.fn()}
+      />,
+    );
+
+    const brandLink = screen.getByLabelText("Go to home");
+    // Find the inner text span (not the overflow-clip wrapper).
+    const brandTextSpan = brandLink.querySelector("span > span");
+    expect(brandTextSpan).toBeTruthy();
+    // Must NOT use the tight leading-[1.08] that clips descenders on letters
+    // like 'y' in "Subway". leading-[1.2] or above is required.
+    expect(brandTextSpan?.className).not.toContain("leading-[1.08]");
+  });
 });

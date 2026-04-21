@@ -130,8 +130,8 @@ describe("getSidebarOrder", () => {
 
   it("returns sidebar order for non-versioned registry", () => {
     const order = getSidebarOrder("registry", null);
-    expect(order.length).toBe(5);
-    expect(order[0]).toBe("publishing-projects");
+    expect(order.length).toBe(8);
+    expect(order[0]).toBe("publishing-content");
   });
 
   it("returns empty array for unknown version", () => {

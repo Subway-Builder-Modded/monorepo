@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { PanelLeftClose, PanelLeftOpen, Menu, X } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, Menu, X } from "lucide-react";
 import { SuiteBadge, SuiteAccentButton } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
@@ -120,36 +120,19 @@ export function DocsSidebar({
             DOCS_SURFACE_BORDER_CLASS,
           )}
         >
-          {/*
-            Collapse button is absolutely positioned in the top-right corner so
-            it never competes for inline space inside the header rows. Without
-            this, the suite badge could be squeezed/truncated by the button.
-          */}
-          <button
-            type="button"
-            onClick={() => setCollapsedState(true)}
-            className={cn(
-              "absolute right-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors",
-              "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
-              "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
-            )}
-            aria-label="Collapse sidebar"
-          >
-            <PanelLeftClose className="size-4" />
-          </button>
-
           <div className="border-b border-border/50 px-3 py-3">
-            <span className="block pr-9 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Documentation
-            </span>
-
-            <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="mt-2 block min-w-0">
+            {/* Title + suite badge side-by-side, matching the navbar brand ratio */}
+            <Link
+              to={getDocsHomepageUrl(suiteId, currentVersion)}
+              className="flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="text-sm font-semibold text-foreground">Documentation</span>
               <SuiteBadge
                 accent={suite.accent}
-                className="h-7 w-full justify-start gap-1.5 rounded-md px-2 normal-case tracking-normal"
+                className="h-6 shrink-0 gap-1 rounded-md px-2 normal-case tracking-normal"
               >
-                <suite.icon className="size-3.5 shrink-0" aria-hidden={true} />
-                <span className="truncate">{suite.title}</span>
+                <suite.icon className="size-3 shrink-0" aria-hidden={true} />
+                <span className="max-w-[7rem] truncate">{suite.title}</span>
               </SuiteBadge>
             </Link>
 
@@ -173,6 +156,23 @@ export function DocsSidebar({
               onToggle={toggle}
             />
           </nav>
+
+          {/* Collapse button lives at the bottom, separated by a divider */}
+          <div className="border-t border-border/50 px-2.5 py-2">
+            <button
+              type="button"
+              onClick={() => setCollapsedState(true)}
+              className={cn(
+                "inline-flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-semibold text-muted-foreground transition-colors",
+                "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
+                "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
+              )}
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose className="size-3.5" aria-hidden="true" />
+              <span>Collapse Sidebar</span>
+            </button>
+          </div>
         </div>
       </div>
     </aside>

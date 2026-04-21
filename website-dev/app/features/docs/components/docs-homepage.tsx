@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { NavRow, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Compass } from "lucide-react";
 import { getDocsSuiteConfig, getDocsVersion, hasMultipleVisibleVersions } from "@/app/config/docs";
 import { DOCS_HOMEPAGE_ICON, DOCS_HOMEPAGE_TITLE } from "@/app/config/docs/shared";
 import type { DocsSuiteId } from "@/app/config/docs";
@@ -119,35 +119,52 @@ function DocsCardGrid({ suiteId, version }: { suiteId: DocsSuiteId; version: str
   }
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(14.5rem,1fr))] gap-3">
-      {visibleNodes.map((node) => {
-        const Icon = resolveIcon(node.frontmatter.icon);
+    <>
+      <div
+        className="mb-4 flex items-center gap-2.5"
+        aria-label="Discover section"
+        data-testid="discover-separator"
+      >
+        <Compass
+          className="size-3.5 shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+          aria-hidden="true"
+        />
+        <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          DISCOVER
+        </span>
+        <div className="h-px flex-1 bg-border/60" aria-hidden="true" />
+      </div>
 
-        return (
-          <Link
-            key={node.slug}
-            to={getDocPageUrl(suiteId, version, node.slug)}
-            className={cn(
-              "group block rounded-xl border-2 border-border/60 bg-background/70 p-2 transition-all",
-              "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_7%,transparent)]",
-              "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_10%,transparent)]",
-            )}
-            style={{
-              ["--nav-accent" as string]: "var(--suite-accent-light)",
-              ["--nav-muted" as string]:
-                "color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)",
-            }}
-          >
-            <NavRow
-              title={node.frontmatter.title}
-              description={node.frontmatter.description}
-              icon={<Icon className="size-5" aria-hidden={true} />}
-              className="rounded-[0.7rem]"
-            />
-          </Link>
-        );
-      })}
-    </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {visibleNodes.map((node) => {
+          const Icon = resolveIcon(node.frontmatter.icon);
+
+          return (
+            <Link
+              key={node.slug}
+              to={getDocPageUrl(suiteId, version, node.slug)}
+              className={cn(
+                "group block rounded-xl border-2 border-border/60 bg-background/70 p-2 transition-all",
+                "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_7%,transparent)]",
+                "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_10%,transparent)]",
+              )}
+              style={{
+                ["--nav-accent" as string]: "var(--suite-accent-light)",
+                ["--nav-muted" as string]:
+                  "color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)",
+              }}
+            >
+              <NavRow
+                title={node.frontmatter.title}
+                description={node.frontmatter.description}
+                icon={<Icon className="size-5" aria-hidden={true} />}
+                className="rounded-[0.7rem]"
+              />
+            </Link>
+          );
+        })}
+      </div>
+    </>
   );
 }
 

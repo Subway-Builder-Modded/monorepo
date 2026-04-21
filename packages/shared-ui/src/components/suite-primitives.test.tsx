@@ -14,7 +14,10 @@ describe('suite shared primitives', () => {
     render(<SuiteBadge>registry</SuiteBadge>);
 
     const badge = screen.getByText('registry');
-    expect(badge.className).toContain('pb-px');
+    // pt-px nudges text down for correct optical vertical centering; descenders
+    // have ample room because the badge height is much larger than the line-height.
+    expect(badge.className).toContain('pt-px');
+    expect(badge.className).not.toContain('pb-px');
     expect(badge.className).not.toContain('leading-none');
   });
 

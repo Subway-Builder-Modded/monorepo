@@ -62,7 +62,7 @@ export function DocsVersionChooser({
               }
             : {
                 color: "var(--suite-accent-light)",
-                muted: "color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)",
+                muted: "color-mix(in_srgb,var(--suite-accent-light)_18%,transparent)",
               },
         };
       }),
