@@ -21,6 +21,7 @@ type UpdateFixture struct {
 	Versions     []string
 	MapCode      string
 	FailVersions bool
+	ArchiveBytes []byte
 	// MissingModManifest serves a mod zip without manifest.json to exercise invalid-archive paths.
 	MissingModManifest bool
 }
@@ -162,6 +163,10 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 		}
 		for _, version := range current.Versions {
 			downloadPath := "/downloads/" + current.AssetID + "-" + version + ".zip"
+			if current.ArchiveBytes != nil {
+				zipByDownloadPath[downloadPath] = current.ArchiveBytes
+				continue
+			}
 			if current.AssetType == types.AssetTypeMap {
 				mapCode := current.MapCode
 				if mapCode == "" {

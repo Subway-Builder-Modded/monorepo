@@ -40,6 +40,17 @@ func TestValidateMapArchive(t *testing.T) {
 			wantCode:    "AAA",
 		},
 		{
+			name: "valid archive with shared payload",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map/data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: "",
+			wantErr:     false,
+			wantCode:    "AAA",
+		},
+		{
 			name: "missing required file",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
@@ -70,6 +81,57 @@ func TestValidateMapArchive(t *testing.T) {
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
 				delete(f, "AAA.pmtiles")
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "accepts shared payload with windows separators",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map\\data\\example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: "",
+			wantErr:     false,
+			wantCode:    "AAA",
+		},
+		{
+			name: "rejects nested shared payload folder",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f["nested/.railyard_map/data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "rejects absolute shared payload path",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f["/.railyard_map/data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "rejects unsafe shared payload path traversal",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map/../data/example.json"] = []byte(`{"ok":true}`)
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "rejects shared payload root file",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[".railyard_map"] = []byte(`not-a-dir`)
 				return f
 			}(),
 			wantErrType: types.InstallErrorInvalidArchive,
