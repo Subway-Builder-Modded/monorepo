@@ -40,6 +40,7 @@ export type DocsSidebarOrderItem = string | { key: string; children?: DocsSideba
 export type DocsHomepageConfig = {
   description: string;
   heroTitle?: string;
+  heroIcon?: LucideIcon;
   actions?: DocsHomepageActions;
 };
 

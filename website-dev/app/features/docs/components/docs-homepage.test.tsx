@@ -58,6 +58,7 @@ describe("DocsHomepage", () => {
     expect(
       screen.getByRole("button", { name: "Choose documentation version" }),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("docs-homepage-hero-icon")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Choose documentation version" }));
     await user.click(screen.getByRole("option", { name: /v0.2/i }));

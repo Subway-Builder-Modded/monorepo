@@ -1,5 +1,5 @@
 import type { DocsSuiteConfig } from "../docs/types";
-import { Code2, Download } from "lucide-react";
+import { BookText, ChartLine, Download } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const railyardDocsConfig: DocsSuiteConfig = {
@@ -13,60 +13,50 @@ export const railyardDocsConfig: DocsSuiteConfig = {
       value: "v0.2",
       label: "v0.2",
       status: "latest",
-      defaultDoc: "players",
+      defaultDoc: "installing-railyard",
       releaseDate: "2026-03-15",
     },
     {
       value: "v0.1",
       label: "v0.1",
       status: "deprecated",
-      defaultDoc: "players",
+      defaultDoc: "install-guide-windows",
       releaseDate: "2026-01-20",
     },
   ],
   sidebarOrderByVersion: {
     "v0.2": [
       {
-        key: "players",
-        children: [
-          {
-            key: "installing-railyard",
-            children: ["windows", "macos", "linux"],
-          },
-          "github-token",
-          "country-flag-emojis",
-          "importing-custom-assets",
-          "profile-management",
-        ],
+        key: "installing-railyard",
+        children: ["windows", "macos", "linux"],
       },
+      "github-token",
+      "country-flag-emojis",
+      "importing-custom-assets",
+      "profile-management",
     ],
     "v0.1": [
-      {
-        key: "players",
-        children: [
-          "install-guide-windows",
-          "install-guide-macos",
-          "install-guide-linux",
-          "github-token",
-        ],
-      },
+      "install-guide-windows",
+      "install-guide-macos",
+      "install-guide-linux",
+      "github-token",
     ],
   },
   homepage: {
     description:
-      "The official documentation for Railyard, the all-in-one mod and map manager for Subway Builder.",
-    heroTitle: "Railyard Docs",
+      "The official documentation for the Railyard app.",
+    heroTitle: "Documentation",
+    heroIcon: BookText,
     actions: [
       {
         label: "Download Railyard",
-        href: "/railyard/download",
+        href: "/railyard",
         icon: Download,
       },
       {
-        label: "Railyard Source",
-        href: "https://github.com/Subway-Builder-Modded/monorepo/tree/main/railyard",
-        icon: Code2,
-        external: true,
+        label: "View Analytics",
+        href: "/railyard/analytics",
+        icon: ChartLine,
       },
     ],
   },

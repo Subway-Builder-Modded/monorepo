@@ -26,6 +26,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
   const config = getDocsSuiteConfig(suiteId)!;
   const actions = config.homepage.actions ?? [];
   const SuiteIcon = suite.icon;
+  const HeroIcon = config.homepage.heroIcon ?? SuiteIcon;
   const hasVersionChooser = isVersionedDocsSuite(suiteId) && version;
 
   return (
@@ -39,7 +40,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
 
       <div className="relative flex items-start gap-4 p-5 sm:p-7">
         <span className="mt-0.5 inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)] dark:text-[var(--suite-accent-dark)]">
-          <SuiteIcon className="size-6" aria-hidden={true} />
+          <HeroIcon className="size-6" aria-hidden={true} data-testid="docs-homepage-hero-icon" />
         </span>
 
         <div className="min-w-0 flex-1">
