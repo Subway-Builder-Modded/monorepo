@@ -39,7 +39,7 @@ describe("DocsVersionChooser", () => {
       <DocsVersionChooser
         suiteId="railyard"
         currentVersion="v0.1"
-        docSlug="players/github-token"
+        docSlug="github-token"
       />,
     );
 
@@ -49,7 +49,7 @@ describe("DocsVersionChooser", () => {
     expect(pushStateSpy).toHaveBeenCalledWith(
       {},
       "",
-      "/railyard/docs/v0.2/players/github-token",
+      "/railyard/docs/v0.2/github-token",
     );
   });
 });

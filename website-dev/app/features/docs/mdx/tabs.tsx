@@ -68,6 +68,7 @@ export function Tabs({ groupId, children }: TabsProps) {
           }),
         );
       }
+      window.dispatchEvent(new Event("sbm-docs-content-change"));
     },
     [groupId],
   );

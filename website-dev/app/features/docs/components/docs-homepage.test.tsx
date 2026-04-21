@@ -66,10 +66,10 @@ describe("DocsHomepage", () => {
     expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs?version=v0.2");
   });
 
-  it("renders route-board divider and responsive nav-row card grid", () => {
+  it("renders the responsive nav-row card grid without route-board decorations", () => {
     const { container } = render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
-    expect(screen.getByText("Discover")).toBeInTheDocument();
+    expect(screen.queryByText("Discover")).not.toBeInTheDocument();
 
     const cardsLink = screen.getByRole("link", { name: /Players/i });
     expect(cardsLink.className).toContain("var(--suite-accent-light)");
@@ -101,13 +101,13 @@ describe("DocsHomepage", () => {
 
     const heading = screen.getByRole("heading", { level: 1 });
     const versionBtn = screen.getByRole("button", { name: "Choose documentation version" });
-    const heroCard = heading.closest(".rounded-3xl");
+    const heroCard = heading.closest(".rounded-2xl");
 
     expect(heroCard).toBeTruthy();
     expect(heroCard?.contains(versionBtn)).toBe(true);
 
     const download = screen.getByRole("link", { name: /Download Railyard/i });
-    const source = screen.getByRole("link", { name: /Railyard Source/i });
+    const analytics = screen.getByRole("link", { name: /View Analytics/i });
 
     expect(download.className).toContain("h-7");
     expect(download.className).toContain("text-[11px]");
@@ -115,7 +115,7 @@ describe("DocsHomepage", () => {
 
     const actionsWrap = download.parentElement;
     expect(actionsWrap?.className).toContain("flex-col");
-    expect(actionsWrap?.contains(source)).toBe(true);
+    expect(actionsWrap?.contains(analytics)).toBe(true);
   });
 
   it("renders deprecated banner with latest-version button target", () => {

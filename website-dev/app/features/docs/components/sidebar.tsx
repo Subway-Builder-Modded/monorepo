@@ -5,7 +5,7 @@ import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
-import { isVersionedDocsSuite, type DocsRouteVersion } from "@/app/config/docs";
+import { hasMultipleVisibleVersions, type DocsRouteVersion } from "@/app/config/docs";
 import { getSuiteById } from "@/app/config/site-navigation";
 import type { DocsTree } from "@/app/features/docs/lib/types";
 import type { DocsSuiteId } from "@/app/config/docs";
@@ -116,11 +116,11 @@ export function DocsSidebar({
       >
         <div
           className={cn(
-            "sticky top-20 self-start rounded-2xl bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md",
+            "sticky top-20 flex max-h-[calc(100vh-6rem)] flex-col self-start rounded-2xl bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md",
             DOCS_SURFACE_BORDER_CLASS,
           )}
         >
-          <div className="flex flex-col overflow-hidden">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <div className="border-b border-border/50 px-3 py-3">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
@@ -142,7 +142,7 @@ export function DocsSidebar({
                   type="button"
                   onClick={() => setCollapsedState(true)}
                   className={cn(
-                    "inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors",
+                    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors",
                     "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
                     "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
                   )}
@@ -152,7 +152,7 @@ export function DocsSidebar({
                 </button>
               </div>
 
-              {isVersionedDocsSuite(suiteId) && currentVersion ? (
+              {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
                 <DocsVersionChooser
                   suiteId={suiteId}
                   currentVersion={currentVersion}
@@ -163,7 +163,7 @@ export function DocsSidebar({
             </div>
 
             <nav
-              className="overflow-x-hidden px-2.5 py-3"
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
               aria-label="Documentation navigation"
             >
               <DocsSidebarTree
@@ -246,7 +246,7 @@ export function MobileDocsSidebar({
                   </SuiteAccentButton>
                 </div>
 
-                {isVersionedDocsSuite(suiteId) && currentVersion ? (
+                {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
                   <DocsVersionChooser
                     suiteId={suiteId}
                     currentVersion={currentVersion}

@@ -2,7 +2,7 @@ import { ChevronRight } from "lucide-react";
 import { Link } from "@/app/lib/router";
 import { getSuiteById } from "@/app/config/site-navigation";
 import { getDocsHomepageUrl, getDocPageUrl } from "@/app/features/docs/lib/routing";
-import { isVersionedDocsSuite, type DocsSuiteId } from "@/app/config/docs";
+import { hasMultipleVisibleVersions, type DocsSuiteId } from "@/app/config/docs";
 
 export function DocsBreadcrumbs({
   suiteId,
@@ -17,7 +17,7 @@ export function DocsBreadcrumbs({
 }) {
   const suite = getSuiteById(suiteId);
   const parts = slug.split("/");
-  const showVersion = isVersionedDocsSuite(suiteId) && !!version;
+  const showVersion = hasMultipleVisibleVersions(suiteId) && !!version;
   const breadcrumbVersion = version?.startsWith("v") ? version : version ? `v${version}` : null;
   const firstCrumb = showVersion
     ? `${suite.title} Documentation (${breadcrumbVersion})`

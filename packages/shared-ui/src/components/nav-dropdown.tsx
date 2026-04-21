@@ -177,6 +177,13 @@ export function NavDropdown({
         )
       : null;
 
+  const triggerStyle = selected?.tone
+    ? ({
+        ['--option-color' as string]: selected.tone.color,
+        ['--option-muted' as string]: selected.tone.muted,
+      } as CSSProperties)
+    : undefined;
+
   return (
     <>
       <div ref={rootRef} className={cn('relative', className)}>
@@ -188,10 +195,17 @@ export function NavDropdown({
           aria-controls={listboxId}
           aria-label={triggerLabel}
           onClick={() => onOpenChange(!isOpen)}
+          style={triggerStyle}
           className={cn(
             'inline-flex max-w-full items-center gap-2 whitespace-nowrap rounded-lg px-1 py-0.5',
-            'text-sm font-semibold outline-none transition',
+            'text-sm font-semibold outline-none transition-colors',
             'focus-visible:ring-2 focus-visible:ring-ring',
+            selected?.tone
+              ? cn(
+                  'hover:bg-[var(--option-muted)] hover:text-[var(--option-color)]',
+                  isOpen && 'bg-[var(--option-muted)] text-[var(--option-color)]',
+                )
+              : 'hover:bg-accent hover:text-accent-foreground',
             triggerClassName,
           )}
         >

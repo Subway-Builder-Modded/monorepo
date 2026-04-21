@@ -61,6 +61,15 @@ export function getVisibleVersions(suiteId: DocsSuiteId): DocsVersionConfig[] {
   return suite.versions.filter((v) => !v.hidden);
 }
 
+/**
+ * True when a versioned suite exposes more than one selectable version.
+ * Versioned suites with a single visible version should behave as
+ * unversioned in the UI (no version chooser, no version separator).
+ */
+export function hasMultipleVisibleVersions(suiteId: DocsSuiteId): boolean {
+  return getVisibleVersions(suiteId).length > 1;
+}
+
 export function getSidebarOrder(
   suiteId: DocsSuiteId,
   version: DocsRouteVersion,

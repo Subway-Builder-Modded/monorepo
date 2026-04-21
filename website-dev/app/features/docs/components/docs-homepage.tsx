@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { NavRow, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
-import { Compass, ExternalLink } from "lucide-react";
-import { getDocsSuiteConfig, getDocsVersion, isVersionedDocsSuite } from "@/app/config/docs";
+import { ExternalLink } from "lucide-react";
+import { getDocsSuiteConfig, getDocsVersion, hasMultipleVisibleVersions } from "@/app/config/docs";
 import type { DocsSuiteId } from "@/app/config/docs";
 import { getSuiteById } from "@/app/config/site-navigation";
 import { Link } from "@/app/lib/router";
@@ -27,25 +27,28 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
   const actions = config.homepage.actions ?? [];
   const SuiteIcon = suite.icon;
   const HeroIcon = config.homepage.heroIcon ?? SuiteIcon;
-  const hasVersionChooser = isVersionedDocsSuite(suiteId) && version;
+  const hasVersionChooser = hasMultipleVisibleVersions(suiteId) && version;
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-background to-muted/25 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.55)]",
+        "relative overflow-hidden rounded-2xl bg-background/85",
         DOCS_SURFACE_BORDER_CLASS,
       )}
     >
-      <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_70%,transparent)] to-transparent" />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_55%,transparent)] to-transparent"
+      />
 
-      <div className="relative flex items-start gap-4 p-5 sm:p-7">
-        <span className="mt-0.5 inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)] dark:text-[var(--suite-accent-dark)]">
-          <HeroIcon className="size-6" aria-hidden={true} data-testid="docs-homepage-hero-icon" />
+      <div className="relative flex items-start gap-4 px-5 py-5 sm:px-7 sm:py-6">
+        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_34%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)] dark:text-[var(--suite-accent-dark)]">
+          <HeroIcon className="size-5" aria-hidden={true} data-testid="docs-homepage-hero-icon" />
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 pb-1.5">
-            <h1 className="text-2xl font-black tracking-[-0.02em] text-foreground sm:text-3xl">
+          <div className="flex flex-wrap items-center gap-2 pb-1">
+            <h1 className="text-2xl font-bold tracking-[-0.015em] text-foreground sm:text-[1.6rem]">
               {config.homepage.heroTitle ?? `${suite.title} Docs`}
             </h1>
             <SuiteBadge className={SHARED_SUITE_BADGE_CLASS} accent={suite.accent}>
@@ -54,62 +57,49 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
             </SuiteBadge>
           </div>
           {config.homepage.description ? (
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
               {config.homepage.description}
             </p>
           ) : null}
         </div>
 
         {actions.length > 0 ? (
-          <div className="shrink-0">
+          <div className="hidden shrink-0 sm:block">
             <div className="flex min-w-[8.75rem] flex-col items-stretch gap-1">
-            {actions.map((action) => {
-              const ActionIcon = action.icon;
-              const isExternal = action.external === true;
-              return (
-                <a
-                  key={action.label}
-                  href={action.href}
-                  target={isExternal ? "_blank" : undefined}
-                  rel={isExternal ? "noopener noreferrer" : undefined}
+              {actions.map((action) => {
+                const ActionIcon = action.icon;
+                const isExternal = action.external === true;
+                return (
+                  <a
+                    key={action.label}
+                    href={action.href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
                     className={cn(ACTION_CLASS, "justify-start")}
-                >
-                  {ActionIcon ? <ActionIcon className="size-3" aria-hidden="true" /> : null}
-                  {action.label}
-                  {isExternal ? <ExternalLink className="size-3" aria-hidden="true" /> : null}
-                </a>
-              );
-            })}
+                  >
+                    {ActionIcon ? <ActionIcon className="size-3" aria-hidden="true" /> : null}
+                    <span className="flex-1 text-left">{action.label}</span>
+                    {isExternal ? <ExternalLink className="size-3" aria-hidden="true" /> : null}
+                  </a>
+                );
+              })}
             </div>
           </div>
         ) : null}
       </div>
 
       {hasVersionChooser ? (
-        <div className="border-t border-[color-mix(in_srgb,var(--suite-accent-light)_18%,var(--border))] px-5 py-4 sm:px-7">
+        <div className="border-t border-[color-mix(in_srgb,var(--suite-accent-light)_18%,var(--border))] px-5 py-3 sm:px-7">
           <div className="flex justify-center">
             <DocsVersionChooser
               suiteId={suiteId}
               currentVersion={version}
               homepageMode
-              triggerClassName="h-10 min-w-[14rem] text-[13px]"
+              triggerClassName="h-9 min-w-[14rem] text-[13px]"
             />
           </div>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function RouteDivider() {
-  return (
-    <div className="my-5 flex items-center gap-3" aria-hidden="true">
-      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_45%,transparent)] to-[color-mix(in_srgb,var(--suite-accent-light)_20%,transparent)]" />
-      <span className="inline-flex items-center gap-1 rounded-md border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_7%,transparent)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-        <Compass className="size-3" aria-hidden="true" />
-        Discover
-      </span>
-      <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_45%,transparent)] to-[color-mix(in_srgb,var(--suite-accent-light)_20%,transparent)]" />
     </div>
   );
 }
@@ -178,8 +168,7 @@ export function DocsHomepage({
         ) : null}
         <HomepageHero suiteId={suiteId} version={version} />
 
-        <div className="mt-4">
-          <RouteDivider />
+        <div className="mt-5">
           <DocsCardGrid suiteId={suiteId} version={version} />
         </div>
       </section>

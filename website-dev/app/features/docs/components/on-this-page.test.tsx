@@ -137,4 +137,44 @@ describe("OnThisPage", () => {
     expect(edit.className).not.toContain("border");
     expect(copy.className).not.toContain("border");
   });
+
+  it("hides headings whose target is not rendered (e.g. inside an inactive tab) and re-includes them on tab change", async () => {
+    document.body.innerHTML = `
+      <article>
+        <h2 id="intro">Intro</h2>
+        <h2 id="setup">Setup</h2>
+      </article>
+    `;
+    setHeadingTop("intro", 24);
+    setHeadingTop("setup", 260);
+
+    render(
+      <OnThisPage
+        headings={[
+          { id: "intro", text: "Intro", level: 2 },
+          { id: "tab-only", text: "Tab Only", level: 2 },
+          { id: "setup", text: "Setup", level: 2 },
+        ]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Tab Only" })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole("button", { name: "Intro" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Setup" })).toBeInTheDocument();
+
+    const article = document.querySelector("article")!;
+    const newHeading = document.createElement("h2");
+    newHeading.id = "tab-only";
+    newHeading.textContent = "Tab Only";
+    article.appendChild(newHeading);
+    setHeadingTop("tab-only", 600);
+
+    window.dispatchEvent(new Event("sbm-docs-content-change"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Tab Only" })).toBeInTheDocument();
+    });
+  });
 });

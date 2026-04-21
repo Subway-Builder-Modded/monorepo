@@ -114,11 +114,11 @@ describe("getSidebarOrder", () => {
   it("returns sidebar order for railyard v0.2", () => {
     const order = getSidebarOrder("railyard", "v0.2");
     expect(order).toBeDefined();
-    expect(order.length).toBe(1);
-    // First item should be players section
+    // First item should be the installing-railyard section group with children
     expect(typeof order[0]).toBe("object");
     if (typeof order[0] === "object") {
-      expect(order[0].key).toBe("players");
+      expect(order[0].key).toBe("installing-railyard");
+      expect(order[0].children?.length).toBeGreaterThan(0);
     }
   });
 

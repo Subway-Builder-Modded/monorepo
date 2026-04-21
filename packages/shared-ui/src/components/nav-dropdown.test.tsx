@@ -82,4 +82,71 @@ describe("NavDropdown", () => {
     expect(deprecated.className).toContain("bg-[var(--option-muted)]");
     expect(deprecated.className).toContain("text-[var(--option-color)]");
   });
+
+  it("propagates the selected option's tone onto the collapsed trigger", () => {
+    const { rerender } = render(
+      <NavDropdown
+        options={[
+          {
+            id: "v0.2",
+            label: "v0.2",
+            tone: {
+              color: "var(--suite-accent-light)",
+              muted: "color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)",
+            },
+          },
+          {
+            id: "v0.1",
+            label: "v0.1",
+            tone: {
+              color: "hsl(var(--muted-foreground))",
+              muted: "hsl(var(--muted))",
+            },
+          },
+        ]}
+        selectedId="v0.2"
+        isOpen={false}
+        onOpenChange={vi.fn()}
+        onSelect={vi.fn()}
+        triggerLabel="Choose version"
+      />,
+    );
+
+    let trigger = screen.getByRole("button", { name: "Choose version" });
+    expect(trigger.className).toContain("hover:bg-[var(--option-muted)]");
+    expect(trigger.className).toContain("hover:text-[var(--option-color)]");
+    expect(trigger.style.getPropertyValue("--option-color")).toBe("var(--suite-accent-light)");
+
+    rerender(
+      <NavDropdown
+        options={[
+          {
+            id: "v0.2",
+            label: "v0.2",
+            tone: {
+              color: "var(--suite-accent-light)",
+              muted: "color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)",
+            },
+          },
+          {
+            id: "v0.1",
+            label: "v0.1",
+            tone: {
+              color: "hsl(var(--muted-foreground))",
+              muted: "hsl(var(--muted))",
+            },
+          },
+        ]}
+        selectedId="v0.1"
+        isOpen={false}
+        onOpenChange={vi.fn()}
+        onSelect={vi.fn()}
+        triggerLabel="Choose version"
+      />,
+    );
+
+    trigger = screen.getByRole("button", { name: "Choose version" });
+    expect(trigger.style.getPropertyValue("--option-color")).toBe("hsl(var(--muted-foreground))");
+    expect(trigger.style.getPropertyValue("--option-muted")).toBe("hsl(var(--muted))");
+  });
 });

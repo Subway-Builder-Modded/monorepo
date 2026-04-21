@@ -77,10 +77,71 @@ export function OnThisPage({
   editUrl?: string;
   rawContent?: string | null;
 }) {
-  const filteredHeadings = useMemo(
+  const candidateHeadings = useMemo(
     () => headings.filter((heading) => heading.level >= 2 && heading.level <= 4),
     [headings],
   );
+
+  // Track which heading IDs are actually rendered in the DOM. Headings that
+  // live inside an inactive tab panel are not in the DOM and must not appear
+  // in the "On This Page" rail until that tab becomes active.
+  const [renderedIds, setRenderedIds] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    if (candidateHeadings.length === 0) {
+      setRenderedIds(new Set());
+      return;
+    }
+
+    let frameId = 0;
+    const recompute = () => {
+      const next = new Set<string>();
+      for (const heading of candidateHeadings) {
+        if (document.getElementById(heading.id)) {
+          next.add(heading.id);
+        }
+      }
+      setRenderedIds((prev) => {
+        if (prev && prev.size === next.size && [...next].every((id) => prev.has(id))) {
+          return prev;
+        }
+        return next;
+      });
+    };
+
+    const scheduleRecompute = () => {
+      if (frameId) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        recompute();
+      });
+    };
+
+    recompute();
+    scheduleRecompute();
+
+    window.addEventListener("sbm-tab-group-change", scheduleRecompute);
+    window.addEventListener("sbm-docs-content-change", scheduleRecompute);
+
+    const observer = new MutationObserver(scheduleRecompute);
+    const article = document.querySelector("article");
+    if (article) {
+      observer.observe(article, { childList: true, subtree: true });
+    }
+
+    return () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      window.removeEventListener("sbm-tab-group-change", scheduleRecompute);
+      window.removeEventListener("sbm-docs-content-change", scheduleRecompute);
+      observer.disconnect();
+    };
+  }, [candidateHeadings]);
+
+  const filteredHeadings = useMemo(() => {
+    if (!renderedIds) return candidateHeadings;
+    return candidateHeadings.filter((heading) => renderedIds.has(heading.id));
+  }, [candidateHeadings, renderedIds]);
+
   const observedActiveId = useActiveHeading(filteredHeadings);
   const [manualActiveId, setManualActiveId] = useState<string | null>(null);
   const activeId = manualActiveId ?? observedActiveId;

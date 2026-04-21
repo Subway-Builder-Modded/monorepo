@@ -11,12 +11,12 @@ vi.mock("@/app/lib/router", () => ({
 }));
 
 describe("DocsDeprecatedNotice", () => {
-  it("renders View Latest Version and resolves same-doc target when available", () => {
+  it("renders an outlined amber link to the latest version with the same slug when available", () => {
     render(
       <DocsDeprecatedNotice
         suiteId="railyard"
         version="v0.1"
-        currentSlug="players/github-token"
+        currentSlug="github-token"
       />,
     );
 
@@ -24,13 +24,14 @@ describe("DocsDeprecatedNotice", () => {
 
     expect(latestButton).toHaveAttribute(
       "href",
-      "/railyard/docs/v0.2/players/github-token",
+      "/railyard/docs/v0.2/github-token",
     );
     expect(latestButton.className).toContain("border");
+    expect(latestButton.className).toMatch(/amber/);
     expect(latestButton.querySelector("svg")).toBeTruthy();
   });
 
-  it("falls back to latest defaultDoc when target slug is unavailable", () => {
+  it("falls back to the latest version defaultDoc when the slug is unavailable", () => {
     render(
       <DocsDeprecatedNotice
         suiteId="railyard"
@@ -41,7 +42,7 @@ describe("DocsDeprecatedNotice", () => {
 
     expect(screen.getByRole("link", { name: "View Latest Version" })).toHaveAttribute(
       "href",
-      "/railyard/docs/v0.2/players",
+      "/railyard/docs/v0.2/installing-railyard",
     );
   });
 });

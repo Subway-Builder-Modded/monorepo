@@ -48,32 +48,32 @@ function mdxRawContentPlugin(): Plugin {
 }
 
 /**
- * Strips static heading ID syntax `{#some-id}` from MDX content before compilation.
- * MDX interprets `{...}` as JSX expressions, causing parse errors.
- * The IDs are preserved in raw content (via mdxRawContentPlugin) for extractHeadings(),
- * and slugify() in the heading component produces matching IDs.
+ * Escapes static heading ID braces `{#some-id}` so MDX's expression parser
+ * does not try to evaluate them as JSX expressions. The HTML entities are
+ * decoded back into `{#some-id}` text by remark/micromark, which is then
+ * picked up by the `remarkHeadingIds` plugin to set the explicit heading id.
  */
-const HEADING_ID_RE = /^(#{2,4}\s+.+?)\s+\{#[A-Za-z0-9._-]+\}\s*$/gm;
+const HEADING_ID_RE = /^(#{2,4}\s+.+?)\s+\{#([A-Za-z0-9._-]+)\}\s*$/gm;
 
-function stripHeadingIds(code: string): string {
+function escapeHeadingIds(code: string): string {
   if (!code.includes("{#")) return code;
-  return code.replace(HEADING_ID_RE, "$1");
+  return code.replace(HEADING_ID_RE, (_full, head: string, id: string) => `${head} &#x7B;#${id}&#x7D;`);
 }
 
 /**
- * Wraps the @mdx-js/rollup plugin to strip {#id} from headings before MDX parsing.
- * Uses a load hook to intercept MDX file content before @mdx-js/rollup's transform.
- * This works because Rollup's load hook provides the source code that transform receives.
+ * Wraps the @mdx-js/rollup plugin to escape `{#id}` from headings before MDX
+ * parsing, so the explicit ID survives parsing as text and remarkHeadingIds
+ * can extract it onto the rendered heading element.
  */
-function mdxHeadingIdStripPlugin(): Plugin {
+function mdxHeadingIdEscapePlugin(): Plugin {
   return {
-    name: "mdx-heading-id-strip",
+    name: "mdx-heading-id-escape",
     load(id) {
       if (typeof id !== "string" || !id.endsWith(".mdx")) return;
       if (id.startsWith("\0")) return;
       try {
         const content = fs.readFileSync(id, "utf-8");
-        return stripHeadingIds(content);
+        return escapeHeadingIds(content);
       } catch {
         return;
       }
@@ -99,7 +99,7 @@ export default defineConfig({
   },
   plugins: [
     mdxRawContentPlugin(),
-    mdxHeadingIdStripPlugin(),
+    mdxHeadingIdEscapePlugin(),
     tailwindcss(),
     mdx({
       remarkPlugins: [

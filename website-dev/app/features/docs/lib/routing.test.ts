@@ -212,14 +212,14 @@ describe("URL helpers", () => {
   });
 
   it("resolves version switch to same doc when available", () => {
-    expect(getVersionSwitchUrl("railyard", "v0.2", "players/github-token")).toBe(
-      "/railyard/docs/v0.2/players/github-token",
+    expect(getVersionSwitchUrl("railyard", "v0.2", "github-token")).toBe(
+      "/railyard/docs/v0.2/github-token",
     );
   });
 
   it("falls back to version defaultDoc when target doc does not exist", () => {
     expect(getVersionSwitchUrl("railyard", "v0.2", "missing/page")).toBe(
-      "/railyard/docs/v0.2/players",
+      "/railyard/docs/v0.2/installing-railyard",
     );
   });
 
