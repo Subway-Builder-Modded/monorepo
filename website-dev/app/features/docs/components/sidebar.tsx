@@ -53,11 +53,13 @@ export function DocsSidebar({
   suiteId,
   currentVersion,
   currentSlug,
+  onCollapsedChange,
 }: {
   tree: DocsTree;
   suiteId: DocsSuiteId;
   currentVersion: DocsRouteVersion;
   currentSlug: string | null;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }) {
   const treeKey = `${suiteId}:${currentVersion ?? "__no_version__"}`;
   const { collapsed, toggle } = useCollapsedSections(treeKey);
@@ -81,50 +83,66 @@ export function DocsSidebar({
     }
   }, []);
 
+  useEffect(() => {
+    onCollapsedChange?.(sidebarCollapsed);
+  }, [onCollapsedChange, sidebarCollapsed]);
+
   return (
     <aside className="relative hidden shrink-0 lg:block">
       {sidebarCollapsed ? (
         <div className="sticky top-20 h-0 w-0 overflow-visible">
-          <SuiteAccentButton
+          <button
             type="button"
-            tone="outline"
             onClick={() => setCollapsedState(false)}
-            className="absolute left-0 top-2 h-9 w-9 rounded-lg border-border/70 bg-background/92 p-0 shadow-sm"
+            className={cn(
+              "absolute left-0 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/70 bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
+              "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,transparent)] hover:text-[var(--suite-accent-light)]",
+              "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
+            )}
             aria-label="Expand sidebar"
           >
             <PanelLeftOpen className="size-4" />
-          </SuiteAccentButton>
+          </button>
         </div>
       ) : null}
 
       <div
         className={cn(
           "transition-[width,opacity] duration-300 ease-[cubic-bezier(.22,.9,.35,1)]",
-          sidebarCollapsed ? "w-0 opacity-0" : "w-[19rem] opacity-100",
+          sidebarCollapsed ? "w-0 opacity-0" : "w-[17.5rem] opacity-100",
         )}
       >
-        <div className="sticky top-20 h-[calc(100vh-6rem)] rounded-2xl border border-border/70 bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md">
-          <div className="flex h-full flex-col overflow-hidden">
+        <div className="sticky top-20 self-start rounded-2xl border border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md">
+          <div className="flex flex-col overflow-hidden">
             <div className="border-b border-border/50 px-3 py-3">
               <div className="mb-2 flex items-center justify-between gap-2">
-                <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="min-w-0">
-                  <SuiteBadge
-                    accent={suite.accent}
-                    className="max-w-full gap-1.5 rounded-lg normal-case tracking-normal"
-                  >
-                    <suite.icon className="size-3.5" aria-hidden={true} />
-                    <span className="truncate">{suite.title}</span>
-                  </SuiteBadge>
-                </Link>
-                <SuiteAccentButton
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                    Documentation
+                  </span>
+                  <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="min-w-0">
+                    <SuiteBadge
+                      accent={suite.accent}
+                      className="h-7 max-w-full gap-1.5 rounded-md px-2 normal-case tracking-normal"
+                    >
+                      <suite.icon className="size-3.5" aria-hidden={true} />
+                      <span className="truncate">{suite.title}</span>
+                    </SuiteBadge>
+                  </Link>
+                </div>
+
+                <button
                   type="button"
-                  tone="outline"
                   onClick={() => setCollapsedState(true)}
-                  className="h-8 w-8 rounded-lg p-0"
+                  className={cn(
+                    "inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors",
+                    "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
+                    "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
+                  )}
                   aria-label="Collapse sidebar"
                 >
                   <PanelLeftClose className="size-4" />
-                </SuiteAccentButton>
+                </button>
               </div>
 
               {isVersionedDocsSuite(suiteId) && currentVersion ? (
@@ -138,7 +156,7 @@ export function DocsSidebar({
             </div>
 
             <nav
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
+              className="max-h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
               aria-label="Documentation navigation"
             >
               <DocsSidebarTree
@@ -207,7 +225,7 @@ export function MobileDocsSidebar({
                       className="max-w-full gap-1.5 rounded-lg normal-case tracking-normal"
                     >
                       <suite.icon className="size-3.5" aria-hidden={true} />
-                      <span className="truncate">{suite.title} Documentation</span>
+                      <span className="truncate">{suite.title}</span>
                     </SuiteBadge>
                   </Link>
                   <SuiteAccentButton

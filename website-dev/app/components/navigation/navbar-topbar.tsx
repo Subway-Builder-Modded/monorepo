@@ -79,7 +79,7 @@ export function NavbarTopbar({
       />
       {!isMobile ? (
         <span className="min-w-0 overflow-hidden">
-          <span className="block truncate pb-px leading-[1.08] lg:text-[15px]">
+          <span className="block truncate leading-[1.08] lg:text-[15px]">
             Subway Builder Modded
           </span>
         </span>
@@ -89,7 +89,7 @@ export function NavbarTopbar({
 
   const suiteIndicator = (
     <SuiteBadge
-      className="h-7 shrink-0 -translate-y-px self-center gap-1.5 rounded-md px-2 normal-case tracking-normal"
+      className="h-7 shrink-0 self-center gap-1.5 rounded-md px-2 normal-case tracking-normal"
       accent={{ light: realAccent, dark: realAccent }}
     >
       <SuiteIcon className="size-3.5" aria-hidden={true} />

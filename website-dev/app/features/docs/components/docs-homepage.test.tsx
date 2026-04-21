@@ -72,13 +72,14 @@ describe("DocsHomepage", () => {
     vi.restoreAllMocks();
   });
 
-  it("uses shared page heading and custom version dropdown for versioned suites", async () => {
+  it("uses shared page heading with suite badge and version chooser for versioned suites", async () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, "pushState");
 
     render(<DocsHomepage suiteId="railyard" version="v0.1" />);
 
     expect(screen.getByTestId("shared-page-heading")).toBeInTheDocument();
+    expect(screen.getByText("Railyard").closest('[data-slot="suite-badge"]')).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Choose documentation version" }),
     ).toBeInTheDocument();
@@ -92,20 +93,19 @@ describe("DocsHomepage", () => {
     expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs?version=v0.2");
   });
 
-  it("renders suite-themed cards and shell-aligned wrappers", () => {
+  it("renders route-board divider and responsive nav-row card grid", () => {
     const { container } = render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
-    const startHere = screen.getByRole("heading", { name: "Start Here" });
-    expect(startHere).toBeInTheDocument();
+    expect(screen.getByText("Route Board")).toBeInTheDocument();
+    expect(screen.queryByText("Start Here")).not.toBeInTheDocument();
 
     const cardsLink = screen.getByRole("link", { name: /Players/i });
     expect(cardsLink.className).toContain("var(--suite-accent-light)");
 
-    expect(screen.getByText("Railyard")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Choose documentation version" })).toBeInTheDocument();
+    const cardsGrid = container.querySelector(".grid");
+    expect(cardsGrid?.className).toContain("minmax(14.5rem,1fr)");
 
-    const shellAligned = container.querySelectorAll(".mx-auto.w-full");
-    expect(shellAligned.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByRole("button", { name: "Choose documentation version" })).toBeInTheDocument();
   });
 
   it("shows no version UI for non-versioned registry", () => {

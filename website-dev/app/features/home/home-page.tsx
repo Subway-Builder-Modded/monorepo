@@ -6,12 +6,12 @@ import { SuiteScrollytellingSection } from "@/app/features/home/components/suite
 
 export function HomePage() {
   return (
-    <>
+    <div className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
       <HeroCarousel />
       <PeopleSection />
       <OpenSourceSection />
       <AnalyticsSection />
       <SuiteScrollytellingSection />
-    </>
+    </div>
   );
 }

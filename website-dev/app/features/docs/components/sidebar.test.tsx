@@ -38,7 +38,7 @@ describe("DocsSidebar", () => {
     sessionStorage.clear();
   });
 
-  it("renders redesigned sidebar with shared suite badge and no suite switcher", () => {
+  it("renders documentation header, separate suite badge, and sticky content-sized sidebar", () => {
     render(
       <DocsSidebar
         tree={makeTree([
@@ -53,6 +53,7 @@ describe("DocsSidebar", () => {
       />,
     );
 
+    expect(screen.getByText("Documentation")).toBeInTheDocument();
     expect(screen.getByText("Railyard")).toBeInTheDocument();
     expect(document.querySelector('[data-slot="suite-badge"]')).toBeTruthy();
     expect(screen.queryByText(/Select suite/i)).not.toBeInTheDocument();
@@ -60,6 +61,10 @@ describe("DocsSidebar", () => {
     const nav = screen.getByLabelText("Documentation navigation");
     expect(nav.className).toContain("overflow-y-auto");
     expect(nav.className).toContain("overflow-x-hidden");
+
+    const stickyFrame = nav.closest("div")?.parentElement;
+    expect(stickyFrame?.className).toContain("self-start");
+    expect(stickyFrame?.className).not.toContain("h-[calc(100vh-6rem)]");
   });
 
   it("supports collapse/expand flow with floating expand trigger", async () => {

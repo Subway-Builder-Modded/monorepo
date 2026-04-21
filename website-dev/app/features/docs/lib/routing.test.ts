@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test";
 import {
   getDocPageUrl,
   getDocsHomepageUrl,
+  getVersionSwitchUrl,
   matchDocsRoute,
   resolveDocsRoute,
 } from "@/app/features/docs/lib/routing";
@@ -207,6 +208,24 @@ describe("URL helpers", () => {
 
     expect(getDocPageUrl("registry", null, "publishing-projects")).toBe(
       "/registry/docs/publishing-projects",
+    );
+  });
+
+  it("resolves version switch to same doc when available", () => {
+    expect(getVersionSwitchUrl("railyard", "v0.2", "players/github-token")).toBe(
+      "/railyard/docs/v0.2/players/github-token",
+    );
+  });
+
+  it("falls back to version defaultDoc when target doc does not exist", () => {
+    expect(getVersionSwitchUrl("railyard", "v0.2", "missing/page")).toBe(
+      "/railyard/docs/v0.2/players",
+    );
+  });
+
+  it("returns docs homepage for non-versioned suites", () => {
+    expect(getVersionSwitchUrl("registry", "v0.2", "publishing-projects")).toBe(
+      "/registry/docs",
     );
   });
 });

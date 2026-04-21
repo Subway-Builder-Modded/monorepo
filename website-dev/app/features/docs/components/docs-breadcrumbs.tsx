@@ -29,7 +29,7 @@ export function DocsBreadcrumbs({
         <li>
           <Link
             to={getDocsHomepageUrl(suiteId, version)}
-            className="text-muted-foreground no-underline hover:text-foreground hover:no-underline"
+            className="text-muted-foreground no-underline hover:text-[var(--suite-accent-light)] hover:no-underline dark:hover:text-[var(--suite-accent-dark)]"
           >
             {firstCrumb}
           </Link>
@@ -42,7 +42,7 @@ export function DocsBreadcrumbs({
                 <ChevronRight className="size-3" aria-hidden="true" />
                 <Link
                   to={getDocPageUrl(suiteId, version, parentSlug)}
-                  className="capitalize text-muted-foreground no-underline hover:text-foreground hover:no-underline"
+                  className="capitalize text-muted-foreground no-underline hover:text-[var(--suite-accent-light)] hover:no-underline dark:hover:text-[var(--suite-accent-dark)]"
                 >
                   {part.replace(/-/g, " ")}
                 </Link>

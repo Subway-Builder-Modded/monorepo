@@ -18,8 +18,6 @@ export function SiteLayout({ children }: SiteLayoutProps) {
   const { theme, setTheme } = useThemeMode();
   usePageMetadata({ pathname });
 
-  const isHome = pathname === "/" || pathname === "";
-
   return (
     <div
       data-color-scheme={activeSuite.colorSchemeId}
@@ -27,13 +25,7 @@ export function SiteLayout({ children }: SiteLayoutProps) {
     >
       <FloatingNavbar pathname={pathname} theme={theme} setTheme={setTheme} />
 
-      <main
-        className={
-          isHome
-            ? "relative min-h-[70vh] w-full"
-            : `relative min-h-[70vh] w-full pb-8 pt-24 ${SITE_SHELL_CLASS}`
-        }
-      >
+      <main className={`relative min-h-[70vh] w-full pb-8 pt-24 ${SITE_SHELL_CLASS}`}>
         {children}
       </main>
 

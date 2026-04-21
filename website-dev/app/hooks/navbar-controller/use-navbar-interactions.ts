@@ -29,7 +29,30 @@ export function useNavbarInteractions({
   theme,
 }: UseNavbarInteractionsOptions) {
   const [openSuiteId, setOpenSuiteId] = useState<SiteSuiteId>(realSuiteId);
+  const [windowFocused, setWindowFocused] = useState(() => document.hasFocus());
+  const [pointerOnScreen, setPointerOnScreen] = useState(true);
   const isPinnedRef = useRef(false);
+
+  const canAutoExpand = windowFocused || pointerOnScreen;
+
+  useEffect(() => {
+    const onFocus = () => setWindowFocused(true);
+    const onBlur = () => setWindowFocused(false);
+    const onPointerEnter = () => setPointerOnScreen(true);
+    const onPointerLeave = () => setPointerOnScreen(false);
+
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("blur", onBlur);
+    document.addEventListener("pointerenter", onPointerEnter);
+    document.addEventListener("pointerleave", onPointerLeave);
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("blur", onBlur);
+      document.removeEventListener("pointerenter", onPointerEnter);
+      document.removeEventListener("pointerleave", onPointerLeave);
+    };
+  }, []);
 
   useEffect(() => {
     if (phase === "closed") {
@@ -60,10 +83,10 @@ export function useNavbarInteractions({
   }, [closeNavbar, isFrameExpanded, openNavbar]);
 
   const onFrameHoverStart = useCallback(() => {
-    if (phase === "closed") {
+    if (phase === "closed" && canAutoExpand) {
       openNavbar();
     }
-  }, [openNavbar, phase]);
+  }, [canAutoExpand, openNavbar, phase]);
 
   const onFrameHoverEnd = useCallback(() => {
     if (allowHoverClose && !isPinnedRef.current) {
@@ -76,6 +99,12 @@ export function useNavbarInteractions({
       isPinnedRef.current = true;
     }
   }, [isFrameExpanded]);
+
+  useEffect(() => {
+    if (!canAutoExpand && isFrameExpanded && !isPinnedRef.current) {
+      close();
+    }
+  }, [canAutoExpand, close, isFrameExpanded]);
 
   const onSuiteChange = useCallback((suiteId: SiteSuiteId) => {
     setOpenSuiteId(suiteId);

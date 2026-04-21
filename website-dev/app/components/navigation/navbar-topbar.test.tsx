@@ -20,5 +20,8 @@ describe("NavbarTopbar", () => {
     expect(screen.getByLabelText("Go to home")).toBeVisible();
     expect(screen.getByText("Registry")).toBeVisible();
     expect(screen.queryByRole("navigation", { name: /breadcrumb/i })).toBeNull();
+
+    const suiteBadge = screen.getByText("Registry").closest('[data-slot="suite-badge"]');
+    expect(suiteBadge?.className).not.toContain("-translate-y");
   });
 });

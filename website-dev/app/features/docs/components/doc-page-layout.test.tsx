@@ -96,6 +96,8 @@ describe("DocPageLayout", () => {
 
     const suiteCrumb = screen.getByRole("link", { name: "Railyard Documentation (v0.1)" });
     expect(suiteCrumb.className).toContain("text-muted-foreground");
+    expect(suiteCrumb.className).toContain("hover:text-[var(--suite-accent-light)]");
+    expect(suiteCrumb.className).toContain("hover:no-underline");
   });
 
   it("renders doc page chrome with separated title surface and icon", () => {
@@ -105,6 +107,8 @@ describe("DocPageLayout", () => {
     const heading = screen.getByRole("heading", { name: "GitHub Token" });
     const chrome = heading.closest("header");
     expect(chrome?.className).toContain("rounded-2xl");
+    expect(chrome?.className).toContain("border");
+    expect(chrome?.className).toContain("var(--suite-accent-light)");
 
     expect(screen.getByTestId("doc-title-icon")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Edit on GitHub/i })).not.toBeInTheDocument();

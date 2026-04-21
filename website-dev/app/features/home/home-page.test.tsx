@@ -12,7 +12,10 @@ import {
 
 describe("HomePage", () => {
   it("renders the full homepage composition", () => {
-    render(<HomePage />);
+    const { container } = render(<HomePage />);
+
+    const shellOptOut = container.firstElementChild as HTMLElement | null;
+    expect(shellOptOut?.className).toContain("-mx-5");
 
     expect(
       screen.getByRole("heading", { name: `${HERO_TITLE_LINE_1} ${HERO_TITLE_LINE_2}` }),

@@ -1,11 +1,9 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import {
-  SITE_SHELL_CLASS,
   SuiteAccentLink,
   SuiteAccentScope,
 } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
-import { cn } from "@/app/lib/utils";
 import { getSuiteById } from "@/app/config/site-navigation";
 import { getDocsVersion } from "@/app/config/docs";
 import type { DocsSuiteId } from "@/app/config/docs";
@@ -98,6 +96,7 @@ export function DocPageLayout({
   version: string | null;
   slug: string;
 }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const tree = getDocsTree(suiteId, version);
   const node = findTreeNode(tree, slug);
   const versionConfig = version ? getDocsVersion(suiteId, version) : null;
@@ -113,13 +112,17 @@ export function DocPageLayout({
   if (!node) {
     return (
       <SuiteAccentScope accent={suite.accent}>
-        <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}>
-          <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)] xl:grid-cols-[auto_minmax(0,1fr)_15rem]">
+        <div className="py-6 lg:py-8">
+          <div
+            className="grid gap-4 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(.22,.9,.35,1)] lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
+            style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "0rem" : "17.5rem" }}
+          >
             <DocsSidebar
               tree={tree}
               suiteId={suiteId}
               currentVersion={version}
               currentSlug={null}
+              onCollapsedChange={setSidebarCollapsed}
             />
 
             <div className="min-w-0 rounded-2xl border-2 border-border/60 bg-background/75 p-8 text-center">
@@ -143,9 +146,18 @@ export function DocPageLayout({
 
   return (
     <SuiteAccentScope accent={suite.accent}>
-      <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}>
-        <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)] xl:grid-cols-[auto_minmax(0,1fr)_15rem]">
-          <DocsSidebar tree={tree} suiteId={suiteId} currentVersion={version} currentSlug={slug} />
+      <div className="py-6 lg:py-8">
+        <div
+          className="grid gap-4 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(.22,.9,.35,1)] lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
+          style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "0rem" : "17.5rem" }}
+        >
+          <DocsSidebar
+            tree={tree}
+            suiteId={suiteId}
+            currentVersion={version}
+            currentSlug={slug}
+            onCollapsedChange={setSidebarCollapsed}
+          />
 
           <article className="min-w-0">
             <MobileDocsSidebar

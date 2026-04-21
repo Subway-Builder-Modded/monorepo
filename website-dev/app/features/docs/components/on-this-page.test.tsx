@@ -77,6 +77,20 @@ describe("OnThisPage", () => {
         writeText: vi.fn().mockResolvedValue(undefined),
       },
     });
+
+    Object.defineProperty(window, "scrollTo", {
+      configurable: true,
+      value: vi.fn(),
+    });
+  });
+
+  it("stays visible with no headings and still renders bottom actions", () => {
+    render(<OnThisPage headings={[]} rawContent={"## Intro"} />);
+
+    expect(screen.getByText("On This Page")).toBeInTheDocument();
+    expect(screen.getByText("No sections on this page.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Top/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Copy/i })).toBeInTheDocument();
   });
 
   it("renders as a medium+ desktop rail and filters to h2-h4 headings only", () => {
@@ -135,5 +149,33 @@ describe("OnThisPage", () => {
     await waitFor(() => {
       expect(activeButton.className).toContain("text-[var(--suite-accent-light)]");
     });
+  });
+
+  it("scrolls to section when a toc link is clicked", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <OnThisPage
+        headings={[{ id: "intro", text: "Intro", level: 2 }]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Intro" }));
+    expect(window.scrollTo).toHaveBeenCalled();
+  });
+
+  it("renders bottom controls as neutral borderless actions", () => {
+    render(
+      <OnThisPage
+        headings={[{ id: "intro", text: "Intro", level: 2 }]}
+        editUrl="https://github.com/Subway-Builder-Modded/monorepo"
+        rawContent="## Intro"
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /Top/i }).className).toContain("text-muted-foreground");
+    expect(screen.getByRole("button", { name: /Top/i }).className).not.toContain("border");
+    expect(screen.getByRole("link", { name: /Edit/i }).className).toContain("text-muted-foreground");
+    expect(screen.getByRole("link", { name: /Edit/i }).className).not.toContain("border");
   });
 });

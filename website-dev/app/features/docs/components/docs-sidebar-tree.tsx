@@ -81,7 +81,7 @@ function SidebarItem({
           "group/row rounded-lg border border-transparent transition-colors",
           isRowActive
             ? "border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]"
-            : "hover:border-border/60 hover:bg-muted/45",
+            : "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_24%,transparent)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_8%,transparent)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_30%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,transparent)]",
         )}
       >
         <div className="flex min-w-0 items-center">
@@ -92,7 +92,7 @@ function SidebarItem({
               "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2.5 py-1.5 text-[13px] leading-snug transition-colors",
               isRowActive
                 ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
-                : "text-foreground/75 group-hover/row:text-foreground",
+                : "text-foreground/75 group-hover/row:text-[var(--suite-accent-light)] dark:group-hover/row:text-[var(--suite-accent-dark)]",
             )}
             style={{ paddingLeft: `${0.6 + depth * 0.65}rem` }}
           >
@@ -108,7 +108,7 @@ function SidebarItem({
                 "mr-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md transition-colors",
                 isRowActive
                   ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
-                  : "text-muted-foreground group-hover/row:text-foreground",
+                  : "text-muted-foreground group-hover/row:text-[var(--suite-accent-light)] dark:group-hover/row:text-[var(--suite-accent-dark)]",
               )}
               aria-label={isCollapsed ? "Expand section" : "Collapse section"}
               aria-expanded={!isCollapsed}
