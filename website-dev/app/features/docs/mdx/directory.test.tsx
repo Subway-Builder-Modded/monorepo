@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vite-plus/test";
 import { Directory } from "@/app/features/docs/mdx/directory";
+import { DocsRouteProvider } from "@/app/features/docs/mdx/docs-route-context";
 
 vi.mock("@/app/lib/router", () => ({
   Link: ({ to, children, ...props }: { to: string; children: React.ReactNode }) => (
@@ -49,5 +50,20 @@ describe("Directory MDX component", () => {
   it("returns null when the target folder has no children", () => {
     const { container } = render(<Directory suiteId="railyard" version="v0.2" path="/missing" />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("infers suiteId, version, and slug from the surrounding docs route context when used bare in MDX", () => {
+    render(
+      <DocsRouteProvider value={{ suiteId: "railyard", version: "v0.2", slug: "/" }}>
+        <Directory />
+      </DocsRouteProvider>,
+    );
+
+    // With slug "/" the directory falls back to the suite's top-level visible
+    // nodes, so the seeded "Players" entry must render without props.
+    expect(screen.getByRole("link", { name: /Players/i })).toHaveAttribute(
+      "href",
+      "/railyard/docs/v0.2/players",
+    );
   });
 });

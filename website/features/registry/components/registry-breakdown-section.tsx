@@ -1,7 +1,7 @@
 'use client';
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { LayoutGrid } from 'lucide-react';
+import { Package } from 'lucide-react';
 
 import {
   MAP_COLOR,
@@ -215,7 +215,7 @@ export function RegistryBreakdownSection({
 
   return (
     <section className="mb-12">
-      <SectionHeader icon={LayoutGrid} title="Content Breakdown" />
+      <SectionHeader icon={Package} title="Content Breakdown" />
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="grid gap-6 sm:grid-cols-2 lg:col-span-9">
           <PieCard

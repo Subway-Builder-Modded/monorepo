@@ -1,5 +1,5 @@
 import type { DocsSuiteConfig } from "../docs/types";
-import { WandSparkles, BookText, Megaphone } from "lucide-react";
+import { WandSparkles, Megaphone } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const templateModDocsConfig: DocsSuiteConfig = {
@@ -28,10 +28,7 @@ export const templateModDocsConfig: DocsSuiteConfig = {
     ],
   },
   homepage: {
-    description:
-      "The official documentation for the Subway Builder Modded Template Mod.",
-    heroTitle: "Documentation",
-    heroIcon: BookText,
+    description: "The official documentation for the Subway Builder Modded Template Mod.",
     actions: [
       {
         label: "Create From Template",

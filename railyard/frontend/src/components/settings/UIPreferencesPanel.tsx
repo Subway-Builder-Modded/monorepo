@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@subway-builder-modded/shared-ui';
-import { ChevronDown, LayoutGrid, Monitor, Palette } from 'lucide-react';
+import { ChevronDown, Package, Monitor, Palette } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -173,7 +173,7 @@ export function UIPreferencesPanel() {
           </SettingRow>
 
           <SettingRow
-            icon={<LayoutGrid className="h-4 w-4" />}
+            icon={<Package className="h-4 w-4" />}
             label="Default Cards Per Page"
             description="Choose how many items will be shown per page in browse views"
             action={

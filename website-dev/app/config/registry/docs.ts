@@ -1,5 +1,5 @@
 import type { DocsSuiteConfig } from "../docs/types";
-import { BookText, Database, ChartLine } from "lucide-react";
+import { Database, ChartLine } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 export const registryDocsConfig: DocsSuiteConfig = {
   suiteId: "registry",
@@ -7,17 +7,17 @@ export const registryDocsConfig: DocsSuiteConfig = {
   versioned: false,
   editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/registry`,
   sidebarOrder: [
-    "publishing-projects",
+    "publishing-content",
+    "updating-content",
     "using-custom-url",
+    "dependencies",
+    "author-attribution",
     "tagging",
     "data-quality",
-    "dependencies",
+    "analytics-overview",
   ],
   homepage: {
-    description:
-      "The official documentation for the Registry powering Subway Builder Modded.",
-    heroTitle: "Documentation",
-    heroIcon: BookText,
+    description: "The official documentation for the Registry powering Subway Builder Modded.",
     actions: [
       {
         label: "View Registry",

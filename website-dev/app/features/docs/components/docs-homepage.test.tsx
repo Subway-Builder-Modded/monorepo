@@ -77,7 +77,9 @@ describe("DocsHomepage", () => {
     const cardsGrid = container.querySelector(".grid");
     expect(cardsGrid?.className).toContain("minmax(14.5rem,1fr)");
 
-    expect(screen.getByRole("button", { name: "Choose documentation version" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Choose documentation version" }),
+    ).toBeInTheDocument();
   });
 
   it("shows no version UI for non-versioned registry", () => {
@@ -126,9 +128,20 @@ describe("DocsHomepage", () => {
     expect(
       within(banner as HTMLElement).getByText(/switching to the latest version/i),
     ).toBeInTheDocument();
-    expect(within(banner as HTMLElement).getByRole("link", { name: "View Latest Version" })).toHaveAttribute(
-      "href",
-      "/railyard/docs?version=v0.2",
-    );
+    expect(
+      within(banner as HTMLElement).getByRole("link", { name: "View Latest Version" }),
+    ).toHaveAttribute("href", "/railyard/docs?version=v0.2");
+  });
+
+  it("hero title and icon are sourced from shared identity (not duplicated per suite docs config)", () => {
+    render(<DocsHomepage suiteId="railyard" version="v0.2" />);
+
+    // Title combines the shared "Documentation" with the suite's own title from
+    // site-navigation. We never want each suite docs config to redeclare these.
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Railyard Documentation");
+
+    // Icon is the shared docs identity icon. The hero also has a SuiteBadge
+    // showing the suite icon for branding identity.
+    expect(screen.getByTestId("docs-homepage-hero-icon")).toBeInTheDocument();
   });
 });

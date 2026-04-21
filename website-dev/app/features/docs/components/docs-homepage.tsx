@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { NavRow, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
 import { ExternalLink } from "lucide-react";
 import { getDocsSuiteConfig, getDocsVersion, hasMultipleVisibleVersions } from "@/app/config/docs";
+import { DOCS_HOMEPAGE_ICON, DOCS_HOMEPAGE_TITLE } from "@/app/config/docs/shared";
 import type { DocsSuiteId } from "@/app/config/docs";
 import { getSuiteById } from "@/app/config/site-navigation";
 import { Link } from "@/app/lib/router";
@@ -26,7 +27,8 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
   const config = getDocsSuiteConfig(suiteId)!;
   const actions = config.homepage.actions ?? [];
   const SuiteIcon = suite.icon;
-  const HeroIcon = config.homepage.heroIcon ?? SuiteIcon;
+  const HeroIcon = DOCS_HOMEPAGE_ICON;
+  const heroTitle = `${DOCS_HOMEPAGE_TITLE}`;
   const hasVersionChooser = hasMultipleVisibleVersions(suiteId) && version;
 
   return (
@@ -49,7 +51,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2 pb-1">
             <h1 className="text-2xl font-bold tracking-[-0.015em] text-foreground sm:text-[1.6rem]">
-              {config.homepage.heroTitle ?? `${suite.title} Docs`}
+              {heroTitle}
             </h1>
             <SuiteBadge className={SHARED_SUITE_BADGE_CLASS} accent={suite.accent}>
               <SuiteIcon className="size-3.5" aria-hidden={true} />

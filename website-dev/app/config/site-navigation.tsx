@@ -4,7 +4,7 @@ import {
   Anvil,
   Globe,
   House,
-  LayoutGrid,
+  Package,
   TrainTrack,
   Handshake,
   Users,
@@ -152,7 +152,7 @@ export const SITE_SUITES: SiteSuite[] = [
     id: "template-mod",
     title: "Template Mod",
     href: "/template-mod",
-    icon: LayoutGrid,
+    icon: Package,
     colorSchemeId: "template-mod",
     accent: {
       light: "#60a5fa",

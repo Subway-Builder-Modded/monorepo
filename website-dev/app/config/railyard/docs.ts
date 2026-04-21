@@ -1,5 +1,5 @@
 import type { DocsSuiteConfig } from "../docs/types";
-import { BookText, ChartLine, Download } from "lucide-react";
+import { ChartLine, Download } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const railyardDocsConfig: DocsSuiteConfig = {
@@ -30,23 +30,16 @@ export const railyardDocsConfig: DocsSuiteConfig = {
         key: "installing-railyard",
         children: ["windows", "macos", "linux"],
       },
+      "troubleshooting-railyard",
       "github-token",
-      "country-flag-emojis",
       "importing-custom-assets",
       "profile-management",
+      "country-flag-emojis",
     ],
-    "v0.1": [
-      "install-guide-windows",
-      "install-guide-macos",
-      "install-guide-linux",
-      "github-token",
-    ],
+    "v0.1": ["install-guide-windows", "install-guide-macos", "install-guide-linux", "github-token"],
   },
   homepage: {
-    description:
-      "The official documentation for the Railyard app.",
-    heroTitle: "Documentation",
-    heroIcon: BookText,
+    description: "The official documentation for the Railyard app.",
     actions: [
       {
         label: "Download Railyard",

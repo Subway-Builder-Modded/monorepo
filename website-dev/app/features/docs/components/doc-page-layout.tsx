@@ -1,8 +1,5 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
-import {
-  SuiteAccentLink,
-  SuiteAccentScope,
-} from "@subway-builder-modded/shared-ui";
+import { SuiteAccentLink, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { getSuiteById } from "@/app/config/site-navigation";
 import { getDocsVersion } from "@/app/config/docs";
@@ -18,6 +15,7 @@ import {
 import { extractHeadings } from "@/app/features/docs/lib/headings";
 import { getDocsHomepageUrl } from "@/app/features/docs/lib/routing";
 import { mdxComponents } from "@/app/features/docs/mdx/components";
+import { DocsRouteProvider } from "@/app/features/docs/mdx/docs-route-context";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { DocsSidebar, MobileDocsSidebar } from "./sidebar";
 import { OnThisPage } from "./on-this-page";
@@ -186,7 +184,9 @@ export function DocPageLayout({
 
             <section className="px-1 py-2 sm:px-2 sm:py-3">
               <div className="prose-docs max-w-none">
-                <DocContent sourcePath={sourcePath} />
+                <DocsRouteProvider value={{ suiteId, version, slug }}>
+                  <DocContent sourcePath={sourcePath} />
+                </DocsRouteProvider>
               </div>
             </section>
           </article>

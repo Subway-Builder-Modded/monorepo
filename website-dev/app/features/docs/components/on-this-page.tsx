@@ -211,7 +211,9 @@ export function OnThisPage({
               })}
             </ul>
           ) : (
-            <p className="px-2 py-1.5 text-[12px] text-muted-foreground">No sections on this page.</p>
+            <p className="px-2 py-1.5 text-[12px] text-muted-foreground">
+              No sections on this page.
+            </p>
           )}
 
           <div className="mt-3 flex flex-wrap gap-1.5">

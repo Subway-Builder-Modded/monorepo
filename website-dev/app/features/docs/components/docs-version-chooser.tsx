@@ -15,10 +15,9 @@ type DocsVersionChooserProps = {
 };
 
 const DEFAULT_TRIGGER_CLASS =
-  "inline-flex h-9 min-w-[12rem] items-center justify-between rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 px-3 text-sm font-semibold text-foreground shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]";
+  "inline-flex h-9 min-w-[12rem] items-center justify-between rounded-lg border border-[color-mix(in_srgb,var(--option-color)_28%,var(--border))] bg-background/92 px-3 text-sm font-semibold text-foreground shadow-[0_8px_18px_-14px_rgba(0,0,0,0.3)]";
 
-const MENU_CLASS =
-  "rounded-xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background p-1 shadow-lg";
+const MENU_CLASS = "rounded-xl border border-border bg-background p-1 shadow-lg";
 
 export function DocsVersionChooser({
   suiteId,

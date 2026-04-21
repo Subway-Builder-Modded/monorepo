@@ -20,9 +20,10 @@ export function DocsDeprecatedNotice({
   className,
 }: DocsDeprecatedNoticeProps) {
   const latestVersion = getLatestVersion(suiteId);
-  const latestUrl = latestVersion && latestVersion !== version
-    ? getVersionSwitchUrl(suiteId, latestVersion, currentSlug)
-    : null;
+  const latestUrl =
+    latestVersion && latestVersion !== version
+      ? getVersionSwitchUrl(suiteId, latestVersion, currentSlug)
+      : null;
 
   return (
     <div

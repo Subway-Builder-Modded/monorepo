@@ -116,64 +116,59 @@ export function DocsSidebar({
       >
         <div
           className={cn(
-            "sticky top-20 flex max-h-[calc(100vh-6rem)] flex-col self-start rounded-2xl bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md",
+            "sticky top-20 self-start rounded-2xl bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md",
             DOCS_SURFACE_BORDER_CLASS,
           )}
         >
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <div className="border-b border-border/50 px-3 py-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="text-[15px] font-semibold leading-[1.08] text-foreground/90">
-                    Documentation
-                  </span>
-                  <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="min-w-0">
-                    <SuiteBadge
-                      accent={suite.accent}
-                      className="h-7 max-w-full gap-1.5 rounded-md px-2 normal-case tracking-normal"
-                    >
-                      <suite.icon className="size-3.5" aria-hidden={true} />
-                      <span className="truncate">{suite.title}</span>
-                    </SuiteBadge>
-                  </Link>
-                </div>
+          <div className="border-b border-border/50 px-3 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                Documentation
+              </span>
+              <button
+                type="button"
+                onClick={() => setCollapsedState(true)}
+                className={cn(
+                  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors",
+                  "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
+                  "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
+                )}
+                aria-label="Collapse sidebar"
+              >
+                <PanelLeftClose className="size-4" />
+              </button>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setCollapsedState(true)}
-                  className={cn(
-                    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors",
-                    "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
-                    "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
-                  )}
-                  aria-label="Collapse sidebar"
-                >
-                  <PanelLeftClose className="size-4" />
-                </button>
-              </div>
+            <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="mt-2 block min-w-0">
+              <SuiteBadge
+                accent={suite.accent}
+                className="h-7 w-full justify-start gap-1.5 rounded-md px-2 normal-case tracking-normal"
+              >
+                <suite.icon className="size-3.5 shrink-0" aria-hidden={true} />
+                <span className="truncate">{suite.title}</span>
+              </SuiteBadge>
+            </Link>
 
-              {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
+            {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
+              <div className="mt-2">
                 <DocsVersionChooser
                   suiteId={suiteId}
                   currentVersion={currentVersion}
                   docSlug={currentSlug}
                   triggerClassName="w-full"
                 />
-              ) : null}
-            </div>
-
-            <nav
-              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
-              aria-label="Documentation navigation"
-            >
-              <DocsSidebarTree
-                nodes={visibleNodes}
-                currentSlug={currentSlug}
-                collapsed={collapsed}
-                onToggle={toggle}
-              />
-            </nav>
+              </div>
+            ) : null}
           </div>
+
+          <nav className="px-2.5 py-3" aria-label="Documentation navigation">
+            <DocsSidebarTree
+              nodes={visibleNodes}
+              currentSlug={currentSlug}
+              collapsed={collapsed}
+              onToggle={toggle}
+            />
+          </nav>
         </div>
       </div>
     </aside>

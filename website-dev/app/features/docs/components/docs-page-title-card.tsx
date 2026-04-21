@@ -13,7 +13,9 @@ export function DocsPageTitleCard({ title, description, icon: Icon }: DocsPageTi
         </span>
 
         <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-black tracking-[-0.02em] text-foreground sm:text-3xl">{title}</h1>
+          <h1 className="text-2xl font-black tracking-[-0.02em] text-foreground sm:text-3xl">
+            {title}
+          </h1>
           {description ? (
             <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
               {description}

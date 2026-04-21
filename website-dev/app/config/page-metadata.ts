@@ -8,6 +8,7 @@ import {
 import { matchDocsRoute } from "@/app/features/docs/lib/routing";
 import { getDocsTree, findTreeNode } from "@/app/features/docs/lib/content";
 import { getDocsSuiteConfig } from "@/app/config/docs";
+import { DOCS_HOMEPAGE_TITLE } from "@/app/config/docs/shared";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
@@ -67,7 +68,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
     const config = getDocsSuiteConfig(docsMatch.suiteId);
 
     if (docsMatch.kind === "homepage") {
-      const title = config?.homepage.heroTitle ?? `${suite.title} Documentation`;
+      const title = `${DOCS_HOMEPAGE_TITLE}`;
       return {
         pathname: normalizedPathname,
         title,

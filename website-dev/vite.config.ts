@@ -57,7 +57,10 @@ const HEADING_ID_RE = /^(#{2,4}\s+.+?)\s+\{#([A-Za-z0-9._-]+)\}\s*$/gm;
 
 function escapeHeadingIds(code: string): string {
   if (!code.includes("{#")) return code;
-  return code.replace(HEADING_ID_RE, (_full, head: string, id: string) => `${head} &#x7B;#${id}&#x7D;`);
+  return code.replace(
+    HEADING_ID_RE,
+    (_full, head: string, id: string) => `${head} &#x7B;#${id}&#x7D;`,
+  );
 }
 
 /**

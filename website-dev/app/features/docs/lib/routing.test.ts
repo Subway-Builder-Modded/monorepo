@@ -224,8 +224,6 @@ describe("URL helpers", () => {
   });
 
   it("returns docs homepage for non-versioned suites", () => {
-    expect(getVersionSwitchUrl("registry", "v0.2", "publishing-projects")).toBe(
-      "/registry/docs",
-    );
+    expect(getVersionSwitchUrl("registry", "v0.2", "publishing-projects")).toBe("/registry/docs");
   });
 });

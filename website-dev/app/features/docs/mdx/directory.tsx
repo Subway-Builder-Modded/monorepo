@@ -4,22 +4,38 @@ import { resolveIcon, getDocsTree, getVisibleNodes } from "@/app/features/docs/l
 import type { DocsSuiteId } from "@/app/config/docs";
 import type { DocsTreeNode } from "@/app/features/docs/lib";
 import { Link } from "@/app/lib/router";
+import { useDocsRoute } from "./docs-route-context";
 
 type DirectoryProps = {
+  /**
+   * Folder slug to list children for. Defaults to the current page's slug, so
+   * `<Directory />` on a landing page shows that page's child docs.
+   * Pass `"/"` to list the suite's top-level visible nodes.
+   */
   path?: string;
-  suiteId: DocsSuiteId;
-  version: string;
+  /** Optional overrides — normally inferred from the surrounding doc route. */
+  suiteId?: DocsSuiteId;
+  version?: string | null;
 };
 
-export function Directory({ path = "/", suiteId, version }: DirectoryProps) {
-  const tree = useMemo(() => getDocsTree(suiteId, version), [suiteId, version]);
+export function Directory({ path, suiteId, version }: DirectoryProps) {
+  const route = useDocsRoute();
+  const resolvedSuiteId = suiteId ?? route?.suiteId;
+  const resolvedVersion = version !== undefined ? version : (route?.version ?? null);
+  const resolvedPath = path ?? route?.slug ?? "/";
+
+  const tree = useMemo(
+    () => (resolvedSuiteId ? getDocsTree(resolvedSuiteId, resolvedVersion) : null),
+    [resolvedSuiteId, resolvedVersion],
+  );
 
   const targetNodes = useMemo(() => {
-    if (path === "/" || path === "") {
+    if (!tree) return [];
+    if (resolvedPath === "/" || resolvedPath === "") {
       return getVisibleNodes(tree.nodes);
     }
 
-    const cleanPath = path.replace(/^\//, "");
+    const cleanPath = resolvedPath.replace(/^\//, "");
     function findNodes(nodes: DocsTreeNode[]): DocsTreeNode[] {
       for (const node of nodes) {
         if (node.slug === cleanPath) {
@@ -32,7 +48,7 @@ export function Directory({ path = "/", suiteId, version }: DirectoryProps) {
     }
 
     return findNodes(tree.nodes);
-  }, [tree, path]);
+  }, [tree, resolvedPath]);
 
   if (targetNodes.length === 0) return null;
 

@@ -38,7 +38,7 @@ describe("DocsSidebar", () => {
     sessionStorage.clear();
   });
 
-  it("renders documentation header, separate suite badge, and sticky non-scrollbox sidebar", () => {
+  it("renders the eyebrow label, suite badge on its own row, and a content-height sticky surface (no internal scroll panel)", () => {
     render(
       <DocsSidebar
         tree={makeTree([
@@ -55,16 +55,28 @@ describe("DocsSidebar", () => {
 
     expect(screen.getByText("Documentation")).toBeInTheDocument();
     expect(screen.getByText("Railyard")).toBeInTheDocument();
-    expect(document.querySelector('[data-slot="suite-badge"]')).toBeTruthy();
-    expect(screen.queryByText(/Select suite/i)).not.toBeInTheDocument();
+
+    const badge = document.querySelector('[data-slot="suite-badge"]') as HTMLElement | null;
+    expect(badge).toBeTruthy();
+    // Badge gets a full-width row to itself so the suite title can never be
+    // squeezed/truncated by the collapse button next to it.
+    expect(badge?.className).toContain("w-full");
+    expect(badge?.parentElement?.className).toContain("block");
+
+    const collapseBtn = screen.getByRole("button", { name: "Collapse sidebar" });
+    // Collapse button must NOT share the same row as the badge.
+    expect(collapseBtn.parentElement?.contains(badge as Node)).toBe(false);
 
     const nav = screen.getByLabelText("Documentation navigation");
-    expect(nav.className).toContain("overflow-x-hidden");
+    // The nav must NOT be the inner scroll-panel of a fixed-height card.
+    expect(nav.className).not.toContain("overflow-y-auto");
     expect(nav.className).not.toContain("max-h");
 
-    const stickyFrame = nav.closest("div")?.parentElement;
+    const stickyFrame = nav.parentElement;
+    expect(stickyFrame?.className).toContain("sticky");
     expect(stickyFrame?.className).toContain("self-start");
-    expect(stickyFrame?.className).toContain("border-2");
+    expect(stickyFrame?.className).not.toContain("max-h");
+    expect(stickyFrame?.className).not.toContain("overflow");
   });
 
   it("supports collapse/expand flow with floating expand trigger", async () => {

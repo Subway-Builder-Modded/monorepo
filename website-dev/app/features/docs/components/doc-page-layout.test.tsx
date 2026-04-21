@@ -101,7 +101,6 @@ describe("DocPageLayout", () => {
   });
 
   it("renders doc page chrome with separated title surface and icon", () => {
-
     render(<DocPageLayout suiteId="railyard" version="v0.2" slug="players/github-token" />);
 
     const heading = screen.getByRole("heading", { name: "GitHub Token" });

@@ -35,21 +35,11 @@ describe("DocsVersionChooser", () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, "pushState");
 
-    render(
-      <DocsVersionChooser
-        suiteId="railyard"
-        currentVersion="v0.1"
-        docSlug="github-token"
-      />,
-    );
+    render(<DocsVersionChooser suiteId="railyard" currentVersion="v0.1" docSlug="github-token" />);
 
     await user.click(screen.getByRole("button", { name: "Choose documentation version" }));
     await user.click(screen.getByRole("option", { name: /v0.2/i }));
 
-    expect(pushStateSpy).toHaveBeenCalledWith(
-      {},
-      "",
-      "/railyard/docs/v0.2/github-token",
-    );
+    expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs/v0.2/github-token");
   });
 });
