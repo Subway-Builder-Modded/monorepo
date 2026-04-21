@@ -80,8 +80,8 @@ function SidebarItem({
         className={cn(
           "group/row rounded-lg border border-transparent transition-colors",
           isRowActive
-            ? "border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]"
-            : "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_24%,transparent)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_8%,transparent)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_30%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,transparent)]",
+            ? "border-[color-mix(in_srgb,var(--suite-accent-light)_34%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_14%,transparent)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)]"
+            : "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)]",
         )}
       >
         <div className="flex min-w-0 items-center">

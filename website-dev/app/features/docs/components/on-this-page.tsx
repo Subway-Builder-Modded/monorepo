@@ -13,49 +13,55 @@ function useActiveHeading(headings: DocsTocHeading[]) {
       return;
     }
 
+    let frameId = 0;
+    const marker = 120;
+
     const updateFromScroll = () => {
-      const offset = 112;
-      let current: string | null = headings[0]?.id ?? null;
+      const resolved = headings
+        .map((heading) => {
+          const element = document.getElementById(heading.id);
+          if (!element) return null;
+          return { id: heading.id, top: element.getBoundingClientRect().top };
+        })
+        .filter((item): item is { id: string; top: number } => item !== null);
 
-      for (const heading of headings) {
-        const element = document.getElementById(heading.id);
-        if (!element) continue;
+      if (resolved.length === 0) {
+        setActiveId(headings[0]?.id ?? null);
+        return;
+      }
 
-        const top = element.getBoundingClientRect().top;
-        if (top - offset <= 0) {
-          current = heading.id;
+      let nextActive = resolved[0]!.id;
+      for (const entry of resolved) {
+        if (entry.top <= marker) {
+          nextActive = entry.id;
         } else {
           break;
         }
       }
 
-      setActiveId(current);
+      setActiveId(nextActive);
     };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-
-        if (visible.length > 0) {
-          setActiveId(visible[0].target.id);
-        }
-      },
-      { rootMargin: "-92px 0px -62% 0px", threshold: [0, 0.25, 0.5, 1] },
-    );
-
-    for (const heading of headings) {
-      const element = document.getElementById(heading.id);
-      if (element) observer.observe(element);
-    }
+    const onScroll = () => {
+      if (frameId) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        updateFromScroll();
+      });
+    };
 
     updateFromScroll();
-    window.addEventListener("scroll", updateFromScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    window.addEventListener("hashchange", onScroll);
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener("scroll", updateFromScroll);
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+      }
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("hashchange", onScroll);
     };
   }, [headings]);
 
@@ -75,8 +81,14 @@ export function OnThisPage({
     () => headings.filter((heading) => heading.level >= 2 && heading.level <= 4),
     [headings],
   );
-  const activeId = useActiveHeading(filteredHeadings);
+  const observedActiveId = useActiveHeading(filteredHeadings);
+  const [manualActiveId, setManualActiveId] = useState<string | null>(null);
+  const activeId = manualActiveId ?? observedActiveId;
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setManualActiveId(null);
+  }, [observedActiveId]);
 
   const scrollTo = useCallback((id: string) => {
     const element = document.getElementById(id);
@@ -84,6 +96,7 @@ export function OnThisPage({
       const targetTop = element.getBoundingClientRect().top + window.scrollY - 96;
       window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
       window.history.replaceState(null, "", `#${id}`);
+      setManualActiveId(id);
     }
   }, []);
 
@@ -104,7 +117,7 @@ export function OnThisPage({
   }, [rawContent]);
 
   return (
-    <aside className="hidden lg:block w-60 shrink-0">
+    <aside className="hidden w-60 shrink-0 lg:block">
       <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto overflow-x-hidden pb-8 scrollbar-thin">
         <div className="p-2">
           <h3 className="mb-2 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -137,9 +150,7 @@ export function OnThisPage({
               })}
             </ul>
           ) : (
-            <p className="rounded-md bg-muted/35 px-2 py-1.5 text-[12px] text-muted-foreground">
-              No sections on this page.
-            </p>
+            <p className="px-2 py-1.5 text-[12px] text-muted-foreground">No sections on this page.</p>
           )}
 
           <div className="mt-3 flex flex-wrap gap-1.5">

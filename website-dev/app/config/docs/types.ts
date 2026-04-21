@@ -27,16 +27,20 @@ export type DocsHomepageActionConfig = {
   label: string;
   href: string;
   icon?: LucideIcon;
-  variant: "solid" | "outline";
   external?: boolean;
 };
+
+export type DocsHomepageActions =
+  | []
+  | [DocsHomepageActionConfig]
+  | [DocsHomepageActionConfig, DocsHomepageActionConfig];
 
 export type DocsSidebarOrderItem = string | { key: string; children?: DocsSidebarOrderItem[] };
 
 export type DocsHomepageConfig = {
   description: string;
   heroTitle?: string;
-  actions?: DocsHomepageActionConfig[];
+  actions?: DocsHomepageActions;
 };
 
 type DocsSuiteConfigBase = {

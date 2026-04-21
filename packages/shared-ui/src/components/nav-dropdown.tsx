@@ -17,6 +17,7 @@ export type NavDropdownOption = {
   id: string;
   label: string;
   icon?: ReactNode;
+  iconClassName?: string;
   tone?: {
     color: string;
     muted: string;
@@ -162,8 +163,10 @@ export function NavDropdown({
                       )}
                       style={optionStyle}
                     >
-                      <span>{option.label}</span>
-                      {option.icon ? <span className="ml-auto shrink-0">{option.icon}</span> : null}
+                      <span className="min-w-0 truncate">{option.label}</span>
+                      {option.icon ? (
+                        <span className={cn('shrink-0', option.iconClassName)}>{option.icon}</span>
+                      ) : null}
                     </button>
                   </li>
                 );
@@ -195,7 +198,9 @@ export function NavDropdown({
           {!hideSelectedLabel ? (
             <span className="flex min-w-0 flex-1 items-center gap-1.5">
               <span className="min-w-0 overflow-hidden text-ellipsis">{selected?.label}</span>
-              {selected?.icon ? <span className="shrink-0">{selected.icon}</span> : null}
+              {selected?.icon ? (
+                <span className={cn('shrink-0', selected.iconClassName)}>{selected.icon}</span>
+              ) : null}
             </span>
           ) : null}
           <ChevronDown

@@ -13,6 +13,8 @@ import { DocsVersionChooser } from "./docs-version-chooser";
 import { DocsSidebarTree } from "./docs-sidebar-tree";
 
 const SIDEBAR_COLLAPSED_KEY = "sbm:docs-sidebar-collapsed";
+const DOCS_SURFACE_BORDER_CLASS =
+  "border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))]";
 
 function useCollapsedSections(treeKey: string) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => {
@@ -95,7 +97,7 @@ export function DocsSidebar({
             type="button"
             onClick={() => setCollapsedState(false)}
             className={cn(
-              "absolute left-0 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/70 bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
+              "absolute left-0 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
               "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,transparent)] hover:text-[var(--suite-accent-light)]",
               "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
             )}
@@ -112,12 +114,17 @@ export function DocsSidebar({
           sidebarCollapsed ? "w-0 opacity-0" : "w-[17.5rem] opacity-100",
         )}
       >
-        <div className="sticky top-20 self-start rounded-2xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        <div
+          className={cn(
+            "sticky top-20 self-start rounded-2xl bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md",
+            DOCS_SURFACE_BORDER_CLASS,
+          )}
+        >
           <div className="flex flex-col overflow-hidden">
             <div className="border-b border-border/50 px-3 py-3">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground/90">
+                  <span className="text-[15px] font-semibold leading-[1.08] text-foreground/90">
                     Documentation
                   </span>
                   <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="min-w-0">
@@ -156,7 +163,7 @@ export function DocsSidebar({
             </div>
 
             <nav
-              className="max-h-[calc(100vh-12rem)] overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
+              className="overflow-x-hidden px-2.5 py-3"
               aria-label="Documentation navigation"
             >
               <DocsSidebarTree

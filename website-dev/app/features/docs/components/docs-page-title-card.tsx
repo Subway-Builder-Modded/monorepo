@@ -6,7 +6,7 @@ type DocsPageTitleCardProps = {
 
 export function DocsPageTitleCard({ title, description, icon: Icon }: DocsPageTitleCardProps) {
   return (
-    <header className="mb-4 rounded-2xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_26%,var(--border))] bg-background/55 p-4 sm:p-5">
+    <header className="mb-4 rounded-2xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/55 p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_13%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)] dark:text-[var(--suite-accent-dark)]">
           {Icon ? <Icon className="size-5" aria-hidden={true} /> : null}

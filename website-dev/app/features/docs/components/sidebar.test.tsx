@@ -38,7 +38,7 @@ describe("DocsSidebar", () => {
     sessionStorage.clear();
   });
 
-  it("renders documentation header, separate suite badge, and sticky content-sized sidebar", () => {
+  it("renders documentation header, separate suite badge, and sticky non-scrollbox sidebar", () => {
     render(
       <DocsSidebar
         tree={makeTree([
@@ -59,12 +59,12 @@ describe("DocsSidebar", () => {
     expect(screen.queryByText(/Select suite/i)).not.toBeInTheDocument();
 
     const nav = screen.getByLabelText("Documentation navigation");
-    expect(nav.className).toContain("overflow-y-auto");
     expect(nav.className).toContain("overflow-x-hidden");
+    expect(nav.className).not.toContain("max-h");
 
     const stickyFrame = nav.closest("div")?.parentElement;
     expect(stickyFrame?.className).toContain("self-start");
-    expect(stickyFrame?.className).not.toContain("h-[calc(100vh-6rem)]");
+    expect(stickyFrame?.className).toContain("border-2");
   });
 
   it("supports collapse/expand flow with floating expand trigger", async () => {

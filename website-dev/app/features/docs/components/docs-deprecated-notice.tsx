@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowUpRight } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
 import { getLatestVersion, type DocsSuiteId } from "@/app/config/docs";
@@ -46,8 +46,9 @@ export function DocsDeprecatedNotice({
         {latestUrl ? (
           <Link
             to={latestUrl}
-            className="mt-2 inline-flex text-xs font-semibold text-amber-700 no-underline hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
+            className="mt-2 inline-flex h-7 items-center gap-1.5 rounded-md border border-amber-500/50 bg-transparent px-2 text-xs font-semibold text-amber-700 no-underline transition-colors hover:bg-amber-500/12 hover:text-amber-800 dark:text-amber-300 dark:hover:bg-amber-400/14 dark:hover:text-amber-200"
           >
+            <ArrowUpRight className="size-3" aria-hidden="true" />
             View Latest Version
           </Link>
         ) : null}

@@ -19,16 +19,16 @@ describe("DocsVersionChooser", () => {
     vi.restoreAllMocks();
   });
 
-  it("navigates to suite homepage version using shared chooser behavior", async () => {
+  it("navigates to docs homepage when homepageMode is enabled", async () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, "pushState");
 
-    render(<DocsVersionChooser suiteId="railyard" currentVersion="v0.1" />);
+    render(<DocsVersionChooser suiteId="railyard" currentVersion="v0.1" homepageMode />);
 
     await user.click(screen.getByRole("button", { name: "Choose documentation version" }));
     await user.click(screen.getByRole("option", { name: /v0.2/i }));
 
-    expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs/v0.2/players");
+    expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs?version=v0.2");
   });
 
   it("navigates to the same doc slug when docSlug is provided", async () => {

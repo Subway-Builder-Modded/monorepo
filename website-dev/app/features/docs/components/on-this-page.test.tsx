@@ -3,73 +3,42 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { OnThisPage } from "@/app/features/docs/components/on-this-page";
 
-class MockIntersectionObserver implements IntersectionObserver {
-  static instances: MockIntersectionObserver[] = [];
+function setHeadingTop(id: string, top: number) {
+  const node = document.getElementById(id) as HTMLElement | null;
+  if (!node) return;
 
-  readonly root: Element | Document | null = null;
-  readonly rootMargin = "0px";
-  readonly thresholds = [0];
-
-  private readonly callback: IntersectionObserverCallback;
-  private readonly targets = new Set<Element>();
-
-  constructor(callback: IntersectionObserverCallback) {
-    this.callback = callback;
-    MockIntersectionObserver.instances.push(this);
-  }
-
-  static fire(id: string) {
-    for (const instance of MockIntersectionObserver.instances) {
-      const target = [...instance.targets].find((item) => (item as HTMLElement).id === id);
-      if (!target) continue;
-      instance.callback(
-        [
-          {
-            target,
-            isIntersecting: true,
-            intersectionRatio: 1,
-            boundingClientRect: target.getBoundingClientRect(),
-            intersectionRect: target.getBoundingClientRect(),
-            rootBounds: null,
-            time: Date.now(),
-          } as IntersectionObserverEntry,
-        ],
-        instance,
-      );
-    }
-  }
-
-  disconnect() {
-    this.targets.clear();
-  }
-
-  observe(target: Element) {
-    this.targets.add(target);
-  }
-
-  takeRecords(): IntersectionObserverEntry[] {
-    return [];
-  }
-
-  unobserve(target: Element) {
-    this.targets.delete(target);
-  }
+  node.getBoundingClientRect = vi.fn(() => ({
+    top,
+    bottom: top + 24,
+    left: 0,
+    right: 300,
+    width: 300,
+    height: 24,
+    x: 0,
+    y: top,
+    toJSON: () => ({}),
+  })) as unknown as () => DOMRect;
 }
 
 describe("OnThisPage", () => {
   beforeEach(() => {
-    MockIntersectionObserver.instances = [];
-    Object.defineProperty(window, "IntersectionObserver", {
-      writable: true,
-      value: MockIntersectionObserver,
-    });
-
     document.body.innerHTML = `
       <h2 id="intro">Intro</h2>
       <h3 id="setup">Setup</h3>
       <h4 id="advanced">Advanced</h4>
       <h5 id="ignored">Ignored</h5>
     `;
+
+    Object.defineProperty(window, "scrollY", {
+      configurable: true,
+      writable: true,
+      value: 0,
+    });
+
+    Object.defineProperty(window, "scrollTo", {
+      configurable: true,
+      value: vi.fn(),
+    });
 
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -78,22 +47,22 @@ describe("OnThisPage", () => {
       },
     });
 
-    Object.defineProperty(window, "scrollTo", {
-      configurable: true,
-      value: vi.fn(),
-    });
+    setHeadingTop("intro", 24);
+    setHeadingTop("setup", 260);
+    setHeadingTop("advanced", 520);
   });
 
-  it("stays visible with no headings and still renders bottom actions", () => {
+  it("remains visible with no headings and uses plain empty-state text", () => {
     render(<OnThisPage headings={[]} rawContent={"## Intro"} />);
 
     expect(screen.getByText("On This Page")).toBeInTheDocument();
-    expect(screen.getByText("No sections on this page.")).toBeInTheDocument();
+    const empty = screen.getByText("No sections on this page.");
+    expect(empty.className).not.toContain("bg-");
     expect(screen.getByRole("button", { name: /Top/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Copy/i })).toBeInTheDocument();
   });
 
-  it("renders as a medium+ desktop rail and filters to h2-h4 headings only", () => {
+  it("renders only h2-h4 section links", () => {
     render(
       <OnThisPage
         headings={[
@@ -105,35 +74,26 @@ describe("OnThisPage", () => {
       />,
     );
 
-    const aside = screen.getByText("On This Page").closest("aside");
-    expect(aside?.className).toContain("hidden");
-    expect(aside?.className).toContain("lg:block");
-
     expect(screen.getByRole("button", { name: "Intro" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Setup" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Advanced" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Ignored" })).not.toBeInTheDocument();
   });
 
-  it("renders quick actions and supports copy action", async () => {
+  it("scrolls reliably to section targets when links are clicked", async () => {
     const user = userEvent.setup();
 
-    render(
-      <OnThisPage
-        headings={[{ id: "intro", text: "Intro", level: 2 }]}
-        editUrl="https://github.com/Subway-Builder-Modded/monorepo"
-        rawContent="## Intro\n\nBody"
-      />,
-    );
+    render(<OnThisPage headings={[{ id: "setup", text: "Setup", level: 3 }]} />);
 
-    expect(screen.getByRole("button", { name: /Top/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Edit/i })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Setup" }));
 
-    await user.click(screen.getByRole("button", { name: /Copy/i }));
-    expect(screen.getByRole("button", { name: /Copied/i })).toBeInTheDocument();
+    expect(window.scrollTo).toHaveBeenCalledWith({
+      top: 164,
+      behavior: "smooth",
+    });
   });
 
-  it("tracks active heading and applies suite-themed active state", async () => {
+  it("updates active section from scroll position changes", async () => {
     render(
       <OnThisPage
         headings={[
@@ -143,28 +103,21 @@ describe("OnThisPage", () => {
       />,
     );
 
-    MockIntersectionObserver.fire("setup");
+    const intro = screen.getByRole("button", { name: "Intro" });
+    const setup = screen.getByRole("button", { name: "Setup" });
 
-    const activeButton = screen.getByRole("button", { name: "Setup" });
+    expect(intro.className).toContain("text-[var(--suite-accent-light)]");
+
+    setHeadingTop("intro", -300);
+    setHeadingTop("setup", 60);
+    window.dispatchEvent(new Event("scroll"));
+
     await waitFor(() => {
-      expect(activeButton.className).toContain("text-[var(--suite-accent-light)]");
+      expect(setup.className).toContain("text-[var(--suite-accent-light)]");
     });
   });
 
-  it("scrolls to section when a toc link is clicked", async () => {
-    const user = userEvent.setup();
-
-    render(
-      <OnThisPage
-        headings={[{ id: "intro", text: "Intro", level: 2 }]}
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Intro" }));
-    expect(window.scrollTo).toHaveBeenCalled();
-  });
-
-  it("renders bottom controls as neutral borderless actions", () => {
+  it("keeps Top/Edit/Copy controls neutral and borderless by default", () => {
     render(
       <OnThisPage
         headings={[{ id: "intro", text: "Intro", level: 2 }]}
@@ -173,9 +126,15 @@ describe("OnThisPage", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /Top/i }).className).toContain("text-muted-foreground");
-    expect(screen.getByRole("button", { name: /Top/i }).className).not.toContain("border");
-    expect(screen.getByRole("link", { name: /Edit/i }).className).toContain("text-muted-foreground");
-    expect(screen.getByRole("link", { name: /Edit/i }).className).not.toContain("border");
+    const top = screen.getByRole("button", { name: /Top/i });
+    const edit = screen.getByRole("link", { name: /Edit/i });
+    const copy = screen.getByRole("button", { name: /Copy/i });
+
+    expect(top.className).toContain("text-muted-foreground");
+    expect(edit.className).toContain("text-muted-foreground");
+    expect(copy.className).toContain("text-muted-foreground");
+    expect(top.className).not.toContain("border");
+    expect(edit.className).not.toContain("border");
+    expect(copy.className).not.toContain("border");
   });
 });

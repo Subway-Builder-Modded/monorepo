@@ -47,24 +47,18 @@ describe("DocsHomepage", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders single hero card with suite badge, h1 title, and version chooser inside for versioned suites", async () => {
+  it("renders a single hero surface with h1, suite badge, and in-card version chooser", async () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, "pushState");
 
     render(<DocsHomepage suiteId="railyard" version="v0.1" />);
 
-    // h1 title present
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
-
-    // shared suite badge present next to title
     expect(screen.getByText("Railyard").closest('[data-slot="suite-badge"]')).toBeTruthy();
-
-    // version chooser inside the hero card (not a separate card)
     expect(
       screen.getByRole("button", { name: "Choose documentation version" }),
     ).toBeInTheDocument();
 
-    // version chooser navigation works
     await user.click(screen.getByRole("button", { name: "Choose documentation version" }));
     await user.click(screen.getByRole("option", { name: /v0.2/i }));
 
@@ -101,20 +95,29 @@ describe("DocsHomepage", () => {
     expect(cardsRegion).toBeTruthy();
   });
 
-  it("action buttons inside hero are small neutral inline actions without border", () => {
+  it("renders stacked utility-style hero actions with configured icons", () => {
     render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
-    // Hero is a single card — the h1 and version chooser share the same outer wrapper
     const heading = screen.getByRole("heading", { level: 1 });
     const versionBtn = screen.getByRole("button", { name: "Choose documentation version" });
-
-    // Both should be inside the same hero container (not separate cards)
     const heroCard = heading.closest(".rounded-3xl");
+
     expect(heroCard).toBeTruthy();
     expect(heroCard?.contains(versionBtn)).toBe(true);
+
+    const download = screen.getByRole("link", { name: /Download Railyard/i });
+    const source = screen.getByRole("link", { name: /Railyard Source/i });
+
+    expect(download.className).toContain("h-7");
+    expect(download.className).toContain("text-[11px]");
+    expect(download.querySelector("svg")).toBeTruthy();
+
+    const actionsWrap = download.parentElement;
+    expect(actionsWrap?.className).toContain("flex-col");
+    expect(actionsWrap?.contains(source)).toBe(true);
   });
 
-  it("renders deprecated banner with a latest-switch CTA hint", () => {
+  it("renders deprecated banner with latest-version button target", () => {
     render(<DocsHomepage suiteId="railyard" version="v0.1" />);
 
     const banner = screen.getByText(/which is deprecated/i).closest("div");

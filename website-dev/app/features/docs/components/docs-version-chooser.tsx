@@ -1,28 +1,30 @@
 import { useMemo, useState } from "react";
 import { NavDropdown, SuiteStatusChip } from "@subway-builder-modded/shared-ui";
 import { cn } from "@/app/lib/utils";
-import { getVersionSwitchUrl } from "@/app/features/docs/lib/routing";
+import { getDocsHomepageUrl, getVersionSwitchUrl } from "@/app/features/docs/lib/routing";
 import { getVisibleVersions, type DocsSuiteId } from "@/app/config/docs";
 
 type DocsVersionChooserProps = {
   suiteId: DocsSuiteId;
   currentVersion: string;
   docSlug?: string | null;
+  homepageMode?: boolean;
   className?: string;
   triggerClassName?: string;
   triggerLabel?: string;
 };
 
 const DEFAULT_TRIGGER_CLASS =
-  "inline-flex h-9 min-w-[12rem] items-center justify-between rounded-lg border border-border/70 bg-background px-3 text-sm font-semibold text-foreground hover:border-[color-mix(in_srgb,var(--suite-accent-light)_36%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_42%,transparent)] dark:hover:text-[var(--suite-accent-dark)]";
+  "inline-flex h-9 min-w-[12rem] items-center justify-between rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 px-3 text-sm font-semibold text-foreground shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,var(--border))] hover:text-[var(--suite-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,var(--border))] dark:hover:text-[var(--suite-accent-dark)]";
 
 const MENU_CLASS =
-  "rounded-xl border border-border/70 bg-background p-1 shadow-lg";
+  "rounded-xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background p-1 shadow-lg";
 
 export function DocsVersionChooser({
   suiteId,
   currentVersion,
   docSlug = null,
+  homepageMode = false,
   className,
   triggerClassName,
   triggerLabel = "Choose documentation version",
@@ -43,6 +45,7 @@ export function DocsVersionChooser({
             ) : item.status === "deprecated" ? (
               <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
             ) : undefined,
+          iconClassName: "inline-flex items-center",
           tone: deprecatedTone
             ? {
                 color: "hsl(var(--muted-foreground))",
@@ -72,7 +75,9 @@ export function DocsVersionChooser({
       triggerClassName={cn(DEFAULT_TRIGGER_CLASS, triggerClassName)}
       menuClassName={MENU_CLASS}
       onSelect={(version) => {
-        const url = getVersionSwitchUrl(suiteId, version, docSlug);
+        const url = homepageMode
+          ? getDocsHomepageUrl(suiteId, version)
+          : getVersionSwitchUrl(suiteId, version, docSlug);
 
         window.history.pushState({}, "", url);
         window.dispatchEvent(new Event("sbm:navigate"));

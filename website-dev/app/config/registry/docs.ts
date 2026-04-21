@@ -1,4 +1,5 @@
 import type { DocsSuiteConfig } from "../docs/types";
+import { LibraryBig } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 export const registryDocsConfig: DocsSuiteConfig = {
   suiteId: "registry",
@@ -20,7 +21,7 @@ export const registryDocsConfig: DocsSuiteConfig = {
       {
         label: "Open Registry",
         href: "/registry",
-        variant: "outline",
+        icon: LibraryBig,
       },
     ],
   },

@@ -18,34 +18,32 @@ const SHARED_SUITE_BADGE_CLASS =
 const ACTION_CLASS =
   "inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground no-underline transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]";
 
+const DOCS_SURFACE_BORDER_CLASS =
+  "border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))]";
+
 function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: string | null }) {
   const suite = getSuiteById(suiteId);
   const config = getDocsSuiteConfig(suiteId)!;
-  const actions = config.homepage.actions?.slice(0, 3) ?? [];
+  const actions = config.homepage.actions ?? [];
   const SuiteIcon = suite.icon;
   const hasVersionChooser = isVersionedDocsSuite(suiteId) && version;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_28%,var(--border))] bg-gradient-to-br from-background via-background to-muted/40 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.55)]">
-      {/* Decorative transit-themed background elements */}
-      <div className="pointer-events-none absolute inset-0 opacity-90">
-        <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_85%,transparent)] to-transparent" />
-        <div className="absolute -left-12 top-14 h-px w-80 rotate-[13deg] bg-[color-mix(in_srgb,var(--suite-accent-light)_44%,transparent)]" />
-        <div className="absolute left-16 top-28 h-px w-96 -rotate-[8deg] bg-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)]" />
-        <div className="absolute right-8 top-8 h-20 w-20 rounded-xl border border-[color-mix(in_srgb,var(--suite-accent-light)_33%,transparent)]" />
-        <div className="absolute -right-8 bottom-6 h-24 w-24 rounded-full border border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)]" />
-      </div>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-background to-muted/25 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.55)]",
+        DOCS_SURFACE_BORDER_CLASS,
+      )}
+    >
+      <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_70%,transparent)] to-transparent" />
 
-      {/* Main title row */}
       <div className="relative flex items-start gap-4 p-5 sm:p-7">
-        {/* Suite icon */}
         <span className="mt-0.5 inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)] dark:text-[var(--suite-accent-dark)]">
           <SuiteIcon className="size-6" aria-hidden={true} />
         </span>
 
-        {/* Title, badge, description */}
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 pb-1">
+          <div className="flex flex-wrap items-center gap-2 pb-1.5">
             <h1 className="text-2xl font-black tracking-[-0.02em] text-foreground sm:text-3xl">
               {config.homepage.heroTitle ?? `${suite.title} Docs`}
             </h1>
@@ -55,15 +53,15 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
             </SuiteBadge>
           </div>
           {config.homepage.description ? (
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
               {config.homepage.description}
             </p>
           ) : null}
         </div>
 
-        {/* Action buttons - small inline actions on the right */}
         {actions.length > 0 ? (
-          <div className="hidden shrink-0 items-center gap-0.5 sm:flex">
+          <div className="shrink-0">
+            <div className="flex min-w-[8.75rem] flex-col items-stretch gap-1">
             {actions.map((action) => {
               const ActionIcon = action.icon;
               const isExternal = action.external === true;
@@ -73,7 +71,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
                   href={action.href}
                   target={isExternal ? "_blank" : undefined}
                   rel={isExternal ? "noopener noreferrer" : undefined}
-                  className={ACTION_CLASS}
+                    className={cn(ACTION_CLASS, "justify-start")}
                 >
                   {ActionIcon ? <ActionIcon className="size-3" aria-hidden="true" /> : null}
                   {action.label}
@@ -81,18 +79,18 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
                 </a>
               );
             })}
+            </div>
           </div>
         ) : null}
       </div>
 
-      {/* Version chooser - inside the card, centered in its own section */}
       {hasVersionChooser ? (
-        <div className="relative border-t border-[color-mix(in_srgb,var(--suite-accent-light)_18%,var(--border))] px-5 py-4 sm:px-7">
-          <div className="pointer-events-none absolute left-5 right-5 top-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_45%,transparent)] to-transparent" />
+        <div className="border-t border-[color-mix(in_srgb,var(--suite-accent-light)_18%,var(--border))] px-5 py-4 sm:px-7">
           <div className="flex justify-center">
             <DocsVersionChooser
               suiteId={suiteId}
               currentVersion={version}
+              homepageMode
               triggerClassName="h-10 min-w-[14rem] text-[13px]"
             />
           </div>

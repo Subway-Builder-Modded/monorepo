@@ -20,10 +20,14 @@ describe("DocsDeprecatedNotice", () => {
       />,
     );
 
-    expect(screen.getByRole("link", { name: "View Latest Version" })).toHaveAttribute(
+    const latestButton = screen.getByRole("link", { name: "View Latest Version" });
+
+    expect(latestButton).toHaveAttribute(
       "href",
       "/railyard/docs/v0.2/players/github-token",
     );
+    expect(latestButton.className).toContain("border");
+    expect(latestButton.querySelector("svg")).toBeTruthy();
   });
 
   it("falls back to latest defaultDoc when target slug is unavailable", () => {

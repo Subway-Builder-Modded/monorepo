@@ -1,4 +1,5 @@
 import type { DocsSuiteConfig } from "../docs/types";
+import { Code2, Download } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const railyardDocsConfig: DocsSuiteConfig = {
@@ -59,12 +60,12 @@ export const railyardDocsConfig: DocsSuiteConfig = {
       {
         label: "Download Railyard",
         href: "/railyard/download",
-        variant: "solid",
+        icon: Download,
       },
       {
         label: "Railyard Source",
         href: "https://github.com/Subway-Builder-Modded/monorepo/tree/main/railyard",
-        variant: "outline",
+        icon: Code2,
         external: true,
       },
     ],

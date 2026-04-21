@@ -1,4 +1,5 @@
 import type { DocsSuiteConfig } from "../docs/types";
+import { WandSparkles } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const templateModDocsConfig: DocsSuiteConfig = {
@@ -34,7 +35,7 @@ export const templateModDocsConfig: DocsSuiteConfig = {
       {
         label: "Create From Template",
         href: "/template-mod",
-        variant: "solid",
+        icon: WandSparkles,
       },
     ],
   },
