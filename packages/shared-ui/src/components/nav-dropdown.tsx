@@ -149,21 +149,21 @@ export function NavDropdown({
                         onOpenChange(false);
                       }}
                       className={cn(
-                        'flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm',
-                        'outline-none transition',
+                        'flex w-full items-center gap-1.5 rounded-lg px-2.5 py-2 text-left text-sm',
+                        'text-foreground outline-none transition',
                         option.tone
-                          ? 'text-[color:var(--option-color)] hover:bg-[color:var(--option-muted)]'
+                          ? 'hover:bg-[var(--option-muted)] hover:text-[var(--option-color)]'
                           : 'hover:bg-accent hover:text-accent-foreground',
                         'focus-visible:ring-2 focus-visible:ring-ring',
                         isSelected &&
                           (option.tone
-                            ? 'bg-[color:var(--option-muted)] font-medium'
-                            : 'bg-accent text-accent-foreground'),
+                            ? 'bg-[var(--option-muted)] font-medium text-[var(--option-color)]'
+                            : 'bg-accent font-medium text-accent-foreground'),
                       )}
                       style={optionStyle}
                     >
-                      {option.icon}
                       <span>{option.label}</span>
+                      {option.icon ? <span className="ml-auto shrink-0">{option.icon}</span> : null}
                     </button>
                   </li>
                 );
@@ -192,10 +192,10 @@ export function NavDropdown({
             triggerClassName,
           )}
         >
-          <span className="shrink-0">{selected?.icon}</span>
           {!hideSelectedLabel ? (
-            <span className="max-w-[9.5rem] overflow-hidden text-ellipsis sm:max-w-none">
-              {selected?.label}
+            <span className="flex min-w-0 flex-1 items-center gap-1.5">
+              <span className="min-w-0 overflow-hidden text-ellipsis">{selected?.label}</span>
+              {selected?.icon ? <span className="shrink-0">{selected.icon}</span> : null}
             </span>
           ) : null}
           <ChevronDown

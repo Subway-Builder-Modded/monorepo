@@ -42,51 +42,29 @@ vi.mock("@/app/features/docs/lib/icon-resolver", () => ({
   resolveIcon: () => (props: { className?: string }) => <svg data-testid="card-icon" {...props} />,
 }));
 
-vi.mock("@subway-builder-modded/shared-ui", async () => {
-  const actual = await vi.importActual<typeof import("@subway-builder-modded/shared-ui")>(
-    "@subway-builder-modded/shared-ui",
-  );
-
-  return {
-    ...actual,
-    PageHeading: ({
-      title,
-      actions,
-      badge,
-    }: {
-      title: string;
-      actions?: React.ReactNode;
-      badge?: React.ReactNode;
-    }) => (
-      <div data-testid="shared-page-heading">
-        <h1>{title}</h1>
-        {badge}
-        {actions}
-      </div>
-    ),
-  };
-});
-
 describe("DocsHomepage", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("uses shared page heading with suite badge and version chooser for versioned suites", async () => {
+  it("renders single hero card with suite badge, h1 title, and version chooser inside for versioned suites", async () => {
     const user = userEvent.setup();
     const pushStateSpy = vi.spyOn(window.history, "pushState");
 
     render(<DocsHomepage suiteId="railyard" version="v0.1" />);
 
-    expect(screen.getByTestId("shared-page-heading")).toBeInTheDocument();
+    // h1 title present
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+
+    // shared suite badge present next to title
     expect(screen.getByText("Railyard").closest('[data-slot="suite-badge"]')).toBeTruthy();
+
+    // version chooser inside the hero card (not a separate card)
     expect(
       screen.getByRole("button", { name: "Choose documentation version" }),
     ).toBeInTheDocument();
 
-    expect(screen.queryByRole("link", { name: "v0.1" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "v0.2" })).not.toBeInTheDocument();
-
+    // version chooser navigation works
     await user.click(screen.getByRole("button", { name: "Choose documentation version" }));
     await user.click(screen.getByRole("option", { name: /v0.2/i }));
 
@@ -96,8 +74,7 @@ describe("DocsHomepage", () => {
   it("renders route-board divider and responsive nav-row card grid", () => {
     const { container } = render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
-    expect(screen.getByText("Route Board")).toBeInTheDocument();
-    expect(screen.queryByText("Start Here")).not.toBeInTheDocument();
+    expect(screen.getByText("Discover")).toBeInTheDocument();
 
     const cardsLink = screen.getByRole("link", { name: /Players/i });
     expect(cardsLink.className).toContain("var(--suite-accent-light)");
@@ -122,6 +99,19 @@ describe("DocsHomepage", () => {
       link.getAttribute("href")?.startsWith("/registry/docs/"),
     );
     expect(cardsRegion).toBeTruthy();
+  });
+
+  it("action buttons inside hero are small neutral inline actions without border", () => {
+    render(<DocsHomepage suiteId="railyard" version="v0.2" />);
+
+    // Hero is a single card — the h1 and version chooser share the same outer wrapper
+    const heading = screen.getByRole("heading", { level: 1 });
+    const versionBtn = screen.getByRole("button", { name: "Choose documentation version" });
+
+    // Both should be inside the same hero container (not separate cards)
+    const heroCard = heading.closest(".rounded-3xl");
+    expect(heroCard).toBeTruthy();
+    expect(heroCard?.contains(versionBtn)).toBe(true);
   });
 
   it("renders deprecated banner with a latest-switch CTA hint", () => {

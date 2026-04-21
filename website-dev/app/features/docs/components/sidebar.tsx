@@ -112,12 +112,12 @@ export function DocsSidebar({
           sidebarCollapsed ? "w-0 opacity-0" : "w-[17.5rem] opacity-100",
         )}
       >
-        <div className="sticky top-20 self-start rounded-2xl border border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        <div className="sticky top-20 self-start rounded-2xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md">
           <div className="flex flex-col overflow-hidden">
             <div className="border-b border-border/50 px-3 py-3">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                  <span className="text-sm font-semibold text-foreground/90">
                     Documentation
                   </span>
                   <Link to={getDocsHomepageUrl(suiteId, currentVersion)} className="min-w-0">

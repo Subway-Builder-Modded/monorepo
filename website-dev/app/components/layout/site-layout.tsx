@@ -25,7 +25,7 @@ export function SiteLayout({ children }: SiteLayoutProps) {
     >
       <FloatingNavbar pathname={pathname} theme={theme} setTheme={setTheme} />
 
-      <main className={`relative min-h-[70vh] w-full pb-8 pt-24 ${SITE_SHELL_CLASS}`}>
+      <main className={`relative min-h-[70vh] w-full pb-8 pt-12 ${SITE_SHELL_CLASS}`}>
         {children}
       </main>
 
