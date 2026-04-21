@@ -79,9 +79,7 @@ export function NavbarTopbar({
       />
       {!isMobile ? (
         <span className="min-w-0 overflow-hidden">
-          <span className="block truncate leading-[1.2] lg:text-[15px]">
-            Subway Builder Modded
-          </span>
+          <span className="block truncate leading-[1.2] lg:text-[15px]">Subway Builder Modded</span>
         </span>
       ) : null}
     </Link>

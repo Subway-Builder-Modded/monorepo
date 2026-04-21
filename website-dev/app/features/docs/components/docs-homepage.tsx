@@ -59,9 +59,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
             </SuiteBadge>
           </div>
           {description ? (
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {description}
-            </p>
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p>
           ) : null}
         </div>
 

@@ -71,7 +71,8 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
       return {
         pathname: normalizedPathname,
         title,
-        description: getSuiteDocsNavItem(docsMatch.suiteId)?.description ?? DEFAULT_SITE_DESCRIPTION,
+        description:
+          getSuiteDocsNavItem(docsMatch.suiteId)?.description ?? DEFAULT_SITE_DESCRIPTION,
         suite,
         pageTitle: `${title} | ${suite.title}`,
         imagePath: getSuiteImagePath(docsMatch.suiteId),
