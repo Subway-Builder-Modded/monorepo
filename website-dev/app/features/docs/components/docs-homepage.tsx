@@ -3,8 +3,9 @@ import {
   NavRow,
   PageHeading,
   SITE_SHELL_CLASS,
+  SuiteAccentButton,
   SuiteAccentScope,
-  SuiteStatusChip,
+  SuiteBadge,
 } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
@@ -14,38 +15,84 @@ import type { DocsSuiteId } from "@/app/config/docs";
 import { getDocsTree, getVisibleNodes } from "@/app/features/docs/lib/content";
 import { getDocPageUrl } from "@/app/features/docs/lib/routing";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
+import { ExternalLink } from "lucide-react";
 import { DocsVersionChooser } from "./docs-version-chooser";
 import { DocsDeprecatedNotice } from "./docs-deprecated-notice";
 
-function Signboard({ suiteId, version }: { suiteId: DocsSuiteId; version: string | null }) {
+function Signboard({ suiteId }: { suiteId: DocsSuiteId }) {
   const suite = getSuiteById(suiteId);
   const config = getDocsSuiteConfig(suiteId)!;
-  const isVersioned = isVersionedDocsSuite(suiteId);
-  const versionConfig = version ? getDocsVersion(suiteId, version) : null;
   const SuiteIcon = suite.icon;
 
   return (
-    <PageHeading
-      icon={SuiteIcon}
-      title={config.homepage.heroTitle ?? `${suite.title} Documentation`}
-      description={config.homepage.description}
-      eyebrow="Documentation"
-      accent={suite.accent}
-      badge={
-        isVersioned && versionConfig ? (
-          versionConfig.status === "deprecated" ? (
-            <SuiteStatusChip status="deprecated" deprecatedTone="gray" />
-          ) : versionConfig.status === "latest" ? (
-            <SuiteStatusChip status="latest" />
-          ) : null
-        ) : undefined
-      }
-      actions={
-        isVersioned && version ? (
+    <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-background via-background to-muted/30 p-5 sm:p-6">
+      <div className="pointer-events-none absolute inset-0 opacity-70">
+        <div className="absolute -left-16 top-10 h-px w-64 rotate-[14deg] bg-[color-mix(in_srgb,var(--suite-accent-light)_45%,transparent)]" />
+        <div className="absolute left-24 top-20 h-px w-80 -rotate-[9deg] bg-[color-mix(in_srgb,var(--suite-accent-light)_32%,transparent)]" />
+        <div className="absolute right-[-6rem] bottom-8 h-28 w-28 rounded-full border border-[color-mix(in_srgb,var(--suite-accent-light)_35%,transparent)]" />
+      </div>
+
+      <PageHeading
+        className="mb-0"
+        icon={SuiteIcon as any}
+        title={config.homepage.heroTitle ?? `${suite.title} Docs`}
+        description={config.homepage.description}
+        accent={suite.accent}
+      />
+    </div>
+  );
+}
+
+function HomepageControlStrip({
+  suiteId,
+  version,
+}: {
+  suiteId: DocsSuiteId;
+  version: string | null;
+}) {
+  const suite = getSuiteById(suiteId);
+  const config = getDocsSuiteConfig(suiteId)!;
+  const actions = config.homepage.actions?.slice(0, 2) ?? [];
+
+  return (
+    <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-background/75 px-4 py-3 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <SuiteBadge accent={suite.accent} className="normal-case tracking-normal">
+          {suite.title}
+        </SuiteBadge>
+
+        {isVersionedDocsSuite(suiteId) && version ? (
           <DocsVersionChooser suiteId={suiteId} currentVersion={version} />
-        ) : undefined
-      }
-    />
+        ) : null}
+      </div>
+
+      {actions.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {actions.map((action) => {
+            const ActionIcon = action.icon;
+            const isExternal = action.external === true;
+            return (
+              <SuiteAccentButton
+                key={action.label}
+                asChild
+                tone={action.variant === "solid" ? "solid" : "outline"}
+                className="h-8 gap-1.5 rounded-md px-2.5 text-xs"
+              >
+                <a
+                  href={action.href}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
+                >
+                  {ActionIcon ? <ActionIcon className="size-3.5" aria-hidden="true" /> : null}
+                  {action.label}
+                  {isExternal ? <ExternalLink className="size-3" aria-hidden="true" /> : null}
+                </a>
+              </SuiteAccentButton>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -62,7 +109,7 @@ function DocsCardGrid({ suiteId, version }: { suiteId: DocsSuiteId; version: str
   }
 
   return (
-    <div className="grid gap-3 lg:grid-cols-2">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-3">
       {visibleNodes.map((node) => {
         const Icon = resolveIcon(node.frontmatter.icon);
 
@@ -110,9 +157,10 @@ export function DocsHomepage({
       <section className="py-6 lg:py-8">
         <div className={SITE_SHELL_CLASS}>
           {isDeprecated && version ? (
-            <DocsDeprecatedNotice version={version} context="homepage" />
+            <DocsDeprecatedNotice suiteId={suiteId} version={version} context="homepage" />
           ) : null}
-          <Signboard suiteId={suiteId} version={version} />
+          <Signboard suiteId={suiteId} />
+          <HomepageControlStrip suiteId={suiteId} version={version} />
         </div>
 
         <div className={cn(SITE_SHELL_CLASS, "mt-2")}>

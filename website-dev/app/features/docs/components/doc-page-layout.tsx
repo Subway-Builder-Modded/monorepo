@@ -114,7 +114,7 @@ export function DocPageLayout({
     return (
       <SuiteAccentScope accent={suite.accent}>
         <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}>
-          <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)_15rem]">
+          <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)] xl:grid-cols-[auto_minmax(0,1fr)_15rem]">
             <DocsSidebar
               tree={tree}
               suiteId={suiteId}
@@ -144,7 +144,7 @@ export function DocPageLayout({
   return (
     <SuiteAccentScope accent={suite.accent}>
       <div className={cn(SITE_SHELL_CLASS, "py-6 lg:py-8")}>
-        <div className="grid gap-4 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)_15rem]">
+        <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)] xl:grid-cols-[auto_minmax(0,1fr)_15rem]">
           <DocsSidebar tree={tree} suiteId={suiteId} currentVersion={version} currentSlug={slug} />
 
           <article className="min-w-0">
@@ -155,7 +155,9 @@ export function DocPageLayout({
               currentSlug={slug}
             />
 
-            {isDeprecated && version ? <DocsDeprecatedNotice version={version} /> : null}
+            {isDeprecated && version ? (
+              <DocsDeprecatedNotice suiteId={suiteId} version={version} currentSlug={slug} />
+            ) : null}
 
             <DocsBreadcrumbs
               suiteId={suiteId}
@@ -168,11 +170,9 @@ export function DocPageLayout({
               title={node.frontmatter.title}
               description={node.frontmatter.description}
               icon={Icon}
-              editUrl={editUrl}
-              rawContent={rawContent}
             />
 
-            <section className="rounded-2xl border border-border/60 bg-background/50 px-4 py-5 sm:px-6 sm:py-6">
+            <section className="px-1 py-2 sm:px-2 sm:py-3">
               <div className="prose-docs max-w-none">
                 <DocContent sourcePath={sourcePath} />
               </div>

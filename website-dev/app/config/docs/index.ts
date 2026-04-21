@@ -11,7 +11,13 @@ import { registryDocsConfig } from "../registry/docs";
 import { templateModDocsConfig } from "../template-mod/docs";
 
 export type { DocsConfig, DocsSuiteConfig, DocsSuiteId, DocsVersionConfig, DocsRouteVersion };
-export type { DocsSidebarOrderItem, DocsVersionStatus, DocsHomepageConfig, DocsFrontmatter } from "./types";
+export type {
+  DocsSidebarOrderItem,
+  DocsVersionStatus,
+  DocsHomepageConfig,
+  DocsHomepageActionConfig,
+  DocsFrontmatter,
+} from "./types";
 export { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "./shared";
 
 export const DOCS_CONFIG: DocsConfig = {
@@ -36,6 +42,11 @@ export function getDocsVersion(suiteId: DocsSuiteId, version: string): DocsVersi
   const suite = getDocsSuiteConfig(suiteId);
   if (!suite || !suite.versioned) return null;
   return suite.versions.find((v) => v.value === version) ?? null;
+}
+
+export function getDefaultDocForVersion(suiteId: DocsSuiteId, version: string): string | null {
+  const versionConfig = getDocsVersion(suiteId, version);
+  return versionConfig?.defaultDoc ?? null;
 }
 
 export function getLatestVersion(suiteId: DocsSuiteId): string | null {

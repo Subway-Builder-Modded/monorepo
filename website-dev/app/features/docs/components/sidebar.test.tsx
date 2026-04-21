@@ -53,7 +53,7 @@ describe("DocsSidebar", () => {
       />,
     );
 
-    expect(screen.getByText("Railyard Documentation")).toBeInTheDocument();
+    expect(screen.getByText("Railyard")).toBeInTheDocument();
     expect(document.querySelector('[data-slot="suite-badge"]')).toBeTruthy();
     expect(screen.queryByText(/Select suite/i)).not.toBeInTheDocument();
 
@@ -62,7 +62,7 @@ describe("DocsSidebar", () => {
     expect(nav.className).toContain("overflow-x-hidden");
   });
 
-  it("supports collapse/expand flow with redesigned mini icon rail", async () => {
+  it("supports collapse/expand flow with floating expand trigger", async () => {
     const user = userEvent.setup();
 
     render(
@@ -80,7 +80,7 @@ describe("DocsSidebar", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
-    expect(screen.getByLabelText("Collapsed documentation navigation")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Expand sidebar" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Expand sidebar" }));
     expect(screen.getByRole("button", { name: "Collapse sidebar" })).toBeInTheDocument();

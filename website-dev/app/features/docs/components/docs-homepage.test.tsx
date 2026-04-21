@@ -35,6 +35,7 @@ vi.mock("@/app/features/docs/lib/content", () => ({
     ],
   })),
   getVisibleNodes: vi.fn((nodes) => nodes),
+  findTreeNode: vi.fn(() => null),
 }));
 
 vi.mock("@/app/features/docs/lib/icon-resolver", () => ({
@@ -100,6 +101,9 @@ describe("DocsHomepage", () => {
     const cardsLink = screen.getByRole("link", { name: /Players/i });
     expect(cardsLink.className).toContain("var(--suite-accent-light)");
 
+    expect(screen.getByText("Railyard")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Choose documentation version" })).toBeInTheDocument();
+
     const shellAligned = container.querySelectorAll(".mx-auto.w-full");
     expect(shellAligned.length).toBeGreaterThanOrEqual(2);
   });
@@ -128,5 +132,9 @@ describe("DocsHomepage", () => {
     expect(
       within(banner as HTMLElement).getByText(/switching to the latest version/i),
     ).toBeInTheDocument();
+    expect(within(banner as HTMLElement).getByRole("link", { name: "View Latest Version" })).toHaveAttribute(
+      "href",
+      "/railyard/docs?version=v0.2",
+    );
   });
 });

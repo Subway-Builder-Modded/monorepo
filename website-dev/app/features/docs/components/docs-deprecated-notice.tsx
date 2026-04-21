@@ -1,17 +1,29 @@
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import { Link } from "@/app/lib/router";
+import { getLatestVersion, type DocsSuiteId } from "@/app/config/docs";
+import { getVersionSwitchUrl } from "@/app/features/docs/lib/routing";
 
 type DocsDeprecatedNoticeProps = {
+  suiteId: DocsSuiteId;
   version: string;
+  currentSlug?: string | null;
   context?: "homepage" | "doc";
   className?: string;
 };
 
 export function DocsDeprecatedNotice({
+  suiteId,
   version,
+  currentSlug = null,
   context = "doc",
   className,
 }: DocsDeprecatedNoticeProps) {
+  const latestVersion = getLatestVersion(suiteId);
+  const latestUrl = latestVersion && latestVersion !== version
+    ? getVersionSwitchUrl(suiteId, latestVersion, currentSlug)
+    : null;
+
   return (
     <div
       className={cn(
@@ -29,6 +41,15 @@ export function DocsDeprecatedNotice({
           <p className="mt-1 text-muted-foreground">
             Consider switching to the latest version for up-to-date information.
           </p>
+        ) : null}
+
+        {latestUrl ? (
+          <Link
+            to={latestUrl}
+            className="mt-2 inline-flex text-xs font-semibold text-amber-700 no-underline hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200"
+          >
+            View Latest Version
+          </Link>
         ) : null}
       </div>
     </div>

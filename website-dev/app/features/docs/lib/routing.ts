@@ -1,5 +1,6 @@
 import type { DocsRouteVersion, DocsSuiteId } from "@/app/config/docs";
 import {
+  getDefaultDocForVersion,
   getDocsSuiteConfig,
   getDocsVersion,
   isDocsSuiteId,
@@ -7,6 +8,7 @@ import {
   getLatestVersion,
 } from "@/app/config/docs";
 import type { ResolvedDocsRoute } from "./types";
+import { findTreeNode, getDocsTree } from "./content";
 
 type DocsRouteMatch =
   | { kind: "none" }
@@ -135,4 +137,44 @@ export function getDocPageUrl(suiteId: string, version: string | null, slug: str
   }
 
   return `/${suiteId}/docs/${slug}`;
+}
+
+function canUseDocSlugInVersion(suiteId: DocsSuiteId, version: string, slug: string): boolean {
+  const tree = getDocsTree(suiteId, version);
+  const node = findTreeNode(tree, slug);
+  return !!node && !node.frontmatter.hidden;
+}
+
+function resolveVersionDocSlug(
+  suiteId: DocsSuiteId,
+  targetVersion: string,
+  requestedSlug: string | null,
+): string | null {
+  if (requestedSlug && canUseDocSlugInVersion(suiteId, targetVersion, requestedSlug)) {
+    return requestedSlug;
+  }
+
+  const defaultDoc = getDefaultDocForVersion(suiteId, targetVersion);
+  if (defaultDoc && canUseDocSlugInVersion(suiteId, targetVersion, defaultDoc)) {
+    return defaultDoc;
+  }
+
+  return null;
+}
+
+export function getVersionSwitchUrl(
+  suiteId: DocsSuiteId,
+  targetVersion: string,
+  requestedSlug: string | null,
+): string {
+  if (!isVersionedDocsSuite(suiteId)) {
+    return getDocsHomepageUrl(suiteId);
+  }
+
+  const slug = resolveVersionDocSlug(suiteId, targetVersion, requestedSlug);
+  if (slug) {
+    return getDocPageUrl(suiteId, targetVersion, slug);
+  }
+
+  return getDocsHomepageUrl(suiteId, targetVersion);
 }

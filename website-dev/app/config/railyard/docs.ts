@@ -12,12 +12,14 @@ export const railyardDocsConfig: DocsSuiteConfig = {
       value: "v0.2",
       label: "v0.2",
       status: "latest",
+      defaultDoc: "players",
       releaseDate: "2026-03-15",
     },
     {
       value: "v0.1",
       label: "v0.1",
       status: "deprecated",
+      defaultDoc: "players",
       releaseDate: "2026-01-20",
     },
   ],
@@ -53,5 +55,18 @@ export const railyardDocsConfig: DocsSuiteConfig = {
     description:
       "The official documentation for Railyard, the all-in-one mod and map manager for Subway Builder.",
     heroTitle: "Railyard Docs",
+    actions: [
+      {
+        label: "Download Railyard",
+        href: "/railyard/download",
+        variant: "solid",
+      },
+      {
+        label: "Railyard Source",
+        href: "https://github.com/Subway-Builder-Modded/monorepo/tree/main/railyard",
+        variant: "outline",
+        external: true,
+      },
+    ],
   },
 };

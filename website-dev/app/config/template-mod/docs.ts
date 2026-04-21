@@ -12,6 +12,7 @@ export const templateModDocsConfig: DocsSuiteConfig = {
       value: "v1.0",
       label: "v1.0",
       status: "latest",
+      defaultDoc: "getting-started",
       releaseDate: "2026-02-10",
     },
   ],
@@ -29,5 +30,12 @@ export const templateModDocsConfig: DocsSuiteConfig = {
     description:
       "The official documentation for the Template Mod, the all-inclusive TypeScript template for creating Subway Builder mods.",
     heroTitle: "Template Mod Docs",
+    actions: [
+      {
+        label: "Create From Template",
+        href: "/template-mod",
+        variant: "solid",
+      },
+    ],
   },
 };

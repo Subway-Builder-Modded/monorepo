@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { DocPageLayout } from "@/app/features/docs/components/doc-page-layout";
 
@@ -92,35 +91,23 @@ describe("DocPageLayout", () => {
     expect(screen.queryByText(/\(v/i)).not.toBeInTheDocument();
   });
 
-  it("keeps deprecated breadcrumb suite-themed instead of gray", () => {
+  it("uses neutral breadcrumb links for deprecated versions", () => {
     render(<DocPageLayout suiteId="railyard" version="v0.1" slug="players/github-token" />);
 
     const suiteCrumb = screen.getByRole("link", { name: "Railyard Documentation (v0.1)" });
-    expect(suiteCrumb.className).toContain("var(--suite-accent-light)");
+    expect(suiteCrumb.className).toContain("text-muted-foreground");
   });
 
-  it("renders doc page chrome with separated title surface, icon, and suite-themed actions", async () => {
-    const user = userEvent.setup();
+  it("renders doc page chrome with separated title surface and icon", () => {
 
     render(<DocPageLayout suiteId="railyard" version="v0.2" slug="players/github-token" />);
 
     const heading = screen.getByRole("heading", { name: "GitHub Token" });
     const chrome = heading.closest("header");
     expect(chrome?.className).toContain("rounded-2xl");
-    expect(chrome?.className).toContain("border-2");
 
     expect(screen.getByTestId("doc-title-icon")).toBeInTheDocument();
-
-    const edit = screen.getByRole("link", { name: /Edit on GitHub/i });
-    expect(edit).toBeInTheDocument();
-    expect(edit.className).toContain("var(--suite-accent-light)");
-
-    const copy = screen.getByRole("button", { name: "Copy page as Markdown" });
-    expect(copy).toBeInTheDocument();
-
-    await user.click(copy);
-    expect(screen.getByRole("button", { name: "Copy page as Markdown" })).toHaveTextContent(
-      "Copied",
-    );
+    expect(screen.queryByRole("link", { name: /Edit on GitHub/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Copy page as Markdown" })).not.toBeInTheDocument();
   });
 });

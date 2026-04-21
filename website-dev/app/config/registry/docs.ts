@@ -16,5 +16,12 @@ export const registryDocsConfig: DocsSuiteConfig = {
     description:
       "The official documentation for the Railyard Registry, the community-driven asset store for Subway Builder maps and mods.",
     heroTitle: "Registry Docs",
+    actions: [
+      {
+        label: "Open Registry",
+        href: "/registry",
+        variant: "outline",
+      },
+    ],
   },
 };

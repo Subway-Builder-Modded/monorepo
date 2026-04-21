@@ -1,4 +1,5 @@
 import type { SiteSuiteId } from "@/app/config/site-navigation";
+import type { LucideIcon } from "lucide-react";
 
 export type DocsSuiteId = Extract<SiteSuiteId, "railyard" | "registry" | "template-mod">;
 export type DocsRouteVersion = string | null;
@@ -16,9 +17,18 @@ export type DocsVersionConfig = {
   value: string;
   label: string;
   status: DocsVersionStatus;
+  defaultDoc?: string;
   releaseDate?: string;
   hidden?: boolean;
   badgeText?: string;
+};
+
+export type DocsHomepageActionConfig = {
+  label: string;
+  href: string;
+  icon?: LucideIcon;
+  variant: "solid" | "outline";
+  external?: boolean;
 };
 
 export type DocsSidebarOrderItem = string | { key: string; children?: DocsSidebarOrderItem[] };
@@ -26,6 +36,7 @@ export type DocsSidebarOrderItem = string | { key: string; children?: DocsSideba
 export type DocsHomepageConfig = {
   description: string;
   heroTitle?: string;
+  actions?: DocsHomepageActionConfig[];
 };
 
 type DocsSuiteConfigBase = {

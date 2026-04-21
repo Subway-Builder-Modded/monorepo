@@ -28,7 +28,7 @@ describe("DocsVersionChooser", () => {
     await user.click(screen.getByRole("button", { name: "Choose documentation version" }));
     await user.click(screen.getByRole("option", { name: /v0.2/i }));
 
-    expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs?version=v0.2");
+    expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs/v0.2/players");
   });
 
   it("navigates to the same doc slug when docSlug is provided", async () => {

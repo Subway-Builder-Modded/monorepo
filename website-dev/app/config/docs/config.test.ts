@@ -29,7 +29,10 @@ describe("getDocsSuiteConfig", () => {
     expect(config).not.toBeNull();
     expect(config!.suiteId).toBe("railyard");
     expect(config!.enabled).toBe(true);
-    expect(config!.latestVersion).toBe("v0.2");
+    expect(config!.versioned).toBe(true);
+    if (config && config.versioned) {
+      expect(config.latestVersion).toBe("v0.2");
+    }
   });
 
   it("returns config for registry", () => {
@@ -43,7 +46,10 @@ describe("getDocsSuiteConfig", () => {
     const config = getDocsSuiteConfig("template-mod");
     expect(config).not.toBeNull();
     expect(config!.suiteId).toBe("template-mod");
-    expect(config!.latestVersion).toBe("v1.0");
+    expect(config!.versioned).toBe(true);
+    if (config && config.versioned) {
+      expect(config.latestVersion).toBe("v1.0");
+    }
   });
 });
 

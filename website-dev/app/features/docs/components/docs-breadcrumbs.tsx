@@ -1,5 +1,4 @@
 import { ChevronRight } from "lucide-react";
-import { SuiteAccentLink } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { getSuiteById } from "@/app/config/site-navigation";
 import { getDocsHomepageUrl, getDocPageUrl } from "@/app/features/docs/lib/routing";
@@ -28,9 +27,12 @@ export function DocsBreadcrumbs({
     <nav aria-label="Breadcrumb" className="mb-4">
       <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
         <li>
-          <SuiteAccentLink asChild>
-            <Link to={getDocsHomepageUrl(suiteId, version)}>{firstCrumb}</Link>
-          </SuiteAccentLink>
+          <Link
+            to={getDocsHomepageUrl(suiteId, version)}
+            className="text-muted-foreground no-underline hover:text-foreground hover:no-underline"
+          >
+            {firstCrumb}
+          </Link>
         </li>
         {parts.length > 1 &&
           parts.slice(0, -1).map((part, i) => {
@@ -38,11 +40,12 @@ export function DocsBreadcrumbs({
             return (
               <li key={i} className="flex items-center gap-1">
                 <ChevronRight className="size-3" aria-hidden="true" />
-                <SuiteAccentLink asChild>
-                  <Link to={getDocPageUrl(suiteId, version, parentSlug)} className="capitalize">
-                    {part.replace(/-/g, " ")}
-                  </Link>
-                </SuiteAccentLink>
+                <Link
+                  to={getDocPageUrl(suiteId, version, parentSlug)}
+                  className="capitalize text-muted-foreground no-underline hover:text-foreground hover:no-underline"
+                >
+                  {part.replace(/-/g, " ")}
+                </Link>
               </li>
             );
           })}
