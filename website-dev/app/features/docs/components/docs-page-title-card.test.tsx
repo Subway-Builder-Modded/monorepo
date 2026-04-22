@@ -26,6 +26,7 @@ describe("DocsPageTitleCard", () => {
     // The icon wrapper span is present in the DOM
     const iconWrapper = document.querySelector("span.inline-flex");
     expect(iconWrapper).not.toBeNull();
+    expect(iconWrapper?.className).toContain("text-[var(--suite-accent-light)]");
   });
 
   it("renders without an icon wrapper's svg when icon is null", () => {

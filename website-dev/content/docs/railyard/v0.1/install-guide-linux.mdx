@@ -1,47 +1,108 @@
 ---
 title: Install Guide (Linux)
+description: Learn how to install Railyard on Linux-based systems.
 icon: ArrowDownToLine
-description: How to install and set up Railyard on Linux.
 ---
 
-This guide will walk you through installing and setting up Railyard on Linux.
+This guide will walk you through installing and setting up Railyard on Linux-based systems.
 
 ## Step 1 - Downloading Railyard {#downloading-railyard}
 
-To install Railyard on Linux, navigate to the [download page](https://subwaybuildermodded.com/railyard). You should see a button with the auto-detected download for your operating system.
+To install Railyard on Linux, navigate to the [download page](/railyard). You should see a button with the auto-detected download for your operating system.
 
-Install Flatpak if you do not have it already. You can find instructions for doing so [here](https://flatpak.org/setup/).
+Install [Flatpak](https://flatpak.org/setup/) if you do not have it already. Once installed, run the following command:
 
-Once you have Flatpak installed, run the following command:
+<Tabs groupId="linux-flatpak-install" variant="code">
+<TabItem value="user" label="User Install" icon="User" default>
 
 ```bash
+flatpak --user install org.gnome.Platform//47 org.gnome.Sdk//47 org.freedesktop.Sdk.Extension.golang//24.08 org.freedesktop.Sdk.Extension.node24//24.08
 flatpak --user install <Railyard Flatpak Path>
 ```
 
-This will install Railyard on your system.
+</TabItem>
+<TabItem value="system" label="System Install" icon="Shield">
+
+```bash
+flatpak install <Railyard Flatpak Path>
+```
+
+</TabItem>
+</Tabs>
+
+---
 
 ## Step 2 - Setting Up Railyard {#setting-up-railyard}
 
-When you first launch Railyard, you will be asked to select your `metro-maker4` folder.
+When you first launch Railyard, you will need to run through the setup process.
 
-<p align="center">
-  <Image width="400" alt="image" src="/images/docs/railyard/v0.1/railyard-setup-mm4.png" />
-</p>
+### Data Folder {#data-folder}
 
-If you did not manually modify this, click "Auto-Detect". Otherwise, select the location of this folder. Railyard will automatically validate it.
+First, you will be prompted to select your `metro-maker4` folder.
 
-After, you will be asked to select your game executable. Once again, click "Auto-Detect" if you have not modified this. Otherwise, select the location of your game executable.
+If you did not manually modify this, click **Auto-Detect**. Otherwise, select the location of this folder. Railyard will automatically validate it.
 
-<p align="center">
-  <Image width="400" alt="image" src="/images/docs/railyard/v0.1/railyard-setup-exec.png" />
-</p>
+:::alert
 
-The next prompt will ask you to input your GitHub token. This is optional, but recommended to avoid hitting GitHub's API rate limits when using Railyard. If you do not have a token or do not wish to use one, simply click "Next" to continue with the setup process. You can always add a token later via the settings menu. To set up a GitHub token, see the [GitHub Token guide](https://subwaybuildermodded.com/railyard/docs/v0.1/players/github-token).
+`metro-maker4` will **only** be recognized as a valid data folder if you have previously:
 
-The final prompt will ask you whether you want to enable automatic updates. This will allow Railyard to prompt you every time a new version is released, allowing you to easily stay up to date with the latest features and bug fixes.
+- Launched the game at least once
+- Loaded a map in-game (to populate `cities/`)
 
-:::note
-It is recommended to keep this enabled to ensure you have the latest features and bug fixes. This can be toggled at any time via the settings menu.
 :::
 
-After that, you're ready to play! If you have any questions or run into any issues, feel free to ask questions in the [Discord](https://discord.gg/jrNQpbytUQ) or [raise an issue on GitHub](https://github.com/Subway-Builder-Modded/monorepo/issues).
+### Game Executable {#game-executable}
+
+After, you will be asked to select your game executable. Once again, click **Auto-Detect** if you have not modified this. Otherwise, select the location of your game executable.
+
+:::note
+
+Game executable refers to the actual file that launches the game, not any shortcut or folder containing it.
+
+:::
+
+### GitHub Token {#github-token}
+
+The next prompt will ask you to input your GitHub token. This is optional, but **highly** recommended to avoid hitting GitHub's API rate limits when using Railyard. If you do not have a token or do not wish to use one, simply click **Next** to continue with the setup process. You can always add a token later via the settings menu.
+
+### Automatic Updates {#automatic-updates}
+
+The final prompt will ask you whether you want to enable automatic updates. This will allow Railyard to prompt you every time a new version is released, allowing you to easily stay up-to-date with the latest features and bug fixes.
+
+:::tip
+
+It is recommended to keep this enabled to ensure you have the latest features and bug fixes. This can be toggled at any time via the settings menu.
+
+:::
+
+---
+
+## Step 3 - Launching Subway Builder {#launching-subway-builder}
+
+Once you install content through Railyard, you must launch the game through Railyard for the content to work properly. To do this, simply click the **Launch** button located on the Railyard navbar.
+
+:::caution
+
+If you launch the game directly (not through Railyard), **the game will still launch** and some mods may still work. However, maps will load without the necessary data needed to load in-game and any custom command-line arguments set through Railyard will not be applied.
+
+:::
+
+When the game is launched, open **Settings**. Scroll until you see **Mod Manager**.
+
+<p align="center">
+  <Image
+    width="500"
+    alt="image"
+    src="/images/railyard/docs/v0.1/install-guide-linux/mod-manager.png"
+  />
+</p>
+
+In that menu, enable the **Railyard Map Loader** mod.
+
+:::alert
+
+This is required to load maps installed through Railyard. If you do not enable this mod, maps will fail to load properly.
+
+:::
+
+After that, you're ready to play! If you have any questions or run into any issues, feel free to ask questions in the [Discord](https://discord.gg/jrNQpbytUQ) or raise an issue on [GitHub](https://github.com/Subway-Builder-Modded/monorepo/issues).

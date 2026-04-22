@@ -3,6 +3,14 @@ import { describe, expect, it } from "vite-plus/test";
 import { mdxComponents } from "@/app/features/docs/mdx/components";
 
 describe("mdxComponents rendering behavior", () => {
+  it("renders fragment-only links as plain anchors so the browser scrolls instead of navigating", () => {
+    const A = mdxComponents.a as React.ComponentType<{ href: string; children: React.ReactNode }>;
+    render(<A href="#some-section">jump down</A>);
+    const link = screen.getByRole("link", { name: "jump down" });
+    expect(link.tagName.toLowerCase()).toBe("a");
+    expect(link).toHaveAttribute("href", "#some-section");
+  });
+
   it("honors explicit heading IDs for static linking", () => {
     const H2 = mdxComponents.h2;
     render(<H2 id="fixed-id">Explicit Heading</H2>);

@@ -32,11 +32,11 @@ export const railyardDocsConfig: DocsSuiteConfig = {
       },
       "troubleshooting-railyard",
       "github-token",
-      "importing-custom-assets",
+      "importing-local-assets",
       "profile-management",
       "country-flag-emojis",
     ],
-    "v0.1": ["install-guide-windows", "install-guide-macos", "install-guide-linux", "github-token"],
+    "v0.1": ["install-guide-windows", "install-guide-macos", "install-guide-linux"],
   },
   homepage: {
     actions: [

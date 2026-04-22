@@ -95,6 +95,20 @@ function MdxLink({
     );
   }
 
+  // Same-page fragment links must stay as plain <a> so the browser scrolls
+  // instead of the client-side router treating them as a page navigation.
+  if (href.startsWith("#")) {
+    return (
+      <a
+        href={href}
+        className="text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] underline underline-offset-2 hover:opacity-80 transition-opacity"
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  }
+
   // Fix old absolute links
   const fixedHref = href.startsWith("https://subwaybuildermodded.com")
     ? href.replace("https://subwaybuildermodded.com", "")

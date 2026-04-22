@@ -114,6 +114,7 @@ export function navigate(to: string) {
   }
 
   window.history.pushState({}, "", nextHref);
+  window.scrollTo(0, 0);
   emitNavigation();
 }
 

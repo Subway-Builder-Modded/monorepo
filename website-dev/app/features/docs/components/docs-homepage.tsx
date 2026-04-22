@@ -116,12 +116,12 @@ function DocsCardGrid({ suiteId, version }: { suiteId: DocsSuiteId; version: str
     <>
       <div
         className="mb-4 flex items-center gap-2.5"
-        aria-label="Discover section"
-        data-testid="discover-separator"
+        aria-label="Directory section"
+        data-testid="directory-separator"
       >
         <Compass className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-          DISCOVER
+          Directory
         </span>
         <div className="h-px flex-1 bg-border/60" aria-hidden="true" />
       </div>

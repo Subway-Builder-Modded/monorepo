@@ -66,12 +66,12 @@ describe("DocsHomepage", () => {
     expect(pushStateSpy).toHaveBeenCalledWith({}, "", "/railyard/docs?version=v0.2");
   });
 
-  it("renders the DISCOVER separator and a responsive card grid (max 4 columns)", () => {
+  it("renders the DIRECTORY separator and a responsive card grid (max 4 columns)", () => {
     const { container } = render(<DocsHomepage suiteId="railyard" version="v0.2" />);
 
-    // DISCOVER separator must be present with its label text.
-    expect(screen.getByText("DISCOVER")).toBeInTheDocument();
-    expect(screen.getByTestId("discover-separator")).toBeInTheDocument();
+    // DIRECTORY separator must be present with its label text.
+    expect(screen.getByText("Directory")).toBeInTheDocument();
+    expect(screen.getByTestId("directory-separator")).toBeInTheDocument();
 
     const cardsLink = screen.getByRole("link", { name: /Players/i });
     expect(cardsLink.className).toContain("var(--suite-accent-light)");

@@ -207,9 +207,16 @@ export function Tabs({ groupId, variant = "default", children }: TabsProps) {
         ) : null}
       </div>
       <TabsVariantContext.Provider value={variant}>
-        <div role="tabpanel" className={cn(isCodeVariant ? "[&>*]:my-0" : "pt-4")}>
-          {activeContent?.props.children}
-        </div>
+        {items.map((item) => (
+          <div
+            key={item.props.value}
+            role="tabpanel"
+            hidden={item.props.value !== active}
+            className={cn(isCodeVariant ? "[&>*]:my-0" : "pt-4")}
+          >
+            {item.props.children}
+          </div>
+        ))}
       </TabsVariantContext.Provider>
     </div>
   );

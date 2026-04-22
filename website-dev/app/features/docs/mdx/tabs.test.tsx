@@ -36,8 +36,8 @@ describe("Tabs component", () => {
       </Tabs>,
     );
 
-    expect(screen.getByText("Content 1")).toBeInTheDocument();
-    expect(screen.queryByText("Content 2")).not.toBeInTheDocument();
+    expect(screen.getByText("Content 1")).toBeVisible();
+    expect(screen.queryByText("Content 2")).not.toBeVisible();
   });
 
   it("shows default tab content when specified", () => {
@@ -52,8 +52,8 @@ describe("Tabs component", () => {
       </Tabs>,
     );
 
-    expect(screen.queryByText("Content 1")).not.toBeInTheDocument();
-    expect(screen.getByText("Content 2")).toBeInTheDocument();
+    expect(screen.queryByText("Content 1")).not.toBeVisible();
+    expect(screen.getByText("Content 2")).toBeVisible();
   });
 
   it("switches tabs on click", async () => {
@@ -72,8 +72,8 @@ describe("Tabs component", () => {
 
     await user.click(screen.getByText("Second Tab"));
 
-    expect(screen.queryByText("Content 1")).not.toBeInTheDocument();
-    expect(screen.getByText("Content 2")).toBeInTheDocument();
+    expect(screen.queryByText("Content 1")).not.toBeVisible();
+    expect(screen.getByText("Content 2")).toBeVisible();
   });
 
   it("uses tablist role for accessibility", () => {
