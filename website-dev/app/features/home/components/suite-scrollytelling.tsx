@@ -260,7 +260,7 @@ export function SuiteScrollytellingSection() {
   const steps = SUITE_STEPS;
 
   return (
-    <SectionShell surfaced className="pt-20 pb-10 lg:pt-32 lg:pb-16">
+    <SectionShell surfaced noBottomSpacing className="pt-20 lg:pt-32">
       <SectionHeader
         title={SUITE_SCROLLYTELLING_SECTION.title}
         description={SUITE_SCROLLYTELLING_SECTION.description}

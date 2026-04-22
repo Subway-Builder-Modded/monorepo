@@ -20,4 +20,20 @@ describe("SuiteScrollytellingSection", () => {
       ).toBe(true);
     }
   });
+
+  it("produces no bottom section spacing that would create a strip above the footer", () => {
+    const { container } = render(<SuiteScrollytellingSection />);
+    const section = container.querySelector("section")!;
+    // The scrollytelling section uses noBottomSpacing — it is the last section
+    // before the footer whose border-t acts as the sole visual separator.
+    // No pb-* from SITE_SECTION_SPACING_CLASS should appear on the section.
+    expect(section.className).not.toContain("pb-16");
+    expect(section.className).not.toContain("pb-24");
+    expect(section.className).not.toContain("pb-28");
+    // No bottom border that would double with the footer's border-t.
+    // Use word-boundary regex to avoid false-matching 'border-border/40'.
+    expect(section.className).not.toMatch(/\bborder-b\b/);
+    // Top border must still be present to separate from the section above.
+    expect(section.className).toContain("border-t");
+  });
 });

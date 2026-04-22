@@ -12,9 +12,9 @@ import type { DocsSuiteId } from "@/app/config/docs";
 import { DocsVersionChooser } from "./docs-version-chooser";
 import { DocsSidebarTree } from "./docs-sidebar-tree";
 
+import { DOCS_SURFACE_BORDER_CLASS } from "./docs-page-title-card";
+
 const SIDEBAR_COLLAPSED_KEY = "sbm:docs-sidebar-collapsed";
-const DOCS_SURFACE_BORDER_CLASS =
-  "border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))]";
 
 function useCollapsedSections(treeKey: string) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => {

@@ -12,15 +12,13 @@ import { DocsVersionChooser } from "@/app/features/docs/components/docs-version-
 import { getDocsTree, getVisibleNodes } from "@/app/features/docs/lib/content";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { getDocPageUrl } from "@/app/features/docs/lib/routing";
+import { DOCS_SURFACE_BORDER_CLASS } from "@/app/features/docs/components/docs-page-title-card";
 
 const SHARED_SUITE_BADGE_CLASS =
   "h-7 shrink-0 self-center gap-1.5 rounded-md px-2 normal-case tracking-normal";
 
 const ACTION_CLASS =
   "inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground no-underline transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]";
-
-const DOCS_SURFACE_BORDER_CLASS =
-  "border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))]";
 
 function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: string | null }) {
   const suite = getSuiteById(suiteId);
