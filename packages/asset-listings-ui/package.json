@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vp test run",
-    "test:watch": "vp test"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "exports": {
     ".": {
@@ -27,8 +27,7 @@
     "jsdom": "^26.1.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "vitest": "catalog:",
-    "vite-plus": "catalog:"
+    "vitest": "^4.1.4"
   },
   "peerDependencies": {
     "lucide-react": ">=0.4",

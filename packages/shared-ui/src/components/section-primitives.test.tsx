@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it } from "vitest";
 import { SectionHeader } from "./section-header";
 import { SectionShell } from "./section-shell";
 import { TwoColumnSection } from "./two-column-section";

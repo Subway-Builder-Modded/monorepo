@@ -1,0 +1,66 @@
+import { useMemo } from "react";
+import { VersionSwitcherDropdown, getSuiteAccentStyle } from "@subway-builder-modded/shared-ui";
+import type { VersionSwitcherItem } from "@subway-builder-modded/shared-ui";
+import { cn } from "@/lib/utils";
+import { getDocsHomepageUrl, getVersionSwitchUrl } from "@/features/docs/lib/routing";
+import { getVisibleVersions, type DocsSuiteId } from "@/config/docs";
+import { getSuiteById } from "@/config/site-navigation";
+
+type DocsVersionChooserProps = {
+  suiteId: DocsSuiteId;
+  currentVersion: string;
+  docSlug?: string | null;
+  homepageMode?: boolean;
+  className?: string;
+  triggerClassName?: string;
+  triggerLabel?: string;
+};
+
+const DEFAULT_TRIGGER_CLASS = "h-9 min-w-[12rem]";
+
+export function DocsVersionChooser({
+  suiteId,
+  currentVersion,
+  docSlug = null,
+  homepageMode = false,
+  className,
+  triggerClassName,
+  triggerLabel = "Choose documentation version",
+}: DocsVersionChooserProps) {
+  const versions = getVisibleVersions(suiteId);
+  const suite = getSuiteById(suiteId);
+  const accentStyle = useMemo(() => getSuiteAccentStyle(suite.accent), [suite.accent]);
+
+  const options = useMemo<VersionSwitcherItem[]>(
+    () =>
+      versions.map((item) => ({
+        id: item.value,
+        label: item.label,
+        status: item.status === "latest" || item.status === "deprecated" ? item.status : "stable",
+      })),
+    [versions],
+  );
+
+  if (versions.length <= 1) {
+    return null;
+  }
+
+  return (
+    <VersionSwitcherDropdown
+      className={className}
+      items={options}
+      selectedId={currentVersion}
+      ariaLabel={triggerLabel}
+      triggerClassName={cn(DEFAULT_TRIGGER_CLASS, triggerClassName)}
+      style={accentStyle}
+      onSelect={(version) => {
+        const url = homepageMode
+          ? getDocsHomepageUrl(suiteId, version)
+          : getVersionSwitchUrl(suiteId, version, docSlug);
+
+        window.history.pushState({}, "", url);
+        window.dispatchEvent(new Event("sbm:navigate"));
+      }}
+    />
+  );
+}

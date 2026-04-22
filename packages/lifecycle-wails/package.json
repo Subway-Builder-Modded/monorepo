@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vp test run",
-    "test:watch": "vp test"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@subway-builder-modded/lifecycle-core": "workspace:*",
@@ -13,8 +13,7 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
-    "vitest": "catalog:",
-    "vite-plus": "catalog:"
+    "vitest": "^4.1.4"
   },
   "exports": {
     ".": {

@@ -7,9 +7,9 @@ import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkDirective from "remark-directive";
 import rehypePrettyCode from "rehype-pretty-code";
-import { remarkHeadingIds } from "./app/features/docs/mdx/remark-heading-ids.ts";
-import { remarkStripFrontmatter } from "./app/features/docs/mdx/remark-strip-frontmatter.ts";
-import { remarkAdmonitionDirectives } from "./app/features/docs/mdx/remark-admonitions.ts";
+import { remarkHeadingIds } from "./src/features/docs/mdx/remark-heading-ids.ts";
+import { remarkStripFrontmatter } from "./src/features/docs/mdx/remark-strip-frontmatter.ts";
+import { remarkAdmonitionDirectives } from "./src/features/docs/mdx/remark-admonitions.ts";
 import { defineConfig } from "vite-plus";
 import type { Plugin } from "vite-plus";
 
@@ -27,7 +27,7 @@ function mdxRawContentPlugin(): Plugin {
   return {
     name: "mdx-raw-content",
     async buildStart() {
-      const { assertDocsContentValid } = await import("./app/config/docs/content-validation.ts");
+      const { assertDocsContentValid } = await import("./src/config/docs/content-validation.ts");
       assertDocsContentValid(contentDir);
     },
     resolveId(id) {
@@ -36,7 +36,7 @@ function mdxRawContentPlugin(): Plugin {
     async load(id) {
       if (id !== RESOLVED_VIRTUAL_RAW_MDX_ID) return;
 
-      const { collectDocsContent } = await import("./app/config/docs/content-validation.ts");
+      const { collectDocsContent } = await import("./src/config/docs/content-validation.ts");
       const { rawByPath, frontmatterByPath, errors } = collectDocsContent(contentDir);
       if (errors.length > 0) {
         const details = errors.map((e) => ` - ${e}`).join("\n");
@@ -130,7 +130,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: [
-      { find: "@", replacement: path.resolve(__dirname, ".") },
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
       {
         find: /^@subway-builder-modded\/(.+)$/,
         replacement: path.resolve(__dirname, "../packages/$1/src/index.ts"),

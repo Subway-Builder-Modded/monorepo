@@ -1,5 +1,5 @@
 import { DEFAULT_SORT_STATE, type AssetType } from '@subway-builder-modded/config';
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it } from 'vitest';
 
 import {
   applyFilter,

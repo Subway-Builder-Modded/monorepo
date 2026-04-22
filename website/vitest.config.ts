@@ -20,6 +20,8 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.test.ts',
         '**/*.test.tsx',
+        'lib/**/*.server.ts',
+        'lib/**/server.ts',
         'app/**/page.tsx',
         'app/**/layout.tsx',
         'app/layout.tsx',

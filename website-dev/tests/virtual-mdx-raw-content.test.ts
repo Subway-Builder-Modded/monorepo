@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vite-plus/test";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
 describe("virtual-mdx-raw-content module", () => {
   beforeEach(() => {
@@ -13,7 +13,7 @@ describe("virtual-mdx-raw-content module", () => {
   });
 
   it("throws when docs content validation reports icon/frontmatter errors", async () => {
-    vi.doMock("@/app/config/docs/content-validation", () => ({
+    vi.doMock("@/config/docs/content-validation", () => ({
       collectDocsContent: () => ({
         errors: ['/content/docs/registry/page.mdx: missing required frontmatter field "icon"'],
         rawByPath: {},

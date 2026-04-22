@@ -1,5 +1,5 @@
 import path from "node:path";
-import { collectDocsContent } from "@/app/config/docs/content-validation";
+import { collectDocsContent } from "@/config/docs/content-validation";
 
 const contentRoot = path.resolve(process.cwd(), "content", "docs");
 const { rawByPath, frontmatterByPath, errors } = collectDocsContent(contentRoot);

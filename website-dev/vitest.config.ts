@@ -1,34 +1,23 @@
 import path from "node:path";
-import { defineConfig } from "vite-plus";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
     environment: "jsdom",
-    setupFiles: ["./tests/setup.ts"],
+    setupFiles: ["@testing-library/jest-dom/vitest", "./tests/setup.ts"],
     include: ["**/*.test.ts", "**/*.test.tsx"],
+    testTimeout: 10000,
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: [
-        "lib/**/*.ts",
-        "config/**/*.ts",
-        "components/**/*.ts",
-        "components/**/*.tsx",
-        "app/**/*.ts",
-        "app/**/*.tsx",
-      ],
-      exclude: [
-        "**/*.d.ts",
-        "**/*.test.ts",
-        "**/*.test.tsx",
-        "app/root.tsx",
-        "app/routes/**/*.tsx",
-      ],
+      include: ["src/**/*.ts", "src/**/*.tsx"],
+      exclude: ["**/*.d.ts", "**/*.test.ts", "**/*.test.tsx", "src/root.tsx"],
     },
   },
   resolve: {
     alias: [
-      { find: "@", replacement: path.resolve(__dirname, ".") },
+      { find: "vite-plus/test", replacement: "vitest" },
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
       {
         find: "virtual:mdx-raw-content",
         replacement: path.resolve(__dirname, "./tests/virtual-mdx-raw-content.ts"),
