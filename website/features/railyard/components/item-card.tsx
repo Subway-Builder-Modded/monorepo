@@ -13,8 +13,9 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 
-import { GalleryImage } from '@/features/railyard/components/gallery-image';
+import { getCountryFlagIcon } from '@/lib/railyard/flags';
 import { AuthorName } from '@/components/shared/author-name';
+import { GalleryImage } from '@/features/railyard/components/gallery-image';
 import type { MapManifest, ModManifest } from '@/types/registry';
 
 interface ItemCardWrapperProps {
@@ -39,6 +40,8 @@ export function ItemCard({
   descriptionMode = 'raw',
 }: ItemCardWrapperProps) {
   const isMap = isMapManifest(item);
+  const mapItem = isMap ? (item as MapManifest) : null;
+  const CountryFlag = mapItem ? getCountryFlagIcon(mapItem.country) : null;
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const formatDescription = useMemo(() => {
@@ -65,16 +68,19 @@ export function ItemCard({
       }}
       gallery={item.gallery}
       description={item.description}
-      city_code={isMap ? (item as MapManifest).city_code : undefined}
-      country={isMap ? (item as MapManifest).country : undefined}
-      location={isMap ? (item as MapManifest).location : undefined}
-      source_quality={isMap ? (item as MapManifest).source_quality : undefined}
-      level_of_detail={
-        isMap ? (item as MapManifest).level_of_detail : undefined
+      city_code={mapItem?.city_code}
+      country={mapItem?.country}
+      countryFlag={
+        CountryFlag ? (
+          <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
+        ) : undefined
       }
-      special_demand={isMap ? (item as MapManifest).special_demand : undefined}
+      location={mapItem?.location}
+      source_quality={mapItem?.source_quality}
+      level_of_detail={mapItem?.level_of_detail}
+      special_demand={mapItem?.special_demand}
       tags={!isMap ? (item as ModManifest).tags : undefined}
-      population={isMap ? (item as MapManifest).population : undefined}
+      population={mapItem?.population}
       installedVersion={installedVersion}
       totalDownloads={totalDownloads}
       viewMode={viewMode}

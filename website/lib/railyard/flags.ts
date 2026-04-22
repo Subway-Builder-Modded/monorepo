@@ -12,5 +12,6 @@ export function getCountryFlagIcon(
   if (!/^[A-Z]{2}$/.test(normalized)) {
     return null;
   }
+
   return FLAGS_BY_COUNTRY[normalized] ?? null;
 }

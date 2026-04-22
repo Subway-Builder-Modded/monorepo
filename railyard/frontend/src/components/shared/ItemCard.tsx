@@ -7,6 +7,8 @@ import { assetTypeToListingPath } from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 
+import { getCountryFlagIcon } from '@/lib/flags';
+
 import type { types } from '../../../wailsjs/go/models';
 import { AuthorName } from './AuthorName';
 import { GalleryImage } from './GalleryImage';
@@ -35,6 +37,8 @@ export function ItemCard({
   descriptionMode = 'raw',
 }: ItemCardWrapperProps) {
   const isMap = isMapManifest(item);
+  const mapItem = isMap ? (item as types.MapManifest) : null;
+  const CountryFlag = mapItem ? getCountryFlagIcon(mapItem.country) : null;
 
   const formatDescription = useMemo(() => {
     if (descriptionMode === 'preview') {
@@ -54,20 +58,19 @@ export function ItemCard({
       }}
       gallery={item.gallery}
       description={item.description}
-      city_code={isMap ? (item as types.MapManifest).city_code : undefined}
-      country={isMap ? (item as types.MapManifest).country : undefined}
-      location={isMap ? (item as types.MapManifest).location : undefined}
-      source_quality={
-        isMap ? (item as types.MapManifest).source_quality : undefined
+      city_code={mapItem?.city_code}
+      country={mapItem?.country}
+      countryFlag={
+        CountryFlag ? (
+          <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
+        ) : undefined
       }
-      level_of_detail={
-        isMap ? (item as types.MapManifest).level_of_detail : undefined
-      }
-      special_demand={
-        isMap ? (item as types.MapManifest).special_demand : undefined
-      }
+      location={mapItem?.location}
+      source_quality={mapItem?.source_quality}
+      level_of_detail={mapItem?.level_of_detail}
+      special_demand={mapItem?.special_demand}
       tags={!isMap ? (item as types.ModManifest).tags : undefined}
-      population={isMap ? (item as types.MapManifest).population : undefined}
+      population={mapItem?.population}
       installedVersion={installedVersion}
       totalDownloads={totalDownloads}
       viewMode={viewMode}

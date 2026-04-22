@@ -25,6 +25,7 @@ export interface ItemCardProps<T = { author_alias: string; contributor_tier?: st
   description?: string;
   city_code?: string | null;
   country?: string | null;
+  countryFlag?: ReactNode;
   location?: string;
   source_quality?: string;
   level_of_detail?: string;
@@ -358,6 +359,7 @@ export const ItemCard = memo(function ItemCard({
   description,
   city_code,
   country,
+  countryFlag,
   location,
   source_quality,
   level_of_detail,
@@ -461,6 +463,7 @@ export const ItemCard = memo(function ItemCard({
                   <MapLocationMeta
                     cityCode={presentation.mapCityCode}
                     country={presentation.mapCountry}
+                    countryFlag={countryFlag}
                   />
                 )}
               </div>
@@ -533,6 +536,7 @@ export const ItemCard = memo(function ItemCard({
                 <MapLocationMeta
                   cityCode={presentation.mapCityCode}
                   country={presentation.mapCountry}
+                  countryFlag={countryFlag}
                 />
               )}
             </div>
@@ -610,6 +614,7 @@ export const ItemCard = memo(function ItemCard({
               <MapLocationMeta
                 cityCode={presentation.mapCityCode}
                 country={presentation.mapCountry}
+                countryFlag={countryFlag}
               />
             )}
           </div>
