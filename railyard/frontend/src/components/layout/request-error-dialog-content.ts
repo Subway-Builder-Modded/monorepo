@@ -1,5 +1,5 @@
 export const GITHUB_TOKEN_DOCS_URL =
-  'https://subwaybuildermodded.com/railyard/docs/latest/github-token/';
+  'https://subwaybuildermodded.com/railyard/docs/latest/players/github-token/';
 
 export const REQUEST_ERROR_MESSAGES = {
   unauthorized:
