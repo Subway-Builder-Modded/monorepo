@@ -65,6 +65,11 @@ Schema alone cannot express:
 - every point `type` exists in the supplied definitions document
 - every point `sub_type` exists under the selected parent type
 
+Template requirements are version-aware. Newer canonical templates may declare
+the type-definition document version where they become mandatory, so a newer
+package can still validate older definitions documents that predate those
+templates.
+
 ## Local fixtures
 
 These files stay in the repository as fixtures for tests and package

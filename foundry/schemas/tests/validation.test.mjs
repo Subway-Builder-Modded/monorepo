@@ -34,6 +34,32 @@ test("validateSpecialDemandTypeDefinitions accepts the current type definitions 
   assert.deepEqual(result.errors, []);
 });
 
+test("validateSpecialDemandTypeDefinitions accepts legacy definitions without newer templates", () => {
+  const legacyDefinitions = structuredClone(specialDemandTypes);
+  legacyDefinitions.version = 4;
+  legacyDefinitions.types = legacyDefinitions.types.filter(
+    (entry) => entry.id !== "events",
+  );
+
+  const result = validateSpecialDemandTypeDefinitions(legacyDefinitions);
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
+});
+
+test("validateSpecialDemandTypeDefinitions rejects missing templates introduced by the current version", () => {
+  const mutated = structuredClone(specialDemandTypes);
+  mutated.types = mutated.types.filter((entry) => entry.id !== "events");
+
+  const result = validateSpecialDemandTypeDefinitions(mutated);
+
+  assert.equal(result.valid, false);
+  assert.match(
+    result.errors.map((error) => error.message).join("\n"),
+    /Missing required template type "events"/,
+  );
+});
+
 test("validateSpecialDemandTypeDefinitions rejects template-locked changes", () => {
   const mutated = structuredClone(specialDemandTypes);
   mutated.types[0].icon = "train-front";
@@ -73,6 +99,20 @@ test("validateSpecialDemandDataset rejects unknown point types", () => {
     result.errors.map((error) => error.message).join("\n"),
     /Unknown point type "unknown_type"/,
   );
+});
+
+test("validateSpecialDemandDataset accepts points using the Events type", () => {
+  const mutatedPoints = structuredClone(izumoPoints);
+  mutatedPoints.points[0].type = "events";
+  delete mutatedPoints.points[0].sub_type;
+
+  const result = validateSpecialDemandDataset({
+    typeDefinitions: specialDemandTypes,
+    points: mutatedPoints,
+  });
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
 });
 
 test("validateSpecialDemandDataset rejects unknown point sub-types", () => {

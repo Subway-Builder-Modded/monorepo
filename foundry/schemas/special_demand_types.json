@@ -1,6 +1,6 @@
 {
   "$schema": "special_demand_type_definitions.schema.json",
-  "version": 4,
+  "version": 5,
   "types": [
     {
       "id": "airport",
@@ -957,6 +957,19 @@
           }
         }
       ]
+    },
+    {
+      "id": "events",
+      "code": "EVT",
+      "label": {
+        "__default__": "Events",
+        "en": "Events"
+      },
+      "description": {
+        "__default__": "Temporary or recurring events that create concentrated travel demand.",
+        "en": "Temporary or recurring events that create concentrated travel demand."
+      },
+      "icon": "calendar-days"
     },
     {
       "id": "zoo",

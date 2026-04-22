@@ -19,6 +19,8 @@ type AjvValidator = ((data: unknown) => boolean) & {
   errors?: ErrorObject[] | null;
 };
 
+const TEMPLATE_METADATA_FIELDS = new Set(["introduced_in"]);
+
 const Ajv2020 = Ajv2020Import as unknown as new (options?: {
   allErrors?: boolean;
   strict?: boolean;
@@ -77,6 +79,7 @@ export function validateTemplateLocks(
   }
 
   const types = Array.isArray(data.types) ? data.types : [];
+  const documentVersion = getDocumentVersion(data);
   const typeMap = new Map<string, Record<string, unknown>>();
 
   for (const entry of types) {
@@ -90,6 +93,10 @@ export function validateTemplateLocks(
   const errors: ValidationIssue[] = [];
 
   for (const template of templates) {
+    if (!isTemplateRequiredForVersion(template, documentVersion)) {
+      continue;
+    }
+
     const templateId = template.id;
     if (typeof templateId !== "string") {
       continue;
@@ -104,7 +111,7 @@ export function validateTemplateLocks(
       continue;
     }
 
-    for (const [field, expectedValue] of Object.entries(template)) {
+    for (const [field, expectedValue] of getTemplateLockedEntries(template)) {
       if (actualType[field] !== expectedValue) {
         errors.push({
           path: `/types/${templateId}/${field}`,
@@ -183,6 +190,26 @@ function getTemplateEntries(schema: JsonObject): TemplateEntry[] {
     : [];
 
   return defaultEntries.filter(isRecord);
+}
+
+function getDocumentVersion(data: Record<string, unknown>): number {
+  return typeof data.version === "number"
+    ? data.version
+    : Number.POSITIVE_INFINITY;
+}
+
+function isTemplateRequiredForVersion(
+  template: TemplateEntry,
+  documentVersion: number,
+): boolean {
+  const introducedIn = template.introduced_in;
+  return typeof introducedIn !== "number" || introducedIn <= documentVersion;
+}
+
+function getTemplateLockedEntries(template: TemplateEntry) {
+  return Object.entries(template).filter(
+    ([field]) => !TEMPLATE_METADATA_FIELDS.has(field),
+  );
 }
 
 function prefixPath(prefix: string, path: string): string {

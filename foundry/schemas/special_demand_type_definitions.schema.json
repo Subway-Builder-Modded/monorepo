@@ -18,7 +18,7 @@
     },
     "types": {
       "type": "array",
-      "description": "All special demand type definitions. Must include every entry listed in $defs/type_templates. Order is not significant.",
+      "description": "All special demand type definitions. Must include every entry listed in $defs/type_templates that is mandatory for this document version. Order is not significant.",
       "items": { "$ref": "#/$defs/DemandType" }
     }
   },
@@ -115,7 +115,7 @@
     },
 
     "type_templates": {
-      "description": "Canonical type definitions. Each entry defines the template-locked field values for a mandatory type. Ingestion MUST verify: (1) every template ID is present in the 'types' array, (2) template-locked fields (id, code, label, description, icon) match exactly. This section is not used for JSON Schema structural validation — it is a machine-readable contract consumed by application-level validators.",
+      "description": "Canonical type definitions. Each entry defines the template-locked field values for a mandatory type. Ingestion MUST verify: (1) every template ID required for the document version is present in the 'types' array, (2) template-locked fields (id, code, label, description, icon) match exactly. This section is not used for JSON Schema structural validation — it is a machine-readable contract consumed by application-level validators.",
       "type": "array",
       "x-template-locked": true,
       "items": {
@@ -124,7 +124,12 @@
         "properties": {
           "id": { "type": "string" },
           "code": { "type": "string" },
-          "icon": { "type": "string" }
+          "icon": { "type": "string" },
+          "introduced_in": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Type-definition document version where this template first became mandatory."
+          }
         }
       },
       "default": [
@@ -155,7 +160,13 @@
         { "id": "shopping_center", "code": "SHP", "icon": "shopping-bag" },
         { "id": "sports_facility", "code": "SPO", "icon": "dumbbell" },
         { "id": "university", "code": "UNI", "icon": "graduation-cap" },
-        { "id": "zoo", "code": "ZOO", "icon": "rabbit" }
+        { "id": "zoo", "code": "ZOO", "icon": "rabbit" },
+        {
+          "id": "events",
+          "code": "EVT",
+          "icon": "calendar-days",
+          "introduced_in": 5
+        }
       ]
     }
   }
