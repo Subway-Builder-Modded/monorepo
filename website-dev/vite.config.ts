@@ -85,6 +85,11 @@ function mdxHeadingIdEscapePlugin(): Plugin {
   };
 }
 
+function toPluginList(plugin: unknown): Plugin[] {
+  if (Array.isArray(plugin)) return plugin as Plugin[];
+  return [plugin as Plugin];
+}
+
 export default defineConfig({
   build: {
     outDir: "build/client",
@@ -104,29 +109,31 @@ export default defineConfig({
   plugins: [
     mdxRawContentPlugin(),
     mdxHeadingIdEscapePlugin(),
-    tailwindcss(),
-    mdx({
-      remarkPlugins: [
-        remarkFrontmatter,
-        remarkStripFrontmatter,
-        remarkHeadingIds,
-        remarkGfm,
-        remarkDirective,
-        remarkAdmonitionDirectives,
-      ],
-      rehypePlugins: [
-        [
-          rehypePrettyCode,
-          {
-            theme: {
-              dark: "github-dark",
-              light: "github-light-high-contrast",
-            },
-            keepBackground: false,
-          },
+    ...toPluginList(tailwindcss()),
+    ...toPluginList(
+      mdx({
+        remarkPlugins: [
+          remarkFrontmatter,
+          remarkStripFrontmatter,
+          remarkHeadingIds,
+          remarkGfm,
+          remarkDirective,
+          remarkAdmonitionDirectives,
         ],
-      ],
-    }),
+        rehypePlugins: [
+          [
+            rehypePrettyCode,
+            {
+              theme: {
+                dark: "github-dark",
+                light: "github-light-high-contrast",
+              },
+              keepBackground: false,
+            },
+          ],
+        ],
+      }),
+    ),
   ],
   resolve: {
     alias: [
