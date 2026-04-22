@@ -70,6 +70,7 @@ import {
 import { useRegistryStore } from '@/stores/registry-store';
 
 import { ComputeDependencyList } from '../../wailsjs/go/downloader/Downloader';
+import { GetGameVersion } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetAssetDownloadCounts,
@@ -131,6 +132,7 @@ export function ChangelogPage() {
   );
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [gameVersion, setGameVersion] = useState<string>('');
 
   const [activeTab, setActiveTab] = useState('changelog');
   const [resolvedDeps, setResolvedDeps] = useState<Record<
@@ -173,6 +175,16 @@ export function ChangelogPage() {
 
   const projectHref =
     routeType && id ? `/project/${routeType}/${id}` : '/browse';
+
+  useEffect(() => {
+    GetGameVersion()
+      .then((response) => {
+        if (response.status === 'success') {
+          setGameVersion(response.version || '');
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!item || !type || !versionParam) return;
@@ -245,6 +257,16 @@ export function ChangelogPage() {
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
     if (!item || !type) return;
+    if (
+      versionInfo?.version === version &&
+      isCompatible(gameVersion, versionInfo.game_version) === false
+    ) {
+      toast.error(
+        `Cannot install ${version}: it is not compatible with game version ${gameVersion}.`,
+      );
+      return;
+    }
+
     try {
       let result: types.UpdateSubscriptionsResult;
       if (type === 'mod') {
@@ -344,7 +366,7 @@ export function ChangelogPage() {
 
   const renderInstallButton = () => {
     if (!versionInfo) return null;
-    const compat = isCompatible('', versionInfo.game_version);
+    const compat = isCompatible(gameVersion, versionInfo.game_version);
     const incompatible = compat === false;
 
     if (uninstalling) {
@@ -417,7 +439,10 @@ export function ChangelogPage() {
                 </Button>
               </span>
             </TooltipTrigger>
-            <TooltipContent>Incompatible with your game version</TooltipContent>
+            <TooltipContent>
+              Not compatible with your game version (you have {gameVersion},
+              need {versionInfo.game_version})
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       );
