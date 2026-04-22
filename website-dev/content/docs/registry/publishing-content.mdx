@@ -87,8 +87,7 @@ For more information on how to properly tag your map, see the [**Tagging guide**
 
 </Tabs>
 
-<details>
-  <summary>**Using the Update JSON**</summary>
+<Spoiler title="Using the Update JSON" icon="Info">
   
 For `Custom URL`, place a link to your raw Update JSON file. You can paste the raw link directly copied from your repository, however, it is instead recommended to deploy it to GitHub pages and paste that link there. This can help some users who may be rate limited. To deploy to GitHub pages, create a new file located at `.github/workflows/deploy-releases.yml`. Paste the following into the file:
 
@@ -128,7 +127,7 @@ jobs:
 
 This will automatically deploy your Update JSON files to GitHub Pages. Once you do this, put the direct link to your Update JSON file for the corresponding map in the `Custom URL` field. Now every time you update your map (and your Update JSON file), it will automatically deploy the latest Update JSON file for Railyard to use.
 
-</details>
+</Spoiler>
 
 Once you fill out the submission ticket, a Pull Request should automatically be created. A Railyard maintainer will review it and it will be automatically submitted once they do. After that, it will be available on Railyard for everyone to download.
 

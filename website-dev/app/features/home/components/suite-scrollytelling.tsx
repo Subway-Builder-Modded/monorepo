@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, useReducedMotion, AnimatePresence } from "motion/react";
+import { memo, useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { ExternalLink } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { Link } from "@/app/lib/router";
 import { useMediaQuery } from "@/app/hooks/use-media-query";
-import { useThemeMode } from "@/app/hooks/use-theme-mode";
+import { resolveAccentColor, useThemeMode } from "@/app/hooks/use-theme-mode";
 import { CodeDisplay, SectionHeader, SectionShell } from "@subway-builder-modded/shared-ui";
 import {
   getHomeIcon,
@@ -24,14 +24,13 @@ function StationSwitcher({
   onSelect: (i: number) => void;
 }) {
   const { resolvedTheme } = useThemeMode();
-  const isDark = resolvedTheme === "dark";
 
   return (
     <nav className="relative flex flex-col items-center" aria-label="Suite navigation">
       {steps.map((step, i) => {
         const isActive = i === activeIdx;
         const accent = getHomepageSuiteAccent(step.accentSuiteId);
-        const tone = isDark ? accent.dark : accent.light;
+        const tone = resolveAccentColor(resolvedTheme, accent);
         const StepIcon = getHomeIcon(step.icon);
 
         return (
@@ -74,11 +73,10 @@ function StationSwitcher({
   );
 }
 
-function StoryPanel({ step }: { step: SuiteStep }) {
+const StoryPanel = memo(function StoryPanel({ step }: { step: SuiteStep }) {
   const { resolvedTheme } = useThemeMode();
-  const isDark = resolvedTheme === "dark";
   const accent = getHomepageSuiteAccent(step.accentSuiteId);
-  const tone = isDark ? accent.dark : accent.light;
+  const tone = resolveAccentColor(resolvedTheme, accent);
   const StepIcon = getHomeIcon(step.icon);
   const PrimaryIcon = getHomeIcon(step.primaryAction.icon);
   const SecondaryIcon = getHomeIcon(step.secondaryAction.icon);
@@ -178,7 +176,7 @@ function StoryPanel({ step }: { step: SuiteStep }) {
       </div>
     </div>
   );
-}
+});
 
 function MobileStack({ steps }: { steps: SuiteStep[] }) {
   return (
@@ -203,8 +201,12 @@ function DesktopSwitcher({ steps }: { steps: SuiteStep[] }) {
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            const i = panels.indexOf(entry.target as HTMLDivElement);
-            if (i !== -1) setActiveIdx(i);
+            const indexAttr = (entry.target as HTMLElement).dataset.panelIndex;
+            if (!indexAttr) continue;
+            const i = Number(indexAttr);
+            if (Number.isInteger(i)) {
+              setActiveIdx((prev) => (prev === i ? prev : i));
+            }
           }
         }
       },
@@ -229,6 +231,7 @@ function DesktopSwitcher({ steps }: { steps: SuiteStep[] }) {
         {steps.map((step, i) => (
           <div
             key={step.id}
+            data-panel-index={i}
             ref={(el) => {
               panelRefs.current[i] = el;
             }}
@@ -236,17 +239,14 @@ function DesktopSwitcher({ steps }: { steps: SuiteStep[] }) {
             {prefersReducedMotion ? (
               <StoryPanel step={step} />
             ) : (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={step.id}
-                  initial={{ opacity: 0.3, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ margin: "-30% 0px -30% 0px", once: false }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                >
-                  <StoryPanel step={step} />
-                </motion.div>
-              </AnimatePresence>
+              <motion.div
+                initial={{ opacity: 0.3, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ margin: "-30% 0px -30% 0px", once: false }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                <StoryPanel step={step} />
+              </motion.div>
             )}
           </div>
         ))}

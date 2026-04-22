@@ -58,6 +58,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.4",
     "jsdom": "^26.1.0",
+    "rehype-pretty-code": "^0.14.3",
     "tailwindcss": "^4.2.3",
     "typescript": "^5",
     "vite": "catalog:",

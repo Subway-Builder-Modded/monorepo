@@ -90,8 +90,8 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
           aria-label="Close navigation"
           className="fixed inset-0 z-40 bg-[var(--overlay-scrim-soft)]"
           initial={{ opacity: 0 }}
-          animate={{ opacity: showPanelSurface ? 1 : 0 }}
-          transition={{ duration: prefersReducedMotion ? 0 : 0.18 }}
+          animate={{ opacity: showPanelSurface ? 1 : 0.1 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.1 }}
           onClick={closeNavbar}
         />
       ) : null}
@@ -112,8 +112,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
             className={cn(
               "relative w-full overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(var(--elevation-shadow-rgb),0.35)]",
               isClosed && "cursor-pointer transition-shadow duration-200 ease-out",
-              isNavbarHovered &&
-                "shadow-[0_14px_30px_-14px_rgba(var(--elevation-shadow-rgb),0.5)]",
+              isNavbarHovered && "shadow-[0_14px_30px_-14px_rgba(var(--elevation-shadow-rgb),0.5)]",
             )}
             animate={{
               height: frameHeight,

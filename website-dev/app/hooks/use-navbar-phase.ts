@@ -18,7 +18,7 @@ export const NAVBAR_MOTION = {
  * Closing: open -> closing -> closed
  *
  * Timers are centralized in this hook and fully cleared on unmount.
- * Reopen requests during closing are ignored for stability.
+ * Reopen requests during closing cancel close timers and restart opening.
  */
 
 type UseNavbarPhaseOptions = {
@@ -89,10 +89,6 @@ export function useNavbarPhase({
     const current = phaseRef.current;
 
     if (current === "open" || current === "opening") {
-      return;
-    }
-
-    if (current === "closing") {
       return;
     }
 
@@ -167,7 +163,5 @@ export function useNavbarPhase({
     isFrameExpanded,
     showPanelSurface,
     showRows,
-    allowHoverClose: phase === "open",
-    isTransitionLocked: phase === "opening" || phase === "closing",
   };
 }

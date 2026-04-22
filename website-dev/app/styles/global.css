@@ -169,6 +169,16 @@ body {
   overscroll-behavior-y: none;
 }
 
+[data-rehype-pretty-code-figure] code,
+[data-rehype-pretty-code-figure] [data-line] span {
+  color: var(--shiki-light);
+}
+
+.dark [data-rehype-pretty-code-figure] code,
+.dark [data-rehype-pretty-code-figure] [data-line] span {
+  color: var(--shiki-dark);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -190,6 +200,11 @@ body {
     color-mix(in srgb, var(--suite-accent-light) 90%, white) 0%,
     color-mix(in srgb, var(--suite-accent-light) 45%, transparent) 100%
   );
+}
+
+.prose-docs {
+  --tw-prose-hr: color-mix(in oklch, var(--foreground) 18%, transparent);
+  --tw-prose-invert-hr: color-mix(in oklch, var(--foreground) 30%, transparent);
 }
 
 .dark [data-color-scheme] .signage-line {

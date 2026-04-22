@@ -15,31 +15,39 @@ function useActiveHeading(headings: DocsTocHeading[]) {
 
     let frameId = 0;
     const marker = 120;
+    let headingOffsets: { id: string; top: number }[] = [];
 
     const updateFromScroll = () => {
-      const resolved = headings
-        .map((heading) => {
-          const element = document.getElementById(heading.id);
-          if (!element) return null;
-          return { id: heading.id, top: element.getBoundingClientRect().top };
-        })
-        .filter((item): item is { id: string; top: number } => item !== null);
-
-      if (resolved.length === 0) {
-        setActiveId(headings[0]?.id ?? null);
+      if (headingOffsets.length === 0) {
+        setActiveId((prev) => {
+          const fallback = headings[0]?.id ?? null;
+          return prev === fallback ? prev : fallback;
+        });
         return;
       }
 
-      let nextActive = resolved[0]!.id;
-      for (const entry of resolved) {
-        if (entry.top <= marker) {
+      const markerY = window.scrollY + marker;
+      let nextActive = headingOffsets[0]!.id;
+      for (const entry of headingOffsets) {
+        if (entry.top <= markerY) {
           nextActive = entry.id;
         } else {
           break;
         }
       }
 
-      setActiveId(nextActive);
+      setActiveId((prev) => (prev === nextActive ? prev : nextActive));
+    };
+
+    const measureOffsets = () => {
+      headingOffsets = headings
+        .map((heading) => {
+          const element = document.getElementById(heading.id);
+          if (!element) return null;
+          return { id: heading.id, top: element.getBoundingClientRect().top + window.scrollY };
+        })
+        .filter((item): item is { id: string; top: number } => item !== null);
+      updateFromScroll();
     };
 
     const onScroll = () => {
@@ -50,18 +58,18 @@ function useActiveHeading(headings: DocsTocHeading[]) {
       });
     };
 
-    updateFromScroll();
+    measureOffsets();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    window.addEventListener("hashchange", onScroll);
+    window.addEventListener("resize", measureOffsets);
+    window.addEventListener("hashchange", measureOffsets);
 
     return () => {
       if (frameId) {
         window.cancelAnimationFrame(frameId);
       }
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      window.removeEventListener("hashchange", onScroll);
+      window.removeEventListener("resize", measureOffsets);
+      window.removeEventListener("hashchange", measureOffsets);
     };
   }, [headings]);
 

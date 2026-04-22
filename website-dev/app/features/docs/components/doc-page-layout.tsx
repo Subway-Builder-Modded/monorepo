@@ -24,6 +24,16 @@ import { DocsDeprecatedNotice } from "./docs-deprecated-notice";
 import { DocsBreadcrumbs } from "./docs-breadcrumbs";
 import { DocsPageTitleCard } from "./docs-page-title-card";
 
+const SIDEBAR_COLLAPSED_KEY = "sbm:docs-sidebar-collapsed";
+
+function getInitialSidebarCollapsedState() {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
 function DocContent({ sourcePath }: { sourcePath: string }) {
   const [Content, setContent] = useState<React.ComponentType<any> | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +104,7 @@ export function DocPageLayout({
   version: string | null;
   slug: string;
 }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialSidebarCollapsedState);
   const tree = getDocsTree(suiteId, version);
   const node = findTreeNode(tree, slug);
   const versionConfig = version ? getDocsVersion(suiteId, version) : null;

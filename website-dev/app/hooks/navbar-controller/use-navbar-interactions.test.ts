@@ -4,7 +4,6 @@ import { useNavbarInteractions } from "@/app/hooks/navbar-controller/use-navbar-
 import type { NavbarPhase } from "@/app/hooks/use-navbar-phase";
 
 type HookTestProps = {
-  allowHoverClose: boolean;
   isFrameExpanded: boolean;
   phase: NavbarPhase;
 };
@@ -22,7 +21,6 @@ describe("useNavbarInteractions", () => {
 
     const { result } = renderHook(() =>
       useNavbarInteractions({
-        allowHoverClose: false,
         close,
         isFrameExpanded: false,
         open,
@@ -53,9 +51,8 @@ describe("useNavbarInteractions", () => {
       ReturnType<typeof useNavbarInteractions>,
       HookTestProps
     >(
-      ({ phase, isFrameExpanded, allowHoverClose }) =>
+      ({ phase, isFrameExpanded }) =>
         useNavbarInteractions({
-          allowHoverClose,
           close,
           isFrameExpanded,
           open,
@@ -66,7 +63,6 @@ describe("useNavbarInteractions", () => {
         }),
       {
         initialProps: {
-          allowHoverClose: false,
           isFrameExpanded: false,
           phase: "closed" as const,
         } satisfies HookTestProps,
@@ -79,7 +75,6 @@ describe("useNavbarInteractions", () => {
     expect(open).toHaveBeenCalledTimes(1);
 
     rerender({
-      allowHoverClose: true,
       isFrameExpanded: true,
       phase: "open",
     } satisfies HookTestProps);
@@ -90,6 +85,51 @@ describe("useNavbarInteractions", () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
+  it("closes when hover ends during opening so quick in-out cannot stick open", () => {
+    const open = vi.fn();
+    const close = vi.fn();
+
+    const { result } = renderHook(() =>
+      useNavbarInteractions({
+        close,
+        isFrameExpanded: false,
+        open,
+        phase: "opening",
+        realSuiteId: "general",
+        setTheme: vi.fn(),
+        theme: "light",
+      }),
+    );
+
+    act(() => {
+      result.current.onFrameHoverEnd();
+    });
+
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it("reopens when hover starts during closing", () => {
+    const open = vi.fn();
+
+    const { result } = renderHook(() =>
+      useNavbarInteractions({
+        close: vi.fn(),
+        isFrameExpanded: false,
+        open,
+        phase: "closing",
+        realSuiteId: "general",
+        setTheme: vi.fn(),
+        theme: "light",
+      }),
+    );
+
+    act(() => {
+      result.current.onFrameHoverStart();
+    });
+
+    expect(open).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps hover-close disabled while pinned and supports menu toggle close", () => {
     const open = vi.fn();
     const close = vi.fn();
@@ -98,9 +138,8 @@ describe("useNavbarInteractions", () => {
       ReturnType<typeof useNavbarInteractions>,
       HookTestProps
     >(
-      ({ phase, isFrameExpanded, allowHoverClose }) =>
+      ({ phase, isFrameExpanded }) =>
         useNavbarInteractions({
-          allowHoverClose,
           close,
           isFrameExpanded,
           open,
@@ -111,7 +150,6 @@ describe("useNavbarInteractions", () => {
         }),
       {
         initialProps: {
-          allowHoverClose: false,
           isFrameExpanded: false,
           phase: "closed" as const,
         } satisfies HookTestProps,
@@ -123,7 +161,6 @@ describe("useNavbarInteractions", () => {
     });
 
     rerender({
-      allowHoverClose: true,
       isFrameExpanded: true,
       phase: "open",
     } satisfies HookTestProps);
@@ -147,9 +184,8 @@ describe("useNavbarInteractions", () => {
       ReturnType<typeof useNavbarInteractions>,
       HookTestProps
     >(
-      ({ phase, isFrameExpanded, allowHoverClose }) =>
+      ({ phase, isFrameExpanded }) =>
         useNavbarInteractions({
-          allowHoverClose,
           close,
           isFrameExpanded,
           open,
@@ -160,7 +196,6 @@ describe("useNavbarInteractions", () => {
         }),
       {
         initialProps: {
-          allowHoverClose: false,
           isFrameExpanded: false,
           phase: "closed" as const,
         } satisfies HookTestProps,
@@ -172,7 +207,6 @@ describe("useNavbarInteractions", () => {
     });
 
     rerender({
-      allowHoverClose: true,
       isFrameExpanded: true,
       phase: "open",
     } satisfies HookTestProps);
@@ -190,7 +224,6 @@ describe("useNavbarInteractions", () => {
 
     const { result } = renderHook(() =>
       useNavbarInteractions({
-        allowHoverClose: true,
         close,
         isFrameExpanded: true,
         open: vi.fn(),

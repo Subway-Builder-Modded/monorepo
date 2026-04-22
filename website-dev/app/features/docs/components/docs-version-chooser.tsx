@@ -1,8 +1,5 @@
 import { useMemo } from "react";
-import {
-  VersionSwitcherDropdown,
-  getSuiteAccentStyle,
-} from "@subway-builder-modded/shared-ui";
+import { VersionSwitcherDropdown, getSuiteAccentStyle } from "@subway-builder-modded/shared-ui";
 import { cn } from "@/app/lib/utils";
 import { getDocsHomepageUrl, getVersionSwitchUrl } from "@/app/features/docs/lib/routing";
 import { getVisibleVersions, type DocsSuiteId } from "@/app/config/docs";
@@ -18,8 +15,7 @@ type DocsVersionChooserProps = {
   triggerLabel?: string;
 };
 
-const DEFAULT_TRIGGER_CLASS =
-  "h-9 min-w-[12rem]";
+const DEFAULT_TRIGGER_CLASS = "h-9 min-w-[12rem]";
 
 export function DocsVersionChooser({
   suiteId,

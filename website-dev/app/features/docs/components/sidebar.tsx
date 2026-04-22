@@ -77,13 +77,19 @@ function useSidebarCollapsedState() {
   return { sidebarCollapsed, setCollapsedState };
 }
 
-function SidebarTitleRow({ suiteId, currentVersion }: { suiteId: DocsSuiteId; currentVersion: DocsRouteVersion }) {
+function SidebarTitleRow({
+  suiteId,
+  currentVersion,
+}: {
+  suiteId: DocsSuiteId;
+  currentVersion: DocsRouteVersion;
+}) {
   const suite = getSuiteById(suiteId);
 
   return (
     <Link
       to={getDocsHomepageUrl(suiteId, currentVersion)}
-      className="flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="flex min-w-0 items-center justify-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <BookText className="size-4" aria-hidden="true" />
       <span className="text-[15px] font-semibold leading-[1.2] text-foreground">Documentation</span>
@@ -115,6 +121,12 @@ export function DocsSidebar({
   const { collapsed, toggle } = useCollapsedSections(treeKey);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
   const { sidebarCollapsed, setCollapsedState } = useSidebarCollapsedState();
+  const [playExpandAnimation, setPlayExpandAnimation] = useState(false);
+
+  const handleExpandSidebar = useCallback(() => {
+    setPlayExpandAnimation(true);
+    setCollapsedState(false);
+  }, [setCollapsedState]);
 
   useEffect(() => {
     onCollapsedChange?.(sidebarCollapsed);
@@ -126,9 +138,9 @@ export function DocsSidebar({
         <div className="sticky top-20 self-start">
           <button
             type="button"
-            onClick={() => setCollapsedState(false)}
+            onClick={handleExpandSidebar}
             className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
+              "inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_28%,var(--border))] bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
               "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,transparent)] hover:text-[var(--suite-accent-light)]",
               "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
             )}
@@ -142,7 +154,13 @@ export function DocsSidebar({
   }
 
   return (
-    <aside className="hidden w-[17.5rem] shrink-0 lg:block">
+    <aside
+      className={cn(
+        "hidden w-[17.5rem] shrink-0 lg:block",
+        playExpandAnimation && "animate-in slide-in-from-left-96 duration-200",
+      )}
+      onAnimationEnd={() => setPlayExpandAnimation(false)}
+    >
       <SideRailShell>
         <SideRailHeader>
           <SidebarTitleRow suiteId={suiteId} currentVersion={currentVersion} />
@@ -230,7 +248,7 @@ export function MobileDocsSidebar({
             aria-hidden="true"
           />
 
-          <aside className="fixed inset-y-0 left-0 z-50 w-[min(86vw,22rem)] rounded-r-2xl border-r-2 border-border/70 bg-background/95 shadow-xl backdrop-blur-md">
+          <aside className="fixed inset-y-0 left-0 z-50 w-[min(86vw,22rem)] rounded-r-2xl border-r-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_28%,var(--border))] bg-background/95 shadow-xl backdrop-blur-md">
             <div className="flex h-full flex-col overflow-hidden">
               <div className="border-b border-border/50 px-3 py-3">
                 <div className="mb-2 flex items-center justify-between gap-2">

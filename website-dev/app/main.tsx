@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "@/app/app";
 import { AppErrorBoundary } from "@/app/components/error-boundary";
 import { initializeThemeFromStorage } from "@/app/hooks/use-theme-mode";
-import "@/app/styles/globals.css";
+import "@/app/styles/global.css";
 
 initializeThemeFromStorage();
 

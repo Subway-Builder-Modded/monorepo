@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
 export const SIDE_RAIL_CHROME_CLASS =
-  'rounded-2xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md';
+  'rounded-2xl border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_28%,var(--border))] bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md';
 
 export function SideRailShell({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn('sticky top-20 self-start', SIDE_RAIL_CHROME_CLASS, className)}>{children}</div>;

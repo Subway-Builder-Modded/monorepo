@@ -77,6 +77,13 @@ function applyTheme(theme: ThemeMode) {
   root.dataset.theme = theme;
 }
 
+export function resolveAccentColor(
+  theme: ThemeMode,
+  accent: { light: string; dark: string },
+): string {
+  return theme === "dark" ? accent.dark : accent.light;
+}
+
 export function useThemeMode() {
   const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getServerThemeSnapshot);
 

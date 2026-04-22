@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@subway-builder-modded/shared-ui';
-import { ChevronDown, Package, Monitor, Palette } from 'lucide-react';
+import { ChevronDown, Monitor, Package, Palette } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 

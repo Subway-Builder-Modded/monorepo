@@ -30,11 +30,10 @@ export function useNavbarController({
 
   const [canStartEnterMotion, setCanStartEnterMotion] = useState(false);
 
-  const { phase, open, close, isFrameExpanded, showPanelSurface, showRows, allowHoverClose } =
-    useNavbarPhase({
-      canStartEnterMotion,
-      reducedMotion: prefersReducedMotion,
-    });
+  const { phase, open, close, isFrameExpanded, showPanelSurface, showRows } = useNavbarPhase({
+    canStartEnterMotion,
+    reducedMotion: prefersReducedMotion,
+  });
 
   const viewportHeight = useNavbarViewportHeight();
   const {
@@ -49,7 +48,6 @@ export function useNavbarController({
     openNavbar,
     openSuiteId,
   } = useNavbarInteractions({
-    allowHoverClose,
     close,
     isFrameExpanded,
     open,
@@ -109,11 +107,6 @@ export function useNavbarController({
   });
 
   useEffect(() => {
-    if (phase === "closed") {
-      setCanStartEnterMotion(false);
-      return;
-    }
-
     setCanStartEnterMotion(
       phase === "opening" &&
         hasMeasuredCurrentPanel &&

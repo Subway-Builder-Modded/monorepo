@@ -19,11 +19,16 @@ export function DocsDeprecatedNotice({
   context = "doc",
   className,
 }: DocsDeprecatedNoticeProps) {
+  const isHomepage = context === "homepage";
   const latestVersion = getLatestVersion(suiteId);
   const latestUrl =
     latestVersion && latestVersion !== version
       ? getVersionSwitchUrl(suiteId, latestVersion, currentSlug)
       : null;
+  const introText = isHomepage ? "You are viewing docs for" : "This page contains docs for";
+  const outroText = isHomepage
+    ? ", which is deprecated."
+    : ", which has been deprecated. Please switch to the latest version for the most up-to-date information.";
 
   return (
     <div
@@ -35,10 +40,10 @@ export function DocsDeprecatedNotice({
       <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-500" aria-hidden="true" />
       <div className="text-sm">
         <p className="font-medium text-amber-600 dark:text-amber-400">
-          {context === "homepage" ? "You are viewing docs for" : "This page is from"}{" "}
-          <strong>{version}</strong>, which is deprecated.
+          {introText} <strong>{version}</strong>
+          {outroText}
         </p>
-        {context === "homepage" ? (
+        {isHomepage ? (
           <p className="mt-1 text-muted-foreground">
             Consider switching to the latest version for up-to-date information.
           </p>

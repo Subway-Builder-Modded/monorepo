@@ -12,7 +12,6 @@ import { DocsVersionChooser } from "@/app/features/docs/components/docs-version-
 import { getDocsTree, getVisibleNodes } from "@/app/features/docs/lib/content";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
 import { getDocPageUrl } from "@/app/features/docs/lib/routing";
-import { DOCS_SURFACE_BORDER_CLASS } from "@/app/features/docs/components/docs-page-title-card";
 
 const SHARED_SUITE_BADGE_CLASS =
   "h-7 shrink-0 self-center gap-1.5 rounded-md px-2 normal-case tracking-normal";
@@ -32,8 +31,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl bg-background/85",
-        DOCS_SURFACE_BORDER_CLASS,
+        "relative overflow-hidden rounded-2xl bg-background/85 border border-border/60",
       )}
     >
       <span
@@ -87,7 +85,7 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
       </div>
 
       {hasVersionChooser ? (
-        <div className="border-t border-[color-mix(in_srgb,var(--suite-accent-light)_18%,var(--border))] px-5 py-3 sm:px-7">
+        <div className="border-t border-border/60 px-5 py-3 sm:px-7">
           <div className="flex justify-center">
             <DocsVersionChooser
               suiteId={suiteId}
@@ -121,10 +119,7 @@ function DocsCardGrid({ suiteId, version }: { suiteId: DocsSuiteId; version: str
         aria-label="Discover section"
         data-testid="discover-separator"
       >
-        <Compass
-          className="size-3.5 shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
-          aria-hidden="true"
-        />
+        <Compass className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
           DISCOVER
         </span>

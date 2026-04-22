@@ -12,7 +12,7 @@ import {
   getHomeIcon,
   getHomepageSuiteAccent,
 } from "@/app/config/home";
-import { useThemeMode } from "@/app/hooks/use-theme-mode";
+import { resolveAccentColor, useThemeMode } from "@/app/hooks/use-theme-mode";
 
 function AnalyticsGraphic() {
   const { resolvedTheme } = useThemeMode();
@@ -30,7 +30,6 @@ function AnalyticsGraphic() {
 
 export function AnalyticsSection() {
   const { resolvedTheme } = useThemeMode();
-  const isDark = resolvedTheme === "dark";
 
   return (
     <SectionShell>
@@ -48,7 +47,7 @@ export function AnalyticsSection() {
               {ANALYTICS_LINKS.map((link) => {
                 const Icon = getHomeIcon(link.icon);
                 const accent = getHomepageSuiteAccent(link.accentSuiteId);
-                const color = isDark ? accent.dark : accent.light;
+                const color = resolveAccentColor(resolvedTheme, accent);
                 return (
                   <Link
                     key={link.href}

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkDirective from "remark-directive";
+import rehypePrettyCode from "rehype-pretty-code";
 import { remarkHeadingIds } from "./app/features/docs/mdx/remark-heading-ids.ts";
 import { remarkStripFrontmatter } from "./app/features/docs/mdx/remark-strip-frontmatter.ts";
 import { remarkAdmonitionDirectives } from "./app/features/docs/mdx/remark-admonitions.ts";
@@ -112,6 +113,18 @@ export default defineConfig({
         remarkGfm,
         remarkDirective,
         remarkAdmonitionDirectives,
+      ],
+      rehypePlugins: [
+        [
+          rehypePrettyCode,
+          {
+            theme: {
+              dark: "github-dark",
+              light: "github-light-high-contrast",
+            },
+            keepBackground: false,
+          },
+        ],
       ],
     }),
   ],

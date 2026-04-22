@@ -1,6 +1,7 @@
-import { type ReactNode, useState, useCallback } from "react";
+import { type ReactNode, useState, useCallback, useContext } from "react";
 import { cn } from "@/app/lib/utils";
 import { Check, Copy } from "lucide-react";
+import { TabsVariantContext } from "./tabs";
 
 type CodeBlockProps = {
   children: ReactNode;
@@ -11,6 +12,8 @@ type CodeBlockProps = {
 
 export function CodeBlock({ children, className, title, "data-language": lang }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const tabsVariant = useContext(TabsVariantContext);
+  const isEmbeddedInCodeTabs = tabsVariant === "code";
 
   const handleCopy = useCallback(() => {
     const pre = document.querySelector(`[data-code-id="${title ?? lang ?? "code"}"]`);
@@ -22,18 +25,31 @@ export function CodeBlock({ children, className, title, "data-language": lang }:
   }, [title, lang]);
 
   return (
-    <div className="group relative my-4 overflow-hidden rounded-lg border border-border/50 bg-card/95">
-      {(title || lang) && (
-        <div className="flex items-center justify-between border-b border-border/30 bg-muted/45 px-4 py-2">
+    <div
+      className={cn(
+        "group relative",
+        isEmbeddedInCodeTabs
+          ? "overflow-hidden rounded-b-xl"
+          : "my-4 overflow-hidden rounded-lg border border-border/50 bg-card/95",
+      )}
+    >
+      {!isEmbeddedInCodeTabs && (title || lang) ? (
+        <div
+          className={cn(
+            "flex items-center justify-between border-b border-border/30 px-4 py-2",
+            isEmbeddedInCodeTabs ? "bg-muted/35" : "bg-muted/45",
+          )}
+        >
           <span className="text-xs font-medium text-muted-foreground">{title ?? lang}</span>
         </div>
-      )}
+      ) : null}
       <div className="relative">
         <pre
           data-code-id={title ?? lang ?? "code"}
           className={cn(
-            "overflow-x-auto p-4 text-sm leading-relaxed",
-            "[&_code]:bg-transparent [&_code]:p-0 [&_code]:text-[13px]",
+            "overflow-x-hidden p-4 text-sm leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]",
+            "[&_code]:bg-transparent [&_code]:p-0 [&_code]:text-[13px] [&_code]:whitespace-pre-wrap [&_code]:break-words [&_code]:[overflow-wrap:anywhere]",
+            "[&_[data-line]]:whitespace-pre-wrap [&_[data-line]]:break-words [&_[data-line]]:[overflow-wrap:anywhere]",
             className,
           )}
         >

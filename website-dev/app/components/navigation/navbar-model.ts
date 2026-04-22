@@ -9,6 +9,7 @@ import {
   type SiteSuiteId,
 } from "@/app/config/site-navigation";
 import type { NavbarPhase } from "@/app/hooks/use-navbar-phase";
+import { resolveAccentColor } from "@/app/hooks/use-theme-mode";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
 
 type BuildNavbarDisplayModelOptions = {
@@ -52,8 +53,8 @@ export type NavbarDisplayModel = {
 
 function getSuiteAccent(theme: ThemeMode, accent: (typeof SITE_SUITES)[number]["accent"]) {
   return {
-    accentColor: theme === "dark" ? accent.dark : accent.light,
-    mutedColor: theme === "dark" ? accent.mutedDark : accent.mutedLight,
+    accentColor: resolveAccentColor(theme, accent),
+    mutedColor: resolveAccentColor(theme, { light: accent.mutedLight, dark: accent.mutedDark }),
   };
 }
 
@@ -71,7 +72,7 @@ export function buildNavbarDisplayModel({
   const activeItemGlobal = getMatchingItem(pathname, realSuite.id);
 
   const { accentColor, mutedColor } = getSuiteAccent(theme, displayedSuite.accent);
-  const realAccent = theme === "dark" ? realSuite.accent.dark : realSuite.accent.light;
+  const realAccent = resolveAccentColor(theme, realSuite.accent);
 
   const borderColor = isFrameExpanded
     ? `color-mix(in srgb, ${accentColor} 36%, var(--border))`

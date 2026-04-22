@@ -4,7 +4,6 @@ import type { NavbarPhase } from "@/app/hooks/use-navbar-phase";
 import type { ThemeMode } from "@/app/hooks/use-theme-mode";
 
 type UseNavbarInteractionsOptions = {
-  allowHoverClose: boolean;
   close: () => void;
   isFrameExpanded: boolean;
   open: () => void;
@@ -19,7 +18,6 @@ function getNextTheme(theme: ThemeMode): ThemeMode {
 }
 
 export function useNavbarInteractions({
-  allowHoverClose,
   close,
   isFrameExpanded,
   open,
@@ -66,7 +64,7 @@ export function useNavbarInteractions({
   }, [close]);
 
   const openNavbar = useCallback(() => {
-    if (phase === "closed") {
+    if (phase !== "open") {
       setOpenSuiteId(realSuiteId);
       open();
     }
@@ -83,16 +81,16 @@ export function useNavbarInteractions({
   }, [closeNavbar, isFrameExpanded, openNavbar]);
 
   const onFrameHoverStart = useCallback(() => {
-    if (phase === "closed" && canAutoExpand) {
+    if (phase !== "open" && canAutoExpand) {
       openNavbar();
     }
   }, [canAutoExpand, openNavbar, phase]);
 
   const onFrameHoverEnd = useCallback(() => {
-    if (allowHoverClose && !isPinnedRef.current) {
+    if (!isPinnedRef.current) {
       close();
     }
-  }, [allowHoverClose, close]);
+  }, [close]);
 
   const onFrameClick = useCallback(() => {
     if (isFrameExpanded && !isPinnedRef.current) {

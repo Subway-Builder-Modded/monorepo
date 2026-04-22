@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { cn } from "@/app/lib/utils";
 import { getVisibleNodes } from "@/app/features/docs/lib/content";
 import { resolveIcon } from "@/app/features/docs/lib/icon-resolver";
@@ -113,11 +113,12 @@ function SidebarItem({
               aria-label={isCollapsed ? "Expand section" : "Collapse section"}
               aria-expanded={!isCollapsed}
             >
-              {isCollapsed ? (
-                <ChevronRight className="size-3.5" />
-              ) : (
-                <ChevronDown className="size-3.5" />
-              )}
+              <ChevronRight
+                className={cn(
+                  "size-3.5 transition-transform duration-200 ease-out",
+                  !isCollapsed && "rotate-90",
+                )}
+              />
             </button>
           ) : null}
         </div>

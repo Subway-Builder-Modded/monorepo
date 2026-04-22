@@ -81,12 +81,12 @@ describe('VersionSwitcherDropdown', () => {
     expect(deprecatedRow.className).toContain('bg-muted');
     expect(deprecatedRow.className).toContain('text-left');
     expect(deprecatedRow.className).toContain('justify-start');
+    expect(deprecatedRow.className).not.toContain('hover:bg-muted');
+    expect(deprecatedRow.className).not.toContain('hover:text-foreground');
 
     const suiteRow = screen.getByRole('option', { name: /v0.2/i });
     expect(suiteRow.className).toContain('hover:bg-[color-mix(in_srgb,var(--switcher-accent)_12%,transparent)]');
     expect(suiteRow.className).toContain('hover:text-[var(--switcher-accent)]');
-    expect(deprecatedRow.className).toContain('hover:bg-muted');
-    expect(deprecatedRow.className).toContain('hover:text-foreground');
 
     const deprecatedPills = screen.getAllByText('DEPRECATED');
     expect(
@@ -101,5 +101,20 @@ describe('VersionSwitcherDropdown', () => {
         (pill) => pill.closest('[data-slot="suite-badge"]')?.getAttribute('data-tone') === 'soft',
       ),
     ).toBe(true);
+  });
+
+  it('adds transform animation classes to trigger chevron', () => {
+    render(
+      <VersionSwitcherDropdown
+        items={items}
+        selectedId='v0.2'
+        onSelect={vi.fn()}
+        ariaLabel='Choose documentation version'
+      />,
+    );
+
+    const chevron = document.querySelector('button[aria-label="Choose documentation version"] svg');
+    expect(chevron).not.toBeNull();
+    expect(chevron?.className.baseVal ?? '').toContain('transition-transform');
   });
 });

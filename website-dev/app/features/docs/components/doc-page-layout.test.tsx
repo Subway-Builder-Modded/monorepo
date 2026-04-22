@@ -113,4 +113,18 @@ describe("DocPageLayout", () => {
     expect(screen.queryByRole("link", { name: /Edit on GitHub/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Copy page as Markdown" })).not.toBeInTheDocument();
   });
+
+  it("initializes with collapsed docs width when persisted sidebar state is collapsed", () => {
+    localStorage.setItem("sbm:docs-sidebar-collapsed", "true");
+
+    const { container } = render(
+      <DocPageLayout suiteId="railyard" version="v0.2" slug="players/github-token" />,
+    );
+
+    const layoutGrid = container.querySelector(
+      '[style*="--docs-sidebar-width"]',
+    ) as HTMLElement | null;
+    expect(layoutGrid).toBeTruthy();
+    expect(layoutGrid?.style.getPropertyValue("--docs-sidebar-width")).toBe("2.75rem");
+  });
 });

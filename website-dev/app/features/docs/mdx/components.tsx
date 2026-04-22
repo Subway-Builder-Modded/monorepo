@@ -17,10 +17,11 @@ import {
   InfoAdmonition,
   Success,
   Deprecated,
-  BugAdmonition,
+  Alert,
   Example,
   Announcement,
 } from "./admonition";
+import { Spoiler, MdxDetails, MdxSummary } from "./spoiler";
 
 function extractTextFromChildren(children: ReactNode): string {
   if (typeof children === "string") return children;
@@ -35,12 +36,13 @@ function extractTextFromChildren(children: ReactNode): string {
   return "";
 }
 
-function createHeading(level: 2 | 3 | 4) {
+function createHeading(level: 2 | 3 | 4 | 5) {
   const Tag = `h${level}` as const;
   const sizeClass = {
-    2: "text-xl font-bold mt-8 mb-4",
-    3: "text-lg font-semibold mt-6 mb-3",
-    4: "text-base font-semibold mt-5 mb-2",
+    2: "text-3xl font-bold mt-10 mb-4 tracking-tight",
+    3: "text-2xl font-semibold mt-7 mb-3 tracking-tight",
+    4: "text-xl font-semibold mt-5 mb-2",
+    5: "text-base font-medium mt-4 mb-1.5",
   }[level];
 
   function Heading({ children, id }: { children?: ReactNode; id?: string }) {
@@ -128,6 +130,7 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
   h2: createHeading(2),
   h3: createHeading(3),
   h4: createHeading(4),
+  h5: createHeading(5),
 
   // Prose elements
   p: ({ children, ...props }) => (
@@ -223,25 +226,14 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
   ),
 
   // Horizontal rule
-  hr: () => <hr className="my-8 border-border/30" />,
+  hr: () => (
+    <hr className="my-8 border-0 border-t border-muted-foreground/20 dark:border-muted-foreground/35" />
+  ),
 
-  // Details/summary (used in old docs)
-  details: ({ children, ...props }) => (
-    <details
-      className="my-4 rounded-lg border border-border/50 p-4 [&[open]>summary]:mb-3"
-      {...props}
-    >
-      {children as ReactNode}
-    </details>
-  ),
-  summary: ({ children, ...props }) => (
-    <summary
-      className="cursor-pointer font-semibold text-sm text-foreground hover:text-[var(--suite-accent-light)] dark:hover:text-[var(--suite-accent-dark)] transition-colors"
-      {...props}
-    >
-      {children as ReactNode}
-    </summary>
-  ),
+  // Spoiler/details components
+  Spoiler: Spoiler as React.ComponentType<Record<string, unknown>>,
+  details: MdxDetails as React.ComponentType<Record<string, unknown>>,
+  summary: MdxSummary as React.ComponentType<Record<string, unknown>>,
 
   // Admonitions
   Note,
@@ -253,7 +245,7 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
   InfoAdmonition,
   Success,
   Deprecated,
-  BugAdmonition,
+  Alert,
   Example,
   Announcement,
 

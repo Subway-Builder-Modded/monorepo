@@ -99,11 +99,13 @@ export function VersionSwitcherDropdown({
         return;
       }
       setOpen(false);
+      setMenuPosition(null);
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpen(false);
+        setMenuPosition(null);
       }
     };
 
@@ -132,7 +134,7 @@ export function VersionSwitcherDropdown({
           <div
             ref={menuRef}
             className={cn(
-              'fixed z-[45] rounded-xl border-2 border-[color-mix(in_srgb,var(--switcher-accent)_22%,var(--border))] bg-background/98 p-1 shadow-[0_14px_34px_-20px_rgba(0,0,0,0.45)] backdrop-blur-md',
+              'fixed z-[45] rounded-xl border border-border/60 bg-background/98 p-1 shadow-[0_14px_34px_-20px_rgba(0,0,0,0.45)] backdrop-blur-md',
               'animate-in fade-in-0 zoom-in-95 duration-150',
               menuClassName,
             )}
@@ -159,17 +161,18 @@ export function VersionSwitcherDropdown({
                       onClick={() => {
                         onSelect(item.id);
                         setOpen(false);
+                        setMenuPosition(null);
                       }}
                       className={cn(
                         'flex w-full items-center justify-start gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-medium outline-none transition-colors',
                         'focus-visible:ring-2 focus-visible:ring-ring',
-                        deprecatedRow
-                          ? 'text-foreground/80 hover:bg-muted hover:text-foreground'
-                          : 'text-[var(--switcher-accent)] hover:bg-[color-mix(in_srgb,var(--switcher-accent)_12%,transparent)] hover:text-[var(--switcher-accent)]',
-                        selectedRow &&
-                          (deprecatedRow
+                        selectedRow
+                          ? deprecatedRow
                             ? 'bg-muted text-foreground'
-                            : 'bg-[color-mix(in_srgb,var(--switcher-accent)_17%,transparent)] text-[var(--switcher-accent)]'),
+                            : 'bg-[color-mix(in_srgb,var(--switcher-accent)_17%,transparent)] text-[var(--switcher-accent)]'
+                          : deprecatedRow
+                            ? 'text-foreground/80 hover:bg-muted hover:text-foreground'
+                            : 'text-[var(--switcher-accent)] hover:bg-[color-mix(in_srgb,var(--switcher-accent)_12%,transparent)] hover:text-[var(--switcher-accent)]',
                       )}
                     >
                       <span className='min-w-0 truncate'>{item.label}</span>
@@ -211,13 +214,18 @@ export function VersionSwitcherDropdown({
           aria-controls={listboxId}
           aria-label={ariaLabel}
           data-tone={selectedDeprecated ? 'deprecated' : 'suite'}
-          onClick={() => setOpen((prev) => !prev)}
+          onClick={() => {
+            // Avoid one-frame stale placement by forcing a fresh position
+            // calc before the portal can render.
+            setMenuPosition(null);
+            setOpen((prev) => !prev);
+          }}
           className={cn(
-            'inline-flex h-9 w-full items-center justify-between gap-2 rounded-lg border-2 bg-background/92 px-3 text-sm font-semibold shadow-[0_10px_22px_-16px_rgba(0,0,0,0.4)] outline-none transition-colors',
+            'inline-flex h-9 w-full items-center justify-between gap-2 rounded-lg border border-border/60 bg-background/92 px-3 text-sm font-semibold shadow-[0_10px_22px_-16px_rgba(0,0,0,0.4)] outline-none transition-colors',
             'focus-visible:ring-2 focus-visible:ring-ring',
             selectedDeprecated
               ? 'border-border text-foreground/80 hover:bg-muted hover:text-foreground'
-              : 'border-[color-mix(in_srgb,var(--switcher-accent)_24%,var(--border))] text-[var(--switcher-accent)] hover:bg-[color-mix(in_srgb,var(--switcher-accent)_12%,transparent)] hover:text-[var(--switcher-accent)]',
+              : 'text-[var(--switcher-accent)] hover:border-[var(--switcher-accent)] hover:bg-[color-mix(in_srgb,var(--switcher-accent)_12%,transparent)] hover:text-[var(--switcher-accent)]',
             open &&
               (selectedDeprecated
                 ? 'bg-muted text-foreground'
@@ -240,7 +248,10 @@ export function VersionSwitcherDropdown({
               />
             ) : null}
           </span>
-          <ChevronDown aria-hidden='true' className={cn('size-4 shrink-0', open && 'rotate-180')} />
+          <ChevronDown
+            aria-hidden='true'
+            className={cn('size-4 shrink-0 transition-transform duration-200 ease-out', open && 'rotate-180')}
+          />
         </button>
       </div>
       {menu}

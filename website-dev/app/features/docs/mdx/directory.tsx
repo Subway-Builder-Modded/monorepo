@@ -16,9 +16,13 @@ type DirectoryProps = {
   /** Optional overrides — normally inferred from the surrounding doc route. */
   suiteId?: DocsSuiteId;
   version?: string | null;
+  /** Lucide icon name to show in the separator, e.g. `"Compass"`. */
+  icon?: string;
+  /** Label text to show in the separator. */
+  label?: string;
 };
 
-export function Directory({ path, suiteId, version }: DirectoryProps) {
+export function Directory({ path, suiteId, version, icon, label }: DirectoryProps) {
   const route = useDocsRoute();
   const resolvedSuiteId = suiteId ?? route?.suiteId;
   const resolvedVersion = version !== undefined ? version : (route?.version ?? null);
@@ -52,11 +56,28 @@ export function Directory({ path, suiteId, version }: DirectoryProps) {
 
   if (targetNodes.length === 0) return null;
 
+  const SeparatorIcon = icon ? resolveIcon(icon) : null;
+
   return (
-    <div className="my-6 grid gap-3 sm:grid-cols-2">
-      {targetNodes.map((node) => (
-        <DirectoryCard key={node.slug} node={node} />
-      ))}
+    <div className="my-6">
+      {(SeparatorIcon || label) && (
+        <div className="mb-4 flex items-center gap-2.5" aria-hidden="true">
+          {SeparatorIcon && (
+            <SeparatorIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          )}
+          {label && (
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              {label}
+            </span>
+          )}
+          <div className="h-px flex-1 bg-border/60" />
+        </div>
+      )}
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+        {targetNodes.map((node) => (
+          <DirectoryCard key={node.slug} node={node} />
+        ))}
+      </div>
     </div>
   );
 }

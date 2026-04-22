@@ -25,7 +25,7 @@ export function DocsBreadcrumbs({
 
   return (
     <nav aria-label="Breadcrumb" className="mb-4">
-      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+      <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
         <li>
           <Link
             to={getDocsHomepageUrl(suiteId, version)}

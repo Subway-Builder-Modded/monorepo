@@ -8,7 +8,7 @@ import {
   Flame,
   CheckCircle2,
   Clock,
-  Bug,
+  OctagonAlert,
   FlaskConical,
   Megaphone,
   Star,
@@ -24,7 +24,7 @@ type AdmonitionVariant =
   | "info"
   | "success"
   | "deprecated"
-  | "bug"
+  | "alert"
   | "example"
   | "announcement";
 
@@ -110,9 +110,9 @@ const VARIANT_CONFIG: Record<AdmonitionVariant, AdmonitionConfig> = {
     bgClass: "bg-stone-500/5 dark:bg-stone-400/5",
     titleClass: "text-stone-700 dark:text-stone-300",
   },
-  bug: {
-    icon: Bug,
-    label: "Bug",
+  alert: {
+    icon: OctagonAlert,
+    label: "Alert",
     borderClass: "border-l-rose-500/70 dark:border-l-rose-400/60",
     iconClass: "text-rose-600 dark:text-rose-400",
     bgClass: "bg-rose-500/5 dark:bg-rose-400/5",
@@ -191,6 +191,6 @@ export const Danger = makeAdmonitionComponent("danger");
 export const InfoAdmonition = makeAdmonitionComponent("info");
 export const Success = makeAdmonitionComponent("success");
 export const Deprecated = makeAdmonitionComponent("deprecated");
-export const BugAdmonition = makeAdmonitionComponent("bug");
+export const Alert = makeAdmonitionComponent("alert");
 export const Example = makeAdmonitionComponent("example");
 export const Announcement = makeAdmonitionComponent("announcement");

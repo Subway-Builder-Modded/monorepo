@@ -92,4 +92,25 @@ describe("Tabs component", () => {
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(2);
   });
+
+  it("supports the code variant styling for code block tab groups", () => {
+    const { container } = render(
+      <Tabs variant="code">
+        <TabItem value="tab1" label="Bash" icon="Terminal">
+          Content 1
+        </TabItem>
+        <TabItem value="tab2" label="PowerShell" icon="Shield">
+          Content 2
+        </TabItem>
+      </Tabs>,
+    );
+
+    expect(container.firstElementChild?.className).toContain("rounded-xl");
+    expect(container.firstElementChild?.className).toContain("bg-card/95");
+    expect(screen.getByRole("tab", { name: "Bash" }).className).toContain("rounded-md");
+    expect(screen.getByRole("tab", { name: "Bash" }).className).toContain(
+      "var(--suite-accent-light)",
+    );
+    expect(document.querySelector('[role="tab"] svg')).not.toBeNull();
+  });
 });

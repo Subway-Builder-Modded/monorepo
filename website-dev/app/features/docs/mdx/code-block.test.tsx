@@ -40,4 +40,18 @@ describe("CodeBlock component", () => {
 
     expect(screen.getByText("config.ts")).toBeInTheDocument();
   });
+
+  it("uses soft-wrap classes instead of horizontal scrolling", () => {
+    const { container } = render(
+      <CodeBlock>
+        <code>const veryLongTokenWithoutSpaces = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";</code>
+      </CodeBlock>,
+    );
+
+    const pre = container.querySelector("pre");
+    expect(pre).not.toBeNull();
+    expect(pre?.className).toContain("overflow-x-hidden");
+    expect(pre?.className).toContain("whitespace-pre-wrap");
+    expect(pre?.className).toContain("break-words");
+  });
 });

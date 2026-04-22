@@ -16,7 +16,7 @@ const ADMONITION_TYPES = new Set([
   "info",
   "success",
   "deprecated",
-  "bug",
+  "alert",
   "example",
   "announcement",
 ]);
@@ -31,7 +31,7 @@ const TYPE_TO_COMPONENT: Record<string, string> = {
   info: "InfoAdmonition",
   success: "Success",
   deprecated: "Deprecated",
-  bug: "BugAdmonition",
+  alert: "Alert",
   example: "Example",
   announcement: "Announcement",
 };
