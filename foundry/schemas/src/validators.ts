@@ -19,7 +19,7 @@ type AjvValidator = ((data: unknown) => boolean) & {
   errors?: ErrorObject[] | null;
 };
 
-const TEMPLATE_METADATA_FIELDS = new Set(["introduced_in"]);
+const TEMPLATE_METADATA_FIELDS = new Set(["min_version"]);
 
 const Ajv2020 = Ajv2020Import as unknown as new (options?: {
   allErrors?: boolean;
@@ -79,7 +79,7 @@ export function validateTemplateLocks(
   }
 
   const types = Array.isArray(data.types) ? data.types : [];
-  const documentVersion = getDocumentVersion(data);
+  const documentPackageVersion = getDocumentPackageVersion(data);
   const typeMap = new Map<string, Record<string, unknown>>();
 
   for (const entry of types) {
@@ -93,7 +93,7 @@ export function validateTemplateLocks(
   const errors: ValidationIssue[] = [];
 
   for (const template of templates) {
-    if (!isTemplateRequiredForVersion(template, documentVersion)) {
+    if (!isTemplateRequiredForPackageVersion(template, documentPackageVersion)) {
       continue;
     }
 
@@ -192,24 +192,62 @@ function getTemplateEntries(schema: JsonObject): TemplateEntry[] {
   return defaultEntries.filter(isRecord);
 }
 
-function getDocumentVersion(data: Record<string, unknown>): number {
-  return typeof data.version === "number"
-    ? data.version
-    : Number.POSITIVE_INFINITY;
+function getDocumentPackageVersion(data: Record<string, unknown>): string | null {
+  return typeof data.schema_package_version === "string"
+    ? data.schema_package_version
+    : null;
 }
 
-function isTemplateRequiredForVersion(
+function isTemplateRequiredForPackageVersion(
   template: TemplateEntry,
-  documentVersion: number,
+  documentPackageVersion: string | null,
 ): boolean {
-  const introducedIn = template.introduced_in;
-  return typeof introducedIn !== "number" || introducedIn <= documentVersion;
+  const minVersion = template.min_version;
+  if (typeof minVersion !== "string") {
+    return true;
+  }
+
+  if (!documentPackageVersion) {
+    return false;
+  }
+
+  return comparePackageVersions(documentPackageVersion, minVersion) >= 0;
 }
 
 function getTemplateLockedEntries(template: TemplateEntry) {
   return Object.entries(template).filter(
     ([field]) => !TEMPLATE_METADATA_FIELDS.has(field),
   );
+}
+
+function comparePackageVersions(left: string, right: string): number {
+  const leftParts = parsePackageVersion(left);
+  const rightParts = parsePackageVersion(right);
+  if (!leftParts || !rightParts) {
+    return -1;
+  }
+
+  for (const [index, leftPart] of leftParts.entries()) {
+    const rightPart = rightParts[index] ?? 0;
+    if (leftPart !== rightPart) {
+      return leftPart - rightPart;
+    }
+  }
+
+  return 0;
+}
+
+function parsePackageVersion(version: string): [number, number, number] | null {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(version);
+  if (!match) {
+    return null;
+  }
+
+  return [
+    Number.parseInt(match[1] ?? "0", 10),
+    Number.parseInt(match[2] ?? "0", 10),
+    Number.parseInt(match[3] ?? "0", 10),
+  ];
 }
 
 function prefixPath(prefix: string, path: string): string {
