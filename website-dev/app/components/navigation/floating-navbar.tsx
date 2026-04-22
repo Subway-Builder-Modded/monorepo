@@ -88,7 +88,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
         <motion.button
           type="button"
           aria-label="Close navigation"
-          className="fixed inset-0 z-40 bg-black/35 dark:bg-black/55"
+          className="fixed inset-0 z-40 bg-[var(--overlay-scrim-soft)]"
           initial={{ opacity: 0 }}
           animate={{ opacity: showPanelSurface ? 1 : 0 }}
           transition={{ duration: prefersReducedMotion ? 0 : 0.18 }}
@@ -110,9 +110,10 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
               onFrameHoverEnd();
             }}
             className={cn(
-              "relative w-full overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]",
+              "relative w-full overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(var(--elevation-shadow-rgb),0.35)]",
               isClosed && "cursor-pointer transition-shadow duration-200 ease-out",
-              isNavbarHovered && "shadow-[0_14px_30px_-14px_rgba(0,0,0,0.5)]",
+              isNavbarHovered &&
+                "shadow-[0_14px_30px_-14px_rgba(var(--elevation-shadow-rgb),0.5)]",
             )}
             animate={{
               height: frameHeight,
@@ -203,7 +204,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
               SITE_SHELL_CLASS,
             )}
           >
-            <div className="rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)]">
+            <div className="rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(var(--elevation-shadow-rgb),0.35)]">
               <div className="px-3 pb-3 pt-14">
                 <div ref={panelMeasureRef}>
                   {isMobile ? (

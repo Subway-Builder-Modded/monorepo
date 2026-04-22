@@ -13,12 +13,12 @@ export const ANALYTICS_PREVIEW = {
   series: [
     {
       label: "Maps",
-      color: "#1c7ed6",
+      color: "var(--chart-1)",
       points: "40,150 112,135 184,115 256,100 328,82 400,65 470,48",
     },
     {
       label: "Mods",
-      color: "#e03131",
+      color: "var(--chart-5)",
       points: "40,165 112,155 184,140 256,132 328,120 400,110 470,100",
     },
   ] as AnalyticsPreviewSeries[],

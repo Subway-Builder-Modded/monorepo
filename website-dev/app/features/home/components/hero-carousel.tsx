@@ -16,7 +16,7 @@ import {
 import { HeroCreditsTooltip } from "@/app/features/home/components/hero-credits-tooltip";
 
 const HERO_BLUR_MASK =
-  "radial-gradient(ellipse 70% 66% at 50% 50%, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.92) 20%, rgba(0,0,0,0.7) 42%, rgba(0,0,0,0.34) 68%, transparent 100%)";
+  "radial-gradient(ellipse 70% 66% at 50% 50%, rgba(var(--hero-mask-rgb),0.98) 0%, rgba(var(--hero-mask-rgb),0.92) 20%, rgba(var(--hero-mask-rgb),0.7) 42%, rgba(var(--hero-mask-rgb),0.34) 68%, transparent 100%)";
 
 function getHeroBlurLayerStyle(blurPx: number): CSSProperties {
   return {
@@ -204,7 +204,7 @@ export function HeroCarousel() {
               href={HERO_CTA_GITHUB.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2.5 rounded-xl border border-white/10 bg-foreground/90 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-background shadow-lg backdrop-blur-sm transition-all hover:bg-foreground"
+              className="inline-flex items-center gap-2.5 rounded-xl border border-border/60 bg-foreground/90 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-background shadow-lg backdrop-blur-sm transition-all hover:bg-foreground"
             >
               <GithubIcon className="size-[18px]" />
               {HERO_CTA_GITHUB.label}

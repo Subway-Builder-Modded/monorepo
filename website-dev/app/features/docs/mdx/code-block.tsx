@@ -22,9 +22,9 @@ export function CodeBlock({ children, className, title, "data-language": lang }:
   }, [title, lang]);
 
   return (
-    <div className="group relative my-4 overflow-hidden rounded-lg border border-border/50 bg-[#0d1117] dark:bg-[#0d1117]">
+    <div className="group relative my-4 overflow-hidden rounded-lg border border-border/50 bg-card/95">
       {(title || lang) && (
-        <div className="flex items-center justify-between border-b border-border/30 bg-[#161b22] px-4 py-2">
+        <div className="flex items-center justify-between border-b border-border/30 bg-muted/45 px-4 py-2">
           <span className="text-xs font-medium text-muted-foreground">{title ?? lang}</span>
         </div>
       )}
@@ -45,7 +45,7 @@ export function CodeBlock({ children, className, title, "data-language": lang }:
           className={cn(
             "absolute right-2 top-2 rounded-md p-1.5 transition-all",
             "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
-            "bg-white/10 hover:bg-white/20 text-white/60 hover:text-white/90",
+            "bg-foreground/10 hover:bg-foreground/20 text-foreground/60 hover:text-foreground/90",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           )}
           aria-label={copied ? "Copied" : "Copy code"}

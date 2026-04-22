@@ -108,6 +108,10 @@
   --sidebar-hover: var(--sidebar-accent);
   --bg: 0 0% 98%;
   --navbar: 0 0% 100%;
+  --overlay-scrim-soft: rgba(15, 23, 42, 0.35);
+  --overlay-scrim-strong: rgba(15, 23, 42, 0.5);
+  --elevation-shadow-rgb: 15, 23, 42;
+  --hero-mask-rgb: 15, 23, 42;
 }
 
 .dark {
@@ -148,6 +152,10 @@
   --sidebar-hover: var(--sidebar-accent);
   --bg: 0 0% 11%;
   --navbar: 0 0% 16%;
+  --overlay-scrim-soft: rgba(0, 0, 0, 0.55);
+  --overlay-scrim-strong: rgba(0, 0, 0, 0.62);
+  --elevation-shadow-rgb: 0, 0, 0;
+  --hero-mask-rgb: 0, 0, 0;
 }
 
 html,

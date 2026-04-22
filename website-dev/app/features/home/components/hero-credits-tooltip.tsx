@@ -100,10 +100,10 @@ function CreditsButton({ slide }: { slide: HeroSlide }) {
         className={cn(
           "flex size-8 items-center justify-center rounded-md border transition-colors sm:size-9",
           open
-            ? "border-white/25 bg-black/55 text-white"
-            : "border-white/20 bg-black/30 text-white/70",
+            ? "border-border/70 bg-popover/90 text-popover-foreground"
+            : "border-border/55 bg-popover/65 text-popover-foreground/75",
           "backdrop-blur-sm",
-          "hover:bg-black/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "hover:bg-popover hover:text-popover-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         )}
       >
         <Info className="size-3.5 sm:size-4" aria-hidden="true" />

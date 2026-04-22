@@ -225,7 +225,7 @@ export function MobileDocsSidebar({
       {open ? (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-[var(--overlay-scrim-strong)] backdrop-blur-sm"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
