@@ -30,7 +30,7 @@ function DesktopNavbarTopbar({ actionsNode, brandNode, suiteIndicator }: SharedT
       leftClassName="min-w-0 pr-2"
       rightClassName="min-w-0 pl-2"
       left={
-        <div className="flex min-w-0 items-center gap-2.5">
+        <div className="flex min-w-0 gap-2.5 pb-1">
           {brandNode}
           {suiteIndicator}
         </div>
