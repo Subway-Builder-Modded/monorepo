@@ -6,6 +6,19 @@
   "type": "object",
   "required": ["$schema", "version", "types"],
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "required": ["version"],
+        "properties": {
+          "version": { "minimum": 5 }
+        }
+      },
+      "then": {
+        "required": ["schema_package_version"]
+      }
+    }
+  ],
   "properties": {
     "$schema": {
       "type": "string",
@@ -15,6 +28,11 @@
       "type": "integer",
       "minimum": 1,
       "description": "Schema version. Increment when the type definitions document changes."
+    },
+    "schema_package_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:[-+][0-9A-Za-z.-]+)?$",
+      "description": "Version of @subway-builder-modded/special-demand-schemas that introduced this type-definition document shape."
     },
     "types": {
       "type": "array",

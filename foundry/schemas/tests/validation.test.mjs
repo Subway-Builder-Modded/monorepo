@@ -12,6 +12,7 @@ import {
 } from "../dist/index.js";
 
 import izumoPoints from "../special_demand_points_izumo.json" with { type: "json" };
+import packageJson from "../package.json" with { type: "json" };
 import tsugaruPoints from "../special_demand_points_tsugaru.json" with { type: "json" };
 import specialDemandTypes from "../special_demand_types.json" with { type: "json" };
 
@@ -32,6 +33,50 @@ test("validateSpecialDemandTypeDefinitions accepts the current type definitions 
 
   assert.equal(result.valid, true);
   assert.deepEqual(result.errors, []);
+});
+
+test("current type definitions declare the package version", () => {
+  assert.equal(specialDemandTypes.schema_package_version, packageJson.version);
+});
+
+test("validateSpecialDemandTypeDefinitions accepts legacy definitions without newer templates", () => {
+  const legacyDefinitions = structuredClone(specialDemandTypes);
+  legacyDefinitions.version = 4;
+  delete legacyDefinitions.schema_package_version;
+  legacyDefinitions.types = legacyDefinitions.types.filter(
+    (entry) => entry.id !== "events",
+  );
+
+  const result = validateSpecialDemandTypeDefinitions(legacyDefinitions);
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
+});
+
+test("validateSpecialDemandTypeDefinitions rejects current definitions without a package version", () => {
+  const mutated = structuredClone(specialDemandTypes);
+  delete mutated.schema_package_version;
+
+  const result = validateSpecialDemandTypeDefinitions(mutated);
+
+  assert.equal(result.valid, false);
+  assert.match(
+    result.errors.map((error) => error.message).join("\n"),
+    /schema_package_version/,
+  );
+});
+
+test("validateSpecialDemandTypeDefinitions rejects missing templates introduced by the current package version", () => {
+  const mutated = structuredClone(specialDemandTypes);
+  mutated.types = mutated.types.filter((entry) => entry.id !== "events");
+
+  const result = validateSpecialDemandTypeDefinitions(mutated);
+
+  assert.equal(result.valid, false);
+  assert.match(
+    result.errors.map((error) => error.message).join("\n"),
+    /Missing required template type "events"/,
+  );
 });
 
 test("validateSpecialDemandTypeDefinitions rejects template-locked changes", () => {
@@ -73,6 +118,20 @@ test("validateSpecialDemandDataset rejects unknown point types", () => {
     result.errors.map((error) => error.message).join("\n"),
     /Unknown point type "unknown_type"/,
   );
+});
+
+test("validateSpecialDemandDataset accepts points using the Events type", () => {
+  const mutatedPoints = structuredClone(izumoPoints);
+  mutatedPoints.points[0].type = "events";
+  delete mutatedPoints.points[0].sub_type;
+
+  const result = validateSpecialDemandDataset({
+    typeDefinitions: specialDemandTypes,
+    points: mutatedPoints,
+  });
+
+  assert.equal(result.valid, true);
+  assert.deepEqual(result.errors, []);
 });
 
 test("validateSpecialDemandDataset rejects unknown point sub-types", () => {
