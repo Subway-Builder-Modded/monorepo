@@ -38,7 +38,7 @@ describe("DocsSidebar", () => {
     sessionStorage.clear();
   });
 
-  it("renders title+badge header and moves collapse button to the bottom with label text", () => {
+  it("renders sticky side-rail structure with title+badge header and bottom collapse action", () => {
     render(
       <DocsSidebar
         tree={makeTree([
@@ -59,33 +59,49 @@ describe("DocsSidebar", () => {
 
     const badge = document.querySelector('[data-slot="suite-badge"]') as HTMLElement | null;
     expect(badge).toBeTruthy();
-    // Badge is NOT full-width – it sits inline beside the title text.
+    // Badge stays inline beside title, not stretched as full-row chrome.
     expect(badge?.className).not.toContain("w-full");
 
-    // Collapse button must NOT be absolutely positioned inside the header.
     const collapseBtn = screen.getByRole("button", { name: "Collapse sidebar" });
-    expect(collapseBtn.className).not.toContain("absolute");
-    // Collapse button must carry visible label text (icon + "Collapse Sidebar").
     expect(collapseBtn.textContent).toContain("Collapse Sidebar");
+    expect(collapseBtn.className).not.toContain("absolute");
 
-    // The header region (parent of the badge) must NOT also contain the collapse button.
-    const headerDiv = badge?.closest(".border-b");
-    expect(headerDiv?.contains(collapseBtn)).toBe(false);
+    const nav = screen.getByLabelText("Documentation navigation");
+    const shell = nav.closest(".sticky");
+    expect(shell).toBeTruthy();
+    expect(shell?.className).toContain("self-start");
 
-    // The nav must not be an internal-scroll box.
+    // Divider and button are after the navigation area.
+    const navEnd = nav.compareDocumentPosition(collapseBtn);
+    expect(navEnd & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("does not use fixed-height or internal-scroll desktop sidebar model", () => {
+    render(
+      <DocsSidebar
+        tree={makeTree([
+          makeNode({
+            slug: "players",
+            frontmatter: { title: "Players", description: "", icon: "FileText" },
+          }),
+        ])}
+        suiteId="railyard"
+        currentVersion="v0.2"
+        currentSlug="players"
+      />,
+    );
+
     const nav = screen.getByLabelText("Documentation navigation");
     expect(nav.className).not.toContain("overflow-y-auto");
     expect(nav.className).not.toContain("max-h");
 
-    // The sticky card must be content-height (no max-h, no overflow on the frame).
-    const stickyFrame = nav.parentElement;
+    const stickyFrame = nav.closest(".sticky");
     expect(stickyFrame?.className).toContain("sticky");
-    expect(stickyFrame?.className).toContain("self-start");
     expect(stickyFrame?.className).not.toContain("max-h");
     expect(stickyFrame?.className).not.toContain("overflow");
   });
 
-  it("supports collapse/expand flow with floating expand trigger", async () => {
+  it("supports collapse/expand flow with compact sticky expand rail", async () => {
     const user = userEvent.setup();
 
     render(
@@ -103,9 +119,11 @@ describe("DocsSidebar", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Collapse sidebar" }));
-    expect(screen.getByRole("button", { name: "Expand sidebar" })).toBeInTheDocument();
+    const expand = screen.getByRole("button", { name: "Expand sidebar" });
+    expect(expand).toBeInTheDocument();
+    expect(expand.className).not.toContain("absolute");
 
-    await user.click(screen.getByRole("button", { name: "Expand sidebar" }));
+    await user.click(expand);
     expect(screen.getByRole("button", { name: "Collapse sidebar" })).toBeInTheDocument();
   });
 

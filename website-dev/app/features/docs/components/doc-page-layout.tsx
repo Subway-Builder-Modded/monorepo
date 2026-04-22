@@ -113,7 +113,7 @@ export function DocPageLayout({
         <div className="py-6 lg:py-8">
           <div
             className="grid gap-4 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(.22,.9,.35,1)] lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
-            style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "0rem" : "17.5rem" }}
+            style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "2.75rem" : "17.5rem" }}
           >
             <DocsSidebar
               tree={tree}
@@ -147,7 +147,7 @@ export function DocPageLayout({
       <div className="py-6 lg:py-8">
         <div
           className="grid gap-4 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(.22,.9,.35,1)] lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
-          style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "0rem" : "17.5rem" }}
+          style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "2.75rem" : "17.5rem" }}
         >
           <DocsSidebar
             tree={tree}

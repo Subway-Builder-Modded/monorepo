@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
-  NavDropdown,
-  SuiteStatusChip,
+  VersionSwitcherDropdown,
   getSuiteAccentStyle,
 } from "@subway-builder-modded/shared-ui";
 import { cn } from "@/app/lib/utils";
@@ -20,9 +19,7 @@ type DocsVersionChooserProps = {
 };
 
 const DEFAULT_TRIGGER_CLASS =
-  "inline-flex h-9 min-w-[12rem] items-center justify-between rounded-lg border border-[color-mix(in_srgb,var(--option-color)_28%,var(--border))] bg-background/92 px-3 text-sm font-semibold text-foreground shadow-[0_8px_18px_-14px_rgba(0,0,0,0.3)]";
-
-const MENU_CLASS = "rounded-xl border border-border bg-background p-1 shadow-lg";
+  "h-9 min-w-[12rem]";
 
 export function DocsVersionChooser({
   suiteId,
@@ -33,39 +30,17 @@ export function DocsVersionChooser({
   triggerClassName,
   triggerLabel = "Choose documentation version",
 }: DocsVersionChooserProps) {
-  const [open, setOpen] = useState(false);
   const versions = getVisibleVersions(suiteId);
   const suite = getSuiteById(suiteId);
-  // The dropdown menu portals into document.body, escaping any SuiteAccentScope
-  // wrapper. Inject the suite accent CSS variables onto the menu container so
-  // option tones and `LATEST` chips render with the correct suite color.
   const accentStyle = useMemo(() => getSuiteAccentStyle(suite.accent), [suite.accent]);
 
   const options = useMemo(
     () =>
-      versions.map((item) => {
-        const deprecatedTone = item.status === "deprecated";
-        return {
-          id: item.value,
-          label: item.label,
-          icon:
-            item.status === "latest" ? (
-              <SuiteStatusChip status="latest" size="sm" />
-            ) : item.status === "deprecated" ? (
-              <SuiteStatusChip status="deprecated" deprecatedTone="gray" size="sm" />
-            ) : undefined,
-          iconClassName: "inline-flex items-center",
-          tone: deprecatedTone
-            ? {
-                color: "hsl(var(--muted-foreground))",
-                muted: "hsl(var(--muted))",
-              }
-            : {
-                color: "var(--suite-accent-light)",
-                muted: "color-mix(in_srgb,var(--suite-accent-light)_18%,transparent)",
-              },
-        };
-      }),
+      versions.map((item) => ({
+        id: item.value,
+        label: item.label,
+        status: item.status ?? "stable",
+      })),
     [versions],
   );
 
@@ -74,16 +49,13 @@ export function DocsVersionChooser({
   }
 
   return (
-    <NavDropdown
+    <VersionSwitcherDropdown
       className={className}
-      options={options}
+      items={options}
       selectedId={currentVersion}
-      isOpen={open}
-      onOpenChange={setOpen}
-      triggerLabel={triggerLabel}
+      ariaLabel={triggerLabel}
       triggerClassName={cn(DEFAULT_TRIGGER_CLASS, triggerClassName)}
-      menuClassName={MENU_CLASS}
-      menuStyle={accentStyle}
+      style={accentStyle}
       onSelect={(version) => {
         const url = homepageMode
           ? getDocsHomepageUrl(suiteId, version)

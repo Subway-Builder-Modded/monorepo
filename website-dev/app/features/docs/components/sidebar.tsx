@@ -1,6 +1,14 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { PanelLeftOpen, PanelLeftClose, Menu, X } from "lucide-react";
-import { SuiteBadge, SuiteAccentButton } from "@subway-builder-modded/shared-ui";
+import { PanelLeftOpen, PanelLeftClose, Menu, X, BookText } from "lucide-react";
+import {
+  SideRailBody,
+  SideRailDivider,
+  SideRailHeader,
+  SideRailShell,
+  SideRailUtilityButton,
+  SuiteAccentButton,
+  SuiteBadge,
+} from "@subway-builder-modded/shared-ui";
 import { Link } from "@/app/lib/router";
 import { cn } from "@/app/lib/utils";
 import { getVisibleNodes } from "@/app/features/docs/lib/content";
@@ -12,8 +20,6 @@ import type { DocsSuiteId } from "@/app/config/docs";
 import { DocsVersionChooser } from "./docs-version-chooser";
 import { DocsSidebarTree } from "./docs-sidebar-tree";
 
-import { DOCS_SURFACE_BORDER_CLASS } from "./docs-page-title-card";
-
 const SIDEBAR_COLLAPSED_KEY = "sbm:docs-sidebar-collapsed";
 
 function useCollapsedSections(treeKey: string) {
@@ -22,7 +28,7 @@ function useCollapsedSections(treeKey: string) {
       const stored = sessionStorage.getItem(`sbm:docs-collapsed:${treeKey}`);
       if (stored) return new Set(JSON.parse(stored) as string[]);
     } catch {
-      // ignore
+      // ignore persisted state failures
     }
     return new Set();
   });
@@ -39,7 +45,7 @@ function useCollapsedSections(treeKey: string) {
         try {
           sessionStorage.setItem(`sbm:docs-collapsed:${treeKey}`, JSON.stringify([...next]));
         } catch {
-          // ignore
+          // ignore persisted state failures
         }
         return next;
       });
@@ -48,6 +54,48 @@ function useCollapsedSections(treeKey: string) {
   );
 
   return { collapsed, toggle };
+}
+
+function useSidebarCollapsedState() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const setCollapsedState = useCallback((next: boolean) => {
+    setSidebarCollapsed(next);
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+    } catch {
+      // ignore persisted state failures
+    }
+  }, []);
+
+  return { sidebarCollapsed, setCollapsedState };
+}
+
+function SidebarTitleRow({ suiteId, currentVersion }: { suiteId: DocsSuiteId; currentVersion: DocsRouteVersion }) {
+  const suite = getSuiteById(suiteId);
+
+  return (
+    <Link
+      to={getDocsHomepageUrl(suiteId, currentVersion)}
+      className="flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <BookText className="size-4" aria-hidden="true" />
+      <span className="text-[15px] font-semibold leading-[1.2] text-foreground">Documentation</span>
+      <SuiteBadge
+        accent={suite.accent}
+        className="h-6 shrink-0 gap-1 rounded-md px-2 normal-case tracking-normal"
+      >
+        <suite.icon className="size-3 shrink-0" aria-hidden={true} />
+        <span className="max-w-[7rem] truncate">{suite.title}</span>
+      </SuiteBadge>
+    </Link>
+  );
 }
 
 export function DocsSidebar({
@@ -66,38 +114,21 @@ export function DocsSidebar({
   const treeKey = `${suiteId}:${currentVersion ?? "__no_version__"}`;
   const { collapsed, toggle } = useCollapsedSections(treeKey);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
-  const suite = getSuiteById(suiteId);
-
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
-
-  const setCollapsedState = useCallback((next: boolean) => {
-    setSidebarCollapsed(next);
-    try {
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
-    } catch {
-      // ignore
-    }
-  }, []);
+  const { sidebarCollapsed, setCollapsedState } = useSidebarCollapsedState();
 
   useEffect(() => {
     onCollapsedChange?.(sidebarCollapsed);
   }, [onCollapsedChange, sidebarCollapsed]);
 
-  return (
-    <aside className="relative hidden shrink-0 lg:block">
-      {sidebarCollapsed ? (
-        <div className="sticky top-20 h-0 w-0 overflow-visible">
+  if (sidebarCollapsed) {
+    return (
+      <aside className="hidden w-11 shrink-0 lg:block">
+        <div className="sticky top-20 self-start">
           <button
             type="button"
             onClick={() => setCollapsedState(false)}
             className={cn(
-              "absolute left-0 top-2 inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
+              "inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
               "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,transparent)] hover:text-[var(--suite-accent-light)]",
               "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
             )}
@@ -106,49 +137,32 @@ export function DocsSidebar({
             <PanelLeftOpen className="size-4" />
           </button>
         </div>
-      ) : null}
+      </aside>
+    );
+  }
 
-      <div
-        className={cn(
-          "transition-[width,opacity] duration-300 ease-[cubic-bezier(.22,.9,.35,1)]",
-          sidebarCollapsed ? "w-0 opacity-0" : "w-[17.5rem] opacity-100",
-        )}
-      >
-        <div
-          className={cn(
-            "sticky top-20 self-start rounded-2xl bg-background/92 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.35)] backdrop-blur-md",
-            DOCS_SURFACE_BORDER_CLASS,
-          )}
-        >
-          <div className="border-b border-border/50 px-3 py-3">
-            {/* Title + suite badge side-by-side, matching the navbar brand ratio */}
-            <Link
-              to={getDocsHomepageUrl(suiteId, currentVersion)}
-              className="flex min-w-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <span className="text-sm font-semibold text-foreground">Documentation</span>
-              <SuiteBadge
-                accent={suite.accent}
-                className="h-6 shrink-0 gap-1 rounded-md px-2 normal-case tracking-normal"
-              >
-                <suite.icon className="size-3 shrink-0" aria-hidden={true} />
-                <span className="max-w-[7rem] truncate">{suite.title}</span>
-              </SuiteBadge>
-            </Link>
+  return (
+    <aside className="hidden w-[17.5rem] shrink-0 lg:block">
+      <SideRailShell>
+        <SideRailHeader>
+          <SidebarTitleRow suiteId={suiteId} currentVersion={currentVersion} />
 
-            {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
-              <div className="mt-2">
-                <DocsVersionChooser
-                  suiteId={suiteId}
-                  currentVersion={currentVersion}
-                  docSlug={currentSlug}
-                  triggerClassName="w-full"
-                />
-              </div>
-            ) : null}
-          </div>
+          {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
+            <div className="mt-2">
+              <DocsVersionChooser
+                suiteId={suiteId}
+                currentVersion={currentVersion}
+                docSlug={currentSlug}
+                triggerClassName="w-full"
+              />
+            </div>
+          ) : null}
+        </SideRailHeader>
 
-          <nav className="px-2.5 py-3" aria-label="Documentation navigation">
+        <SideRailDivider />
+
+        <SideRailBody>
+          <nav aria-label="Documentation navigation">
             <DocsSidebarTree
               nodes={visibleNodes}
               currentSlug={currentSlug}
@@ -156,25 +170,20 @@ export function DocsSidebar({
               onToggle={toggle}
             />
           </nav>
+        </SideRailBody>
 
-          {/* Collapse button lives at the bottom, separated by a divider */}
-          <div className="border-t border-border/50 px-2.5 py-2">
-            <button
-              type="button"
-              onClick={() => setCollapsedState(true)}
-              className={cn(
-                "inline-flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-semibold text-muted-foreground transition-colors",
-                "hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)]",
-                "dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
-              )}
-              aria-label="Collapse sidebar"
-            >
-              <PanelLeftClose className="size-3.5" aria-hidden="true" />
-              <span>Collapse Sidebar</span>
-            </button>
-          </div>
+        <SideRailDivider />
+
+        <div className="px-2.5 py-2">
+          <SideRailUtilityButton
+            onClick={() => setCollapsedState(true)}
+            aria-label="Collapse sidebar"
+          >
+            <PanelLeftClose className="size-3.5" aria-hidden="true" />
+            <span>Collapse Sidebar</span>
+          </SideRailUtilityButton>
         </div>
-      </div>
+      </SideRailShell>
     </aside>
   );
 }

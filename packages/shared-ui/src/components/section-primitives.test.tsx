@@ -29,7 +29,9 @@ describe("Section primitives", () => {
     );
 
     expect(screen.getByText("Section content")).toBeTruthy();
-    expect(container.querySelector("section")?.className).toContain("border-y");
+    const sectionClass = container.querySelector("section")?.className ?? "";
+    expect(sectionClass).toContain("border-t");
+    expect(sectionClass).toContain("border-b");
   });
 
   it("applies reverse desktop ordering when requested", () => {

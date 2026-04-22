@@ -147,9 +147,10 @@ export {
   TooltipTrigger,
 } from './components/tooltip';
 export {
-  NavDropdown,
-  type NavDropdownOption,
-} from './components/nav-dropdown';
+  VersionSwitcherDropdown,
+  type VersionSwitcherItem,
+  type VersionSwitcherItemStatus,
+} from './components/version-switcher-dropdown';
 export { NavRow } from './components/nav-row';
 export {
   NavbarActionButton,
@@ -176,6 +177,14 @@ export {
   SectionShell,
   type SectionShellProps,
 } from './components/section-shell';
+export {
+  SIDE_RAIL_CHROME_CLASS,
+  SideRailBody,
+  SideRailDivider,
+  SideRailHeader,
+  SideRailShell,
+  SideRailUtilityButton,
+} from './components/side-rail';
 export {
   SuiteButton,
   type SuiteButtonVariant,
