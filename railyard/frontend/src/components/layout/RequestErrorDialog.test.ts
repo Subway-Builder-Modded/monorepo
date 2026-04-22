@@ -17,22 +17,24 @@ describe('toRequestErrorDialogContent', () => {
   });
 
   it('maps forbidden message to permission dialog content', () => {
-    expect(toRequestErrorDialogContent(REQUEST_ERROR_MESSAGES.forbidden)).toEqual(
-      {
-        title: 'GitHub Permission Error',
-        description: REQUEST_ERROR_MESSAGES.forbidden,
-        showDocsAction: true,
-      },
-    );
+    expect(
+      toRequestErrorDialogContent(REQUEST_ERROR_MESSAGES.forbidden),
+    ).toEqual({
+      title: 'GitHub Permission Error',
+      description: REQUEST_ERROR_MESSAGES.forbidden,
+      showDocsAction: true,
+    });
   });
 
   it('maps rate-limit message to docs-oriented dialog content', () => {
-    expect(toRequestErrorDialogContent(REQUEST_ERROR_MESSAGES.tooMany)).toEqual({
-      title: 'GitHub Rate Limit Reached',
-      description:
-        'You are being rate limited by GitHub. Setting a GitHub token can increase your API limits.',
-      showDocsAction: true,
-    });
+    expect(toRequestErrorDialogContent(REQUEST_ERROR_MESSAGES.tooMany)).toEqual(
+      {
+        title: 'GitHub Rate Limit Reached',
+        description:
+          'You are being rate limited by GitHub. Setting a GitHub token can increase your API limits.',
+        showDocsAction: true,
+      },
+    );
   });
 
   it('maps unknown messages to generic fallback content without docs action', () => {

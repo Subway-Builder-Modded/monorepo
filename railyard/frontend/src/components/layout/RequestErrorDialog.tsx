@@ -10,7 +10,9 @@ import {
 } from './request-error-dialog-content';
 
 export function RequestErrorDialog() {
-  const [content, setContent] = useState<RequestErrorDialogContent | null>(null);
+  const [content, setContent] = useState<RequestErrorDialogContent | null>(
+    null,
+  );
 
   useEffect(() => {
     const cancel = EventsOn('requests:request-error', (message: string) => {
