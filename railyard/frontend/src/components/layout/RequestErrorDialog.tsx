@@ -39,7 +39,7 @@ export function RequestErrorDialog() {
       title={content.title}
       icon={AlertTriangle}
       description={content.description}
-      tone="update"
+      tone="files"
       confirm={
         content.showDocsAction
           ? {
