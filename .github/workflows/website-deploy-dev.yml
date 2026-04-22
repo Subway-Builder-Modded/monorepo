@@ -84,6 +84,9 @@ jobs:
           find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
 
           cp -R ../build/client/. .
+          # GitHub Pages serves this file for unknown paths; using the app shell
+          # here lets client-side routing resolve deep links instead of hard 404s.
+          cp index.html 404.html
           touch .nojekyll
           printf '%s\n' 'dev.subwaybuildermodded.com' > CNAME
 
