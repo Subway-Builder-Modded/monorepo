@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { VersionSwitcherDropdown, getSuiteAccentStyle } from "@subway-builder-modded/shared-ui";
+import type { VersionSwitcherItem } from "@subway-builder-modded/shared-ui";
 import { cn } from "@/app/lib/utils";
 import { getDocsHomepageUrl, getVersionSwitchUrl } from "@/app/features/docs/lib/routing";
 import { getVisibleVersions, type DocsSuiteId } from "@/app/config/docs";
@@ -30,12 +31,12 @@ export function DocsVersionChooser({
   const suite = getSuiteById(suiteId);
   const accentStyle = useMemo(() => getSuiteAccentStyle(suite.accent), [suite.accent]);
 
-  const options = useMemo(
+  const options = useMemo<VersionSwitcherItem[]>(
     () =>
       versions.map((item) => ({
         id: item.value,
         label: item.label,
-        status: item.status ?? "stable",
+        status: item.status === "latest" || item.status === "deprecated" ? item.status : "stable",
       })),
     [versions],
   );

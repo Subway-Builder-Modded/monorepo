@@ -5,14 +5,16 @@ import { DocsSidebar } from "@/app/features/docs/components/sidebar";
 import type { DocsTree, DocsTreeNode } from "@/app/features/docs/lib/types";
 
 function makeNode(overrides: Partial<DocsTreeNode> & { slug: string }): DocsTreeNode {
+  const { slug, ...rest } = overrides;
+
   return {
     kind: "page",
-    key: overrides.slug.split("/").pop() ?? "node",
-    slug: overrides.slug,
-    routePath: `/railyard/docs/v0.2/${overrides.slug}`,
-    sourcePath: `/content/docs/railyard/v0.2/${overrides.slug}.mdx`,
+    key: slug.split("/").pop() ?? "node",
+    slug,
+    routePath: `/railyard/docs/v0.2/${slug}`,
+    sourcePath: `/content/docs/railyard/v0.2/${slug}.mdx`,
     frontmatter: {
-      title: overrides.slug,
+      title: slug,
       description: "",
       icon: "FileText",
     },
@@ -20,7 +22,7 @@ function makeNode(overrides: Partial<DocsTreeNode> & { slug: string }): DocsTree
     version: "v0.2",
     children: [],
     depth: 0,
-    ...overrides,
+    ...rest,
   };
 }
 

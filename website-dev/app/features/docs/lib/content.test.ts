@@ -8,18 +8,20 @@ import {
 import type { DocsTree, DocsTreeNode } from "@/app/features/docs/lib/types";
 
 function makeNode(overrides: Partial<DocsTreeNode> & { slug: string }): DocsTreeNode {
+  const { slug, ...rest } = overrides;
+
   return {
     kind: "page",
-    key: overrides.slug.split("/").pop()!,
-    slug: overrides.slug,
-    routePath: `/railyard/docs/v0.2/${overrides.slug}`,
-    sourcePath: `/content/docs/railyard/v0.2/${overrides.slug}.mdx`,
-    frontmatter: { title: overrides.slug, description: "", icon: "FileText" },
+    key: slug.split("/").pop()!,
+    slug,
+    routePath: `/railyard/docs/v0.2/${slug}`,
+    sourcePath: `/content/docs/railyard/v0.2/${slug}.mdx`,
+    frontmatter: { title: slug, description: "", icon: "FileText" },
     suiteId: "railyard",
     version: "v0.2",
     children: [],
     depth: 0,
-    ...overrides,
+    ...rest,
   };
 }
 

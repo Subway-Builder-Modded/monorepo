@@ -113,8 +113,11 @@ describe('VersionSwitcherDropdown', () => {
       />,
     );
 
-    const chevron = document.querySelector('button[aria-label="Choose documentation version"] svg');
+    const chevron = document.querySelector<SVGSVGElement>(
+      'button[aria-label="Choose documentation version"] svg',
+    );
     expect(chevron).not.toBeNull();
-    expect(chevron?.className.baseVal ?? '').toContain('transition-transform');
+    const chevronClassName = chevron?.getAttribute('class') ?? '';
+    expect(chevronClassName).toContain('transition-transform');
   });
 });

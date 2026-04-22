@@ -1,4 +1,6 @@
-import type { DocsFrontmatter } from "@/app/config/docs";
+import type { DocsFrontmatter as DocsFrontmatterConfig } from "@/app/config/docs";
+
+export type DocsFrontmatter = DocsFrontmatterConfig;
 
 export type DocsTreeNode = {
   kind: "page" | "landing";
