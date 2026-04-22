@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   REQUEST_ERROR_MESSAGES,
   toRequestErrorDialogContent,
-} from './RequestErrorDialog';
+} from './request-error-dialog-content';
 
 describe('toRequestErrorDialogContent', () => {
   it('maps unauthorized message to authorization dialog content', () => {
