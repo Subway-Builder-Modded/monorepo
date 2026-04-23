@@ -44,8 +44,7 @@ api.hooks.onMapReady((map) => {
 
 :::note
 
-`onMapReady` can fire multiple times (e.g., when switching cities). The `initialized` guard
-ensures your UI and hooks are only set up once.
+`onMapReady` can fire multiple times (e.g., when switching cities). The `initialized` guard ensures your UI and hooks are only set up once.
 
 :::
 
@@ -400,7 +399,6 @@ const keys = await api.storage.keys();
 
 :::note
 
-Storage only works in the desktop (Electron) app. In the browser version, `set` does nothing
-and `get` always returns the default value.
+Storage only works in the desktop (Electron) app. In the browser version, `set` does nothing and `get` always returns the default value.
 
 :::
