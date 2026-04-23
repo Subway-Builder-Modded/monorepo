@@ -39,7 +39,7 @@ export function mdxToMarkdown(raw: string): string {
   md = md.replace(/<p\s+align="center">\s*/g, "");
   md = md.replace(/\s*<\/p>/g, "");
 
-  // Remove <RailyardTaggingRegions /> and similar custom components
+  // Remove <RegionTags /> and similar custom components
   md = md.replace(/<[A-Z][A-Za-z]*\s*\/>/g, "");
 
   // Clean up excessive blank lines

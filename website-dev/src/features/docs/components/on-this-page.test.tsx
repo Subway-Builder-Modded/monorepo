@@ -177,4 +177,42 @@ describe("OnThisPage", () => {
       expect(screen.getByRole("button", { name: "Tab Only" })).toBeInTheDocument();
     });
   });
+
+  it("excludes headings that exist under hidden tab panels and includes them when panel becomes visible", async () => {
+    document.body.innerHTML = `
+      <article>
+        <h2 id="intro">Intro</h2>
+        <div role="tabpanel" hidden>
+          <h2 id="hidden-panel-heading">Hidden Panel Heading</h2>
+        </div>
+      </article>
+    `;
+
+    setHeadingTop("intro", 24);
+    setHeadingTop("hidden-panel-heading", 300);
+
+    render(
+      <OnThisPage
+        headings={[
+          { id: "intro", text: "Intro", level: 2 },
+          { id: "hidden-panel-heading", text: "Hidden Panel Heading", level: 2 },
+        ]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Intro" })).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Hidden Panel Heading" }),
+      ).not.toBeInTheDocument();
+    });
+
+    const panel = document.querySelector("[role='tabpanel']") as HTMLElement;
+    panel.hidden = false;
+    window.dispatchEvent(new Event("sbm-docs-content-change"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Hidden Panel Heading" })).toBeInTheDocument();
+    });
+  });
 });

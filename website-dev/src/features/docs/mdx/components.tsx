@@ -6,7 +6,7 @@ import { LinkIcon } from "lucide-react";
 import { CodeBlock } from "./code-block";
 import { Tabs, TabItem } from "./tabs";
 import { Directory } from "./directory";
-import { RailyardTaggingRegions } from "./railyard-tagging-regions";
+import { RegionTags } from "./region-tags";
 import {
   Note,
   Tip,
@@ -269,5 +269,5 @@ export const mdxComponents: Record<string, React.ComponentType<any>> = {
 
   // Interactive components
   Directory: Directory as React.ComponentType<Record<string, unknown>>,
-  RailyardTaggingRegions: RailyardTaggingRegions as React.ComponentType<Record<string, unknown>>,
+  RegionTags: RegionTags as React.ComponentType<Record<string, unknown>>,
 } as Record<string, React.ComponentType<any>>;

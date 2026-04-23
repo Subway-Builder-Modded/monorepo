@@ -4,6 +4,15 @@ import { cn } from "@/lib/utils";
 import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
 import type { DocsTocHeading } from "@/features/docs/lib/types";
 
+function isHeadingVisible(element: HTMLElement): boolean {
+  // Inactive tab panels remain mounted but carry `hidden`; any heading under
+  // a hidden ancestor should be excluded from the TOC until visible.
+  if (element.closest("[hidden], [aria-hidden='true']")) {
+    return false;
+  }
+  return true;
+}
+
 function useActiveHeading(headings: DocsTocHeading[]) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -105,7 +114,8 @@ export function OnThisPage({
     const recompute = () => {
       const next = new Set<string>();
       for (const heading of candidateHeadings) {
-        if (document.getElementById(heading.id)) {
+        const element = document.getElementById(heading.id);
+        if (element instanceof HTMLElement && isHeadingVisible(element)) {
           next.add(heading.id);
         }
       }

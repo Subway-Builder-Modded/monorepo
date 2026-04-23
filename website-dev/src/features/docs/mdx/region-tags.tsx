@@ -223,7 +223,7 @@ function codeToEmoji(code: string): string {
     .join("");
 }
 
-export function RailyardTaggingRegions() {
+export function RegionTags() {
   const [activeRegionId, setActiveRegionId] = useState(REGIONS[0].id);
   const [searchQuery, setSearchQuery] = useState("");
 

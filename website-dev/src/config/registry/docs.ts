@@ -20,7 +20,7 @@ export const registryDocsConfig: DocsSuiteConfig = {
     actions: [
       {
         label: "View Registry",
-        href: "https://github.com/Subway-Builder-Modded/registry",
+        href: "/registry",
         icon: Database,
         external: true,
       },
