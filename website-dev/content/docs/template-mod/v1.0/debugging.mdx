@@ -4,18 +4,16 @@ description: Learn how to properly debug and test your mod.
 icon: Bug
 ---
 
-Tips for debugging your mods during development.
+This guide will show you some helpful tips for debugging your mods during development.
 
 ## Hot Reload {#hot-reload}
 
 The fastest way to test changes is hot reloading. After rebuilding your mod:
 
-- Press **Ctrl+Shift+R** (Windows/Linux) or **Cmd+Shift+R** (Mac) in-game
-- This calls `api.reloadMods()` internally, which clears all mod callbacks, UI components, custom
-  layers, and custom train types, then re-executes all mod scripts
+- Press **Ctrl+Shift+R** (or **Cmd+Shift+R** on Mac) in-game
+- This calls `api.reloadMods()` internally, which clears all mod callbacks, UI components, custom layers, and custom train types, then re-executes all mod scripts
 
-If you're using `pnpm dev`, Vite automatically rebuilds on file save, so you just need to press the
-reload shortcut in-game.
+If you're using `pnpm dev`, Vite automatically rebuilds on file save, so you just need to press the reload shortcut in-game.
 
 :::note
 
@@ -23,6 +21,8 @@ Hot reload clears most mod state, but some things persist (like already-built tr
 stations). If your mod gets into a weird state, restarting the game fully is the safest reset.
 
 :::
+
+---
 
 ## Console Logging {#console-logging}
 
@@ -37,15 +37,15 @@ console.error(`${TAG} Failed to load`, error);
 
 ### Viewing Logs {#viewing-logs}
 
-**In-game**: Open the developer console with **Ctrl+Shift+I** (Windows/Linux) or **Cmd+Option+I**
-(Mac).
+When in-game, open the developer console with **Ctrl+Shift+I** (or **Cmd+Option+I** on Mac). With `pnpm dev`, logs are printed to your terminal and saved to `debug/latest.log`. The game launcher enables Electron logging automatically.
 
-**With `pnpm dev`**: Logs are printed to your terminal and saved to `debug/latest.log`. The game
-launcher enables Electron logging automatically.
+---
 
 ## Checking Performance {#checking-performance}
 
-You can monitor the effects of your mod on game performance by pressing `Ctrl+Shift+P` to view the performance monitor in-game. Run benchmarks while your mod is active to compare frame rates and memory usage.
+You can monitor the effects of your mod on game performance by pressing **Ctrl+Shift+P** (or **Cmd+Shift+P** on Mac) to view the performance monitor in-game. Run benchmarks while your mod is active to compare frame rates and memory usage.
+
+---
 
 ## Error Handling {#error-handling}
 
@@ -78,6 +78,8 @@ api.hooks.onDayChange((day) => {
 });
 ```
 
+---
+
 ## Game Error Hooks {#game-error-hooks}
 
 The API provides hooks for catching game-level warnings and errors:
@@ -92,6 +94,8 @@ api.hooks.onError((error) => {
 });
 ```
 
+---
+
 ## Type Checking {#type-checking}
 
 Run TypeScript's type checker to catch errors before building:
@@ -100,25 +104,24 @@ Run TypeScript's type checker to catch errors before building:
 pnpm typecheck
 ```
 
-This runs `tsc --noEmit` and reports any type errors without producing output files. It's a good
-practice to run this before testing in-game.
+This runs `tsc --noEmit` and reports any type errors without producing output files. It's a good practice to run this before testing in-game.
+
+---
 
 ## Common Issues {#common-issues}
 
-### "SubwayBuilderAPI Not Found" {#subwaybuilderapi-not-found}
+### "SubwayBuilderAPI Not Found" {#api-not-found}
 
-Your mod script ran before the game initialized the API. This shouldn't happen with the template's
-structure, but if it does:
+This means your mod script ran before the game initialized the API. This shouldn't happen with the template's structure, but if it does:
 
 - Make sure `main` in `manifest.json` is `"index.js"`
 - Make sure you're checking `if (!api)` before using the API
 
 ### UI Not Showing Up {#ui-not-showing-up}
 
-- Check that you're registering UI inside `onMapReady` — the UI system isn't ready before the map
-  loads
+- Check that you're registering UI inside `onMapReady`; the UI system isn't ready before the map loads
 - Verify your component doesn't throw during render (check console for React errors)
-- Make sure the `id` you're using is unique — duplicate IDs silently fail
+- Make sure the `id` you're using is unique; duplicate IDs silently fail
 
 ### Changes Not Appearing After Reload {#changes-not-appearing-after-reload}
 

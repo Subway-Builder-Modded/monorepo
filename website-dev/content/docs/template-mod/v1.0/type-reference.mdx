@@ -4,8 +4,7 @@ description: Organization of the template's full TypeScript type definitions for
 icon: BookType
 ---
 
-The template includes full TypeScript type definitions for the Subway Builder Modding API v1.0.0.
-Here's how they're organized.
+The template includes full TypeScript type definitions for the Subway Builder Modding API. Here's how they're organized.
 
 ## File Structure {#file-structure}
 
@@ -42,6 +41,8 @@ currently unusable at runtime.
 
 :::
 
+---
+
 ## How It Works {#how-it-works}
 
 `index.d.ts` re-exports everything and declares the global `Window` interface:
@@ -58,7 +59,9 @@ declare global {
 
 This gives you full autocomplete when you type `window.SubwayBuilderAPI.` in your editor.
 
-## Key Types at a Glance {#key-types-at-a-glance}
+---
+
+## Key Types {#key-types}
 
 ### Game Entities {#game-entities}
 
@@ -130,10 +133,11 @@ type UIPlacement =
 type NotificationType = "success" | "error" | "info" | "warning";
 ```
 
+---
+
 ## Extending Types {#extending-types}
 
-If you need to extend the API types (e.g., adding fields you've discovered at runtime), you can use
-TypeScript declaration merging in your own `.d.ts` file:
+If you need to extend the API types (e.g., adding fields you've discovered at runtime), you can use TypeScript declaration merging in your own `.d.ts` file:
 
 ```ts
 // src/types/my-extensions.d.ts
@@ -143,8 +147,3 @@ declare module "./game-state" {
   }
 }
 ```
-
-## Official Documentation {#official-documentation}
-
-For the most up-to-date API reference, see the
-[official Subway Builder modding docs](https://www.subwaybuilder.com/docs/v1.0.0).

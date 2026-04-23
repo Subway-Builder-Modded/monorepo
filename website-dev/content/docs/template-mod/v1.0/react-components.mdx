@@ -4,10 +4,9 @@ description: Learn about the various React components that are available for you
 icon: Component
 ---
 
-Subway Builder mods can render custom UI using React. The game provides React at runtime — your mod
-doesn't need to bundle it.
+Subway Builder mods can render custom UI using React. The game provides React at runtime, meaning your mod doesn't need to bundle it.
 
-## How the React Shim Works {#how-the-react-shim-works}
+## The React Shim {#react-shim}
 
 The template includes a React shim at `src/types/react.ts` that pulls React from the game's API:
 
@@ -23,8 +22,9 @@ Vite is configured to alias all `react` imports to this shim, so you can write s
 import { useState, useEffect } from "react";
 ```
 
-This just works — the import gets redirected to the shim at build time, and at runtime it uses the
-game's React instance.
+This just works; the import gets redirected to the shim at build time, and at runtime it uses the game's React instance.
+
+---
 
 ## Using Game UI Components {#using-game-ui-components}
 
@@ -106,6 +106,8 @@ function StatsCard() {
 }
 ```
 
+---
+
 ## Using Lucide Icons {#using-lucide-icons}
 
 The game provides ~1700 [Lucide](https://lucide.dev/) icons. Access them by PascalCase name:
@@ -127,12 +129,9 @@ function MyPanel() {
 }
 ```
 
-Common icons you might use: `Train`, `MapPin`, `Settings`, `DollarSign`, `BarChart`, `Route`,
-`Building`, `Layers`, `Clock`, `Play`, `Pause`, `Zap`, `Plus`, `Minus`, `Search`, `Filter`,
-`Download`, `Save`.
+Some common icons you might use are: `Train`, `MapPin`, `Settings`, `DollarSign`, `BarChart`, `Route`, `Building`, `Layers`, `Clock`, `Play`, `Pause`, `Zap`, `Plus`, `Minus`, `Search`, `Filter`, `Download`, `Save`.
 
-For icon names used in `addFloatingPanel`, `addToolbarButton`, etc., use the PascalCase string name
-directly:
+For icon names used in `addFloatingPanel`, `addToolbarButton`, etc., use the PascalCase string name directly:
 
 ```ts
 api.ui.addFloatingPanel({
@@ -142,6 +141,8 @@ api.ui.addFloatingPanel({
   render: MyPanel,
 });
 ```
+
+---
 
 ## Using Recharts {#using-recharts}
 
@@ -190,6 +191,8 @@ function RidershipChart() {
 | `Tooltip`                 | Hover tooltips                                    |
 | `Legend`                  | Chart legend                                      |
 
+---
+
 ## Styling With Tailwind {#styling-with-tailwind}
 
 The game uses Tailwind CSS. You can use Tailwind utility classes directly in your components:
@@ -216,10 +219,11 @@ Useful theme-aware classes:
 - `border` — themed border
 - `rounded-lg` / `rounded-md` — border radius
 
+---
+
 ## Floating Panel Tips {#floating-panel-tips}
 
-When rendering into a floating panel (`addFloatingPanel`), the panel provides its own container —
-you don't need to wrap your component in a `Card`:
+When rendering into a floating panel (`addFloatingPanel`), the panel provides its own container, meaning you don't need to wrap your component in a `Card`:
 
 ```tsx
 // Good — panel provides the container
@@ -239,6 +243,8 @@ api.ui.addFloatingPanel({
   render: MyPanel,
 });
 ```
+
+---
 
 ## Registering Custom Components at Placements {#registering-custom-components-at-placements}
 

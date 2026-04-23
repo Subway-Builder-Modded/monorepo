@@ -4,7 +4,7 @@ description: Learn about common patterns that may be useful.
 icon: Puzzle
 ---
 
-Practical recipes for the things you'll do most often when writing mods.
+This guide will show you some practical recipes for the things you'll do most often when writing mods.
 
 ## Accessing the API {#accessing-the-api}
 
@@ -24,10 +24,11 @@ if (!api) {
 }
 ```
 
+---
+
 ## Initializing a Mod {#initializing-a-mod}
 
-Most mods should initialize inside `onMapReady`, which fires when a city is loaded and the map is
-ready. Use a guard to prevent double initialization:
+Most mods should initialize inside `onMapReady`, which fires when a city is loaded and the map is ready. Use a guard to prevent double initialization:
 
 ```ts
 let initialized = false;
@@ -48,11 +49,13 @@ ensures your UI and hooks are only set up once.
 
 :::
 
+---
+
 ## Adding UI Panels {#adding-ui-panels}
 
 ### Floating Panel {#floating-panel}
 
-The most common way to add a mod UI. Creates a draggable panel accessible from the toolbar:
+This is the most common way to add a mod UI. The following creates a draggable panel accessible from the toolbar:
 
 ```ts
 api.ui.addFloatingPanel({
@@ -65,7 +68,7 @@ api.ui.addFloatingPanel({
 
 ### Toolbar Button {#toolbar-button}
 
-Add a button to the main in-game toolbar:
+You can add a button to the main in-game toolbar:
 
 ```ts
 api.ui.addToolbarButton({
@@ -80,7 +83,7 @@ api.ui.addToolbarButton({
 
 ### Escape Menu Button {#escape-menu-button}
 
-Add a button to the in-game escape/pause menu:
+You can add a button to the in-game escape/pause menu:
 
 ```ts
 api.ui.addButton("escape-menu", {
@@ -94,7 +97,7 @@ api.ui.addButton("escape-menu", {
 
 ### Settings Menu Controls {#settings-menu-controls}
 
-Add toggles, sliders, and selects to the settings panel:
+You can add toggles, sliders, and selects to the settings panel:
 
 ```ts
 api.ui.addToggle("settings-menu", {
@@ -135,7 +138,7 @@ The `placement` argument controls where UI elements appear:
 
 ### Notifications {#notifications}
 
-Show a toast message to the player:
+You can show a toast message to the player:
 
 ```ts
 api.ui.showNotification("Map loaded successfully!", "success");
@@ -143,6 +146,8 @@ api.ui.showNotification("Something went wrong.", "error");
 api.ui.showNotification("Tip: try building underground.", "info");
 api.ui.showNotification("Running low on funds!", "warning");
 ```
+
+---
 
 ## Reading Game State {#reading-game-state}
 
@@ -169,6 +174,8 @@ const modeChoice = api.gameState.getModeChoiceStats();
 const lineMetrics = api.gameState.getLineMetrics();
 ```
 
+---
+
 ## Station Data {#station-data}
 
 Each station has coordinates, track IDs, and nearby station info:
@@ -186,6 +193,8 @@ for (const station of stations) {
 }
 ```
 
+---
+
 ## Ridership Data {#ridership-data}
 
 ```ts
@@ -200,6 +209,8 @@ console.log(`${stationData.total} riders at this station`);
 // Per-route
 const routeData = api.gameState.getRouteRidership("route-uuid-here");
 ```
+
+---
 
 ## Reacting to Events {#reacting-to-events}
 
@@ -234,6 +245,8 @@ api.hooks.onGameSaved((saveName) => {
 });
 ```
 
+---
+
 ## All Available Hooks {#all-available-hooks}
 
 | **Hook**            | **Callback arguments**                         |
@@ -261,6 +274,8 @@ api.hooks.onGameSaved((saveName) => {
 | `onError`           | `error: string`                                |
 | `onGameEnd`         | (none)                                         |
 
+---
+
 ## Modifying Game Actions {#modifying-game-actions}
 
 Use `api.actions` to change game state:
@@ -279,9 +294,11 @@ api.actions.setSpeed("fast"); // 'slow' | 'normal' | 'fast' | 'ultrafast'
 api.actions.setTicketPrice(5);
 ```
 
+---
+
 ## Modifying Game Constants {#modifying-game-constants}
 
-Tweak the game's rules:
+You can tweak the game's rules:
 
 ```ts
 api.modifyConstants({
@@ -299,6 +316,8 @@ Call `modifyConstants()` early — ideally before `onMapReady`. Constants affect
 entire game session.
 
 :::
+
+---
 
 ## Building Tracks Programmatically {#building-tracks-programatically}
 
@@ -327,6 +346,8 @@ if (result.success) {
 }
 ```
 
+---
+
 ## Creating Routes and Adding Trains {#creating-routes-and-adding-trains}
 
 ```ts
@@ -346,11 +367,13 @@ if (route.success && route.route) {
 }
 ```
 
+---
+
 ## Persistent Storage {#persistent-storage}
 
 :::danger
 
-Mod-level storage is currently broken. You may use localStorage or game-level Electron storage as a workaround, but be aware that these are not sandboxed and can cause conflicts with other mods (or even with the game itself). Use at your own risk!
+Mod-level storage is currently broken. You may use localStorage or game-level Electron storage as a workaround, but be aware that these are not sandboxed and can cause conflicts with other mods (or even with the game itself). Use at your own risk.
 
 :::
 
