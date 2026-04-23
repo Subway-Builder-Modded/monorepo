@@ -4,15 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vp test run",
-    "test:watch": "vp test"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@subway-builder-modded/config": "workspace:*"
   },
   "devDependencies": {
-    "vitest": "catalog:",
-    "vite-plus": "catalog:"
+    "vitest": "^4.1.4"
   },
   "exports": {
     ".": {

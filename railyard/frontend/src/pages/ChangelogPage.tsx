@@ -242,7 +242,7 @@ export function ChangelogPage() {
     ComputeDependencyList(item.id, versionInfo)
       .then((result) => {
         if (cancelled) return;
-        const list = { ...(result.installList ?? {}) };
+        const list = { ...result.installList };
         delete list[item.id];
         setResolvedDeps(list);
         setResolvingDeps(false);

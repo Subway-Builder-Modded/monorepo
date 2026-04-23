@@ -275,7 +275,7 @@ async function main() {
   }
 
   const previousIndex = readJson(INDEX_FILE, { maps: {} });
-  const cachedMaps = { ...(previousIndex.maps ?? {}) };
+  const cachedMaps = { ...previousIndex.maps };
   const failedMapIds = [];
   const successMapIds = [];
 

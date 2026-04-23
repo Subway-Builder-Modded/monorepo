@@ -1,6 +1,9 @@
 # Ignore agentic files and directories
 .claude/
 .serena/
+conventions.md
+CLAUDE.md
+AGENTS.md
 
 # Ignore cache and temporary files
 .gocache/

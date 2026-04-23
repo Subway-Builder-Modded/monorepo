@@ -1,0 +1,52 @@
+---
+title: Dependencies
+description: Learn how to setup dependencies for projects.
+icon: GitBranch
+---
+
+Your mod may require a certain version of Subway Builder (or another mod) to be installed in order to properly function. We have made dependencies as easy to declare and install as possible.
+
+## Declaring Dependencies {#declaring-dependencies}
+
+In the `manifest.json` you create for your mod, create a new field called dependencies:
+
+```json
+{
+    "name": "My Mod",
+    "id": "my-mod",
+    ...
+    "dependencies": {
+        "subway-builder": ">=1.0.0",
+        // Mod dependencies
+    }
+}
+```
+
+:::note
+
+`subway-builder` is always required as a dependency for your mod, so that Railyard can determine if the version of the game installed on the user's computer is compatible with your mod.
+
+:::
+
+### Dependency Fields {#dependency-fields}
+
+Dependencies can be declared using the following format:
+
+```json
+{
+  "dependencies": {
+    "mod-a": ">X.Y.Z", // greater than
+    "mod-b": "<=A.B.C" // less than or equal
+  }
+}
+```
+
+In the example above, `mod-a` and `mod-b` are the mod IDs of the mods you depend on.
+
+:::tip
+
+The Registry supports nested dependencies in your `manifest.json` files.
+
+:::
+
+In order for Railyard to install dependencies, the Mod ID must match a mod in the [Registry](/registry), and the version constraint must be compatible with at least one version of the mod. Railyard will select and install the latest, most compatible version of your dependencies and install them alongside the mod automatically.

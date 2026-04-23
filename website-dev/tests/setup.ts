@@ -1,5 +1,4 @@
-import "@testing-library/jest-dom/vitest";
-import { afterEach, vi } from "vite-plus/test";
+import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import type React from "react";
 import type { PropsWithChildren } from "react";

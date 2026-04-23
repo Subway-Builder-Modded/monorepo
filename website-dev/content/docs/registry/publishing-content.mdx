@@ -1,0 +1,196 @@
+---
+title: Publishing Content
+description: Learn how to properly publish your content to the Registry.
+icon: CirclePlus
+---
+
+Railyard does not host content within the service. Instead, Railyard pulls directly from the [Registry](/registry), which contains the data pointing to all the user-created projects. To add public content to Railyard, you must submit it to the Registry.
+
+<Tabs>
+<TabItem value="maps" label="Maps" default>
+
+## Step 1 - Uploading to GitHub {#uploading-to-github-maps}
+
+In order to make a submission to the Registry, you must first upload the map to a GitHub repository. To do this, go to [GitHub](https://github.com/) and create a new repository. The contents of this repository can contain the source code for your map.
+
+Once you have created the repository, create a new release. In this release, upload your map's ZIP file as a release asset. The ZIP file should contain these files at minimum (ensuring there are no nested folders):
+
+```
+├── XXX.zip/           # Your ZIP file must be named corresponding to your map's city code
+│   ├── XXX.pmtiles    # Your PMTiles file must be named corresponding to your map's city code
+│   ├── buildings_index.json
+│   ├── config.json
+│   ├── demand_data.json
+│   ├── roads.geojson
+│   └── runways_taxiways.geojson
+```
+
+:::caution
+
+Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`, `abc`, `version-A`, etc. will not work. Your version must be `X.Y.Z` or `vX.Y.Z`.
+
+:::
+
+:::tip
+
+You can host multiple maps in the same repository by uploading multiple ZIP files. If you are doing this, all maps must be uploaded as separate release assets and you must set up [Custom URL](/registry/docs/using-custom-url).
+
+:::
+
+---
+
+## Step 2 - Submitting to the Registry {#submitting-to-the-registry-maps}
+
+Now that your map is hosted on GitHub, you are ready to make a submission to the Registry. On the [Registry's GitHub repository](https://github.com/Subway-Builder-Modded/registry), navigate to **Issues** > **New Issue** > **Publish New Map**. Here, you can create your submission form, which will then be reviewed by a Subway Builder Modded maintainer.
+
+:::announcement[Data Source and Quality]
+
+Railyard requires all map authors to submit the source and quality of their data. This is then used to categorize the data for users looking to download maps. For more detailed information on the specifications of data quality, see the [Data Quality guide](/registry/docs/data-quality).
+
+:::
+
+:::tip
+
+For more information on how to properly tag your map, see the [Tagging guide](/registry/docs/tagging).
+
+:::
+
+<Spoiler title="Using the Update JSON" icon="Info">
+  
+For `Custom URL`, place a link to your raw Update JSON file. You can paste the raw link directly copied from your repository, however, it is instead recommended to deploy it to GitHub pages and paste that link there. This can help with rate limits. To deploy to GitHub pages, create a new file: `.github/workflows/deploy-releases.yml`. Paste the following into the file:
+
+```yml
+name: Deploy Update JSON to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: [releases/**]
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: releases
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+This will automatically deploy your Update JSON files to GitHub Pages. Once you do this, put the direct link to your Update JSON file (now on GitHub Pages) for the corresponding map in the `Custom URL` field. Now every time you update your map (and your Update JSON file), it will automatically deploy the latest Update JSON file for the Registry to use.
+
+</Spoiler>
+
+If you input a field incorrectly, the validation will fail. If this happens, you can edit the message above automatically created by the fields you set earlier. Once you edit that message, send a new comment simply reading `revalidate`.
+
+As soon as the form is completed, it will be submitted to be reviewed by a maintainer. Once it is approved, it will be automatically published to the Registry. Please allow up to 24 hours after approval for your map to appear on any Registry-powered services (like Railyard or the website), as it must first pass an integrity check. Join the [Discord server](https://discord.gg/syG9YHMyeG) for more details.
+
+</TabItem>
+<TabItem value="mods" label="Mods" default>
+
+## Step 1 - Uploading to GitHub {#uploading-to-github-mods}
+
+In order to make a submission to the Registry, you must first upload the mod to a GitHub repository. To do this, go to [GitHub](https://github.com/) and create a new repository. The contents of this repository can contain the source code for your mod.
+
+Once you have created the repository, create a new release. In this release, upload 2 assets:
+
+- Your mod's ZIP file (containing the mod's contents and a `manifest.json` file)
+- The standalone `manifest.json` file (the same one included in the ZIP) as a separate release asset
+
+:::caution
+
+Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`, `abc`, `version-A`, etc. will not work. Your version must be `X.Y.Z` or `vX.Y.Z`.
+
+:::
+
+::::important
+
+You must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Specifically, Railyard checks that the `dependencies` field is present and includes `subway-builder`.
+
+- **GitHub Releases**: Upload `manifest.json` as a **separate release asset** alongside the ZIP file.
+- **Custom URL**: Provide a **Manifest URL** in the submission form pointing to the `manifest.json` for the current release.
+
+:::note
+
+Mods must declare dependencies in their `manifest.json` (the one shipped inside the mod's download ZIP). The `dependencies` field is required and must include a `subway-builder` semver range. You can also declare another existing mod as a dependency. For more information, see the [Dependencies guide](/registry/docs/dependencies).
+
+:::
+
+::::
+
+---
+
+## Step 2 - Submitting to the Registry {#submitting-to-the-registry-mods}
+
+Now that your mod is hosted on GitHub, you are ready to make a submission to the Registry. On the [Registry's GitHub repository](https://github.com/Subway-Builder-Modded/registry), navigate to **Issues** > **New Issue** > **Publish New Mod**. Here, you can create your submission form, which will then be reviewed by a Subway Builder Modded maintainer.
+
+:::tip
+
+For more information on how to properly tag your map, see the [Tagging guide](/registry/docs/tagging).
+
+:::
+
+<Spoiler title="Using the Update JSON" icon="Info">
+  
+For `Custom URL`, place a link to your raw Update JSON file. You can paste the raw link directly copied from your repository, however, it is instead recommended to deploy it to GitHub pages and paste that link there. This can help with rate limits. To deploy to GitHub pages, create a new file: `.github/workflows/deploy-releases.yml`. Paste the following into the file:
+
+```yml
+name: Deploy Update JSON to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: [releases/**]
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: releases
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+This will automatically deploy your Update JSON files to GitHub Pages. Once you do this, put the direct link to your Update JSON file (now on GitHub Pages) for the corresponding mod in the `Custom URL` field. Now every time you update your mod (and your Update JSON file), it will automatically deploy the latest Update JSON file for the Registry to use.
+
+</Spoiler>
+
+If you input a field incorrectly, the validation will fail. If this happens, you can edit the message above automatically created by the fields you set earlier. Once you edit that message, send a new comment simply reading `revalidate`.
+
+As soon as the form is completed, it will be submitted to be reviewed by a maintainer. Once it is approved, it will be automatically published to the Registry. Please allow up to 24 hours after approval for your mod to appear on any Registry-powered services (like Railyard or the website), as it must first pass an integrity check. Join the [Discord server](https://discord.gg/syG9YHMyeG) for more details.
+
+</TabItem>
+</Tabs>

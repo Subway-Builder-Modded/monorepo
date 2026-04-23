@@ -1,0 +1,85 @@
+---
+title: Updating Content
+description: Learn how to properly update your content and its metadata.
+icon: CircleFadingArrowUp
+---
+
+Updating your Registry-hosted assets is simple, but the process depends on whether you chose to link your assets via GitHub Releases or Custom URL.
+
+## GitHub Releases {#github-releases}
+
+:::important
+
+As implied in the [Publishing Content guide](/registry/docs/publishing-content), only a single asset can be linked per GitHub repository. If you are hosting multiple assets in the same repository, you must use [Custom URL](/registry/docs/using-custom-url) to link your assets instead of GitHub Releases.
+
+:::
+
+To update an asset when using GitHub releases, simply create a new release with a higher version number than the currently published release. The Registry will automatically pull the new release and update your content. Make sure to follow the same specifications as before when uploading your asset (e.g. ZIP file structure, semantic versioning format, etc.).
+
+---
+
+## Custom URL {#custom-url}
+
+To update your asset when using Custom URL, simply add a new field in the `versions` array and add the appropriate update information there. An example can be seen below:
+
+<Tabs>
+
+<TabItem value="maps-schema-update" label="Maps" default>
+
+```json
+{
+  "schema_version": 1,
+  "versions": [
+    {
+      "version": "1.0.0",
+      "game_version": ">=1.0.0",
+      "date": "2026-02-24",
+      "changelog": "Initial release.",
+      "download": "https://example.com/my-map/releases/v1.0.0.zip",
+      "sha256": "<asset sha256>"
+    },
+    {
+      "version": "1.1.0",
+      "game_version": ">=1.2.0",
+      "date": "2026-02-28",
+      "changelog": "Added new features and fixed bugs.",
+      "download": "https://example.com/my-map/releases/v1.1.0.zip",
+      "sha256": "<asset sha256>"
+    }
+  ]
+}
+```
+
+</TabItem>
+
+<TabItem value="mods-schema" label="Mods">
+
+```json
+{
+  "schema_version": 1,
+  "versions": [
+    {
+      "version": "1.0.0",
+      "game_version": ">=1.0.0",
+      "date": "2026-02-24",
+      "changelog": "Initial release.",
+      "download": "https://example.com/my-mod/releases/v1.0.0.zip",
+      "sha256": "<asset sha256>",
+      "manifest": "https://example.com/my-mod/releases/v1.0.0/manifest.json"
+    },
+    {
+      "version": "1.1.0",
+      "game_version": ">=1.2.0",
+      "date": "2026-02-28",
+      "changelog": "Added new features and fixed bugs.",
+      "download": "https://example.com/my-mod/releases/v1.1.0.zip",
+      "sha256": "<asset sha256>",
+      "manifest": "https://example.com/my-mod/releases/v1.1.0/manifest.json"
+    }
+  ]
+}
+```
+
+</TabItem>
+
+</Tabs>

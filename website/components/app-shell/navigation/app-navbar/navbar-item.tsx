@@ -41,7 +41,7 @@ export function NavbarItemView({
     iconScale === 1
       ? schemeStyle
       : ({
-          ...(schemeStyle ?? {}),
+          ...schemeStyle,
           ['--app-navbar-item-icon-scale' as string]: String(iconScale),
         } as CSSProperties);
 

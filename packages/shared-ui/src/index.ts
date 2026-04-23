@@ -4,6 +4,8 @@ export {
   SITE_GUTTER_X_CLASS,
   SITE_MAIN_SPACING_CLASS,
   SITE_SECTION_SPACING_CLASS,
+  SITE_SECTION_PADDING_TOP_CLASS,
+  SITE_SECTION_PADDING_BOTTOM_CLASS,
   SITE_SHELL_CLASS,
   APP_SHELL_PADDING_CLASS,
   APP_SHELL_OUTER_CONTAINER_CLASS,
@@ -145,9 +147,10 @@ export {
   TooltipTrigger,
 } from './components/tooltip';
 export {
-  NavDropdown,
-  type NavDropdownOption,
-} from './components/nav-dropdown';
+  VersionSwitcherDropdown,
+  type VersionSwitcherItem,
+  type VersionSwitcherItemStatus,
+} from './components/version-switcher-dropdown';
 export { NavRow } from './components/nav-row';
 export {
   NavbarActionButton,
@@ -175,11 +178,41 @@ export {
   type SectionShellProps,
 } from './components/section-shell';
 export {
+  SIDE_RAIL_CHROME_CLASS,
+  SideRailBody,
+  SideRailDivider,
+  SideRailHeader,
+  SideRailShell,
+  SideRailUtilityButton,
+} from './components/side-rail';
+export {
   SuiteButton,
-  type SuiteAccent,
   type SuiteButtonVariant,
   type SuiteButtonProps,
 } from './components/suite-button';
+export {
+  SUITE_ACCENT_TEXT_CLASS,
+  SuiteAccentButton,
+  SuiteAccentInlineAction,
+  SuiteAccentLink,
+  SuiteAccentScope,
+  getSuiteAccentStyle,
+  type SuiteAccent,
+  type SuiteAccentButtonProps,
+  type SuiteAccentButtonTone,
+  type SuiteAccentInlineActionProps,
+  type SuiteAccentLinkProps,
+  type SuiteAccentScopeProps,
+} from './components/suite-accent';
+export {
+  SuiteBadge,
+  SuiteStatusChip,
+  type SuiteBadgeProps,
+  type SuiteBadgeSize,
+  type SuiteBadgeTone,
+  type SuiteStatus,
+  type SuiteStatusChipProps,
+} from './components/suite-badge';
 export {
   FooterColumns,
   type FooterColumn,

@@ -1,0 +1,102 @@
+---
+title: Windows Installation
+description: Learn how to install Railyard on Windows-based systems.
+icon: ArrowDownToLine
+---
+
+This guide will walk you through installing and setting up Railyard on Windows-based systems.
+
+## Step 1 - Downloading Railyard {#downloading-railyard}
+
+To install Railyard on Windows, navigate to the [download page](https://subwaybuildermodded.com/railyard). You should see a button with the auto-detected download for your operating system. You **must** download the correct version for your system architecture (x64 or ARM64). Otherwise, the Railyard installer will not work.
+
+:::caution
+
+On some Firefox-based browsers, ARM64 systems may be auto-detected as x64. If you have an ARM64 system, make sure to select the ARM64 version from the dropdown menu.
+
+:::
+
+:::important
+
+You will need administrative privileges to install Railyard on Windows. If you wish to install a portable version, you can find the **All Downloads** section at the bottom of the download page. From there, select the version that matches your system architecture.
+
+:::
+
+Install the app as you normally would any other app on Windows.
+
+---
+
+## Step 2 - Setting Up Railyard {#setting-up-railyard}
+
+When you first launch Railyard, you will need to run through the setup process.
+
+### Data Folder {#data-folder}
+
+First, you will be prompted to select your `metro-maker4` folder.
+
+If you did not manually modify this, click **Auto-Detect**. Otherwise, select the location of this folder. Railyard will automatically validate it.
+
+:::alert
+
+`metro-maker4` will **only** be recognized as a valid data folder if you have previously:
+
+- Launched the game at least once
+- Loaded a map in-game (to populate `cities/`)
+
+:::
+
+### Game Executable {#game-executable}
+
+After, you will be asked to select your game executable. Once again, click **Auto-Detect** if you have not modified this. Otherwise, select the location of your game executable.
+
+:::note
+
+Game executable refers to the actual file that launches the game, not any shortcut or folder containing it.
+
+:::
+
+### GitHub Token {#github-token}
+
+The next prompt will ask you to input your GitHub token. This is optional, but **highly** recommended to avoid hitting GitHub's API rate limits when using Railyard. If you do not have a token or do not wish to use one, simply click **Next** to continue with the setup process. You can always add a token later via the settings menu. To set up a GitHub token, see the [GitHub Token guide](/railyard/docs/v0.2/github-token).
+
+### Automatic Updates {#automatic-updates}
+
+The final prompt will ask you whether you want to enable automatic updates. This will allow Railyard to prompt you every time a new version is released, allowing you to easily stay up-to-date with the latest features and bug fixes.
+
+:::tip
+
+It is recommended to keep this enabled to ensure you have the latest features and bug fixes. This can be toggled at any time via the settings menu.
+
+:::
+
+---
+
+## Step 3 - Launching Subway Builder {#launching-subway-builder}
+
+Once you install content through Railyard, you must launch the game through Railyard for the content to work properly. To do this, simply click the **Launch** button located on the Railyard navbar.
+
+:::caution
+
+If you launch the game directly (not through Railyard), **the game will still launch** and some mods may still work. However, maps will load without the necessary data needed to load in-game and any custom command-line arguments set through Railyard will not be applied.
+
+:::
+
+When the game is launched, open **Settings**. Scroll until you see **Mod Manager**.
+
+<p align="center">
+  <Image
+    width="500"
+    alt="image"
+    src="/images/railyard/docs/v0.2/installing-railyard/windows/mod-manager.png"
+  />
+</p>
+
+In that menu, enable the **Railyard Map Loader** mod.
+
+:::alert
+
+This is required to load maps installed through Railyard. If you do not enable this mod, maps will fail to load properly.
+
+:::
+
+After that, you're ready to play! If you have any questions or run into any issues, feel free to ask questions in the [Discord](https://discord.gg/jrNQpbytUQ) or raise an issue on [GitHub](https://github.com/Subway-Builder-Modded/monorepo/issues).

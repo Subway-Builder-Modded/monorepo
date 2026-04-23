@@ -6,7 +6,7 @@ import { cn } from '../lib/cn';
 
 const badgeVariants = cva(
   [
-    'inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium',
+    'inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border px-2 py-0.5 pb-px text-xs font-medium leading-[1.15]',
     'border-border/70 bg-muted/35 text-foreground',
     'transition-[background-color,border-color,color,box-shadow]',
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',

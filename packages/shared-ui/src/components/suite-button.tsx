@@ -1,10 +1,6 @@
 import type { ComponentType, ReactNode } from 'react';
 import { cn } from '../lib/cn';
-
-export type SuiteAccent = {
-  light: string;
-  dark: string;
-};
+import { getSuiteAccentStyle, type SuiteAccent } from './suite-accent';
 
 export type SuiteButtonVariant = 'solid' | 'outline';
 
@@ -29,7 +25,7 @@ export function SuiteButton({
   className,
   ...props
 }: SuiteButtonProps) {
-  const color = isDark ? accent.dark : accent.light;
+  const color = isDark ? 'var(--suite-accent-dark)' : 'var(--suite-accent-light)';
 
   const solidClass =
     'border-transparent shadow-sm hover:brightness-110';
@@ -44,11 +40,12 @@ export function SuiteButton({
 
   const style: React.CSSProperties =
     variant === 'solid'
-      ? { backgroundColor: color, color: 'var(--background)' }
+      ? { ...getSuiteAccentStyle(accent), backgroundColor: color, color: 'var(--background)' }
       : {
-          borderColor: `${color}40`,
+          ...getSuiteAccentStyle(accent),
+          borderColor: `color-mix(in_srgb, ${color} 35%, transparent)`,
           color,
-          '--suite-btn-hover': `${color}12`,
+          '--suite-btn-hover': `color-mix(in_srgb, ${color} 14%, transparent)`,
         } as React.CSSProperties;
 
   const content = (

@@ -24,12 +24,6 @@
     "ci": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
-    "@subway-builder-modded/asset-listings-state": "workspace:*",
-    "@subway-builder-modded/asset-listings-ui": "workspace:*",
-    "@subway-builder-modded/config": "workspace:*",
-    "@subway-builder-modded/lifecycle-web": "workspace:*",
-    "@subway-builder-modded/shared-ui": "workspace:*",
-    "@subway-builder-modded/stores-core": "workspace:*",
     "@base-ui/react": "^1.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
@@ -42,6 +36,12 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@shikijs/transformers": "^4.0.1",
+    "@subway-builder-modded/asset-listings-state": "workspace:*",
+    "@subway-builder-modded/asset-listings-ui": "workspace:*",
+    "@subway-builder-modded/config": "workspace:*",
+    "@subway-builder-modded/lifecycle-web": "workspace:*",
+    "@subway-builder-modded/shared-ui": "workspace:*",
+    "@subway-builder-modded/stores-core": "workspace:*",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-underline": "^3.22.1",
@@ -96,7 +96,7 @@
     "@types/node": "^20",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitest/coverage-v8": "^4.0.0",
+    "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "eslint-config-prettier": "^10.1.8",
@@ -107,6 +107,6 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "unified": "^11.0.5",
-    "vitest": "^4.0.0"
+    "vitest": "^4.1.4"
   }
 }

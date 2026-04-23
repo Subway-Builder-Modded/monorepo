@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  LayoutGrid,
+  Package,
   TrendingUp,
   Users,
   Globe,
@@ -33,7 +33,7 @@ const TABS: {
   label: string;
   icon: React.FC<{ className?: string }>;
 }[] = [
-  { key: 'overview', label: 'Overview', icon: LayoutGrid },
+  { key: 'overview', label: 'Overview', icon: Package },
   { key: 'content', label: 'Content', icon: Package },
   { key: 'authors', label: 'Authors', icon: Users },
   { key: 'population', label: 'Population', icon: Globe },

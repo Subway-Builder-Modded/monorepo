@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vite-plus/test";
+import { describe, expect, it } from "vitest";
 import { SectionHeader } from "./section-header";
 import { SectionShell } from "./section-shell";
 import { TwoColumnSection } from "./two-column-section";
@@ -29,7 +29,9 @@ describe("Section primitives", () => {
     );
 
     expect(screen.getByText("Section content")).toBeTruthy();
-    expect(container.querySelector("section")?.className).toContain("border-y");
+    const sectionClass = container.querySelector("section")?.className ?? "";
+    expect(sectionClass).toContain("border-t");
+    expect(sectionClass).toContain("border-b");
   });
 
   it("applies reverse desktop ordering when requested", () => {

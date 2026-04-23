@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 function writeJson(directory: string, filename: string, value: unknown) {
   writeFileSync(path.join(directory, filename), JSON.stringify(value, null, 2));
@@ -14,9 +14,14 @@ function writeCsv(directory: string, filename: string, rows: string[]) {
 describe('loadRailyardAnalytics', () => {
   const dirs: string[] = [];
 
+  beforeEach(() => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
   afterEach(() => {
     delete process.env['RAILYARD_ANALYTICS_DIR'];
     vi.resetModules();
+    vi.restoreAllMocks();
 
     for (const directory of dirs.splice(0)) {
       rmSync(directory, { recursive: true, force: true });
