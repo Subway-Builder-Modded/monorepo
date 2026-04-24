@@ -56,4 +56,16 @@ describe("resolvePageMetadata", () => {
     expect(metadata.suite.id).toBe("general");
     expect(metadata.imagePath).toBe("/logo.svg");
   });
+
+  it("resolves /credits page metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/credits");
+
+    expect(metadata.title).toBe("Credits");
+    expect(metadata.pageTitle).toBe("Credits");
+    expect(metadata.description).toBe(
+      "The maintainers and contributors helping Subway Builder Modded move forward.",
+    );
+    expect(metadata.suite.id).toBe("general");
+    expect(metadata.imagePath).toBe("/logo.svg");
+  });
 });

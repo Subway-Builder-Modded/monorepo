@@ -3,6 +3,7 @@ import { useLocation } from "@/lib/router";
 import { DocsRoute, matchDocsRoute } from "@/features/docs";
 import { UpdatesRoute, matchUpdatesRoute } from "@/features/updates";
 import { LicenseRoute, matchLicenseRoute } from "@/features/license";
+import { CreditsRoute, matchCreditsRoute } from "@/features/credits";
 import { HomePage } from "@/features/home";
 
 function RouteSwitch() {
@@ -20,6 +21,11 @@ function RouteSwitch() {
   const licenseMatch = matchLicenseRoute(location.pathname);
   if (licenseMatch.kind !== "none") {
     return <LicenseRoute />;
+  }
+
+  const creditsMatch = matchCreditsRoute(location.pathname);
+  if (creditsMatch.kind !== "none") {
+    return <CreditsRoute />;
   }
 
   return <HomePage />;

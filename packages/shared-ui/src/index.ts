@@ -174,6 +174,10 @@ export {
   type SectionHeaderProps,
 } from './components/section-header';
 export {
+  SectionSeparator,
+  type SectionSeparatorProps,
+} from './components/section-separator';
+export {
   SectionShell,
   type SectionShellProps,
 } from './components/section-shell';
@@ -231,6 +235,10 @@ export {
   CodeDisplay,
   type CodeDisplayProps,
 } from './components/code-display';
+export {
+  DirectoryCard,
+  type DirectoryCardProps,
+} from './components/directory-card';
 export {
   AnalyticsPreview,
   type AnalyticsPreviewProps,

@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { PageHeading, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
+import { PageHeading, SectionSeparator, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { Copy, FileQuestion, GitCompareArrows, Pencil, type LucideIcon } from "lucide-react";
 import { getSuiteById } from "@/config/site-navigation";
-import { getUpdatesSuiteConfig, type UpdatesSuiteId } from "@/config/updates";
+import { getUpdatesSuiteConfig, UPDATES_HOMEPAGE_ICON, type UpdatesSuiteId } from "@/config/updates";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import { UTILITY_ACTION_CLASS } from "@/features/content/components/utility-action";
 import {
@@ -137,10 +137,8 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
           }
         />
 
+        <SectionSeparator label="Changelog" icon={UPDATES_HOMEPAGE_ICON} className="mb-3" />
         <article className="rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-6">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground">
-            Changelog
-          </h2>
           <div className="prose-docs max-w-none">
             <UpdatesRouteProvider value={{ suiteId, slug: entry.id }}>
               <AsyncArticleContent
@@ -154,11 +152,11 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
         </article>
 
         {releaseCandidates.length > 0 ? (
-          <section className="mt-4 rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-6">
-            <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.12em] text-muted-foreground">
-              Release Candidates
-            </h2>
-            <Directory path={entry.id} suiteId={suiteId} />
+          <section className="mt-4">
+            <SectionSeparator label="Release Candidates" icon={GitCompareArrows} className="mb-3" />
+            <div className="rounded-2xl border border-border/60 bg-background/70 p-4 sm:p-6">
+              <Directory path={entry.id} suiteId={suiteId} />
+            </div>
           </section>
         ) : null}
       </section>

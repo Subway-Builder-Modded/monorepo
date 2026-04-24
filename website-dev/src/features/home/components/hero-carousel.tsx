@@ -92,7 +92,7 @@ export function HeroCarousel() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-[100svh] w-full overflow-hidden"
+      className="relative h-[calc(100svh-3rem)] w-full overflow-hidden"
       onMouseEnter={() => multi && setPaused(true)}
       onMouseLeave={() => multi && setPaused(false)}
       onFocusCapture={() => multi && setPaused(true)}

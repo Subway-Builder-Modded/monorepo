@@ -74,7 +74,9 @@ describe("DocsHomepage", () => {
     expect(screen.getByTestId("directory-separator")).toBeInTheDocument();
 
     const cardsLink = screen.getByRole("link", { name: /Players/i });
-    expect(cardsLink.className).toContain("var(--suite-accent-light)");
+    expect(cardsLink.getAttribute("style") ?? "").toContain(
+      "--directory-card-accent-light: var(--suite-accent-light)",
+    );
 
     // Grid is capped at 4 columns via explicit responsive breakpoints.
     const cardsGrid = container.querySelector(".xl\\:grid-cols-4");

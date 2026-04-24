@@ -27,7 +27,7 @@ vi.mock("@/features/updates/lib/content", () => ({
       tag: "release",
       url: "https://example.com/download",
       previousVersion: "v0.1.9",
-      compareUrl: "https://github.com/example/repo/compare/v0.1.9...v0.2.0",
+      compareUrl: "https://github.com/example/repo/compare/v0.1.9...v0.2.0#files_bucket",
     },
   })),
   getUpdatesEntries: vi.fn(() => [
@@ -46,7 +46,7 @@ vi.mock("@/features/updates/lib/content", () => ({
         tag: "release",
         url: "https://example.com/download",
         previousVersion: "v0.1.9",
-        compareUrl: "https://github.com/example/repo/compare/v0.1.9...v0.2.0",
+        compareUrl: "https://github.com/example/repo/compare/v0.1.9...v0.2.0#files_bucket",
       },
     },
   ]),
@@ -79,7 +79,7 @@ describe("UpdatePageLayout", () => {
     expect(screen.getByRole("button", { name: "Copy" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Full Changelog/i })).toHaveAttribute(
       "href",
-      "https://github.com/example/repo/compare/v0.1.9...v0.2.0",
+      "https://github.com/example/repo/compare/v0.1.9...v0.2.0#files_bucket",
     );
     expect(screen.queryByText("Release Candidates")).not.toBeInTheDocument();
 

@@ -239,7 +239,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     suiteId: "railyard",
     title: "Home",
     description:
-      "Discover and download the all-in-one manager for Subway Builder community-made content.",
+      "Discover the all-in-one manager for Subway Builder community-made content.",
     href: "/railyard",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/railyard" }],
@@ -374,7 +374,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "foundry-home",
     suiteId: "foundry",
     title: "Home",
-    description: "Discover and download the unified suite for Subway Builder map creation.",
+    description: "Discover the unified suite for Subway Builder map creation.",
     href: "/foundry",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/foundry" }],

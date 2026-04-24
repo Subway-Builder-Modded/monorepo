@@ -101,7 +101,7 @@ const MIRROR_DIRECTORY_MAPPINGS = [
   { sourceRoot: "authors", destinationRoot: "public/registry/authors" },
   { sourceRoot: "maps", destinationRoot: "public/registry/maps" },
   { sourceRoot: "mods", destinationRoot: "public/registry/mods" },
-  { sourceRoot: "supporters", destinationRoot: "public/registry/supporters" },
+  { sourceRoot: "supporters", destinationRoot: "public/registry/credits" },
 ];
 
 const MIRROR_FILE_BLACKLIST_BY_ROOT = {
@@ -535,16 +535,16 @@ function mirrorDirectoryRoots(snapshotRoot, workspaceRoot, materializedFiles, pr
 
 function writeWebsiteFiles(parsedWebsite, workspaceRoot, materializedFiles, progress) {
   const outputs = {
-    "public/website/summary.json": parsedWebsite.summary,
-    "public/website/timeseries.json": parsedWebsite.timeseries,
-    "public/website/pages.json": parsedWebsite.pages,
-    "public/website/countries.json": parsedWebsite.countries,
-    "public/website/browsers.json": parsedWebsite.browsers,
-    "public/website/operating-systems.json": parsedWebsite.operatingSystems,
-    "public/website/devices.json": parsedWebsite.devices,
-    "public/website/valid-paths.json": parsedWebsite.validPaths,
-    "public/website/path-aliases.json": parsedWebsite.pathAliases,
-    "public/website/daily-history.json": parsedWebsite.dailyHistory,
+    "public/website/analytics/summary.json": parsedWebsite.summary,
+    "public/website/analytics/timeseries.json": parsedWebsite.timeseries,
+    "public/website/analytics/pages.json": parsedWebsite.pages,
+    "public/website/analytics/countries.json": parsedWebsite.countries,
+    "public/website/analytics/browsers.json": parsedWebsite.browsers,
+    "public/website/analytics/operating-systems.json": parsedWebsite.operatingSystems,
+    "public/website/analytics/devices.json": parsedWebsite.devices,
+    "public/website/analytics/valid-paths.json": parsedWebsite.validPaths,
+    "public/website/analytics/path-aliases.json": parsedWebsite.pathAliases,
+    "public/website/analytics/daily-history.json": parsedWebsite.dailyHistory,
   };
 
   const outputEntries = Object.entries(outputs);
@@ -626,7 +626,7 @@ function main() {
     progress.step("Write metadata");
     const metadataPath = path.join(workspaceRoot, "public", "website", "snapshot-meta.json");
     writeJson(metadataPath, metadata);
-    progress.detail("Wrote public/website/snapshot-meta.json");
+    progress.detail("Wrote public/website/analytics/snapshot-meta.json");
 
     const registryMetaPath = path.join(
       workspaceRoot,
