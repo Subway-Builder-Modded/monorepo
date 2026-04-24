@@ -16,11 +16,13 @@ on:
       - "website-dev/**"
       - "packages/**"
       - ".github/workflows/website-deploy-dev.yml"
+  schedule:
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 concurrency:
   group: deploy-subway-builder-dev-site
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -56,6 +58,11 @@ jobs:
       - name: Install dependencies
         working-directory: .
         run: pnpm install --frozen-lockfile
+
+      - name: Fetch registry site data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run fetch:registry-site-data
 
       - name: Build
         run: pnpm run build
