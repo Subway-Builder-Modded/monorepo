@@ -50,7 +50,6 @@ export type UpdatesSuiteConfig = {
     pageActions?: UpdatesChangelogActions;
   };
   homepage: {
-    description?: string;
     actions?: UpdatesHomepageActions;
   };
 };

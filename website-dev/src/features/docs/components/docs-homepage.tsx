@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { NavRow, PageHeading, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
+import { SuiteAccentScope, NavRow } from "@subway-builder-modded/shared-ui";
 import { Compass } from "lucide-react";
 import { getDocsSuiteConfig, getDocsVersion, hasMultipleVisibleVersions } from "@/config/docs";
 import { DOCS_HOMEPAGE_ICON, DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
@@ -13,37 +13,22 @@ import { getDocsTree, getVisibleNodes } from "@/features/docs/lib/content";
 import { resolveIcon } from "@/features/docs/lib/icon-resolver";
 import { getDocPageUrl } from "@/features/docs/lib/routing";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
-import { PageHeadingActions } from "@/features/content/components/page-heading-actions";
-
-const SHARED_SUITE_BADGE_CLASS =
-  "h-7 shrink-0 self-center gap-1.5 rounded-md px-2 normal-case tracking-normal";
+import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 
 function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: string | null }) {
-  const suite = getSuiteById(suiteId);
   const config = getDocsSuiteConfig(suiteId)!;
   const actions = resolveHeadingActions(config.homepage.actions, { suiteId, version });
-  const SuiteIcon = suite.icon;
   const description = getSuiteDocsNavItem(suiteId)?.description;
   const hasVersionChooser = hasMultipleVisibleVersions(suiteId) && version;
 
-  const HeroIcon = ((props: { className?: string; "aria-hidden"?: boolean }) => (
-    <DOCS_HOMEPAGE_ICON {...props} data-testid="docs-homepage-hero-icon" />
-  )) as typeof DOCS_HOMEPAGE_ICON;
-
   return (
-    <PageHeading
-      icon={HeroIcon}
+    <FeatureHomepageHeading
+      icon={DOCS_HOMEPAGE_ICON}
+      iconTestId="docs-homepage-hero-icon"
       title={DOCS_HOMEPAGE_TITLE}
       description={description}
-      badge={
-        <SuiteBadge className={SHARED_SUITE_BADGE_CLASS} accent={suite.accent}>
-          <SuiteIcon className="size-3.5" aria-hidden={true} />
-          <span className="max-w-[8rem] truncate">{suite.title}</span>
-        </SuiteBadge>
-      }
-      actions={
-        <PageHeadingActions actions={actions} hideOnSmall />
-      }
+      suiteId={suiteId}
+      actions={actions}
       footer={
         hasVersionChooser ? (
           <div className="flex justify-center">

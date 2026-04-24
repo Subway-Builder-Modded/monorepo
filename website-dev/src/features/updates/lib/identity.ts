@@ -1,21 +1,19 @@
 import {
-  getUpdatesSuiteConfig,
   UPDATES_DEFAULT_HOMEPAGE_DESCRIPTION,
   UPDATES_HOMEPAGE_ICON,
   UPDATES_HOMEPAGE_TITLE,
   type UpdatesSuiteId,
 } from "@/config/updates";
-import { getSuiteById } from "@/config/site-navigation";
+import { getSuiteUpdatesNavItem } from "@/config/site-navigation";
 import type { UpdateEntry } from "./types";
 
+/**
+ * Returns the homepage description for an updates suite.
+ * Single source of truth is the site-navigation Updates nav item description,
+ * matching the same pattern used by the docs feature.
+ */
 export function getUpdatesHomepageDescription(suiteId: UpdatesSuiteId): string {
-  const suiteConfig = getUpdatesSuiteConfig(suiteId);
-  if (suiteConfig?.homepage.description?.trim()) {
-    return suiteConfig.homepage.description.trim();
-  }
-
-  const suite = getSuiteById(suiteId);
-  return `Changelogs and release notes for ${suite.title}.`;
+  return getSuiteUpdatesNavItem(suiteId)?.description ?? UPDATES_DEFAULT_HOMEPAGE_DESCRIPTION;
 }
 
 export function getUpdatesHomepageIdentity(suiteId: UpdatesSuiteId) {

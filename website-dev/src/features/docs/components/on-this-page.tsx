@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowUpToLine, Copy, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
+import { UTILITY_ACTION_CLASS } from "@/features/content/components/utility-action";
 import type { DocsTocHeading } from "@/features/docs/lib/types";
 
 function isHeadingVisible(element: HTMLElement): boolean {
@@ -238,7 +239,7 @@ export function OnThisPage({
             <button
               type="button"
               onClick={scrollToTop}
-              className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
+              className={UTILITY_ACTION_CLASS}
             >
               <ArrowUpToLine className="size-3" aria-hidden="true" />
               Top
@@ -249,7 +250,7 @@ export function OnThisPage({
                 href={editUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
+                className={UTILITY_ACTION_CLASS}
               >
                 <Pencil className="size-3" aria-hidden="true" />
                 Edit
@@ -260,7 +261,7 @@ export function OnThisPage({
               <button
                 type="button"
                 onClick={copyMarkdown}
-                className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
+                className={UTILITY_ACTION_CLASS}
               >
                 <Copy className="size-3" aria-hidden="true" />
                 {copied ? "Copied" : "Copy"}

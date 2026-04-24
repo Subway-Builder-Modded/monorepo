@@ -7,7 +7,6 @@ export const templateModUpdatesConfig: UpdatesSuiteConfig = {
   enabled: true,
   editSourceBaseUrl: `${UPDATES_GITHUB_BASE_URL}/${UPDATES_CONTENT_ROOT}/template-mod/updates`,
   homepage: {
-    description: "Release history for the Template Mod starter line.",
     actions: [
       {
         label: "Use Template",

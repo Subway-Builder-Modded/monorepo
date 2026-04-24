@@ -9,6 +9,7 @@ import { getUpdatePageUrl } from "@/features/updates/lib/routing";
 import { Link } from "@/lib/router";
 import { LatestReleaseChip, TagChip } from "@/features/updates/components/tag-badges";
 import { useUpdatesRoute } from "./updates-route-context";
+import { DirectoryShell } from "@/features/content/components/directory-shell";
 
 type DirectoryProps = {
   path?: string;
@@ -31,28 +32,16 @@ export function Directory({ path, suiteId, icon, label, emptyLabel }: DirectoryP
   }, [resolvedPath, resolvedSuiteId]);
 
   const latestId = entries[0]?.id ?? null;
-  const SeparatorIcon = icon ? resolveIcon(icon) : null;
+  const SeparatorIcon = icon ? resolveIcon(icon) : undefined;
 
   return (
-    <div>
-      {(SeparatorIcon || label) && (
-        <div className="mb-4 flex items-center gap-2.5" aria-hidden="true">
-          {SeparatorIcon ? (
-            <SeparatorIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
-          ) : null}
-          {label ? (
-            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              {label}
-            </span>
-          ) : null}
-          <div className="h-px flex-1 bg-border/60" />
-        </div>
-      )}
-
-      {entries.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{emptyLabel ?? "No entries available."}</p>
-      ) : (
-        <div className="space-y-2">
+    <DirectoryShell
+      icon={SeparatorIcon}
+      label={label}
+      isEmpty={entries.length === 0}
+      emptyLabel={emptyLabel}
+    >
+      <div className="space-y-2">
           {entries.map((entry) => {
             const Icon = resolveIcon(entry.frontmatter.icon);
             const isLatest = latestId === entry.id;
@@ -92,7 +81,6 @@ export function Directory({ path, suiteId, icon, label, emptyLabel }: DirectoryP
             );
           })}
         </div>
-      )}
-    </div>
+    </DirectoryShell>
   );
 }

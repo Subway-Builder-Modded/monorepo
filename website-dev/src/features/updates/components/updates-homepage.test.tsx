@@ -64,7 +64,7 @@ describe("UpdatesHomepage", () => {
     render(<UpdatesHomepage suiteId="template-mod" />);
 
     expect(screen.getByRole("heading", { name: "Updates" })).toBeInTheDocument();
-    expect(screen.getByText("Release history for the Template Mod starter line.")).toBeInTheDocument();
+    expect(screen.getByText("View the changelogs and release notes for the Template Mod.")).toBeInTheDocument();
     expect(screen.queryByText("Latest Version")).not.toBeInTheDocument();
     expect(screen.getByText("Releases")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Template Mod v1.0.1/i })).toHaveAttribute(

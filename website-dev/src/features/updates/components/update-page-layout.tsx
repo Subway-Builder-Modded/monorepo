@@ -4,6 +4,7 @@ import { Copy, FileQuestion, GitCompareArrows, Pencil } from "lucide-react";
 import { getSuiteById } from "@/config/site-navigation";
 import { getUpdatesSuiteConfig, type UpdatesSuiteId } from "@/config/updates";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
+import { UTILITY_ACTION_CLASS } from "@/features/content/components/utility-action";
 import {
   findUpdateEntry,
   getUpdateDirectoryEntries,
@@ -100,7 +101,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
                   href={editUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
+                  className={UTILITY_ACTION_CLASS}
                 >
                   <Pencil className="size-3" aria-hidden="true" />
                   Edit
@@ -110,7 +111,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
                   <button
                     type="button"
                     onClick={copyMarkdown}
-                    className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
+                    className={UTILITY_ACTION_CLASS}
                   >
                     <Copy className="size-3" aria-hidden="true" />
                     {copied ? "Copied" : "Copy"}

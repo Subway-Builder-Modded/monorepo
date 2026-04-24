@@ -6,23 +6,15 @@ import type {
   DocsSuiteId,
 } from "@/config/docs";
 import { getDocsSuiteConfig, getSidebarOrder, DOCS_CONTENT_ROOT } from "@/config/docs";
+import { constructEditUrl } from "@/features/content/lib/edit-url";
+import type { MdxGlobResult, MdxRawContentModule } from "@/features/content/lib/mdx-virtual-module";
 // @ts-expect-error -- virtual module provided by mdxRawContentPlugin in vite.config
 import rawContentData from "virtual:mdx-raw-content";
 
-type RawMdxModule = {
-  default: React.ComponentType;
-};
-
-type GlobResult = Record<string, () => Promise<RawMdxModule>>;
-type RawContentVirtualModule = {
-  rawByPath: Record<string, string>;
-  frontmatterByPath: Record<string, DocsFrontmatter>;
-};
-
-const mdxModules = import.meta.glob("/content/*/docs/**/*.mdx") as GlobResult;
-const mdxRawModules: Record<string, string> = (rawContentData as RawContentVirtualModule).rawByPath;
+const mdxModules = import.meta.glob("/content/*/docs/**/*.mdx") as MdxGlobResult;
+const mdxRawModules: Record<string, string> = (rawContentData as MdxRawContentModule<DocsFrontmatter>).rawByPath;
 const mdxFrontmatterModules: Record<string, DocsFrontmatter> = (
-  rawContentData as RawContentVirtualModule
+  rawContentData as MdxRawContentModule<DocsFrontmatter>
 ).frontmatterByPath;
 
 function getContentKey(filePath: string): string {
@@ -206,12 +198,7 @@ export function getDocSourcePath(
 export function getEditUrl(suiteId: DocsSuiteId, version: DocsRouteVersion, slug: string): string {
   const config = getDocsSuiteConfig(suiteId);
   if (!config) return "#";
-
-  if (!config.versioned) {
-    return `${config.editSourceBaseUrl}/${slug}.mdx`;
-  }
-
-  return `${config.editSourceBaseUrl}/${version}/${slug}.mdx`;
+  return constructEditUrl(config.editSourceBaseUrl, slug, config.versioned ? version : null);
 }
 
 export function validateFolderLandingPages(

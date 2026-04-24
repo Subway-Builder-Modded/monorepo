@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { PageHeading, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
+import { SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { ChevronRight } from "lucide-react";
 import { getSuiteById } from "@/config/site-navigation";
 import {
@@ -15,7 +15,7 @@ import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
-import { PageHeadingActions } from "@/features/content/components/page-heading-actions";
+import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { LatestReleaseChip, TagChip } from "./tag-badges";
 import { getUpdatesHomepageIdentity } from "@/features/updates/lib/identity";
 
@@ -30,17 +30,12 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
   return (
     <SuiteAccentScope accent={suite.accent}>
       <section className="py-6 lg:py-8">
-        <PageHeading
+        <FeatureHomepageHeading
           icon={UPDATES_HOMEPAGE_ICON}
           title={UPDATES_HOMEPAGE_TITLE}
           description={identity.description}
-          badge={
-            <SuiteBadge className="h-7 shrink-0 gap-1.5 rounded-md px-2 normal-case tracking-normal" accent={suite.accent}>
-              <suite.icon className="size-3.5" aria-hidden={true} />
-              <span className="max-w-[8rem] truncate">{suite.title}</span>
-            </SuiteBadge>
-          }
-          actions={<PageHeadingActions actions={headingActions} hideOnSmall />}
+          suiteId={suiteId}
+          actions={headingActions}
         />
 
         <div className="mb-4 flex items-center gap-2.5" aria-label="Updates directory">

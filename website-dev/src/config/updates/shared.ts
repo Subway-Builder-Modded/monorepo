@@ -1,10 +1,14 @@
 import { Megaphone, type LucideIcon } from "lucide-react";
 import type { UpdatesTag, UpdatesTagPresentation } from "./types";
+import { CONTENT_GITHUB_EDIT_BASE_URL, CONTENT_ROOT } from "@/config/shared/content";
 
-export const UPDATES_GITHUB_BASE_URL =
-  "https://github.com/Subway-Builder-Modded/monorepo/edit/website";
-
-export const UPDATES_CONTENT_ROOT = "content";
+/**
+ * Re-exported under the updates-prefixed names that suite configs already import.
+ * The actual values live in config/shared/content so the monorepo path is
+ * declared exactly once across docs and updates.
+ */
+export const UPDATES_GITHUB_BASE_URL = CONTENT_GITHUB_EDIT_BASE_URL;
+export const UPDATES_CONTENT_ROOT = CONTENT_ROOT;
 
 export const UPDATES_HOMEPAGE_TITLE = "Updates";
 export const UPDATES_HOMEPAGE_ICON: LucideIcon = Megaphone;

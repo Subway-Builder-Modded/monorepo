@@ -7,7 +7,6 @@ export const websiteUpdatesConfig: UpdatesSuiteConfig = {
   enabled: true,
   editSourceBaseUrl: `${UPDATES_GITHUB_BASE_URL}/${UPDATES_CONTENT_ROOT}/website/updates`,
   homepage: {
-    description: "Product updates, fixes, and polish shipped to the website.",
     actions: [
       {
         label: "View Analytics",

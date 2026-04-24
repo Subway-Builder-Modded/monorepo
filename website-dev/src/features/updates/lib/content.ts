@@ -1,24 +1,15 @@
 import type { UpdatesFrontmatter, UpdatesSuiteId } from "@/config/updates";
 import { getUpdatesSuiteConfig } from "@/config/updates";
 import type { UpdateEntry, UpdateTreeNode } from "./types";
-
+import { constructEditUrl } from "@/features/content/lib/edit-url";
+import type { MdxGlobResult, MdxRawContentModule } from "@/features/content/lib/mdx-virtual-module";
 // @ts-expect-error - virtual module provided by vite plugin
 import rawContentData from "virtual:mdx-raw-content";
 
-type RawMdxModule = {
-  default: React.ComponentType;
-};
-
-type GlobResult = Record<string, () => Promise<RawMdxModule>>;
-type RawContentVirtualModule = {
-  rawByPath: Record<string, string>;
-  frontmatterByPath: Record<string, unknown>;
-};
-
-const mdxModules = import.meta.glob("/content/*/updates/**/*.mdx") as GlobResult;
-const mdxRawModules: Record<string, string> = (rawContentData as RawContentVirtualModule).rawByPath;
-const mdxFrontmatterModules: Record<string, unknown> = (
-  rawContentData as RawContentVirtualModule
+const mdxModules = import.meta.glob("/content/*/updates/**/*.mdx") as MdxGlobResult;
+const mdxRawModules: Record<string, string> = (rawContentData as MdxRawContentModule<UpdatesFrontmatter>).rawByPath;
+const mdxFrontmatterModules: Record<string, UpdatesFrontmatter> = (
+  rawContentData as MdxRawContentModule<UpdatesFrontmatter>
 ).frontmatterByPath;
 
 const SEMVER_ID_REGEX = /^v?(\d+)\.(\d+)\.(\d+)$/;
@@ -170,5 +161,5 @@ export function getUpdateSourcePath(suiteId: UpdatesSuiteId, id: string): string
 export function getUpdateEditUrl(suiteId: UpdatesSuiteId, id: string): string {
   const config = getUpdatesSuiteConfig(suiteId);
   if (!config) return "#";
-  return `${config.editSourceBaseUrl}/${id}.mdx`;
+  return constructEditUrl(config.editSourceBaseUrl, id);
 }
