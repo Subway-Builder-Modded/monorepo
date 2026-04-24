@@ -46,4 +46,14 @@ describe("resolvePageMetadata", () => {
     expect(metadata.pageTitle).toBe("Template Mod - v1.0.0 | Template Mod Updates");
     expect(metadata.suite.id).toBe("template-mod");
   });
+
+  it("resolves /license page metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/license");
+
+    expect(metadata.title).toBe("License");
+    expect(metadata.pageTitle).toBe("License");
+    expect(metadata.description).toBe("Terms and licensing information for Subway Builder Modded projects.");
+    expect(metadata.suite.id).toBe("general");
+    expect(metadata.imagePath).toBe("/logo.svg");
+  });
 });

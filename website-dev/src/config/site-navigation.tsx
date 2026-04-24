@@ -197,16 +197,6 @@ export const SITE_SUITES: SiteSuite[] = [
 
 export const SITE_NAV_ITEMS: SiteNavItem[] = [
   {
-    id: "general-home",
-    suiteId: "general",
-    title: "Home",
-    description:
-      "Welcome to Subway Builder Modded, the complete hub for all things modded in Subway Builder.",
-    href: "/",
-    icon: House,
-    activeMatchRules: [{ kind: "exact", path: "/" }],
-  },
-  {
     id: "general-community",
     suiteId: "general",
     title: "Community",
