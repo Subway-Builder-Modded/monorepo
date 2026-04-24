@@ -5,7 +5,6 @@ import {
   TrendingUp,
   Users,
   Globe,
-  Package,
   Database,
 } from 'lucide-react';
 import { useEffect } from 'react';
