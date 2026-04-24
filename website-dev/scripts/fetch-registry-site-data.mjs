@@ -1,4 +1,13 @@
-import { mkdtempSync, rmSync, mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
+import {
+  mkdtempSync,
+  rmSync,
+  mkdirSync,
+  existsSync,
+  copyFileSync,
+  readFileSync,
+  writeFileSync,
+  readdirSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -17,24 +26,75 @@ const WEBSITE_PERIOD_DAYS = {
 };
 
 const COPY_MAPPINGS = [
-  { source: "analytics/most_popular_all_time.csv", destination: "public/registry/analytics/most_popular_all_time.csv" },
-  { source: "analytics/most_popular_last_1d.csv", destination: "public/registry/analytics/most_popular_last_1d.csv" },
-  { source: "analytics/most_popular_last_3d.csv", destination: "public/registry/analytics/most_popular_last_3d.csv" },
-  { source: "analytics/most_popular_last_7d.csv", destination: "public/registry/analytics/most_popular_last_7d.csv" },
-  { source: "analytics/authors_by_total_downloads.csv", destination: "public/registry/analytics/authors_by_total_downloads.csv" },
-  { source: "analytics/projects_most_popular_all_time.csv", destination: "public/registry/analytics/projects_most_popular_all_time.csv" },
-  { source: "analytics/projects_most_popular_last_1d.csv", destination: "public/registry/analytics/projects_most_popular_last_1d.csv" },
-  { source: "analytics/projects_most_popular_last_3d.csv", destination: "public/registry/analytics/projects_most_popular_last_3d.csv" },
-  { source: "analytics/projects_most_popular_last_7d.csv", destination: "public/registry/analytics/projects_most_popular_last_7d.csv" },
-  { source: "analytics/listing_projects.csv", destination: "public/registry/analytics/listing_projects.csv" },
-  { source: "analytics/maps_statistics.csv", destination: "public/registry/analytics/maps_statistics.csv" },
-  { source: "analytics/assets_by_day.csv", destination: "public/registry/analytics/assets_by_day.csv" },
-  { source: "analytics/most_popular_by_day.csv", destination: "public/registry/analytics/most_popular_by_day.csv" },
-  { source: "analytics/authors_by_day.csv", destination: "public/registry/analytics/authors_by_day.csv" },
+  {
+    source: "analytics/most_popular_all_time.csv",
+    destination: "public/registry/analytics/most_popular_all_time.csv",
+  },
+  {
+    source: "analytics/most_popular_last_1d.csv",
+    destination: "public/registry/analytics/most_popular_last_1d.csv",
+  },
+  {
+    source: "analytics/most_popular_last_3d.csv",
+    destination: "public/registry/analytics/most_popular_last_3d.csv",
+  },
+  {
+    source: "analytics/most_popular_last_7d.csv",
+    destination: "public/registry/analytics/most_popular_last_7d.csv",
+  },
+  {
+    source: "analytics/authors_by_total_downloads.csv",
+    destination: "public/registry/analytics/authors_by_total_downloads.csv",
+  },
+  {
+    source: "analytics/projects_most_popular_all_time.csv",
+    destination: "public/registry/analytics/projects_most_popular_all_time.csv",
+  },
+  {
+    source: "analytics/projects_most_popular_last_1d.csv",
+    destination: "public/registry/analytics/projects_most_popular_last_1d.csv",
+  },
+  {
+    source: "analytics/projects_most_popular_last_3d.csv",
+    destination: "public/registry/analytics/projects_most_popular_last_3d.csv",
+  },
+  {
+    source: "analytics/projects_most_popular_last_7d.csv",
+    destination: "public/registry/analytics/projects_most_popular_last_7d.csv",
+  },
+  {
+    source: "analytics/listing_projects.csv",
+    destination: "public/registry/analytics/listing_projects.csv",
+  },
+  {
+    source: "analytics/maps_statistics.csv",
+    destination: "public/registry/analytics/maps_statistics.csv",
+  },
+  {
+    source: "analytics/assets_by_day.csv",
+    destination: "public/registry/analytics/assets_by_day.csv",
+  },
+  {
+    source: "analytics/most_popular_by_day.csv",
+    destination: "public/registry/analytics/most_popular_by_day.csv",
+  },
+  {
+    source: "analytics/authors_by_day.csv",
+    destination: "public/registry/analytics/authors_by_day.csv",
+  },
   { source: "authors/index.json", destination: "public/registry/analytics/authors_index.json" },
-  { source: "analytics/railyard_app_downloads.json", destination: "public/railyard/analytics/railyard_app_downloads.json" },
-  { source: "analytics/railyard_app_by_day.csv", destination: "public/railyard/analytics/railyard_app_by_day.csv" },
-  { source: "history/railyard_app_downloads.json", destination: "public/railyard/analytics/railyard_app_downloads_history.json" },
+  {
+    source: "analytics/railyard_app_downloads.json",
+    destination: "public/railyard/analytics/railyard_app_downloads.json",
+  },
+  {
+    source: "analytics/railyard_app_by_day.csv",
+    destination: "public/railyard/analytics/railyard_app_by_day.csv",
+  },
+  {
+    source: "history/railyard_app_downloads.json",
+    destination: "public/railyard/analytics/railyard_app_downloads_history.json",
+  },
 ];
 
 const MIRROR_DIRECTORY_MAPPINGS = [
@@ -133,7 +193,10 @@ function parseDotEnvLine(line) {
   const key = withoutExport.slice(0, separator).trim();
   let value = withoutExport.slice(separator + 1).trim();
 
-  if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
     value = value.slice(1, -1);
   }
 
@@ -195,7 +258,10 @@ function parseWebsiteAnalytics(websiteAnalytics) {
   }
 
   const snapshotEntries = Object.entries(snapshots)
-    .filter(([dateKey, payload]) => /^\d{4}-\d{2}-\d{2}$/.test(dateKey) && payload && typeof payload === "object")
+    .filter(
+      ([dateKey, payload]) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(dateKey) && payload && typeof payload === "object",
+    )
     .map(([dateKey, payload]) => ({ dateKey, payload }))
     .sort((left, right) => left.dateKey.localeCompare(right.dateKey));
 
@@ -267,7 +333,11 @@ function parseWebsiteAnalytics(websiteAnalytics) {
   const countryNameLookup = new Intl.DisplayNames(["en"], { type: "region" });
 
   const pages = [...allPages]
-    .sort((left, right) => (pageByPeriod.all.get(right) ?? 0) - (pageByPeriod.all.get(left) ?? 0) || left.localeCompare(right))
+    .sort(
+      (left, right) =>
+        (pageByPeriod.all.get(right) ?? 0) - (pageByPeriod.all.get(left) ?? 0) ||
+        left.localeCompare(right),
+    )
     .map((pagePath) => ({
       path: pagePath,
       pageviews: makePeriodMetrics(pageByPeriod, pagePath),
@@ -276,7 +346,11 @@ function parseWebsiteAnalytics(websiteAnalytics) {
     }));
 
   const countries = [...allCountries]
-    .sort((left, right) => (countryByPeriod.all.get(right) ?? 0) - (countryByPeriod.all.get(left) ?? 0) || left.localeCompare(right))
+    .sort(
+      (left, right) =>
+        (countryByPeriod.all.get(right) ?? 0) - (countryByPeriod.all.get(left) ?? 0) ||
+        left.localeCompare(right),
+    )
     .map((countryCode) => {
       const normalizedCode = String(countryCode).toUpperCase();
       const resolvedName = /^[A-Z]{2}$/.test(normalizedCode)
@@ -291,7 +365,11 @@ function parseWebsiteAnalytics(websiteAnalytics) {
     });
 
   const browsers = [...allBrowsers]
-    .sort((left, right) => (browserByPeriod.all.get(right) ?? 0) - (browserByPeriod.all.get(left) ?? 0) || left.localeCompare(right))
+    .sort(
+      (left, right) =>
+        (browserByPeriod.all.get(right) ?? 0) - (browserByPeriod.all.get(left) ?? 0) ||
+        left.localeCompare(right),
+    )
     .map((browser) => ({
       browser,
       visits: makePeriodMetrics(browserByPeriod, browser),
@@ -300,7 +378,8 @@ function parseWebsiteAnalytics(websiteAnalytics) {
   const operatingSystems = [...allOperatingSystems]
     .sort(
       (left, right) =>
-        (operatingSystemByPeriod.all.get(right) ?? 0) - (operatingSystemByPeriod.all.get(left) ?? 0) || left.localeCompare(right),
+        (operatingSystemByPeriod.all.get(right) ?? 0) -
+          (operatingSystemByPeriod.all.get(left) ?? 0) || left.localeCompare(right),
     )
     .map((operatingSystem) => ({
       operatingSystem,
@@ -308,7 +387,11 @@ function parseWebsiteAnalytics(websiteAnalytics) {
     }));
 
   const devices = [...allDevices]
-    .sort((left, right) => (deviceByPeriod.all.get(right) ?? 0) - (deviceByPeriod.all.get(left) ?? 0) || left.localeCompare(right))
+    .sort(
+      (left, right) =>
+        (deviceByPeriod.all.get(right) ?? 0) - (deviceByPeriod.all.get(left) ?? 0) ||
+        left.localeCompare(right),
+    )
     .map((device) => ({
       device,
       visits: makePeriodMetrics(deviceByPeriod, device),
@@ -397,7 +480,7 @@ function mirrorDirectoryRoots(snapshotRoot, workspaceRoot, materializedFiles, pr
     }
 
     let copiedCount = 0;
-  let skippedCount = 0;
+    let skippedCount = 0;
     const stack = [""];
 
     while (stack.length > 0) {
@@ -428,11 +511,17 @@ function mirrorDirectoryRoots(snapshotRoot, workspaceRoot, materializedFiles, pr
         }
 
         const sourcePath = path.join(sourceRootPath, entryRelativePath);
-        const destinationPath = path.join(workspaceRoot, mapping.destinationRoot, entryRelativePath);
+        const destinationPath = path.join(
+          workspaceRoot,
+          mapping.destinationRoot,
+          entryRelativePath,
+        );
         ensureDirForFile(destinationPath);
         copyFileSync(sourcePath, destinationPath);
 
-        const materializedPath = path.join(mapping.destinationRoot, entryRelativePath).replace(/\\/g, "/");
+        const materializedPath = path
+          .join(mapping.destinationRoot, entryRelativePath)
+          .replace(/\\/g, "/");
         materializedFiles.push(materializedPath);
         copiedCount += 1;
       }
@@ -475,9 +564,7 @@ function main() {
   loadLocalEnvFiles(workspaceRoot);
 
   progress.step("Validate GitHub token");
-  const token =
-    process.env.SBM_GITHUB_TOKEN?.trim() ||
-    "";
+  const token = process.env.SBM_GITHUB_TOKEN?.trim() || "";
 
   if (!token) {
     fail("missing GitHub token: set SBM_GITHUB_TOKEN");
@@ -541,27 +628,45 @@ function main() {
     writeJson(metadataPath, metadata);
     progress.detail("Wrote public/website/snapshot-meta.json");
 
-    const registryMetaPath = path.join(workspaceRoot, "public", "registry", "analytics", "snapshot-meta.json");
+    const registryMetaPath = path.join(
+      workspaceRoot,
+      "public",
+      "registry",
+      "analytics",
+      "snapshot-meta.json",
+    );
     writeJson(registryMetaPath, {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
       fetchedAt,
-      files: materializedFiles.filter((file) => file.startsWith("public/registry/analytics/")).sort((a, b) => a.localeCompare(b)),
+      files: materializedFiles
+        .filter((file) => file.startsWith("public/registry/analytics/"))
+        .sort((a, b) => a.localeCompare(b)),
     });
     progress.detail("Wrote public/registry/analytics/snapshot-meta.json");
 
-    const railyardMetaPath = path.join(workspaceRoot, "public", "railyard", "analytics", "snapshot-meta.json");
+    const railyardMetaPath = path.join(
+      workspaceRoot,
+      "public",
+      "railyard",
+      "analytics",
+      "snapshot-meta.json",
+    );
     writeJson(railyardMetaPath, {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
       fetchedAt,
-      files: materializedFiles.filter((file) => file.startsWith("public/railyard/analytics/")).sort((a, b) => a.localeCompare(b)),
+      files: materializedFiles
+        .filter((file) => file.startsWith("public/railyard/analytics/"))
+        .sort((a, b) => a.localeCompare(b)),
     });
     progress.detail("Wrote public/railyard/analytics/snapshot-meta.json");
 
-    console.log(`[fetch-registry-site-data] materialized ${materializedFiles.length} files from ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`);
+    console.log(
+      `[fetch-registry-site-data] materialized ${materializedFiles.length} files from ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`,
+    );
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
   }
