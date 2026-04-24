@@ -96,35 +96,39 @@ function parseDocsPath(
   const withoutExt = relativePath.replace(/\.mdx$/, "");
   const segments = withoutExt.split("/");
 
-  if (segments.length < 2) {
-    errors.push(`${absolutePath}: docs file must be nested under a suite folder`);
+  if (segments.length < 3 || segments[1] !== "docs") {
     return null;
   }
 
   const suiteCandidate = segments[0];
   if (!(suiteCandidate in DOCS_CONFIG.suites)) {
-    errors.push(`${absolutePath}: unknown docs suite "${suiteCandidate}"`);
     return null;
   }
 
   const suiteId = suiteCandidate as DocsSuiteId;
   const suite = DOCS_CONFIG.suites[suiteId];
 
+  const suiteSegments = segments.slice(2);
+  if (suiteSegments.length < 1) {
+    errors.push(`${absolutePath}: docs file must include a slug after /<suite>/docs`);
+    return null;
+  }
+
   if (suite.versioned) {
-    if (segments.length < 3) {
+    if (suiteSegments.length < 2) {
       errors.push(
-        `${absolutePath}: versioned suite "${suiteId}" requires /<suite>/<version>/<slug>.mdx`,
+        `${absolutePath}: versioned suite "${suiteId}" requires /<suite>/docs/<version>/<slug>.mdx`,
       );
       return null;
     }
 
-    const version = segments[1];
+    const version = suiteSegments[0];
     if (!suite.versions.some((v) => v.value === version)) {
       errors.push(`${absolutePath}: unknown version "${version}" for suite "${suiteId}"`);
       return null;
     }
 
-    const slug = segments.slice(2).join("/");
+    const slug = suiteSegments.slice(1).join("/");
     if (!slug) {
       errors.push(`${absolutePath}: missing slug path after version folder`);
       return null;
@@ -138,19 +142,14 @@ function parseDocsPath(
     };
   }
 
-  if (segments.length < 2) {
-    errors.push(`${absolutePath}: non-versioned suite "${suiteId}" requires /<suite>/<slug>.mdx`);
-    return null;
-  }
-
-  if (segments.length >= 3 && VERSION_PATTERN.test(segments[1])) {
+  if (suiteSegments.length >= 2 && VERSION_PATTERN.test(suiteSegments[0])) {
     errors.push(
-      `${absolutePath}: non-versioned suite "${suiteId}" must not use version folder "${segments[1]}"`,
+      `${absolutePath}: non-versioned suite "${suiteId}" must not use version folder "${suiteSegments[0]}"`,
     );
     return null;
   }
 
-  const slug = segments.slice(1).join("/");
+  const slug = suiteSegments.join("/");
   if (!slug) {
     errors.push(`${absolutePath}: missing slug path for non-versioned suite`);
     return null;
@@ -209,7 +208,7 @@ export function collectDocsContent(contentRoot: string): DocsContentValidationRe
     const raw = fs.readFileSync(absolutePath, "utf-8");
     const frontmatter = normalizeFrontmatter(absolutePath, raw, errors);
     const contentRelativePath = path.relative(contentRoot, absolutePath).replace(/\\/g, "/");
-    const virtualPath = `/content/docs/${contentRelativePath}`;
+    const virtualPath = `/content/${contentRelativePath}`;
 
     parsedFiles.push({
       ...parsedPath,

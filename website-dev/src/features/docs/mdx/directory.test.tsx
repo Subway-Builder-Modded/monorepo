@@ -21,7 +21,7 @@ vi.mock("@/features/docs/lib", () => ({
         key: "players",
         slug: "players",
         routePath: "/railyard/docs/v0.2/players",
-        sourcePath: "/content/docs/railyard/v0.2/players.mdx",
+        sourcePath: "/content/railyard/docs/v0.2/players.mdx",
         frontmatter: {
           title: "Players",
           description: "Manage players",

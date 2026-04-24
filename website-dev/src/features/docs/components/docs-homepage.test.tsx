@@ -21,7 +21,7 @@ vi.mock("@/features/docs/lib/content", () => ({
         key: "players",
         slug: "players",
         routePath: "/railyard/docs/v0.2/players",
-        sourcePath: "/content/docs/railyard/v0.2/players.mdx",
+        sourcePath: "/content/railyard/docs/v0.2/players.mdx",
         frontmatter: {
           title: "Players",
           description: "Player management docs",
@@ -111,7 +111,7 @@ describe("DocsHomepage", () => {
     expect(heroCard).toBeTruthy();
     expect(heroCard?.contains(versionBtn)).toBe(true);
 
-    const download = screen.getByRole("link", { name: /Download Railyard/i });
+    const download = screen.getByRole("link", { name: /^Download$/i });
     const analytics = screen.getByRole("link", { name: /View Analytics/i });
 
     expect(download.className).toContain("h-7");

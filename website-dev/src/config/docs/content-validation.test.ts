@@ -26,7 +26,7 @@ afterEach(() => {
 
 describe("collectDocsContent", () => {
   it("passes for current repository docs content", () => {
-    const contentRoot = path.resolve(process.cwd(), "content", "docs");
+    const contentRoot = path.resolve(process.cwd(), "content");
     const result = collectDocsContent(contentRoot);
     expect(result.errors).toEqual([]);
     expect(Object.keys(result.rawByPath).length).toBeGreaterThan(0);
@@ -35,7 +35,7 @@ describe("collectDocsContent", () => {
 
   it("fails when icon frontmatter is missing", () => {
     const root = makeTempRoot();
-    writeMdx(root, "registry/publishing-projects.mdx", "title: Publishing\ndescription: Test");
+    writeMdx(root, "registry/docs/publishing-projects.mdx", "title: Publishing\ndescription: Test");
 
     const result = collectDocsContent(root);
     expect(result.errors.some((e) => e.includes('missing required frontmatter field "icon"'))).toBe(
@@ -47,7 +47,7 @@ describe("collectDocsContent", () => {
     const root = makeTempRoot();
     writeMdx(
       root,
-      "registry/publishing-projects.mdx",
+      "registry/docs/publishing-projects.mdx",
       "title: Publishing\ndescription: Test\nicon: NotARealIcon",
     );
 
@@ -59,7 +59,7 @@ describe("collectDocsContent", () => {
     const root = makeTempRoot();
     writeMdx(
       root,
-      "railyard/v0.2/players/github-token.mdx",
+      "railyard/docs/v0.2/players/github-token.mdx",
       "title: GitHub Token\ndescription: Token docs\nicon: FileText",
     );
 
@@ -73,7 +73,7 @@ describe("collectDocsContent", () => {
     const root = makeTempRoot();
     writeMdx(
       root,
-      "registry/v1.0/publishing-projects.mdx",
+      "registry/docs/v1.0/publishing-projects.mdx",
       "title: Publishing\ndescription: Test\nicon: BookText",
     );
 
@@ -85,7 +85,7 @@ describe("collectDocsContent", () => {
 describe("assertDocsContentValid", () => {
   it("throws when validation fails", () => {
     const root = makeTempRoot();
-    writeMdx(root, "registry/publishing-projects.mdx", "title: Publishing\ndescription: Test");
+    writeMdx(root, "registry/docs/publishing-projects.mdx", "title: Publishing\ndescription: Test");
 
     expect(() => assertDocsContentValid(root)).toThrowError(/Validation failed/);
   });

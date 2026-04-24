@@ -29,4 +29,21 @@ describe("resolvePageMetadata", () => {
     expect(metadata.suite.id).toBe("registry");
     expect(metadata.imagePath).toBe("/images/registry/logo.png");
   });
+
+  it("resolves updates homepage metadata from shared updates identity", () => {
+    const metadata = resolvePageMetadata("/railyard/updates");
+
+    expect(metadata.title).toBe("Updates");
+    expect(metadata.pageTitle).toBe("Updates | Railyard");
+    expect(metadata.description).toBe("View the changelogs and release notes for Railyard.");
+    expect(metadata.suite.id).toBe("railyard");
+  });
+
+  it("resolves updates article metadata from update frontmatter", () => {
+    const metadata = resolvePageMetadata("/template-mod/updates/v1.0.0");
+
+    expect(metadata.title).toBe("Template Mod - v1.0.0");
+    expect(metadata.pageTitle).toBe("Template Mod - v1.0.0 | Template Mod Updates");
+    expect(metadata.suite.id).toBe("template-mod");
+  });
 });

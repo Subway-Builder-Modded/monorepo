@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useMemo } from "react";
 import { SuiteAccentLink, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/lib/router";
 import { getSuiteById } from "@/config/site-navigation";
@@ -12,6 +12,7 @@ import {
   getDocSourcePath,
   getEditUrl,
 } from "@/features/docs/lib/content";
+import { AsyncArticleContent } from "@/features/content/components/async-article-content";
 import { extractHeadings } from "@/features/docs/lib/headings";
 import { getDocsHomepageUrl } from "@/features/docs/lib/routing";
 import { mdxComponents } from "@/features/docs/mdx/components";
@@ -32,67 +33,6 @@ function getInitialSidebarCollapsedState() {
   } catch {
     return false;
   }
-}
-
-function DocContent({ sourcePath }: { sourcePath: string }) {
-  const [Content, setContent] = useState<React.ComponentType<any> | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setContent(null);
-    setError(null);
-
-    loadDocContent(sourcePath)
-      .then((component) => {
-        if (!cancelled) {
-          if (component) {
-            setContent(() => component);
-          } else {
-            setError("Content not found");
-          }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError("Failed to load content");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [sourcePath]);
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <FileQuestion className="size-8 text-muted-foreground" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground">{error}</p>
-      </div>
-    );
-  }
-
-  if (!Content) {
-    return (
-      <div className="space-y-4 py-8">
-        <div className="h-4 w-3/4 animate-pulse rounded bg-muted/40" />
-        <div className="h-4 w-1/2 animate-pulse rounded bg-muted/40" />
-        <div className="h-4 w-5/6 animate-pulse rounded bg-muted/40" />
-      </div>
-    );
-  }
-
-  return (
-    <Suspense
-      fallback={
-        <div className="space-y-4 py-8">
-          <div className="h-4 w-3/4 animate-pulse rounded bg-muted/40" />
-          <div className="h-4 w-1/2 animate-pulse rounded bg-muted/40" />
-        </div>
-      }
-    >
-      <Content components={mdxComponents} />
-    </Suspense>
-  );
 }
 
 export function DocPageLayout({
@@ -195,7 +135,12 @@ export function DocPageLayout({
             <section className="px-1 py-2 sm:px-2 sm:py-3">
               <div className="prose-docs max-w-none">
                 <DocsRouteProvider value={{ suiteId, version, slug }}>
-                  <DocContent sourcePath={sourcePath} />
+                  <AsyncArticleContent
+                    sourcePath={sourcePath}
+                    loadContent={loadDocContent}
+                    components={mdxComponents}
+                    loadingLines={3}
+                  />
                 </DocsRouteProvider>
               </div>
             </section>

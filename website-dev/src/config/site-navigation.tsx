@@ -255,15 +255,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "exact", path: "/railyard" }],
   },
   {
-    id: "railyard-browse",
-    suiteId: "railyard",
-    title: "Browse",
-    description: "Browse our registry of community-made content for Subway Builder.",
-    href: "/railyard/browse",
-    icon: Compass,
-    activeMatchRules: [{ kind: "prefix", path: "/railyard/browse" }],
-  },
-  {
     id: "railyard-docs",
     suiteId: "railyard",
     title: "Docs",
@@ -357,7 +348,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "template-mod-docs",
     suiteId: "template-mod",
     title: "Docs",
-    description: "The official documentation for the Subway Builder Modded Template Mod.",
+    description: "The official documentation for the Template Mod.",
     href: "/template-mod/docs",
     icon: BookText,
     activeMatchRules: [{ kind: "prefix", path: "/template-mod/docs" }],
@@ -406,15 +397,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/foundry/docs",
     icon: BookText,
     activeMatchRules: [{ kind: "prefix", path: "/foundry/docs" }],
-  },
-  {
-    id: "foundry-updates",
-    suiteId: "foundry",
-    title: "Updates",
-    description: "View the changelogs and release notes for Foundry.",
-    href: "/foundry/updates",
-    icon: Megaphone,
-    activeMatchRules: [{ kind: "prefix", path: "/foundry/updates" }],
   },
   {
     id: "foundry-analytics",
@@ -526,4 +508,8 @@ export function getMatchingItem(pathname: string, suiteId: SiteSuiteId): SiteNav
  */
 export function getSuiteDocsNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
   return SITE_NAV_ITEMS.find((item) => item.id === `${suiteId}-docs`) ?? null;
+}
+
+export function getSuiteUpdatesNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
+  return SITE_NAV_ITEMS.find((item) => item.id === `${suiteId}-updates`) ?? null;
 }

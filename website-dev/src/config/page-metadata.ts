@@ -3,11 +3,15 @@ import {
   getMatchingItem,
   getSuiteById,
   getSuiteDocsNavItem,
+  getSuiteUpdatesNavItem,
   type SiteSuite,
   type SiteSuiteId,
 } from "@/config/site-navigation";
 import { matchDocsRoute, getDocsTree, findTreeNode } from "@/features/docs";
 import { DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
+import { matchUpdatesRoute, findUpdateEntry } from "@/features/updates";
+import { UPDATES_HOMEPAGE_TITLE } from "@/config/updates/shared";
+import { getUpdateArticleIdentity } from "@/features/updates/lib/identity";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
@@ -91,6 +95,35 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
       suite,
       pageTitle: `${title} | ${suite.title} Docs`,
       imagePath: getSuiteImagePath(docsMatch.suiteId),
+    };
+  }
+
+  const updatesMatch = matchUpdatesRoute(normalizedPathname);
+  if (updatesMatch.kind === "homepage" || updatesMatch.kind === "update") {
+    const suite = getSuiteById(updatesMatch.suiteId);
+
+    if (updatesMatch.kind === "homepage") {
+      return {
+        pathname: normalizedPathname,
+        title: UPDATES_HOMEPAGE_TITLE,
+        description:
+          getSuiteUpdatesNavItem(updatesMatch.suiteId)?.description ?? DEFAULT_SITE_DESCRIPTION,
+        suite,
+        pageTitle: `${UPDATES_HOMEPAGE_TITLE} | ${suite.title}`,
+        imagePath: getSuiteImagePath(updatesMatch.suiteId),
+      };
+    }
+
+    const update = findUpdateEntry(updatesMatch.suiteId, updatesMatch.slug);
+    const updateIdentity = getUpdateArticleIdentity(update);
+
+    return {
+      pathname: normalizedPathname,
+      title: updateIdentity.title,
+      description: updateIdentity.description,
+      suite,
+      pageTitle: `${updateIdentity.title} | ${suite.title} Updates`,
+      imagePath: getSuiteImagePath(updatesMatch.suiteId),
     };
   }
 

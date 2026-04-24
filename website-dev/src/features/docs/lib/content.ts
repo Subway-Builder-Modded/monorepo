@@ -6,27 +6,25 @@ import type {
   DocsSuiteId,
 } from "@/config/docs";
 import { getDocsSuiteConfig, getSidebarOrder, DOCS_CONTENT_ROOT } from "@/config/docs";
+import { constructEditUrl } from "@/features/content/lib/edit-url";
+import type {
+  RawMdxModule,
+  MdxGlobResult,
+  MdxRawContentModule,
+} from "@/features/content/lib/mdx-virtual-module";
 // @ts-expect-error -- virtual module provided by mdxRawContentPlugin in vite.config
 import rawContentData from "virtual:mdx-raw-content";
 
-type RawMdxModule = {
-  default: React.ComponentType;
-};
-
-type GlobResult = Record<string, () => Promise<RawMdxModule>>;
-type RawContentVirtualModule = {
-  rawByPath: Record<string, string>;
-  frontmatterByPath: Record<string, DocsFrontmatter>;
-};
-
-const mdxModules = import.meta.glob("/content/docs/**/*.mdx") as GlobResult;
-const mdxRawModules: Record<string, string> = (rawContentData as RawContentVirtualModule).rawByPath;
+const mdxModules = import.meta.glob("/content/*/docs/**/*.mdx") as MdxGlobResult;
+const mdxRawModules: Record<string, string> = (
+  rawContentData as MdxRawContentModule<DocsFrontmatter>
+).rawByPath;
 const mdxFrontmatterModules: Record<string, DocsFrontmatter> = (
-  rawContentData as RawContentVirtualModule
+  rawContentData as MdxRawContentModule<DocsFrontmatter>
 ).frontmatterByPath;
 
 function getContentKey(filePath: string): string {
-  return filePath.replace(/^\/content\/docs\//, "").replace(/\.mdx$/, "");
+  return filePath.replace(/^\/content\//, "").replace(/\.mdx$/, "");
 }
 
 type ContentEntry = {
@@ -60,7 +58,7 @@ function getEntriesForSuiteVersion(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/docs/${version}/` : `${suiteId}/docs/`;
 
   return entries.filter((e) => e.key.startsWith(prefix));
 }
@@ -74,7 +72,7 @@ function buildTreeFromEntries(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/docs/${version}/` : `${suiteId}/docs/`;
   const basePath = suiteConfig.versioned ? `/${suiteId}/docs/${version}` : `/${suiteId}/docs`;
 
   const entryBySlug = new Map<string, ContentEntry>();
@@ -193,25 +191,20 @@ export function getDocSourcePath(
 ): string {
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) {
-    return `/${DOCS_CONTENT_ROOT}/${suiteId}/${slug}.mdx`;
+    return `/${DOCS_CONTENT_ROOT}/${suiteId}/docs/${slug}.mdx`;
   }
 
   if (!suiteConfig.versioned) {
-    return `/${DOCS_CONTENT_ROOT}/${suiteId}/${slug}.mdx`;
+    return `/${DOCS_CONTENT_ROOT}/${suiteId}/docs/${slug}.mdx`;
   }
 
-  return `/${DOCS_CONTENT_ROOT}/${suiteId}/${version}/${slug}.mdx`;
+  return `/${DOCS_CONTENT_ROOT}/${suiteId}/docs/${version}/${slug}.mdx`;
 }
 
 export function getEditUrl(suiteId: DocsSuiteId, version: DocsRouteVersion, slug: string): string {
   const config = getDocsSuiteConfig(suiteId);
   if (!config) return "#";
-
-  if (!config.versioned) {
-    return `${config.editSourceBaseUrl}/${slug}.mdx`;
-  }
-
-  return `${config.editSourceBaseUrl}/${version}/${slug}.mdx`;
+  return constructEditUrl(config.editSourceBaseUrl, slug, config.versioned ? version : null);
 }
 
 export function validateFolderLandingPages(
@@ -222,7 +215,7 @@ export function validateFolderLandingPages(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/docs/${version}/` : `${suiteId}/docs/`;
   const slugs = new Set<string>();
   const folders = new Set<string>();
 

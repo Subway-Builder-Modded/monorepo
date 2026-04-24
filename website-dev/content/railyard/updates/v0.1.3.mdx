@@ -1,0 +1,44 @@
+---
+title: Railyard - v0.1.3
+icon: TrainTrack
+date: March 10, 2026
+tag: beta
+url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.1.3
+previousVersion: v0.1.2
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.1.2...v0.1.3
+---
+
+<ChangelogSection type="features">
+
+- Added loading screen on app startup
+- Added light mode
+- Added persistent search filters (search state will remain even if youvisit another page, including tags and search query)
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+- Fixed an issue where Railyard wouldn't work on some distros due to them not supporting `libwebkit2gtk-4.0`
+
+:::warning
+
+This means there are now two builds for Linux. `current` is built targeting `libwebkit2gtk-4.1`, whereas `legacy` is built targeting `libwebkit2gtk-4.0`. Make sure you install the correct one!
+
+:::
+
+- Added an auto-update check (toggleable in settings)
+- Removed GitHub authentication, as [the Registry](https://github.com/Subway-Builder-Modded/registry) is now public
+- Added static download counts to the Registry. Download counts within Railyard will now utilize that as a more reliable source of data
+- Updated tagging for maps (Level of Detail / Source Quality) to replace ambiguous high/medium/low-detail (see the [Data Quality](/railyard/docs/latest/data-quality) guide) and updated UI to reflect that change
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Fixed no installed maps/mods being displayed on initial load-in
+- Fixed multiple parallel downloads sometimes leading to crashes
+- Fixed download counts displaying total downloads for all assets for a release (rather than just the map/mod .ZIP)
+- Fixed maps having a download count of 0
+- Fixed an issue where updating Railyard would delete all installed maps
+
+</ChangelogSection>

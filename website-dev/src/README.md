@@ -23,7 +23,7 @@ This folder is the application source root.
 
 ## Stability rules
 
-- Keep `content/docs` and `tests` at project root unless a dedicated migration is planned.
+- Keep suite-owned content under `content/<suite>/*` and `tests` at project root unless a dedicated migration is planned.
 - If you move source files, update:
   - `tsconfig.json` paths/includes
   - `vite.config.ts` aliases and MDX plugin paths

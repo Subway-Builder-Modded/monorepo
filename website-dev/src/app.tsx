@@ -1,10 +1,16 @@
 import { SiteLayout } from "@/shell";
 import { useLocation } from "@/lib/router";
 import { DocsRoute, matchDocsRoute } from "@/features/docs";
+import { UpdatesRoute, matchUpdatesRoute } from "@/features/updates";
 import { HomePage } from "@/features/home";
 
 function RouteSwitch() {
   const location = useLocation();
+  const updatesMatch = matchUpdatesRoute(location.pathname);
+  if (updatesMatch.kind !== "none") {
+    return <UpdatesRoute />;
+  }
+
   const docsMatch = matchDocsRoute(location.pathname, location.search);
   if (docsMatch.kind !== "none") {
     return <DocsRoute />;

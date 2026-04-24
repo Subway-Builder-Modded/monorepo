@@ -16,6 +16,8 @@ export type {
   DocsVersionStatus,
   DocsHomepageConfig,
   DocsHomepageActionConfig,
+  DocsHomepageActionContext,
+  DocsHomepageActions,
   DocsFrontmatter,
 } from "./types";
 export { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "./shared";
