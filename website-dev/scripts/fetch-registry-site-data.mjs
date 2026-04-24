@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync, existsSync, copyFileSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -37,11 +37,36 @@ const COPY_MAPPINGS = [
   { source: "history/railyard_app_downloads.json", destination: "public/railyard/analytics/railyard_app_downloads_history.json" },
 ];
 
+const MIRROR_DIRECTORY_MAPPINGS = [
+  { sourceRoot: "authors", destinationRoot: "public/registry/authors" },
+  { sourceRoot: "maps", destinationRoot: "public/registry/maps" },
+  { sourceRoot: "mods", destinationRoot: "public/registry/mods" },
+  { sourceRoot: "supporters", destinationRoot: "public/registry/supporters" },
+];
+
+const MIRROR_FILE_BLACKLIST_BY_ROOT = {
+  maps: [
+    "demand-attribution-delta.json",
+    "demand-stats-cache.json",
+    "download-attribution-delta.json",
+    "download-version-buckets.json",
+    "grandfathered-downloads.json",
+    "integrity-cache.json",
+  ],
+  mods: [
+    "download-attribution-delta.json",
+    "download-version-buckets.json",
+    "grandfathered-downloads.json",
+    "integrity-cache.json",
+  ],
+};
+
 const FETCH_STEPS = [
   "Load local environment",
   "Validate GitHub token",
   "Fetch registry snapshot",
   "Copy registry and railyard artifacts",
+  "Mirror registry content trees",
   "Transform website analytics",
   "Write website artifacts",
   "Write metadata",
@@ -348,6 +373,77 @@ function copyMappedFiles(snapshotRoot, workspaceRoot, materializedFiles, progres
   }
 }
 
+function shouldSkipMirroredFile(sourceRoot, relativePath) {
+  const blacklist = MIRROR_FILE_BLACKLIST_BY_ROOT[sourceRoot] ?? [];
+  if (blacklist.length === 0) return false;
+
+  const normalized = relativePath.replace(/\\/g, "/");
+  if (normalized.includes("/")) return false;
+
+  for (const token of blacklist) {
+    if (normalized === token) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function mirrorDirectoryRoots(snapshotRoot, workspaceRoot, materializedFiles, progress) {
+  for (const mapping of MIRROR_DIRECTORY_MAPPINGS) {
+    const sourceRootPath = path.join(snapshotRoot, mapping.sourceRoot);
+    if (!existsSync(sourceRootPath)) {
+      fail(`required registry directory is missing: ${mapping.sourceRoot}`);
+    }
+
+    let copiedCount = 0;
+  let skippedCount = 0;
+    const stack = [""];
+
+    while (stack.length > 0) {
+      const relativeDir = stack.pop() ?? "";
+      const sourceDir = path.join(sourceRootPath, relativeDir);
+      const destinationDir = path.join(workspaceRoot, mapping.destinationRoot, relativeDir);
+      mkdirSync(destinationDir, { recursive: true });
+
+      const entries = readdirSync(sourceDir, { withFileTypes: true }).sort((left, right) =>
+        left.name.localeCompare(right.name),
+      );
+
+      for (const entry of entries) {
+        const entryRelativePath = relativeDir ? path.join(relativeDir, entry.name) : entry.name;
+
+        if (entry.isDirectory()) {
+          stack.push(entryRelativePath);
+          continue;
+        }
+
+        if (!entry.isFile()) {
+          continue;
+        }
+
+        if (shouldSkipMirroredFile(mapping.sourceRoot, entryRelativePath)) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const sourcePath = path.join(sourceRootPath, entryRelativePath);
+        const destinationPath = path.join(workspaceRoot, mapping.destinationRoot, entryRelativePath);
+        ensureDirForFile(destinationPath);
+        copyFileSync(sourcePath, destinationPath);
+
+        const materializedPath = path.join(mapping.destinationRoot, entryRelativePath).replace(/\\/g, "/");
+        materializedFiles.push(materializedPath);
+        copiedCount += 1;
+      }
+    }
+
+    progress.detail(
+      `Mirrored ${mapping.sourceRoot}/ -> ${mapping.destinationRoot}/ (${copiedCount} files, ${skippedCount} skipped)`,
+    );
+  }
+}
+
 function writeWebsiteFiles(parsedWebsite, workspaceRoot, materializedFiles, progress) {
   const outputs = {
     "public/website/summary.json": parsedWebsite.summary,
@@ -380,11 +476,11 @@ function main() {
 
   progress.step("Validate GitHub token");
   const token =
-    process.env.GITHUB_TOKEN?.trim() ||
+    process.env.SBM_GITHUB_TOKEN?.trim() ||
     "";
 
   if (!token) {
-    fail("missing GitHub token: set GITHUB_TOKEN");
+    fail("missing GitHub token: set SBM_GITHUB_TOKEN");
   }
 
   const tempRoot = mkdtempSync(path.join(tmpdir(), "website-dev-registry-"));
@@ -415,6 +511,9 @@ function main() {
 
     progress.step("Copy registry and railyard artifacts");
     copyMappedFiles(cloneDir, workspaceRoot, materializedFiles, progress);
+
+    progress.step("Mirror registry content trees");
+    mirrorDirectoryRoots(cloneDir, workspaceRoot, materializedFiles, progress);
 
     const websiteAnalyticsPath = path.join(cloneDir, "analytics", "website_analytics.json");
     if (!existsSync(websiteAnalyticsPath)) {

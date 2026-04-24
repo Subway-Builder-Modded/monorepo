@@ -61,8 +61,8 @@ jobs:
 
       - name: Fetch registry site data
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run fetch:registry-site-data
+          SBM_GITHUB_TOKEN: ${{ secrets.SBM_GITHUB_TOKEN }}
+        run: pnpm run fetch
 
       - name: Build
         run: pnpm run build
