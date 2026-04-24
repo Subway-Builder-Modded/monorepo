@@ -43,7 +43,7 @@ vi.mock("@/features/docs/lib/content", () => ({
     key: slug.split("/").pop(),
     slug,
     routePath: `/railyard/docs/v0.2/${slug}`,
-    sourcePath: `/content/docs/railyard/v0.2/${slug}.mdx`,
+    sourcePath: `/content/railyard/docs/v0.2/${slug}.mdx`,
     frontmatter: {
       title: "GitHub Token",
       description: "Configure your token for publishing and sync.",
@@ -56,10 +56,10 @@ vi.mock("@/features/docs/lib/content", () => ({
   })),
   loadDocContent: vi.fn(async () => () => <div>Doc body content</div>),
   getDocRawContent: vi.fn(() => "## Intro\n\nSome docs text."),
-  getDocSourcePath: vi.fn(() => "/content/docs/railyard/v0.2/players/github-token.mdx"),
+  getDocSourcePath: vi.fn(() => "/content/railyard/docs/v0.2/players/github-token.mdx"),
   getEditUrl: vi.fn(
     () =>
-      "https://github.com/Subway-Builder-Modded/monorepo/edit/main/website-dev/content/docs/railyard/v0.2/players/github-token.mdx",
+      "https://github.com/Subway-Builder-Modded/monorepo/edit/main/website-dev/content/railyard/docs/v0.2/players/github-token.mdx",
   ),
 }));
 
@@ -104,10 +104,11 @@ describe("DocPageLayout", () => {
     render(<DocPageLayout suiteId="railyard" version="v0.2" slug="players/github-token" />);
 
     const heading = screen.getByRole("heading", { name: "GitHub Token" });
-    const chrome = heading.closest("header");
+    const chrome = heading.closest("header")?.querySelector("div.relative.z-10");
     expect(chrome?.className).toContain("rounded-2xl");
     expect(chrome?.className).toContain("border");
-    expect(chrome?.className).toContain("var(--suite-accent-light)");
+    expect(chrome?.className).toContain("bg-background/65");
+    expect(chrome?.className).toContain("shadow-sm");
 
     expect(screen.getByTestId("doc-title-icon")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Edit on GitHub/i })).not.toBeInTheDocument();

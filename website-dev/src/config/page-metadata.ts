@@ -8,6 +8,8 @@ import {
 } from "@/config/site-navigation";
 import { matchDocsRoute, getDocsTree, findTreeNode } from "@/features/docs";
 import { DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
+import { matchUpdatesRoute, findUpdateEntry, getUpdatesEntries } from "@/features/updates";
+import { UPDATES_HOMEPAGE_TITLE } from "@/config/updates";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
@@ -91,6 +93,39 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
       suite,
       pageTitle: `${title} | ${suite.title} Docs`,
       imagePath: getSuiteImagePath(docsMatch.suiteId),
+    };
+  }
+
+  const updatesMatch = matchUpdatesRoute(normalizedPathname);
+  if (updatesMatch.kind === "homepage" || updatesMatch.kind === "update") {
+    const suite = getSuiteById(updatesMatch.suiteId);
+
+    if (updatesMatch.kind === "homepage") {
+      const title = UPDATES_HOMEPAGE_TITLE;
+      const latestUpdate = getUpdatesEntries(updatesMatch.suiteId)[0] ?? null;
+      return {
+        pathname: normalizedPathname,
+        title,
+        description: latestUpdate
+          ? `${latestUpdate.id} • ${latestUpdate.frontmatter.date}`
+          : DEFAULT_SITE_DESCRIPTION,
+        suite,
+        pageTitle: `${title} | ${suite.title}`,
+        imagePath: getSuiteImagePath(updatesMatch.suiteId),
+      };
+    }
+
+    const update = findUpdateEntry(updatesMatch.suiteId, updatesMatch.slug);
+    const title = update?.frontmatter.title ?? "Updates";
+    const description = update ? `${update.id} • ${update.frontmatter.date}` : DEFAULT_SITE_DESCRIPTION;
+
+    return {
+      pathname: normalizedPathname,
+      title,
+      description,
+      suite,
+      pageTitle: `${title} | ${suite.title} Updates`,
+      imagePath: getSuiteImagePath(updatesMatch.suiteId),
     };
   }
 

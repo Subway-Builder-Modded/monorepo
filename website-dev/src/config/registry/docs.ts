@@ -5,7 +5,7 @@ export const registryDocsConfig: DocsSuiteConfig = {
   suiteId: "registry",
   enabled: true,
   versioned: false,
-  editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/registry`,
+  editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/registry/docs`,
   sidebarOrder: [
     "publishing-content",
     "updating-content",

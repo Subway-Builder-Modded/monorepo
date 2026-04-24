@@ -14,6 +14,7 @@ export interface PageHeadingProps {
   eyebrow?: string;
   badge?: ReactNode;
   actions?: ReactNode;
+  footer?: ReactNode;
   accent?: SuiteAccent;
   className?: string;
 }
@@ -26,6 +27,7 @@ export function PageHeading({
   eyebrow,
   badge,
   actions,
+  footer,
   accent,
   className,
 }: PageHeadingProps) {
@@ -107,8 +109,10 @@ export function PageHeading({
             ) : null}
           </div>
 
-          {actions ? <div className="shrink-0 self-start">{actions}</div> : null}
+          {actions ? <div className="shrink-0 self-center">{actions}</div> : null}
         </div>
+
+        {footer ? <div className="mt-3 border-t border-border/50 pt-3">{footer}</div> : null}
       </div>
     </header>
   );

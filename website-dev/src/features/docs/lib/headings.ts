@@ -1,34 +1,3 @@
-import type { DocsTocHeading } from "./types";
+import { extractHeadings, slugify } from "@/features/content/lib/headings";
 
-const HEADING_REGEX = /^(#{2,4})\s+(.+?)(?:\s+\{#([A-Za-z0-9._-]+)\})?$/gm;
-
-export function extractHeadings(raw: string): DocsTocHeading[] {
-  const headings: DocsTocHeading[] = [];
-
-  // Strip frontmatter
-  const content = raw.replace(/^---[\s\S]*?---\n?/, "");
-
-  let match: RegExpExecArray | null;
-  HEADING_REGEX.lastIndex = 0;
-
-  while ((match = HEADING_REGEX.exec(content)) !== null) {
-    const level = match[1].length;
-    const text = match[2].trim();
-    const explicitId = match[3];
-
-    const id = explicitId ?? slugify(text);
-
-    headings.push({ id, text, level });
-  }
-
-  return headings;
-}
-
-export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim();
-}
+export { extractHeadings, slugify };

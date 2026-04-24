@@ -3,7 +3,7 @@ import { BookText, type LucideIcon } from "lucide-react";
 export const DOCS_GITHUB_BASE_URL =
   "https://github.com/Subway-Builder-Modded/monorepo/edit/website-dev/website";
 
-export const DOCS_CONTENT_ROOT = "content/docs";
+export const DOCS_CONTENT_ROOT = "content";
 
 /**
  * Shared identity for the docs system. The docs homepage hero, page-metadata

@@ -22,7 +22,7 @@ type DirectoryProps = {
   label?: string;
 };
 
-export function Directory({ path, suiteId, version, icon, label }: DirectoryProps) {
+export function DocsDirectory({ path, suiteId, version, icon, label }: DirectoryProps) {
   const route = useDocsRoute();
   const resolvedSuiteId = suiteId ?? route?.suiteId;
   const resolvedVersion = version !== undefined ? version : (route?.version ?? null);
@@ -81,6 +81,9 @@ export function Directory({ path, suiteId, version, icon, label }: DirectoryProp
     </div>
   );
 }
+
+// Backward compatibility for existing docs MDX using <Directory />.
+export const Directory = DocsDirectory;
 
 function DirectoryCard({ node }: { node: DocsTreeNode }) {
   const Icon = resolveIcon(node.frontmatter.icon);

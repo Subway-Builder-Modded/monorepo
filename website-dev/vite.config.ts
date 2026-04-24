@@ -7,9 +7,9 @@ import remarkGfm from "remark-gfm";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkDirective from "remark-directive";
 import rehypePrettyCode from "rehype-pretty-code";
-import { remarkHeadingIds } from "./src/features/docs/mdx/remark-heading-ids.ts";
-import { remarkStripFrontmatter } from "./src/features/docs/mdx/remark-strip-frontmatter.ts";
-import { remarkAdmonitionDirectives } from "./src/features/docs/mdx/remark-admonitions.ts";
+import { remarkHeadingIds } from "./src/features/content/mdx/remark-heading-ids";
+import { remarkStripFrontmatter } from "./src/features/content/mdx/remark-strip-frontmatter";
+import { remarkAdmonitionDirectives } from "./src/features/content/mdx/remark-admonitions";
 import { defineConfig } from "vite-plus";
 import type { Plugin } from "vite-plus";
 
@@ -23,12 +23,16 @@ const RESOLVED_VIRTUAL_RAW_MDX_ID = "\0" + VIRTUAL_RAW_MDX_ID;
  * through a virtual module for runtime docs tree construction.
  */
 function mdxRawContentPlugin(): Plugin {
-  const contentDir = path.join(__dirname, "content", "docs");
+  const contentDir = path.join(__dirname, "content");
   return {
     name: "mdx-raw-content",
     async buildStart() {
       const { assertDocsContentValid } = await import("./src/config/docs/content-validation.ts");
+      const { assertUpdatesContentValid } = await import(
+        "./src/config/updates/content-validation.ts"
+      );
       assertDocsContentValid(contentDir);
+      assertUpdatesContentValid(contentDir);
     },
     resolveId(id) {
       if (id === VIRTUAL_RAW_MDX_ID) return RESOLVED_VIRTUAL_RAW_MDX_ID;
@@ -37,11 +41,24 @@ function mdxRawContentPlugin(): Plugin {
       if (id !== RESOLVED_VIRTUAL_RAW_MDX_ID) return;
 
       const { collectDocsContent } = await import("./src/config/docs/content-validation.ts");
-      const { rawByPath, frontmatterByPath, errors } = collectDocsContent(contentDir);
+      const { collectUpdatesContent } = await import("./src/config/updates/content-validation.ts");
+
+      const docsResult = collectDocsContent(contentDir);
+      const updatesResult = collectUpdatesContent(contentDir);
+      const errors = [...docsResult.errors, ...updatesResult.errors];
       if (errors.length > 0) {
         const details = errors.map((e) => ` - ${e}`).join("\n");
         throw new Error(`[docs-content] Validation failed:\n${details}`);
       }
+
+      const rawByPath = {
+        ...docsResult.rawByPath,
+        ...updatesResult.rawByPath,
+      };
+      const frontmatterByPath = {
+        ...docsResult.frontmatterByPath,
+        ...updatesResult.frontmatterByPath,
+      };
 
       return `export default ${JSON.stringify({ rawByPath, frontmatterByPath })};`;
     },

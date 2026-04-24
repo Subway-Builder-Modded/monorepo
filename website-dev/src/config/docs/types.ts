@@ -1,5 +1,5 @@
 import type { SiteSuiteId } from "@/config/site-navigation";
-import type { LucideIcon } from "lucide-react";
+import type { HeadingActionConfig, HeadingActions } from "@/config/shared/heading-actions";
 
 export type DocsSuiteId = Extract<SiteSuiteId, "railyard" | "registry" | "template-mod">;
 export type DocsRouteVersion = string | null;
@@ -23,17 +23,14 @@ export type DocsVersionConfig = {
   badgeText?: string;
 };
 
-export type DocsHomepageActionConfig = {
-  label: string;
-  href: string;
-  icon?: LucideIcon;
-  external?: boolean;
+export type DocsHomepageActionContext = {
+  suiteId: DocsSuiteId;
+  version: DocsRouteVersion;
 };
 
-export type DocsHomepageActions =
-  | []
-  | [DocsHomepageActionConfig]
-  | [DocsHomepageActionConfig, DocsHomepageActionConfig];
+export type DocsHomepageActionConfig = HeadingActionConfig<DocsHomepageActionContext>;
+
+export type DocsHomepageActions = HeadingActions<DocsHomepageActionContext>;
 
 export type DocsSidebarOrderItem = string | { key: string; children?: DocsSidebarOrderItem[] };
 

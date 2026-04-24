@@ -21,18 +21,14 @@ describe("DocsPageTitleCard", () => {
 
   it("renders the icon when provided", () => {
     render(<DocsPageTitleCard title="Getting Started" icon={File} />);
-    // Icon is rendered inside an aria-hidden span; the heading is still accessible
     expect(screen.getByRole("heading", { name: "Getting Started" })).toBeVisible();
-    // The icon wrapper span is present in the DOM
-    const iconWrapper = document.querySelector("span.inline-flex");
-    expect(iconWrapper).not.toBeNull();
-    expect(iconWrapper?.className).toContain("text-[var(--suite-accent-light)]");
+    const icon = document.querySelector("svg");
+    expect(icon).not.toBeNull();
   });
 
-  it("renders without an icon wrapper's svg when icon is null", () => {
+  it("renders a fallback icon when icon is null", () => {
     render(<DocsPageTitleCard title="Getting Started" icon={null} />);
     expect(screen.getByRole("heading", { name: "Getting Started" })).toBeVisible();
-    // No svg rendered
-    expect(document.querySelector("svg")).toBeNull();
+    expect(document.querySelector("svg")).not.toBeNull();
   });
 });

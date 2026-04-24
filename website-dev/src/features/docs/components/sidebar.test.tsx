@@ -12,7 +12,7 @@ function makeNode(overrides: Partial<DocsTreeNode> & { slug: string }): DocsTree
     key: slug.split("/").pop() ?? "node",
     slug,
     routePath: `/railyard/docs/v0.2/${slug}`,
-    sourcePath: `/content/docs/railyard/v0.2/${slug}.mdx`,
+    sourcePath: `/content/railyard/docs/v0.2/${slug}.mdx`,
     frontmatter: {
       title: slug,
       description: "",

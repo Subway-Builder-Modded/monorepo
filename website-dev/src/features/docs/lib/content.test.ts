@@ -15,7 +15,7 @@ function makeNode(overrides: Partial<DocsTreeNode> & { slug: string }): DocsTree
     key: slug.split("/").pop()!,
     slug,
     routePath: `/railyard/docs/v0.2/${slug}`,
-    sourcePath: `/content/docs/railyard/v0.2/${slug}.mdx`,
+    sourcePath: `/content/railyard/docs/v0.2/${slug}.mdx`,
     frontmatter: { title: slug, description: "", icon: "FileText" },
     suiteId: "railyard",
     version: "v0.2",
@@ -120,13 +120,13 @@ describe("getAllNodes", () => {
 describe("getDocSourcePath", () => {
   it("builds correct source path", () => {
     expect(getDocSourcePath("railyard", "v0.2", "players/github-token")).toBe(
-      "/content/docs/railyard/v0.2/players/github-token.mdx",
+      "/content/railyard/docs/v0.2/players/github-token.mdx",
     );
   });
 
   it("builds path for root-level doc", () => {
     expect(getDocSourcePath("template-mod", "v1.0", "getting-started")).toBe(
-      "/content/docs/template-mod/v1.0/getting-started.mdx",
+      "/content/template-mod/docs/v1.0/getting-started.mdx",
     );
   });
 });

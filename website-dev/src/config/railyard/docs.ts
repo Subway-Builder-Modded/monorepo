@@ -1,12 +1,12 @@
 import type { DocsSuiteConfig } from "../docs/types";
-import { ChartLine, Download } from "lucide-react";
+import { ChartLine, Download, Megaphone } from "lucide-react";
 import { DOCS_GITHUB_BASE_URL, DOCS_CONTENT_ROOT } from "../docs/shared";
 
 export const railyardDocsConfig: DocsSuiteConfig = {
   suiteId: "railyard",
   enabled: true,
   versioned: true,
-  editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/railyard`,
+  editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/railyard/docs`,
   latestVersion: "v0.2",
   versions: [
     {
@@ -41,9 +41,14 @@ export const railyardDocsConfig: DocsSuiteConfig = {
   homepage: {
     actions: [
       {
-        label: "Download Railyard",
+        label: "Download",
         href: "/railyard",
         icon: Download,
+      },
+      {
+        label: "View Updates",
+        href: "/railyard/updates",
+        icon: Megaphone,
       },
       {
         label: "View Analytics",

@@ -1,0 +1,40 @@
+---
+title: Railyard v0.2.1
+icon: TrainTrack
+date: April 6, 2026
+tag: beta
+url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.1
+previousVersion: v0.2.0
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.0...v0.2.1
+---
+
+<ChangelogSection type="features">
+
+ - Cancelling an update now properly restores previously installed version
+ - Added installed size display for assets in the Library
+ - Added a button in Settings to reveal Railyard-managed data directory
+ - Added an option to refresh the registry on startup
+ - Added an option to auto-update subscriptions on startup
+ - Added creator aliases and custom attribution links
+ - Added link to projects' analytics pages on their respective Browse pages
+ - Added icons next to the names of contributors, collaborators, and developers
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+ - Added stricter `metro-maker4` folder validation checks
+ - Added stricter map version validation checks
+ - Improved the toast notification for GitHub 403 errors
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+ - Fixed executable file dialog window not allowing `.app` selection on macOS
+ - Fixed Browse page card text not correctly rendering HTML and Markdown-formatted asset descriptions
+ - Fixed custom update JSON not always respecting semver order
+ - Fixed PMTiles and thumbnails not being cleaned up on uninstall/profile change
+ - Fixed 429s not being thrown outside of token requests
+
+</ChangelogSection>

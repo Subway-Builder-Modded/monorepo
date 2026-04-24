@@ -19,14 +19,14 @@ type RawContentVirtualModule = {
   frontmatterByPath: Record<string, DocsFrontmatter>;
 };
 
-const mdxModules = import.meta.glob("/content/docs/**/*.mdx") as GlobResult;
+const mdxModules = import.meta.glob("/content/*/docs/**/*.mdx") as GlobResult;
 const mdxRawModules: Record<string, string> = (rawContentData as RawContentVirtualModule).rawByPath;
 const mdxFrontmatterModules: Record<string, DocsFrontmatter> = (
   rawContentData as RawContentVirtualModule
 ).frontmatterByPath;
 
 function getContentKey(filePath: string): string {
-  return filePath.replace(/^\/content\/docs\//, "").replace(/\.mdx$/, "");
+  return filePath.replace(/^\/content\//, "").replace(/\.mdx$/, "");
 }
 
 type ContentEntry = {
@@ -60,7 +60,7 @@ function getEntriesForSuiteVersion(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/docs/${version}/` : `${suiteId}/docs/`;
 
   return entries.filter((e) => e.key.startsWith(prefix));
 }
@@ -74,7 +74,7 @@ function buildTreeFromEntries(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/docs/${version}/` : `${suiteId}/docs/`;
   const basePath = suiteConfig.versioned ? `/${suiteId}/docs/${version}` : `/${suiteId}/docs`;
 
   const entryBySlug = new Map<string, ContentEntry>();
@@ -193,14 +193,14 @@ export function getDocSourcePath(
 ): string {
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) {
-    return `/${DOCS_CONTENT_ROOT}/${suiteId}/${slug}.mdx`;
+    return `/${DOCS_CONTENT_ROOT}/${suiteId}/docs/${slug}.mdx`;
   }
 
   if (!suiteConfig.versioned) {
-    return `/${DOCS_CONTENT_ROOT}/${suiteId}/${slug}.mdx`;
+    return `/${DOCS_CONTENT_ROOT}/${suiteId}/docs/${slug}.mdx`;
   }
 
-  return `/${DOCS_CONTENT_ROOT}/${suiteId}/${version}/${slug}.mdx`;
+  return `/${DOCS_CONTENT_ROOT}/${suiteId}/docs/${version}/${slug}.mdx`;
 }
 
 export function getEditUrl(suiteId: DocsSuiteId, version: DocsRouteVersion, slug: string): string {
@@ -222,7 +222,7 @@ export function validateFolderLandingPages(
   const suiteConfig = getDocsSuiteConfig(suiteId);
   if (!suiteConfig) return [];
 
-  const prefix = suiteConfig.versioned ? `${suiteId}/${version}/` : `${suiteId}/`;
+  const prefix = suiteConfig.versioned ? `${suiteId}/docs/${version}/` : `${suiteId}/docs/`;
   const slugs = new Set<string>();
   const folders = new Set<string>();
 

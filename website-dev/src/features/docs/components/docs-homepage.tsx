@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { NavRow, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
-import { ExternalLink, Compass } from "lucide-react";
+import { NavRow, PageHeading, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
+import { Compass } from "lucide-react";
 import { getDocsSuiteConfig, getDocsVersion, hasMultipleVisibleVersions } from "@/config/docs";
 import { DOCS_HOMEPAGE_ICON, DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
 import type { DocsSuiteId } from "@/config/docs";
@@ -12,80 +12,40 @@ import { DocsVersionChooser } from "@/features/docs/components/docs-version-choo
 import { getDocsTree, getVisibleNodes } from "@/features/docs/lib/content";
 import { resolveIcon } from "@/features/docs/lib/icon-resolver";
 import { getDocPageUrl } from "@/features/docs/lib/routing";
+import { resolveHeadingActions } from "@/config/shared/heading-actions";
+import { PageHeadingActions } from "@/features/content/components/page-heading-actions";
 
 const SHARED_SUITE_BADGE_CLASS =
   "h-7 shrink-0 self-center gap-1.5 rounded-md px-2 normal-case tracking-normal";
 
-const ACTION_CLASS =
-  "inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground no-underline transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]";
-
 function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: string | null }) {
   const suite = getSuiteById(suiteId);
   const config = getDocsSuiteConfig(suiteId)!;
-  const actions = config.homepage.actions ?? [];
+  const actions = resolveHeadingActions(config.homepage.actions, { suiteId, version });
   const SuiteIcon = suite.icon;
-  const HeroIcon = DOCS_HOMEPAGE_ICON;
   const description = getSuiteDocsNavItem(suiteId)?.description;
   const hasVersionChooser = hasMultipleVisibleVersions(suiteId) && version;
 
+  const HeroIcon = ((props: { className?: string; "aria-hidden"?: boolean }) => (
+    <DOCS_HOMEPAGE_ICON {...props} data-testid="docs-homepage-hero-icon" />
+  )) as typeof DOCS_HOMEPAGE_ICON;
+
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-2xl bg-background/85 border border-border/60",
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[color-mix(in_srgb,var(--suite-accent-light)_55%,transparent)] to-transparent"
-      />
-
-      <div className="relative flex items-start gap-4 px-5 py-5 sm:px-7 sm:py-6">
-        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_34%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)] dark:text-[var(--suite-accent-dark)]">
-          <HeroIcon className="size-5" aria-hidden={true} data-testid="docs-homepage-hero-icon" />
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2 pb-1">
-            <h1 className="text-2xl font-bold tracking-[-0.015em] text-foreground sm:text-[1.6rem]">
-              {DOCS_HOMEPAGE_TITLE}
-            </h1>
-            <SuiteBadge className={SHARED_SUITE_BADGE_CLASS} accent={suite.accent}>
-              <SuiteIcon className="size-3.5" aria-hidden={true} />
-              <span className="max-w-[8rem] truncate">{suite.title}</span>
-            </SuiteBadge>
-          </div>
-          {description ? (
-            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p>
-          ) : null}
-        </div>
-
-        {actions.length > 0 ? (
-          <div className="hidden shrink-0 sm:block">
-            <div className="flex flex-col items-end gap-1">
-              {actions.map((action) => {
-                const ActionIcon = action.icon;
-                const isExternal = action.external === true;
-                return (
-                  <a
-                    key={action.label}
-                    href={action.href}
-                    target={isExternal ? "_blank" : undefined}
-                    rel={isExternal ? "noopener noreferrer" : undefined}
-                    className={ACTION_CLASS}
-                  >
-                    {ActionIcon ? <ActionIcon className="size-3" aria-hidden="true" /> : null}
-                    <span>{action.label}</span>
-                    {isExternal ? <ExternalLink className="size-3" aria-hidden="true" /> : null}
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-      </div>
-
-      {hasVersionChooser ? (
-        <div className="border-t border-border/60 px-5 py-3 sm:px-7">
+    <PageHeading
+      icon={HeroIcon}
+      title={DOCS_HOMEPAGE_TITLE}
+      description={description}
+      badge={
+        <SuiteBadge className={SHARED_SUITE_BADGE_CLASS} accent={suite.accent}>
+          <SuiteIcon className="size-3.5" aria-hidden={true} />
+          <span className="max-w-[8rem] truncate">{suite.title}</span>
+        </SuiteBadge>
+      }
+      actions={
+        <PageHeadingActions actions={actions} hideOnSmall />
+      }
+      footer={
+        hasVersionChooser ? (
           <div className="flex justify-center">
             <DocsVersionChooser
               suiteId={suiteId}
@@ -94,9 +54,9 @@ function HomepageHero({ suiteId, version }: { suiteId: DocsSuiteId; version: str
               triggerClassName="h-9 min-w-[14rem] text-[13px]"
             />
           </div>
-        </div>
-      ) : null}
-    </div>
+        ) : null
+      }
+    />
   );
 }
 
@@ -178,7 +138,7 @@ export function DocsHomepage({
         ) : null}
         <HomepageHero suiteId={suiteId} version={version} />
 
-        <div className="mt-5">
+        <div>
           <DocsCardGrid suiteId={suiteId} version={version} />
         </div>
       </section>

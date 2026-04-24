@@ -6,7 +6,7 @@ export const templateModDocsConfig: DocsSuiteConfig = {
   suiteId: "template-mod",
   enabled: true,
   versioned: true,
-  editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/template-mod`,
+  editSourceBaseUrl: `${DOCS_GITHUB_BASE_URL}/${DOCS_CONTENT_ROOT}/template-mod/docs`,
   latestVersion: "v1.0",
   versions: [
     {
@@ -30,12 +30,12 @@ export const templateModDocsConfig: DocsSuiteConfig = {
   homepage: {
     actions: [
       {
-        label: "Create From Template",
+        label: "Use Template",
         href: "/template-mod",
         icon: WandSparkles,
       },
       {
-        label: "View Changelogs",
+        label: "View Updates",
         href: "/template-mod/updates",
         icon: Megaphone,
       },
