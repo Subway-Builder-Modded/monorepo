@@ -7,7 +7,9 @@ import type { MdxGlobResult, MdxRawContentModule } from "@/features/content/lib/
 import rawContentData from "virtual:mdx-raw-content";
 
 const mdxModules = import.meta.glob("/content/*/updates/**/*.mdx") as MdxGlobResult;
-const mdxRawModules: Record<string, string> = (rawContentData as MdxRawContentModule<UpdatesFrontmatter>).rawByPath;
+const mdxRawModules: Record<string, string> = (
+  rawContentData as MdxRawContentModule<UpdatesFrontmatter>
+).rawByPath;
 const mdxFrontmatterModules: Record<string, UpdatesFrontmatter> = (
   rawContentData as MdxRawContentModule<UpdatesFrontmatter>
 ).frontmatterByPath;
@@ -30,7 +32,10 @@ function compareSemverIdsDesc(a: string, b: string): number {
   return 0;
 }
 
-function getEntryForPath(pathName: string, loader: () => Promise<RawMdxModule>): UpdateEntry | null {
+function getEntryForPath(
+  pathName: string,
+  loader: () => Promise<RawMdxModule>,
+): UpdateEntry | null {
   const match = pathName.match(/^\/content\/([^/]+)\/updates\/(.+)\.mdx$/);
   if (!match) return null;
 
@@ -115,7 +120,10 @@ export function findUpdateEntry(suiteId: UpdatesSuiteId, id: string): UpdateEntr
   return getEntries().find((entry) => entry.suiteId === suiteId && entry.id === id) ?? null;
 }
 
-export function getUpdateDirectoryEntries(suiteId: UpdatesSuiteId, folderPath: string): UpdateTreeNode[] {
+export function getUpdateDirectoryEntries(
+  suiteId: UpdatesSuiteId,
+  folderPath: string,
+): UpdateTreeNode[] {
   const suite = getUpdatesSuiteConfig(suiteId);
   if (!suite) return [];
 

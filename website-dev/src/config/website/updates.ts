@@ -15,6 +15,5 @@ export const websiteUpdatesConfig: UpdatesSuiteConfig = {
       },
     ],
   },
-  changelog: {
-  },
+  changelog: {},
 };

@@ -12,7 +12,9 @@ import type { MdxGlobResult, MdxRawContentModule } from "@/features/content/lib/
 import rawContentData from "virtual:mdx-raw-content";
 
 const mdxModules = import.meta.glob("/content/*/docs/**/*.mdx") as MdxGlobResult;
-const mdxRawModules: Record<string, string> = (rawContentData as MdxRawContentModule<DocsFrontmatter>).rawByPath;
+const mdxRawModules: Record<string, string> = (
+  rawContentData as MdxRawContentModule<DocsFrontmatter>
+).rawByPath;
 const mdxFrontmatterModules: Record<string, DocsFrontmatter> = (
   rawContentData as MdxRawContentModule<DocsFrontmatter>
 ).frontmatterByPath;

@@ -42,7 +42,10 @@ export function mdxToMarkdown(raw: string): string {
 
   // 8. Strip <Directory …/> and <DocsDirectory …/> (multi-line safe)
   md = md.replace(/<(?:DocsDirectory|Directory)(?:\s[^>]*)?\s*\/>/gs, "");
-  md = md.replace(/<(?:DocsDirectory|Directory)(?:\s[^>]*)?>([\s\S]*?)<\/(?:DocsDirectory|Directory)>/g, "");
+  md = md.replace(
+    /<(?:DocsDirectory|Directory)(?:\s[^>]*)?>([\s\S]*?)<\/(?:DocsDirectory|Directory)>/g,
+    "",
+  );
 
   // 9. Remove <DocsCardGrid>…</DocsCardGrid> blocks
   md = md.replace(/<DocsCardGrid(?:\s[^>]*)?>[\s\S]*?<\/DocsCardGrid>/g, "");

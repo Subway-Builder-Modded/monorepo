@@ -8,11 +8,7 @@
  * @param version  Optional version path segment for versioned-content suites
  *                 (e.g. "v0.2"). Pass null/undefined for unversioned content.
  */
-export function constructEditUrl(
-  baseUrl: string,
-  slug: string,
-  version?: string | null,
-): string {
+export function constructEditUrl(baseUrl: string, slug: string, version?: string | null): string {
   if (version) {
     return `${baseUrl}/${version}/${slug}.mdx`;
   }

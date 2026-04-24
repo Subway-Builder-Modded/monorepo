@@ -152,9 +152,9 @@ describe("collectUpdatesContent", () => {
     );
 
     const result = collectUpdatesContent(root);
-    expect(result.errors.some((e) => e.includes('"compareUrl" must be an absolute http(s) URL'))).toBe(
-      true,
-    );
+    expect(
+      result.errors.some((e) => e.includes('"compareUrl" must be an absolute http(s) URL')),
+    ).toBe(true);
   });
 
   it("passes when both previousVersion and compareUrl are provided", () => {

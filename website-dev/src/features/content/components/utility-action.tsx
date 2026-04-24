@@ -15,12 +15,7 @@ type UtilityActionLinkProps = {
 export function UtilityActionLink({ href, label, icon: Icon, external }: UtilityActionLinkProps) {
   if (external) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={UTILITY_ACTION_CLASS}
-      >
+      <a href={href} target="_blank" rel="noopener noreferrer" className={UTILITY_ACTION_CLASS}>
         {Icon ? <Icon className="size-3" aria-hidden="true" /> : null}
         <span>{label}</span>
         <ExternalLink className="size-3" aria-hidden="true" />

@@ -14,13 +14,7 @@ function normalizeCategoryKey(value: string): string {
   return value.trim().toLowerCase();
 }
 
-export function ChangelogSection({
-  type,
-  children,
-}: {
-  type: string;
-  children?: ReactNode;
-}) {
+export function ChangelogSection({ type, children }: { type: string; children?: ReactNode }) {
   const categoryKey = normalizeCategoryKey(type);
   if (!categoryKey) {
     throw new Error("[updates-changelog] ChangelogSection requires a non-empty category type.");
@@ -57,7 +51,10 @@ export function ChangelogSection({
             "text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]",
           )}
         >
-          <Icon className="size-3.5 shrink-0 text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]" aria-hidden="true" />
+          <Icon
+            className="size-3.5 shrink-0 text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]"
+            aria-hidden="true"
+          />
           <span>{title}</span>
         </div>
         {children}

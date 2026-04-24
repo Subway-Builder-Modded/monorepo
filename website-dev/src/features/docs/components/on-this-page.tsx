@@ -236,11 +236,7 @@ export function OnThisPage({
           )}
 
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={scrollToTop}
-              className={UTILITY_ACTION_CLASS}
-            >
+            <button type="button" onClick={scrollToTop} className={UTILITY_ACTION_CLASS}>
               <ArrowUpToLine className="size-3" aria-hidden="true" />
               Top
             </button>
@@ -258,11 +254,7 @@ export function OnThisPage({
             ) : null}
 
             {rawContent ? (
-              <button
-                type="button"
-                onClick={copyMarkdown}
-                className={UTILITY_ACTION_CLASS}
-              >
+              <button type="button" onClick={copyMarkdown} className={UTILITY_ACTION_CLASS}>
                 <Copy className="size-3" aria-hidden="true" />
                 {copied ? "Copied" : "Copy"}
               </button>

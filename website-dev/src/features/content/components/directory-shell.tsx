@@ -59,11 +59,7 @@ export function DirectoryShell({
         </div>
       ) : null}
 
-      {isEmpty ? (
-        <p className="text-sm text-muted-foreground">{emptyLabel}</p>
-      ) : (
-        children
-      )}
+      {isEmpty ? <p className="text-sm text-muted-foreground">{emptyLabel}</p> : children}
     </div>
   );
 }

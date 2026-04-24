@@ -78,11 +78,7 @@ function normalizeFrontmatter(filePath: string, raw: string, errors: string[]): 
   }
 
   const normalizedDate =
-    typeof date === "string"
-      ? date
-      : date instanceof Date
-        ? date.toISOString().slice(0, 10)
-        : "";
+    typeof date === "string" ? date : date instanceof Date ? date.toISOString().slice(0, 10) : "";
 
   if (!normalizedDate.trim()) {
     errors.push(`${filePath}: missing required frontmatter field "date"`);
@@ -92,7 +88,8 @@ function normalizeFrontmatter(filePath: string, raw: string, errors: string[]): 
     errors.push(`${filePath}: frontmatter "tag" must be one of alpha | beta | release`);
   }
 
-  const hasPreviousVersion = typeof previousVersion === "string" && previousVersion.trim().length > 0;
+  const hasPreviousVersion =
+    typeof previousVersion === "string" && previousVersion.trim().length > 0;
   const hasCompareUrl = typeof compareUrl === "string" && compareUrl.trim().length > 0;
 
   if (hasPreviousVersion !== hasCompareUrl) {

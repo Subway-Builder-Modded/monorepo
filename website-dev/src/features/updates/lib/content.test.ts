@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { findUpdateEntry, getUpdateSourcePath, getUpdatesEntries } from "@/features/updates/lib/content";
+import {
+  findUpdateEntry,
+  getUpdateSourcePath,
+  getUpdatesEntries,
+} from "@/features/updates/lib/content";
 
 describe("updates content", () => {
   it("returns updates entries sorted newest first", () => {

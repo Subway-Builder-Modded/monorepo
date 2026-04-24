@@ -65,9 +65,7 @@ export function FeatureHomepageHeading({
         </SuiteBadge>
       }
       actions={
-        actions && actions.length > 0 ? (
-          <PageHeadingActions actions={actions} hideOnSmall />
-        ) : null
+        actions && actions.length > 0 ? <PageHeadingActions actions={actions} hideOnSmall /> : null
       }
       footer={footer}
     />

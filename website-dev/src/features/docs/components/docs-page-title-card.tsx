@@ -8,5 +8,12 @@ type DocsPageTitleCardProps = {
 };
 
 export function DocsPageTitleCard({ title, description, icon: Icon }: DocsPageTitleCardProps) {
-  return <PageHeading icon={(Icon ?? FileText) as typeof FileText} title={title} description={description} className="mb-4" />;
+  return (
+    <PageHeading
+      icon={(Icon ?? FileText) as typeof FileText}
+      title={title}
+      description={description}
+      className="mb-4"
+    />
+  );
 }

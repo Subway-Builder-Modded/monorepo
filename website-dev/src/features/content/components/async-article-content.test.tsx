@@ -8,15 +8,17 @@ describe("AsyncArticleContent", () => {
   it("renders loaded mdx component", async () => {
     const loadContent = vi.fn(async () => {
       const Content = ({ components: incoming }: { components: unknown }) => (
-        <div>
-          Loaded with components: {incoming === components ? "yes" : "no"}
-        </div>
+        <div>Loaded with components: {incoming === components ? "yes" : "no"}</div>
       );
       return Content;
     });
 
     render(
-      <AsyncArticleContent sourcePath="/content/test.mdx" loadContent={loadContent} components={components} />,
+      <AsyncArticleContent
+        sourcePath="/content/test.mdx"
+        loadContent={loadContent}
+        components={components}
+      />,
     );
 
     expect(await screen.findByText(/Loaded with components: yes/i)).toBeInTheDocument();

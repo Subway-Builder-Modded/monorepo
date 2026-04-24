@@ -39,7 +39,10 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
         />
 
         <div className="mb-4 flex items-center gap-2.5" aria-label="Updates directory">
-          <UPDATES_HOMEPAGE_ICON className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <UPDATES_HOMEPAGE_ICON
+            className="size-3.5 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
           <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
             Releases
           </span>
@@ -64,9 +67,7 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
                   )}
                 >
                   <div className="flex items-start gap-3 rounded-[0.7rem] px-3.5 py-3">
-                    <span
-                      className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[var(--suite-accent-light)] opacity-80 transition-opacity group-hover:opacity-95 dark:text-[var(--suite-accent-dark)]"
-                    >
+                    <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-[var(--suite-accent-light)] opacity-80 transition-opacity group-hover:opacity-95 dark:text-[var(--suite-accent-dark)]">
                       <Icon className="size-5" aria-hidden={true} />
                     </span>
                     <div className="min-w-0 flex-1">

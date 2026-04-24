@@ -108,11 +108,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
                 </a>
 
                 {rawContent ? (
-                  <button
-                    type="button"
-                    onClick={copyMarkdown}
-                    className={UTILITY_ACTION_CLASS}
-                  >
+                  <button type="button" onClick={copyMarkdown} className={UTILITY_ACTION_CLASS}>
                     <Copy className="size-3" aria-hidden="true" />
                     {copied ? "Copied" : "Copy"}
                   </button>
@@ -127,7 +123,10 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
                   className="inline-flex w-full items-center gap-2 rounded-lg border border-border/70 bg-muted/35 px-3 py-2 font-mono text-xs text-foreground/85 no-underline transition-colors hover:bg-muted/55"
                   aria-label={`Full Changelog ${compareLabel}`}
                 >
-                  <GitCompareArrows className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <GitCompareArrows
+                    className="size-3.5 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   <span className="text-muted-foreground">Full Changelog:</span>
                   <code className="rounded bg-background/80 px-1.5 py-0.5 text-[11px] text-foreground">
                     {compareLabel}
