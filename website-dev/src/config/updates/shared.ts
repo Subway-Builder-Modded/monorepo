@@ -1,6 +1,6 @@
 import { Megaphone, type LucideIcon } from "lucide-react";
 import type { UpdatesTag, UpdatesTagPresentation } from "./types";
-import { CONTENT_GITHUB_EDIT_BASE_URL, CONTENT_ROOT } from "@/config/shared/content";
+import { CONTENT_GITHUB_EDIT_BASE_URL, CONTENT_ROOT } from "../shared/content";
 
 /**
  * Re-exported under the updates-prefixed names that suite configs already import.

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { PageHeading, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
-import { Copy, FileQuestion, GitCompareArrows, Pencil } from "lucide-react";
+import { Copy, FileQuestion, GitCompareArrows, Pencil, type LucideIcon } from "lucide-react";
 import { getSuiteById } from "@/config/site-navigation";
 import { getUpdatesSuiteConfig, type UpdatesSuiteId } from "@/config/updates";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
@@ -84,7 +84,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
         <UpdatesBreadcrumbs suiteId={suiteId} slug={entry.id} title={entry.frontmatter.title} />
 
         <PageHeading
-          icon={Icon}
+          icon={Icon as LucideIcon}
           title={articleIdentity.title}
           description={`${formatUpdateDisplayId(entry.id)} • ${entry.frontmatter.date}`}
           badge={

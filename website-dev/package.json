@@ -15,8 +15,8 @@
     "lint": "vp lint --max-warnings=0 .",
     "lint:fix": "vp lint --max-warnings=0 --fix .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run format:check && pnpm run test && pnpm run test:coverage",
-    "ci": "pnpm run lint:fix && pnpm run format && pnpm run test && pnpm run test:coverage"
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test && pnpm run test:coverage",
+    "ci": "pnpm run typecheck && pnpm run lint:fix && pnpm run format && pnpm run test && pnpm run test:coverage"
   },
   "dependencies": {
     "@subway-builder-modded/shared-ui": "workspace:*",

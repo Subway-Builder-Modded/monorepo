@@ -7,7 +7,11 @@ import type {
 } from "@/config/docs";
 import { getDocsSuiteConfig, getSidebarOrder, DOCS_CONTENT_ROOT } from "@/config/docs";
 import { constructEditUrl } from "@/features/content/lib/edit-url";
-import type { MdxGlobResult, MdxRawContentModule } from "@/features/content/lib/mdx-virtual-module";
+import type {
+  RawMdxModule,
+  MdxGlobResult,
+  MdxRawContentModule,
+} from "@/features/content/lib/mdx-virtual-module";
 // @ts-expect-error -- virtual module provided by mdxRawContentPlugin in vite.config
 import rawContentData from "virtual:mdx-raw-content";
 

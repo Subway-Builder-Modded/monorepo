@@ -2,7 +2,11 @@ import type { UpdatesFrontmatter, UpdatesSuiteId } from "@/config/updates";
 import { getUpdatesSuiteConfig } from "@/config/updates";
 import type { UpdateEntry, UpdateTreeNode } from "./types";
 import { constructEditUrl } from "@/features/content/lib/edit-url";
-import type { MdxGlobResult, MdxRawContentModule } from "@/features/content/lib/mdx-virtual-module";
+import type {
+  RawMdxModule,
+  MdxGlobResult,
+  MdxRawContentModule,
+} from "@/features/content/lib/mdx-virtual-module";
 // @ts-expect-error - virtual module provided by vite plugin
 import rawContentData from "virtual:mdx-raw-content";
 
