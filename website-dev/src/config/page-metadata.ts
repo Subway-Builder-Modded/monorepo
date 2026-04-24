@@ -8,8 +8,11 @@ import {
 } from "@/config/site-navigation";
 import { matchDocsRoute, getDocsTree, findTreeNode } from "@/features/docs";
 import { DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
-import { matchUpdatesRoute, findUpdateEntry, getUpdatesEntries } from "@/features/updates";
-import { UPDATES_HOMEPAGE_TITLE } from "@/config/updates";
+import { matchUpdatesRoute, findUpdateEntry } from "@/features/updates";
+import {
+  getUpdateArticleIdentity,
+  getUpdatesHomepageIdentity,
+} from "@/features/updates/lib/identity";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
@@ -101,30 +104,26 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
     const suite = getSuiteById(updatesMatch.suiteId);
 
     if (updatesMatch.kind === "homepage") {
-      const title = UPDATES_HOMEPAGE_TITLE;
-      const latestUpdate = getUpdatesEntries(updatesMatch.suiteId)[0] ?? null;
+      const homepageIdentity = getUpdatesHomepageIdentity(updatesMatch.suiteId);
       return {
         pathname: normalizedPathname,
-        title,
-        description: latestUpdate
-          ? `${latestUpdate.id} • ${latestUpdate.frontmatter.date}`
-          : DEFAULT_SITE_DESCRIPTION,
+        title: homepageIdentity.title,
+        description: homepageIdentity.description,
         suite,
-        pageTitle: `${title} | ${suite.title}`,
+        pageTitle: `${homepageIdentity.title} | ${suite.title}`,
         imagePath: getSuiteImagePath(updatesMatch.suiteId),
       };
     }
 
     const update = findUpdateEntry(updatesMatch.suiteId, updatesMatch.slug);
-    const title = update?.frontmatter.title ?? "Updates";
-    const description = update ? `${update.id} • ${update.frontmatter.date}` : DEFAULT_SITE_DESCRIPTION;
+    const updateIdentity = getUpdateArticleIdentity(update);
 
     return {
       pathname: normalizedPathname,
-      title,
-      description,
+      title: updateIdentity.title,
+      description: updateIdentity.description,
       suite,
-      pageTitle: `${title} | ${suite.title} Updates`,
+      pageTitle: `${updateIdentity.title} | ${suite.title} Updates`,
       imagePath: getSuiteImagePath(updatesMatch.suiteId),
     };
   }

@@ -8,6 +8,7 @@ export type {
   UpdatesSuiteConfig,
   UpdatesSuiteId,
   UpdatesTag,
+  UpdatesTagPresentation,
   UpdatesFrontmatter,
   UpdatesHomepageActionConfig,
   UpdatesHomepageActions,
@@ -16,7 +17,14 @@ export type {
   UpdatesChangelogActions,
 } from "./types";
 
-export { UPDATES_CONTENT_ROOT, UPDATES_GITHUB_BASE_URL, UPDATES_HOMEPAGE_TITLE, UPDATES_HOMEPAGE_ICON } from "./shared";
+export {
+  UPDATES_CONTENT_ROOT,
+  UPDATES_GITHUB_BASE_URL,
+  UPDATES_HOMEPAGE_TITLE,
+  UPDATES_HOMEPAGE_ICON,
+  UPDATES_DEFAULT_HOMEPAGE_DESCRIPTION,
+  UPDATES_TAG_PRESENTATION,
+} from "./shared";
 export {
   CHANGELOG_CATEGORIES,
   type ChangelogCategoryConfig,

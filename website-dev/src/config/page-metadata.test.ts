@@ -35,6 +35,7 @@ describe("resolvePageMetadata", () => {
 
     expect(metadata.title).toBe("Updates");
     expect(metadata.pageTitle).toBe("Updates | Railyard");
+    expect(metadata.description).toBe("Track every station stop in the Railyard release line.");
     expect(metadata.suite.id).toBe("railyard");
   });
 

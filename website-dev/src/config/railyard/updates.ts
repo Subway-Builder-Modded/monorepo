@@ -7,6 +7,7 @@ export const railyardUpdatesConfig: UpdatesSuiteConfig = {
   enabled: true,
   editSourceBaseUrl: `${UPDATES_GITHUB_BASE_URL}/${UPDATES_CONTENT_ROOT}/railyard/updates`,
   homepage: {
+    description: "View the changelogs and release notes for Railyard.",
     actions: [
       {
         label: "Download",

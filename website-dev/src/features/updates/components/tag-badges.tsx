@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { UpdatesTag } from "@/config/updates";
+import { UPDATES_TAG_PRESENTATION, type UpdatesTag } from "@/config/updates";
 
 type BadgeSize = "default" | "title";
 
@@ -9,15 +9,7 @@ type TagChipProps = {
 };
 
 export function TagChip({ tag, size = "default" }: TagChipProps) {
-  const tone =
-    tag === "release"
-      ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300"
-      : tag === "beta"
-        ? "bg-yellow-500/14 text-yellow-700 dark:text-yellow-300"
-        : "bg-red-500/12 text-red-700 dark:text-red-300";
-
-  const label =
-    tag === "release" ? "Release" : tag === "beta" ? "Beta" : "Release-Candidate";
+  const presentation = UPDATES_TAG_PRESENTATION[tag];
 
   return (
     <span
@@ -26,10 +18,10 @@ export function TagChip({ tag, size = "default" }: TagChipProps) {
         size === "title"
           ? "px-2.5 py-1 text-sm leading-none sm:px-3 sm:py-1.5 sm:text-base"
           : "px-2 py-0.5 text-[11px]",
-        tone,
+        presentation.toneClassName,
       )}
     >
-      {label}
+      {presentation.label}
     </span>
   );
 }

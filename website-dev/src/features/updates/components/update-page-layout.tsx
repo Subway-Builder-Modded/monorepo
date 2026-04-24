@@ -1,92 +1,39 @@
-import { useEffect, useState, Suspense } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { PageHeading, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
-import { FileQuestion, GitCompareArrows } from "lucide-react";
+import { Copy, FileQuestion, GitCompareArrows, Pencil } from "lucide-react";
 import { getSuiteById } from "@/config/site-navigation";
 import { getUpdatesSuiteConfig, type UpdatesSuiteId } from "@/config/updates";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import {
   findUpdateEntry,
   getUpdateDirectoryEntries,
+  getUpdateEditUrl,
+  getUpdateRawContent,
   getUpdateSourcePath,
   getUpdatesEntries,
   loadUpdateContent,
 } from "@/features/updates/lib/content";
 import { articleMdxComponents } from "@/features/content/mdx";
+import { AsyncArticleContent } from "@/features/content/components/async-article-content";
 import { PageHeadingActions } from "@/features/content/components/page-heading-actions";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
+import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
 import { Directory } from "@/features/updates/mdx/directory";
 import { UpdatesRouteProvider } from "@/features/updates/mdx/updates-route-context";
 import { formatUpdateDisplayId } from "@/features/updates/lib/formatting";
+import { getUpdateArticleIdentity } from "@/features/updates/lib/identity";
 import { UpdatesBreadcrumbs } from "./updates-breadcrumbs";
 import { LatestReleaseChip, TagChip } from "./tag-badges";
 
-function UpdateContent({ sourcePath }: { sourcePath: string }) {
-  const [Content, setContent] = useState<React.ComponentType<any> | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setContent(null);
-    setError(null);
-
-    loadUpdateContent(sourcePath)
-      .then((component) => {
-        if (!cancelled) {
-          if (component) {
-            setContent(() => component);
-          } else {
-            setError("Content not found");
-          }
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setError("Failed to load content");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [sourcePath]);
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <FileQuestion className="size-8 text-muted-foreground" aria-hidden="true" />
-        <p className="text-sm text-muted-foreground">{error}</p>
-      </div>
-    );
-  }
-
-  if (!Content) {
-    return (
-      <div className="space-y-4 py-8">
-        <div className="h-4 w-3/4 animate-pulse rounded bg-muted/40" />
-        <div className="h-4 w-1/2 animate-pulse rounded bg-muted/40" />
-      </div>
-    );
-  }
-
-  return (
-    <Suspense
-      fallback={
-        <div className="space-y-4 py-8">
-          <div className="h-4 w-3/4 animate-pulse rounded bg-muted/40" />
-          <div className="h-4 w-1/2 animate-pulse rounded bg-muted/40" />
-        </div>
-      }
-    >
-      <Content components={articleMdxComponents} />
-    </Suspense>
-  );
-}
-
 export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id: string }) {
+  const [copied, setCopied] = useState(false);
   const suite = getSuiteById(suiteId);
   const entry = findUpdateEntry(suiteId, id);
   const sourcePath = entry?.sourcePath ?? getUpdateSourcePath(suiteId, id);
+  const rawContent = getUpdateRawContent(sourcePath);
   const entries = getUpdatesEntries(suiteId);
   const latestEntry = entries[0] ?? null;
-  const releaseCandidates = getUpdateDirectoryEntries(suiteId, id);
+  const releaseCandidates = useMemo(() => getUpdateDirectoryEntries(suiteId, id), [suiteId, id]);
 
   if (!entry) {
     return (
@@ -102,7 +49,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
     );
   }
 
-  const Icon = resolveIcon(entry.frontmatter.icon);
+  const Icon = resolveLucideIcon(entry.frontmatter.icon);
   const isParentVersion = !entry.id.includes("/");
   const suiteConfig = getUpdatesSuiteConfig(suiteId);
   const resolvedActions = resolveHeadingActions(suiteConfig?.changelog.pageActions, {
@@ -111,10 +58,24 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
     isParentVersion,
     entry: { id: entry.id, frontmatter: entry.frontmatter },
   });
+  const articleIdentity = getUpdateArticleIdentity(entry);
   const compareHref = entry.frontmatter.compareUrl?.trim() || null;
   const compareLabel = entry.frontmatter.previousVersion
     ? `${entry.frontmatter.previousVersion}...${entry.id}`
     : null;
+  const editUrl = getUpdateEditUrl(suiteId, entry.id);
+
+  const copyMarkdown = useCallback(async () => {
+    if (!rawContent) return;
+    try {
+      const markdown = mdxToMarkdown(rawContent);
+      await navigator.clipboard.writeText(markdown);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // ignore
+    }
+  }, [rawContent]);
 
   return (
     <SuiteAccentScope accent={suite.accent}>
@@ -123,7 +84,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
 
         <PageHeading
           icon={Icon}
-          title={entry.frontmatter.title}
+          title={articleIdentity.title}
           description={`${formatUpdateDisplayId(entry.id)} • ${entry.frontmatter.date}`}
           badge={
             <div className="flex items-center gap-1.5">
@@ -133,21 +94,46 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
           }
           actions={<PageHeadingActions actions={resolvedActions} />}
           footer={
-            compareHref && compareLabel ? (
-              <a
-                href={compareHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex w-full items-center gap-2 rounded-lg border border-border/70 bg-muted/35 px-3 py-2 font-mono text-xs text-foreground/85 no-underline transition-colors hover:bg-muted/55"
-                aria-label={`Full Changelog ${compareLabel}`}
-              >
-                <GitCompareArrows className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="text-muted-foreground">Full Changelog:</span>
-                <code className="rounded bg-background/80 px-1.5 py-0.5 text-[11px] text-foreground">
-                  {compareLabel}
-                </code>
-              </a>
-            ) : null
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1.5">
+                <a
+                  href={editUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
+                >
+                  <Pencil className="size-3" aria-hidden="true" />
+                  Edit
+                </a>
+
+                {rawContent ? (
+                  <button
+                    type="button"
+                    onClick={copyMarkdown}
+                    className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,transparent)] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_14%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
+                  >
+                    <Copy className="size-3" aria-hidden="true" />
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                ) : null}
+              </div>
+
+              {compareHref && compareLabel ? (
+                <a
+                  href={compareHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center gap-2 rounded-lg border border-border/70 bg-muted/35 px-3 py-2 font-mono text-xs text-foreground/85 no-underline transition-colors hover:bg-muted/55"
+                  aria-label={`Full Changelog ${compareLabel}`}
+                >
+                  <GitCompareArrows className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <span className="text-muted-foreground">Full Changelog:</span>
+                  <code className="rounded bg-background/80 px-1.5 py-0.5 text-[11px] text-foreground">
+                    {compareLabel}
+                  </code>
+                </a>
+              ) : null}
+            </div>
           }
         />
 
@@ -157,7 +143,12 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
           </h2>
           <div className="prose-docs max-w-none">
             <UpdatesRouteProvider value={{ suiteId, slug: entry.id }}>
-              <UpdateContent sourcePath={sourcePath} />
+              <AsyncArticleContent
+                sourcePath={sourcePath}
+                loadContent={loadUpdateContent}
+                components={articleMdxComponents}
+                loadingLines={2}
+              />
             </UpdatesRouteProvider>
           </div>
         </article>

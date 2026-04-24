@@ -5,6 +5,11 @@ export type UpdatesSuiteId = Extract<SiteSuiteId, "railyard" | "template-mod" | 
 
 export type UpdatesTag = "alpha" | "beta" | "release";
 
+export type UpdatesTagPresentation = {
+  label: string;
+  toneClassName: string;
+};
+
 export type UpdatesFrontmatter = {
   title: string;
   icon: string;
@@ -45,6 +50,7 @@ export type UpdatesSuiteConfig = {
     pageActions?: UpdatesChangelogActions;
   };
   homepage: {
+    description?: string;
     actions?: UpdatesHomepageActions;
   };
 };

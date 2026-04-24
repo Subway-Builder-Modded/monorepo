@@ -1,5 +1,5 @@
 import type { UpdatesSuiteConfig } from "../updates/types";
-import { Globe, ChartLine } from "lucide-react";
+import { ChartLine } from "lucide-react";
 import { UPDATES_CONTENT_ROOT, UPDATES_GITHUB_BASE_URL } from "../updates/shared";
 
 export const websiteUpdatesConfig: UpdatesSuiteConfig = {
@@ -7,6 +7,7 @@ export const websiteUpdatesConfig: UpdatesSuiteConfig = {
   enabled: true,
   editSourceBaseUrl: `${UPDATES_GITHUB_BASE_URL}/${UPDATES_CONTENT_ROOT}/website/updates`,
   homepage: {
+    description: "Product updates, fixes, and polish shipped to the website.",
     actions: [
       {
         label: "View Analytics",

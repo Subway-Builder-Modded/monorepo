@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getUpdatePageUrl, getUpdatesHomepageUrl, matchUpdatesRoute } from "@/features/updates/lib/routing";
+import {
+  getUpdatePageUrl,
+  getUpdatesHomepageUrl,
+  matchUpdatesRoute,
+} from "@/features/updates/lib/routing";
 
 describe("matchUpdatesRoute", () => {
   it("returns none for non-updates paths", () => {

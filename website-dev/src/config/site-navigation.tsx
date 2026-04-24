@@ -348,7 +348,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "template-mod-docs",
     suiteId: "template-mod",
     title: "Docs",
-    description: "The official documentation for the Subway Builder Modded Template Mod.",
+    description: "The official documentation for the Template Mod.",
     href: "/template-mod/docs",
     icon: BookText,
     activeMatchRules: [{ kind: "prefix", path: "/template-mod/docs" }],

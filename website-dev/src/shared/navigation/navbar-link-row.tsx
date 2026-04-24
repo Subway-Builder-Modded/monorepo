@@ -17,7 +17,7 @@ export function NavbarLinkRow({ active, className, item, onClick }: NavbarLinkRo
       to={item.href}
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className="flex rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="flex h-full w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <NavRow
         title={item.title}

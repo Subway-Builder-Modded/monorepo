@@ -59,7 +59,7 @@ vi.mock("@/features/docs/lib/content", () => ({
   getDocSourcePath: vi.fn(() => "/content/railyard/docs/v0.2/players/github-token.mdx"),
   getEditUrl: vi.fn(
     () =>
-      "https://github.com/Subway-Builder-Modded/monorepo/edit/main/website-dev/content/railyard/docs/v0.2/players/github-token.mdx",
+      "https://github.com/Subway-Builder-Modded/monorepo/edit/main/website/content/railyard/docs/v0.2/players/github-token.mdx",
   ),
 }));
 

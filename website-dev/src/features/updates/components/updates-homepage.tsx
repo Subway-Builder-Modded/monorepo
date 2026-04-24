@@ -2,22 +2,29 @@ import { useMemo } from "react";
 import { PageHeading, SuiteAccentScope, SuiteBadge } from "@subway-builder-modded/shared-ui";
 import { ChevronRight } from "lucide-react";
 import { getSuiteById } from "@/config/site-navigation";
-import { getUpdatesSuiteConfig, UPDATES_HOMEPAGE_ICON, UPDATES_HOMEPAGE_TITLE, type UpdatesSuiteId } from "@/config/updates";
+import {
+  getUpdatesSuiteConfig,
+  UPDATES_HOMEPAGE_ICON,
+  UPDATES_HOMEPAGE_TITLE,
+  type UpdatesSuiteId,
+} from "@/config/updates";
 import { getUpdatesEntries } from "@/features/updates/lib/content";
 import { getUpdatePageUrl } from "@/features/updates/lib/routing";
 import { formatUpdateDisplayId } from "@/features/updates/lib/formatting";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
+import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import { PageHeadingActions } from "@/features/content/components/page-heading-actions";
 import { LatestReleaseChip, TagChip } from "./tag-badges";
+import { getUpdatesHomepageIdentity } from "@/features/updates/lib/identity";
 
 export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
   const suite = getSuiteById(suiteId);
   const entries = useMemo(() => getUpdatesEntries(suiteId), [suiteId]);
   const latestEntry = entries[0] ?? null;
   const suiteConfig = getUpdatesSuiteConfig(suiteId);
+  const identity = getUpdatesHomepageIdentity(suiteId);
   const headingActions = resolveHeadingActions(suiteConfig?.homepage.actions, { suiteId });
 
   return (
@@ -26,7 +33,7 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
         <PageHeading
           icon={UPDATES_HOMEPAGE_ICON}
           title={UPDATES_HOMEPAGE_TITLE}
-          description={`Changelogs and release notes for ${suite.title}.`}
+          description={identity.description}
           badge={
             <SuiteBadge className="h-7 shrink-0 gap-1.5 rounded-md px-2 normal-case tracking-normal" accent={suite.accent}>
               <suite.icon className="size-3.5" aria-hidden={true} />
@@ -47,9 +54,9 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
         {entries.length === 0 ? (
           <p className="text-sm text-muted-foreground">No update entries found for this suite.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {entries.map((entry) => {
-              const Icon = resolveIcon(entry.frontmatter.icon);
+              const Icon = resolveLucideIcon(entry.frontmatter.icon);
               const isLatest = latestEntry?.id === entry.id;
               return (
                 <Link
@@ -76,7 +83,9 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
                         {isLatest ? <LatestReleaseChip /> : null}
                       </div>
                       <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                        <span>{formatUpdateDisplayId(entry.id)} • {entry.frontmatter.date}</span>
+                        <span>
+                          {formatUpdateDisplayId(entry.id)} • {entry.frontmatter.date}
+                        </span>
                       </div>
                     </div>
                     <ChevronRight
