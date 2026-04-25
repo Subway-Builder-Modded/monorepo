@@ -1,0 +1,35 @@
+---
+title: Railyard - v0.2.3
+icon: TrainTrack
+date: April 24, 2026
+tag: beta
+url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.3
+previousVersion: v0.2.2
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.2...v0.2.3
+---
+
+<ChangelogSection type="features">
+
+- Added `.railyard_{asset_type}` shared directory support for maps. Assets can now include this folder in their ZIP and Railyard will preserve the files there and place them in the asset's installed directory
+- Library and Browse counts now adapt to current filter state, showing number of assets matching tags based on the current filter set
+- Added a credits section within the app (with maintainers and supporters listed)
+
+</ChangelogSection>
+
+<ChangelogSection type="upgrades">
+
+- Changed the GitHub permission error toast to a dialogue with a link to the documentation
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Fixed missing dependency that caused crashes on map imports, updates, etc.
+- Fixed download button being enabled even if an asset was not compatible with the current game version
+- Fixed country flags not rendering on Browse and Home
+- Fixed a bug where the game could be launched twice (if the initial launch was delayed)
+- Fixed laggy search caused by excessive rendering
+- Fixed an issue where maps were downloadable despite not having passed an integrity check
+- Fixed an issue where new assets were not shown in the app due to localization inconsistencies in date mapping
+
+</ChangelogSection>
