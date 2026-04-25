@@ -140,6 +140,8 @@ function MdxPre({ children, ...props }: { children?: ReactNode; [key: string]: u
   return <CodeBlock {...props}>{children}</CodeBlock>;
 }
 
+// MDX component map requires a string-keyed record per the MDX runtime API.
+// The `any` cast is an intentional boundary — prop types are enforced per-component in their own files.
 export const articleMdxComponents: Record<string, React.ComponentType<any>> = {
   h2: createHeading(2),
   h3: createHeading(3),

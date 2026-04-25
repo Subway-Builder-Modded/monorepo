@@ -1,9 +1,5 @@
 import { useMemo } from "react";
-import {
-  SuiteAccentScope,
-  SectionSeparator,
-  DirectoryCard,
-} from "@subway-builder-modded/shared-ui";
+import { SuiteAccentScope, SectionSeparator } from "@subway-builder-modded/shared-ui";
 import { getSuiteById } from "@/config/site-navigation";
 import {
   getUpdatesSuiteConfig,
@@ -12,13 +8,9 @@ import {
   type UpdatesSuiteId,
 } from "@/config/updates";
 import { getUpdatesEntries } from "@/features/updates/lib/content";
-import { getUpdatePageUrl } from "@/features/updates/lib/routing";
-import { formatUpdateDisplayId } from "@/features/updates/lib/formatting";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
-import { Link } from "@/lib/router";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
-import { LatestReleaseChip, TagChip } from "./tag-badges";
+import { UpdateEntryCard } from "./update-entry-card";
 import { getUpdatesHomepageIdentity } from "@/features/updates/lib/identity";
 
 export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
@@ -47,28 +39,8 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
         ) : (
           <div className="space-y-4">
             {entries.map((entry) => {
-              const Icon = resolveLucideIcon(entry.frontmatter.icon);
               const isLatest = latestEntry?.id === entry.id;
-              return (
-                <DirectoryCard
-                  key={entry.id}
-                  asChild
-                  icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
-                  heading={
-                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="text-base font-bold leading-tight text-foreground">
-                        {entry.frontmatter.title}
-                      </span>
-                      <TagChip tag={entry.frontmatter.tag} />
-                      {isLatest ? <LatestReleaseChip /> : null}
-                    </span>
-                  }
-                  description={`${formatUpdateDisplayId(entry.id)} • ${entry.frontmatter.date}`}
-                  descriptionClassName="text-xs"
-                >
-                  <Link to={getUpdatePageUrl(suiteId, entry.id)}>{null}</Link>
-                </DirectoryCard>
-              );
+              return <UpdateEntryCard key={entry.id} entry={entry} isLatest={isLatest} />;
             })}
           </div>
         )}

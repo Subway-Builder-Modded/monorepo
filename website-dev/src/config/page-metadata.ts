@@ -9,9 +9,8 @@ import {
 } from "@/config/site-navigation";
 import { matchDocsRoute, getDocsTree, findTreeNode } from "@/features/docs";
 import { DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
-import { matchUpdatesRoute, findUpdateEntry } from "@/features/updates";
+import { matchUpdatesRoute, findUpdateEntry, getUpdateArticleIdentity } from "@/features/updates";
 import { UPDATES_HOMEPAGE_TITLE } from "@/config/updates/shared";
-import { getUpdateArticleIdentity } from "@/features/updates/lib/identity";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";

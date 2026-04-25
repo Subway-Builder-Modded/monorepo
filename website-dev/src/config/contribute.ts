@@ -1,4 +1,4 @@
-import type { CreditsSubsectionId } from "@/features/credits/lib/types";
+import type { CreditsSubsectionId } from "@/features/credits";
 
 export const KOFI_MEMBERSHIPS_URL = "https://ko-fi.com/subwaybuildermodded/";
 

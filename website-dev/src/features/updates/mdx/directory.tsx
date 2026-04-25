@@ -1,14 +1,10 @@
 import { useMemo } from "react";
-import { DirectoryCard } from "@subway-builder-modded/shared-ui";
 import type { UpdatesSuiteId } from "@/config/updates";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
 import { getUpdateDirectoryEntries } from "@/features/updates/lib/content";
-import { formatUpdateDisplayId } from "@/features/updates/lib/formatting";
-import { getUpdatePageUrl } from "@/features/updates/lib/routing";
-import { Link } from "@/lib/router";
-import { LatestReleaseChip, TagChip } from "@/features/updates/components/tag-badges";
+import { UpdateEntryCard } from "@/features/updates/components/update-entry-card";
 import { useUpdatesRoute } from "./updates-route-context";
 import { DirectoryShell } from "@/features/content/components/directory-shell";
+import { resolveIcon } from "@/features/docs/lib/icon-resolver";
 
 type DirectoryProps = {
   path?: string;
@@ -42,29 +38,9 @@ export function Directory({ path, suiteId, icon, label, emptyLabel }: DirectoryP
     >
       <div className="space-y-2">
         {entries.map((entry) => {
-          const Icon = resolveIcon(entry.frontmatter.icon);
           const isLatest = latestId === entry.id;
 
-          return (
-            <DirectoryCard
-              key={entry.id}
-              asChild
-              icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
-              heading={
-                <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="text-base font-bold leading-tight text-foreground">
-                    {entry.frontmatter.title}
-                  </span>
-                  <TagChip tag={entry.frontmatter.tag} />
-                  {isLatest ? <LatestReleaseChip /> : null}
-                </span>
-              }
-              description={`${formatUpdateDisplayId(entry.id)} • ${entry.frontmatter.date}`}
-              descriptionClassName="text-xs"
-            >
-              <Link to={getUpdatePageUrl(entry.suiteId, entry.id)}>{null}</Link>
-            </DirectoryCard>
-          );
+          return <UpdateEntryCard key={entry.id} entry={entry} isLatest={isLatest} />;
         })}
       </div>
     </DirectoryShell>

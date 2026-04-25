@@ -11,4 +11,5 @@ export type {
   CreditsSection,
   CreditsSubsection,
   CreditsPerson,
+  CreditsSubsectionId,
 } from "./lib/types";

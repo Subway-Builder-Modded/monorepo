@@ -49,3 +49,5 @@ yarn-error.log*
 .prompt.md
 .agent.md
 SKILL.md
+conventions.md
+spec.md
