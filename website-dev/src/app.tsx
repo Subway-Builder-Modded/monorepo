@@ -4,6 +4,7 @@ import { DocsRoute, matchDocsRoute } from "@/features/docs";
 import { UpdatesRoute, matchUpdatesRoute } from "@/features/updates";
 import { LicenseRoute, matchLicenseRoute } from "@/features/license";
 import { CreditsRoute, matchCreditsRoute } from "@/features/credits";
+import { ContributeRoute, matchContributeRoute } from "@/features/contribute";
 import { HomePage } from "@/features/home";
 
 function RouteSwitch() {
@@ -26,6 +27,11 @@ function RouteSwitch() {
   const creditsMatch = matchCreditsRoute(location.pathname);
   if (creditsMatch.kind !== "none") {
     return <CreditsRoute />;
+  }
+
+  const contributeMatch = matchContributeRoute(location.pathname);
+  if (contributeMatch.kind !== "none") {
+    return <ContributeRoute />;
   }
 
   return <HomePage />;

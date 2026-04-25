@@ -3,9 +3,6 @@ import {
   FileQuestion,
   ExternalLink,
   Link as LinkIcon,
-  CodeXml,
-  UsersRound,
-  Heart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -18,6 +15,7 @@ import { Link, useLocation } from "@/lib/router";
 import { getMatchingItem, getSuiteById } from "@/config/site-navigation";
 import { loadCreditsDirectory, isExternalHref } from "@/features/credits/lib/content";
 import { matchCreditsRoute } from "@/features/credits/lib/routing";
+import { TIER_STYLES } from "@/features/credits/lib/tier-styles";
 import type {
   CreditsDirectory,
   CreditsPerson,
@@ -31,17 +29,6 @@ type CreditsState =
   | { status: "loading" }
   | { status: "ready"; directory: CreditsDirectory }
   | { status: "error" };
-
-const SUBSECTION_STYLES: Record<
-  CreditsSubsectionId,
-  { icon: LucideIcon; accentLight: string; accentDark: string }
-> = {
-  developer: { icon: CodeXml, accentLight: "#5296D5", accentDark: "#5296D5" },
-  collaborator: { icon: UsersRound, accentLight: "#925CB1", accentDark: "#925CB1" },
-  executive: { icon: Heart, accentLight: "#D8833B", accentDark: "#D8833B" },
-  conductor: { icon: Heart, accentLight: "#9F2757", accentDark: "#9F2757" },
-  engineer: { icon: Heart, accentLight: "#D65745", accentDark: "#D65745" },
-};
 
 function PersonCard({
   person,
@@ -118,7 +105,7 @@ function PersonCard({
 }
 
 function CreditsSubsectionBlock({ subsection }: { subsection: CreditsSubsection }) {
-  const subsectionStyle = SUBSECTION_STYLES[subsection.id];
+  const subsectionStyle = TIER_STYLES[subsection.id];
   const SubsectionIcon = subsectionStyle.icon;
 
   return (
