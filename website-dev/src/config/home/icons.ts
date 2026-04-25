@@ -12,14 +12,14 @@ import {
   TrainTrack,
   Users,
 } from "lucide-react";
-import { FaDiscord } from "react-icons/fa";
+import { DiscordIcon } from "@subway-builder-modded/shared-ui";
 
 export const HOME_ICONS = {
   bookText: BookText,
   chartLine: ChartLine,
   compass: Compass,
   database: Database,
-  discord: FaDiscord,
+  discord: DiscordIcon,
   download: Download,
   gitPullRequestArrow: GitPullRequestArrow,
   globe: Globe,

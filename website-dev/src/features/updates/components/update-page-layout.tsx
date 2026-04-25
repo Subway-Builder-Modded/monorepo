@@ -2,7 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import { PageHeading, SectionSeparator, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { Copy, FileQuestion, GitCompareArrows, Pencil, type LucideIcon } from "lucide-react";
 import { getSuiteById } from "@/config/site-navigation";
-import { getUpdatesSuiteConfig, UPDATES_HOMEPAGE_ICON, type UpdatesSuiteId } from "@/config/updates";
+import {
+  getUpdatesSuiteConfig,
+  UPDATES_HOMEPAGE_ICON,
+  type UpdatesSuiteId,
+} from "@/config/updates";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import { UTILITY_ACTION_CLASS } from "@/features/content/components/utility-action";
 import {

@@ -23,7 +23,7 @@ export function SectionSeparator({
   return (
     <div className={cn('mb-4 flex items-center gap-2.5', className)} data-testid={testId}>
       {Icon ? (
-        <Icon className="size-3.5 shrink-0 translate-y-px text-muted-foreground" aria-hidden="true" />
+        <Icon className="size-3.5 shrink-0 translate-y-px text-muted-foreground" aria-hidden={true} />
       ) : null}
       <LabelTag className="text-[11px] font-bold uppercase tracking-[0.16em] leading-none text-muted-foreground">
         {label}

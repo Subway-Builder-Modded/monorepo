@@ -16,7 +16,7 @@ export const metadata: Metadata = buildEmbedMetadata({
     'Help us build the future of Subway Builder. Your support keeps development active and opens exclusive features for our community.',
 });
 
-const KOFI_URL = 'https://ko-fi.com/subwaybuildermodded';
+const KOFI_URL = 'https://ko-fi.com/subway-builder-modded';
 
 export default function ContributePage() {
   return (

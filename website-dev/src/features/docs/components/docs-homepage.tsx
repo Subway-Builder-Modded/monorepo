@@ -1,12 +1,15 @@
 import { useMemo } from "react";
-import { SuiteAccentScope, SectionSeparator, DirectoryCard } from "@subway-builder-modded/shared-ui";
+import {
+  SuiteAccentScope,
+  SectionSeparator,
+  DirectoryCard,
+} from "@subway-builder-modded/shared-ui";
 import { Compass } from "lucide-react";
 import { getDocsSuiteConfig, getDocsVersion, hasMultipleVisibleVersions } from "@/config/docs";
 import { DOCS_HOMEPAGE_ICON, DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
 import type { DocsSuiteId } from "@/config/docs";
 import { getSuiteById, getSuiteDocsNavItem } from "@/config/site-navigation";
 import { Link } from "@/lib/router";
-import { cn } from "@/lib/utils";
 import { DocsDeprecatedNotice } from "@/features/docs/components/docs-deprecated-notice";
 import { DocsVersionChooser } from "@/features/docs/components/docs-version-chooser";
 import { getDocsTree, getVisibleNodes } from "@/features/docs/lib/content";

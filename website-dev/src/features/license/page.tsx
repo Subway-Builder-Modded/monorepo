@@ -23,7 +23,9 @@ export function LicenseRoute() {
       <div className="flex flex-col items-center gap-4 py-20 text-center">
         <FileQuestion className="size-12 text-muted-foreground" aria-hidden="true" />
         <h1 className="text-lg font-bold text-foreground">Page Not Found</h1>
-        <p className="text-sm text-muted-foreground">The page "{location.pathname}" was not found.</p>
+        <p className="text-sm text-muted-foreground">
+          The page "{location.pathname}" was not found.
+        </p>
       </div>
     );
   }

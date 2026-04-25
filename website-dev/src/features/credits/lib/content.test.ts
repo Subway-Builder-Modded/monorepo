@@ -38,7 +38,10 @@ describe("buildCreditsDirectory", () => {
       },
     );
 
-    expect(directory.sections.map((section) => section.id)).toEqual(["maintainers", "contributors"]);
+    expect(directory.sections.map((section) => section.id)).toEqual([
+      "maintainers",
+      "contributors",
+    ]);
 
     const maintainers = directory.sections[0];
     expect(maintainers?.subsections.map((sub) => sub.id)).toEqual(["developer"]);
@@ -128,7 +131,10 @@ describe("buildCreditsDirectory", () => {
       },
     );
 
-    expect(directory.sections.map((section) => section.id)).toEqual(["maintainers", "contributors"]);
+    expect(directory.sections.map((section) => section.id)).toEqual([
+      "maintainers",
+      "contributors",
+    ]);
 
     const maintainers = directory.sections[0];
     expect(maintainers?.subsections.map((subsection) => subsection.id)).toEqual(["collaborator"]);
@@ -138,7 +144,9 @@ describe("buildCreditsDirectory", () => {
 
     const contributors = directory.sections[1];
     expect(contributors?.subsections.map((subsection) => subsection.id)).toEqual(["executive"]);
-    expect(contributors?.subsections[0]?.people.map((person) => person.displayName)).toEqual(["Steno"]);
+    expect(contributors?.subsections[0]?.people.map((person) => person.displayName)).toEqual([
+      "Steno",
+    ]);
   });
 
   it("omits empty sections and subsections", () => {
@@ -150,7 +158,9 @@ describe("buildCreditsDirectory", () => {
     );
 
     expect(directory.sections.map((section) => section.id)).toEqual(["maintainers"]);
-    expect(directory.sections[0]?.subsections.map((subsection) => subsection.id)).toEqual(["developer"]);
+    expect(directory.sections[0]?.subsections.map((subsection) => subsection.id)).toEqual([
+      "developer",
+    ]);
   });
 });
 

@@ -244,7 +244,10 @@ export {
   type AnalyticsPreviewProps,
   type AnalyticsPreviewSeries,
 } from './components/analytics-preview';
-export { GithubIcon } from './components/github-icon';
+export { InlineMarkdown, type InlineMarkdownProps } from './components/inline-markdown';
+export { GithubIcon } from './icons/github';
+export { DiscordIcon } from './icons/discord';
+export { KofiIcon } from './icons/kofi';
 export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,

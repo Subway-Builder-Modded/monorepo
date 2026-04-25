@@ -16,8 +16,7 @@ import {
   Megaphone,
   TrendingUp,
 } from "lucide-react";
-import { FaDiscord as Discord } from "react-icons/fa6";
-import { GithubIcon } from "@subway-builder-modded/shared-ui";
+import { GithubIcon, DiscordIcon } from "@subway-builder-modded/shared-ui";
 
 function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boolean }) {
   return (
@@ -238,8 +237,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "railyard-home",
     suiteId: "railyard",
     title: "Home",
-    description:
-      "Discover the all-in-one manager for Subway Builder community-made content.",
+    description: "Discover the all-in-one manager for Subway Builder community-made content.",
     href: "/railyard",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/railyard" }],
@@ -404,7 +402,7 @@ export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
     id: "discord",
     title: "Discord",
     href: "https://discord.gg/syG9YHMyeG",
-    icon: <Discord className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
+    icon: <DiscordIcon className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
   },
   {
     id: "github",

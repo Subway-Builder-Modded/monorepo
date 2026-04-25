@@ -52,7 +52,9 @@ describe("resolvePageMetadata", () => {
 
     expect(metadata.title).toBe("License");
     expect(metadata.pageTitle).toBe("License");
-    expect(metadata.description).toBe("Terms and licensing information for Subway Builder Modded projects.");
+    expect(metadata.description).toBe(
+      "Terms and licensing information for Subway Builder Modded projects.",
+    );
     expect(metadata.suite.id).toBe("general");
     expect(metadata.imagePath).toBe("/logo.svg");
   });

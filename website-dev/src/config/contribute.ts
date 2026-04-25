@@ -1,0 +1,73 @@
+import type { CreditsSubsectionId } from "@/features/credits/lib/types";
+
+export const KOFI_MEMBERSHIPS_URL = "https://ko-fi.com/subwaybuildermodded/";
+
+export type SupportTierId = Extract<CreditsSubsectionId, "engineer" | "conductor" | "executive">;
+
+export type SupportTierConfig = {
+  id: SupportTierId;
+  monthlyAmount: string;
+  pitch: string;
+  benefits: string[];
+  featured?: true;
+};
+
+export type ContributeCTAConfig = {
+  href: string;
+  label: string;
+};
+
+export const SUPPORT_TIERS: SupportTierConfig[] = [
+  {
+    id: "engineer",
+    monthlyAmount: "$2",
+    pitch: "For those ready to build with us.",
+    benefits: [
+      "Access to all release candidates (pre-releases)",
+      "Experience development plans before each full release",
+      "Access to the Engineer Discord channel",
+      "Higher priority for feature requests",
+      "Added to Credits as an **Engineer**",
+    ],
+  },
+  {
+    id: "conductor",
+    monthlyAmount: "$5",
+    pitch: "For our core community leaders.",
+    benefits: [
+      "Access to all release candidates (pre-releases)",
+      "Experience development plans before each full release",
+      "Access to the Engineer and Conductor Discord channels",
+      "Higher priority for feature requests",
+      "Added to Credits as an **Conductor**",
+      "Exclusive cosmetic perks & customizations",
+    ],
+    featured: true,
+  },
+  {
+    id: "executive",
+    monthlyAmount: "$10",
+    pitch: "For the visionaries shaping our platform.",
+    benefits: [
+      "Access to all release candidates (pre-releases)",
+      "Experience development plans before each full release",
+      "Access to the Engineer, Conductor, and Executive Discord channels",
+      "Higher priority for feature requests",
+      "Added to Credits as an **Executive**",
+      "Exclusive cosmetic perks & customizations",
+      "Premium and custom cosmetic perks & customizations",
+    ],
+  },
+];
+
+export const CONTRIBUTE_CTA: ContributeCTAConfig = {
+  href: KOFI_MEMBERSHIPS_URL,
+  label: "Support on Ko-fi",
+};
+
+export const CONTRIBUTE_INTRO = {
+  primary:
+    "Subway Builder Modded is a passion project that continues to evolve thanks to our community. By becoming a supporter, you'll not only help fund ongoing development, but you'll also gain earlier access to features, help shape a growing community, and have your voice heard in shaping the future of the ecosystem.",
+  secondary:
+    "All tiers are fully optional and our services will always be free to use. Your support helps us prioritize development and fund server costs.",
+} as const;

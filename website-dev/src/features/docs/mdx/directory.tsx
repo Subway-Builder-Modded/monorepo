@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { DirectoryCard } from "@subway-builder-modded/shared-ui";
 import { resolveIcon, getDocsTree, getVisibleNodes } from "@/features/docs/lib";
+import type { DocsTreeNode } from "@/features/docs/lib/types";
 import type { DocsSuiteId } from "@/config/docs";
 import { Link } from "@/lib/router";
 import { useDocsRoute } from "./docs-route-context";

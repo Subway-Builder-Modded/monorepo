@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { SuiteAccentScope, SectionSeparator, DirectoryCard } from "@subway-builder-modded/shared-ui";
+import {
+  SuiteAccentScope,
+  SectionSeparator,
+  DirectoryCard,
+} from "@subway-builder-modded/shared-ui";
 import { getSuiteById } from "@/config/site-navigation";
 import {
   getUpdatesSuiteConfig,

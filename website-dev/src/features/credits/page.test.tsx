@@ -4,7 +4,15 @@ import { CreditsRoute } from "@/features/credits/page";
 
 vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: "/credits" }),
-  Link: ({ to, className, children }: { to: string; className?: string; children: React.ReactNode }) => (
+  Link: ({
+    to,
+    className,
+    children,
+  }: {
+    to: string;
+    className?: string;
+    children: React.ReactNode;
+  }) => (
     <a href={to} className={className}>
       {children}
     </a>
@@ -38,7 +46,8 @@ vi.mock("@/features/credits/lib/content", () => ({
       {
         id: "contributors",
         title: "Contributors",
-        description: "The community supporters whose donations keep Subway Builder Modded moving forward.",
+        description:
+          "The community supporters whose donations keep Subway Builder Modded moving forward.",
         subsections: [
           {
             id: "engineer",
@@ -67,11 +76,17 @@ describe("CreditsRoute", () => {
     });
 
     expect(
-      screen.getByText("The maintainers and contributors helping Subway Builder Modded move forward."),
+      screen.getByText(
+        "The maintainers and contributors helping Subway Builder Modded move forward.",
+      ),
     ).toBeInTheDocument();
 
     expect(screen.queryByText("Loading contributor credits...")).toBeNull();
-    expect(screen.queryByText("Contributor credits are currently unavailable. Please try again shortly.")).toBeNull();
+    expect(
+      screen.queryByText(
+        "Contributor credits are currently unavailable. Please try again shortly.",
+      ),
+    ).toBeNull();
     expect(screen.queryByText("No contributor credits are available yet.")).toBeNull();
   });
 
@@ -86,7 +101,9 @@ describe("CreditsRoute", () => {
     expect(fallbackName.closest("a")).toBeNull();
     const fallbackCard = fallbackName.closest("div");
     expect(fallbackCard).toBeTruthy();
-    expect(within(fallbackCard as HTMLElement).queryByLabelText("External profile link")).toBeNull();
+    expect(
+      within(fallbackCard as HTMLElement).queryByLabelText("External profile link"),
+    ).toBeNull();
     expect(within(fallbackCard as HTMLElement).queryByLabelText("Profile link")).toBeNull();
   });
 

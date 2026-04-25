@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  FileQuestion,
-  ExternalLink,
-  Link as LinkIcon,
-} from "lucide-react";
+import { FileQuestion, ExternalLink, Link as LinkIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
   PageHeading,
@@ -21,9 +17,7 @@ import type {
   CreditsPerson,
   CreditsSection,
   CreditsSubsection,
-  CreditsSubsectionId,
 } from "@/features/credits/lib/types";
-import { cn } from "@/lib/utils";
 
 type CreditsState =
   | { status: "loading" }
@@ -41,22 +35,19 @@ function PersonCard({
   accentLight: string;
   accentDark: string;
 }) {
-
-  const trailing = person.link
-    ? isExternalHref(person.link)
-      ? (
-          <ExternalLink
-            className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100"
-            aria-label="External profile link"
-          />
-        )
-      : (
-          <LinkIcon
-            className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100"
-            aria-label="Profile link"
-          />
-        )
-    : null;
+  const trailing = person.link ? (
+    isExternalHref(person.link) ? (
+      <ExternalLink
+        className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100"
+        aria-label="External profile link"
+      />
+    ) : (
+      <LinkIcon
+        className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100"
+        aria-label="Profile link"
+      />
+    )
+  ) : null;
 
   if (!person.link) {
     return (
@@ -118,9 +109,7 @@ function CreditsSubsectionBlock({ subsection }: { subsection: CreditsSubsection 
         className="mb-[clamp(0.55rem,1.1vw,0.85rem)]"
       />
 
-      <ul
-        className="grid grid-cols-1 gap-[var(--credits-gap)] [--credits-gap:clamp(0.55rem,1.2vw,0.9rem)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-      >
+      <ul className="grid grid-cols-1 gap-[var(--credits-gap)] [--credits-gap:clamp(0.55rem,1.2vw,0.9rem)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {subsection.people.map((person) => (
           <li key={person.key}>
             <PersonCard
@@ -138,7 +127,10 @@ function CreditsSubsectionBlock({ subsection }: { subsection: CreditsSubsection 
 
 function CreditsSectionBlock({ section }: { section: CreditsSection }) {
   return (
-    <section className="space-y-[clamp(0.85rem,1.8vw,1.35rem)]" data-testid={`credits-section-${section.id}`}>
+    <section
+      className="space-y-[clamp(0.85rem,1.8vw,1.35rem)]"
+      data-testid={`credits-section-${section.id}`}
+    >
       <header>
         <h2 className="text-[clamp(1.25rem,2.6vw,2rem)] font-bold tracking-[-0.01em] text-foreground">
           {section.title}
@@ -196,8 +188,13 @@ export function CreditsRoute() {
   if (!navItem) {
     return (
       <div className="flex flex-col items-center gap-[clamp(0.65rem,1.5vw,1rem)] py-[clamp(2rem,8vw,5rem)] text-center">
-        <FileQuestion className="size-[clamp(1.9rem,5.5vw,3rem)] text-muted-foreground" aria-hidden="true" />
-        <h1 className="text-[clamp(1rem,2.2vw,1.2rem)] font-bold text-foreground">Page Not Found</h1>
+        <FileQuestion
+          className="size-[clamp(1.9rem,5.5vw,3rem)] text-muted-foreground"
+          aria-hidden="true"
+        />
+        <h1 className="text-[clamp(1rem,2.2vw,1.2rem)] font-bold text-foreground">
+          Page Not Found
+        </h1>
         <p className="text-[clamp(0.85rem,1.2vw,1rem)] text-muted-foreground">
           The page "{location.pathname}" was not found.
         </p>

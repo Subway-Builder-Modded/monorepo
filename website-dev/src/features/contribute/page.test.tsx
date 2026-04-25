@@ -1,7 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ContributeRoute } from "@/features/contribute/page";
-import { KOFI_MEMBERSHIPS_URL } from "@/config/shared/support";
+import {
+  KOFI_MEMBERSHIPS_URL,
+  SUPPORT_TIERS,
+  CONTRIBUTE_CTA,
+  CONTRIBUTE_INTRO,
+} from "@/config/contribute";
 import { TIER_STYLES } from "@/features/credits/lib/tier-styles";
 import { resolvePageMetadata } from "@/config/page-metadata";
 
@@ -30,12 +35,80 @@ describe("ContributeRoute", () => {
     expect(heading).toBeInTheDocument();
   });
 
-  it("renders all 3 supporter tier cards as the page centerpiece", () => {
+  // ── Centered intro ────────────────────────────────────────────────────────
+
+  it("renders a centered intro section", () => {
     render(<ContributeRoute />);
 
-    expect(screen.getByTestId("contribute-tier-card-engineer")).toBeInTheDocument();
-    expect(screen.getByTestId("contribute-tier-card-conductor")).toBeInTheDocument();
-    expect(screen.getByTestId("contribute-tier-card-executive")).toBeInTheDocument();
+    expect(screen.getByTestId("contribute-intro-section")).toBeInTheDocument();
+  });
+
+  it("intro renders the primary paragraph with main text color", () => {
+    render(<ContributeRoute />);
+
+    const introSection = screen.getByTestId("contribute-intro-section");
+    const p1 = within(introSection).getByText(CONTRIBUTE_INTRO.primary);
+    expect(p1).toBeInTheDocument();
+    expect(p1.className).toContain("text-foreground");
+    expect(p1.className).not.toContain("text-muted-foreground");
+  });
+
+  it("intro renders the secondary muted paragraph", () => {
+    render(<ContributeRoute />);
+
+    const introSection = screen.getByTestId("contribute-intro-section");
+    const p2 = within(introSection).getByText(CONTRIBUTE_INTRO.secondary);
+    expect(p2).toBeInTheDocument();
+    expect(p2.className).toContain("text-muted-foreground");
+  });
+
+  // ── Ko-fi CTA placement ───────────────────────────────────────────────────
+
+  it("Ko-fi CTA link is inside the intro section (not at page bottom)", () => {
+    render(<ContributeRoute />);
+
+    const introSection = screen.getByTestId("contribute-intro-section");
+    const ctaLink = within(introSection).getByTestId("contribute-cta-link");
+    expect(ctaLink).toBeInTheDocument();
+  });
+
+  it("Ko-fi CTA link has correct href, target and rel attributes", () => {
+    render(<ContributeRoute />);
+
+    const ctaLink = screen.getByTestId("contribute-cta-link");
+    expect(ctaLink).toHaveAttribute("href", KOFI_MEMBERSHIPS_URL);
+    expect(ctaLink).toHaveAttribute("target", "_blank");
+    expect(ctaLink).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("CTA button label comes from CONTRIBUTE_CTA config", () => {
+    render(<ContributeRoute />);
+
+    const ctaLink = screen.getByTestId("contribute-cta-link");
+    expect(ctaLink).toHaveTextContent(CONTRIBUTE_CTA.label);
+  });
+
+  it("renders exactly one CTA link on the page", () => {
+    render(<ContributeRoute />);
+
+    const ctaLinks = screen.getAllByTestId("contribute-cta-link");
+    expect(ctaLinks).toHaveLength(1);
+  });
+
+  it("does NOT render the old lower cta section", () => {
+    render(<ContributeRoute />);
+
+    expect(screen.queryByTestId("contribute-cta-section")).not.toBeInTheDocument();
+  });
+
+  // ── Tier cards ────────────────────────────────────────────────────────────
+
+  it("renders all 3 supporter tier cards from config", () => {
+    render(<ContributeRoute />);
+
+    for (const tier of SUPPORT_TIERS) {
+      expect(screen.getByTestId(`contribute-tier-card-${tier.id}`)).toBeInTheDocument();
+    }
   });
 
   it("renders exactly 3 tier cards — no extras", () => {
@@ -46,10 +119,33 @@ describe("ContributeRoute", () => {
     expect(cards).toHaveLength(3);
   });
 
-  it("tier cards use icons and colors from the shared TIER_STYLES source", () => {
+  it("tier card content is driven by SUPPORT_TIERS config", () => {
     render(<ContributeRoute />);
 
-    // Verify each card exists and has the accent CSS variables set from TIER_STYLES.
+    for (const tier of SUPPORT_TIERS) {
+      const card = screen.getByTestId(`contribute-tier-card-${tier.id}`);
+      // Price — currency symbol and number are in separate styled spans
+      const digits = tier.monthlyAmount.replace(/\D+/, "");
+      const symbol = tier.monthlyAmount.replace(/\d+/, "");
+      expect(within(card).getByText(digits)).toBeInTheDocument();
+      expect(within(card).getByText(symbol)).toBeInTheDocument();
+      // Pitch
+      expect(within(card).getByText(tier.pitch)).toBeInTheDocument();
+      // Benefits — strip markdown syntax for text matching since InlineMarkdown
+      // splits styled tokens into separate DOM nodes; check via textContent
+      for (const benefit of tier.benefits) {
+        const plainText = benefit.replace(
+          /\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|\*(.+?)\*|_(.+?)_|~~(.+?)~~/g,
+          "$1$2$3$4$5",
+        );
+        expect(card.textContent).toContain(plainText);
+      }
+    }
+  });
+
+  it("tier cards use accent CSS variables from the shared TIER_STYLES source", () => {
+    render(<ContributeRoute />);
+
     for (const tierId of ["engineer", "conductor", "executive"] as const) {
       const card = screen.getByTestId(`contribute-tier-card-${tierId}`);
       const style = card.getAttribute("style") ?? "";
@@ -57,49 +153,35 @@ describe("ContributeRoute", () => {
     }
   });
 
-  it("tier cards display tier name, price, and benefit list", () => {
+  it("card icons are NOT wrapped in a container box (unboxed layout)", () => {
     render(<ContributeRoute />);
 
-    // Engineer
-    const engineerCard = screen.getByTestId("contribute-tier-card-engineer");
-    expect(within(engineerCard).getByText("Engineer")).toBeInTheDocument();
-    expect(within(engineerCard).getByText("$3")).toBeInTheDocument();
-    expect(
-      within(engineerCard).getByText("Name shown in contributor credits"),
-    ).toBeInTheDocument();
+    for (const tierId of ["engineer", "conductor", "executive"]) {
+      const card = screen.getByTestId(`contribute-tier-card-${tierId}`);
+      // There must be no span with inline-flex/rounded box classes housing the icon
+      const boxedIcon = card.querySelector("span.inline-flex.rounded-\\[0\\.7rem\\]");
+      expect(boxedIcon).toBeNull();
+    }
+  });
 
-    // Conductor
+  it("Conductor is the featured card", () => {
+    render(<ContributeRoute />);
+
     const conductorCard = screen.getByTestId("contribute-tier-card-conductor");
-    expect(within(conductorCard).getByText("Conductor")).toBeInTheDocument();
-    expect(within(conductorCard).getByText("$7")).toBeInTheDocument();
+    // Featured card gets md:-my-3 for vertical lift
+    expect(conductorCard.className).toContain("md:-my-3");
+  });
 
-    // Executive
+  it("non-featured cards do not have featured treatment", () => {
+    render(<ContributeRoute />);
+
+    const engineerCard = screen.getByTestId("contribute-tier-card-engineer");
     const executiveCard = screen.getByTestId("contribute-tier-card-executive");
-    expect(within(executiveCard).getByText("Executive")).toBeInTheDocument();
-    expect(within(executiveCard).getByText("$15")).toBeInTheDocument();
+    expect(engineerCard.className).not.toContain("md:-my-3");
+    expect(executiveCard.className).not.toContain("md:-my-3");
   });
 
-  it("renders a single central memberships CTA — no per-card purchase buttons", () => {
-    render(<ContributeRoute />);
-
-    // Exactly one CTA section
-    expect(screen.getByTestId("contribute-cta-section")).toBeInTheDocument();
-
-    // Exactly one CTA link
-    const ctaLinks = screen.getAllByTestId("contribute-cta-link");
-    expect(ctaLinks).toHaveLength(1);
-  });
-
-  it("central CTA links to the configured memberships URL", () => {
-    render(<ContributeRoute />);
-
-    const ctaLink = screen.getByTestId("contribute-cta-link");
-    expect(ctaLink).toHaveAttribute("href", KOFI_MEMBERSHIPS_URL);
-    expect(ctaLink).toHaveAttribute("target", "_blank");
-    expect(ctaLink).toHaveAttribute("rel", "noopener noreferrer");
-  });
-
-  it("does not render per-card purchase/support buttons", () => {
+  it("does not render per-card purchase or action buttons", () => {
     render(<ContributeRoute />);
 
     for (const tierId of ["engineer", "conductor", "executive"]) {
@@ -109,9 +191,9 @@ describe("ContributeRoute", () => {
     }
   });
 
+  // ── Metadata ──────────────────────────────────────────────────────────────
+
   it("metadata for /contribute resolves via the standardized page-metadata system", () => {
-    // The contribute route exists in SITE_NAV_ITEMS so resolvePageMetadata will
-    // pick it up via getMatchingItem — no page-local override needed.
     const meta = resolvePageMetadata("/contribute");
 
     expect(meta.title).toBe("Contribute");
@@ -119,14 +201,12 @@ describe("ContributeRoute", () => {
     expect(meta.pageTitle).toBe("Contribute");
   });
 
-  it("uses the same TIER_STYLES source as credits — no duplicate tier definitions", async () => {
-    // Import both. They must reference the exact same object identity.
-    const { TIER_STYLES: creditsStyles } = await import(
-      "@/features/credits/lib/tier-styles"
-    );
-    const { getTierStyle } = await import("@/features/credits/lib/tier-styles");
+  // ── Shared sources ────────────────────────────────────────────────────────
 
-    // getTierStyle used in contribute page must return from the same source.
+  it("uses the same TIER_STYLES source as credits — no duplicate definitions", async () => {
+    const { TIER_STYLES: creditsStyles, getTierStyle } =
+      await import("@/features/credits/lib/tier-styles");
+
     expect(getTierStyle("engineer")).toBe(creditsStyles.engineer);
     expect(getTierStyle("conductor")).toBe(creditsStyles.conductor);
     expect(getTierStyle("executive")).toBe(creditsStyles.executive);

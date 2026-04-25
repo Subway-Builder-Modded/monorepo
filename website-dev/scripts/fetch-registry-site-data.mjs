@@ -101,7 +101,7 @@ const MIRROR_DIRECTORY_MAPPINGS = [
   { sourceRoot: "authors", destinationRoot: "public/registry/authors" },
   { sourceRoot: "maps", destinationRoot: "public/registry/maps" },
   { sourceRoot: "mods", destinationRoot: "public/registry/mods" },
-  { sourceRoot: "supporters", destinationRoot: "public/registry/credits" },
+  { sourceRoot: "credits", destinationRoot: "public/registry/credits" },
 ];
 
 const MIRROR_FILE_BLACKLIST_BY_ROOT = {

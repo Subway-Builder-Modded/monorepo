@@ -27,8 +27,7 @@ const SECTION_BASE: Record<CreditsSection["id"], Omit<CreditsSection, "subsectio
   maintainers: {
     id: "maintainers",
     title: "Maintainers",
-    description:
-      "The maintainers who push Subway Builder Modded development forward.",
+    description: "The maintainers who push Subway Builder Modded development forward.",
   },
   contributors: {
     id: "contributors",
@@ -143,9 +142,7 @@ export function buildCreditsDirectory(
 
     const link = trimToUndefined(supporter.attribution_link);
     const supporterId =
-      trimToUndefined(supporter.sbm_id) ??
-      trimToUndefined(supporter.ko_fi_username) ??
-      displayName;
+      trimToUndefined(supporter.sbm_id) ?? trimToUndefined(supporter.ko_fi_username) ?? displayName;
 
     peopleByTier[tier].push({
       key: `s:${supporterId.toLowerCase()}`,
@@ -178,7 +175,9 @@ export function buildCreditsDirectory(
   return { sections };
 }
 
-export async function loadCreditsDirectory(fetchImpl: typeof fetch = fetch): Promise<CreditsDirectory> {
+export async function loadCreditsDirectory(
+  fetchImpl: typeof fetch = fetch,
+): Promise<CreditsDirectory> {
   const [maintainersIndex, supportersIndex] = await Promise.all([
     fetchRegistryJson<RegistryMaintainersIndex>(MAINTAINERS_INDEX_PATH, fetchImpl),
     fetchRegistryJson<RegistrySupportersIndex>(SUPPORTERS_INDEX_PATH, fetchImpl),
