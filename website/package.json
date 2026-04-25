@@ -21,7 +21,7 @@
     "lint": "eslint --max-warnings=0 --no-error-on-unmatched-pattern \"**/*.{ts,tsx,mdx}\"",
     "lint:fix": "eslint --max-warnings=0 --fix --no-error-on-unmatched-pattern \"**/*.{ts,tsx,mdx}\"",
     "check": "pnpm run lint && pnpm run format:check && pnpm run test && pnpm run test:coverage",
-    "ci": "pnpm run lint:fix && pnpm run format"
+    "ci": "pnpm run check"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

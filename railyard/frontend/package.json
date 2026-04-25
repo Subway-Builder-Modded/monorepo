@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --max-warnings=0 --fix",
-    "check": "pnpm run lint && pnpm run format:check && pnpm run test && pnpm run test:coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test && pnpm run test:coverage",
     "ci": "pnpm run lint:fix && pnpm run format && pnpm run test && pnpm run test:coverage"
   },
   "dependencies": {

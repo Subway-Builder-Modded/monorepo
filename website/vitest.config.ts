@@ -26,6 +26,12 @@ export default defineConfig({
         'app/**/layout.tsx',
         'app/layout.tsx',
       ],
+      thresholds: {
+        lines: 26,
+        functions: 22,
+        branches: 18,
+        statements: 26,
+      },
     },
   },
   resolve: {

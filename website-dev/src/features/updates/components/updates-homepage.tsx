@@ -23,7 +23,7 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
 
   return (
     <SuiteAccentScope accent={suite.accent}>
-      <section className="py-6 lg:py-8">
+      <section className="py-[clamp(1.1rem,3vw,2rem)]">
         <FeatureHomepageHeading
           icon={UPDATES_HOMEPAGE_ICON}
           title={UPDATES_HOMEPAGE_TITLE}
@@ -37,9 +37,19 @@ export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
         {entries.length === 0 ? (
           <p className="text-sm text-muted-foreground">No update entries found for this suite.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-[clamp(0.85rem,2vw,1.35rem)]">
             {entries.map((entry) => {
               const isLatest = latestEntry?.id === entry.id;
+              if (isLatest) {
+                return (
+                  <div
+                    key={entry.id}
+                    className="rounded-lg border-t-2 border-[color-mix(in_srgb,var(--suite-accent),transparent_35%)] shadow-sm"
+                  >
+                    <UpdateEntryCard entry={entry} isLatest={isLatest} />
+                  </div>
+                );
+              }
               return <UpdateEntryCard key={entry.id} entry={entry} isLatest={isLatest} />;
             })}
           </div>

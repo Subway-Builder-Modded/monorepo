@@ -20,10 +20,15 @@ export function LicenseRoute() {
 
   if (!navItem) {
     return (
-      <div className="flex flex-col items-center gap-4 py-20 text-center">
-        <FileQuestion className="size-12 text-muted-foreground" aria-hidden="true" />
-        <h1 className="text-lg font-bold text-foreground">Page Not Found</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col items-center gap-[clamp(0.65rem,1.5vw,1rem)] py-[clamp(2rem,8vw,5rem)] text-center">
+        <FileQuestion
+          className="size-[clamp(1.9rem,5.5vw,3rem)] text-muted-foreground"
+          aria-hidden="true"
+        />
+        <h1 className="text-[clamp(1rem,2.2vw,1.2rem)] font-bold text-foreground">
+          Page Not Found
+        </h1>
+        <p className="text-[clamp(0.85rem,1.2vw,1rem)] text-muted-foreground">
           The page "{location.pathname}" was not found.
         </p>
       </div>
@@ -35,10 +40,10 @@ export function LicenseRoute() {
 
   return (
     <SuiteAccentScope accent={suite.accent}>
-      <section className="py-6 lg:py-8">
+      <section className="py-[clamp(1.1rem,3vw,2rem)]">
         <PageHeading icon={Icon} title={navItem.title} description={navItem.description} />
 
-        <div className="py-8">
+        <div className="py-[clamp(1rem,2.8vw,2rem)]">
           <AsyncArticleContent
             sourcePath="/content/license/gpl-3.0.mdx"
             loadContent={async () => {

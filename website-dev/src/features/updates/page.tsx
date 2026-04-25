@@ -17,10 +17,15 @@ export function UpdatesRoute() {
 
     case "not-found":
       return (
-        <div className="flex flex-col items-center gap-4 py-20 text-center">
-          <FileQuestion className="size-12 text-muted-foreground" aria-hidden="true" />
-          <h1 className="text-lg font-bold text-foreground">Page Not Found</h1>
-          <p className="text-sm text-muted-foreground">{match.reason}</p>
+        <div className="flex flex-col items-center gap-[clamp(0.65rem,1.5vw,1rem)] py-[clamp(2rem,8vw,5rem)] text-center">
+          <FileQuestion
+            className="size-[clamp(1.9rem,5.5vw,3rem)] text-muted-foreground"
+            aria-hidden="true"
+          />
+          <h1 className="text-[clamp(1rem,2.2vw,1.2rem)] font-bold text-foreground">
+            Page Not Found
+          </h1>
+          <p className="text-[clamp(0.85rem,1.2vw,1rem)] text-muted-foreground">{match.reason}</p>
         </div>
       );
 

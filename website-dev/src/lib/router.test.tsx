@@ -1,6 +1,6 @@
 import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Link, navigate, useLocation } from "@/lib/router";
+import { Link, navigate, shouldHandleClientNavigation, useLocation } from "@/lib/router";
 
 // Clear all spy call counts before every test so accumulated calls don't bleed across tests.
 // vi.clearAllMocks is used (not restoreAllMocks) to preserve vi.fn() assignments from setup.ts.
@@ -107,40 +107,6 @@ describe("Link", () => {
     expect(window.location.pathname).toBe("/about");
   });
 
-  it("does not navigate for external https links", () => {
-    render(<Link to="https://example.com">External</Link>);
-    fireEvent.click(screen.getByRole("link"));
-    expect(window.location.pathname).toBe("/");
-  });
-
-  it("does not navigate for mailto links", () => {
-    render(<Link to="mailto:hello@example.com">Email</Link>);
-    fireEvent.click(screen.getByRole("link"));
-    expect(window.location.pathname).toBe("/");
-  });
-
-  it("does not navigate on modified clicks (metaKey)", () => {
-    render(<Link to="/about">About</Link>);
-    fireEvent.click(screen.getByRole("link"), { metaKey: true });
-    expect(window.location.pathname).toBe("/");
-  });
-
-  it("does not navigate on modified clicks (ctrlKey)", () => {
-    render(<Link to="/about">About</Link>);
-    fireEvent.click(screen.getByRole("link"), { ctrlKey: true });
-    expect(window.location.pathname).toBe("/");
-  });
-
-  it("does not navigate when target is _blank", () => {
-    render(
-      <Link to="/about" target="_blank">
-        About
-      </Link>,
-    );
-    fireEvent.click(screen.getByRole("link"));
-    expect(window.location.pathname).toBe("/");
-  });
-
   it("calls the custom onClick handler", () => {
     const onClick = vi.fn();
     render(
@@ -160,5 +126,71 @@ describe("Link", () => {
     );
     fireEvent.click(screen.getByRole("link"));
     expect(window.location.pathname).toBe("/");
+  });
+});
+
+describe("shouldHandleClientNavigation", () => {
+  it("returns false for external https links", () => {
+    expect(
+      shouldHandleClientNavigation({
+        defaultPrevented: false,
+        to: "https://example.com",
+      }),
+    ).toBe(false);
+  });
+
+  it("returns false for mailto links", () => {
+    expect(
+      shouldHandleClientNavigation({
+        defaultPrevented: false,
+        to: "mailto:hello@example.com",
+      }),
+    ).toBe(false);
+  });
+
+  it("returns false for modified clicks", () => {
+    expect(
+      shouldHandleClientNavigation({
+        defaultPrevented: false,
+        to: "/about",
+        metaKey: true,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldHandleClientNavigation({
+        defaultPrevented: false,
+        to: "/about",
+        ctrlKey: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("returns false when target is not _self", () => {
+    expect(
+      shouldHandleClientNavigation({
+        defaultPrevented: false,
+        to: "/about",
+        target: "_blank",
+      }),
+    ).toBe(false);
+  });
+
+  it("returns false when earlier handlers prevented default", () => {
+    expect(
+      shouldHandleClientNavigation({
+        defaultPrevented: true,
+        to: "/about",
+      }),
+    ).toBe(false);
+  });
+
+  it("returns true for SPA self-navigation", () => {
+    expect(
+      shouldHandleClientNavigation({
+        defaultPrevented: false,
+        to: "/about",
+      }),
+    ).toBe(true);
   });
 });
