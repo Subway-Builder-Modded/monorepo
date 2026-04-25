@@ -23,7 +23,7 @@ export const UPDATE_PROJECTS: UpdateProject[] = [
     id: 'railyard',
     label: 'Railyard',
     description: 'All-in-one Map and Mod Manager for Subway Builder.',
-    currentVersion: 'v0.2.2',
+    currentVersion: 'v0.2.3',
     basePath: '/railyard/updates',
     icon: TrainTrack,
     accentColor: PROJECT_COLOR_SCHEMES.railyard.accentColor,
