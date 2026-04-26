@@ -27,8 +27,11 @@ function mdxRawContentPlugin(): Plugin {
       const { assertDocsContentValid } = await import("./src/config/docs/content-validation.ts");
       const { assertUpdatesContentValid } =
         await import("./src/config/updates/content-validation.ts");
+      const { assertRegistryTemplatesContentValid } =
+        await import("./src/config/registry/template-content-validation.ts");
       assertDocsContentValid(contentDir);
       assertUpdatesContentValid(contentDir);
+      assertRegistryTemplatesContentValid(contentDir);
     },
     resolveId(id) {
       if (id === VIRTUAL_RAW_MDX_ID) return RESOLVED_VIRTUAL_RAW_MDX_ID;
@@ -38,10 +41,13 @@ function mdxRawContentPlugin(): Plugin {
 
       const { collectDocsContent } = await import("./src/config/docs/content-validation.ts");
       const { collectUpdatesContent } = await import("./src/config/updates/content-validation.ts");
+      const { collectRegistryTemplatesContent } =
+        await import("./src/config/registry/template-content-validation.ts");
 
       const docsResult = collectDocsContent(contentDir);
       const updatesResult = collectUpdatesContent(contentDir);
-      const errors = [...docsResult.errors, ...updatesResult.errors];
+      const templatesResult = collectRegistryTemplatesContent(contentDir);
+      const errors = [...docsResult.errors, ...updatesResult.errors, ...templatesResult.errors];
       if (errors.length > 0) {
         const details = errors.map((e) => ` - ${e}`).join("\n");
         throw new Error(`[docs-content] Validation failed:\n${details}`);
@@ -50,10 +56,12 @@ function mdxRawContentPlugin(): Plugin {
       const rawByPath = {
         ...docsResult.rawByPath,
         ...updatesResult.rawByPath,
+        ...templatesResult.rawByPath,
       };
       const frontmatterByPath = {
         ...docsResult.frontmatterByPath,
         ...updatesResult.frontmatterByPath,
+        ...templatesResult.frontmatterByPath,
       };
 
       return `export default ${JSON.stringify({ rawByPath, frontmatterByPath })};`;

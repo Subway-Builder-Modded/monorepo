@@ -70,4 +70,14 @@ describe("resolvePageMetadata", () => {
     expect(metadata.suite.id).toBe("general");
     expect(metadata.imagePath).toBe("/logo.svg");
   });
+
+  it("resolves registry markdown playground metadata from site navigation identity", () => {
+    const metadata = resolvePageMetadata("/registry/markdown-playground");
+
+    expect(metadata.title).toBe("Playground");
+    expect(metadata.description).toBe("Experiment with Markdown content in a live preview environment.");
+    expect(metadata.pageTitle).toBe("Playground | Registry");
+    expect(metadata.suite.id).toBe("registry");
+    expect(metadata.imagePath).toBe("/images/registry/logo.png");
+  });
 });

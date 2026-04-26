@@ -5,6 +5,7 @@ import { UpdatesRoute, matchUpdatesRoute } from "@/features/updates";
 import { LicenseRoute, matchLicenseRoute } from "@/features/license";
 import { CreditsRoute, matchCreditsRoute } from "@/features/credits";
 import { ContributeRoute, matchContributeRoute } from "@/features/contribute";
+import { MarkdownPlaygroundRoute, matchMarkdownPlaygroundRoute } from "@/features/markdown-playground";
 import { HomePage } from "@/features/home";
 
 function RouteSwitch() {
@@ -32,6 +33,11 @@ function RouteSwitch() {
   const contributeMatch = matchContributeRoute(location.pathname);
   if (contributeMatch.kind !== "none") {
     return <ContributeRoute />;
+  }
+
+  const markdownPlaygroundMatch = matchMarkdownPlaygroundRoute(location.pathname);
+  if (markdownPlaygroundMatch.kind !== "none") {
+    return <MarkdownPlaygroundRoute />;
   }
 
   return <HomePage />;

@@ -628,6 +628,9 @@ importers:
 
   website-dev:
     dependencies:
+      '@mdx-js/mdx':
+        specifier: ^3.1.1
+        version: 3.1.1
       '@subway-builder-modded/shared-ui':
         specifier: workspace:*
         version: link:../packages/shared-ui
