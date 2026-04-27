@@ -36,7 +36,7 @@ yarn-error.log*
 
 # Environment files (can opt-in for committing if needed)
 .env*
-!.env.example
+!.env.template
 
 # Vercel
 .vercel
@@ -49,3 +49,5 @@ yarn-error.log*
 .prompt.md
 .agent.md
 SKILL.md
+conventions.md
+spec.md

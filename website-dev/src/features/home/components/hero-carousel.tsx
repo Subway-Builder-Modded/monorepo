@@ -1,8 +1,7 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
-import { FaDiscord } from "react-icons/fa";
-import { GithubIcon } from "@subway-builder-modded/shared-ui";
+import { GithubIcon, DiscordIcon } from "@subway-builder-modded/icons";
 import {
   HERO_SLIDES,
   HERO_AUTO_ROTATE_MS,
@@ -92,7 +91,7 @@ export function HeroCarousel() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-[100svh] w-full overflow-hidden"
+      className="relative h-[calc(100svh-3rem)] w-full overflow-hidden"
       onMouseEnter={() => multi && setPaused(true)}
       onMouseLeave={() => multi && setPaused(false)}
       onFocusCapture={() => multi && setPaused(true)}
@@ -215,7 +214,7 @@ export function HeroCarousel() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 rounded-xl border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-foreground/90 backdrop-blur-sm transition-all hover:border-foreground/40 hover:bg-foreground/10"
             >
-              <FaDiscord className="size-[18px]" />
+              <DiscordIcon className="size-[18px]" />
               {HERO_CTA_DISCORD.label}
             </a>
           </div>

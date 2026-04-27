@@ -11,6 +11,7 @@ on:
       - "website-dev/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
       - "package.json"
       - ".github/workflows/packages-ci.yml"
   push:
@@ -23,6 +24,7 @@ on:
       - "website-dev/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
       - "package.json"
       - ".github/workflows/packages-ci.yml"
   workflow_dispatch:

@@ -2,6 +2,7 @@ import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import type React from "react";
 import type { PropsWithChildren } from "react";
+import { installSharedJsdomMocks } from "../../testing/jsdom";
 
 type MotionDivProps = {
   children?: unknown;
@@ -40,58 +41,4 @@ afterEach(() => {
   cleanup();
 });
 
-if (!window.matchMedia) {
-  Object.defineProperty(window, "matchMedia", {
-    writable: true,
-    value: (query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }),
-  });
-}
-
-if (!window.scrollTo) {
-  Object.defineProperty(window, "scrollTo", {
-    writable: true,
-    value: vi.fn(),
-  });
-}
-
-if (!("ResizeObserver" in window)) {
-  class ResizeObserverMock implements ResizeObserver {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  }
-
-  Object.defineProperty(window, "ResizeObserver", {
-    writable: true,
-    value: ResizeObserverMock,
-  });
-}
-
-if (!("IntersectionObserver" in window)) {
-  class IntersectionObserverMock implements IntersectionObserver {
-    readonly root = null;
-    readonly rootMargin = "0px";
-    readonly thresholds = [0];
-
-    disconnect() {}
-    observe() {}
-    takeRecords() {
-      return [];
-    }
-    unobserve() {}
-  }
-
-  Object.defineProperty(window, "IntersectionObserver", {
-    writable: true,
-    value: IntersectionObserverMock,
-  });
-}
+installSharedJsdomMocks({ createSpy: () => vi.fn(), includeIntersectionObserver: true });

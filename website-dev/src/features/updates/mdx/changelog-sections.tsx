@@ -41,23 +41,25 @@ export function ChangelogSection({ type, children }: { type: string; children?: 
         iconClass: "text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]",
       }}
     >
-      <div
-        className="my-5 rounded-lg border px-3 pb-2.5 pt-2 border-[color-mix(in_srgb,var(--changelog-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--changelog-light)_8%,transparent)] dark:border-[color-mix(in_srgb,var(--changelog-dark)_24%,transparent)] dark:bg-[color-mix(in_srgb,var(--changelog-dark)_10%,transparent)]"
-        style={style}
-      >
-        <div
-          className={cn(
-            "mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.1em]",
-            "text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]",
-          )}
-        >
+      <div className="my-5" style={style}>
+        <div className="flex items-center gap-2 rounded-t-lg border border-b-0 border-[color-mix(in_srgb,var(--changelog-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--changelog-light)_10%,transparent)] px-3 py-2 dark:border-[color-mix(in_srgb,var(--changelog-dark)_24%,transparent)] dark:bg-[color-mix(in_srgb,var(--changelog-dark)_12%,transparent)]">
           <Icon
             className="size-3.5 shrink-0 text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]"
-            aria-hidden="true"
+            aria-hidden
           />
-          <span>{title}</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]">
+            {title}
+          </span>
         </div>
-        {children}
+        <div
+          className={cn(
+            "rounded-b-lg border px-3 pb-2.5 pt-2",
+            "border-[color-mix(in_srgb,var(--changelog-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--changelog-light)_8%,transparent)]",
+            "dark:border-[color-mix(in_srgb,var(--changelog-dark)_24%,transparent)] dark:bg-[color-mix(in_srgb,var(--changelog-dark)_10%,transparent)]",
+          )}
+        >
+          {children}
+        </div>
       </div>
     </ChangelogBulletContext.Provider>
   );

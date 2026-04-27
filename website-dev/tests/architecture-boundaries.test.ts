@@ -30,6 +30,13 @@ function toPosixRelative(filePath: string): string {
   return path.relative(process.cwd(), filePath).replace(/\\/g, "/");
 }
 
+const FEATURE_NAMES = ["home", "docs", "updates", "credits", "contribute", "license", "content"];
+const FEATURE_BARREL_ROOTS = new Set(FEATURE_NAMES.map((f) => `@/features/${f}`));
+const FEATURE_DEEP_IMPORT_RE = new RegExp(
+  `@\\/features\\/(${FEATURE_NAMES.join("|")})\\/(?!$).+`,
+  "g",
+);
+
 describe("architecture import boundaries", () => {
   it("prevents non-feature layers from deep-importing feature internals", () => {
     const files = listSourceFiles(SRC_ROOT);
@@ -43,13 +50,41 @@ describe("architecture import boundaries", () => {
 
       const source = fs.readFileSync(file, "utf8");
 
-      const deepFeatureImport = source.match(/@\/features\/(home|docs)\/(?!$).+/g);
+      const deepFeatureImport = source.match(FEATURE_DEEP_IMPORT_RE);
       if (!deepFeatureImport) {
         continue;
       }
 
       for (const hit of deepFeatureImport) {
-        if (hit === "@/features/home" || hit === "@/features/docs") {
+        if (FEATURE_BARREL_ROOTS.has(hit)) {
+          continue;
+        }
+
+        violations.push(`${rel}: ${hit}`);
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it("prevents shared layers (lib/config) from importing any feature internals", () => {
+    const files = listSourceFiles(SRC_ROOT);
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const rel = toPosixRelative(file);
+      if (!rel.startsWith("src/lib/") && !rel.startsWith("src/config/")) {
+        continue;
+      }
+
+      const source = fs.readFileSync(file, "utf8");
+      const deepFeatureImport = source.match(FEATURE_DEEP_IMPORT_RE);
+      if (!deepFeatureImport) {
+        continue;
+      }
+
+      for (const hit of deepFeatureImport) {
+        if (FEATURE_BARREL_ROOTS.has(hit)) {
           continue;
         }
 

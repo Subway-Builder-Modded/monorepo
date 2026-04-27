@@ -174,6 +174,10 @@ export {
   type SectionHeaderProps,
 } from './components/section-header';
 export {
+  SectionSeparator,
+  type SectionSeparatorProps,
+} from './components/section-separator';
+export {
   SectionShell,
   type SectionShellProps,
 } from './components/section-shell';
@@ -232,11 +236,21 @@ export {
   type CodeDisplayProps,
 } from './components/code-display';
 export {
+  DirectoryCard,
+  type DirectoryCardProps,
+} from './components/directory-card';
+export {
+  ReleaseStatusChip,
+  type ReleaseStatus,
+  type ReleaseStatusChipProps,
+  type ReleaseStatusChipSize,
+} from './components/release-status-chip';
+export {
   AnalyticsPreview,
   type AnalyticsPreviewProps,
   type AnalyticsPreviewSeries,
 } from './components/analytics-preview';
-export { GithubIcon } from './components/github-icon';
+export { InlineMarkdown, type InlineMarkdownProps } from './components/inline-markdown';
 export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,

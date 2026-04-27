@@ -16,29 +16,7 @@ import {
   Megaphone,
   TrendingUp,
 } from "lucide-react";
-import { FaDiscord as Discord } from "react-icons/fa6";
-import { GithubIcon } from "@subway-builder-modded/shared-ui";
-
-function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={className ?? "size-5"}
-      style={{
-        backgroundColor: "currentColor",
-        display: "inline-block",
-        maskImage: "url('/assets/markdown.svg')",
-        maskPosition: "center",
-        maskRepeat: "no-repeat",
-        maskSize: "contain",
-        WebkitMaskImage: "url('/assets/markdown.svg')",
-        WebkitMaskPosition: "center",
-        WebkitMaskRepeat: "no-repeat",
-        WebkitMaskSize: "contain",
-      }}
-    />
-  );
-}
+import { GithubIcon, DiscordIcon, MarkdownIcon } from "@subway-builder-modded/icons";
 
 export type SiteSuiteId =
   | "general"
@@ -197,16 +175,6 @@ export const SITE_SUITES: SiteSuite[] = [
 
 export const SITE_NAV_ITEMS: SiteNavItem[] = [
   {
-    id: "general-home",
-    suiteId: "general",
-    title: "Home",
-    description:
-      "Welcome to Subway Builder Modded, the complete hub for all things modded in Subway Builder.",
-    href: "/",
-    icon: House,
-    activeMatchRules: [{ kind: "exact", path: "/" }],
-  },
-  {
     id: "general-community",
     suiteId: "general",
     title: "Community",
@@ -248,8 +216,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "railyard-home",
     suiteId: "railyard",
     title: "Home",
-    description:
-      "Discover and download the all-in-one manager for Subway Builder community-made content.",
+    description: "Discover the all-in-one manager for Subway Builder community-made content.",
     href: "/railyard",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/railyard" }],
@@ -384,7 +351,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "foundry-home",
     suiteId: "foundry",
     title: "Home",
-    description: "Discover and download the unified suite for Subway Builder map creation.",
+    description: "Discover the unified suite for Subway Builder map creation.",
     href: "/foundry",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/foundry" }],
@@ -414,7 +381,7 @@ export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
     id: "discord",
     title: "Discord",
     href: "https://discord.gg/syG9YHMyeG",
-    icon: <Discord className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
+    icon: <DiscordIcon className={EXTERNAL_ICON_CLASS} aria-hidden="true" />,
   },
   {
     id: "github",

@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Package,
-  TrendingUp,
-  Users,
-  Globe,
-  Database,
-} from 'lucide-react';
+import { Package, TrendingUp, Users, Globe, Database } from 'lucide-react';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/shared/page-header';

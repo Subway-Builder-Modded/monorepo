@@ -5,7 +5,7 @@ date: March 29, 2026
 tag: beta
 url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.0
 previousVersion: v0.1.6
-compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.1.6...v0.2.0
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.1.6...v0.2.0#files_bucket
 ---
 
 <ChangelogSection type="features">
@@ -19,12 +19,12 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.1.6...v
 ### Import Local Maps
 
 - Added support for importing local map ZIPs
-- Local maps are displayed in the Library with a Local tag and are loaded alongside any Railyard-hosted maps
+- Local maps are displayed on **Library** with a **Local** tag and are loaded alongside any Railyard-hosted maps
 
 ### Profiles
 
 - Added support for multiple profiles
-- Individual profiles maintain separate sets of subscriptions + UI/System preferences
+- Individual profiles maintain separate sets of subscriptions and UI/System preferences
 - Archives of non-active profiles are maintained to allow quick switches between different profiles
 
 ### Dependencies
@@ -34,24 +34,24 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.1.6...v
 
 ### Command-Line Arguments
 
-- Devtools within Subway Builder can now be enabled via a setting in Railyard
+- You can now enable Subway Builder DevTools in the Railyard settings
 
 </ChangelogSection>
 
 <ChangelogSection type="improvements">
 
 - Registry refreshes and downloaded asset extraction are now atomic to reduce risk of corrupted/mixed disk state on unexpected shutdown
-- Browse section now displays a loading symbol to eliminate lag/slow loading behavior on startup
-- Library now displays city code for all maps
+- **Browse** now displays a brief loading screen to eliminate lag/slow loading behavior on startup
+- **Library** now displays city code for all maps
 - Disabled modifying (installing, deleting, updating) content while the game is launched
 
 </ChangelogSection>
 
 <ChangelogSection type="bugfixes">
 
-- Fixed Ctrl+Click on an asset's Browse page card causing it to open up in a browser window
+- Fixed Ctrl+Click on an asset's **Browse** card causing it to open up in an instanced browser window
 - Fixed toast notifications being able to be picked up and moved around the screen
-- Command line argument insertion no longer replaces machine env when DevTools setting is enabled
+- Command line argument insertion no longer replaces machine env when **DevTools** is enabled
 - Fixed fuzzy search being too lenient and matching on small subsets of strings
 
 </ChangelogSection>

@@ -5,8 +5,8 @@ import {
   SectionHeader,
   TwoColumnSection,
   CodeDisplay,
-  GithubIcon,
 } from "@subway-builder-modded/shared-ui";
+import { GithubIcon } from "@subway-builder-modded/icons";
 import { OPEN_SOURCE_SECTION } from "@/config/home";
 import { useThemeMode } from "@/hooks/use-theme-mode";
 

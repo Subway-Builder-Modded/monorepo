@@ -46,4 +46,40 @@ describe("resolvePageMetadata", () => {
     expect(metadata.pageTitle).toBe("Template Mod - v1.0.0 | Template Mod Updates");
     expect(metadata.suite.id).toBe("template-mod");
   });
+
+  it("resolves /license page metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/license");
+
+    expect(metadata.title).toBe("License");
+    expect(metadata.pageTitle).toBe("License");
+    expect(metadata.description).toBe(
+      "Terms and licensing information for Subway Builder Modded projects.",
+    );
+    expect(metadata.suite.id).toBe("general");
+    expect(metadata.imagePath).toBe("/logo.svg");
+  });
+
+  it("resolves /credits page metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/credits");
+
+    expect(metadata.title).toBe("Credits");
+    expect(metadata.pageTitle).toBe("Credits");
+    expect(metadata.description).toBe(
+      "The maintainers and contributors helping Subway Builder Modded move forward.",
+    );
+    expect(metadata.suite.id).toBe("general");
+    expect(metadata.imagePath).toBe("/logo.svg");
+  });
+
+  it("resolves registry markdown playground metadata from site navigation identity", () => {
+    const metadata = resolvePageMetadata("/registry/markdown-playground");
+
+    expect(metadata.title).toBe("Playground");
+    expect(metadata.description).toBe(
+      "Experiment with Markdown content in a live preview environment.",
+    );
+    expect(metadata.pageTitle).toBe("Playground | Registry");
+    expect(metadata.suite.id).toBe("registry");
+    expect(metadata.imagePath).toBe("/images/registry/logo.png");
+  });
 });

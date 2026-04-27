@@ -116,7 +116,7 @@ describe("collectUpdatesContent", () => {
     writeMdx(
       root,
       "railyard/updates/v0.0.1.mdx",
-      "title: Test\nicon: TrainTrack\ndate: 2026-01-01\ntag: beta\nurl: https://example.com\ncompareUrl: https://github.com/org/repo/compare/v0.0.0...v0.0.1",
+      "title: Test\nicon: TrainTrack\ndate: 2026-01-01\ntag: beta\nurl: https://example.com\ncompareUrl: https://github.com/org/repo/compare/v0.0.0...v0.0.1#files_bucket",
     );
 
     const result = collectUpdatesContent(root);
@@ -148,7 +148,7 @@ describe("collectUpdatesContent", () => {
     writeMdx(
       root,
       "railyard/updates/v0.0.1.mdx",
-      "title: Test\nicon: TrainTrack\ndate: 2026-01-01\ntag: beta\nurl: https://example.com\npreviousVersion: v0.0.0\ncompareUrl: /compare/v0.0.0...v0.0.1",
+      "title: Test\nicon: TrainTrack\ndate: 2026-01-01\ntag: beta\nurl: https://example.com\npreviousVersion: v0.0.0\ncompareUrl: /compare/v0.0.0...v0.0.1#files_bucket",
     );
 
     const result = collectUpdatesContent(root);
@@ -162,7 +162,7 @@ describe("collectUpdatesContent", () => {
     writeMdx(
       root,
       "railyard/updates/v0.0.1.mdx",
-      "title: Test\nicon: TrainTrack\ndate: 2026-01-01\ntag: beta\nurl: https://example.com\npreviousVersion: v0.0.0\ncompareUrl: https://github.com/org/repo/compare/v0.0.0...v0.0.1",
+      "title: Test\nicon: TrainTrack\ndate: 2026-01-01\ntag: beta\nurl: https://example.com\npreviousVersion: v0.0.0\ncompareUrl: https://github.com/org/repo/compare/v0.0.0...v0.0.1#files_bucket",
     );
 
     const result = collectUpdatesContent(root);

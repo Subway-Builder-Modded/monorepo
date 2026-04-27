@@ -27,10 +27,10 @@ function DesktopNavbarTopbar({ actionsNode, brandNode, suiteIndicator }: SharedT
   return (
     <NavbarTopBar
       className="h-full"
-      leftClassName="min-w-0 pr-2"
-      rightClassName="min-w-0 pl-2"
+      leftClassName="min-w-0 pr-2 pb-1"
+      rightClassName="min-w-0 pl-2 pb-1"
       left={
-        <div className="flex min-w-0 gap-2.5 pb-1">
+        <div className="flex min-w-0 items-center gap-2.5">
           {brandNode}
           {suiteIndicator}
         </div>
@@ -43,11 +43,11 @@ function DesktopNavbarTopbar({ actionsNode, brandNode, suiteIndicator }: SharedT
 function MobileNavbarTopbar({ actionsNode, brandNode, suiteIndicator }: SharedTopbarLayoutProps) {
   return (
     <div className="flex h-full items-center gap-2">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-2 pb-1">
         {brandNode}
         {suiteIndicator}
       </div>
-      <div className="shrink-0">{actionsNode}</div>
+      <div className="shrink-0 pb-1">{actionsNode}</div>
     </div>
   );
 }

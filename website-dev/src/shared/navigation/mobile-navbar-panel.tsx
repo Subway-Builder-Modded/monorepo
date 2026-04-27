@@ -111,7 +111,7 @@ export const MobileNavbarPanel = memo(function MobileNavbarPanel({
       groups={groups}
       activeItem={activeItem}
       onRowClick={onRowClick}
-      enableRowMotion={true}
+      enableRowMotion={false}
       rowsVisible={rowsVisible}
       prefersReducedMotion={prefersReducedMotion}
     />

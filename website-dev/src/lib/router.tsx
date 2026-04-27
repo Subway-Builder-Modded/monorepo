@@ -101,8 +101,32 @@ function getServerLocationSnapshot(): LocationSnapshot {
   };
 }
 
-function isModifiedClick(event: MouseEvent<HTMLAnchorElement>) {
-  return event.metaKey || event.altKey || event.ctrlKey || event.shiftKey;
+function isExternalNavigationTarget(to: string) {
+  return (
+    to.startsWith("http://") ||
+    to.startsWith("https://") ||
+    to.startsWith("mailto:") ||
+    to.startsWith("tel:")
+  );
+}
+
+export type LinkNavigationIntent = {
+  defaultPrevented: boolean;
+  target?: string;
+  to: string;
+  metaKey?: boolean;
+  altKey?: boolean;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+};
+
+export function shouldHandleClientNavigation(intent: LinkNavigationIntent) {
+  if (intent.defaultPrevented) return false;
+  if (intent.target && intent.target !== "_self") return false;
+  if (intent.metaKey || intent.altKey || intent.ctrlKey || intent.shiftKey) return false;
+  if (isExternalNavigationTarget(intent.to)) return false;
+
+  return true;
 }
 
 export function navigate(to: string) {
@@ -157,11 +181,19 @@ export function Link({ to, onClick, target, rel, children, ...props }: LinkProps
   const handleClick = useCallback(
     (event: MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
-      if (event.defaultPrevented) return;
-      if (target && target !== "_self") return;
-      if (isModifiedClick(event)) return;
-      if (to.startsWith("http://") || to.startsWith("https://")) return;
-      if (to.startsWith("mailto:") || to.startsWith("tel:")) return;
+      if (
+        !shouldHandleClientNavigation({
+          defaultPrevented: event.defaultPrevented,
+          target,
+          to,
+          metaKey: event.metaKey,
+          altKey: event.altKey,
+          ctrlKey: event.ctrlKey,
+          shiftKey: event.shiftKey,
+        })
+      ) {
+        return;
+      }
 
       event.preventDefault();
       navigate(to);

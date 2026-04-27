@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import * as icons from "lucide-react";
 import { UPDATES_CONFIG } from "./index";
+import { CUSTOM_ICON_NAMES } from "@subway-builder-modded/icons";
 import type { UpdatesFrontmatter, UpdatesSuiteId, UpdatesTag } from "./types";
 
 type ParsedUpdatesFile = {
@@ -38,6 +39,8 @@ function findMdxFiles(dir: string): string[] {
 }
 
 function isValidIconExport(name: string): boolean {
+  if (CUSTOM_ICON_NAMES.has(name)) return true;
+
   const value = (icons as Record<string, unknown>)[name];
   if (!value) return false;
 

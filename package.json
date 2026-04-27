@@ -5,26 +5,20 @@
   "packageManager": "pnpm@9.15.4",
   "scripts": {
     "install:workspace": "pnpm install --frozen-lockfile",
-    "test:package:config": "pnpm --dir packages/config run test",
-    "test:package:shared-ui": "pnpm --dir packages/shared-ui run test",
-    "test:package:asset-listings-ui": "pnpm --dir packages/asset-listings-ui run test",
-    "test:package:stores-core": "pnpm --dir packages/stores-core run test",
-    "test:package:asset-listings-state": "pnpm --dir packages/asset-listings-state run test",
-    "test:package:lifecycle-core": "pnpm --dir packages/lifecycle-core run test",
-    "test:package:lifecycle-web": "pnpm --dir packages/lifecycle-web run test",
-    "test:package:lifecycle-wails": "pnpm --dir packages/lifecycle-wails run test",
-    "test:packages": "pnpm run test:package:config && pnpm run test:package:shared-ui && pnpm run test:package:asset-listings-ui && pnpm run test:package:stores-core && pnpm run test:package:asset-listings-state && pnpm run test:package:lifecycle-core && pnpm run test:package:lifecycle-web && pnpm run test:package:lifecycle-wails",
+    "typecheck:packages": "pnpm -r --filter \"./packages/*\" run typecheck",
+    "test:packages": "pnpm -r --filter \"./packages/*\" run test",
+    "test:coverage:packages": "pnpm -r --filter \"./packages/*\" run test:coverage",
     "test:website": "pnpm --dir website run test",
     "test:website-dev": "pnpm --dir website-dev run test",
     "test:railyard": "pnpm --dir railyard/frontend run test",
     "test": "pnpm run test:packages && pnpm run test:website && pnpm run test:website-dev && pnpm run test:railyard",
-    "check:packages": "pnpm run test:packages",
+    "check:packages": "pnpm run typecheck:packages && pnpm run test:packages && pnpm run test:coverage:packages",
     "check:website": "pnpm --dir website run check",
     "check:website-dev": "pnpm --dir website-dev run check",
     "check:railyard": "pnpm --dir railyard/frontend run check",
+    "check": "pnpm run check:packages && pnpm run check:website && pnpm run check:website-dev && pnpm run check:railyard",
     "lint": "pnpm run --dir website lint:fix && pnpm run --dir website-dev lint:fix && pnpm run --dir railyard/frontend lint:fix",
-    "format": "pnpm run --dir website format && pnpm run --dir website-dev format && pnpm run --dir railyard/frontend format",
-    "ci": "pnpm run --dir website ci && pnpm run --dir website-dev ci && pnpm run --dir railyard/frontend ci && pnpm run test"
+    "format": "pnpm run --dir website format && pnpm run --dir website-dev format && pnpm run --dir railyard/frontend format"
   },
   "devDependencies": {
     "vite-plus": "catalog:"

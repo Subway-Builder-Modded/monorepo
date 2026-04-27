@@ -1,4 +1,8 @@
 <p align="center">
+  [![Website Deploy](https://github.com/Subway-Builder-Modded/monorepo/actions/workflows/website-deploy-dev.yml/badge.svg)](https://github.com/Subway-Builder-Modded/monorepo/actions/workflows/website-deploy-dev.yml)
+</p>
+
+<p align="center">
   <img src="https://subwaybuildermodded.com/logo.png" width="128" height="128" alt="Railyard">
 </p>
 

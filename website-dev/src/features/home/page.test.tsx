@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import HomePage from "@/features/home/page";
 import {
   ANALYTICS_SECTION,
@@ -9,6 +9,26 @@ import {
   PEOPLE_SECTION,
   SUITE_SCROLLYTELLING_SECTION,
 } from "@/config/home";
+
+vi.mock("@/features/home/components/hero-carousel", () => ({
+  HeroCarousel: () => (
+    <h1>
+      {HERO_TITLE_LINE_1} {HERO_TITLE_LINE_2}
+    </h1>
+  ),
+}));
+vi.mock("@/features/home/components/hub-sections", () => ({
+  PeopleSection: () => <h2>{PEOPLE_SECTION.title}</h2>,
+}));
+vi.mock("@/features/home/components/open-source-section", () => ({
+  OpenSourceSection: () => <h2>{OPEN_SOURCE_SECTION.title}</h2>,
+}));
+vi.mock("@/features/home/components/analytics-section", () => ({
+  AnalyticsSection: () => <h2>{ANALYTICS_SECTION.title}</h2>,
+}));
+vi.mock("@/features/home/components/suite-scrollytelling", () => ({
+  SuiteScrollytellingSection: () => <h2>{SUITE_SCROLLYTELLING_SECTION.title}</h2>,
+}));
 
 describe("HomePage", () => {
   it("renders the full homepage composition", () => {
