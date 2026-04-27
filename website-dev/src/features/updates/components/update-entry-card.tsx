@@ -23,6 +23,7 @@ export function UpdateEntryCard({ entry, isLatest }: UpdateEntryCardProps) {
   return (
     <DirectoryCard
       asChild
+      alignment="center"
       icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
       heading={
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1">

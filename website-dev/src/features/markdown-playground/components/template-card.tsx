@@ -21,6 +21,7 @@ export function TemplateCard({ template, onSelect }: TemplateCardProps) {
   return (
     <DirectoryCard
       asChild
+      alignment="top"
       icon={
         <span data-testid={`template-card-icon-stage-${template.slug}`} className="inline-flex">
           <Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />

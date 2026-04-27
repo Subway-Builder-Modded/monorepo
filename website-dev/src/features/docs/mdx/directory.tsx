@@ -69,6 +69,7 @@ export function DocsDirectory({ path, suiteId, version, icon, label }: Directory
             <DirectoryCard
               key={node.slug}
               asChild
+              alignment="top"
               icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
               heading={node.frontmatter.title}
               description={node.frontmatter.description}

@@ -72,6 +72,7 @@ function DocsCardGrid({ suiteId, version }: { suiteId: DocsSuiteId; version: str
             <DirectoryCard
               key={node.slug}
               asChild
+              alignment="top"
               icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
               heading={node.frontmatter.title}
               description={node.frontmatter.description}

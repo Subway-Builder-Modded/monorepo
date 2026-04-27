@@ -121,17 +121,24 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
       <nav aria-label="Site navigation" className="fixed inset-x-0 top-4 z-50">
         <div className={cn(SITE_SHELL_CLASS, "relative")}>
-          <motion.div
-            initial={false}
-            onClick={onCollapsedSurfaceClick}
-            onHoverStart={() => {
+          {/* Hover-region wrapper: negative margins widen the hit area on all
+              sides without affecting the inner card's layout (compensating px
+              keeps the content-width identical). onMouseLeave only fires when
+              the pointer exits this expanded region. */}
+          <div
+            className={cn(isFrameExpanded && "-mx-8 px-8 pb-20")}
+            onMouseEnter={() => {
               setIsNavbarHovered(true);
               onFrameHoverStart();
             }}
-            onHoverEnd={() => {
+            onMouseLeave={() => {
               setIsNavbarHovered(false);
               onFrameHoverEnd();
             }}
+          >
+          <motion.div
+            initial={false}
+            onClick={onCollapsedSurfaceClick}
             className={cn(
               "relative w-full overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(var(--elevation-shadow-rgb),0.35)]",
               isClosed && "cursor-pointer transition-shadow duration-200 ease-out",
@@ -195,6 +202,8 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
               </motion.div>
             </div>
           </motion.div>
+
+          </div>
         </div>
         {phase !== "closed" ? (
           <div
