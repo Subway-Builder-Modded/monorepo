@@ -73,6 +73,18 @@ describe("resolvePageMetadata", () => {
     expect(metadata.imagePath).toBe("/logo.svg");
   });
 
+  it("resolves /community page metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/community");
+
+    expect(metadata.title).toBe("Community");
+    expect(metadata.pageTitle).toBe("Community");
+    expect(metadata.description).toBe(
+      "Join the Subway Builder Modded Discord, follow project activity, and see how the community is growing.",
+    );
+    expect(metadata.suite.id).toBe("general");
+    expect(metadata.imagePath).toBe("/logo.svg");
+  });
+
   it("resolves registry markdown playground metadata from site navigation identity", () => {
     const metadata = resolvePageMetadata("/registry/markdown-playground");
 

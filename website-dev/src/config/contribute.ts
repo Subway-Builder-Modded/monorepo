@@ -25,10 +25,10 @@ export const SUPPORT_TIERS: SupportTierConfig[] = [
     amount: 2,
     pitch: "For those ready to build with us.",
     benefits: [
-      "Access to all release candidates (pre-releases)",
-      "Experience development plans before each full release",
+      "Access to All Release Candidates (Pre-Releases)",
+      "Experience Development Plans Before Each Full Release",
       "Access to the Engineer Discord channel",
-      "Higher priority for feature requests",
+      "Higher Priority for Feature Requests",
       "Added to Credits as an **Engineer**",
     ],
   },
@@ -38,12 +38,12 @@ export const SUPPORT_TIERS: SupportTierConfig[] = [
     amount: 5,
     pitch: "For our core community leaders.",
     benefits: [
-      "Access to all release candidates (pre-releases)",
-      "Experience development plans before each full release",
-      "Access to the Engineer and Conductor Discord channels",
-      "Higher priority for feature requests",
-      "Added to Credits as an **Conductor**",
-      "Exclusive cosmetic perks & customizations",
+      "Access to All Release Candidates (Pre-Releases)",
+      "Experience Development Plans Before Each Full Release",
+      "Access to the Engineer and Conductor Discord Channels",
+      "Higher Priority for Feature Requests",
+      "Added to Credits as a **Conductor**",
+      "Exclusive Cosmetic Perks & Customizations",
     ],
     featured: true,
   },
@@ -53,20 +53,20 @@ export const SUPPORT_TIERS: SupportTierConfig[] = [
     amount: 10,
     pitch: "For the visionaries shaping our platform.",
     benefits: [
-      "Access to all release candidates (pre-releases)",
-      "Experience development plans before each full release",
-      "Access to the Engineer, Conductor, and Executive Discord channels",
-      "Higher priority for feature requests",
+      "Access to All Release Candidates (Pre-Releases)",
+      "Experience Development Plans Before Each Full Release",
+      "Access to the Engineer, Conductor, and Executive Discord Channels",
+      "Higher Priority for Feature Requests",
       "Added to Credits as an **Executive**",
-      "Exclusive cosmetic perks & customizations",
-      "Premium and custom cosmetic perks & customizations",
+      "Exclusive Cosmetic Perks & Customizations",
+      "Premium and Custom Cosmetic Perks & Customizations",
     ],
   },
 ];
 
 export const CONTRIBUTE_CTA: ContributeCTAConfig = {
   href: KOFI_MEMBERSHIPS_URL,
-  label: "Support on Ko-fi",
+  label: "Support On Ko-fi",
 };
 
 export const CONTRIBUTE_INTRO = {

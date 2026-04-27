@@ -179,7 +179,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     suiteId: "general",
     title: "Community",
     description:
-      "Join our Discord community for support, discussions, and the most up-to-date info.",
+      "Join the Subway Builder Modded Discord, follow project activity, and see how the community is growing.",
     href: "/community",
     icon: Handshake,
     activeMatchRules: [{ kind: "exact", path: "/community" }],

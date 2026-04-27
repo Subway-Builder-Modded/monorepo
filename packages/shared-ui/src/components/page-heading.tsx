@@ -33,6 +33,7 @@ export function PageHeading({
 }: PageHeadingProps) {
   const isCompact = size === 'compact' || size === 'sidebar';
   const isSidebar = size === 'sidebar';
+  const hasActions = actions != null;
 
   return (
     <header className={cn('relative isolate mb-8', className)} style={getSuiteAccentStyle(accent)}>
@@ -98,10 +99,16 @@ export function PageHeading({
                 className={cn(
                   'mt-1.5 text-muted-foreground',
                   isSidebar
-                    ? 'max-w-2xl text-sm leading-relaxed'
+                    ? hasActions
+                      ? 'max-w-2xl text-sm leading-relaxed'
+                      : 'max-w-none text-sm leading-relaxed'
                     : isCompact
-                      ? 'max-w-xl text-sm leading-relaxed'
-                      : 'max-w-3xl text-sm leading-relaxed sm:text-base',
+                      ? hasActions
+                        ? 'max-w-xl text-sm leading-relaxed'
+                        : 'max-w-none text-sm leading-relaxed'
+                      : hasActions
+                        ? 'max-w-3xl text-sm leading-relaxed sm:text-base'
+                        : 'max-w-none text-sm leading-relaxed sm:text-base',
                 )}
               >
                 {description}
