@@ -1,6 +1,6 @@
 import { type CSSProperties, type MouseEvent, useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { SITE_SHELL_CLASS } from "@subway-builder-modded/shared-ui";
+import { ScrollArea, SITE_SHELL_CLASS } from "@subway-builder-modded/shared-ui";
 import { SITE_COMMUNITY_LINKS } from "@/config/site-navigation";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { NAVBAR_MOTION } from "@/hooks/use-navbar-phase";
@@ -77,6 +77,29 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
   const isHoverAnimated = isNavbarHovered && !prefersReducedMotion && isClosed;
   const frameScale = isHoverAnimated ? 1.007 : 1;
   const disableInitialClosedAnimation = !hasMounted && isClosed;
+
+  const panelContent = isMobile ? (
+    <MobileNavbarPanel
+      groups={allSuiteGroups}
+      activeItem={activeItemGlobal}
+      rowsVisible={showRows}
+      prefersReducedMotion={prefersReducedMotion}
+      onRowClick={onRowClick}
+    />
+  ) : (
+    <DesktopNavbarPanel
+      suiteRailItems={suiteRailItems}
+      selectedSuiteId={openSuiteId}
+      onSuiteSelect={onSuiteChange}
+      items={displayedItems}
+      activeItem={activeItem}
+      accentColor={accentColor}
+      mutedColor={mutedColor}
+      rowsVisible={showRows}
+      prefersReducedMotion={prefersReducedMotion}
+      onRowClick={onRowClick}
+    />
+  );
 
   useEffect(() => {
     setHasMounted(true);
@@ -162,35 +185,13 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
                 }}
                 className={cn("h-full", !showPanelSurface && "pointer-events-none")}
               >
-                <div
-                  className={cn(
-                    "h-full",
-                    panelNeedsScroll ? "overflow-y-auto pr-1" : "overflow-visible",
-                  )}
-                >
-                  {isMobile ? (
-                    <MobileNavbarPanel
-                      groups={allSuiteGroups}
-                      activeItem={activeItemGlobal}
-                      rowsVisible={showRows}
-                      prefersReducedMotion={prefersReducedMotion}
-                      onRowClick={onRowClick}
-                    />
-                  ) : (
-                    <DesktopNavbarPanel
-                      suiteRailItems={suiteRailItems}
-                      selectedSuiteId={openSuiteId}
-                      onSuiteSelect={onSuiteChange}
-                      items={displayedItems}
-                      activeItem={activeItem}
-                      accentColor={accentColor}
-                      mutedColor={mutedColor}
-                      rowsVisible={showRows}
-                      prefersReducedMotion={prefersReducedMotion}
-                      onRowClick={onRowClick}
-                    />
-                  )}
-                </div>
+                {panelNeedsScroll ? (
+                  <ScrollArea className="-mx-3 h-full">
+                    <div className="px-3 pr-4">{panelContent}</div>
+                  </ScrollArea>
+                ) : (
+                  <div className="h-full overflow-visible">{panelContent}</div>
+                )}
               </motion.div>
             </div>
           </motion.div>

@@ -16,28 +16,7 @@ import {
   Megaphone,
   TrendingUp,
 } from "lucide-react";
-import { GithubIcon, DiscordIcon } from "@subway-builder-modded/shared-ui";
-
-function MarkdownIcon({ className }: { className?: string; "aria-hidden"?: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={className ?? "size-5"}
-      style={{
-        backgroundColor: "currentColor",
-        display: "inline-block",
-        maskImage: "url('/assets/markdown.svg')",
-        maskPosition: "center",
-        maskRepeat: "no-repeat",
-        maskSize: "contain",
-        WebkitMaskImage: "url('/assets/markdown.svg')",
-        WebkitMaskPosition: "center",
-        WebkitMaskRepeat: "no-repeat",
-        WebkitMaskSize: "contain",
-      }}
-    />
-  );
-}
+import { GithubIcon, DiscordIcon, MarkdownIcon } from "@subway-builder-modded/icons";
 
 export type SiteSuiteId =
   | "general"

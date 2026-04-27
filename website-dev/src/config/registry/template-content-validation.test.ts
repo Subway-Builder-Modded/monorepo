@@ -14,23 +14,21 @@ describe("collectRegistryTemplatesContent", () => {
   it("fails clearly when frontmatter is invalid", () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), "registry-template-validation-"));
 
+    // A broken listing.mdx
     writeTemplate(
       root,
-      "registry/templates/broken.mdx",
-      [
-        "title: Broken",
-        "description: Missing required shape",
-        "author: Test",
-        "dateUpdated: 26-04-2026",
-        "icon: NotAnIcon",
-        "verified: maybe",
-      ].join("\n"),
+      "registry/templates/broken/listing.mdx",
+      ["title: ''", "author: ''", "icon: NotAnIcon", "verified: maybe"].join("\n"),
     );
+
+    // A broken version file
+    writeTemplate(root, "registry/templates/broken/v1.mdx", ["version: ''"].join("\n"));
 
     const result = collectRegistryTemplatesContent(root);
 
-    expect(result.errors.some((error) => error.includes("dateUpdated"))).toBe(true);
     expect(result.errors.some((error) => error.includes("invalid icon"))).toBe(true);
     expect(result.errors.some((error) => error.includes("verified"))).toBe(true);
+    expect(result.errors.some((error) => error.includes("version"))).toBe(true);
+    expect(result.errors.some((error) => error.includes("datePublished"))).toBe(true);
   });
 });

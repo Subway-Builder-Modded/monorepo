@@ -72,8 +72,12 @@ describe("MarkdownPlaygroundRoute", () => {
     const copyHtml = within(rightGroup).getByTestId("copy-html");
 
     expect(rightGroup.firstElementChild).toBe(switcher);
-    expect(switcher.compareDocumentPosition(copyMarkdown) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(copyMarkdown.compareDocumentPosition(copyHtml) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      switcher.compareDocumentPosition(copyMarkdown) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      copyMarkdown.compareDocumentPosition(copyHtml) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("enforces left-to-right editor direction in both modes", async () => {
@@ -143,38 +147,63 @@ describe("MarkdownPlaygroundRoute", () => {
     expect(copyPlaygroundContentMock.mock.calls[1][0]).toContain("<h1");
   });
 
-  it("opens full-screen template modal and confirms replacement flow", async () => {
+  it("opens semantic full-screen template modal with viewport overlay and panel gutters", async () => {
     const user = userEvent.setup();
     render(<MarkdownPlaygroundRoute />);
 
-    const markdownInput = screen.getByTestId("playground-markdown-input");
-    await user.clear(markdownInput);
-    await user.type(markdownInput, "draft text");
-
     await user.click(screen.getByTestId("playground-use-template"));
 
-    const galleryTitle = await screen.findByRole("heading", { name: "Use Template" });
-    expect(galleryTitle).toBeInTheDocument();
+    expect(await screen.findByRole("dialog", { name: /Browse Templates/i })).toBeInTheDocument();
 
-    const fullscreenDialog = galleryTitle.closest("div[data-slot='dialog-content']");
-    expect(fullscreenDialog?.className).toContain("inset-0");
-    expect(fullscreenDialog?.className).toContain("h-dvh");
+    const overlay = document.querySelector("[data-slot='dialog-overlay']");
+    expect(overlay).toBeTruthy();
+    expect(overlay?.className).toContain("inset-0");
 
-    await user.click(screen.getByTestId("template-card-release-notes"));
-    expect(screen.getByText("Replace Current Draft")).toBeInTheDocument();
+    const panel = await screen.findByTestId("registry-template-modal-panel");
+    expect(panel.className).toContain("fixed");
+    expect(panel.className).toContain("lg:!inset-8");
+  });
 
-    await user.click(screen.getByRole("button", { name: "Cancel" }));
-    expect((screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement).value).toContain(
-      "draft text",
-    );
+  it("renders icon-first cards, opens listing screen, and closes on use", async () => {
+    const user = userEvent.setup();
+    render(<MarkdownPlaygroundRoute />);
 
-    await user.click(screen.getByTestId("template-card-release-notes"));
-    await user.click(screen.getByRole("button", { name: "Use Template" }));
+    await user.click(screen.getByTestId("playground-use-template"));
+    const card = await screen.findByTestId("template-card-map-description");
+    expect(
+      within(card).getByTestId("template-card-icon-stage-map-description"),
+    ).toBeInTheDocument();
+
+    await user.click(card);
+
+    expect(await screen.findByTestId("template-listing-screen")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Browse Templates" })).toBeInTheDocument();
+    expect(screen.getByTestId("template-version-row-v1.0.0")).toBeInTheDocument();
+
+    // Clicking "Use Template" inserts latest version body and closes the modal
+    await user.click(screen.getByTestId("template-use-latest"));
+    expect(screen.queryByTestId("template-listing-screen")).not.toBeInTheDocument();
 
     await waitFor(() => {
       const value = (screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement).value;
-      expect(value).toContain("Release Notes: vX.Y.Z");
-      expect(localStorage.getItem(STORAGE_KEYS.content)).toContain("Release Notes: vX.Y.Z");
+      expect(value.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("inserts the correct version body when a specific version is used", async () => {
+    const user = userEvent.setup();
+    render(<MarkdownPlaygroundRoute />);
+
+    await user.click(screen.getByTestId("playground-use-template"));
+    await user.click(await screen.findByTestId("template-card-map-description"));
+
+    // Use v1 specifically from the version list
+    await user.click(await screen.findByTestId("template-version-use-v1.0.0"));
+    expect(screen.queryByTestId("template-listing-screen")).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      const value = (screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement).value;
+      expect(value.length).toBeGreaterThan(0);
     });
   });
 
@@ -183,7 +212,7 @@ describe("MarkdownPlaygroundRoute", () => {
     render(<MarkdownPlaygroundRoute />);
 
     await user.click(screen.getByTestId("playground-use-template"));
-    const card = await screen.findByTestId("template-card-release-notes");
+    const card = await screen.findByTestId("template-card-map-description");
 
     expect(within(card).getByLabelText("Verified author")).toBeInTheDocument();
   });

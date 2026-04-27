@@ -1,4 +1,11 @@
 import { BadgeCheck } from "lucide-react";
+import {
+  DirectoryCard,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@subway-builder-modded/shared-ui";
 import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
 import type { RegistryTemplate } from "@/lib/registry/templates";
 import { cn } from "@/lib/utils";
@@ -8,67 +15,74 @@ type TemplateCardProps = {
   onSelect: (template: RegistryTemplate) => void;
 };
 
-function hashSeed(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-function getThumbnailStyle(slug: string): React.CSSProperties {
-  const seed = hashSeed(slug);
-  const hueA = seed % 360;
-  const hueB = (seed + 70) % 360;
-  const hueC = (seed + 150) % 360;
-
-  return {
-    backgroundImage: `radial-gradient(circle at 10% 15%, hsl(${hueA} 75% 42% / 0.45), transparent 56%), radial-gradient(circle at 88% 80%, hsl(${hueB} 70% 52% / 0.42), transparent 54%), linear-gradient(145deg, hsl(${hueC} 28% 16%), hsl(${hueA} 24% 12%))`,
-  };
-}
-
 export function TemplateCard({ template, onSelect }: TemplateCardProps) {
   const Icon = resolveLucideIcon(template.icon);
 
   return (
-    <button
-      type="button"
-      className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/65 bg-card/85 text-left shadow-sm transition-all",
-        "hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--suite-accent-light)_52%,transparent)] hover:shadow-lg",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--suite-accent-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-      )}
-      onClick={() => onSelect(template)}
-      data-testid={`template-card-${template.slug}`}
-      aria-label={`Use template ${template.title}`}
-    >
-      <div
-        className="relative h-32 overflow-hidden border-b border-border/60"
-        style={getThumbnailStyle(template.slug)}
-        aria-hidden="true"
-      >
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(5,8,14,0.55),transparent_60%)]" />
-        <div className="absolute left-4 top-4 rounded-xl border border-white/20 bg-black/35 p-2 text-white/90 backdrop-blur-sm">
-          <Icon className="size-5" aria-hidden={true} />
-        </div>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-2.5 p-4">
-        <h3 className="text-base font-bold tracking-tight text-foreground">{template.title}</h3>
-        <p className="text-sm leading-relaxed text-muted-foreground">{template.description}</p>
-        <div className="mt-auto flex items-center justify-between gap-3 pt-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            {template.author}
+    <DirectoryCard
+      asChild
+      icon={
+        <span data-testid={`template-card-icon-stage-${template.slug}`} className="inline-flex">
+          <Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />
+        </span>
+      }
+      heading={
+        <span className="inline-flex items-center gap-2">
+          <span className="text-base font-semibold leading-tight md:text-lg">{template.title}</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[11px] font-medium text-blue-400">
+                  {template.latestVersion}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="z-[140]">
+                Latest Version
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </span>
+      }
+      description={
+        <span className="space-y-1">
+          <span className="block text-[13px] leading-5 text-muted-foreground">
             {template.verified ? (
-              <span aria-label="Verified author" title="Verified author">
-                <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden={true} />
-              </span>
-            ) : null}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1.5" aria-label="Verified author">
+                      <span>{template.author}</span>
+                      <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="z-[140]">
+                    Verified
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <span>{template.author}</span>
+            )}
           </span>
-          <span>{template.dateUpdated}</span>
-        </div>
-      </div>
-    </button>
+          <span className="line-clamp-2 block">{template.description}</span>
+        </span>
+      }
+      descriptionClassName="text-xs"
+      className={cn(
+        "h-full border-border/65 bg-card/85 text-left shadow-sm",
+        "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_52%,transparent)]",
+      )}
+      data-testid={`template-card-${template.slug}`}
+      aria-label={`Browse ${template.title} template`}
+    >
+      <button
+        type="button"
+        onClick={() => onSelect(template)}
+        className="block w-full rounded-xl focus-visible:outline-none"
+        aria-label={`Browse ${template.title} template`}
+      >
+        {null}
+      </button>
+    </DirectoryCard>
   );
 }

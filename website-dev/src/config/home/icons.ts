@@ -12,7 +12,7 @@ import {
   TrainTrack,
   Users,
 } from "lucide-react";
-import { DiscordIcon } from "@subway-builder-modded/shared-ui";
+import { DiscordIcon } from "@subway-builder-modded/icons";
 
 export const HOME_ICONS = {
   bookText: BookText,

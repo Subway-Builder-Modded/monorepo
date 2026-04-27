@@ -1,5 +1,4 @@
 import { type ReactNode, createContext, type CSSProperties } from "react";
-import { SectionSeparator } from "@subway-builder-modded/shared-ui";
 import { cn } from "@/lib/utils";
 import { CHANGELOG_CATEGORIES } from "@/config/updates";
 import type { LucideIcon } from "lucide-react";
@@ -43,10 +42,18 @@ export function ChangelogSection({ type, children }: { type: string; children?: 
       }}
     >
       <div className="my-5" style={style}>
-        <SectionSeparator label={title} icon={Icon} className="mb-2" />
+        <div className="flex items-center gap-2 rounded-t-lg border border-b-0 border-[color-mix(in_srgb,var(--changelog-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--changelog-light)_10%,transparent)] px-3 py-2 dark:border-[color-mix(in_srgb,var(--changelog-dark)_24%,transparent)] dark:bg-[color-mix(in_srgb,var(--changelog-dark)_12%,transparent)]">
+          <Icon
+            className="size-3.5 shrink-0 text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]"
+            aria-hidden
+          />
+          <span className="text-xs font-semibold uppercase tracking-widest text-[var(--changelog-light)] dark:text-[var(--changelog-dark)]">
+            {title}
+          </span>
+        </div>
         <div
           className={cn(
-            "rounded-lg border px-3 pb-2.5 pt-2",
+            "rounded-b-lg border px-3 pb-2.5 pt-2",
             "border-[color-mix(in_srgb,var(--changelog-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--changelog-light)_8%,transparent)]",
             "dark:border-[color-mix(in_srgb,var(--changelog-dark)_24%,transparent)] dark:bg-[color-mix(in_srgb,var(--changelog-dark)_10%,transparent)]",
           )}

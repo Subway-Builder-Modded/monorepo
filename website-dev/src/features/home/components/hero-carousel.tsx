@@ -1,7 +1,7 @@
 import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
-import { GithubIcon, DiscordIcon } from "@subway-builder-modded/shared-ui";
+import { GithubIcon, DiscordIcon } from "@subway-builder-modded/icons";
 import {
   HERO_SLIDES,
   HERO_AUTO_ROTATE_MS,

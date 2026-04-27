@@ -33,6 +33,30 @@ function mdxRawContentPlugin(): Plugin {
       assertUpdatesContentValid(contentDir);
       assertRegistryTemplatesContentValid(contentDir);
     },
+    configureServer(server) {
+      // Re-assemble the virtual module whenever any content file changes so that
+      // the dev server picks up new / edited MDX files without a manual restart.
+      const watcher = server.watcher;
+      watcher.add(contentDir);
+      const invalidate = () => {
+        const mod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_RAW_MDX_ID);
+        if (mod) {
+          server.moduleGraph.invalidateModule(mod);
+        }
+        server.hot.send({ type: "full-reload" });
+      };
+      const isContentMarkdownFile = (filePath: string) =>
+        filePath.startsWith(contentDir) && /\.(md|mdx)$/i.test(filePath);
+      watcher.on("add", (filePath: string) => {
+        if (isContentMarkdownFile(filePath)) invalidate();
+      });
+      watcher.on("change", (filePath: string) => {
+        if (isContentMarkdownFile(filePath)) invalidate();
+      });
+      watcher.on("unlink", (filePath: string) => {
+        if (isContentMarkdownFile(filePath)) invalidate();
+      });
+    },
     resolveId(id) {
       if (id === VIRTUAL_RAW_MDX_ID) return RESOLVED_VIRTUAL_RAW_MDX_ID;
     },

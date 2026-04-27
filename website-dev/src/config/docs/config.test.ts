@@ -130,7 +130,7 @@ describe("getSidebarOrder", () => {
 
   it("returns sidebar order for non-versioned registry", () => {
     const order = getSidebarOrder("registry", null);
-    expect(order.length).toBe(8);
+    expect(order.length).toBe(9);
     expect(order[0]).toBe("publishing-content");
   });
 

@@ -5,7 +5,10 @@ import { UpdatesRoute, matchUpdatesRoute } from "@/features/updates";
 import { LicenseRoute, matchLicenseRoute } from "@/features/license";
 import { CreditsRoute, matchCreditsRoute } from "@/features/credits";
 import { ContributeRoute, matchContributeRoute } from "@/features/contribute";
-import { MarkdownPlaygroundRoute, matchMarkdownPlaygroundRoute } from "@/features/markdown-playground";
+import {
+  MarkdownPlaygroundRoute,
+  matchMarkdownPlaygroundRoute,
+} from "@/features/markdown-playground";
 import { HomePage } from "@/features/home";
 
 function RouteSwitch() {

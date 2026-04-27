@@ -50,6 +50,14 @@ function getTabItems(children: ReactNode): ReactElement<TabItemProps>[] {
   return items;
 }
 
+function getItemValue(item: ReactElement<TabItemProps>, index: number): string {
+  const rawValue = item.props.value;
+  if (typeof rawValue === "string" && rawValue.trim().length > 0) {
+    return rawValue;
+  }
+  return `tab-${index}`;
+}
+
 function extractCodeTitle(node: ReactNode): string | null {
   if (!node) return null;
 
@@ -80,14 +88,16 @@ function extractCodeTitle(node: ReactNode): string | null {
 export function Tabs({ groupId, variant = "default", children }: TabsProps) {
   const items = getTabItems(children);
 
-  const defaultItem = items.find((item) => item.props.default) ?? items[0];
-  const defaultValue = defaultItem?.props.value ?? "";
+  const defaultIndex = items.findIndex((item) => item.props.default);
+  const resolvedDefaultIndex = defaultIndex >= 0 ? defaultIndex : 0;
+  const defaultItem = items[resolvedDefaultIndex];
+  const defaultValue = defaultItem ? getItemValue(defaultItem, resolvedDefaultIndex) : "";
 
   const [active, setActive] = useState<string>(() => {
     if (groupId) {
       try {
         const stored = localStorage.getItem(`${TAB_STORAGE_PREFIX}${groupId}`);
-        if (stored && items.some((item) => item.props.value === stored)) {
+        if (stored && items.some((item, index) => getItemValue(item, index) === stored)) {
           return stored;
         }
       } catch {
@@ -123,7 +133,10 @@ export function Tabs({ groupId, variant = "default", children }: TabsProps) {
 
     function handleGroupChange(e: Event) {
       const detail = (e as CustomEvent).detail;
-      if (detail.groupId === groupId && items.some((item) => item.props.value === detail.value)) {
+      if (
+        detail.groupId === groupId &&
+        items.some((item, index) => getItemValue(item, index) === detail.value)
+      ) {
         setActive(detail.value);
       }
     }
@@ -132,7 +145,7 @@ export function Tabs({ groupId, variant = "default", children }: TabsProps) {
     return () => window.removeEventListener("sbm-tab-group-change", handleGroupChange);
   }, [groupId, items]);
 
-  const activeContent = items.find((item) => item.props.value === active);
+  const activeContent = items.find((item, index) => getItemValue(item, index) === active);
   const isCodeVariant = variant === "code";
   const activeCodeTitle = useMemo(
     () => (isCodeVariant ? extractCodeTitle(activeContent?.props.children) : null),
@@ -156,22 +169,23 @@ export function Tabs({ groupId, variant = "default", children }: TabsProps) {
         )}
       >
         <div className="flex min-w-0 items-center gap-1.5">
-          {items.map((item) => {
-            const isActive = item.props.value === active;
+          {items.map((item, index) => {
+            const itemValue = getItemValue(item, index);
+            const isActive = itemValue === active;
             return (
               <button
-                key={item.props.value}
+                key={itemValue}
                 role="tab"
                 type="button"
                 aria-selected={isActive}
                 tabIndex={isActive ? 0 : -1}
-                onClick={() => handleSelect(item.props.value)}
+                onClick={() => handleSelect(itemValue)}
                 onKeyDown={(e) => {
-                  const idx = items.findIndex((i) => i.props.value === active);
+                  const idx = items.findIndex((i, iIndex) => getItemValue(i, iIndex) === active);
                   if (e.key === "ArrowRight" && idx < items.length - 1) {
-                    handleSelect(items[idx + 1].props.value);
+                    handleSelect(getItemValue(items[idx + 1], idx + 1));
                   } else if (e.key === "ArrowLeft" && idx > 0) {
-                    handleSelect(items[idx - 1].props.value);
+                    handleSelect(getItemValue(items[idx - 1], idx - 1));
                   }
                 }}
                 className={cn(
@@ -207,16 +221,19 @@ export function Tabs({ groupId, variant = "default", children }: TabsProps) {
         ) : null}
       </div>
       <TabsVariantContext.Provider value={variant}>
-        {items.map((item) => (
-          <div
-            key={item.props.value}
-            role="tabpanel"
-            hidden={item.props.value !== active}
-            className={cn(isCodeVariant ? "[&>*]:my-0" : "pt-4")}
-          >
-            {item.props.children}
-          </div>
-        ))}
+        {items.map((item, index) => {
+          const itemValue = getItemValue(item, index);
+          return (
+            <div
+              key={itemValue}
+              role="tabpanel"
+              hidden={itemValue !== active}
+              className={cn(isCodeVariant ? "[&>*]:my-0" : "pt-4")}
+            >
+              {item.props.children}
+            </div>
+          );
+        })}
       </TabsVariantContext.Provider>
     </div>
   );

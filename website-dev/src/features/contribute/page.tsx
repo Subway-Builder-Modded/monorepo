@@ -5,9 +5,9 @@ import {
   SuiteAccentScope,
   SuiteAccentButton,
   SectionSeparator,
-  KofiIcon,
   InlineMarkdown,
 } from "@subway-builder-modded/shared-ui";
+import { KofiIcon } from "@subway-builder-modded/icons";
 import { useLocation } from "@/lib/router";
 import { getMatchingItem, getSuiteById } from "@/config/site-navigation";
 import { matchContributeRoute } from "@/features/contribute/lib/routing";

@@ -240,14 +240,17 @@ export {
   type DirectoryCardProps,
 } from './components/directory-card';
 export {
+  ReleaseStatusChip,
+  type ReleaseStatus,
+  type ReleaseStatusChipProps,
+  type ReleaseStatusChipSize,
+} from './components/release-status-chip';
+export {
   AnalyticsPreview,
   type AnalyticsPreviewProps,
   type AnalyticsPreviewSeries,
 } from './components/analytics-preview';
 export { InlineMarkdown, type InlineMarkdownProps } from './components/inline-markdown';
-export { GithubIcon } from './icons/github';
-export { DiscordIcon } from './icons/discord';
-export { KofiIcon } from './icons/kofi';
 export {
   LOCAL_ACCENTS,
   getLocalAccentClasses,
