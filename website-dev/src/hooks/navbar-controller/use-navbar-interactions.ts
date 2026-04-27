@@ -64,10 +64,15 @@ export function useNavbarInteractions({
   }, [close]);
 
   const openNavbar = useCallback(() => {
-    if (phase !== "open") {
-      setOpenSuiteId(realSuiteId);
-      open();
+    if (phase === "open" || phase === "opening") {
+      return;
     }
+
+    if (phase === "closed") {
+      setOpenSuiteId(realSuiteId);
+    }
+
+    open();
   }, [open, phase, realSuiteId]);
 
   const onMenuClick = useCallback(() => {

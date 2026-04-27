@@ -76,7 +76,7 @@ export type SiteCommunityLink = {
   icon: ReactNode;
 };
 
-const EXTERNAL_ICON_CLASS = "size-6";
+const EXTERNAL_ICON_CLASS = "size-4.5";
 
 const GENERAL_ACCENT: SiteSuiteAccent = {
   light: "#0a0a0a",

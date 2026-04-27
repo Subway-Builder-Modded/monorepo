@@ -36,7 +36,7 @@ export function SuiteRail({ items, selectedId, onSelect }: SuiteRailProps) {
             }}
           >
             <span className="shrink-0">
-              <ItemIcon className="size-6" aria-hidden={true} />
+              <ItemIcon className="size-4.5" aria-hidden={true} />
             </span>
             <span className="whitespace-nowrap">{item.title}</span>
           </button>

@@ -48,9 +48,9 @@ export function NavbarActions({
         aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
       >
         {theme === "light" ? (
-          <Sun className="size-6" aria-hidden="true" />
+          <Sun className="size-4.5" aria-hidden="true" />
         ) : (
-          <MoonStar className="size-6" aria-hidden="true" />
+          <MoonStar className="size-4.5" aria-hidden="true" />
         )}
       </NavbarActionButton>
       <NavbarActionButton
@@ -59,9 +59,9 @@ export function NavbarActions({
         onClick={onMenuClick}
       >
         {isExpanded ? (
-          <X className="size-6" aria-hidden="true" />
+          <X className="size-4.5" aria-hidden="true" />
         ) : (
-          <Menu className="size-6" aria-hidden="true" />
+          <Menu className="size-4.5" aria-hidden="true" />
         )}
       </NavbarActionButton>
     </NavbarActionGroup>
