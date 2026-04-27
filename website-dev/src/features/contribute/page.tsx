@@ -13,8 +13,16 @@ import { getMatchingItem, getSuiteById } from "@/config/site-navigation";
 import { matchContributeRoute } from "@/features/contribute/lib/routing";
 import { getTierStyle } from "@/features/credits/lib/tier-styles";
 import { SUPPORT_TIERS, CONTRIBUTE_CTA, CONTRIBUTE_INTRO } from "@/config/contribute";
-import type { SupportTierConfig } from "@/config/contribute";
+import type { SupportTierConfig, SupportTierId } from "@/config/contribute";
 import { cn } from "@/lib/utils";
+
+// Per-tier vertical crop: container is 5:3 on a square image → 40% of height is
+// hidden. objectPositionY = (topCut / 40) * 100
+const TIER_IMAGE_CROP: Record<SupportTierId, string> = {
+  engineer: "87.5%", // 35% top, 5% bottom
+  conductor: "50%",  // 20% top, 20% bottom
+  executive: "37.5%", // 15% top, 25% bottom
+};
 
 function TierCard({ tier }: { tier: SupportTierConfig }) {
   const { icon: Icon, accentLight, accentDark } = getTierStyle(tier.id);
@@ -52,6 +60,17 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
           aria-hidden="true"
         />
       )}
+
+      {/* Tier illustration */}
+      <div className="relative aspect-[5/3] w-full overflow-hidden">
+        <img
+          src={`/images/contribute/${tier.id}.png`}
+          alt=""
+          aria-hidden="true"
+          className="size-full object-cover"
+          style={{ objectPosition: `50% ${TIER_IMAGE_CROP[tier.id]}` }}
+        />
+      </div>
 
       {/* Card header: unboxed icon + overline + price + description */}
       <div
