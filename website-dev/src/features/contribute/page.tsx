@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 // hidden. objectPositionY = (topCut / 40) * 100
 const TIER_IMAGE_CROP: Record<SupportTierId, string> = {
   engineer: "87.5%", // 35% top, 5% bottom
-  conductor: "50%",  // 20% top, 20% bottom
+  conductor: "50%", // 20% top, 20% bottom
   executive: "37.5%", // 15% top, 25% bottom
 };
 

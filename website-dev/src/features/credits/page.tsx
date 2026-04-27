@@ -85,6 +85,7 @@ function PersonCard({
   return (
     <DirectoryCard
       asChild
+      alignment="center"
       showChevron={false}
       icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
       heading={person.displayName}
