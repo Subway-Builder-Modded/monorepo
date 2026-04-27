@@ -29,9 +29,14 @@ import {
 } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { ExtractNotification } from './components/layout/ExtractNotification';
+import { RegistryRefreshNotification } from './components/layout/RegistryRefreshNotification';
 
 interface DownloadCancelledEvent {
   itemId?: string;
+}
+
+interface RegistryRefreshProgressEvent {
+  stage?: string;
 }
 
 function App() {
@@ -55,6 +60,7 @@ function App() {
 
   const registryInitialized = useRegistryStore((s) => s.initialized);
   const installedInitialized = useInstalledStore((s) => s.initialized);
+  const setStartupRefreshing = useRegistryStore((s) => s.setStartupRefreshing);
 
   const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const appReadyForNavigation =
@@ -86,6 +92,22 @@ function App() {
         handler: (payload: DownloadCancelledEvent) => {
           if (payload?.itemId) {
             acknowledgeCancel(payload.itemId);
+          }
+        },
+      },
+      {
+        // Drives the navbar Refresh-button gate. Setting `true` only on
+        // observed non-terminal events (rather than preemptively from a
+        // preference) is intentional: if events arrive before our listener
+        // attaches — e.g. the precheck completes a no-op refresh in <500ms —
+        // both `starting` and `complete` are dropped, and the flag correctly
+        // stays at its initial `false`. The refresh is already done.
+        eventName: 'registry:refresh-progress',
+        handler: (payload: RegistryRefreshProgressEvent) => {
+          if (payload?.stage === 'complete' || payload?.stage === 'error') {
+            setStartupRefreshing(false);
+          } else if (payload?.stage) {
+            setStartupRefreshing(true);
           }
         },
       },
@@ -224,6 +246,7 @@ function App() {
         </Layout>
         <DownloadNotification />
         <ExtractNotification />
+        <RegistryRefreshNotification />
         <RequestErrorDialog />
         <Toaster />
       </TooltipProvider>

@@ -40,6 +40,13 @@ type Registry struct {
 	integrityMaps  types.RegistryIntegrityReport
 	integrityMods  types.RegistryIntegrityReport
 	context        context.Context
+
+	// OnProgress is invoked while a Refresh() operation is in flight to
+	// stream clone/fetch progress to the frontend. Set by app.startup().
+	OnProgress func(RegistryProgress)
+
+	refreshMu       sync.Mutex
+	progressEnabled bool
 }
 
 // NewRegistry creates a new Registry instance with the platform-appropriate
@@ -79,15 +86,52 @@ func (r *Registry) Initialize() error {
 
 // Refresh forces a pull of the latest registry changes.
 func (r *Registry) Refresh() error {
+	r.refreshMu.Lock()
+	defer r.refreshMu.Unlock()
+
+	r.progressEnabled = true
+	defer func() { r.progressEnabled = false }()
+
+	r.emitProgress(RegistryProgress{
+		Stage:   progressStageStarting,
+		Phase:   progressPhaseFetch,
+		Percent: -1,
+	})
+
 	r.clearVersionsCache() // Clear versions cache on refresh to ensure we fetch fresh version
+
+	// Fast path: ask GitHub for the tip commit SHA and skip the full fetch
+	// when the local repo already matches. Failures here intentionally fall
+	// through to the slow path — the precheck is an optimization, not a gate.
+	if upToDate, err := r.isUpToDateWithRemote(); err != nil {
+		r.logger.Info("Registry precheck failed; falling back to full fetch", "error", err)
+	} else if upToDate {
+		r.emitProgress(RegistryProgress{Stage: progressStageComplete, Percent: 100})
+		return nil
+	}
+
 	if err := r.refreshRepo(); err != nil {
+		r.emitProgress(RegistryProgress{Stage: progressStageError, Error: err.Error()})
 		return err
 	}
 
 	if err := r.fetchFromDisk(); err != nil {
-		return fmt.Errorf("failed to load registry data from disk after refresh: %w", err)
+		wrapped := fmt.Errorf("failed to load registry data from disk after refresh: %w", err)
+		r.emitProgress(RegistryProgress{Stage: progressStageError, Error: wrapped.Error()})
+		return wrapped
 	}
+	r.emitProgress(RegistryProgress{Stage: progressStageComplete, Percent: 100})
 	return nil
+}
+
+// emitProgress forwards a progress payload to OnProgress when set and
+// when called from inside Refresh(). Boot-time Initialize() callers do
+// not enable progress, keeping the SuiteLoader silent.
+func (r *Registry) emitProgress(p RegistryProgress) {
+	if !r.progressEnabled || r.OnProgress == nil {
+		return
+	}
+	r.OnProgress(p)
 }
 
 // RefreshResponse refreshes the registry and reports status metadata.
