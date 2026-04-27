@@ -19,6 +19,7 @@ package-lock.json
 /dist
 
 # Cached data
+/public/community/
 /public/railyard/
 /public/registry/
 /public/website/

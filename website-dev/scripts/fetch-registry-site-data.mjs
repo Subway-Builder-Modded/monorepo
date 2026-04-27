@@ -82,6 +82,14 @@ const COPY_MAPPINGS = [
     source: "analytics/authors_by_day.csv",
     destination: "public/registry/analytics/authors_by_day.csv",
   },
+  {
+    source: "analytics/discord_server_by_day.csv",
+    destination: "public/community/discord_server_by_day.csv",
+  },
+  {
+    source: "analytics/discord_user_message_by_day.csv",
+    destination: "public/community/discord_user_message_by_day.csv",
+  },
   { source: "authors/index.json", destination: "public/registry/analytics/authors_index.json" },
   {
     source: "analytics/railyard_app_downloads.json",
@@ -125,7 +133,7 @@ const FETCH_STEPS = [
   "Load local environment",
   "Validate GitHub token",
   "Fetch registry snapshot",
-  "Copy registry and railyard artifacts",
+  "Copy registry, railyard, and community artifacts",
   "Mirror registry content trees",
   "Transform website analytics",
   "Write website artifacts",
@@ -596,7 +604,7 @@ function main() {
 
     progress.detail(`Fetched ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`);
 
-    progress.step("Copy registry and railyard artifacts");
+    progress.step("Copy registry, railyard, and community artifacts");
     copyMappedFiles(cloneDir, workspaceRoot, materializedFiles, progress);
 
     progress.step("Mirror registry content trees");
