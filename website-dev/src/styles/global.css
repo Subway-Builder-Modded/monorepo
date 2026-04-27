@@ -13,6 +13,7 @@
 
 @source "../../../packages/shared-ui/src";
 @source "../../../packages/asset-listings-ui/src";
+@source "../../../packages/mdx/src";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -6,6 +6,11 @@ vi.mock("@/lib/router", () => ({
   useLocation: () => ({
     pathname: "/license",
   }),
+  Link: vi.fn(({ to, children, ...props }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  )),
 }));
 
 vi.mock("@/features/license/lib/content", () => ({

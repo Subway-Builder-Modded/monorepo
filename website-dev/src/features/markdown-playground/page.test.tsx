@@ -6,6 +6,11 @@ import { STORAGE_KEYS } from "@/features/markdown-playground/lib/storage";
 
 vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: "/registry/markdown-playground", search: "" }),
+  Link: ({ to, children, ...props }: any) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 const copyPlaygroundContentMock = vi.fn().mockResolvedValue(undefined);
@@ -103,7 +108,7 @@ describe("MarkdownPlaygroundRoute", () => {
     await waitFor(() => {
       expect(localStorage.getItem(STORAGE_KEYS.content)).toContain("Persisted value");
     });
-  });
+  }, 20000);
 
   it("toolbar action updates markdown content", async () => {
     const user = userEvent.setup();

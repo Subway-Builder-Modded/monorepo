@@ -12,6 +12,11 @@ import { resolvePageMetadata } from "@/config/page-metadata";
 
 vi.mock("@/lib/router", () => ({
   useLocation: () => ({ pathname: "/contribute" }),
+  Link: vi.fn(({ to, children, ...props }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  )),
 }));
 
 describe("ContributeRoute", () => {

@@ -196,14 +196,60 @@ importers:
         specifier: ^4.1.4
         version: 4.1.4(@types/node@25.5.2)(@vitest/coverage-v8@4.1.4)(jsdom@26.1.0)(msw@2.13.2(@types/node@25.5.2)(typescript@5.9.3))(vite@8.0.8(@types/node@25.5.2)(esbuild@0.27.7)(jiti@2.6.1)(tsx@4.21.0)(yaml@2.8.3))
 
+  packages/mdx:
+    dependencies:
+      '@mdx-js/mdx':
+        specifier: ^3.1.1
+        version: 3.1.1
+      rehype-stringify:
+        specifier: ^10.0.1
+        version: 10.0.1
+      remark-directive:
+        specifier: ^4.0.0
+        version: 4.0.0
+      remark-frontmatter:
+        specifier: ^5.0.0
+        version: 5.0.0
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
+      remark-parse:
+        specifier: ^11.0.0
+        version: 11.0.0
+      remark-rehype:
+        specifier: ^11.1.2
+        version: 11.1.2
+      unified:
+        specifier: ^11.0.5
+        version: 11.0.5
+      unist-util-visit:
+        specifier: ^5.1.0
+        version: 5.1.0
+    devDependencies:
+      '@types/mdast':
+        specifier: ^4.0.4
+        version: 4.0.4
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      lucide-react:
+        specifier: ^1.8.0
+        version: 1.8.0(react@19.2.3)
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: 19.2.3
+        version: 19.2.3(react@19.2.3)
+
   packages/shared-ui:
     dependencies:
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@subway-builder-modded/icons':
-        specifier: workspace:*
-        version: link:../icons
       class-variance-authority:
         specifier: '>=0.7'
         version: 0.7.1
@@ -649,6 +695,9 @@ importers:
       '@subway-builder-modded/icons':
         specifier: workspace:*
         version: link:../packages/icons
+      '@subway-builder-modded/mdx':
+        specifier: workspace:*
+        version: link:../packages/mdx
       '@subway-builder-modded/shared-ui':
         specifier: workspace:*
         version: link:../packages/shared-ui

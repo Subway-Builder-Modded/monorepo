@@ -1,0 +1,43 @@
+{
+  "name": "@subway-builder-modded/mdx",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./remark": {
+      "types": "./src/remark-index.ts",
+      "default": "./src/remark-index.ts"
+    }
+  },
+  "dependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "rehype-stringify": "^10.0.1",
+    "remark-directive": "^4.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5",
+    "unist-util-visit": "^5.1.0"
+  },
+  "peerDependencies": {
+    "lucide-react": ">=0.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "lucide-react": "^1.8.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}
