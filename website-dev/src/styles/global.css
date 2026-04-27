@@ -167,6 +167,13 @@ body,
 html,
 body {
   overscroll-behavior-y: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 [data-rehype-pretty-code-figure] code,

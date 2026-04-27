@@ -1,13 +1,13 @@
-import { Sparkles } from "lucide-react";
+import { Eye } from "lucide-react";
 import { SectionSeparator, SuiteAccentButton } from "@subway-builder-modded/shared-ui";
 import type { RegistryTemplateVersion } from "@/lib/registry/template-types";
 
 type TemplateVersionListProps = {
   versions: RegistryTemplateVersion[];
-  onUseVersion: (version: RegistryTemplateVersion) => void;
+  onPreviewVersion: (version: RegistryTemplateVersion) => void;
 };
 
-export function TemplateVersionList({ versions, onUseVersion }: TemplateVersionListProps) {
+export function TemplateVersionList({ versions, onPreviewVersion }: TemplateVersionListProps) {
   return (
     <section aria-label="Available versions">
       <SectionSeparator label="Versions" className="mb-3" headingLevel={3} />
@@ -26,15 +26,14 @@ export function TemplateVersionList({ versions, onUseVersion }: TemplateVersionL
               <span className="text-xs text-muted-foreground">({version.datePublished})</span>
             </div>
 
-            {/* Right: Use button */}
+            {/* Right: Preview button */}
             <SuiteAccentButton
               tone="outline"
-              className="shrink-0 gap-1.5"
-              onClick={() => onUseVersion(version)}
-              data-testid={`template-version-use-${version.version}`}
+              onClick={() => onPreviewVersion(version)}
+              data-testid={`template-version-preview-${version.version}`}
             >
-              <Sparkles className="size-3.5" aria-hidden />
-              Use
+              <Eye className="size-4" aria-hidden />
+              Preview
             </SuiteAccentButton>
           </div>
         ))}

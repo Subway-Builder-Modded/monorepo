@@ -190,16 +190,17 @@ describe("MarkdownPlaygroundRoute", () => {
     });
   });
 
-  it("inserts the correct version body when a specific version is used", async () => {
+  it("inserts the correct version body when a specific version is previewed and confirmed", async () => {
     const user = userEvent.setup();
     render(<MarkdownPlaygroundRoute />);
 
     await user.click(screen.getByTestId("playground-use-template"));
     await user.click(await screen.findByTestId("template-card-map-description"));
 
-    // Use v1 specifically from the version list
-    await user.click(await screen.findByTestId("template-version-use-v1.0.0"));
+    // Preview v1 specifically from the version list, then confirm use from preview
+    await user.click(await screen.findByTestId("template-version-preview-v1.0.0"));
     expect(screen.queryByTestId("template-listing-screen")).not.toBeInTheDocument();
+    await user.click(await screen.findByTestId("template-preview-use"));
 
     await waitFor(() => {
       const value = (screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement).value;

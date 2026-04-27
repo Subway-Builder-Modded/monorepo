@@ -10,13 +10,13 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-  SuiteAccentButton,
+  ScrollArea,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { BadgeCheck, ExternalLink, Sparkles, X } from "lucide-react";
+import { BadgeCheck, BookText, Eye, Sparkles, X } from "lucide-react";
 import { renderPlaygroundHtml } from "@/features/markdown-playground/lib/mdx-runtime";
 import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
 import { getSuiteAccentStyle } from "@subway-builder-modded/shared-ui";
@@ -25,6 +25,7 @@ import type { RegistryTemplate, RegistryTemplateVersion } from "@/lib/registry/t
 import { TemplateCard } from "./template-card";
 import { TemplateVersionList } from "./template-version-list";
 import { cn } from "@/lib/utils";
+import { UTILITY_ACTION_BUTTON_CLASS } from "@/features/content/components/utility-action";
 
 type TemplateGalleryModalProps = {
   open: boolean;
@@ -34,8 +35,16 @@ type TemplateGalleryModalProps = {
   accent?: SuiteAccent;
 };
 
+type CachedTemplateModalState = {
+  selectedTemplateSlug: string | null;
+  previewVersionId: string | null;
+  previewBreadcrumb: string;
+};
+
+const TEMPLATE_MODAL_STATE_KEY = "markdown-playground:template-modal-state";
+
 /** Which screen is currently shown inside the modal. */
-type ModalScreen = "gallery" | "listing";
+type ModalScreen = "gallery" | "listing" | "preview";
 
 function VerifiedBadge() {
   return <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden />;
@@ -72,6 +81,19 @@ function stripHeadingHashLinks(html: string): string {
   return doc.body.innerHTML;
 }
 
+function trimTemplateBody(body: string | null | undefined): string {
+  if (typeof body !== "string") {
+    return "";
+  }
+
+  if (!body) {
+    return "";
+  }
+
+  const withoutLeadingBlankLines = body.replace(/^(?:[ \t]*\r?\n)+/, "");
+  return withoutLeadingBlankLines.replace(/(?:\r?\n[ \t]*)+$/, "");
+}
+
 export function TemplateGalleryModal({
   open,
   onOpenChange,
@@ -80,21 +102,95 @@ export function TemplateGalleryModal({
   accent,
 }: TemplateGalleryModalProps) {
   const [selectedTemplateSlug, setSelectedTemplateSlug] = useState<string | null>(null);
+  const [previewVersion, setPreviewVersion] = useState<RegistryTemplateVersion | null>(null);
+  const [previewBreadcrumb, setPreviewBreadcrumb] = useState("Preview");
   const [listingHtml, setListingHtml] = useState("");
 
-  const screen: ModalScreen = selectedTemplateSlug === null ? "gallery" : "listing";
+  const screen: ModalScreen =
+    selectedTemplateSlug === null ? "gallery" : previewVersion ? "preview" : "listing";
 
   const selectedTemplate = useMemo(
     () => templates.find((t) => t.slug === selectedTemplateSlug) ?? null,
     [selectedTemplateSlug, templates],
   );
 
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!open) {
-      setSelectedTemplateSlug(null);
+  const latestVersion = useMemo(() => {
+    if (!selectedTemplate) {
+      return null;
     }
-  }, [open]);
+    return (
+      selectedTemplate.versions.find(
+        (version) => version.version === selectedTemplate.latestVersion,
+      ) ??
+      selectedTemplate.versions[0] ??
+      null
+    );
+  }, [selectedTemplate]);
+
+  const normalizedPreviewBody = useMemo(
+    () => (previewVersion ? trimTemplateBody(previewVersion.body) : ""),
+    [previewVersion],
+  );
+
+  // Restore state on open so the modal can reopen where the user left off.
+  useEffect(() => {
+    if (open) {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const rawState = window.localStorage.getItem(TEMPLATE_MODAL_STATE_KEY);
+      if (!rawState) {
+        return;
+      }
+
+      let parsed: CachedTemplateModalState;
+      try {
+        parsed = JSON.parse(rawState) as CachedTemplateModalState;
+      } catch {
+        return;
+      }
+
+      const cachedSlug = parsed.selectedTemplateSlug;
+      if (!cachedSlug) {
+        return;
+      }
+
+      const cachedTemplate = templates.find((template) => template.slug === cachedSlug);
+      if (!cachedTemplate) {
+        return;
+      }
+
+      setSelectedTemplateSlug(cachedTemplate.slug);
+
+      const cachedPreviewVersion =
+        cachedTemplate.versions.find((version) => version.id === parsed.previewVersionId) ?? null;
+
+      if (!cachedPreviewVersion) {
+        setPreviewVersion(null);
+        setPreviewBreadcrumb("Preview");
+        return;
+      }
+
+      setPreviewVersion(cachedPreviewVersion);
+      setPreviewBreadcrumb(parsed.previewBreadcrumb || "Preview");
+    }
+  }, [open, templates]);
+
+  // Persist current navigation state so reopening returns to the previous screen.
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const state: CachedTemplateModalState = {
+      selectedTemplateSlug,
+      previewVersionId: previewVersion?.id ?? null,
+      previewBreadcrumb,
+    };
+
+    window.localStorage.setItem(TEMPLATE_MODAL_STATE_KEY, JSON.stringify(state));
+  }, [selectedTemplateSlug, previewVersion, previewBreadcrumb]);
 
   useEffect(() => {
     if (screen !== "listing" || !selectedTemplate) {
@@ -110,15 +206,37 @@ export function TemplateGalleryModal({
 
   const openListing = (template: RegistryTemplate) => {
     setSelectedTemplateSlug(template.slug);
+    setPreviewVersion(null);
   };
 
   const backToGallery = () => {
     setSelectedTemplateSlug(null);
+    setPreviewVersion(null);
+  };
+
+  const backToListing = () => {
+    setPreviewVersion(null);
+    setPreviewBreadcrumb("Preview");
   };
 
   const useVersion = (version: RegistryTemplateVersion) => {
-    onInsertTemplate(version.body);
+    onInsertTemplate(trimTemplateBody(version.body));
     onOpenChange(false);
+  };
+
+  const openPreviewForVersion = (version: RegistryTemplateVersion, breadcrumb: string) => {
+    setPreviewVersion(version);
+    setPreviewBreadcrumb(breadcrumb);
+  };
+
+  const openLatestPreview = () => {
+    if (!latestVersion) return;
+    openPreviewForVersion(latestVersion, "Preview");
+  };
+
+  const onVersionPreview = (version: RegistryTemplateVersion) => {
+    // Always route version-row actions through preview to avoid accidental direct inserts.
+    openPreviewForVersion(version, `Preview (${version.version})`);
   };
 
   const headerDesc =
@@ -163,8 +281,28 @@ export function TemplateGalleryModal({
                     </BreadcrumbItem>
                     <BreadcrumbSeparator />
                     <BreadcrumbItem>
-                      <BreadcrumbPage>{selectedTemplate?.title}</BreadcrumbPage>
+                      {screen === "listing" ? (
+                        <BreadcrumbPage>{selectedTemplate?.title}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink asChild>
+                          <button
+                            type="button"
+                            onClick={backToListing}
+                            className="text-muted-foreground transition-colors hover:!text-[var(--suite-accent-light)] focus-visible:!text-[var(--suite-accent-light)]"
+                          >
+                            {selectedTemplate?.title}
+                          </button>
+                        </BreadcrumbLink>
+                      )}
                     </BreadcrumbItem>
+                    {screen === "preview" ? (
+                      <>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                          <BreadcrumbPage>{previewBreadcrumb}</BreadcrumbPage>
+                        </BreadcrumbItem>
+                      </>
+                    ) : null}
                   </BreadcrumbList>
                 </Breadcrumb>
               ) : null}
@@ -175,13 +313,13 @@ export function TemplateGalleryModal({
                     <span className="inline-flex items-center gap-2">
                       Browse Templates
                       <a
-                        href="/registry/docs/playground-templates"
+                        href="/registry/docs/markdown-playground"
                         target="_blank"
                         rel="noreferrer"
                         aria-label="Learn more about Browse Templates"
                         className="inline-flex items-center text-muted-foreground transition-colors hover:text-[var(--suite-accent-light)]"
                       >
-                        <ExternalLink className="size-4" aria-hidden />
+                        <BookText className="size-4" aria-hidden />
                       </a>
                     </span>
                   </DialogTitle>
@@ -191,9 +329,13 @@ export function TemplateGalleryModal({
                 </>
               ) : (
                 <>
-                  <DialogTitle className="sr-only">{selectedTemplate?.title}</DialogTitle>
+                  <DialogTitle className="sr-only">
+                    {screen === "preview" ? previewBreadcrumb : selectedTemplate?.title}
+                  </DialogTitle>
                   <DialogDescription className="sr-only">
-                    {selectedTemplate?.title} template
+                    {screen === "preview"
+                      ? `Previewing ${previewVersion?.version ?? "latest"} template version`
+                      : `${selectedTemplate?.title} template`}
                   </DialogDescription>
                 </>
               )}
@@ -211,7 +353,14 @@ export function TemplateGalleryModal({
         </header>
 
         {/* ── Scrollable body ─────────────────────────────────── */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:px-7 md:py-6">
+        <div
+          className={cn(
+            "min-h-0 flex-1",
+            screen === "preview"
+              ? "overflow-hidden p-0"
+              : "overflow-y-auto px-5 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:px-7 md:py-6",
+          )}
+        >
           {/* Screen: Gallery */}
           {screen === "gallery" ? (
             templates.length === 0 ? (
@@ -274,19 +423,27 @@ export function TemplateGalleryModal({
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <SuiteAccentButton
-                      tone="solid"
-                      className="shrink-0 gap-2"
+                  <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
+                    <button
+                      type="button"
+                      className={UTILITY_ACTION_BUTTON_CLASS}
+                      onClick={openLatestPreview}
+                      data-testid="template-preview-latest"
+                    >
+                      <Eye className="size-3" aria-hidden />
+                      Preview Template
+                    </button>
+                    <button
+                      type="button"
+                      className={UTILITY_ACTION_BUTTON_CLASS}
                       onClick={() => {
-                        const latest = selectedTemplate.versions[0];
-                        if (latest) useVersion(latest);
+                        if (latestVersion) useVersion(latestVersion);
                       }}
                       data-testid="template-use-latest"
                     >
-                      <Sparkles className="size-4" aria-hidden />
+                      <Sparkles className="size-3" aria-hidden />
                       Use Template
-                    </SuiteAccentButton>
+                    </button>
                   </div>
                 </div>
               </section>
@@ -299,7 +456,47 @@ export function TemplateGalleryModal({
               </article>
 
               {/* Version list */}
-              <TemplateVersionList versions={selectedTemplate.versions} onUseVersion={useVersion} />
+              <TemplateVersionList
+                versions={selectedTemplate.versions}
+                onPreviewVersion={onVersionPreview}
+              />
+            </div>
+          ) : null}
+
+          {/* Screen: Preview */}
+          {screen === "preview" && selectedTemplate && previewVersion ? (
+            <div className="h-full p-4 md:p-5 lg:p-6" data-testid="template-preview-screen">
+              <article className="group relative h-full overflow-hidden rounded-lg border border-border/50 bg-card/95">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => useVersion(previewVersion)}
+                        className={cn(
+                          "absolute right-5 top-4 z-10 inline-flex h-[clamp(2.25rem,4vw,2.9rem)] w-[clamp(2.25rem,4vw,2.9rem)] items-center justify-center rounded-md transition-all md:right-6 md:top-5 lg:right-7",
+                          "opacity-90 md:opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+                          "bg-foreground/10 hover:bg-foreground/20 text-foreground/60 hover:text-foreground/90",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        )}
+                        aria-label="Use Template"
+                        data-testid="template-preview-use"
+                      >
+                        <Sparkles className="size-[clamp(0.9rem,1.7vw,1.15rem)]" aria-hidden />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="z-[140]">
+                      Use Template
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <ScrollArea className="h-full">
+                  <pre className="min-h-full p-4 pr-14 md:pr-16 text-sm leading-6 text-foreground whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                    <code>{normalizedPreviewBody}</code>
+                  </pre>
+                </ScrollArea>
+              </article>
             </div>
           ) : null}
         </div>

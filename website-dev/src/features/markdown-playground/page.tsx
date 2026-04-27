@@ -27,7 +27,6 @@ import {
   Button,
   Card,
   PageHeading,
-  SuiteAccentButton,
   SuiteAccentScope,
   ToggleGroup,
   ToggleGroupItem,
@@ -51,6 +50,7 @@ import {
 import { copyPlaygroundContent } from "@/features/markdown-playground/lib/copy-playground-content";
 import { TemplateGalleryModal } from "./components/template-gallery-modal";
 import { cn } from "@/lib/utils";
+import { UTILITY_ACTION_BUTTON_CLASS } from "@/features/content/components/utility-action";
 
 type ToolbarAction = {
   id: ToolbarActionId;
@@ -237,15 +237,15 @@ export function MarkdownPlaygroundRoute() {
           title={navItem.title}
           description={navItem.description}
           actions={
-            <SuiteAccentButton
-              tone="solid"
-              className="h-10 shrink-0 gap-2 px-4"
+            <button
+              type="button"
+              className={UTILITY_ACTION_BUTTON_CLASS}
               onClick={() => setTemplateGalleryOpen(true)}
               data-testid="playground-use-template"
             >
-              <BookDashed className="size-4" aria-hidden="true" />
+              <BookDashed className="size-3" aria-hidden="true" />
               Browse Templates
-            </SuiteAccentButton>
+            </button>
           }
         />
 
