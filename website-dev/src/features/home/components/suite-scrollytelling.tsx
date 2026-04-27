@@ -122,7 +122,7 @@ const StoryPanel = memo(function StoryPanel({ step }: { step: SuiteStep }) {
           className="flex size-9 items-center justify-center rounded-lg"
           style={{ backgroundColor: `${tone}18`, color: tone }}
         >
-          <StepIcon className="size-4" aria-hidden="true" />
+          <StepIcon className="size-6" aria-hidden="true" />
         </span>
         <h3 className="text-xl font-extrabold tracking-[-0.03em] text-foreground lg:text-2xl">
           {step.title}
@@ -150,7 +150,7 @@ const StoryPanel = memo(function StoryPanel({ step }: { step: SuiteStep }) {
           className="inline-flex items-center gap-2 rounded-lg border border-transparent px-6 py-3 text-sm font-bold tracking-[-0.01em] shadow-sm transition-all hover:brightness-110"
           style={{ backgroundColor: tone, color: "var(--background)" }}
         >
-          <PrimaryIcon className="size-4" aria-hidden="true" />
+          <PrimaryIcon className="size-6" aria-hidden="true" />
           {step.primaryAction.label}
         </Link>
         {step.secondaryAction.external ? (
@@ -160,7 +160,7 @@ const StoryPanel = memo(function StoryPanel({ step }: { step: SuiteStep }) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted/50"
           >
-            <SecondaryIcon className="size-4" aria-hidden="true" />
+            <SecondaryIcon className="size-6" aria-hidden="true" />
             {step.secondaryAction.label}
             <ExternalLink className="size-3 opacity-50" aria-hidden="true" />
           </a>
@@ -169,7 +169,7 @@ const StoryPanel = memo(function StoryPanel({ step }: { step: SuiteStep }) {
             to={step.secondaryAction.href}
             className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-muted/50"
           >
-            <SecondaryIcon className="size-4" aria-hidden="true" />
+            <SecondaryIcon className="size-6" aria-hidden="true" />
             {step.secondaryAction.label}
           </Link>
         )}

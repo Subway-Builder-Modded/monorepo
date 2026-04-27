@@ -130,8 +130,8 @@ describe("ContributeRoute", () => {
     for (const tier of SUPPORT_TIERS) {
       const card = screen.getByTestId(`contribute-tier-card-${tier.id}`);
       // Price — currency symbol and number are in separate styled spans
-      const digits = tier.monthlyAmount.replace(/\D+/, "");
-      const symbol = tier.monthlyAmount.replace(/\d+/, "");
+      const digits = String(tier.amount);
+      const symbol = tier.currencySymbol;
       expect(within(card).getByText(digits)).toBeInTheDocument();
       expect(within(card).getByText(symbol)).toBeInTheDocument();
       // Pitch

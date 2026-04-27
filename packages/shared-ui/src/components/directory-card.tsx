@@ -6,6 +6,7 @@ export interface DirectoryCardProps
   extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   asChild?: boolean;
   interactive?: boolean;
+  alignment: 'top' | 'center';
   icon: React.ReactNode;
   heading: React.ReactNode;
   description?: React.ReactNode;
@@ -24,6 +25,7 @@ export const DirectoryCard = React.forwardRef<HTMLDivElement, DirectoryCardProps
     {
       asChild = false,
       interactive = true,
+      alignment,
       icon,
       heading,
       description,
@@ -60,13 +62,15 @@ export const DirectoryCard = React.forwardRef<HTMLDivElement, DirectoryCardProps
     const content = (
       <div
         className={cn(
-          'flex min-h-[clamp(3.2rem,7vw,4.2rem)] items-start gap-[clamp(0.55rem,1vw,0.8rem)] rounded-[clamp(0.6rem,1vw,0.8rem)] px-[clamp(0.55rem,1vw,0.8rem)] py-[clamp(0.35rem,0.8vw,0.6rem)]',
+          'flex min-h-[clamp(3.2rem,7vw,4.2rem)] gap-[clamp(0.55rem,1vw,0.8rem)] rounded-[clamp(0.6rem,1vw,0.8rem)] px-[clamp(0.55rem,1vw,0.8rem)] py-[clamp(0.35rem,0.8vw,0.6rem)]',
+          alignment === 'center' ? 'items-center' : 'items-start',
           contentClassName,
         )}
       >
         <div
           className={cn(
-            'mt-[0.08rem] shrink-0 text-[var(--directory-card-accent-light)] opacity-85 transition-opacity group-hover:opacity-100 dark:text-[var(--directory-card-accent-dark)]',
+            'shrink-0 text-[var(--directory-card-accent-light)] opacity-85 transition-opacity group-hover:opacity-100 dark:text-[var(--directory-card-accent-dark)]',
+            alignment === 'top' && 'mt-[0.08rem]',
             iconClassName,
           )}
         >

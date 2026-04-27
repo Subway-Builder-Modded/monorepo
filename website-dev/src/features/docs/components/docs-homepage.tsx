@@ -13,7 +13,7 @@ import { Link } from "@/lib/router";
 import { DocsDeprecatedNotice } from "@/features/docs/components/docs-deprecated-notice";
 import { DocsVersionChooser } from "@/features/docs/components/docs-version-chooser";
 import { getDocsTree, getVisibleNodes } from "@/features/docs/lib/content";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
+import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
 import { getDocPageUrl } from "@/features/docs/lib/routing";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
@@ -72,6 +72,7 @@ function DocsCardGrid({ suiteId, version }: { suiteId: DocsSuiteId; version: str
             <DirectoryCard
               key={node.slug}
               asChild
+              alignment="top"
               icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
               heading={node.frontmatter.title}
               description={node.frontmatter.description}

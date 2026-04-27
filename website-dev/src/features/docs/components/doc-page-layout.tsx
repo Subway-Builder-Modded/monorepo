@@ -17,7 +17,7 @@ import { extractHeadings } from "@/features/docs/lib/headings";
 import { getDocsHomepageUrl } from "@/features/docs/lib/routing";
 import { mdxComponents } from "@/features/docs/mdx/components";
 import { DocsRouteProvider } from "@/features/docs/mdx/docs-route-context";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
+import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
 import { DocsSidebar, MobileDocsSidebar } from "./sidebar";
 import { OnThisPage } from "./on-this-page";
 import { FileQuestion } from "lucide-react";

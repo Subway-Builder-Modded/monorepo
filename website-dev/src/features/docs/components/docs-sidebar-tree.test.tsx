@@ -7,8 +7,8 @@ import {
 } from "@/features/docs/components/docs-sidebar-tree";
 import type { DocsTreeNode } from "@/features/docs/lib/types";
 
-vi.mock("@/features/docs/lib/icon-resolver", () => ({
-  resolveIcon: () =>
+vi.mock("@/features/content/lib/icon-resolver", () => ({
+  resolveLucideIcon: () =>
     function MockIcon({ className }: { className?: string }) {
       return <span className={className} />;
     },

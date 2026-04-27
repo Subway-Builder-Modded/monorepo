@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getVisibleNodes } from "@/features/docs/lib/content";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
+import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
 import { Link } from "@/lib/router";
 import type { DocsTreeNode } from "@/features/docs/lib/types";
 

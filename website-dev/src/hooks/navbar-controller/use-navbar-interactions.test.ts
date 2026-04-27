@@ -130,6 +130,49 @@ describe("useNavbarInteractions", () => {
     expect(open).toHaveBeenCalledTimes(1);
   });
 
+  it("does not reset selected suite when hover starts during opening", () => {
+    const open = vi.fn();
+
+    const { result, rerender } = renderHook<
+      ReturnType<typeof useNavbarInteractions>,
+      HookTestProps
+    >(
+      ({ phase, isFrameExpanded }) =>
+        useNavbarInteractions({
+          close: vi.fn(),
+          isFrameExpanded,
+          open,
+          phase,
+          realSuiteId: "general",
+          setTheme: vi.fn(),
+          theme: "light",
+        }),
+      {
+        initialProps: {
+          isFrameExpanded: true,
+          phase: "open" as const,
+        } satisfies HookTestProps,
+      },
+    );
+
+    act(() => {
+      result.current.onSuiteChange("registry");
+    });
+    expect(result.current.openSuiteId).toBe("registry");
+
+    rerender({
+      isFrameExpanded: false,
+      phase: "opening",
+    } satisfies HookTestProps);
+
+    act(() => {
+      result.current.onFrameHoverStart();
+    });
+
+    expect(open).toHaveBeenCalledTimes(0);
+    expect(result.current.openSuiteId).toBe("registry");
+  });
+
   it("keeps hover-close disabled while pinned and supports menu toggle close", () => {
     const open = vi.fn();
     const close = vi.fn();

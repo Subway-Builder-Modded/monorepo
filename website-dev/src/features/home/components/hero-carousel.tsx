@@ -205,7 +205,7 @@ export function HeroCarousel() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 rounded-xl border border-border/60 bg-foreground/90 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-background shadow-lg backdrop-blur-sm transition-all hover:bg-foreground"
             >
-              <GithubIcon className="size-[18px]" />
+              <GithubIcon className="size-6" />
               {HERO_CTA_GITHUB.label}
             </a>
             <a
@@ -214,7 +214,7 @@ export function HeroCarousel() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2.5 rounded-xl border border-foreground/25 bg-foreground/5 px-6 py-3.5 text-[15px] font-bold tracking-[-0.01em] text-foreground/90 backdrop-blur-sm transition-all hover:border-foreground/40 hover:bg-foreground/10"
             >
-              <DiscordIcon className="size-[18px]" />
+              <DiscordIcon className="size-6" />
               {HERO_CTA_DISCORD.label}
             </a>
           </div>

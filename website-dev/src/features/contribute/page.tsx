@@ -13,8 +13,16 @@ import { getMatchingItem, getSuiteById } from "@/config/site-navigation";
 import { matchContributeRoute } from "@/features/contribute/lib/routing";
 import { getTierStyle } from "@/features/credits/lib/tier-styles";
 import { SUPPORT_TIERS, CONTRIBUTE_CTA, CONTRIBUTE_INTRO } from "@/config/contribute";
-import type { SupportTierConfig } from "@/config/contribute";
+import type { SupportTierConfig, SupportTierId } from "@/config/contribute";
 import { cn } from "@/lib/utils";
+
+// Per-tier vertical crop: container is 5:3 on a square image → 40% of height is
+// hidden. objectPositionY = (topCut / 40) * 100
+const TIER_IMAGE_CROP: Record<SupportTierId, string> = {
+  engineer: "87.5%", // 35% top, 5% bottom
+  conductor: "50%", // 20% top, 20% bottom
+  executive: "37.5%", // 15% top, 25% bottom
+};
 
 function TierCard({ tier }: { tier: SupportTierConfig }) {
   const { icon: Icon, accentLight, accentDark } = getTierStyle(tier.id);
@@ -53,6 +61,17 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
         />
       )}
 
+      {/* Tier illustration */}
+      <div className="relative aspect-[5/3] w-full overflow-hidden">
+        <img
+          src={`/images/contribute/${tier.id}.png`}
+          alt=""
+          aria-hidden="true"
+          className="size-full object-cover"
+          style={{ objectPosition: `50% ${TIER_IMAGE_CROP[tier.id]}` }}
+        />
+      </div>
+
       {/* Card header: unboxed icon + overline + price + description */}
       <div
         className={cn(
@@ -79,9 +98,9 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
             <div className="mt-2.5 flex items-baseline gap-1.5">
               <span className="text-[clamp(2rem,3.2vw,2.6rem)] font-extrabold leading-none tracking-tight text-foreground">
                 <span className="text-[0.55em] font-bold align-top mt-[0.18em] inline-block mr-0.5">
-                  {tier.monthlyAmount.replace(/\d+/, "")}
+                  {tier.currencySymbol}
                 </span>
-                {tier.monthlyAmount.replace(/\D+/, "")}
+                {tier.amount}
               </span>
               <span className="text-sm font-medium text-muted-foreground">/ month</span>
             </div>
@@ -182,7 +201,7 @@ export function ContributeRoute() {
                   aria-label="Support on Ko-fi — opens Ko-fi memberships page"
                   data-testid="contribute-cta-link"
                 >
-                  <KofiIcon className="size-[18px]" />
+                  <KofiIcon className="size-6" />
                   {CONTRIBUTE_CTA.label}
                 </a>
               </SuiteAccentButton>

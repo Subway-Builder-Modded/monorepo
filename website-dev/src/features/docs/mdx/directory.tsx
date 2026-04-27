@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { DirectoryCard } from "@subway-builder-modded/shared-ui";
-import { resolveIcon, getDocsTree, getVisibleNodes } from "@/features/docs/lib";
+import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { getDocsTree, getVisibleNodes } from "@/features/docs/lib";
 import type { DocsTreeNode } from "@/features/docs/lib/types";
 import type { DocsSuiteId } from "@/config/docs";
 import { Link } from "@/lib/router";
@@ -68,6 +69,7 @@ export function DocsDirectory({ path, suiteId, version, icon, label }: Directory
             <DirectoryCard
               key={node.slug}
               asChild
+              alignment="top"
               icon={<Icon className="size-[clamp(1rem,1.5vw,1.25rem)]" aria-hidden={true} />}
               heading={node.frontmatter.title}
               description={node.frontmatter.description}

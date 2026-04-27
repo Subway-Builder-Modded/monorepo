@@ -121,80 +121,89 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
 
       <nav aria-label="Site navigation" className="fixed inset-x-0 top-4 z-50">
         <div className={cn(SITE_SHELL_CLASS, "relative")}>
-          <motion.div
-            initial={false}
-            onClick={onCollapsedSurfaceClick}
-            onHoverStart={() => {
+          {/* Hover-region wrapper: negative margins widen the hit area on all
+              sides without affecting the inner card's layout (compensating px
+              keeps the content-width identical). onMouseLeave only fires when
+              the pointer exits this expanded region. */}
+          <div
+            className={cn(isFrameExpanded && "-mx-8 px-8 pb-20")}
+            onMouseEnter={() => {
               setIsNavbarHovered(true);
               onFrameHoverStart();
             }}
-            onHoverEnd={() => {
+            onMouseLeave={() => {
               setIsNavbarHovered(false);
               onFrameHoverEnd();
             }}
-            className={cn(
-              "relative w-full overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(var(--elevation-shadow-rgb),0.35)]",
-              isClosed && "cursor-pointer transition-shadow duration-200 ease-out",
-              isNavbarHovered && "shadow-[0_14px_30px_-14px_rgba(var(--elevation-shadow-rgb),0.5)]",
-            )}
-            animate={{
-              height: frameHeight,
-              scale: frameScale,
-            }}
-            transition={{
-              height: {
-                duration: disableInitialClosedAnimation ? 0 : frameDuration,
-                ease: FRAME_EASE,
-              },
-              scale: {
-                duration: disableInitialClosedAnimation || prefersReducedMotion ? 0 : 0.16,
-                ease: FRAME_EASE,
-              },
-            }}
-            style={
-              {
-                borderColor,
-                ["--suite-accent" as string]: isFrameExpanded ? accentColor : realAccent,
-                ["--suite-muted" as string]: mutedColor,
-              } as CSSProperties
-            }
           >
-            <div className="relative h-12">
-              <NavbarTopbar
-                discordLink={DISCORD_COMMUNITY_LINK}
-                githubLink={GITHUB_COMMUNITY_LINK}
-                isExpanded={isFrameExpanded}
-                isMobile={isMobile}
-                realAccent={realAccent}
-                realSuite={realSuite}
-                theme={theme}
-                onMenuClick={onMenuClick}
-                onThemeClick={onThemeClick}
-              />
-            </div>
-
-            <div
-              className="overflow-hidden px-3 pb-3 pt-2"
-              style={{ height: isFrameExpanded ? panelHeight : 0 }}
+            <motion.div
+              initial={false}
+              onClick={onCollapsedSurfaceClick}
+              className={cn(
+                "relative w-full overflow-hidden rounded-2xl border-2 bg-background px-3 shadow-[0_10px_24px_-16px_rgba(var(--elevation-shadow-rgb),0.35)]",
+                isClosed && "cursor-pointer transition-shadow duration-200 ease-out",
+                isNavbarHovered &&
+                  "shadow-[0_14px_30px_-14px_rgba(var(--elevation-shadow-rgb),0.5)]",
+              )}
+              animate={{
+                height: frameHeight,
+                scale: frameScale,
+              }}
+              transition={{
+                height: {
+                  duration: disableInitialClosedAnimation ? 0 : frameDuration,
+                  ease: FRAME_EASE,
+                },
+                scale: {
+                  duration: disableInitialClosedAnimation || prefersReducedMotion ? 0 : 0.16,
+                  ease: FRAME_EASE,
+                },
+              }}
+              style={
+                {
+                  borderColor,
+                  ["--suite-accent" as string]: isFrameExpanded ? accentColor : realAccent,
+                  ["--suite-muted" as string]: mutedColor,
+                } as CSSProperties
+              }
             >
-              <motion.div
-                initial={false}
-                animate={{ opacity: showPanelSurface ? 1 : 0 }}
-                transition={{
-                  duration: prefersReducedMotion ? 0 : NAVBAR_MOTION.panelSurfaceExitMs / 1000,
-                }}
-                className={cn("h-full", !showPanelSurface && "pointer-events-none")}
+              <div className="relative h-12">
+                <NavbarTopbar
+                  discordLink={DISCORD_COMMUNITY_LINK}
+                  githubLink={GITHUB_COMMUNITY_LINK}
+                  isExpanded={isFrameExpanded}
+                  isMobile={isMobile}
+                  realAccent={realAccent}
+                  realSuite={realSuite}
+                  theme={theme}
+                  onMenuClick={onMenuClick}
+                  onThemeClick={onThemeClick}
+                />
+              </div>
+
+              <div
+                className="overflow-hidden px-3 pb-3 pt-2"
+                style={{ height: isFrameExpanded ? panelHeight : 0 }}
               >
-                {panelNeedsScroll ? (
-                  <ScrollArea className="-mx-3 h-full">
-                    <div className="px-3 pr-4">{panelContent}</div>
-                  </ScrollArea>
-                ) : (
-                  <div className="h-full overflow-visible">{panelContent}</div>
-                )}
-              </motion.div>
-            </div>
-          </motion.div>
+                <motion.div
+                  initial={false}
+                  animate={{ opacity: showPanelSurface ? 1 : 0 }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0 : NAVBAR_MOTION.panelSurfaceExitMs / 1000,
+                  }}
+                  className={cn("h-full", !showPanelSurface && "pointer-events-none")}
+                >
+                  {panelNeedsScroll ? (
+                    <ScrollArea className="-mx-3 h-full">
+                      <div className="px-3 pr-4">{panelContent}</div>
+                    </ScrollArea>
+                  ) : (
+                    <div className="h-full overflow-visible">{panelContent}</div>
+                  )}
+                </motion.div>
+              </div>
+            </motion.div>
+          </div>
         </div>
         {phase !== "closed" ? (
           <div

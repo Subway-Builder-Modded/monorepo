@@ -46,7 +46,7 @@ function FooterLinkRow({ link }: { link: FooterLink }) {
       )}
       style={style}
     >
-      {link.icon ? <span className="shrink-0 [&_svg]:size-4">{link.icon}</span> : null}
+      {link.icon ? <span className="shrink-0 [&_svg]:size-4.5">{link.icon}</span> : null}
       <span className="truncate">{link.title}</span>
     </a>
   );
@@ -66,7 +66,7 @@ export function FooterColumns({ columns }: FooterColumnsProps) {
               {column.title}
             </h3>
           </div>
-          <ul className="mt-0.5 space-y-1.5">
+          <ul className="-mx-2 mt-0.5 space-y-1.5">
             {column.links.map((link) => (
               <li key={link.id}>
                 <FooterLinkRow link={link} />

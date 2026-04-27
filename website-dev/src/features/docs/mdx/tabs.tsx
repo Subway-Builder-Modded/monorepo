@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Tabs as SharedTabs, TabItem, TabsVariantContext } from "@subway-builder-modded/mdx";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
+import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
 
 type TabsProps = {
   groupId?: string;

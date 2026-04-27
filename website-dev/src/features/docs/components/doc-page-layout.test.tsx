@@ -19,8 +19,8 @@ vi.mock("@/features/docs/components/on-this-page", () => ({
   OnThisPage: () => <aside data-testid="on-this-page" />,
 }));
 
-vi.mock("@/features/docs/lib/icon-resolver", () => ({
-  resolveIcon: () => (props: { className?: string }) => (
+vi.mock("@/features/content/lib/icon-resolver", () => ({
+  resolveLucideIcon: () => (props: { className?: string }) => (
     <svg data-testid="doc-title-icon" {...props} />
   ),
 }));

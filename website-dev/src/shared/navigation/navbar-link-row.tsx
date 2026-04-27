@@ -22,7 +22,7 @@ export function NavbarLinkRow({ active, className, item, onClick }: NavbarLinkRo
       <NavRow
         title={item.title}
         description={item.description}
-        icon={<ItemIcon className="size-5" aria-hidden={true} />}
+        icon={<ItemIcon className="size-4.5" aria-hidden={true} />}
         active={active}
         className={className}
       />
