@@ -18,7 +18,7 @@ export function PeopleSection() {
               className="group relative flex flex-col bg-card/90 p-6 transition-colors hover:bg-card sm:p-7 lg:p-8"
             >
               <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-muted/60 text-foreground/70 transition-colors group-hover:text-foreground">
-                <Icon className="size-4.5" aria-hidden="true" />
+                <Icon className="size-6" aria-hidden="true" />
               </div>
               <h3 className="text-base font-bold tracking-[-0.02em] text-foreground">{d.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{d.description}</p>

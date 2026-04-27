@@ -54,7 +54,7 @@ export function OpenSourceSection() {
                   "bg-foreground text-background hover:bg-foreground/90",
                 )}
               >
-                <GithubIcon className="size-4" />
+                <GithubIcon className="size-6" />
                 {OPEN_SOURCE_SECTION.cta.label}
                 <ExternalLink className="size-3 opacity-50" aria-hidden="true" />
               </a>

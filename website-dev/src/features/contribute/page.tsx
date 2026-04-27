@@ -79,9 +79,9 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
             <div className="mt-2.5 flex items-baseline gap-1.5">
               <span className="text-[clamp(2rem,3.2vw,2.6rem)] font-extrabold leading-none tracking-tight text-foreground">
                 <span className="text-[0.55em] font-bold align-top mt-[0.18em] inline-block mr-0.5">
-                  {tier.monthlyAmount.replace(/\d+/, "")}
+                  {tier.currencySymbol}
                 </span>
-                {tier.monthlyAmount.replace(/\D+/, "")}
+                {tier.amount}
               </span>
               <span className="text-sm font-medium text-muted-foreground">/ month</span>
             </div>
@@ -182,7 +182,7 @@ export function ContributeRoute() {
                   aria-label="Support on Ko-fi — opens Ko-fi memberships page"
                   data-testid="contribute-cta-link"
                 >
-                  <KofiIcon className="size-[18px]" />
+                  <KofiIcon className="size-6" />
                   {CONTRIBUTE_CTA.label}
                 </a>
               </SuiteAccentButton>

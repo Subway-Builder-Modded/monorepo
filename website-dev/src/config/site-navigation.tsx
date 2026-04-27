@@ -76,7 +76,7 @@ export type SiteCommunityLink = {
   icon: ReactNode;
 };
 
-const EXTERNAL_ICON_CLASS = "size-4";
+const EXTERNAL_ICON_CLASS = "size-6";
 
 const GENERAL_ACCENT: SiteSuiteAccent = {
   light: "#0a0a0a",
@@ -234,7 +234,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "railyard-updates",
     suiteId: "railyard",
     title: "Updates",
-    description: "View the changelogs and release notes for Railyard.",
+    description: "View the changelogs and release notes for the Railyard app.",
     href: "/railyard/updates",
     icon: Megaphone,
     activeMatchRules: [{ kind: "prefix", path: "/railyard/updates" }],
@@ -355,24 +355,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/foundry",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/foundry" }],
-  },
-  {
-    id: "foundry-docs",
-    suiteId: "foundry",
-    title: "Docs",
-    description: "The official documentation for the Foundry app.",
-    href: "/foundry/docs",
-    icon: BookText,
-    activeMatchRules: [{ kind: "prefix", path: "/foundry/docs" }],
-  },
-  {
-    id: "foundry-analytics",
-    suiteId: "foundry",
-    title: "Analytics",
-    description: "In-depth release and download analytics for the Foundry app.",
-    href: "/foundry/analytics",
-    icon: ChartLine,
-    activeMatchRules: [{ kind: "prefix", path: "/foundry/analytics" }],
   },
 ];
 

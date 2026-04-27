@@ -35,7 +35,9 @@ describe("resolvePageMetadata", () => {
 
     expect(metadata.title).toBe("Updates");
     expect(metadata.pageTitle).toBe("Updates | Railyard");
-    expect(metadata.description).toBe("View the changelogs and release notes for Railyard.");
+    expect(metadata.description).toBe(
+      "View the changelogs and release notes for the Railyard app.",
+    );
     expect(metadata.suite.id).toBe("railyard");
   });
 

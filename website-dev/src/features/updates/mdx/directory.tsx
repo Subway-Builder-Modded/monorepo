@@ -4,7 +4,7 @@ import { getUpdateDirectoryEntries } from "@/features/updates/lib/content";
 import { UpdateEntryCard } from "@/features/updates/components/update-entry-card";
 import { useUpdatesRoute } from "./updates-route-context";
 import { DirectoryShell } from "@/features/content/components/directory-shell";
-import { resolveIcon } from "@/features/docs/lib/icon-resolver";
+import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
 
 type DirectoryProps = {
   path?: string;

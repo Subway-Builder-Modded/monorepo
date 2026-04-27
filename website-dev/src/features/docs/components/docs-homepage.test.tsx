@@ -38,8 +38,10 @@ vi.mock("@/features/docs/lib/content", () => ({
   findTreeNode: vi.fn(() => null),
 }));
 
-vi.mock("@/features/docs/lib/icon-resolver", () => ({
-  resolveIcon: () => (props: { className?: string }) => <svg data-testid="card-icon" {...props} />,
+vi.mock("@/features/content/lib/icon-resolver", () => ({
+  resolveLucideIcon: () => (props: { className?: string }) => (
+    <svg data-testid="card-icon" {...props} />
+  ),
 }));
 
 describe("DocsHomepage", () => {

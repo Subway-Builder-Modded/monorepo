@@ -19,4 +19,3 @@ export {
 export { matchDocsRoute, resolveDocsRoute, getDocsHomepageUrl, getDocPageUrl } from "./routing";
 export { extractHeadings, slugify } from "./headings";
 export { mdxToMarkdown } from "./markdown-copy";
-export { resolveIcon } from "./icon-resolver";

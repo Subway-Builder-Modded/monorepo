@@ -23,7 +23,7 @@ export function SiteFooter() {
         id: item.id,
         title: item.title,
         href: item.href,
-        icon: <ItemIcon className="size-4" aria-hidden={true} />,
+        icon: <ItemIcon className="size-6" aria-hidden={true} />,
         accentLight: suite.accent.light,
         accentDark: suite.accent.dark,
         mutedLight: suite.accent.mutedLight,

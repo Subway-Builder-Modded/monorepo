@@ -11,6 +11,10 @@ vi.mock("@/lib/router", () => ({
   ),
 }));
 
+vi.mock("@/features/content/lib/icon-resolver", () => ({
+  resolveLucideIcon: () => () => <svg data-testid="directory-icon" />,
+}));
+
 vi.mock("@/features/docs/lib", () => ({
   getDocsTree: vi.fn(() => ({
     suiteId: "railyard",
@@ -35,7 +39,6 @@ vi.mock("@/features/docs/lib", () => ({
     ],
   })),
   getVisibleNodes: vi.fn((nodes) => nodes),
-  resolveIcon: () => () => <svg data-testid="directory-icon" />,
 }));
 
 describe("Directory MDX component", () => {

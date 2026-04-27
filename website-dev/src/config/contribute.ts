@@ -6,7 +6,8 @@ export type SupportTierId = Extract<CreditsSubsectionId, "engineer" | "conductor
 
 export type SupportTierConfig = {
   id: SupportTierId;
-  monthlyAmount: string;
+  currencySymbol: string;
+  amount: number;
   pitch: string;
   benefits: string[];
   featured?: true;
@@ -20,7 +21,8 @@ export type ContributeCTAConfig = {
 export const SUPPORT_TIERS: SupportTierConfig[] = [
   {
     id: "engineer",
-    monthlyAmount: "$2",
+    currencySymbol: "$",
+    amount: 2,
     pitch: "For those ready to build with us.",
     benefits: [
       "Access to all release candidates (pre-releases)",
@@ -32,7 +34,8 @@ export const SUPPORT_TIERS: SupportTierConfig[] = [
   },
   {
     id: "conductor",
-    monthlyAmount: "$5",
+    currencySymbol: "$",
+    amount: 5,
     pitch: "For our core community leaders.",
     benefits: [
       "Access to all release candidates (pre-releases)",
@@ -46,7 +49,8 @@ export const SUPPORT_TIERS: SupportTierConfig[] = [
   },
   {
     id: "executive",
-    monthlyAmount: "$10",
+    currencySymbol: "$",
+    amount: 10,
     pitch: "For the visionaries shaping our platform.",
     benefits: [
       "Access to all release candidates (pre-releases)",

@@ -47,7 +47,7 @@ const MobileNavbarPanelBase = memo(function MobileNavbarPanelBase({
               style={{ color: group.accentColor }}
             >
               <span className="shrink-0">
-                <GroupIcon className="size-4" aria-hidden={true} />
+                <GroupIcon className="size-6" aria-hidden={true} />
               </span>
               {group.title}
             </h3>

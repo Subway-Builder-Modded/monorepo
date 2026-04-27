@@ -46,7 +46,7 @@ function FooterLinkRow({ link }: { link: FooterLink }) {
       )}
       style={style}
     >
-      {link.icon ? <span className="shrink-0 [&_svg]:size-4">{link.icon}</span> : null}
+      {link.icon ? <span className="shrink-0 [&_svg]:size-6">{link.icon}</span> : null}
       <span className="truncate">{link.title}</span>
     </a>
   );

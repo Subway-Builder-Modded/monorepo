@@ -64,10 +64,10 @@ export function PageHeading({
               'inline-flex shrink-0 items-center justify-center rounded-[0.7rem] border',
               'border-[color-mix(in_srgb,var(--suite-accent-light)_28%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] text-[var(--suite-accent-light)]',
               'dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_34%,transparent)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)] dark:text-[var(--suite-accent-dark)]',
-              isSidebar ? 'mt-0.5 size-8 rounded-[0.62rem]' : isCompact ? 'mt-0.5 size-8.5' : 'size-10',
+              isSidebar ? 'mt-0.5 size-8 rounded-[0.62rem]' : isCompact ? 'mt-0.5 size-8.5' : 'size-11',
             )}
           >
-            <Icon className={cn(isSidebar ? 'size-4' : isCompact ? 'size-4.5' : 'size-5')} aria-hidden="true" />
+            <Icon className={cn(isSidebar ? 'size-4' : isCompact ? 'size-4.5' : 'size-6')} aria-hidden="true" />
           </span>
 
           <div className="min-w-0 flex-1">
