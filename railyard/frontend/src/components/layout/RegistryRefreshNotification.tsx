@@ -49,6 +49,7 @@ export function RegistryRefreshNotification() {
           return;
         }
 
+        // TODO: Let's parse the errors to raise to the user
         if (data.stage === 'error') {
           toast(
             <div className="flex flex-col gap-1 w-full">

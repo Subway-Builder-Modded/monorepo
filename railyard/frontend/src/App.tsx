@@ -96,12 +96,8 @@ function App() {
         },
       },
       {
-        // Drives the navbar Refresh-button gate. Setting `true` only on
-        // observed non-terminal events (rather than preemptively from a
-        // preference) is intentional: if events arrive before our listener
-        // attaches — e.g. the precheck completes a no-op refresh in <500ms —
-        // both `starting` and `complete` are dropped, and the flag correctly
-        // stays at its initial `false`. The refresh is already done.
+        // Gate the navbar refresh button to prevent concurrent clone requests, preventing interaction if the registry is already being refreshed as part of startup.
+        // We set set refreshing state `true` only if we see a non terminal git clone stage increment (to prevent hanging state when our listener attaches after completion of the refresh)
         eventName: 'registry:refresh-progress',
         handler: (payload: RegistryRefreshProgressEvent) => {
           if (payload?.stage === 'complete' || payload?.stage === 'error') {

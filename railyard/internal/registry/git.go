@@ -18,11 +18,10 @@ import (
 // registrySparseCheckoutDirs lists the only directories materialized on disk from the registry clone. Everything else (analytics, schemas, scripts, history etc.) stays compressed inside the git object store and is never written to disk.
 var registrySparseCheckoutDirs = []string{"mods", "maps", "authors", "supporters"}
 
-// registryRepoSlug is the "owner/repo" form used for GitHub API calls against
-// the registry repository.
-const registryRepoSlug = "Subway-Builder-Modded/registry"
+// registryRepoPath is the "owner/repo" form used for GitHub API calls for the `registry` repository
+const registryRepoPath = "Subway-Builder-Modded/registry"
 
-// registryRefName is the branch tracked locally and queried for the precheck.
+// registryRefName is the branch tracked locally and queried for the pre-check fast exit.
 const registryRefName = "main"
 
 type remoteCommitResponse struct {
@@ -60,6 +59,7 @@ func (r *Registry) refreshRepo() error {
 // forceClone removes any existing directory and performs a fresh clone,
 // checking out only registrySparseCheckoutDirs.
 func (r *Registry) forceClone() error {
+	// Instantiate monitor to report refresh progress via Wails events
 	progress := newProgressWriter(progressPhaseClone, r.emitProgress)
 	if err := files.WritePathsAtomically([]files.AtomicWrite{
 		files.AtomicDirectoryWrite{
@@ -140,9 +140,9 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 		return fmt.Errorf("failed to get worktree: %w", err)
 	}
 
-	// Tree-hash early exit: if the new commit's sparse subtree hashes match
-	// the local HEAD's, every file we materialize is already correct on
-	// disk. Just advance HEAD without touching the working tree.
+	// Early exit: if the new commit's sparse subtree hashes match the local HEAD's hashes, every file we materialize is already correct on disk.
+	// This is particularly useful given that the majority of remote commits are related to hourly analytics jobs that modify no content files. 
+	// In this case we can advance HEAD without touching the working tree.
 	if r.sparseSubtreesUnchanged(repo, ref.Hash()) {
 		if err := wt.Reset(&git.ResetOptions{
 			Commit: ref.Hash(),
@@ -177,12 +177,10 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 	return nil
 }
 
-// isUpToDateWithRemote queries the GitHub API for the registry's tip commit on
-// the tracked branch and compares it to the local HEAD. Returns (true, nil)
-// when the local repo already matches the remote. Any error short-circuits to
-// (false, err) so callers can fall back to a full fetch.
+// isUpToDateWithRemote queries the GitHub API for the registry's latest commit on the tracked branch (main) and compares it to the local HEAD. 
 func (r *Registry) isUpToDateWithRemote() (bool, error) {
 	repo, err := git.PlainOpen(r.repoPath)
+	// If an error occurs, return error and allow downstream to fall back to full fetch
 	if err != nil {
 		return false, err
 	}
@@ -195,7 +193,7 @@ func (r *Registry) isUpToDateWithRemote() (bool, error) {
 	apiURL := fmt.Sprintf(
 		"%s/repos/%s/commits/%s",
 		strings.TrimRight(registryGitHubAPIBaseURL, "/"),
-		registryRepoSlug,
+		registryRepoPath,
 		registryRefName,
 	)
 
@@ -228,12 +226,8 @@ func (r *Registry) isUpToDateWithRemote() (bool, error) {
 	return strings.EqualFold(parsed.SHA, localSHA), nil
 }
 
-// sparseSubtreesUnchanged returns true when every directory in
-// registrySparseCheckoutDirs has the same tree hash in the local HEAD commit
-// and the supplied newCommitHash. When true, the working tree is already
-// byte-identical for all files we materialize and a checkout can be skipped.
-// Any failure to resolve commits/trees returns false so the caller falls back
-// to the full reset+checkout path.
+// sparseSubtreesUnchanged returns true when every directory in registrySparseCheckoutDirs has the same tree hash in the local HEAD commit and the supplied hash from remote.
+// Any failure to resolve commits/trees returns false so the downstream can fall back to the full reset+checkout path.
 func (r *Registry) sparseSubtreesUnchanged(repo *git.Repository, newCommitHash plumbing.Hash) bool {
 	head, err := repo.Head()
 	if err != nil {
@@ -263,7 +257,7 @@ func (r *Registry) sparseSubtreesUnchanged(repo *git.Repository, newCommitHash p
 		if oldErr != nil && newErr != nil {
 			continue
 		}
-		// Exactly one missing: definitely changed.
+		// Exactly one missing: one has definitely changed.
 		if oldErr != nil || newErr != nil {
 			return false
 		}
