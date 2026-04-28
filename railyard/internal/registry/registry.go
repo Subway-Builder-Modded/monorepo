@@ -47,6 +47,17 @@ type Registry struct {
 
 	refreshMu       sync.Mutex
 	progressEnabled bool
+
+	// gitHubAPIBaseURL overrides types.GitHubAPIBaseURL when non-empty. Reserved for tests that redirect HTTP traffic to a localhost server; production leaves this empty so all callers fall through to the const.
+	gitHubAPIBaseURL string
+}
+
+// githubAPIBase returns the GitHub API base URL. Tests may set gitHubAPIBaseURL on the Registry to override the production default.
+func (r *Registry) githubAPIBase() string {
+	if r.gitHubAPIBaseURL != "" {
+		return r.gitHubAPIBaseURL
+	}
+	return types.GitHubAPIBaseURL
 }
 
 // NewRegistry creates a new Registry instance with the platform-appropriate

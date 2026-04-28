@@ -13,6 +13,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 // registrySparseCheckoutDirs lists the only directories materialized on disk from the registry clone. Everything else (analytics, schemas, scripts, history etc.) stays compressed inside the git object store and is never written to disk.
@@ -142,7 +143,7 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 	return r.materializeSparseCheckout(wt, plumbing.ZeroHash, progressPhaseFetch)
 }
 
-// prepareOriginMainCheckout resolves the hash of refs/remotes/origin/main and acquires the worktree. Both are needed before any sparse checkout / reset operation; bundling them dedupes the wrap-and-return boilerplate at the call sites.
+// prepareOriginMainCheckout resolves the hash of the remote and acquires the worktree.
 func prepareOriginMainCheckout(repo *git.Repository) (plumbing.Hash, *git.Worktree, error) {
 	ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
 	if err != nil {
@@ -186,7 +187,7 @@ func (r *Registry) isUpToDateWithRemote() (bool, error) {
 
 	apiURL := fmt.Sprintf(
 		"%s/repos/%s/commits/%s",
-		strings.TrimRight(registryGitHubAPIBaseURL, "/"),
+		strings.TrimRight(r.githubAPIBase(), "/"),
 		registryRepoPath,
 		registryRefName,
 	)
@@ -227,26 +228,22 @@ func (r *Registry) sparseSubtreesUnchanged(repo *git.Repository, newCommitHash p
 	if err != nil {
 		return false
 	}
-	oldCommit, err := repo.CommitObject(head.Hash())
-	if err != nil {
-		return false
-	}
-	newCommit, err := repo.CommitObject(newCommitHash)
-	if err != nil {
-		return false
-	}
-	oldTree, err := oldCommit.Tree()
-	if err != nil {
-		return false
-	}
-	newTree, err := newCommit.Tree()
-	if err != nil {
-		return false
+
+	var trees [2]*object.Tree
+	for i, hash := range [2]plumbing.Hash{head.Hash(), newCommitHash} {
+		commit, err := repo.CommitObject(hash)
+		if err != nil {
+			return false
+		}
+		trees[i], err = commit.Tree()
+		if err != nil {
+			return false
+		}
 	}
 
 	for _, dir := range registrySparseCheckoutDirs {
-		oldEntry, oldErr := oldTree.FindEntry(dir)
-		newEntry, newErr := newTree.FindEntry(dir)
+		oldEntry, oldErr := trees[0].FindEntry(dir)
+		newEntry, newErr := trees[1].FindEntry(dir)
 		// Both directories absent: vacuously equal.
 		if oldErr != nil && newErr != nil {
 			continue
