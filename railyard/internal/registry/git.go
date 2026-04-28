@@ -79,28 +79,11 @@ func (r *Registry) forceClone() error {
 				}
 
 				// NoCheckout leaves refs/heads/main uncreated, so resolve the remote ref directly rather than relying on HEAD.
-				ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+				hash, wt, err := prepareOriginMainCheckout(repo)
 				if err != nil {
-					return fmt.Errorf("failed to resolve origin/main after clone: %w", err)
+					return err
 				}
-
-				wt, err := repo.Worktree()
-				if err != nil {
-					return fmt.Errorf("failed to get worktree: %w", err)
-				}
-
-				r.emitProgress(RegistryProgress{
-					Stage:   progressStageCheckout,
-					Phase:   progressPhaseClone,
-					Percent: -1,
-					Message: "Materializing files",
-				})
-
-				// NOTE: If we ever need new directories from the registry, we must update the registrySparseCheckoutDirs list above and ensure this logic is applied in fetchAndReset as well.
-				return wt.Checkout(&git.CheckoutOptions{
-					Hash:                      ref.Hash(),
-					SparseCheckoutDirectories: registrySparseCheckoutDirs,
-				})
+				return r.materializeSparseCheckout(wt, hash, progressPhaseClone)
 			},
 		},
 	}); err != nil {
@@ -130,22 +113,17 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 		return fmt.Errorf("failed to fetch registry: %w", err)
 	}
 
-	ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+	hash, wt, err := prepareOriginMainCheckout(repo)
 	if err != nil {
-		return fmt.Errorf("failed to resolve origin/main: %w", err)
-	}
-
-	wt, err := repo.Worktree()
-	if err != nil {
-		return fmt.Errorf("failed to get worktree: %w", err)
+		return err
 	}
 
 	// Early exit: if the new commit's sparse subtree hashes match the local HEAD's hashes, every file we materialize is already correct on disk.
-	// This is particularly useful given that the majority of remote commits are related to hourly analytics jobs that modify no content files. 
+	// This is particularly useful given that the majority of remote commits are related to hourly analytics jobs that modify no content files.
 	// In this case we can advance HEAD without touching the working tree.
-	if r.sparseSubtreesUnchanged(repo, ref.Hash()) {
+	if r.sparseSubtreesUnchanged(repo, hash) {
 		if err := wt.Reset(&git.ResetOptions{
-			Commit: ref.Hash(),
+			Commit: hash,
 			Mode:   git.SoftReset,
 		}); err != nil {
 			return fmt.Errorf("failed to advance HEAD after tree-equal fetch: %w", err)
@@ -153,31 +131,47 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 		return nil
 	}
 
-	r.emitProgress(RegistryProgress{
-		Stage:   progressStageCheckout,
-		Phase:   progressPhaseFetch,
-		Percent: -1,
-		Message: "Materializing files",
-	})
-
 	if err := wt.Reset(&git.ResetOptions{
-		Commit: ref.Hash(),
+		Commit: hash,
 		Mode:   git.HardReset,
 	}); err != nil {
 		return fmt.Errorf("failed to reset to origin/main: %w", err)
 	}
 
 	// Re-apply sparse checkout after reset — go-git's hard reset may reset the sparse checkout; this trims it back to registrySparseCheckoutDirs.
-	if err := wt.Checkout(&git.CheckoutOptions{
-		SparseCheckoutDirectories: registrySparseCheckoutDirs,
-	}); err != nil {
-		return fmt.Errorf("failed to apply sparse checkout after reset: %w", err)
-	}
-
-	return nil
+	return r.materializeSparseCheckout(wt, plumbing.ZeroHash, progressPhaseFetch)
 }
 
-// isUpToDateWithRemote queries the GitHub API for the registry's latest commit on the tracked branch (main) and compares it to the local HEAD. 
+// prepareOriginMainCheckout resolves the hash of refs/remotes/origin/main and acquires the worktree. Both are needed before any sparse checkout / reset operation; bundling them dedupes the wrap-and-return boilerplate at the call sites.
+func prepareOriginMainCheckout(repo *git.Repository) (plumbing.Hash, *git.Worktree, error) {
+	ref, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", "main"), true)
+	if err != nil {
+		return plumbing.ZeroHash, nil, fmt.Errorf("failed to resolve origin/main: %w", err)
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		return plumbing.ZeroHash, nil, fmt.Errorf("failed to get worktree: %w", err)
+	}
+	return ref.Hash(), wt, nil
+}
+
+// materializeSparseCheckout emits a "Materializing files" progress event for the given phase and applies registrySparseCheckoutDirs to the worktree. Pass plumbing.ZeroHash to materialize the current HEAD (post-reset case in fetchAndReset); pass a specific hash to check it out directly (post-clone NoCheckout case in forceClone).
+// NOTE: If we ever need new directories from the registry, update the registrySparseCheckoutDirs list above — both call sites flow through this single helper.
+func (r *Registry) materializeSparseCheckout(wt *git.Worktree, hash plumbing.Hash, phase string) error {
+	r.emitProgress(RegistryProgress{
+		Stage:   progressStageCheckout,
+		Phase:   phase,
+		Percent: -1,
+		Message: "Materializing files",
+	})
+	opts := &git.CheckoutOptions{SparseCheckoutDirectories: registrySparseCheckoutDirs}
+	if !hash.IsZero() {
+		opts.Hash = hash
+	}
+	return wt.Checkout(opts)
+}
+
+// isUpToDateWithRemote queries the GitHub API for the registry's latest commit on the tracked branch (main) and compares it to the local HEAD.
 func (r *Registry) isUpToDateWithRemote() (bool, error) {
 	repo, err := git.PlainOpen(r.repoPath)
 	// If an error occurs, return error and allow downstream to fall back to full fetch

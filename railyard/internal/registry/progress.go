@@ -97,10 +97,8 @@ func (pw *progressWriter) Write(p []byte) (int, error) {
 	}
 
 	if start > 0 {
-		// Drop processed prefix; keep remainder for next Write.
-		remainder := append([]byte(nil), data[start:]...)
-		pw.buf.Reset()
-		pw.buf.Write(remainder)
+		// Drop the processed prefix in place; the trailing partial segment is preserved.
+		pw.buf.Next(start)
 	}
 
 	return len(p), nil
