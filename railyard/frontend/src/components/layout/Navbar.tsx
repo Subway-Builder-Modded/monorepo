@@ -100,6 +100,7 @@ export function Navbar() {
   const refresh = useRegistryStore((s) => s.refresh);
   const loading = useRegistryStore((s) => s.loading);
   const refreshing = useRegistryStore((s) => s.refreshing);
+  const startupRefreshing = useRegistryStore((s) => s.startupRefreshing);
   const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
   const running = useGameStore((s) => s.running);
   const starting = useGameStore((s) => s.starting);
@@ -282,12 +283,13 @@ export function Navbar() {
                 variant="ghost"
                 size="sm"
                 onClick={refresh}
-                disabled={loading || refreshing}
+                disabled={loading || refreshing || startupRefreshing}
               >
                 <RefreshCw
                   className={cn(
                     'mr-1 h-[1.125rem] w-[1.125rem]',
-                    (loading || refreshing) && 'animate-spin',
+                    (loading || refreshing || startupRefreshing) &&
+                      'animate-spin',
                   )}
                 />
                 Refresh

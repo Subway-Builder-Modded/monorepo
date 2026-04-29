@@ -40,6 +40,24 @@ type Registry struct {
 	integrityMaps  types.RegistryIntegrityReport
 	integrityMods  types.RegistryIntegrityReport
 	context        context.Context
+
+	// OnProgress is invoked while a Refresh() operation is in flight to
+	// stream clone/fetch progress to the frontend. Set by app.startup().
+	OnProgress func(RegistryProgress)
+
+	refreshMu       sync.Mutex
+	progressEnabled bool
+
+	// gitHubAPIBaseURL overrides types.GitHubAPIBaseURL when non-empty. Reserved for tests that redirect HTTP traffic to a localhost server; production leaves this empty so all callers fall through to the const.
+	gitHubAPIBaseURL string
+}
+
+// githubAPIBase returns the GitHub API base URL. Tests may set gitHubAPIBaseURL on the Registry to override the production default.
+func (r *Registry) githubAPIBase() string {
+	if r.gitHubAPIBaseURL != "" {
+		return r.gitHubAPIBaseURL
+	}
+	return types.GitHubAPIBaseURL
 }
 
 // NewRegistry creates a new Registry instance with the platform-appropriate
@@ -79,15 +97,73 @@ func (r *Registry) Initialize() error {
 
 // Refresh forces a pull of the latest registry changes.
 func (r *Registry) Refresh() error {
+	r.refreshMu.Lock()
+	defer r.refreshMu.Unlock()
+
+	r.progressEnabled = true
+	defer func() { r.progressEnabled = false }()
+
+	r.emitProgress(RegistryProgress{
+		Stage:   progressStageStarting,
+		Phase:   progressPhaseFetch,
+		Percent: -1,
+	})
+
 	r.clearVersionsCache() // Clear versions cache on refresh to ensure we fetch fresh version
+
+	// Fast exit path: Skip the full fetch when the local repo already matches latest commit SHA.
+	// Failures here intentionally fall through to the normal, slow path
+	if upToDate, err := r.isUpToDateWithRemote(); err != nil {
+		r.logger.Info("Registry precheck failed; falling back to full fetch", "error", err)
+	} else if upToDate {
+		r.logger.Info("Registry precheck matched local HEAD; skipping fetch")
+		r.emitProgress(RegistryProgress{Stage: progressStageComplete, Percent: 100})
+		return nil
+	}
+
 	if err := r.refreshRepo(); err != nil {
+		r.emitProgress(RegistryProgress{Stage: progressStageError, Error: err.Error()})
 		return err
 	}
 
 	if err := r.fetchFromDisk(); err != nil {
-		return fmt.Errorf("failed to load registry data from disk after refresh: %w", err)
+		wrapped := fmt.Errorf("failed to load registry data from disk after refresh: %w", err)
+		r.emitProgress(RegistryProgress{Stage: progressStageError, Error: wrapped.Error()})
+		return wrapped
 	}
+	r.emitProgress(RegistryProgress{Stage: progressStageComplete, Percent: 100})
 	return nil
+}
+
+// emitProgress forwards a progress payload to OnProgress when set and called from inside Refresh().
+// Boot-time Initialize() does not enable progress, keeping that phase silent.
+func (r *Registry) emitProgress(p RegistryProgress) {
+	// Disk logging via logProgress runs unconditionally so a broken downstream doesn't leave us without an auditable debug log.
+	r.logProgress(p)
+	if !r.progressEnabled || r.OnProgress == nil {
+		return
+	}
+	r.OnProgress(p)
+}
+
+// logProgress writes a disk-log entry for terminal stage events: stage starts (starting/checkout), terminal outcomes (complete/error), and the 100% tick of network stages (counting/compressing/receiving/resolving). Throttled mid-stage ticks are dropped so the log isn't flooded by the high-frequency "Receiving objects" updates.
+func (r *Registry) logProgress(p RegistryProgress) {
+	switch p.Stage {
+	case progressStageError:
+		r.logger.Warn("Registry refresh stage failed", "phase", p.Phase, "stage", p.Stage, "error", p.Error)
+	case progressStageStarting, progressStageCheckout, progressStageDownloading, progressStageComplete:
+		r.logger.Info("Registry refresh stage", "phase", p.Phase, "stage", p.Stage)
+	default:
+		if p.Percent >= 100 {
+			attrs := []any{"phase", p.Phase, "stage", p.Stage, "current", p.Current, "total", p.Total}
+			// Transferred is git's human-readable size string ("1.2 MiB"); only Receiving lines populate it.
+			// This is surfaced in the log so we can confirm steady-state shallow fetches stay small.
+			if p.Transferred != "" {
+				attrs = append(attrs, "transferred", p.Transferred)
+			}
+			r.logger.Info("Registry refresh stage complete", attrs...)
+		}
+	}
 }
 
 // RefreshResponse refreshes the registry and reports status metadata.

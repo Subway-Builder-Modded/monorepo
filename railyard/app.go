@@ -134,6 +134,9 @@ func (a *App) startup(ctx context.Context) {
 	a.Downloader.OnRegistryUpdate = func() {
 		a.emitEvent("registry:update")
 	}
+	a.Registry.OnProgress = func(p registry.RegistryProgress) {
+		a.emitEvent("registry:refresh-progress", p)
+	}
 	if _, err := a.Config.ResolveConfig(); err != nil {
 		log.Printf("Warning: failed to resolve config on startup: %v", err)
 	}

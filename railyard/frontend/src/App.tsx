@@ -29,9 +29,14 @@ import {
 } from '../wailsjs/go/main/App';
 import { EventsOn } from '../wailsjs/runtime/runtime';
 import { ExtractNotification } from './components/layout/ExtractNotification';
+import { RegistryRefreshNotification } from './components/layout/RegistryRefreshNotification';
 
 interface DownloadCancelledEvent {
   itemId?: string;
+}
+
+interface RegistryRefreshProgressEvent {
+  stage?: string;
 }
 
 function App() {
@@ -55,6 +60,7 @@ function App() {
 
   const registryInitialized = useRegistryStore((s) => s.initialized);
   const installedInitialized = useInstalledStore((s) => s.initialized);
+  const setStartupRefreshing = useRegistryStore((s) => s.setStartupRefreshing);
 
   const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const appReadyForNavigation =
@@ -86,6 +92,18 @@ function App() {
         handler: (payload: DownloadCancelledEvent) => {
           if (payload?.itemId) {
             acknowledgeCancel(payload.itemId);
+          }
+        },
+      },
+      {
+        // Gate the navbar refresh button to prevent concurrent clone requests, preventing interaction if the registry is already being refreshed as part of startup.
+        // We set set refreshing state `true` only if we see a non terminal git clone stage increment (to prevent hanging state when our listener attaches after completion of the refresh)
+        eventName: 'registry:refresh-progress',
+        handler: (payload: RegistryRefreshProgressEvent) => {
+          if (payload?.stage === 'complete' || payload?.stage === 'error') {
+            setStartupRefreshing(false);
+          } else if (payload?.stage) {
+            setStartupRefreshing(true);
           }
         },
       },
@@ -224,6 +242,7 @@ function App() {
         </Layout>
         <DownloadNotification />
         <ExtractNotification />
+        <RegistryRefreshNotification />
         <RequestErrorDialog />
         <Toaster />
       </TooltipProvider>

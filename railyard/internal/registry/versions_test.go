@@ -37,10 +37,6 @@ func TestGetGitHubVersionsAuthFallbackAndCache(t *testing.T) {
 	require.Equal(t, types.ResponseSuccess, updated.Status)
 	reg := NewRegistry(testutil.TestLogSink{}, cfg)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
-	originalBaseURL := registryGitHubAPIBaseURL
-	t.Cleanup(func() {
-		registryGitHubAPIBaseURL = originalBaseURL
-	})
 
 	var requestCount int32
 	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +56,7 @@ func TestGetGitHubVersionsAuthFallbackAndCache(t *testing.T) {
 	}))
 	defer server.Close()
 
-	registryGitHubAPIBaseURL = server.URL
+	reg.gitHubAPIBaseURL = server.URL
 	versions, err := reg.GetVersions("github", "owner/repo")
 	require.NoError(t, err)
 	require.Len(t, versions, 1)
