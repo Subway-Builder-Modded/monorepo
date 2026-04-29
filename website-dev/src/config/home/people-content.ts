@@ -1,7 +1,7 @@
 import type { PeopleDestination } from "./types";
 
 export const PEOPLE_SECTION = {
-  title: "Built by the community, for the community",
+  title: "Community-Driven",
   description:
     "Run completely by the community, for the community. Join us in building the future of modding for Subway Builder.",
 } as const;

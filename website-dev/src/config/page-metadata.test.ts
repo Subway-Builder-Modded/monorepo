@@ -21,6 +21,17 @@ describe("resolvePageMetadata", () => {
     expect(metadata.imagePath).toBe("/images/railyard/logo.png");
   });
 
+  it("resolves /railyard homepage metadata from the site navigation config", () => {
+    const metadata = resolvePageMetadata("/railyard");
+
+    expect(metadata.title).toBe("Railyard");
+    expect(metadata.pageTitle).toBe("Railyard");
+    expect(metadata.description).toBe(
+      "Discover the all-in-one manager for Subway Builder community-made content.",
+    );
+    expect(metadata.suite.id).toBe("railyard");
+  });
+
   it("falls back to suite home metadata for unmatched suite routes", () => {
     const metadata = resolvePageMetadata("/registry/unknown/route");
 

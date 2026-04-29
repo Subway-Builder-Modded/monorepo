@@ -316,7 +316,7 @@ export function TemplateGalleryModal({
                         href="/registry/docs/markdown-playground"
                         target="_blank"
                         rel="noreferrer"
-                        aria-label="Learn more about Browse Templates"
+                       
                         className="inline-flex items-center text-muted-foreground transition-colors hover:text-[var(--suite-accent-light)]"
                       >
                         <BookText className="size-4" aria-hidden />
@@ -345,7 +345,7 @@ export function TemplateGalleryModal({
               type="button"
               className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/65 bg-background text-muted-foreground transition-colors hover:bg-muted/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--suite-accent-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onClick={() => onOpenChange(false)}
-              aria-label="Close template gallery"
+             
             >
               <X className="size-4" aria-hidden="true" />
             </button>
@@ -406,7 +406,7 @@ export function TemplateGalleryModal({
                               <TooltipTrigger asChild>
                                 <span
                                   className="inline-flex items-center gap-1.5"
-                                  aria-label="Verified author"
+                                 
                                 >
                                   <span>{selectedTemplate.author}</span>
                                   <VerifiedBadge />
@@ -479,7 +479,7 @@ export function TemplateGalleryModal({
                           "bg-foreground/10 hover:bg-foreground/20 text-foreground/60 hover:text-foreground/90",
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         )}
-                        aria-label="Use Template"
+                       
                         data-testid="template-preview-use"
                       >
                         <Sparkles className="size-[clamp(0.9rem,1.7vw,1.15rem)]" aria-hidden />

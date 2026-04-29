@@ -125,7 +125,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center gap-2 rounded-lg border border-border/70 bg-muted/35 px-3 py-2 font-mono text-xs text-foreground/85 no-underline transition-colors hover:bg-muted/55"
-                  aria-label={`Full Changelog ${compareLabel}`}
+                 
                 >
                   <GitCompareArrows
                     className="size-3.5 shrink-0 text-muted-foreground"

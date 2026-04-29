@@ -15,6 +15,7 @@ import {
   BookText,
   Megaphone,
   TrendingUp,
+  Warehouse,
 } from "lucide-react";
 import { GithubIcon, DiscordIcon, MarkdownIcon } from "@subway-builder-modded/icons";
 
@@ -24,7 +25,8 @@ export type SiteSuiteId =
   | "registry"
   | "template-mod"
   | "website"
-  | "foundry";
+  | "foundry"
+  | "depot";
 
 export type SiteColorSchemeId =
   | "default"
@@ -32,7 +34,8 @@ export type SiteColorSchemeId =
   | "registry"
   | "template-mod"
   | "website"
-  | "foundry";
+  | "foundry"
+  | "depot";
 
 export type SiteRouteMatchRule = {
   kind: "exact" | "prefix";
@@ -169,6 +172,21 @@ export const SITE_SUITES: SiteSuite[] = [
       textInvertedDark: "#232323",
       mutedLight: "rgba(214,69,69,0.18)",
       mutedDark: "rgba(255,107,107,0.13)",
+    },
+  },
+  {
+    id: "depot",
+    title: "Depot",
+    href: "/depot/updates",
+    icon: Warehouse,
+    colorSchemeId: "depot",
+    accent: {
+      light: "#b68918",
+      dark: "#cfa22e",
+      textInvertedLight: "#f2f2f2",
+      textInvertedDark: "#232323",
+      mutedLight: "rgba(182,137,24,0.18)",
+      mutedDark: "rgba(207,162,46,0.13)",
     },
   },
 ];
@@ -356,6 +374,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/foundry" }],
   },
+  {
+    id: "depot-updates",
+    suiteId: "depot",
+    title: "Updates",
+    description: "View the changelogs and release notes for the Depot Python package.",
+    href: "/depot/updates",
+    icon: Megaphone,
+    activeMatchRules: [{ kind: "prefix", path: "/depot/updates" }],
+  },
 ];
 
 export const SITE_COMMUNITY_LINKS: SiteCommunityLink[] = [
@@ -380,6 +407,7 @@ const SUITE_BY_ID: Record<SiteSuiteId, SiteSuite> = {
   "template-mod": SITE_SUITES[3],
   website: SITE_SUITES[4],
   foundry: SITE_SUITES[5],
+  depot: SITE_SUITES[6],
 };
 
 function normalizePathname(pathname: string): string {

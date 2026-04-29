@@ -8,6 +8,7 @@
 @import "./schemes/registry.css";
 @import "./schemes/website.css";
 @import "./schemes/foundry.css";
+@import "./schemes/depot.css";
 
 @plugin "@tailwindcss/typography";
 

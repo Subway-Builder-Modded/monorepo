@@ -1,7 +1,7 @@
 import type { AnalyticsLink, AnalyticsPreviewSeries } from "./types";
 
 export const ANALYTICS_SECTION = {
-  title: "In-depth analytics and insights",
+  title: "Analytics & Insights",
   description: "Download counts, recent trends, and community-content analytics for every project.",
   body: "Visualize detailed analytics for every project in the ecosystem, from Registry map download trends to per-page website traffic.",
 } as const;

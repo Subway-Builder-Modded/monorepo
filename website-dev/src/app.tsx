@@ -11,6 +11,7 @@ import {
   matchMarkdownPlaygroundRoute,
 } from "@/features/markdown-playground";
 import { HomePage } from "@/features/home";
+import { RailyardRoute, matchRailyardRoute } from "@/features/railyard";
 
 function RouteSwitch() {
   const location = useLocation();
@@ -47,6 +48,11 @@ function RouteSwitch() {
   const markdownPlaygroundMatch = matchMarkdownPlaygroundRoute(location.pathname);
   if (markdownPlaygroundMatch.kind !== "none") {
     return <MarkdownPlaygroundRoute />;
+  }
+
+  const railyardMatch = matchRailyardRoute(location.pathname);
+  if (railyardMatch.kind !== "none") {
+    return <RailyardRoute />;
   }
 
   return <HomePage />;

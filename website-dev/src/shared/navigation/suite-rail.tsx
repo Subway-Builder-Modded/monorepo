@@ -10,7 +10,7 @@ type SuiteRailProps = {
 
 export function SuiteRail({ items, selectedId, onSelect }: SuiteRailProps) {
   return (
-    <nav aria-label="Suite categories" className="flex flex-col gap-1 py-1">
+    <nav className="flex flex-col gap-1 py-1">
       {items.map((item) => {
         const isSelected = item.id === selectedId;
         const ItemIcon = item.icon;

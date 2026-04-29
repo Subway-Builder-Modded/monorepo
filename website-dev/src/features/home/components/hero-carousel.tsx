@@ -2,6 +2,7 @@ import { type CSSProperties, useCallback, useEffect, useRef, useState } from "re
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
 import { GithubIcon, DiscordIcon } from "@subway-builder-modded/icons";
+import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
 import {
   HERO_SLIDES,
   HERO_AUTO_ROTATE_MS,
@@ -100,7 +101,7 @@ export function HeroCarousel() {
           setPaused(false);
       }}
       aria-roledescription="carousel"
-      aria-label="Hero showcase"
+     
     >
       <motion.div
         className="absolute inset-0"
@@ -115,7 +116,7 @@ export function HeroCarousel() {
             exit={{ opacity: 0 }}
             transition={{ opacity: { duration: 1.2, ease: "easeInOut" } }}
             aria-roledescription="slide"
-            aria-label={slide.alt}
+           
           >
             <img
               src={slide.imageLight}
@@ -229,7 +230,7 @@ export function HeroCarousel() {
         <div
           className="absolute bottom-5 right-5 z-20 flex items-center gap-2 sm:bottom-7 sm:right-7"
           role="tablist"
-          aria-label="Hero slides"
+         
         >
           {slides.map((s, i) => (
             <button
@@ -237,7 +238,7 @@ export function HeroCarousel() {
               type="button"
               role="tab"
               aria-selected={i === idx}
-              aria-label={`Slide ${i + 1}`}
+             
               onClick={() => go(i)}
               className={cn(
                 "relative size-3 rounded-full border-2 transition-all duration-300",
@@ -250,14 +251,7 @@ export function HeroCarousel() {
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 z-30 flex h-1">
-        {HERO_SUITE_BARS.map((bar, i) => (
-          <div key={i} className="flex-1">
-            <div className="hidden size-full dark:block" style={{ backgroundColor: bar.dark }} />
-            <div className="size-full dark:hidden" style={{ backgroundColor: bar.light }} />
-          </div>
-        ))}
-      </div>
+      <HeroAccentBar segments={HERO_SUITE_BARS} className="z-30" />
     </section>
   );
 }

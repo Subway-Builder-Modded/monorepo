@@ -1,7 +1,7 @@
 import type { SiteSuiteId } from "@/config/site-navigation";
 import type { HeadingActionConfig, HeadingActions } from "@/config/shared/heading-actions";
 
-export type UpdatesSuiteId = Extract<SiteSuiteId, "railyard" | "template-mod" | "website">;
+export type UpdatesSuiteId = Extract<SiteSuiteId, "railyard" | "template-mod" | "website" | "depot">;
 
 export type UpdatesTag = "alpha" | "beta" | "release";
 

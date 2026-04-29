@@ -1,7 +1,7 @@
 import type { SuiteStep } from "./types";
 
 export const SUITE_SCROLLYTELLING_SECTION = {
-  title: "The Subway Builder Modded ecosystem",
+  title: "The Ecosystem",
   description:
     "The complete suite of tools, resources, and projects for modding in Subway Builder, built and maintained by the community.",
 } as const;

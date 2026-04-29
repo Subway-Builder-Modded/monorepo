@@ -110,7 +110,7 @@ function SidebarItem({
                   ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
                   : "text-muted-foreground group-hover/row:text-[var(--suite-accent-light)] dark:group-hover/row:text-[var(--suite-accent-dark)]",
               )}
-              aria-label={isCollapsed ? "Expand section" : "Collapse section"}
+             
               aria-expanded={!isCollapsed}
             >
               <ChevronRight

@@ -110,7 +110,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       {!isClosed ? (
         <motion.button
           type="button"
-          aria-label="Close navigation"
+         
           className="fixed inset-0 z-40 bg-[var(--overlay-scrim-soft)]"
           initial={{ opacity: 0 }}
           animate={{ opacity: showPanelSurface ? 1 : 0.1 }}
@@ -119,7 +119,7 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
         />
       ) : null}
 
-      <nav aria-label="Site navigation" className="fixed inset-x-0 top-4 z-50">
+      <nav className="fixed inset-x-0 top-4 z-50">
         <div className={cn(SITE_SHELL_CLASS, "relative")}>
           {/* Hover-region wrapper: negative margins widen the hit area on all
               sides without affecting the inner card's layout (compensating px

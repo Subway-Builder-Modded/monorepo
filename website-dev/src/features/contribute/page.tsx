@@ -123,7 +123,7 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
           tier.featured ? "pb-9 pt-5 sm:pb-10" : "pb-8 pt-5",
         )}
       >
-        <ul className="space-y-3.5" aria-label={`${tierName} tier benefits`}>
+        <ul className="space-y-3.5">
           {tier.benefits.map((benefit) => (
             <li key={benefit} className="flex items-start gap-2.5">
               <Check
@@ -198,7 +198,7 @@ export function ContributeRoute() {
                   href={CONTRIBUTE_CTA.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Support on Ko-fi — opens Ko-fi memberships page"
+                 
                   data-testid="contribute-cta-link"
                 >
                   <KofiIcon className="size-6" />

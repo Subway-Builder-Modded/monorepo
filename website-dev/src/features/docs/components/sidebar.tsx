@@ -144,7 +144,7 @@ export function DocsSidebar({
               "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,transparent)] hover:text-[var(--suite-accent-light)]",
               "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_40%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
             )}
-            aria-label="Expand sidebar"
+           
           >
             <PanelLeftOpen className="size-4" />
           </button>
@@ -180,7 +180,7 @@ export function DocsSidebar({
         <SideRailDivider />
 
         <SideRailBody>
-          <nav aria-label="Documentation navigation">
+          <nav>
             <DocsSidebarTree
               nodes={visibleNodes}
               currentSlug={currentSlug}
@@ -195,7 +195,7 @@ export function DocsSidebar({
         <div className="px-2.5 py-2">
           <SideRailUtilityButton
             onClick={() => setCollapsedState(true)}
-            aria-label="Collapse sidebar"
+           
           >
             <PanelLeftClose className="size-3.5" aria-hidden="true" />
             <span>Collapse Sidebar</span>
@@ -234,7 +234,7 @@ export function MobileDocsSidebar({
         tone="outline"
         onClick={() => setOpen(true)}
         className="h-9 gap-2 px-3 text-xs"
-        aria-label="Open navigation menu"
+       
       >
         <Menu className="size-3.5" />
         Documentation Menu
@@ -266,7 +266,7 @@ export function MobileDocsSidebar({
                     tone="outline"
                     onClick={() => setOpen(false)}
                     className="h-8 w-8 rounded-lg p-0"
-                    aria-label="Close navigation menu"
+                   
                   >
                     <X className="size-4" />
                   </SuiteAccentButton>
@@ -284,7 +284,7 @@ export function MobileDocsSidebar({
 
               <nav
                 className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3 scrollbar-thin"
-                aria-label="Documentation navigation"
+               
               >
                 <DocsSidebarTree
                   nodes={visibleNodes}

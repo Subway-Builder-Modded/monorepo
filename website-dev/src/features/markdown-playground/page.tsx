@@ -279,7 +279,7 @@ export function MarkdownPlaygroundRoute() {
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => applyAction(action.id)}
-                          aria-label={action.label}
+                         
                           className="border border-transparent hover:border-border/80 hover:bg-muted/60"
                           data-testid={`toolbar-action-${action.id}`}
                         >
@@ -307,13 +307,13 @@ export function MarkdownPlaygroundRoute() {
               >
                 <ToggleGroupItem
                   value="markdown"
-                  aria-label="Markdown mode"
+                 
                   data-testid="mode-markdown"
                 >
                   <PenLine className="size-3.5" aria-hidden="true" />
                   Edit
                 </ToggleGroupItem>
-                <ToggleGroupItem value="rich" aria-label="Rich Text mode" data-testid="mode-rich">
+                <ToggleGroupItem value="rich" data-testid="mode-rich">
                   <Eye className="size-3.5" aria-hidden="true" />
                   Preview
                 </ToggleGroupItem>
@@ -327,7 +327,7 @@ export function MarkdownPlaygroundRoute() {
                       size="icon-sm"
                       variant="ghost"
                       onClick={copyMarkdown}
-                      aria-label="Copy Markdown"
+                     
                       className="border border-transparent hover:border-border/80 hover:bg-muted/60"
                       data-testid="copy-markdown"
                     >
@@ -348,7 +348,7 @@ export function MarkdownPlaygroundRoute() {
                       size="icon-sm"
                       variant="ghost"
                       onClick={copyHtml}
-                      aria-label="Copy HTML"
+                     
                       className="border border-transparent hover:border-border/80 hover:bg-muted/60"
                       data-testid="copy-html"
                     >
@@ -391,7 +391,7 @@ export function MarkdownPlaygroundRoute() {
                 )}
                 placeholder="Write Markdown here..."
                 data-testid="playground-markdown-input"
-                aria-label="Markdown editor"
+               
               />
             ) : (
               <div
@@ -399,7 +399,7 @@ export function MarkdownPlaygroundRoute() {
                 className="prose prose-invert min-h-[56vh] max-w-none px-4 py-4"
                 dangerouslySetInnerHTML={{ __html: renderedHtml }}
                 data-testid="playground-rich-input"
-                aria-label="Rich text preview"
+               
               />
             )}
           </div>

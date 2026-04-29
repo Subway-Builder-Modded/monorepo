@@ -2,6 +2,7 @@ import type { UpdatesConfig, UpdatesSuiteConfig, UpdatesSuiteId } from "./types"
 import { railyardUpdatesConfig } from "../railyard/updates";
 import { templateModUpdatesConfig } from "../template-mod/updates";
 import { websiteUpdatesConfig } from "../website/updates";
+import { depotUpdatesConfig } from "../depot/updates";
 
 export type {
   UpdatesConfig,
@@ -36,6 +37,7 @@ export const UPDATES_CONFIG: UpdatesConfig = {
     railyard: railyardUpdatesConfig,
     "template-mod": templateModUpdatesConfig,
     website: websiteUpdatesConfig,
+    depot: depotUpdatesConfig,
   },
 };
 

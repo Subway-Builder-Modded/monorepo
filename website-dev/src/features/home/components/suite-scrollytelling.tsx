@@ -26,7 +26,7 @@ function StationSwitcher({
   const { resolvedTheme } = useThemeMode();
 
   return (
-    <nav className="relative flex flex-col items-center" aria-label="Suite navigation">
+    <nav className="relative flex flex-col items-center">
       {steps.map((step, i) => {
         const isActive = i === activeIdx;
         const accent = getHomepageSuiteAccent(step.accentSuiteId);
@@ -59,7 +59,7 @@ function StationSwitcher({
                 boxShadow: isActive ? `0 4px 20px ${tone}25` : undefined,
               }}
               aria-current={isActive ? "step" : undefined}
-              aria-label={step.title}
+             
             >
               <StepIcon
                 className={cn("size-5 xl:size-6", isActive && "drop-shadow-sm")}

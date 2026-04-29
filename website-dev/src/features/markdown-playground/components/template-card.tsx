@@ -51,7 +51,7 @@ export function TemplateCard({ template, onSelect }: TemplateCardProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1.5" aria-label="Verified author">
+                    <span className="inline-flex items-center gap-1.5">
                       <span>{template.author}</span>
                       <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden />
                     </span>
@@ -74,13 +74,13 @@ export function TemplateCard({ template, onSelect }: TemplateCardProps) {
         "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_52%,transparent)]",
       )}
       data-testid={`template-card-${template.slug}`}
-      aria-label={`Browse ${template.title} template`}
+     
     >
       <button
         type="button"
         onClick={() => onSelect(template)}
         className="block w-full rounded-xl focus-visible:outline-none"
-        aria-label={`Browse ${template.title} template`}
+       
       >
         {null}
       </button>

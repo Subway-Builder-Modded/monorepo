@@ -103,7 +103,7 @@ export function CommunityAnalyticsView({ model }: { model: CommunityPageModel })
               href={COMMUNITY_DISCORD_LINK}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Join Discord - Subway Builder Modded"
+             
             >
               Join Discord
             </a>
@@ -169,7 +169,7 @@ export function CommunityAnalyticsView({ model }: { model: CommunityPageModel })
                 href={COMMUNITY_DISCORD_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Join Discord - Subway Builder Modded"
+               
               >
                 <DiscordIcon className="mr-1.5 size-4" aria-hidden="true" />
                 Join Discord
@@ -189,7 +189,7 @@ export function CommunityAnalyticsView({ model }: { model: CommunityPageModel })
 
         <div
           role="tablist"
-          aria-label="Community analytics period"
+         
           className="inline-flex rounded-xl border border-border/70 bg-card/70 p-1"
         >
           {ALL_PERIODS.map((option) => {

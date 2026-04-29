@@ -36,7 +36,7 @@ export function SectionHeader({
         {title}
       </h2>
       {description && (
-        <p className="mt-2.5 max-w-2xl text-[15px] leading-relaxed text-muted-foreground sm:text-base lg:mt-3 lg:text-[17px] min-[1920px]:max-w-3xl min-[1920px]:text-[18px] min-[2560px]:text-[19px]">
+        <p className="mt-2.5 text-[15px] leading-relaxed text-muted-foreground sm:text-base lg:mt-3 lg:text-[17px] min-[1920px]:text-[18px] min-[2560px]:text-[19px]">
           {description}
         </p>
       )}

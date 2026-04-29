@@ -1,5 +1,5 @@
 export const OPEN_SOURCE_SECTION = {
-  title: "Open-source and transparent",
+  title: "Open-Source & Transparent",
   description:
     "Every project is public, every decision transparent. Explore the code or contribute directly.",
   body: "All Subway Builder Modded projects are fully open-source and developed on GitHub. Check out the code, follow along with development, or contribute directly to help shape the future of modding for Subway Builder.",

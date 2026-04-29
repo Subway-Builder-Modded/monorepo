@@ -1,0 +1,22 @@
+---
+title: Depot - v1.0.0
+icon: Warehouse
+date: April 28, 2026
+tag: release
+---
+
+Welcome to Depot, the core tools for Subway Builder map creation. Depot is a Python library of utilities related to custom maps. This project is still in active development, and that's where community feedback and contributions will help.
+
+You can find the GitHub repo [here](https://github.com/Subway-Builder-Modded/depot), along with instructions on how to set it up.
+
+## Current Features {#current-features}
+
+ - Depot creates the 4 key non-demand files needed for any custom map: `buildings_index.json`, `<city>.pmtiles`, `roads.geojson`, and `runways_taxiways.geojson`.
+ - You can provide your own buildings.geojson file if you want, or you can let the program download from the Overture Maps database, which combines OSM with other data sets (like satellite-based maps). This makes a world of difference for maps with bad OSM coverage, as the Patcher's source exclusively uses OSM.
+ - You have more control over `buildings_index.json`. You can filter out all buildings below a certain size in m^2, and you can control the simplification of the building footprints, both of which reduce the final filesize. This is particularly important for big maps, as both of these tweaks are what make the LAX map even possible.
+ - Optimized pmtiles. Unnecessary data are cut out, tiny buildings can be omitted to save space, better coverage of rivers, military bases are colored like airports so they stand out more, and more nature reserves/parks are marked in green.
+ - You can easily add labels to the created pmtiles, and adjust which place labels will show up at which zoom levels.
+
+## Planned Features
+ - Bathymetric data and utilities to create and manipulate demand data
+
