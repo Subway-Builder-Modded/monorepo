@@ -8,9 +8,8 @@ import (
 	"time"
 )
 
-// RegistryProgress is the payload emitted to the frontend during a
-// registry refresh. Stage encodes lifecycle: "starting" -> N progress
-// stages -> "complete" or "error".
+// RegistryProgress is the payload emitted to the frontend during a registry refresh.
+// Stage encodes lifecycle: "starting" -> N progress stages -> "complete" or "error".
 type RegistryProgress struct {
 	Stage   string `json:"stage"`
 	Phase   string `json:"phase"`
@@ -21,6 +20,7 @@ type RegistryProgress struct {
 	Error   string `json:"error"`
 }
 
+// Enumeration of different progress stages encountered during git checkout
 const (
 	progressStageStarting    = "starting"
 	progressStageCounting    = "counting"
@@ -34,15 +34,17 @@ const (
 	progressPhaseClone = "clone"
 	progressPhaseFetch = "fetch"
 
+	// progressThrottle caps how often non-terminal updates are emitted per stage.
+	// "Receiving objects" can fire dozens of ticks per second; without this we'd flood the Wails event channel and the React toast would re-render at every tick.
 	progressThrottle = 100 * time.Millisecond
 )
 
 // progressLinePattern matches lines like:
 //
-//	"Counting objects:  50% (50/100)"
-//	"remote: Receiving objects: 100% (200/200), 1.2 MiB | 500 KiB/s, done."
+//	"{phrase}:  50% (50/100)"
+//	"remote: {phrase}: 100% (200/200), 1.2 MiB | 500 KiB/s, done."
 //
-// The "remote: " prefix is optional and ignored.
+// The pattern is intentionally unanchored so the optional "remote: " prefix and any trailing rate/byte-count suffix are tolerated. Banners and "done." trailers without a percent simply fail to match and are dropped.
 var progressLinePattern = regexp.MustCompile(`(Counting objects|Compressing objects|Receiving objects|Resolving deltas):\s*(\d+)%\s*\((\d+)/(\d+)\)`)
 
 var phaseLabelToStage = map[string]string{
@@ -59,13 +61,12 @@ var stageToMessage = map[string]string{
 	progressStageResolving:   "Resolving deltas",
 }
 
-// progressWriter is an io.Writer fed to go-git's sideband Progress option.
-// It parses git's human-readable progress lines and forwards structured
-// updates through the supplied emit callback, throttled per-stage.
+// progressWriter is an io.Writer linked to go-git's Progress option.
 type progressWriter struct {
 	phase string
 	emit  func(RegistryProgress)
 
+	// mu guards buf/lastStage/lastEmit. go-git's transport typically writes from a single goroutine, but the lock is cheap defence in case that ever changes.
 	mu        sync.Mutex
 	buf       bytes.Buffer
 	lastStage string
@@ -83,14 +84,15 @@ func (pw *progressWriter) Write(p []byte) (int, error) {
 	pw.buf.Write(p)
 	data := pw.buf.Bytes()
 
-	// Walk the buffer, slicing on either \r or \n. Each completed
-	// segment is processed; the trailing partial segment (if any) is
-	// retained in the buffer for the next Write.
+	// Walk the buffer, slicing on either \r or \n. 
+
 	start := 0
 	for i := 0; i < len(data); i++ {
+		// Splitting on \r is load-bearing: git's progress lines use carriage returns to overwrite themselves in-place ("Counting objects: 1%\rCounting objects: 2%\r..."), so a \n-only split would coalesce hundreds of intermediate updates into one giant unparseable line.
 		if data[i] != '\r' && data[i] != '\n' {
 			continue
 		}
+		// Each completed segment is processed; the trailing partial segment (if it exists) is retained in the buffer for the next Write since go-git can chunk a single line across multiple Write calls.
 		segment := data[start:i]
 		pw.processSegment(segment)
 		start = i + 1
@@ -124,6 +126,9 @@ func (pw *progressWriter) processSegment(segment []byte) {
 	stageChanged := stage != pw.lastStage
 	isFinal := percent >= 100
 	now := time.Now()
+
+	// Always let stage transitions and the 100% tick through, even inside the throttle window.
+	// The former ensures the UI shows stage handoffs, the latter prevents the bar from getting stuck mid-progress if the throttle happens to swallow the final tick.
 	if !stageChanged && !isFinal && now.Sub(pw.lastEmit) < progressThrottle {
 		return
 	}

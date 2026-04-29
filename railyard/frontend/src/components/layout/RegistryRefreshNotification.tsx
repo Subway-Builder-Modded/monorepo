@@ -29,6 +29,8 @@ const STAGE_LABELS: Record<string, string> = {
   checkout: 'Updating local files…',
 };
 
+// Stages with no numeric percent: 'starting' is tied to pre-git operations, 'checkout' is the synthetic event the backend emits around wt.Checkout() since go-git doesn't report on-disk materialization via textual output.
+// Both indeterminate stages are presented from the backend with Percent: -1
 const INDETERMINATE_STAGES = new Set(['starting', 'checkout']);
 
 export function RegistryRefreshNotification() {
@@ -71,9 +73,7 @@ export function RegistryRefreshNotification() {
         }
 
         const label = STAGE_LABELS[data.stage] ?? 'Refreshing registry…';
-        const isIndeterminate =
-          INDETERMINATE_STAGES.has(data.stage) || data.percent < 0;
-        const percent = isIndeterminate
+        const percent = INDETERMINATE_STAGES.has(data.stage)
           ? null
           : Math.max(0, Math.min(100, data.percent));
 
@@ -97,6 +97,7 @@ export function RegistryRefreshNotification() {
               )}
             </div>
           </div>,
+          // Stay visible until the next event replaces this toast — a finite duration could time out mid-refresh.
           { id: REGISTRY_TOAST_ID, duration: Infinity },
         );
       },
