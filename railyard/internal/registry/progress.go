@@ -84,7 +84,7 @@ func (pw *progressWriter) Write(p []byte) (int, error) {
 	pw.buf.Write(p)
 	data := pw.buf.Bytes()
 
-	// Walk the buffer, slicing on either \r or \n. 
+	// Walk the buffer, slicing on either \r or \n.
 
 	start := 0
 	for i := 0; i < len(data); i++ {

@@ -156,7 +156,7 @@ func prepareCheckout(repo *git.Repository) (plumbing.Hash, *git.Worktree, error)
 	return ref.Hash(), wt, nil
 }
 
-// materializeSparseCheckout applies registrySparseCheckoutDirs to the worktree. 
+// materializeSparseCheckout applies registrySparseCheckoutDirs to the worktree.
 // If there is no hash input, it will materialize the current HEAD (e,g, post-reset case in fetchAndReset)
 func (r *Registry) materializeSparseCheckout(wt *git.Worktree, hash plumbing.Hash, phase string) error {
 	// Emit progress event
