@@ -111,12 +111,12 @@ func (r *Registry) Refresh() error {
 
 	r.clearVersionsCache() // Clear versions cache on refresh to ensure we fetch fresh version
 
-	// Fast path: ask GitHub for the tip commit SHA and skip the full fetch
-	// when the local repo already matches. Failures here intentionally fall
-	// through to the slow path — the precheck is an optimization, not a gate.
+	// Fast exit path: Skip the full fetch when the local repo already matches latest commit SHA. 
+	// Failures here intentionally fall through to the normal, slow path
 	if upToDate, err := r.isUpToDateWithRemote(); err != nil {
 		r.logger.Info("Registry precheck failed; falling back to full fetch", "error", err)
 	} else if upToDate {
+		r.logger.Info("Registry precheck matched local HEAD; skipping fetch")
 		r.emitProgress(RegistryProgress{Stage: progressStageComplete, Percent: 100})
 		return nil
 	}
@@ -135,14 +135,35 @@ func (r *Registry) Refresh() error {
 	return nil
 }
 
-// emitProgress forwards a progress payload to OnProgress when set and
-// when called from inside Refresh(). Boot-time Initialize() callers do
-// not enable progress, keeping the SuiteLoader silent.
+// emitProgress forwards a progress payload to OnProgress when set and called from inside Refresh(). 
+// Boot-time Initialize() does not enable progress, keeping that phase silent.
 func (r *Registry) emitProgress(p RegistryProgress) {
+	// Disk logging via logProgress runs unconditionally so a broken downstream doesn't leave us without an auditable debug log.
+	r.logProgress(p)
 	if !r.progressEnabled || r.OnProgress == nil {
 		return
 	}
 	r.OnProgress(p)
+}
+
+// logProgress writes a disk-log entry for terminal stage events: stage starts (starting/checkout), terminal outcomes (complete/error), and the 100% tick of network stages (counting/compressing/receiving/resolving). Throttled mid-stage ticks are dropped so the log isn't flooded by the high-frequency "Receiving objects" updates.
+func (r *Registry) logProgress(p RegistryProgress) {
+	switch p.Stage {
+	case progressStageError:
+		r.logger.Warn("Registry refresh stage failed", "phase", p.Phase, "stage", p.Stage, "error", p.Error)
+	case progressStageStarting, progressStageCheckout, progressStageDownloading, progressStageComplete:
+		r.logger.Info("Registry refresh stage", "phase", p.Phase, "stage", p.Stage)
+	default:
+		if p.Percent >= 100 {
+			attrs := []any{"phase", p.Phase, "stage", p.Stage, "current", p.Current, "total", p.Total}
+			// Transferred is git's human-readable size string ("1.2 MiB"); only Receiving lines populate it. 
+			// This is surfaced in the log so we can confirm steady-state shallow fetches stay small.
+			if p.Transferred != "" {
+				attrs = append(attrs, "transferred", p.Transferred)
+			}
+			r.logger.Info("Registry refresh stage complete", attrs...)
+		}
+	}
 }
 
 // RefreshResponse refreshes the registry and reports status metadata.

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -18,6 +19,8 @@ type RegistryProgress struct {
 	Percent int    `json:"percent"`
 	Message string `json:"message"`
 	Error   string `json:"error"`
+	// Transferred is git's human-readable byte count for stages that report it (currently only "receiving", e.g. "1.2 MiB").
+	Transferred string `json:"transferred,omitempty"`
 }
 
 // Enumeration of different progress stages encountered during git checkout
@@ -25,6 +28,9 @@ const (
 	progressStageStarting    = "starting"
 	progressStageCounting    = "counting"
 	progressStageCompressing = "compressing"
+	// progressStageDownloading is a synthetic stage emitted to fill the gap between server-side "Compressing 100%" and go-git's first "Receiving" tick. 
+	// During that window the packfile is streaming but no protocol-level progress is reported, so we'd otherwise appear stuck at "Compressing 100%".
+	progressStageDownloading = "downloading"
 	progressStageReceiving   = "receiving"
 	progressStageResolving   = "resolving"
 	progressStageCheckout    = "checkout"
@@ -44,8 +50,9 @@ const (
 //	"{phrase}:  50% (50/100)"
 //	"remote: {phrase}: 100% (200/200), 1.2 MiB | 500 KiB/s, done."
 //
-// The pattern is intentionally unanchored so the optional "remote: " prefix and any trailing rate/byte-count suffix are tolerated. Banners and "done." trailers without a percent simply fail to match and are dropped.
-var progressLinePattern = regexp.MustCompile(`(Counting objects|Compressing objects|Receiving objects|Resolving deltas):\s*(\d+)%\s*\((\d+)/(\d+)\)`)
+// The pattern is intentionally unanchored so the optional "remote: " prefix and any trailing rate suffix are tolerated. Banners and "done." trailers without a percent simply fail to match and are dropped.
+// The final group optionally the size that is reported on Receiving lines (e.g. "1.2 MiB"). 
+var progressLinePattern = regexp.MustCompile(`(Counting objects|Compressing objects|Receiving objects|Resolving deltas):\s*(\d+)%\s*\((\d+)/(\d+)\)(?:,\s*([\d.]+\s*\w+))?`)
 
 var phaseLabelToStage = map[string]string{
 	"Counting objects":    progressStageCounting,
@@ -57,6 +64,7 @@ var phaseLabelToStage = map[string]string{
 var stageToMessage = map[string]string{
 	progressStageCounting:    "Counting objects",
 	progressStageCompressing: "Compressing objects",
+	progressStageDownloading: "Downloading packfile",
 	progressStageReceiving:   "Receiving objects",
 	progressStageResolving:   "Resolving deltas",
 }
@@ -122,6 +130,11 @@ func (pw *progressWriter) processSegment(segment []byte) {
 	percent, _ := strconv.Atoi(string(matches[2]))
 	current, _ := strconv.ParseInt(string(matches[3]), 10, 64)
 	total, _ := strconv.ParseInt(string(matches[4]), 10, 64)
+	// The final group is the optional size suffix on Receiving lines; empty for other stages.
+	var transferred string
+	if len(matches) > 5 {
+		transferred = strings.TrimSpace(string(matches[5]))
+	}
 
 	stageChanged := stage != pw.lastStage
 	isFinal := percent >= 100
@@ -136,11 +149,22 @@ func (pw *progressWriter) processSegment(segment []byte) {
 	pw.lastEmit = now
 
 	pw.emit(RegistryProgress{
-		Stage:   stage,
-		Phase:   pw.phase,
-		Current: current,
-		Total:   total,
-		Percent: percent,
-		Message: stageToMessage[stage],
+		Stage:       stage,
+		Phase:       pw.phase,
+		Current:     current,
+		Total:       total,
+		Percent:     percent,
+		Message:     stageToMessage[stage],
+		Transferred: transferred,
 	})
+
+	// Don't update lastStage/lastEmit: this is a side-channel UI nudge, not a real progress signal, so the next "Receiving" tick should still register as a stage change.
+	if stage == progressStageCompressing && isFinal {
+		pw.emit(RegistryProgress{
+			Stage:   progressStageDownloading,
+			Phase:   pw.phase,
+			Percent: -1,
+			Message: stageToMessage[progressStageDownloading],
+		})
+	}
 }

@@ -123,6 +123,7 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 	// This is particularly useful given that the majority of remote commits are related to hourly analytics jobs that modify no content files.
 	// In this case we can advance HEAD without touching the working tree.
 	if r.areSparseSubtreesUnchanged(repo, hash) {
+		r.logger.Info("Registry sparse subtrees unchanged; advancing HEAD without working-tree write", "commit", hash.String())
 		if err := wt.Reset(&git.ResetOptions{
 			Commit: hash,
 			Mode:   git.SoftReset,
