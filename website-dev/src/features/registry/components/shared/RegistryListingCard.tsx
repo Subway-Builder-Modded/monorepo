@@ -3,22 +3,9 @@ import { Badge } from "@subway-builder-modded/shared-ui";
 import { ArrowDownToLine, Map, Package, Users } from "lucide-react";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
+import type { RegistryItemBase } from "@/features/registry/lib/registry-types";
 
-export type RegistryContentItem = {
-  id: string;
-  kind: "map" | "mod";
-  href: string;
-  title: string;
-  author: string;
-  description: string;
-  thumbnailSrc: string | null;
-  totalDownloads: number;
-  cityCode: string | null;
-  countryCode: string | null;
-  countryName: string | null;
-  countryEmoji: string | null;
-  population: number | null;
-};
+export type RegistryContentItem = RegistryItemBase;
 
 type RegistryListingCardProps = {
   item: RegistryContentItem;
@@ -43,8 +30,8 @@ function stripMarkdownSyntax(input: string): string {
   return input
     .replace(/^\s{0,3}#{1,6}\s+/gm, "")
     .replace(/`{1,3}([^`]+)`{1,3}/g, "$1")
-    .replace(/!\[([^\]]*)\]\([^\)]*\)/g, "$1")
-    .replace(/\[([^\]]+)\]\([^\)]*\)/g, "$1")
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
     .replace(/(\*\*|__)(.*?)\1/g, "$2")
     .replace(/(\*|_)(.*?)\1/g, "$2")
     .replace(/^\s{0,3}[-*+]\s+/gm, "")

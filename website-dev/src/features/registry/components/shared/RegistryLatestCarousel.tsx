@@ -7,16 +7,6 @@ type RegistryLatestCarouselProps = {
 
 const MARQUEE_DURATION_SECONDS = 34;
 
-type ListingCardWrapperProps = {
-  item: RegistryContentItem;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-};
-
-function ListingCardWrapper({ item, onMouseEnter, onMouseLeave }: ListingCardWrapperProps) {
-  return <RegistryListingCard item={item} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} />;
-}
-
 export function RegistryLatestCarousel({ items }: RegistryLatestCarouselProps) {
   const visibleItems = useMemo(() => (items.length > 0 ? items : []), [items]);
   const [isPaused, setIsPaused] = useState(false);
@@ -43,7 +33,7 @@ export function RegistryLatestCarousel({ items }: RegistryLatestCarouselProps) {
       </div>
 
       {visibleItems.length === 0 ? null : visibleItems.length === 1 ? (
-        <ListingCardWrapper
+        <RegistryListingCard
           item={visibleItems[0]!}
           onMouseEnter={() => undefined}
           onMouseLeave={() => undefined}
@@ -62,7 +52,7 @@ export function RegistryLatestCarousel({ items }: RegistryLatestCarouselProps) {
             }}
           >
             {marqueeItems.map((item, index) => (
-              <ListingCardWrapper
+              <RegistryListingCard
                 key={`${item.kind}-${item.id}-${index}`}
                 item={item}
                 onMouseEnter={handleCardEnter}
@@ -72,17 +62,6 @@ export function RegistryLatestCarousel({ items }: RegistryLatestCarouselProps) {
           </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes registry-marquee {
-          from {
-            transform: translateX(0);
-          }
-          to {
-            transform: translateX(calc(-50% - 0.5rem));
-          }
-        }
-      `}</style>
     </div>
   );
 }

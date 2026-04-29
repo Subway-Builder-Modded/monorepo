@@ -9,14 +9,11 @@ import { formatProjectVersionDate } from '../lib/project-versions';
 export interface ProjectVersionRowProps {
 	version: string;
 	prerelease: boolean;
-	/** Shown below the version tag only when it differs from the version string. */
 	name?: string;
-	/** Shown as a game-requirements line when truthy. */
 	gameVersion?: string;
 	date: string;
 	downloads: number;
 	changelogHref: string;
-	/** Platform-specific action slot (install button, deeplink button, etc.). */
 	action: ReactNode;
 	className?: string;
 	/**

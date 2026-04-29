@@ -1,11 +1,6 @@
 import { BookText, type LucideIcon } from "lucide-react";
 import { CONTENT_GITHUB_EDIT_BASE_URL, CONTENT_ROOT } from "../shared/content";
 
-/**
- * Re-exported under the docs-prefixed names that suite configs already import.
- * The actual values live in config/shared/content so the monorepo path is
- * declared exactly once across docs and updates.
- */
 export const DOCS_GITHUB_BASE_URL = CONTENT_GITHUB_EDIT_BASE_URL;
 export const DOCS_CONTENT_ROOT = CONTENT_ROOT;
 

@@ -1,8 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import * as icons from "lucide-react";
-import { CUSTOM_ICON_NAMES } from "@subway-builder-modded/icons";
+import { findMdxFiles, isValidIconExport } from "../shared/content-validation-utils";
 import type {
   RegistryTemplateListingFrontmatter,
   RegistryTemplateVersionFrontmatter,
@@ -15,30 +14,6 @@ type RegistryTemplatesValidationResult = {
   rawByPath: Record<string, string>;
   frontmatterByPath: Record<string, StoredFrontmatter>;
 };
-
-function findTemplateContentFiles(dir: string): string[] {
-  if (!fs.existsSync(dir)) return [];
-  const results: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      results.push(...findTemplateContentFiles(fullPath));
-    } else if (entry.name.endsWith(".mdx")) {
-      results.push(fullPath);
-    }
-  }
-  return results;
-}
-
-function isValidIconExport(name: string): boolean {
-  if (CUSTOM_ICON_NAMES.has(name)) return true;
-
-  const value = (icons as Record<string, unknown>)[name];
-  if (!value) return false;
-  if (typeof value === "function") return true;
-  if (typeof value === "object" && value !== null && "$$typeof" in value) return true;
-  return false;
-}
 
 /**
  * Validate and normalise a listing.mdx frontmatter.
@@ -134,7 +109,7 @@ export function collectRegistryTemplatesContent(
   contentRoot: string,
 ): RegistryTemplatesValidationResult {
   const errors: string[] = [];
-  const files = findTemplateContentFiles(contentRoot);
+  const files = findMdxFiles(contentRoot);
   const rawByPath: Record<string, string> = {};
   const frontmatterByPath: Record<string, StoredFrontmatter> = {};
 

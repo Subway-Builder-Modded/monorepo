@@ -232,3 +232,12 @@ body::-webkit-scrollbar {
     scroll-behavior: auto !important;
   }
 }
+
+@keyframes registry-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.5rem));
+  }
+}

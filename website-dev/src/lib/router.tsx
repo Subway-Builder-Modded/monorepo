@@ -11,7 +11,7 @@ const NAVIGATION_EVENT = "sbm:navigate";
 
 const BASE_URL = import.meta.env.BASE_URL ?? "/";
 
-function normalizeBasePath(basePath: string): string {
+export function normalizeBasePath(basePath: string): string {
   if (!basePath || basePath === "/") {
     return "/";
   }

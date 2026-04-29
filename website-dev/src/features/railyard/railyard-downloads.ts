@@ -19,18 +19,12 @@ export type RailyardReleaseAssetInfo = {
   sizeBytes: number;
 };
 
-/**
- * Dynamically extract the latest Railyard version from available changelog files.
- * Scans the content/railyard/updates directory and returns the highest semantic version.
- */
 function extractLatestRailyardVersion(): string {
-  // Load all update/changelog files from the content directory
   const updateFiles = import.meta.glob(
     "../../../content/railyard/updates/*.mdx",
     { eager: true, query: "?raw", import: "default" },
   ) as Record<string, string>;
 
-  // Extract version numbers from file paths (e.g., "...v0.2.3.mdx" → "0.2.3")
   const versions = Object.keys(updateFiles)
     .map((path) => {
       const match = path.match(/v(\d+\.\d+\.\d+)/);
@@ -38,7 +32,6 @@ function extractLatestRailyardVersion(): string {
     })
     .filter((v): v is string => v !== null);
 
-  // Sort versions in descending order (semantic versioning)
   versions.sort((a, b) => {
     const aParts = a.split(".").map(Number);
     const bParts = b.split(".").map(Number);
@@ -51,7 +44,6 @@ function extractLatestRailyardVersion(): string {
     return 0;
   });
 
-  // Return the latest version with "v" prefix, fallback to v0.1.0 if none found
   return `v${versions[0] || "0.1.0"}`;
 }
 

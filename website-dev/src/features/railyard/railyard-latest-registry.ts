@@ -1,4 +1,5 @@
 import countryFlagEmoji from "country-flag-emoji";
+import type { RegistryItemBase } from "@/features/registry/lib/registry-types";
 
 export type RailyardRegistryAssetKind = "map" | "mod";
 
@@ -44,21 +45,8 @@ function hasCompleteVersion(listing: IntegrityListing | undefined): boolean {
   return Object.values(listing.versions ?? {}).some((version) => version.is_complete === true);
 }
 
-export type RailyardLatestRegistryItem = {
-  id: string;
-  kind: RailyardRegistryAssetKind;
-  href: string;
-  title: string;
-  author: string;
-  description: string;
-  thumbnailSrc: string | null;
-  totalDownloads: number;
+export type RailyardLatestRegistryItem = RegistryItemBase & {
   lastActivityAt: number;
-  cityCode: string | null;
-  countryCode: string | null;
-  countryName: string | null;
-  countryEmoji: string | null;
-  population: number | null;
 };
 
 function safeParseJson<T>(raw: string | undefined, fallback: T): T {

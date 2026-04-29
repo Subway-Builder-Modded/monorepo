@@ -107,4 +107,36 @@ describe("resolvePageMetadata", () => {
     expect(metadata.suite.id).toBe("registry");
     expect(metadata.imagePath).toBe("/images/registry/logo.png");
   });
+
+  it("resolves /railyard/analytics metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/railyard/analytics");
+
+    expect(metadata.title).toBe("Analytics");
+    expect(metadata.pageTitle).toBe("Analytics | Railyard");
+    expect(metadata.suite.id).toBe("railyard");
+  });
+
+  it("resolves /registry/analytics metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/registry/analytics");
+
+    expect(metadata.title).toBe("Analytics");
+    expect(metadata.pageTitle).toBe("Analytics | Registry");
+    expect(metadata.suite.id).toBe("registry");
+  });
+
+  it("resolves /registry/trending metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/registry/trending");
+
+    expect(metadata.title).toBe("Trending");
+    expect(metadata.pageTitle).toBe("Trending | Registry");
+    expect(metadata.suite.id).toBe("registry");
+  });
+
+  it("resolves /contribute metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/contribute");
+
+    expect(metadata.title).toBe("Contribute");
+    expect(metadata.pageTitle).toBe("Contribute");
+    expect(metadata.suite.id).toBe("general");
+  });
 });
