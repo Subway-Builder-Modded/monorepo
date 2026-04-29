@@ -111,7 +111,7 @@ func (r *Registry) Refresh() error {
 
 	r.clearVersionsCache() // Clear versions cache on refresh to ensure we fetch fresh version
 
-	// Fast exit path: Skip the full fetch when the local repo already matches latest commit SHA. 
+	// Fast exit path: Skip the full fetch when the local repo already matches latest commit SHA.
 	// Failures here intentionally fall through to the normal, slow path
 	if upToDate, err := r.isUpToDateWithRemote(); err != nil {
 		r.logger.Info("Registry precheck failed; falling back to full fetch", "error", err)
@@ -135,7 +135,7 @@ func (r *Registry) Refresh() error {
 	return nil
 }
 
-// emitProgress forwards a progress payload to OnProgress when set and called from inside Refresh(). 
+// emitProgress forwards a progress payload to OnProgress when set and called from inside Refresh().
 // Boot-time Initialize() does not enable progress, keeping that phase silent.
 func (r *Registry) emitProgress(p RegistryProgress) {
 	// Disk logging via logProgress runs unconditionally so a broken downstream doesn't leave us without an auditable debug log.
@@ -156,7 +156,7 @@ func (r *Registry) logProgress(p RegistryProgress) {
 	default:
 		if p.Percent >= 100 {
 			attrs := []any{"phase", p.Phase, "stage", p.Stage, "current", p.Current, "total", p.Total}
-			// Transferred is git's human-readable size string ("1.2 MiB"); only Receiving lines populate it. 
+			// Transferred is git's human-readable size string ("1.2 MiB"); only Receiving lines populate it.
 			// This is surfaced in the log so we can confirm steady-state shallow fetches stay small.
 			if p.Transferred != "" {
 				attrs = append(attrs, "transferred", p.Transferred)

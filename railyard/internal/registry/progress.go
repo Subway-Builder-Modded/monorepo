@@ -28,7 +28,7 @@ const (
 	progressStageStarting    = "starting"
 	progressStageCounting    = "counting"
 	progressStageCompressing = "compressing"
-	// progressStageDownloading is a synthetic stage emitted to fill the gap between server-side "Compressing 100%" and go-git's first "Receiving" tick. 
+	// progressStageDownloading is a synthetic stage emitted to fill the gap between server-side "Compressing 100%" and go-git's first "Receiving" tick.
 	// During that window the packfile is streaming but no protocol-level progress is reported, so we'd otherwise appear stuck at "Compressing 100%".
 	progressStageDownloading = "downloading"
 	progressStageReceiving   = "receiving"
@@ -51,7 +51,7 @@ const (
 //	"remote: {phrase}: 100% (200/200), 1.2 MiB | 500 KiB/s, done."
 //
 // The pattern is intentionally unanchored so the optional "remote: " prefix and any trailing rate suffix are tolerated. Banners and "done." trailers without a percent simply fail to match and are dropped.
-// The final group optionally the size that is reported on Receiving lines (e.g. "1.2 MiB"). 
+// The final group optionally the size that is reported on Receiving lines (e.g. "1.2 MiB").
 var progressLinePattern = regexp.MustCompile(`(Counting objects|Compressing objects|Receiving objects|Resolving deltas):\s*(\d+)%\s*\((\d+)/(\d+)\)(?:,\s*([\d.]+\s*\w+))?`)
 
 var phaseLabelToStage = map[string]string{
