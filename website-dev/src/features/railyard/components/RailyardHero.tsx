@@ -6,7 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { BookText, Download, Globe, Map, Megaphone, Package } from "lucide-react";
+import { BookText, Download, Globe, Map, Megaphone, Package, TrainTrack } from "lucide-react";
 import { Link } from "@/lib/router";
 import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
 import { railyardHeroImage } from "@/features/railyard/railyard-assets";
@@ -69,7 +69,7 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
   }, []);
 
   return (
-    <section className="relative flex min-h-[calc(100svh-3rem)] flex-col justify-center overflow-hidden border-b border-border/40 bg-background py-12 sm:py-14 lg:py-16">
+    <section className="relative -mt-12 flex min-h-[100svh] flex-col justify-center overflow-hidden border-b border-border/40 bg-background pb-12 pt-[calc(3rem+3rem)] sm:pb-14 sm:pt-[calc(3rem+3.5rem)] lg:pb-16 lg:pt-[calc(3rem+4rem)]">
       <div className="pointer-events-none absolute inset-0" aria-hidden={true}>
         <img
           src={railyardHeroImage.light}
@@ -92,8 +92,12 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
       <div className="relative z-10 grid w-full gap-8 px-5 sm:px-7 md:px-9 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.22fr)] lg:items-center lg:gap-10 lg:px-12 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.28fr)]">
         <div className="space-y-6 text-left lg:pr-2 xl:pr-4">
           <div className="space-y-3">
-            <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.92] tracking-[-0.04em] text-foreground">
-              {RAILYARD_TITLE}
+            <h1 className="flex items-center gap-3 text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.92] tracking-[-0.04em] text-foreground">
+              <TrainTrack
+                className="size-[0.9em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                aria-hidden={true}
+              />
+              <span>{RAILYARD_TITLE}</span>
             </h1>
             <p className="max-w-[clamp(22rem,28vw,30rem)] text-[clamp(1rem,1.8vw,1.18rem)] leading-relaxed text-foreground/78">
               {RAILYARD_HERO_BODY}

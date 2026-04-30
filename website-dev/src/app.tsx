@@ -12,6 +12,7 @@ import {
 } from "@/features/markdown-playground";
 import { HomePage } from "@/features/home";
 import { RailyardRoute, matchRailyardRoute } from "@/features/railyard";
+import { TemplateModRoute, matchTemplateModRoute } from "@/features/template-mod";
 
 function RouteSwitch() {
   const location = useLocation();
@@ -48,6 +49,11 @@ function RouteSwitch() {
   const markdownPlaygroundMatch = matchMarkdownPlaygroundRoute(location.pathname);
   if (markdownPlaygroundMatch.kind !== "none") {
     return <MarkdownPlaygroundRoute />;
+  }
+
+  const templateModMatch = matchTemplateModRoute(location.pathname);
+  if (templateModMatch.kind !== "none") {
+    return <TemplateModRoute />;
   }
 
   const railyardMatch = matchRailyardRoute(location.pathname);

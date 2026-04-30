@@ -32,6 +32,17 @@ describe("resolvePageMetadata", () => {
     expect(metadata.suite.id).toBe("railyard");
   });
 
+  it("resolves /template-mod homepage metadata from the site navigation config", () => {
+    const metadata = resolvePageMetadata("/template-mod");
+
+    expect(metadata.title).toBe("Template Mod");
+    expect(metadata.pageTitle).toBe("Template Mod");
+    expect(metadata.description).toBe(
+      "Discover the all-inclusive TypeScript template for creating Subway Builder mods with ease.",
+    );
+    expect(metadata.suite.id).toBe("template-mod");
+  });
+
   it("falls back to suite home metadata for unmatched suite routes", () => {
     const metadata = resolvePageMetadata("/registry/unknown/route");
 

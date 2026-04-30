@@ -50,7 +50,7 @@ export function RailyardDownloadsPicker({ options }: RailyardDownloadsPickerProp
     let cancelled = false;
 
     void detectRailyardPlatformAccurate(window.navigator).then((detected) => {
-      if (cancelled || !detected.os) {
+      if (cancelled || detected.os === "unknown") {
         return;
       }
 

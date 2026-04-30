@@ -5,6 +5,7 @@ import {
   detectRailyardPlatformAccurate,
   formatRailyardAssetSize,
   getRailyardAssetFileType,
+  normalizeRailyardArchitecture,
   resolveRailyardReleaseAssetInfo,
   railyardDownloadOptions,
   selectRecommendedRailyardDownload,
@@ -37,11 +38,24 @@ describe("railyard downloads", () => {
   it("falls back safely when architecture cannot be detected", () => {
     const recommended = selectRecommendedRailyardDownload(railyardDownloadOptions, {
       os: "windows",
-      arch: null,
+      arch: "unknown",
     });
 
     expect(recommended.os).toBe("windows");
     expect(recommended.arch).toBe("x64");
+  });
+
+  it("normalizes x64 architecture aliases", () => {
+    expect(normalizeRailyardArchitecture("x86")).toBe("x64");
+    expect(normalizeRailyardArchitecture("x86_64")).toBe("x64");
+    expect(normalizeRailyardArchitecture("amd64")).toBe("x64");
+    expect(normalizeRailyardArchitecture("x64")).toBe("x64");
+  });
+
+  it("normalizes arm64 architecture aliases", () => {
+    expect(normalizeRailyardArchitecture("arm")).toBe("arm64");
+    expect(normalizeRailyardArchitecture("arm64")).toBe("arm64");
+    expect(normalizeRailyardArchitecture("aarch64")).toBe("arm64");
   });
 
   it("detects OS and architecture from navigator-like values", () => {
@@ -59,7 +73,7 @@ describe("railyard downloads", () => {
     expect(detected.arch).toBe("arm64");
   });
 
-  it("does not infer architecture from legacy userAgent string", () => {
+  it("detects ARM64 from strong navigator signals when UA-CH arch is missing", () => {
     const detected = detectRailyardPlatform({
       platform: "Win32",
       userAgent:
@@ -70,7 +84,7 @@ describe("railyard downloads", () => {
     } as unknown as Navigator);
 
     expect(detected.os).toBe("windows");
-    expect(detected.arch).toBeNull();
+    expect(detected.arch).toBe("arm64");
   });
 
   it("detects Windows ARM64 when high-entropy UA data reports x86 under WoW64", async () => {
@@ -93,6 +107,15 @@ describe("railyard downloads", () => {
 
     expect(detected.os).toBe("windows");
     expect(detected.arch).toBe("arm64");
+  });
+
+  it("falls back to configured default when OS is unknown", () => {
+    const recommended = selectRecommendedRailyardDownload(railyardDownloadOptions, {
+      os: "unknown",
+      arch: "unknown",
+    });
+
+    expect(recommended).toBe(railyardDownloadOptions[0]);
   });
 
   it("prefers ARM64 when UA-CH low and high entropy signals conflict", async () => {

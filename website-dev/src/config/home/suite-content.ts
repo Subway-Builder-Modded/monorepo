@@ -6,36 +6,32 @@ export const SUITE_SCROLLYTELLING_SECTION = {
     "The complete suite of tools, resources, and projects for modding in Subway Builder, built and maintained by the community.",
 } as const;
 
-const TEMPLATE_MOD_CODE = `const {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} = api.utils.charts;
-
-function RidershipChart() {
-  const metrics = api.gameState.getLineMetrics();
-
-  const data = metrics.map((m) => ({
-    name: m.name,
-    riders: m.ridersPerHour,
-  }));
-
-  return (
-    <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey="riders" fill="#3b82f6" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}`;
+export const TEMPLATE_MOD_CODE = `// React to new stations
+api.hooks.onStationBuilt((station) => {
+  console.log(\`New station: \${station.name} at \${station.coords}\`);
+});
+ 
+// React to money changes
+api.hooks.onMoneyChanged((balance, change, type, category) => {
+  if (type === 'expense' && change > 1000000) {
+    api.ui.showNotification('Big purchase!', 'info');
+  }
+});
+ 
+// React to day changes
+api.hooks.onDayChange((day) => {
+  console.log(\`Day \${day}\`);
+});
+ 
+// React to speed changes
+api.hooks.onSpeedChanged((speed) => {
+  console.log(\`Speed: \${speed}\`); // 'slow' | 'normal' | 'fast' | 'ultrafast'
+});
+ 
+// React to game saves
+api.hooks.onGameSaved((saveName) => {
+  console.log(\`Game saved: \${saveName}\`);
+});`;
 
 export const SUITE_STEPS: SuiteStep[] = [
   {
@@ -82,7 +78,7 @@ export const SUITE_STEPS: SuiteStep[] = [
     id: "template-mod",
     accentSuiteId: "template-mod",
     title: "Template Mod",
-    description: "The all-inclusive TypeScript template for creating Subway Builder mods.",
+    description: "The all-inclusive TypeScript template for creating Subway Builder mods with ease.",
     bullets: [
       "Pre-configured project scaffold with build tooling ready to go.",
       "Full documentation for getting started and publishing.",
