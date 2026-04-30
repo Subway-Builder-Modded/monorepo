@@ -33,11 +33,6 @@ describe("matchUpdatesRoute", () => {
       slug: "v0.2.1/rc/candidate-a",
     });
   });
-
-  it("returns none for foundry updates paths while foundry is disabled", () => {
-    expect(matchUpdatesRoute("/foundry/updates")).toEqual({ kind: "none" });
-    expect(matchUpdatesRoute("/foundry/updates/v0.1.0")).toEqual({ kind: "none" });
-  });
 });
 
 describe("updates URL helpers", () => {

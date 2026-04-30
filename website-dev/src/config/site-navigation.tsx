@@ -1,7 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import {
   Database,
-  Anvil,
   Globe,
   House,
   Package,
@@ -25,7 +24,6 @@ export type SiteSuiteId =
   | "registry"
   | "template-mod"
   | "website"
-  | "foundry"
   | "depot";
 
 export type SiteColorSchemeId =
@@ -34,7 +32,6 @@ export type SiteColorSchemeId =
   | "registry"
   | "template-mod"
   | "website"
-  | "foundry"
   | "depot";
 
 export type SiteRouteMatchRule = {
@@ -157,21 +154,6 @@ export const SITE_SUITES: SiteSuite[] = [
       textInvertedDark: "#232323",
       mutedLight: "rgba(242,153,46,0.18)",
       mutedDark: "rgba(255,190,115,0.13)",
-    },
-  },
-  {
-    id: "foundry",
-    title: "Foundry",
-    href: "/foundry",
-    icon: Anvil,
-    colorSchemeId: "foundry",
-    accent: {
-      light: "#d64545",
-      dark: "#ff6b6b",
-      textInvertedLight: "#f2f2f2",
-      textInvertedDark: "#232323",
-      mutedLight: "rgba(214,69,69,0.18)",
-      mutedDark: "rgba(255,107,107,0.13)",
     },
   },
   {
@@ -367,15 +349,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "prefix", path: "/website/analytics" }],
   },
   {
-    id: "foundry-home",
-    suiteId: "foundry",
-    title: "Home",
-    description: "Discover the unified suite for Subway Builder map creation.",
-    href: "/foundry",
-    icon: House,
-    activeMatchRules: [{ kind: "exact", path: "/foundry" }],
-  },
-  {
     id: "depot-updates",
     suiteId: "depot",
     title: "Updates",
@@ -407,8 +380,7 @@ const SUITE_BY_ID: Record<SiteSuiteId, SiteSuite> = {
   registry: SITE_SUITES[2],
   "template-mod": SITE_SUITES[3],
   website: SITE_SUITES[4],
-  foundry: SITE_SUITES[5],
-  depot: SITE_SUITES[6],
+  depot: SITE_SUITES[5],
 };
 
 function normalizePathname(pathname: string): string {
