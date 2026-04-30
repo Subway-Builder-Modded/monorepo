@@ -66,7 +66,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
   const articleIdentity = getUpdateArticleIdentity(entry);
   const compareHref = entry.frontmatter.compareUrl?.trim() || null;
   const compareLabel = entry.frontmatter.previousVersion
-    ? `${entry.frontmatter.previousVersion}...${entry.id}`
+    ? `${entry.frontmatter.previousVersion}${isParentVersion ? "..." : "+"}${entry.id.replace(/\//g, "+")}`
     : null;
   const editUrl = getUpdateEditUrl(suiteId, entry.id);
 

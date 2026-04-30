@@ -6,7 +6,7 @@ export type UpdatesSuiteId = Extract<
   "railyard" | "template-mod" | "website" | "depot"
 >;
 
-export type UpdatesTag = "alpha" | "beta" | "release";
+export type UpdatesTag = "release-candidate" | "beta" | "release";
 
 export type UpdatesTagPresentation = {
   label: string;

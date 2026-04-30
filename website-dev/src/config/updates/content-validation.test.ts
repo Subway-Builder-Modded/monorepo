@@ -41,7 +41,7 @@ describe("collectUpdatesContent", () => {
     );
 
     const result = collectUpdatesContent(root);
-    expect(result.errors.some((e) => e.includes("alpha | beta | release"))).toBe(true);
+    expect(result.errors.some((e) => e.includes("release-candidate | beta | release"))).toBe(true);
   });
 
   it("fails when icon is invalid", () => {
@@ -49,7 +49,7 @@ describe("collectUpdatesContent", () => {
     writeMdx(
       root,
       "railyard/updates/v0.0.1.mdx",
-      "title: Test\nicon: NopeIcon\ndate: 2026-01-01\ntag: alpha\nurl: https://example.com",
+      "title: Test\nicon: NopeIcon\ndate: 2026-01-01\ntag: release-candidate\nurl: https://example.com",
     );
 
     const result = collectUpdatesContent(root);
@@ -61,7 +61,7 @@ describe("collectUpdatesContent", () => {
     writeMdx(
       root,
       "railyard/updates/v0.0.1.mdx",
-      "title: Test\ndescription: Desc\nicon: TrainTrack\ndate: 2026-01-01\ntag: alpha\nurl: https://example.com",
+      "title: Test\ndescription: Desc\nicon: TrainTrack\ndate: 2026-01-01\ntag: release-candidate\nurl: https://example.com",
     );
 
     const result = collectUpdatesContent(root);

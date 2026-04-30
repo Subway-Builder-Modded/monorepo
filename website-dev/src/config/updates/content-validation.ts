@@ -20,7 +20,7 @@ type UpdatesContentValidationResult = {
   frontmatterByPath: Record<string, UpdatesFrontmatter>;
 };
 
-const ALLOWED_TAGS = new Set<UpdatesTag>(["alpha", "beta", "release"]);
+const ALLOWED_TAGS = new Set<UpdatesTag>(["release-candidate", "beta", "release"]);
 
 function normalizeFrontmatter(filePath: string, raw: string, errors: string[]): UpdatesFrontmatter {
   const parsed = matter(raw).data as Record<string, unknown>;
@@ -55,7 +55,7 @@ function normalizeFrontmatter(filePath: string, raw: string, errors: string[]): 
   }
 
   if (typeof tag !== "string" || !ALLOWED_TAGS.has(tag as UpdatesTag)) {
-    errors.push(`${filePath}: frontmatter "tag" must be one of alpha | beta | release`);
+    errors.push(`${filePath}: frontmatter "tag" must be one of release-candidate | beta | release`);
   }
 
   const hasPreviousVersion =
@@ -81,7 +81,7 @@ function normalizeFrontmatter(filePath: string, raw: string, errors: string[]): 
     date: normalizedDate,
     tag: (typeof tag === "string" && ALLOWED_TAGS.has(tag as UpdatesTag)
       ? tag
-      : "alpha") as UpdatesTag,
+      : "release-candidate") as UpdatesTag,
     url: typeof url === "string" && url.trim() ? url.trim() : undefined,
     previousVersion: hasPreviousVersion ? previousVersion.trim() : undefined,
     compareUrl: hasCompareUrl ? compareUrl.trim() : undefined,
@@ -149,31 +149,6 @@ export function collectUpdatesContent(contentRoot: string): UpdatesContentValida
   for (const file of parsedFiles) {
     rawByPath[file.virtualPath] = file.raw;
     frontmatterByPath[file.virtualPath] = file.frontmatter;
-  }
-
-  // Folder invariant: every nested updates folder must have a landing page
-  // at the same slug (e.g. `v1.2.0/rc/alpha.mdx` requires `v1.2.0/rc.mdx`).
-  const idsBySuite = new Map<UpdatesSuiteId, Set<string>>();
-  for (const file of parsedFiles) {
-    const ids = idsBySuite.get(file.suiteId) ?? new Set<string>();
-    ids.add(file.id);
-    idsBySuite.set(file.suiteId, ids);
-  }
-
-  for (const [suiteId, ids] of idsBySuite.entries()) {
-    for (const id of ids) {
-      const parts = id.split("/");
-      if (parts.length <= 1) continue;
-
-      for (let i = 1; i < parts.length; i++) {
-        const folder = parts.slice(0, i).join("/");
-        if (!ids.has(folder)) {
-          errors.push(
-            `${suiteId}/updates/${folder}: missing folder landing page "${folder}.mdx" for nested updates content`,
-          );
-        }
-      }
-    }
   }
 
   return {
