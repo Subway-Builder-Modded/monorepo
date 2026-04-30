@@ -63,11 +63,15 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
 
   const recommendedUrl = buildRailyardDownloadUrl(recommendedOption);
   const [latestRegistryItems, setLatestRegistryItems] = useState<LatestRegistryItems>([]);
+  const [isLatestRegistryLoading, setIsLatestRegistryLoading] = useState(true);
 
   useEffect(() => {
+    setIsLatestRegistryLoading(true);
+
     void fetchRailyardLatestRegistryItems()
       .then(setLatestRegistryItems)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setIsLatestRegistryLoading(false));
   }, []);
 
   return (
@@ -211,7 +215,7 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
           </div>
         </div>
 
-        <RegistryLatestCarousel items={latestRegistryItems} />
+        <RegistryLatestCarousel items={latestRegistryItems} isLoading={isLatestRegistryLoading} />
       </div>
 
       <HeroAccentBar
