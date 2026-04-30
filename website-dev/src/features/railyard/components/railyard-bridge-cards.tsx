@@ -43,7 +43,8 @@ export function RailyardBridgeCards() {
 
       <div className="space-y-6 lg:space-y-7">
         {[...railyardBridgeCards].reverse().map((card) => {
-          const accent = accentById[card.id as keyof typeof accentById] ?? getSuiteById("railyard").accent;
+          const accent =
+            accentById[card.id as keyof typeof accentById] ?? getSuiteById("railyard").accent;
           const ctaLabel = ctaLabelById[card.id as keyof typeof ctaLabelById] ?? "Open";
           const MainIcon = mainIconById[card.id as keyof typeof mainIconById] ?? BookText;
           const CtaIcon = ctaIconById[card.id as keyof typeof ctaIconById] ?? BookText;
@@ -56,7 +57,7 @@ export function RailyardBridgeCards() {
                     className="pointer-events-none absolute inset-0"
                     style={{
                       backgroundImage:
-                          "linear-gradient(180deg, color-mix(in srgb, var(--suite-accent-light) 10%, transparent) 0%, color-mix(in srgb, var(--suite-accent-light) 6%, transparent) 44%, color-mix(in srgb, var(--suite-accent-light) 9%, transparent) 100%), radial-gradient(130% 115% at 50% 50%, color-mix(in srgb, var(--suite-accent-light) 7%, transparent) 0%, transparent 76%)",
+                        "linear-gradient(180deg, color-mix(in srgb, var(--suite-accent-light) 10%, transparent) 0%, color-mix(in srgb, var(--suite-accent-light) 6%, transparent) 44%, color-mix(in srgb, var(--suite-accent-light) 9%, transparent) 100%), radial-gradient(130% 115% at 50% 50%, color-mix(in srgb, var(--suite-accent-light) 7%, transparent) 0%, transparent 76%)",
                     }}
                   />
                   <div className="relative mx-auto flex w-full max-w-none flex-col items-center justify-center gap-4 px-8 py-8 text-center sm:px-10 sm:py-10 lg:px-12 lg:py-12">
@@ -74,7 +75,11 @@ export function RailyardBridgeCards() {
                       </p>
                     </div>
 
-                    <SuiteAccentButton tone="outline" asChild className="h-11 w-fit gap-2 px-5 text-sm font-semibold">
+                    <SuiteAccentButton
+                      tone="outline"
+                      asChild
+                      className="h-11 w-fit gap-2 px-5 text-sm font-semibold"
+                    >
                       <Link to={card.href}>
                         <CtaIcon className="size-4" aria-hidden={true} />
                         {ctaLabel}

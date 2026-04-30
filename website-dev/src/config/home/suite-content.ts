@@ -78,7 +78,8 @@ export const SUITE_STEPS: SuiteStep[] = [
     id: "template-mod",
     accentSuiteId: "template-mod",
     title: "Template Mod",
-    description: "The all-inclusive TypeScript template for creating Subway Builder mods with ease.",
+    description:
+      "The all-inclusive TypeScript template for creating Subway Builder mods with ease.",
     bullets: [
       "Pre-configured project scaffold with build tooling ready to go.",
       "Full documentation for getting started and publishing.",

@@ -104,5 +104,7 @@ export function LightMarkdown({ children, className }: LightMarkdownProps) {
     };
   }, [children]);
 
-  return <div className={cn(BASE_CLASS_NAME, className)} dangerouslySetInnerHTML={{ __html: html }} />;
+  return (
+    <div className={cn(BASE_CLASS_NAME, className)} dangerouslySetInnerHTML={{ __html: html }} />
+  );
 }

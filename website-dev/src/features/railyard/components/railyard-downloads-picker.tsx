@@ -136,12 +136,17 @@ export function RailyardDownloadsPicker({ options }: RailyardDownloadsPickerProp
                         className="group flex items-center justify-between gap-3 rounded-xl border border-border/45 bg-card px-4 py-0 transition-all duration-200 hover:border-border/70 hover:bg-muted/25"
                       >
                         <div className="flex min-h-12 min-w-0 items-center gap-2.5">
-                          <span className="truncate text-sm font-medium text-foreground">{option.label}</span>
+                          <span className="truncate text-sm font-medium text-foreground">
+                            {option.label}
+                          </span>
                           <span className="shrink-0 text-xs text-muted-foreground">
                             {fileType} · {fileSize}
                           </span>
                         </div>
-                        <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-foreground" aria-hidden={true} />
+                        <ArrowRight
+                          className="size-4 shrink-0 text-muted-foreground transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-foreground"
+                          aria-hidden={true}
+                        />
                       </a>
                     );
                   })

@@ -1,4 +1,3 @@
-// @ts-expect-error -- virtual module provided by vite plugin
 import rawContentData from "virtual:mdx-raw-content";
 import type {
   RegistryTemplate,

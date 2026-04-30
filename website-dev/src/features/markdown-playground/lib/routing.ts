@@ -1,17 +1,16 @@
 import type { MarkdownPlaygroundRouteMatch } from "./types";
+import { createSimpleRouteMatcher } from "@/lib/routing";
 
 const REGISTRY_MARKDOWN_PLAYGROUND_ROUTE = "/registry/markdown-playground";
+const markdownPlaygroundRoute = createSimpleRouteMatcher(
+  REGISTRY_MARKDOWN_PLAYGROUND_ROUTE,
+  "registry-markdown-playground",
+);
 
 export function matchMarkdownPlaygroundRoute(pathname: string): MarkdownPlaygroundRouteMatch {
-  const normalized = pathname.startsWith("/") ? pathname : `/${pathname}`;
-
-  if (normalized === REGISTRY_MARKDOWN_PLAYGROUND_ROUTE) {
-    return { kind: "page", pageId: "registry-markdown-playground" };
-  }
-
-  return { kind: "none" };
+  return markdownPlaygroundRoute.match(pathname);
 }
 
 export function getMarkdownPlaygroundUrl(): string {
-  return REGISTRY_MARKDOWN_PLAYGROUND_ROUTE;
+  return markdownPlaygroundRoute.getUrl();
 }

@@ -324,7 +324,8 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "template-mod-home",
     suiteId: "template-mod",
     title: "Home",
-    description: "Discover the all-inclusive TypeScript template for creating Subway Builder mods with ease.",
+    description:
+      "Discover the all-inclusive TypeScript template for creating Subway Builder mods with ease.",
     href: "/template-mod",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/template-mod" }],

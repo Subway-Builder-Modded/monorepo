@@ -29,11 +29,17 @@ describe("TemplateModRoute", () => {
     const user = userEvent.setup();
     render(<TemplateModRoute />);
 
-      expect(screen.getByRole("tab", { name: "Install and Configure" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Install and Configure" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
 
-      await user.click(screen.getByRole("tab", { name: "Build, Link, and Develop" }));
+    await user.click(screen.getByRole("tab", { name: "Build, Link, and Develop" }));
 
-      expect(screen.getByRole("tab", { name: "Build, Link, and Develop" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Build, Link, and Develop" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   it("uses valid internal or approved external link targets", () => {

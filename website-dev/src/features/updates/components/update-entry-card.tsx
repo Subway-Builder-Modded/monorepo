@@ -1,5 +1,5 @@
 import { DirectoryCard } from "@subway-builder-modded/shared-ui";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { Link } from "@/lib/router";
 import { formatUpdateDisplayId } from "@/features/updates/lib/formatting";
 import { getUpdatePageUrl } from "@/features/updates/lib/routing";
@@ -18,7 +18,7 @@ type UpdateEntryCardProps = {
 };
 
 export function UpdateEntryCard({ entry, isLatest }: UpdateEntryCardProps) {
-  const Icon = resolveLucideIcon(entry.frontmatter.icon);
+  const Icon = resolveIcon(entry.frontmatter.icon);
 
   return (
     <DirectoryCard

@@ -64,13 +64,13 @@ function getTotalDownloads(downloads: RegistryDownloads, id: string): number {
     return 0;
   }
 
-  return Object.values(versions).reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0);
+  return Object.values(versions).reduce(
+    (sum, value) => sum + (Number.isFinite(value) ? value : 0),
+    0,
+  );
 }
 
-function getLastActivityTimestamp(
-  integrity: RegistryIntegrity,
-  id: string,
-): number {
+function getLastActivityTimestamp(integrity: RegistryIntegrity, id: string): number {
   const listing = integrity.listings?.[id];
   if (!listing?.versions) {
     const generated = Date.parse(integrity.generated_at ?? "");
@@ -97,13 +97,21 @@ function getLastActivityTimestamp(
   return Number.isFinite(generated) ? generated : 0;
 }
 
-function resolveThumbnailSrc(kind: RailyardRegistryAssetKind, id: string, gallery: string[] | undefined): string | null {
+function resolveThumbnailSrc(
+  kind: RailyardRegistryAssetKind,
+  id: string,
+  gallery: string[] | undefined,
+): string | null {
   const firstGallery = gallery?.[0];
   if (!firstGallery) {
     return null;
   }
 
-  if (firstGallery.startsWith("http://") || firstGallery.startsWith("https://") || firstGallery.startsWith("/")) {
+  if (
+    firstGallery.startsWith("http://") ||
+    firstGallery.startsWith("https://") ||
+    firstGallery.startsWith("/")
+  ) {
     return firstGallery;
   }
 
@@ -133,10 +141,10 @@ function toLatestItem(
     thumbnailSrc: resolveThumbnailSrc(kind, id, manifest.gallery),
     totalDownloads: getTotalDownloads(downloads, id),
     lastActivityAt: getLastActivityTimestamp(integrity, id),
-    cityCode: kind === "map" ? manifest.city_code ?? null : null,
+    cityCode: kind === "map" ? (manifest.city_code ?? null) : null,
     countryCode: kind === "map" ? countryCode : null,
-    countryName: kind === "map" ? countryEntry?.name ?? countryCode : null,
-    countryEmoji: kind === "map" ? countryEntry?.emoji ?? null : null,
+    countryName: kind === "map" ? (countryEntry?.name ?? countryCode) : null,
+    countryEmoji: kind === "map" ? (countryEntry?.emoji ?? null) : null,
     population:
       kind === "map"
         ? typeof manifest.population === "number"
@@ -191,7 +199,5 @@ export async function fetchRailyardLatestRegistryItems(): Promise<RailyardLatest
     fetchAndBuildItemsForKind("mod", "mods"),
   ]);
 
-  return [...mapItems, ...modItems]
-    .sort((a, b) => b.lastActivityAt - a.lastActivityAt)
-    .slice(0, 5);
+  return [...mapItems, ...modItems].sort((a, b) => b.lastActivityAt - a.lastActivityAt).slice(0, 5);
 }

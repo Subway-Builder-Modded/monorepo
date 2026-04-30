@@ -99,12 +99,7 @@ export function CommunityAnalyticsView({ model }: { model: CommunityPageModel })
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <SuiteAccentButton tone="solid" asChild>
-            <a
-              href={COMMUNITY_DISCORD_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-             
-            >
+            <a href={COMMUNITY_DISCORD_LINK} target="_blank" rel="noopener noreferrer">
               Join Discord
             </a>
           </SuiteAccentButton>
@@ -165,12 +160,7 @@ export function CommunityAnalyticsView({ model }: { model: CommunityPageModel })
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <SuiteAccentButton tone="solid" asChild>
-              <a
-                href={COMMUNITY_DISCORD_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-               
-              >
+              <a href={COMMUNITY_DISCORD_LINK} target="_blank" rel="noopener noreferrer">
                 <DiscordIcon className="mr-1.5 size-4" aria-hidden="true" />
                 Join Discord
               </a>
@@ -189,7 +179,6 @@ export function CommunityAnalyticsView({ model }: { model: CommunityPageModel })
 
         <div
           role="tablist"
-         
           className="inline-flex rounded-xl border border-border/70 bg-card/70 p-1"
         >
           {ALL_PERIODS.map((option) => {

@@ -11,7 +11,7 @@ import { Link } from "@/lib/router";
 import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
 import { railyardHeroImage } from "@/features/railyard/railyard-assets";
 import { RAILYARD_HERO_BODY } from "@/features/railyard/railyard-content";
-import { RegistryLatestCarousel } from "@/features/registry/components/shared/RegistryLatestCarousel";
+import { RegistryLatestCarousel } from "@/features/registry/components/shared/registry-latest-carousel";
 import { fetchRailyardLatestRegistryItems } from "@/features/railyard/railyard-latest-registry";
 import {
   buildRailyardDownloadUrl,
@@ -65,7 +65,9 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
   const [latestRegistryItems, setLatestRegistryItems] = useState<LatestRegistryItems>([]);
 
   useEffect(() => {
-    void fetchRailyardLatestRegistryItems().then(setLatestRegistryItems).catch(() => {});
+    void fetchRailyardLatestRegistryItems()
+      .then(setLatestRegistryItems)
+      .catch(() => {});
   }, []);
 
   return (
@@ -123,7 +125,12 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 rounded-md px-3.5">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 rounded-md px-3.5"
+                  >
                     <Link to="/registry">
                       <Map className="size-3.5" aria-hidden={true} />
                       {summary.mapsCount} Maps
@@ -139,7 +146,12 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 rounded-md px-3.5">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-8 gap-1.5 rounded-md px-3.5"
+                  >
                     <Link to="/registry">
                       <Package className="size-3.5" aria-hidden={true} />
                       {summary.modsCount} Mods
@@ -170,13 +182,7 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="icon-sm"
-                    className="rounded-md"
-                   
-                  >
+                  <Button asChild variant="outline" size="icon-sm" className="rounded-md">
                     <Link to="/railyard/docs">
                       <BookText className="size-4" aria-hidden={true} />
                     </Link>

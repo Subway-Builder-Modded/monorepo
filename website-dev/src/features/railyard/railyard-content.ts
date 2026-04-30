@@ -9,8 +9,7 @@ export const railyardProductStory = {
 
 export const railyardRegistryDiscovery = {
   title: "Powered by the Registry",
-  description:
-    "The GitHub hosted, data-driven backbone powering Railyard and all of its services.",
+  description: "The GitHub hosted, data-driven backbone powering Railyard and all of its services.",
   ctaLabel: "Browse Registry",
   ctaHref: "/registry",
 } as const;

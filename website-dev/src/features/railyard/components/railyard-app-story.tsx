@@ -6,15 +6,14 @@ import {
   SectionHeader,
   SectionShell,
 } from "@subway-builder-modded/shared-ui";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { railyardProductStory } from "@/features/railyard/railyard-content";
 import { railyardStorySteps } from "@/features/railyard/railyard-assets";
 
 export function RailyardAppStory() {
   const [selectedId, setSelectedId] = useState(railyardStorySteps[0]!.id);
   const selectedStep =
-    railyardStorySteps.find((step) => step.id === selectedId) ??
-    railyardStorySteps[0]!;
+    railyardStorySteps.find((step) => step.id === selectedId) ?? railyardStorySteps[0]!;
 
   return (
     <SectionShell>
@@ -45,7 +44,7 @@ export function RailyardAppStory() {
         <div className="grid w-full min-w-0 max-w-none gap-2.5 content-start lg:h-full lg:grid-rows-3">
           {railyardStorySteps.map((step) => {
             const isSelected = step.id === selectedStep.id;
-            const Icon = resolveLucideIcon(step.icon);
+            const Icon = resolveIcon(step.icon);
 
             return (
               <Button

@@ -12,7 +12,9 @@ export function RailyardRoute() {
   const [summary, setSummary] = useState<RailyardRegistrySummary>({ mapsCount: 0, modsCount: 0 });
 
   useEffect(() => {
-    void fetchRailyardRegistrySummary().then(setSummary).catch(() => {});
+    void fetchRailyardRegistrySummary()
+      .then(setSummary)
+      .catch(() => {});
   }, []);
 
   if (match.kind !== "page") {

@@ -20,7 +20,9 @@ describe("RailyardRoute", () => {
     render(<RailyardRoute />);
 
     expect(screen.getByRole("heading", { name: "Railyard" })).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /Install Railyard|Download Railyard/i }).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("link", { name: /Install Railyard|Download Railyard/i }).length,
+    ).toBeGreaterThan(0);
 
     await waitFor(() => {
       expect(screen.getByRole("link", { name: /120 Maps/i })).toBeInTheDocument();
@@ -29,9 +31,9 @@ describe("RailyardRoute", () => {
 
     expect(screen.getByRole("link", { name: "Browse Registry" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Player Documentation" })).toBeInTheDocument();
-    const worldMapLinks = screen.getAllByRole("link").filter((link) =>
-      link.getAttribute("href")?.includes("/registry/world-map"),
-    );
+    const worldMapLinks = screen
+      .getAllByRole("link")
+      .filter((link) => link.getAttribute("href")?.includes("/registry/world-map"));
     expect(worldMapLinks.length).toBeGreaterThan(0);
 
     expect(screen.getByRole("link", { name: "View all downloads" })).toBeInTheDocument();

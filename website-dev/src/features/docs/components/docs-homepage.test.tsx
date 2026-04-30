@@ -38,11 +38,18 @@ vi.mock("@/features/docs/lib/content", () => ({
   findTreeNode: vi.fn(() => null),
 }));
 
-vi.mock("@/features/content/lib/icon-resolver", () => ({
-  resolveLucideIcon: () => (props: { className?: string }) => (
-    <svg data-testid="card-icon" {...props} />
-  ),
-}));
+vi.mock("@subway-builder-modded/icons", async () => {
+  const actual = await vi.importActual<typeof import("@subway-builder-modded/icons")>(
+    "@subway-builder-modded/icons",
+  );
+
+  return {
+    ...actual,
+    resolveIcon: () => (props: { className?: string }) => (
+      <svg data-testid="card-icon" {...props} />
+    ),
+  };
+});
 
 describe("DocsHomepage", () => {
   beforeEach(() => {

@@ -59,7 +59,6 @@ function StationSwitcher({
                 boxShadow: isActive ? `0 4px 20px ${tone}25` : undefined,
               }}
               aria-current={isActive ? "step" : undefined}
-             
             >
               <StepIcon
                 className={cn("size-5 xl:size-6", isActive && "drop-shadow-sm")}

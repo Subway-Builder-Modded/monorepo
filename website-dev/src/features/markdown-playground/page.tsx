@@ -279,7 +279,6 @@ export function MarkdownPlaygroundRoute() {
                           variant="ghost"
                           size="icon-sm"
                           onClick={() => applyAction(action.id)}
-                         
                           className="border border-transparent hover:border-border/80 hover:bg-muted/60"
                           data-testid={`toolbar-action-${action.id}`}
                         >
@@ -305,11 +304,7 @@ export function MarkdownPlaygroundRoute() {
                 className="rounded-lg border border-border/70 bg-background/75"
                 data-testid="playground-mode-switcher"
               >
-                <ToggleGroupItem
-                  value="markdown"
-                 
-                  data-testid="mode-markdown"
-                >
+                <ToggleGroupItem value="markdown" data-testid="mode-markdown">
                   <PenLine className="size-3.5" aria-hidden="true" />
                   Edit
                 </ToggleGroupItem>
@@ -327,7 +322,6 @@ export function MarkdownPlaygroundRoute() {
                       size="icon-sm"
                       variant="ghost"
                       onClick={copyMarkdown}
-                     
                       className="border border-transparent hover:border-border/80 hover:bg-muted/60"
                       data-testid="copy-markdown"
                     >
@@ -348,7 +342,6 @@ export function MarkdownPlaygroundRoute() {
                       size="icon-sm"
                       variant="ghost"
                       onClick={copyHtml}
-                     
                       className="border border-transparent hover:border-border/80 hover:bg-muted/60"
                       data-testid="copy-html"
                     >
@@ -391,7 +384,6 @@ export function MarkdownPlaygroundRoute() {
                 )}
                 placeholder="Write Markdown here..."
                 data-testid="playground-markdown-input"
-               
               />
             ) : (
               <div
@@ -399,7 +391,6 @@ export function MarkdownPlaygroundRoute() {
                 className="prose prose-invert min-h-[56vh] max-w-none px-4 py-4"
                 dangerouslySetInnerHTML={{ __html: renderedHtml }}
                 data-testid="playground-rich-input"
-               
               />
             )}
           </div>

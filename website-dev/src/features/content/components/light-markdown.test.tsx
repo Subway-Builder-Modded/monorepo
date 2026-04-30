@@ -20,9 +20,7 @@ describe("LightMarkdown", () => {
 
   it("renders fenced code blocks", async () => {
     const { container } = render(
-      <LightMarkdown>
-        {"```ts\nconst mode = 'dev';\nconsole.log(mode);\n```"}
-      </LightMarkdown>,
+      <LightMarkdown>{"```ts\nconst mode = 'dev';\nconsole.log(mode);\n```"}</LightMarkdown>,
     );
 
     await waitFor(() => {

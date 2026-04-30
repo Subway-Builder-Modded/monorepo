@@ -37,12 +37,16 @@ export function countRegistryManifestRecords(manifestRecords: Record<string, str
 }
 
 async function fetchManifestCount(kindPath: "maps" | "mods"): Promise<number> {
-  const index = await fetch(`/registry/${kindPath}/index.json`).then((response) => response.json() as Promise<RegistryIndex>);
-  const ids = kindPath === "maps" ? index.maps ?? [] : index.mods ?? [];
+  const index = await fetch(`/registry/${kindPath}/index.json`).then(
+    (response) => response.json() as Promise<RegistryIndex>,
+  );
+  const ids = kindPath === "maps" ? (index.maps ?? []) : (index.mods ?? []);
 
   const manifestEntries = await Promise.all(
     ids.map(async (id) => {
-      const raw = await fetch(`/registry/${kindPath}/${id}/manifest.json`).then((response) => response.text());
+      const raw = await fetch(`/registry/${kindPath}/${id}/manifest.json`).then((response) =>
+        response.text(),
+      );
       return [id, raw] as const;
     }),
   );

@@ -21,7 +21,7 @@ import {
 import { articleMdxComponents } from "@/features/content/mdx";
 import { AsyncArticleContent } from "@/features/content/components/async-article-content";
 import { PageHeadingActions } from "@/features/content/components/page-heading-actions";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
 import { Directory } from "@/features/updates/mdx/directory";
 import { UpdatesRouteProvider } from "@/features/updates/mdx/updates-route-context";
@@ -54,7 +54,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
     );
   }
 
-  const Icon = resolveLucideIcon(entry.frontmatter.icon);
+  const Icon = resolveIcon(entry.frontmatter.icon);
   const isParentVersion = !entry.id.includes("/");
   const suiteConfig = getUpdatesSuiteConfig(suiteId);
   const resolvedActions = resolveHeadingActions(suiteConfig?.changelog.pageActions, {
@@ -125,7 +125,6 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center gap-2 rounded-lg border border-border/70 bg-muted/35 px-3 py-2 font-mono text-xs text-foreground/85 no-underline transition-colors hover:bg-muted/55"
-                 
                 >
                   <GitCompareArrows
                     className="size-3.5 shrink-0 text-muted-foreground"

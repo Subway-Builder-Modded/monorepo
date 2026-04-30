@@ -1,17 +1,13 @@
 import type { CommunityRouteMatch } from "./types";
+import { createSimpleRouteMatcher } from "@/lib/routing";
 
 const COMMUNITY_ROUTE = "/community";
+const communityRoute = createSimpleRouteMatcher(COMMUNITY_ROUTE, "community");
 
 export function matchCommunityRoute(pathname: string): CommunityRouteMatch {
-  const normalized = pathname.startsWith("/") ? pathname : `/${pathname}`;
-
-  if (normalized === COMMUNITY_ROUTE) {
-    return { kind: "page", pageId: "community" };
-  }
-
-  return { kind: "none" };
+  return communityRoute.match(pathname);
 }
 
 export function getCommunityPageUrl(): string {
-  return COMMUNITY_ROUTE;
+  return communityRoute.getUrl();
 }

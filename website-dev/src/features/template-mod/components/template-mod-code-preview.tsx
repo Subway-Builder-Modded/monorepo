@@ -1,6 +1,6 @@
 import { CodeDisplay, SectionHeader, SectionShell } from "@subway-builder-modded/shared-ui";
 import { TEMPLATE_MOD_CODE_EXAMPLES } from "@/features/template-mod/template-mod-content";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { useThemeMode } from "@/hooks/use-theme-mode";
 
 export function TemplateModCodePreview() {

@@ -36,10 +36,7 @@ export function HeroAccentBar({ segments, height = "h-1", className }: HeroAccen
             className="hidden size-full dark:block"
             style={{ backgroundColor: "var(--bar-dark)" }}
           />
-          <div
-            className="size-full dark:hidden"
-            style={{ backgroundColor: "var(--bar-light)" }}
-          />
+          <div className="size-full dark:hidden" style={{ backgroundColor: "var(--bar-light)" }} />
         </div>
       ))}
     </div>

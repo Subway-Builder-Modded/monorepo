@@ -13,7 +13,7 @@ import { Link } from "@/lib/router";
 import { DocsDeprecatedNotice } from "@/features/docs/components/docs-deprecated-notice";
 import { DocsVersionChooser } from "@/features/docs/components/docs-version-chooser";
 import { getDocsTree, getVisibleNodes } from "@/features/docs/lib/content";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { getDocPageUrl } from "@/features/docs/lib/routing";
 import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";

@@ -1,11 +1,11 @@
 import { SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { getSuiteById } from "@/config/site-navigation";
 import { railyardDownloadOptions } from "@/features/railyard/railyard-downloads";
-import { RailyardHero } from "@/features/railyard/components/RailyardHero";
-import { RailyardAppStory } from "@/features/railyard/components/RailyardAppStory";
-import { RegistryDiscoveryPanel } from "@/features/railyard/components/RegistryDiscoveryPanel";
-import { RailyardBridgeCards } from "@/features/railyard/components/RailyardBridgeCards";
-import { RailyardDownloadsPicker } from "@/features/railyard/components/RailyardDownloadsPicker";
+import { RailyardHero } from "@/features/railyard/components/railyard-hero";
+import { RailyardAppStory } from "@/features/railyard/components/railyard-app-story";
+import { RegistryDiscoveryPanel } from "@/features/railyard/components/registry-discovery-panel";
+import { RailyardBridgeCards } from "@/features/railyard/components/railyard-bridge-cards";
+import { RailyardDownloadsPicker } from "@/features/railyard/components/railyard-downloads-picker";
 import type { RailyardRegistrySummary } from "@/features/railyard/railyard-types";
 
 type RailyardPageProps = {

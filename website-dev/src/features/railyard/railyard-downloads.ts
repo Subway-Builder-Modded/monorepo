@@ -20,10 +20,11 @@ export type RailyardReleaseAssetInfo = {
 };
 
 function extractLatestRailyardVersion(): string {
-  const updateFiles = import.meta.glob(
-    "../../../content/railyard/updates/*.mdx",
-    { eager: true, query: "?raw", import: "default" },
-  ) as Record<string, string>;
+  const updateFiles = import.meta.glob("../../../content/railyard/updates/*.mdx", {
+    eager: true,
+    query: "?raw",
+    import: "default",
+  }) as Record<string, string>;
 
   const versions = Object.keys(updateFiles)
     .map((path) => {
@@ -234,7 +235,7 @@ export function resolveRailyardReleaseAssetInfo(
     name.toLowerCase().endsWith(optionAssetName.toLowerCase()),
   );
 
-  return matchedName ? assetInfoByName[matchedName] ?? null : null;
+  return matchedName ? (assetInfoByName[matchedName] ?? null) : null;
 }
 
 export type RailyardDetectedPlatform = {
@@ -248,9 +249,7 @@ type NavigatorWithUaData = Navigator & {
     architecture?: string;
     bitness?: string;
     wow64?: boolean;
-    getHighEntropyValues?: (
-      hints: string[],
-    ) => Promise<{
+    getHighEntropyValues?: (hints: string[]) => Promise<{
       architecture?: string;
       bitness?: string;
       model?: string;
@@ -375,7 +374,9 @@ export function selectRecommendedRailyardDownload(
   const preferredArch = detected.arch;
 
   if (preferredOs !== "unknown" && preferredArch !== "unknown") {
-    const exact = options.find((option) => option.os === preferredOs && option.arch === preferredArch);
+    const exact = options.find(
+      (option) => option.os === preferredOs && option.arch === preferredArch,
+    );
     if (exact) {
       return exact;
     }

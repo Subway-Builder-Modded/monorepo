@@ -1,7 +1,7 @@
 import { Button } from "@subway-builder-modded/shared-ui";
 import { Package } from "lucide-react";
 import { LightMarkdown } from "@/features/content/components/light-markdown";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { Link } from "@/lib/router";
 import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
 import {
@@ -51,36 +51,30 @@ export function TemplateModHero() {
       </div>
 
       <div className="relative z-10 grid w-full gap-8 px-5 sm:px-7 md:px-9 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-center lg:gap-9 lg:px-12">
-          <div className="origin-top-left scale-[0.85] space-y-6">
-            <div className="space-y-3">
-              <h1 className="flex items-center gap-3 text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.93] tracking-[-0.04em] text-foreground">
-                <Package
-                  className="size-[0.9em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
-                  aria-hidden={true}
-                />
-                <span>{TEMPLATE_MOD_TITLE}</span>
-              </h1>
-              <LightMarkdown className="max-w-[clamp(30rem,48vw,62rem)] text-[clamp(1rem,2vw,1.16rem)] leading-relaxed text-foreground/76">
-                {TEMPLATE_MOD_HERO_COPY}
-              </LightMarkdown>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2.5">
-              <CtaButton
-                cta={TEMPLATE_MOD_PRIMARY_CTA}
-                iconClassName="size-5"
+        <div className="origin-top-left scale-[0.85] space-y-6">
+          <div className="space-y-3">
+            <h1 className="flex items-center gap-3 text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.93] tracking-[-0.04em] text-foreground">
+              <Package
+                className="size-[0.9em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                aria-hidden={true}
               />
-              <CtaButton
-                cta={TEMPLATE_MOD_SECONDARY_CTA}
-                iconClassName="size-4.5"
-              />
-            </div>
+              <span>{TEMPLATE_MOD_TITLE}</span>
+            </h1>
+            <LightMarkdown className="max-w-[clamp(30rem,48vw,62rem)] text-[clamp(1rem,2vw,1.16rem)] leading-relaxed text-foreground/76">
+              {TEMPLATE_MOD_HERO_COPY}
+            </LightMarkdown>
           </div>
 
-          <div className="w-full origin-top-right justify-self-end scale-[0.85] lg:translate-y-16">
-            <TemplateModHeroWorkbench />
+          <div className="flex flex-wrap items-center gap-2.5">
+            <CtaButton cta={TEMPLATE_MOD_PRIMARY_CTA} iconClassName="size-5" />
+            <CtaButton cta={TEMPLATE_MOD_SECONDARY_CTA} iconClassName="size-4.5" />
           </div>
         </div>
+
+        <div className="w-full origin-top-right justify-self-end scale-[0.85] lg:translate-y-16">
+          <TemplateModHeroWorkbench />
+        </div>
+      </div>
 
       <HeroAccentBar
         segments={[

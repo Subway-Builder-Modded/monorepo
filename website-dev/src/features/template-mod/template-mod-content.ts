@@ -115,25 +115,29 @@ export const TEMPLATE_MOD_FOUNDATION_CARDS: TemplateModFoundationCard[] = [
   {
     id: "modding-api",
     title: "Modding API-Aligned Types",
-    description: "Template typings are aligned to Subway Builder Modding API, including core, game-state, build, and UI modules.",
+    description:
+      "Template typings are aligned to Subway Builder Modding API, including core, game-state, build, and UI modules.",
     icon: "Blocks",
   },
   {
     id: "react",
     title: "React at Runtime",
-    description: "React is provided by the game. Use regular hooks and bind game UI components from SubwayBuilderAPI.",
+    description:
+      "React is provided by the game. Use regular hooks and bind game UI components from SubwayBuilderAPI.",
     icon: "Atom",
   },
   {
     id: "dev-scripts",
     title: "Dev Scripts",
-    description: "Use `build`/`dev`/`dev:link`/`dev:unlink`/`typecheck` scripts for a stable modding workflow across platforms.",
+    description:
+      "Use `build`/`dev`/`dev:link`/`dev:unlink`/`typecheck` scripts for a stable modding workflow across platforms.",
     icon: "Terminal",
   },
   {
     id: "documentation",
     title: "In-Depth Documentation",
-    description: "Comprehensive guides and references for mod development, all actively maintained and expanded.",
+    description:
+      "Comprehensive guides and references for mod development, all actively maintained and expanded.",
     icon: "FolderTree",
   },
 ];
@@ -194,5 +198,3 @@ export const TEMPLATE_MOD_CODE_EXAMPLES: TemplateModCodeExample[] = [
     content: API_CODE,
   },
 ];
-
-

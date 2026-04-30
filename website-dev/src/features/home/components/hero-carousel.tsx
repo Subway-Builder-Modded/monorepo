@@ -100,8 +100,8 @@ export function HeroCarousel() {
         if (multi && sectionRef.current && !sectionRef.current.contains(e.relatedTarget as Node))
           setPaused(false);
       }}
+      aria-label="Hero showcase"
       aria-roledescription="carousel"
-     
     >
       <motion.div
         className="absolute inset-0"
@@ -115,8 +115,8 @@ export function HeroCarousel() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ opacity: { duration: 1.2, ease: "easeInOut" } }}
+            aria-label={slide.alt}
             aria-roledescription="slide"
-           
           >
             <img
               src={slide.imageLight}
@@ -230,15 +230,14 @@ export function HeroCarousel() {
         <div
           className="absolute bottom-5 right-5 z-20 flex items-center gap-2 sm:bottom-7 sm:right-7"
           role="tablist"
-         
         >
           {slides.map((s, i) => (
             <button
               key={s.id}
               type="button"
               role="tab"
+              aria-label={`Slide ${i + 1}`}
               aria-selected={i === idx}
-             
               onClick={() => go(i)}
               className={cn(
                 "relative size-3 rounded-full border-2 transition-all duration-300",

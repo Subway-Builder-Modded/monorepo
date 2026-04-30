@@ -110,7 +110,6 @@ export function FloatingNavbar({ pathname, theme, setTheme }: FloatingNavbarProp
       {!isClosed ? (
         <motion.button
           type="button"
-         
           className="fixed inset-0 z-40 bg-[var(--overlay-scrim-soft)]"
           initial={{ opacity: 0 }}
           animate={{ opacity: showPanelSurface ? 1 : 0.1 }}

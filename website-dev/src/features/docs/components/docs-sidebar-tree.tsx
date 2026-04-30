@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getVisibleNodes } from "@/features/docs/lib/content";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { Link } from "@/lib/router";
 import type { DocsTreeNode } from "@/features/docs/lib/types";
 
@@ -110,7 +110,7 @@ function SidebarItem({
                   ? "text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
                   : "text-muted-foreground group-hover/row:text-[var(--suite-accent-light)] dark:group-hover/row:text-[var(--suite-accent-dark)]",
               )}
-             
+              aria-label={isCollapsed ? "Expand section" : "Collapse section"}
               aria-expanded={!isCollapsed}
             >
               <ChevronRight

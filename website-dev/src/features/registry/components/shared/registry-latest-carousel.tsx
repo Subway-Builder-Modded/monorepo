@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
-import { RegistryListingCard, type RegistryContentItem } from "@/features/registry/components/shared/RegistryListingCard";
+import {
+  RegistryListingCard,
+  type RegistryContentItem,
+} from "@/features/registry/components/shared/registry-listing-card";
 
 type RegistryLatestCarouselProps = {
   items: RegistryContentItem[];
@@ -29,7 +32,9 @@ export function RegistryLatestCarousel({ items }: RegistryLatestCarouselProps) {
         <h2 className="text-sm font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           Discover Content
         </h2>
-        <span className="text-xs font-medium text-muted-foreground">Latest community creations</span>
+        <span className="text-xs font-medium text-muted-foreground">
+          Latest community creations
+        </span>
       </div>
 
       {visibleItems.length === 0 ? null : visibleItems.length === 1 ? (

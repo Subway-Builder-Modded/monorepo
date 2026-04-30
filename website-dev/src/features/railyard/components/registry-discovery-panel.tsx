@@ -41,10 +41,17 @@ export function RegistryDiscoveryPanel({ summary }: RegistryDiscoveryPanelProps)
             </span>
           </div>
           <p className="text-base leading-relaxed text-white/88 sm:text-[17px]">
-            Railyard is powered by its GitHub-powered Registry, which hosts all of the data for content that you can discover and install in Railyard. The Registry also comes equipped with in-depth analytics and insights for creators to see how their content is performing.
+            Railyard is powered by its GitHub-powered Registry, which hosts all of the data for
+            content that you can discover and install in Railyard. The Registry also comes equipped
+            with in-depth analytics and insights for creators to see how their content is
+            performing.
           </p>
           <SuiteAccentScope accent={registrySuite.accent}>
-            <SuiteAccentButton tone="solid" asChild className="h-11 w-fit px-6 text-sm font-semibold">
+            <SuiteAccentButton
+              tone="solid"
+              asChild
+              className="h-11 w-fit px-6 text-sm font-semibold"
+            >
               <Link to={railyardRegistryDiscovery.ctaHref}>
                 <Database className="size-4" aria-hidden={true} />
                 {railyardRegistryDiscovery.ctaLabel}

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { RailyardDownloadsPicker } from "@/features/railyard/components/RailyardDownloadsPicker";
+import { RailyardDownloadsPicker } from "@/features/railyard/components/railyard-downloads-picker";
 import type { RailyardDownloadOption } from "@/features/railyard/railyard-types";
 
 const options: RailyardDownloadOption[] = [

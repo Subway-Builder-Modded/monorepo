@@ -116,11 +116,14 @@ export function RegistryListingCard({
 
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1.5 self-start">
-              <h3 className="line-clamp-1 text-base font-semibold leading-tight text-foreground">{item.title}</h3>
+              <h3 className="line-clamp-1 text-base font-semibold leading-tight text-foreground">
+                {item.title}
+              </h3>
               <p className="line-clamp-1 text-xs font-medium text-foreground">{item.author}</p>
             </div>
 
-            {item.kind === "map" && (item.cityCode || item.countryName || item.population !== null) ? (
+            {item.kind === "map" &&
+            (item.cityCode || item.countryName || item.population !== null) ? (
               <div className="flex max-w-[52%] flex-wrap justify-end gap-2 text-xs text-muted-foreground">
                 {item.cityCode ? (
                   <span className="rounded-md border border-border/60 bg-background/75 px-2 py-1 font-semibold text-foreground/85">
@@ -143,7 +146,9 @@ export function RegistryListingCard({
             ) : null}
           </div>
 
-          <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">{previewText}</p>
+          <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">
+            {previewText}
+          </p>
         </div>
       </article>
     </Link>

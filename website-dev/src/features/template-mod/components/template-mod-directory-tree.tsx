@@ -37,9 +37,15 @@ export function TemplateModDirectoryTree({ tree }: TemplateModDirectoryTreeProps
               : "border-transparent bg-transparent",
           ].join(" ")}
         >
-          <span className="relative flex w-full items-center gap-2" style={{ paddingLeft: `${depth * 1.45}rem` }}>
+          <span
+            className="relative flex w-full items-center gap-2"
+            style={{ paddingLeft: `${depth * 1.45}rem` }}
+          >
             <span className="relative flex size-4 shrink-0 items-center justify-center">
-              <span className="pointer-events-none absolute -left-3 top-1/2 h-px w-3 -translate-y-1/2 bg-transparent" aria-hidden={true} />
+              <span
+                className="pointer-events-none absolute -left-3 top-1/2 h-px w-3 -translate-y-1/2 bg-transparent"
+                aria-hidden={true}
+              />
             </span>
 
             <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,white)] text-[var(--suite-accent-light)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,transparent)] dark:text-[var(--suite-accent-dark)]">
@@ -47,7 +53,9 @@ export function TemplateModDirectoryTree({ tree }: TemplateModDirectoryTreeProps
             </span>
 
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-foreground">{node.label}</span>
+              <span className="block truncate text-sm font-medium text-foreground">
+                {node.label}
+              </span>
             </span>
           </span>
         </div>

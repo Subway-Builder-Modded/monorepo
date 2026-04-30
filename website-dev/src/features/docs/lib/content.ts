@@ -12,7 +12,6 @@ import type {
   MdxGlobResult,
   MdxRawContentModule,
 } from "@/features/content/lib/mdx-virtual-module";
-// @ts-expect-error -- virtual module provided by mdxRawContentPlugin in vite.config
 import rawContentData from "virtual:mdx-raw-content";
 
 const mdxModules = import.meta.glob("/content/*/docs/**/*.mdx") as MdxGlobResult;

@@ -28,5 +28,3 @@ export type TemplateModCodeExample = {
   title: string;
   content: string;
 };
-
-

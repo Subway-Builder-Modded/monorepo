@@ -90,8 +90,7 @@ describe("railyard downloads", () => {
   it("detects Windows ARM64 when high-entropy UA data reports x86 under WoW64", async () => {
     const detected = await detectRailyardPlatformAccurate({
       platform: "Win32",
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
       userAgentData: {
         platform: "Windows",
         architecture: "x86",

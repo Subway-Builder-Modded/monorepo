@@ -1,6 +1,6 @@
 import { Card, CardContent, SectionHeader, SectionShell } from "@subway-builder-modded/shared-ui";
 import { LightMarkdown } from "@/features/content/components/light-markdown";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import {
   TEMPLATE_MOD_DIRECTORY_TREE,
   TEMPLATE_MOD_FOUNDATION_CARDS,
@@ -32,7 +32,9 @@ export function TemplateModFoundationGrid() {
                   <div className="flex items-start gap-3">
                     <Icon className="mt-0.5 h-4 w-4 shrink-0 text-foreground" aria-hidden={true} />
                     <div className="space-y-2">
-                      <h3 className="text-base font-semibold tracking-tight text-foreground">{card.title}</h3>
+                      <h3 className="text-base font-semibold tracking-tight text-foreground">
+                        {card.title}
+                      </h3>
                       <LightMarkdown className="text-sm leading-relaxed text-muted-foreground">
                         {card.description}
                       </LightMarkdown>
