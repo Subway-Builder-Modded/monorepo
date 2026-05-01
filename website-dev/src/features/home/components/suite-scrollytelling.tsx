@@ -26,7 +26,7 @@ function StationSwitcher({
   const { resolvedTheme } = useThemeMode();
 
   return (
-    <nav className="relative flex flex-col items-center" aria-label="Suite navigation">
+    <nav className="relative flex flex-col items-center">
       {steps.map((step, i) => {
         const isActive = i === activeIdx;
         const accent = getHomepageSuiteAccent(step.accentSuiteId);
@@ -37,9 +37,9 @@ function StationSwitcher({
           <div key={step.id} className="flex flex-col items-center">
             {i > 0 && (
               <div
-                className="w-[3px] rounded-full"
+                className="w-[6px] rounded-full"
                 style={{
-                  height: 36,
+                  height: 44,
                   backgroundColor: "var(--border)",
                 }}
                 aria-hidden="true"
@@ -49,7 +49,7 @@ function StationSwitcher({
               type="button"
               onClick={() => onSelect(i)}
               className={cn(
-                "relative flex size-14 items-center justify-center rounded-xl border-2 transition-all duration-300 xl:size-16",
+                "relative flex size-14 items-center justify-center rounded-full border-[3px] transition-all duration-300 xl:size-16",
                 isActive ? "scale-110 shadow-lg" : "hover:scale-105",
               )}
               style={{
@@ -59,7 +59,6 @@ function StationSwitcher({
                 boxShadow: isActive ? `0 4px 20px ${tone}25` : undefined,
               }}
               aria-current={isActive ? "step" : undefined}
-              aria-label={step.title}
             >
               <StepIcon
                 className={cn("size-5 xl:size-6", isActive && "drop-shadow-sm")}
@@ -223,7 +222,7 @@ function DesktopSwitcher({ steps }: { steps: SuiteStep[] }) {
 
   return (
     <div className="grid grid-cols-[80px_minmax(0,1fr)] items-start gap-10 xl:grid-cols-[96px_minmax(0,1fr)] xl:gap-14 min-[1920px]:gap-20">
-      <div className="sticky top-[calc(50vh-160px)] flex justify-center self-start">
+      <div className="sticky top-1/2 mt-44 flex -translate-y-1/2 justify-center self-start lg:mt-48">
         <StationSwitcher steps={steps} activeIdx={activeIdx} onSelect={scrollToPanel} />
       </div>
 
@@ -266,7 +265,7 @@ export function SuiteScrollytellingSection() {
         description={SUITE_SCROLLYTELLING_SECTION.description}
       />
 
-      <div className="mt-12 lg:mt-16">
+      <div className="mt-16 lg:mt-24">
         {isDesktop ? <DesktopSwitcher steps={steps} /> : <MobileStack steps={steps} />}
       </div>
     </SectionShell>

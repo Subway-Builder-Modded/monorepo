@@ -7,12 +7,19 @@ import {
 } from "@/features/docs/components/docs-sidebar-tree";
 import type { DocsTreeNode } from "@/features/docs/lib/types";
 
-vi.mock("@/features/content/lib/icon-resolver", () => ({
-  resolveLucideIcon: () =>
-    function MockIcon({ className }: { className?: string }) {
-      return <span className={className} />;
-    },
-}));
+vi.mock("@subway-builder-modded/icons", async () => {
+  const actual = await vi.importActual<typeof import("@subway-builder-modded/icons")>(
+    "@subway-builder-modded/icons",
+  );
+
+  return {
+    ...actual,
+    resolveIcon: () =>
+      function MockIcon({ className }: { className?: string }) {
+        return <span className={className} />;
+      },
+  };
+});
 
 vi.mock("@/lib/router", () => ({
   Link: ({

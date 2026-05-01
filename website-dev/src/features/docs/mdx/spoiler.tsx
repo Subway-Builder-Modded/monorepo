@@ -7,7 +7,7 @@ import {
   SPOILER_SUMMARY_CLASS,
   SPOILER_BODY_CLASS,
 } from "@subway-builder-modded/mdx";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 
 type SpoilerProps = {
   title?: ReactNode;

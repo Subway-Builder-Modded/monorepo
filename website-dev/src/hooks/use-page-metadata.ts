@@ -1,18 +1,10 @@
 import { useEffect, useMemo } from "react";
 import { resolvePageMetadata } from "@/config/page-metadata";
+import { normalizeBasePath } from "@/lib/router";
 
 type UsePageMetadataOptions = {
   pathname: string;
 };
-
-function normalizeBasePath(basePath: string): string {
-  if (!basePath || basePath === "/") {
-    return "/";
-  }
-
-  const prefixed = basePath.startsWith("/") ? basePath : `/${basePath}`;
-  return prefixed.endsWith("/") ? prefixed.slice(0, -1) : prefixed;
-}
 
 function withBasePath(pathname: string): string {
   const basePath = normalizeBasePath(import.meta.env.BASE_URL ?? "/");

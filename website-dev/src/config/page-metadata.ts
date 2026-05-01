@@ -2,6 +2,7 @@ import {
   getActiveSuite,
   getMatchingItem,
   getSuiteById,
+  getItemsForSuite,
   getSuiteDocsNavItem,
   getSuiteUpdatesNavItem,
   type SiteSuite,
@@ -38,6 +39,10 @@ const PAGE_METADATA_OVERRIDES: Record<string, PageMetadataDefinition> = {
     suiteId: "general",
   },
 };
+
+function getSuiteHomeNavItem(suiteId: SiteSuiteId) {
+  return getItemsForSuite(suiteId).find((item) => item.id === `${suiteId}-home`) ?? null;
+}
 
 function normalizePathname(pathname: string): string {
   if (!pathname) return "/";
@@ -128,17 +133,26 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
 
   const resolvedSuiteId = override?.suiteId ?? matchedItem?.suiteId ?? activeSuite.id;
   const suite = getSuiteById(resolvedSuiteId);
+  const suiteHomeItem = getSuiteHomeNavItem(suite.id);
 
   const title =
-    override?.title ?? matchedItem?.title ?? (suite.id === "general" ? DEFAULT_SITE_TITLE : "Home");
-  const description = override?.description ?? matchedItem?.description ?? DEFAULT_SITE_DESCRIPTION;
+    override?.title ??
+    (matchedItem?.id === `${suite.id}-home` ? suite.title : matchedItem?.title) ??
+    suiteHomeItem?.title ??
+    (suite.id === "general" ? DEFAULT_SITE_TITLE : "Home");
+  const description =
+    override?.description ??
+    matchedItem?.description ??
+    suiteHomeItem?.description ??
+    DEFAULT_SITE_DESCRIPTION;
 
   return {
     pathname: normalizedPathname,
     title,
     description,
     suite,
-    pageTitle: suite.id === "general" ? title : `${title} | ${suite.title}`,
+    pageTitle:
+      suite.id === "general" || title === suite.title ? title : `${title} | ${suite.title}`,
     imagePath: getSuiteImagePath(suite.id),
   };
 }

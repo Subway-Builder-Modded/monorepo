@@ -2,6 +2,7 @@ import { type CSSProperties, useCallback, useEffect, useRef, useState } from "re
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
 import { GithubIcon, DiscordIcon } from "@subway-builder-modded/icons";
+import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
 import {
   HERO_SLIDES,
   HERO_AUTO_ROTATE_MS,
@@ -91,7 +92,7 @@ export function HeroCarousel() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-[calc(100svh-3rem)] w-full overflow-hidden"
+      className="relative h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] w-full overflow-visible"
       onMouseEnter={() => multi && setPaused(true)}
       onMouseLeave={() => multi && setPaused(false)}
       onFocusCapture={() => multi && setPaused(true)}
@@ -99,72 +100,80 @@ export function HeroCarousel() {
         if (multi && sectionRef.current && !sectionRef.current.contains(e.relatedTarget as Node))
           setPaused(false);
       }}
-      aria-roledescription="carousel"
       aria-label="Hero showcase"
+      aria-roledescription="carousel"
     >
-      <motion.div
-        className="absolute inset-0"
-        style={prefersReducedMotion ? undefined : { y: imgY, scale: imgScale }}
-      >
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={slide.id}
-            className="absolute inset-0"
-            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ opacity: { duration: 1.2, ease: "easeInOut" } }}
-            aria-roledescription="slide"
-            aria-label={slide.alt}
-          >
-            <img
-              src={slide.imageLight}
-              alt={slide.alt}
-              className="absolute inset-0 block h-full w-full object-cover dark:hidden"
-              style={slide.focalPointLight ? { objectPosition: slide.focalPointLight } : undefined}
-              loading="eager"
-              draggable={false}
-            />
-            <img
-              src={slide.imageDark}
-              alt={slide.alt}
-              className="absolute inset-0 hidden h-full w-full object-cover dark:block"
-              style={slide.focalPointDark ? { objectPosition: slide.focalPointDark } : undefined}
-              loading="eager"
-              draggable={false}
-            />
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
+      <div className="absolute -top-12 inset-x-0 bottom-0 overflow-hidden">
+        <motion.div
+          className="absolute inset-0"
+          style={
+            prefersReducedMotion
+              ? undefined
+              : { y: imgY, scale: imgScale, transformOrigin: "50% 0%" }
+          }
+        >
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={slide.id}
+              className="absolute inset-0"
+              initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ opacity: { duration: 1.2, ease: "easeInOut" } }}
+              aria-label={slide.alt}
+              aria-roledescription="slide"
+            >
+              <img
+                src={slide.imageLight}
+                alt={slide.alt}
+                className="absolute inset-0 block h-full w-full object-cover dark:hidden"
+                style={
+                  slide.focalPointLight ? { objectPosition: slide.focalPointLight } : undefined
+                }
+                loading="eager"
+                draggable={false}
+              />
+              <img
+                src={slide.imageDark}
+                alt={slide.alt}
+                className="absolute inset-0 hidden h-full w-full object-cover dark:block"
+                style={slide.focalPointDark ? { objectPosition: slide.focalPointDark } : undefined}
+                loading="eager"
+                draggable={false}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
 
-      <div className="pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
+        <div className="pointer-events-none absolute inset-0 z-[1]" aria-hidden="true">
+          <div
+            className="absolute left-1/2 top-[53%] h-[clamp(22rem,46vw,46rem)] w-[clamp(22rem,46vw,46rem)] -translate-x-1/2 -translate-y-1/2 rounded-[3rem]"
+            style={getHeroBlurLayerStyle(4)}
+          />
+          <div
+            className="absolute left-1/2 top-[53%] h-[clamp(30rem,60vw,60rem)] w-[clamp(30rem,60vw,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-[4.5rem] opacity-72"
+            style={getHeroBlurLayerStyle(2.5)}
+          />
+          <div
+            className="absolute left-1/2 top-[53%] h-[clamp(40rem,78vw,78rem)] w-[clamp(40rem,78vw,78rem)] -translate-x-1/2 -translate-y-1/2 rounded-[6.5rem] opacity-42"
+            style={getHeroBlurLayerStyle(1.5)}
+          />
+          <div
+            className="absolute left-1/2 top-[53%] h-[clamp(52rem,98vw,100rem)] w-[clamp(52rem,98vw,100rem)] -translate-x-1/2 -translate-y-1/2 rounded-[8rem] opacity-20"
+            style={getHeroBlurLayerStyle(0.75)}
+          />
+        </div>
+
         <div
-          className="absolute left-1/2 top-[53%] h-[clamp(22rem,46vw,46rem)] w-[clamp(22rem,46vw,46rem)] -translate-x-1/2 -translate-y-1/2 rounded-[3rem]"
-          style={getHeroBlurLayerStyle(4)}
+          className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/25 via-40% to-transparent"
+          aria-hidden="true"
         />
+
         <div
-          className="absolute left-1/2 top-[53%] h-[clamp(30rem,60vw,60rem)] w-[clamp(30rem,60vw,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-[4.5rem] opacity-72"
-          style={getHeroBlurLayerStyle(2.5)}
-        />
-        <div
-          className="absolute left-1/2 top-[53%] h-[clamp(40rem,78vw,78rem)] w-[clamp(40rem,78vw,78rem)] -translate-x-1/2 -translate-y-1/2 rounded-[6.5rem] opacity-42"
-          style={getHeroBlurLayerStyle(1.5)}
-        />
-        <div
-          className="absolute left-1/2 top-[53%] h-[clamp(52rem,98vw,100rem)] w-[clamp(52rem,98vw,100rem)] -translate-x-1/2 -translate-y-1/2 rounded-[8rem] opacity-20"
-          style={getHeroBlurLayerStyle(0.75)}
+          className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background/70 via-background/15 via-25% to-transparent"
+          aria-hidden="true"
         />
       </div>
-
-      <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/25 via-40% to-transparent"
-        aria-hidden="true"
-      />
-
-      <div
-        className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background/70 via-background/15 via-25% to-transparent"
-        aria-hidden="true"
-      />
 
       <motion.div
         className="relative z-10 flex h-full flex-col items-center justify-center text-center"
@@ -229,15 +238,14 @@ export function HeroCarousel() {
         <div
           className="absolute bottom-5 right-5 z-20 flex items-center gap-2 sm:bottom-7 sm:right-7"
           role="tablist"
-          aria-label="Hero slides"
         >
           {slides.map((s, i) => (
             <button
               key={s.id}
               type="button"
               role="tab"
-              aria-selected={i === idx}
               aria-label={`Slide ${i + 1}`}
+              aria-selected={i === idx}
               onClick={() => go(i)}
               className={cn(
                 "relative size-3 rounded-full border-2 transition-all duration-300",
@@ -250,14 +258,7 @@ export function HeroCarousel() {
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 z-30 flex h-1">
-        {HERO_SUITE_BARS.map((bar, i) => (
-          <div key={i} className="flex-1">
-            <div className="hidden size-full dark:block" style={{ backgroundColor: bar.dark }} />
-            <div className="size-full dark:hidden" style={{ backgroundColor: bar.light }} />
-          </div>
-        ))}
-      </div>
+      <HeroAccentBar segments={HERO_SUITE_BARS} className="z-30" />
     </section>
   );
 }

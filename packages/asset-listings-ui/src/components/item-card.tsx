@@ -37,15 +37,10 @@ export interface ItemCardProps<T = { author_alias: string; contributor_tier?: st
   viewMode?: SearchViewMode;
   imagePath?: string;
   href?: string;
-  /** Custom description formatter. If not provided, uses raw description */
   formatDescription?: (desc: string) => string;
-  /** Callback to render the link wrapper for the card */
   renderLink: (props: { href: string; children: ReactNode }) => ReactNode;
-  /** Callback to render the author name */
   renderAuthorName: (props: { name: string; contributorTier?: string; size?: 'sm' }) => ReactNode;
-  /** Callback to resolve image URL */
   resolveImageUrl?: (type: GalleryAssetType, id: string, imagePath?: string) => string | null;
-  /** Optional adapter to render image with app-specific components/hooks */
   renderImage?: (props: {
     type: GalleryAssetType;
     id: string;

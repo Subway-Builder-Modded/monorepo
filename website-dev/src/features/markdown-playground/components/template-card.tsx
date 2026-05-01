@@ -6,7 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import type { RegistryTemplate } from "@/lib/registry/templates";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +16,7 @@ type TemplateCardProps = {
 };
 
 export function TemplateCard({ template, onSelect }: TemplateCardProps) {
-  const Icon = resolveLucideIcon(template.icon);
+  const Icon = resolveIcon(template.icon);
 
   return (
     <DirectoryCard
@@ -51,9 +51,12 @@ export function TemplateCard({ template, onSelect }: TemplateCardProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1.5" aria-label="Verified author">
+                    <span className="inline-flex items-center gap-1.5">
                       <span>{template.author}</span>
-                      <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden />
+                      <BadgeCheck
+                        className="size-3.5 text-emerald-500"
+                        aria-label="Verified author"
+                      />
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="z-[140]">
@@ -74,13 +77,11 @@ export function TemplateCard({ template, onSelect }: TemplateCardProps) {
         "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_52%,transparent)]",
       )}
       data-testid={`template-card-${template.slug}`}
-      aria-label={`Browse ${template.title} template`}
     >
       <button
         type="button"
         onClick={() => onSelect(template)}
         className="block w-full rounded-xl focus-visible:outline-none"
-        aria-label={`Browse ${template.title} template`}
       >
         {null}
       </button>

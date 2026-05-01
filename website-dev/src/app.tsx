@@ -5,11 +5,16 @@ import { UpdatesRoute, matchUpdatesRoute } from "@/features/updates";
 import { LicenseRoute, matchLicenseRoute } from "@/features/license";
 import { CreditsRoute, matchCreditsRoute } from "@/features/credits";
 import { ContributeRoute, matchContributeRoute } from "@/features/contribute";
+import { CommunityRoute, matchCommunityRoute } from "@/features/community";
 import {
   MarkdownPlaygroundRoute,
   matchMarkdownPlaygroundRoute,
 } from "@/features/markdown-playground";
 import { HomePage } from "@/features/home";
+import { RailyardRoute, matchRailyardRoute } from "@/features/railyard";
+import { TemplateModRoute, matchTemplateModRoute } from "@/features/template-mod";
+import { DepotRoute, matchDepotRoute } from "@/features/depot";
+import { NotFoundPage } from "@/features/not-found";
 
 function RouteSwitch() {
   const location = useLocation();
@@ -38,12 +43,36 @@ function RouteSwitch() {
     return <ContributeRoute />;
   }
 
+  const communityMatch = matchCommunityRoute(location.pathname);
+  if (communityMatch.kind !== "none") {
+    return <CommunityRoute />;
+  }
+
   const markdownPlaygroundMatch = matchMarkdownPlaygroundRoute(location.pathname);
   if (markdownPlaygroundMatch.kind !== "none") {
     return <MarkdownPlaygroundRoute />;
   }
 
-  return <HomePage />;
+  const templateModMatch = matchTemplateModRoute(location.pathname);
+  if (templateModMatch.kind !== "none") {
+    return <TemplateModRoute />;
+  }
+
+  const railyardMatch = matchRailyardRoute(location.pathname);
+  if (railyardMatch.kind !== "none") {
+    return <RailyardRoute />;
+  }
+
+  const depotMatch = matchDepotRoute(location.pathname);
+  if (depotMatch.kind !== "none") {
+    return <DepotRoute />;
+  }
+
+  if (location.pathname === "/") {
+    return <HomePage />;
+  }
+
+  return <NotFoundPage />;
 }
 
 export default function App() {

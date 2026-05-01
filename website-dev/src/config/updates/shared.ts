@@ -2,11 +2,6 @@ import { Megaphone, type LucideIcon } from "lucide-react";
 import type { UpdatesTag, UpdatesTagPresentation } from "./types";
 import { CONTENT_GITHUB_EDIT_BASE_URL, CONTENT_ROOT } from "../shared/content";
 
-/**
- * Re-exported under the updates-prefixed names that suite configs already import.
- * The actual values live in config/shared/content so the monorepo path is
- * declared exactly once across docs and updates.
- */
 export const UPDATES_GITHUB_BASE_URL = CONTENT_GITHUB_EDIT_BASE_URL;
 export const UPDATES_CONTENT_ROOT = CONTENT_ROOT;
 
@@ -25,8 +20,8 @@ export const UPDATES_TAG_PRESENTATION: Record<UpdatesTag, UpdatesTagPresentation
     label: "Beta",
     toneClassName: "bg-yellow-500/14 text-yellow-700 dark:text-yellow-300",
   },
-  alpha: {
-    label: "Release-Candidate",
+  "release-candidate": {
+    label: "Release Candidate",
     toneClassName: "bg-red-500/12 text-red-700 dark:text-red-300",
   },
 };

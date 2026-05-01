@@ -27,25 +27,25 @@ export function NavbarActions({
   return (
     <NavbarActionGroup>
       <NavbarActionLink
+        aria-label="Open Discord"
         href={discordLink?.href ?? "#"}
         target="_blank"
         rel="noreferrer"
-        aria-label="Open Discord"
       >
         {discordLink?.icon}
       </NavbarActionLink>
       <NavbarActionLink
+        aria-label="Open GitHub"
         href={githubLink?.href ?? "#"}
         target="_blank"
         rel="noreferrer"
-        aria-label="Open GitHub"
       >
         {githubLink?.icon}
       </NavbarActionLink>
       <NavbarActionButton
         type="button"
+        aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
         onClick={onThemeClick}
-        aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
       >
         {theme === "light" ? (
           <Sun className="size-4.5" aria-hidden="true" />

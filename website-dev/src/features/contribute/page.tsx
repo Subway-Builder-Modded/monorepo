@@ -44,7 +44,6 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
         } as React.CSSProperties
       }
     >
-      {/* Top accent bar — thicker for featured */}
       <div
         className={cn(
           "absolute inset-x-0 top-0 bg-[var(--tier-accent-light)] dark:bg-[var(--tier-accent-dark)]",
@@ -53,7 +52,6 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
         aria-hidden="true"
       />
 
-      {/* Subtle glow for featured */}
       {tier.featured && (
         <div
           className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-[var(--tier-accent-light)] to-transparent opacity-[0.06] dark:from-[var(--tier-accent-dark)]"
@@ -61,7 +59,6 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
         />
       )}
 
-      {/* Tier illustration */}
       <div className="relative aspect-[5/3] w-full overflow-hidden">
         <img
           src={`/images/contribute/${tier.id}.png`}
@@ -72,7 +69,6 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
         />
       </div>
 
-      {/* Card header: unboxed icon + overline + price + description */}
       <div
         className={cn(
           "flex flex-col px-7 sm:px-8",
@@ -85,7 +81,6 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
             aria-hidden="true"
           />
           <div className="min-w-0 flex-1">
-            {/* Role title / overline — matches footer column title style */}
             <span
               aria-hidden="true"
               className="mb-1 block h-0.5 w-8 rounded-full bg-[var(--tier-accent-light)] dark:bg-[var(--tier-accent-dark)]"
@@ -94,7 +89,6 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
               {tierName}
             </p>
 
-            {/* Price — dominant header text */}
             <div className="mt-2.5 flex items-baseline gap-1.5">
               <span className="text-[clamp(2rem,3.2vw,2.6rem)] font-extrabold leading-none tracking-tight text-foreground">
                 <span className="text-[0.55em] font-bold align-top mt-[0.18em] inline-block mr-0.5">
@@ -105,7 +99,6 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
               <span className="text-sm font-medium text-muted-foreground">/ month</span>
             </div>
 
-            {/* Description */}
             <p className="mt-3 text-[clamp(0.85rem,1.1vw,0.93rem)] leading-relaxed text-muted-foreground">
               {tier.pitch}
             </p>
@@ -113,17 +106,15 @@ function TierCard({ tier }: { tier: SupportTierConfig }) {
         </div>
       </div>
 
-      {/* Divider */}
       <div className="mx-7 h-px shrink-0 bg-border/55 sm:mx-8" aria-hidden="true" />
 
-      {/* Benefits */}
       <div
         className={cn(
           "flex flex-1 flex-col px-7 sm:px-8",
           tier.featured ? "pb-9 pt-5 sm:pb-10" : "pb-8 pt-5",
         )}
       >
-        <ul className="space-y-3.5" aria-label={`${tierName} tier benefits`}>
+        <ul className="space-y-3.5">
           {tier.benefits.map((benefit) => (
             <li key={benefit} className="flex items-start gap-2.5">
               <Check
@@ -174,11 +165,9 @@ export function ContributeRoute() {
   return (
     <SuiteAccentScope accent={suite.accent}>
       <section className="py-[clamp(1.1rem,3vw,2rem)]">
-        {/* Standardized title card */}
         <PageHeading icon={Icon} title={navItem.title} description={navItem.description} />
 
         <div className="mt-[clamp(2.5rem,5vw,4rem)] space-y-[clamp(3.5rem,7vw,5.5rem)]">
-          {/* Centered intro text + Ko-fi CTA */}
           <div className="mx-auto text-center" data-testid="contribute-intro-section">
             <p className="text-[clamp(0.97rem,1.45vw,1.1rem)] leading-relaxed text-foreground">
               {CONTRIBUTE_INTRO.primary}
@@ -187,7 +176,6 @@ export function ContributeRoute() {
               {CONTRIBUTE_INTRO.secondary}
             </p>
 
-            {/* Ko-fi CTA — sits directly beneath the centered intro */}
             <div className="mt-[clamp(1.5rem,3vw,2.25rem)]">
               <SuiteAccentButton
                 tone="solid"
@@ -198,7 +186,6 @@ export function ContributeRoute() {
                   href={CONTRIBUTE_CTA.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label="Support on Ko-fi — opens Ko-fi memberships page"
                   data-testid="contribute-cta-link"
                 >
                   <KofiIcon className="size-6" />
@@ -208,7 +195,6 @@ export function ContributeRoute() {
             </div>
           </div>
 
-          {/* Tier centerpiece */}
           <div>
             <SectionSeparator
               label="Support Tiers"

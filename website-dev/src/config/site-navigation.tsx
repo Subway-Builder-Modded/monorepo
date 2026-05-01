@@ -1,7 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import {
   Database,
-  Anvil,
   Globe,
   House,
   Package,
@@ -15,6 +14,7 @@ import {
   BookText,
   Megaphone,
   TrendingUp,
+  Warehouse,
 } from "lucide-react";
 import { GithubIcon, DiscordIcon, MarkdownIcon } from "@subway-builder-modded/icons";
 
@@ -24,7 +24,7 @@ export type SiteSuiteId =
   | "registry"
   | "template-mod"
   | "website"
-  | "foundry";
+  | "depot";
 
 export type SiteColorSchemeId =
   | "default"
@@ -32,7 +32,7 @@ export type SiteColorSchemeId =
   | "registry"
   | "template-mod"
   | "website"
-  | "foundry";
+  | "depot";
 
 export type SiteRouteMatchRule = {
   kind: "exact" | "prefix";
@@ -157,18 +157,18 @@ export const SITE_SUITES: SiteSuite[] = [
     },
   },
   {
-    id: "foundry",
-    title: "Foundry",
-    href: "/foundry",
-    icon: Anvil,
-    colorSchemeId: "foundry",
+    id: "depot",
+    title: "Depot",
+    href: "/depot",
+    icon: Warehouse,
+    colorSchemeId: "depot",
     accent: {
-      light: "#d64545",
-      dark: "#ff6b6b",
+      light: "#b68918",
+      dark: "#cfa22e",
       textInvertedLight: "#f2f2f2",
       textInvertedDark: "#232323",
-      mutedLight: "rgba(214,69,69,0.18)",
-      mutedDark: "rgba(255,107,107,0.13)",
+      mutedLight: "rgba(182,137,24,0.18)",
+      mutedDark: "rgba(207,162,46,0.13)",
     },
   },
 ];
@@ -179,7 +179,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     suiteId: "general",
     title: "Community",
     description:
-      "Join our Discord community for support, discussions, and the most up-to-date info.",
+      "Join the Subway Builder Modded Discord, follow project activity, and see how the community is growing.",
     href: "/community",
     icon: Handshake,
     activeMatchRules: [{ kind: "exact", path: "/community" }],
@@ -306,7 +306,8 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "template-mod-home",
     suiteId: "template-mod",
     title: "Home",
-    description: "Discover the all-inclusive TypeScript template for creating Subway Builder mods.",
+    description:
+      "Discover the all-inclusive TypeScript template for creating Subway Builder mods with ease.",
     href: "/template-mod",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/template-mod" }],
@@ -348,13 +349,23 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "prefix", path: "/website/analytics" }],
   },
   {
-    id: "foundry-home",
-    suiteId: "foundry",
+    id: "depot-home",
+    suiteId: "depot",
     title: "Home",
-    description: "Discover the unified suite for Subway Builder map creation.",
-    href: "/foundry",
+    description:
+      "Discover the core Python library powering the Subway Builder Modded map creation ecosystem.",
+    href: "/depot",
     icon: House,
-    activeMatchRules: [{ kind: "exact", path: "/foundry" }],
+    activeMatchRules: [{ kind: "exact", path: "/depot" }],
+  },
+  {
+    id: "depot-updates",
+    suiteId: "depot",
+    title: "Updates",
+    description: "View the changelogs and release notes for the Depot Python package.",
+    href: "/depot/updates",
+    icon: Megaphone,
+    activeMatchRules: [{ kind: "prefix", path: "/depot/updates" }],
   },
 ];
 
@@ -379,7 +390,7 @@ const SUITE_BY_ID: Record<SiteSuiteId, SiteSuite> = {
   registry: SITE_SUITES[2],
   "template-mod": SITE_SUITES[3],
   website: SITE_SUITES[4],
-  foundry: SITE_SUITES[5],
+  depot: SITE_SUITES[5],
 };
 
 function normalizePathname(pathname: string): string {

@@ -11,8 +11,8 @@ vi.mock("@/lib/router", () => ({
   ),
 }));
 
-vi.mock("@/features/content/lib/icon-resolver", () => ({
-  resolveLucideIcon: () => () => <svg data-testid="directory-icon" />,
+vi.mock("@subway-builder-modded/icons", () => ({
+  resolveIcon: () => () => <svg data-testid="directory-icon" />,
 }));
 
 vi.mock("@/features/docs/lib", () => ({

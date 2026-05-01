@@ -34,6 +34,6 @@ export function getUpdateArticleIdentity(entry: UpdateEntry | null) {
 
   return {
     title: entry.frontmatter.title,
-    description: `${entry.id} • ${entry.frontmatter.date}`,
+    description: entry.frontmatter.date,
   };
 }

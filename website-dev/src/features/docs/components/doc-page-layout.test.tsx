@@ -19,11 +19,18 @@ vi.mock("@/features/docs/components/on-this-page", () => ({
   OnThisPage: () => <aside data-testid="on-this-page" />,
 }));
 
-vi.mock("@/features/content/lib/icon-resolver", () => ({
-  resolveLucideIcon: () => (props: { className?: string }) => (
-    <svg data-testid="doc-title-icon" {...props} />
-  ),
-}));
+vi.mock("@subway-builder-modded/icons", async () => {
+  const actual = await vi.importActual<typeof import("@subway-builder-modded/icons")>(
+    "@subway-builder-modded/icons",
+  );
+
+  return {
+    ...actual,
+    resolveIcon: () => (props: { className?: string }) => (
+      <svg data-testid="doc-title-icon" {...props} />
+    ),
+  };
+});
 
 vi.mock("@/features/docs/lib/headings", () => ({
   extractHeadings: () => [

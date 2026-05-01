@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { DirectoryCard } from "@subway-builder-modded/shared-ui";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { getDocsTree, getVisibleNodes } from "@/features/docs/lib";
 import type { DocsTreeNode } from "@/features/docs/lib/types";
 import type { DocsSuiteId } from "@/config/docs";

@@ -4,7 +4,7 @@ import { getUpdateDirectoryEntries } from "@/features/updates/lib/content";
 import { UpdateEntryCard } from "@/features/updates/components/update-entry-card";
 import { useUpdatesRoute } from "./updates-route-context";
 import { DirectoryShell } from "@/features/content/components/directory-shell";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 
 type DirectoryProps = {
   path?: string;

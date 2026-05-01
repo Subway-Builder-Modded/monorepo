@@ -202,6 +202,7 @@ export default defineConfig(async () => {
     },
     optimizeDeps: {
       exclude: [
+        "@subway-builder-modded/analytics",
         "@subway-builder-modded/shared-ui",
         "@subway-builder-modded/asset-listings-ui",
         "@subway-builder-modded/stores-core",

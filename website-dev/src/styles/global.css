@@ -7,7 +7,7 @@
 @import "./schemes/template-mod.css";
 @import "./schemes/registry.css";
 @import "./schemes/website.css";
-@import "./schemes/foundry.css";
+@import "./schemes/depot.css";
 
 @plugin "@tailwindcss/typography";
 
@@ -229,5 +229,14 @@ body::-webkit-scrollbar {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@keyframes registry-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.5rem));
   }
 }

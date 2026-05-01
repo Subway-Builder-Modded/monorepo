@@ -4,7 +4,7 @@ import { OpenSourceSection } from "@/features/home/components/open-source-sectio
 import { AnalyticsSection } from "@/features/home/components/analytics-section";
 import { SuiteScrollytellingSection } from "@/features/home/components/suite-scrollytelling";
 
-export default function HomePage() {
+export function HomePage() {
   return (
     <div className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
       <HeroCarousel />

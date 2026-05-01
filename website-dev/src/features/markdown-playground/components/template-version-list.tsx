@@ -9,7 +9,7 @@ type TemplateVersionListProps = {
 
 export function TemplateVersionList({ versions, onPreviewVersion }: TemplateVersionListProps) {
   return (
-    <section aria-label="Available versions">
+    <section>
       <SectionSeparator label="Versions" className="mb-3" headingLevel={3} />
       <div className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border/70">
         {versions.map((version) => (

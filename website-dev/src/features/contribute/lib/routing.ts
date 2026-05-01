@@ -1,17 +1,13 @@
 import type { ContributeRouteMatch } from "./types";
+import { createSimpleRouteMatcher } from "@/lib/routing";
 
 const CONTRIBUTE_ROUTE = "/contribute";
+const contributeRoute = createSimpleRouteMatcher(CONTRIBUTE_ROUTE, "contribute");
 
 export function matchContributeRoute(pathname: string): ContributeRouteMatch {
-  const normalized = pathname.startsWith("/") ? pathname : `/${pathname}`;
-
-  if (normalized === CONTRIBUTE_ROUTE) {
-    return { kind: "page", pageId: "contribute" };
-  }
-
-  return { kind: "none" };
+  return contributeRoute.match(pathname);
 }
 
 export function getContributePageUrl(): string {
-  return CONTRIBUTE_ROUTE;
+  return contributeRoute.getUrl();
 }

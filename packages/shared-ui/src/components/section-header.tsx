@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react';
 import { cn } from '../lib/cn';
 
 export type SectionHeaderProps = {
   kicker?: string;
   title: string;
-  description?: string;
+  description?: ReactNode;
   accentColor?: string;
   className?: string;
 };
@@ -35,11 +36,15 @@ export function SectionHeader({
       <h2 className="text-[clamp(1.7rem,4.2vw,2.4rem)] font-extrabold tracking-[-0.03em] text-foreground sm:text-[clamp(2rem,3.3vw,2.7rem)] lg:text-[clamp(2.35rem,2.35vw,3.2rem)] min-[1920px]:text-[clamp(2.6rem,1.9vw,3.5rem)] min-[2560px]:text-[clamp(2.95rem,1.5vw,4rem)]">
         {title}
       </h2>
-      {description && (
-        <p className="mt-2.5 max-w-2xl text-[15px] leading-relaxed text-muted-foreground sm:text-base lg:mt-3 lg:text-[17px] min-[1920px]:max-w-3xl min-[1920px]:text-[18px] min-[2560px]:text-[19px]">
+      {typeof description === 'string' && description.length > 0 ? (
+        <p className="mt-2.5 text-[15px] leading-relaxed text-muted-foreground sm:text-base lg:mt-3 lg:text-[17px] min-[1920px]:text-[18px] min-[2560px]:text-[19px]">
           {description}
         </p>
-      )}
+      ) : description ? (
+        <div className="mt-2.5 text-[15px] leading-relaxed text-muted-foreground sm:text-base lg:mt-3 lg:text-[17px] min-[1920px]:text-[18px] min-[2560px]:text-[19px]">
+          {description}
+        </div>
+      ) : null}
     </div>
   );
 }

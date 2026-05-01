@@ -41,7 +41,7 @@ describe("collectUpdatesContent", () => {
     );
 
     const result = collectUpdatesContent(root);
-    expect(result.errors.some((e) => e.includes("alpha | beta | release"))).toBe(true);
+    expect(result.errors.some((e) => e.includes("release-candidate | beta | release"))).toBe(true);
   });
 
   it("fails when icon is invalid", () => {
@@ -49,7 +49,7 @@ describe("collectUpdatesContent", () => {
     writeMdx(
       root,
       "railyard/updates/v0.0.1.mdx",
-      "title: Test\nicon: NopeIcon\ndate: 2026-01-01\ntag: alpha\nurl: https://example.com",
+      "title: Test\nicon: NopeIcon\ndate: 2026-01-01\ntag: release-candidate\nurl: https://example.com",
     );
 
     const result = collectUpdatesContent(root);
@@ -61,7 +61,7 @@ describe("collectUpdatesContent", () => {
     writeMdx(
       root,
       "railyard/updates/v0.0.1.mdx",
-      "title: Test\ndescription: Desc\nicon: TrainTrack\ndate: 2026-01-01\ntag: alpha\nurl: https://example.com",
+      "title: Test\ndescription: Desc\nicon: TrainTrack\ndate: 2026-01-01\ntag: release-candidate\nurl: https://example.com",
     );
 
     const result = collectUpdatesContent(root);
@@ -80,7 +80,7 @@ describe("collectUpdatesContent", () => {
     expect(result.errors).toEqual([]);
   });
 
-  it("fails when a nested folder has no landing page", () => {
+  it("allows nested updates without requiring a landing page file", () => {
     const root = makeTempRoot();
     writeMdx(
       root,
@@ -89,9 +89,7 @@ describe("collectUpdatesContent", () => {
     );
 
     const result = collectUpdatesContent(root);
-    expect(result.errors.some((e) => e.includes('missing folder landing page "v0.2.1.mdx"'))).toBe(
-      true,
-    );
+    expect(result.errors).toEqual([]);
   });
 
   it("passes for nested updates when landing page exists", () => {

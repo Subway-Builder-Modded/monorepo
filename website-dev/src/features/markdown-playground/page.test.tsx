@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MarkdownPlaygroundRoute } from "@/features/markdown-playground/page";
@@ -98,12 +98,10 @@ describe("MarkdownPlaygroundRoute", () => {
   });
 
   it("persists content after typing", async () => {
-    const user = userEvent.setup();
     render(<MarkdownPlaygroundRoute />);
 
-    const input = screen.getByTestId("playground-markdown-input");
-    await user.clear(input);
-    await user.type(input, "# Persisted value");
+    const input = screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement;
+    fireEvent.change(input, { target: { value: "# Persisted value" } });
 
     await waitFor(() => {
       expect(localStorage.getItem(STORAGE_KEYS.content)).toContain("Persisted value");
@@ -115,8 +113,7 @@ describe("MarkdownPlaygroundRoute", () => {
     render(<MarkdownPlaygroundRoute />);
 
     const input = screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement;
-    await user.clear(input);
-    await user.type(input, "hello");
+    fireEvent.change(input, { target: { value: "hello" } });
     input.setSelectionRange(0, 5);
 
     await user.click(screen.getByTestId("toolbar-action-bold"));
@@ -140,9 +137,8 @@ describe("MarkdownPlaygroundRoute", () => {
     const user = userEvent.setup();
     render(<MarkdownPlaygroundRoute />);
 
-    const markdownInput = screen.getByTestId("playground-markdown-input");
-    await user.clear(markdownInput);
-    await user.type(markdownInput, "# Header");
+    const markdownInput = screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement;
+    fireEvent.change(markdownInput, { target: { value: "# Header" } });
 
     await user.click(screen.getByTestId("copy-markdown"));
     await user.click(screen.getByTestId("copy-html"));

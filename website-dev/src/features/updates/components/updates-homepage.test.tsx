@@ -53,7 +53,7 @@ vi.mock("@/features/updates/lib/content", () => ({
         title: "Template Mod v0.9.0",
         icon: "WandSparkles",
         date: "2025-12-31",
-        tag: "alpha",
+        tag: "release-candidate",
       },
     },
   ]),

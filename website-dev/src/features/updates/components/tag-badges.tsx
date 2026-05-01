@@ -10,7 +10,7 @@ type TagChipProps = {
 
 export function TagChip({ tag, size = "default" }: TagChipProps) {
   const presentation = UPDATES_TAG_PRESENTATION[tag];
-  const status = tag === "alpha" ? "pre-release" : tag;
+  const status = tag === "release-candidate" ? "pre-release" : tag;
 
   return <ReleaseStatusChip status={status} size={size} label={presentation.label} />;
 }

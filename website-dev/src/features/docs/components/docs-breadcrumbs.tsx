@@ -24,7 +24,7 @@ export function DocsBreadcrumbs({
     : `${suite.title} Documentation`;
 
   return (
-    <nav aria-label="Breadcrumb" className="mb-4">
+    <nav className="mb-4">
       <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
         <li>
           <Link

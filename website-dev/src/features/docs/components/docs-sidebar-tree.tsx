@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getVisibleNodes } from "@/features/docs/lib/content";
-import { resolveLucideIcon as resolveIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { Link } from "@/lib/router";
 import type { DocsTreeNode } from "@/features/docs/lib/types";
 

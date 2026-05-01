@@ -18,7 +18,7 @@ import {
 } from "@subway-builder-modded/shared-ui";
 import { BadgeCheck, BookText, Eye, Sparkles, X } from "lucide-react";
 import { renderPlaygroundHtml } from "@/features/markdown-playground/lib/mdx-runtime";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { getSuiteAccentStyle } from "@subway-builder-modded/shared-ui";
 import type { SuiteAccent } from "@subway-builder-modded/shared-ui";
 import type { RegistryTemplate, RegistryTemplateVersion } from "@/lib/registry/templates";
@@ -316,7 +316,6 @@ export function TemplateGalleryModal({
                         href="/registry/docs/markdown-playground"
                         target="_blank"
                         rel="noreferrer"
-                        aria-label="Learn more about Browse Templates"
                         className="inline-flex items-center text-muted-foreground transition-colors hover:text-[var(--suite-accent-light)]"
                       >
                         <BookText className="size-4" aria-hidden />
@@ -345,7 +344,6 @@ export function TemplateGalleryModal({
               type="button"
               className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/65 bg-background text-muted-foreground transition-colors hover:bg-muted/55 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--suite-accent-light)] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onClick={() => onOpenChange(false)}
-              aria-label="Close template gallery"
             >
               <X className="size-4" aria-hidden="true" />
             </button>
@@ -391,7 +389,7 @@ export function TemplateGalleryModal({
                   <div className="flex items-start gap-4">
                     <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[color-mix(in_srgb,var(--suite-accent-light)_42%,transparent)] bg-[color-mix(in_srgb,var(--suite-accent-light)_14%,transparent)] text-[var(--suite-accent-light)]">
                       {(() => {
-                        const Icon = resolveLucideIcon(selectedTemplate.icon);
+                        const Icon = resolveIcon(selectedTemplate.icon);
                         return <Icon className="size-7" aria-hidden />;
                       })()}
                     </div>
@@ -404,10 +402,7 @@ export function TemplateGalleryModal({
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <span
-                                  className="inline-flex items-center gap-1.5"
-                                  aria-label="Verified author"
-                                >
+                                <span className="inline-flex items-center gap-1.5">
                                   <span>{selectedTemplate.author}</span>
                                   <VerifiedBadge />
                                 </span>
@@ -479,7 +474,6 @@ export function TemplateGalleryModal({
                           "bg-foreground/10 hover:bg-foreground/20 text-foreground/60 hover:text-foreground/90",
                           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         )}
-                        aria-label="Use Template"
                         data-testid="template-preview-use"
                       >
                         <Sparkles className="size-[clamp(0.9rem,1.7vw,1.15rem)]" aria-hidden />

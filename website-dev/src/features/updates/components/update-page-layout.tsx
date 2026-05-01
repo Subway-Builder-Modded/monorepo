@@ -21,11 +21,10 @@ import {
 import { articleMdxComponents } from "@/features/content/mdx";
 import { AsyncArticleContent } from "@/features/content/components/async-article-content";
 import { PageHeadingActions } from "@/features/content/components/page-heading-actions";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
 import { Directory } from "@/features/updates/mdx/directory";
 import { UpdatesRouteProvider } from "@/features/updates/mdx/updates-route-context";
-import { formatUpdateDisplayId } from "@/features/updates/lib/formatting";
 import { getUpdateArticleIdentity } from "@/features/updates/lib/identity";
 import { UpdatesBreadcrumbs } from "./updates-breadcrumbs";
 import { LatestReleaseChip, TagChip } from "./tag-badges";
@@ -54,7 +53,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
     );
   }
 
-  const Icon = resolveLucideIcon(entry.frontmatter.icon);
+  const Icon = resolveIcon(entry.frontmatter.icon);
   const isParentVersion = !entry.id.includes("/");
   const suiteConfig = getUpdatesSuiteConfig(suiteId);
   const resolvedActions = resolveHeadingActions(suiteConfig?.changelog.pageActions, {
@@ -66,7 +65,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
   const articleIdentity = getUpdateArticleIdentity(entry);
   const compareHref = entry.frontmatter.compareUrl?.trim() || null;
   const compareLabel = entry.frontmatter.previousVersion
-    ? `${entry.frontmatter.previousVersion}...${entry.id}`
+    ? `${entry.frontmatter.previousVersion}...${entry.id.replace(/\//g, "+")}`
     : null;
   const editUrl = getUpdateEditUrl(suiteId, entry.id);
 
@@ -90,7 +89,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
         <PageHeading
           icon={Icon as LucideIcon}
           title={articleIdentity.title}
-          description={`${formatUpdateDisplayId(entry.id)} • ${entry.frontmatter.date}`}
+          description={articleIdentity.description}
           badge={
             <div className="flex items-center gap-1.5">
               <TagChip tag={entry.frontmatter.tag} size="title" />
@@ -125,7 +124,6 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-full items-center gap-2 rounded-lg border border-border/70 bg-muted/35 px-3 py-2 font-mono text-xs text-foreground/85 no-underline transition-colors hover:bg-muted/55"
-                  aria-label={`Full Changelog ${compareLabel}`}
                 >
                   <GitCompareArrows
                     className="size-3.5 shrink-0 text-muted-foreground"

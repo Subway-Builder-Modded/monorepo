@@ -1,7 +1,7 @@
 import { type ReactNode, useContext } from "react";
 import { createArticleMdxComponents } from "@subway-builder-modded/mdx";
 import { Link } from "@/lib/router";
-import { resolveLucideIcon } from "@/features/content/lib/icon-resolver";
+import { resolveIcon } from "@subway-builder-modded/icons";
 import {
   ChangelogBulletContext,
   ChangelogSection,
@@ -10,7 +10,7 @@ import { Directory } from "@/features/updates/mdx/directory";
 
 const baseArticleMdxComponents = createArticleMdxComponents({
   internalLinkComponent: Link,
-  resolveIcon: resolveLucideIcon,
+  resolveIcon,
 });
 
 // MDX component map requires a string-keyed record per the MDX runtime API.
