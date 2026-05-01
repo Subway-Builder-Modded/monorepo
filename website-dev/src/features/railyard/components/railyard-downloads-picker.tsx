@@ -83,9 +83,9 @@ export function RailyardDownloadsPicker({ options }: RailyardDownloadsPickerProp
   }, []);
 
   return (
-    <SectionShell className="scroll-mt-18">
-      <div id="all-downloads">
-        <SectionHeader title="All Downloads" className="mb-8" />
+    <SectionShell>
+      <div id="downloads" className="scroll-mt-22 sm:scroll-mt-24 md:scroll-mt-28">
+        <SectionHeader title="Downloads" className="mb-8" />
 
         <Card className="overflow-hidden rounded-2xl border-border/45 bg-background shadow-md lg:rounded-3xl">
           <CardContent className="p-0">

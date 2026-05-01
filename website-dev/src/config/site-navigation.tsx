@@ -159,7 +159,7 @@ export const SITE_SUITES: SiteSuite[] = [
   {
     id: "depot",
     title: "Depot",
-    href: "/depot/updates",
+    href: "/depot",
     icon: Warehouse,
     colorSchemeId: "depot",
     accent: {
@@ -347,6 +347,16 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/website/analytics",
     icon: ChartLine,
     activeMatchRules: [{ kind: "prefix", path: "/website/analytics" }],
+  },
+  {
+    id: "depot-home",
+    suiteId: "depot",
+    title: "Home",
+    description:
+      "Discover the core Python library powering the Subway Builder Modded map creation ecosystem.",
+    href: "/depot",
+    icon: House,
+    activeMatchRules: [{ kind: "exact", path: "/depot" }],
   },
   {
     id: "depot-updates",

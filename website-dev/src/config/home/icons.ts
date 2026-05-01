@@ -11,8 +11,9 @@ import {
   Package,
   TrainTrack,
   Users,
+  Warehouse,
 } from "lucide-react";
-import { DiscordIcon } from "@subway-builder-modded/icons";
+import { DiscordIcon, GithubIcon } from "@subway-builder-modded/icons";
 
 export const HOME_ICONS = {
   bookText: BookText,
@@ -21,6 +22,7 @@ export const HOME_ICONS = {
   database: Database,
   discord: DiscordIcon,
   download: Download,
+  github: GithubIcon,
   gitPullRequestArrow: GitPullRequestArrow,
   globe: Globe,
   heart: Heart,
@@ -28,6 +30,7 @@ export const HOME_ICONS = {
   package: Package,
   trainTrack: TrainTrack,
   users: Users,
+  warehouse: Warehouse,
 } as const;
 
 export type HomeIconName = keyof typeof HOME_ICONS;

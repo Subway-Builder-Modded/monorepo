@@ -18,6 +18,6 @@ export function getHomepageSuiteAccent(suiteId: SiteSuiteId): HomeAccent {
   };
 }
 
-const HERO_BAR_SUITE_IDS = ["railyard", "registry", "template-mod", "website"] as const;
+const HERO_BAR_SUITE_IDS = ["railyard", "registry", "template-mod", "website", "depot"] as const;
 
 export const HERO_SUITE_BARS = HERO_BAR_SUITE_IDS.map((suiteId) => getHomepageSuiteAccent(suiteId));

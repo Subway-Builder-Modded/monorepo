@@ -25,7 +25,6 @@ import { resolveIcon } from "@subway-builder-modded/icons";
 import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
 import { Directory } from "@/features/updates/mdx/directory";
 import { UpdatesRouteProvider } from "@/features/updates/mdx/updates-route-context";
-import { formatUpdateDisplayId } from "@/features/updates/lib/formatting";
 import { getUpdateArticleIdentity } from "@/features/updates/lib/identity";
 import { UpdatesBreadcrumbs } from "./updates-breadcrumbs";
 import { LatestReleaseChip, TagChip } from "./tag-badges";
@@ -66,7 +65,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
   const articleIdentity = getUpdateArticleIdentity(entry);
   const compareHref = entry.frontmatter.compareUrl?.trim() || null;
   const compareLabel = entry.frontmatter.previousVersion
-    ? `${entry.frontmatter.previousVersion}${isParentVersion ? "..." : "+"}${entry.id.replace(/\//g, "+")}`
+    ? `${entry.frontmatter.previousVersion}...${entry.id.replace(/\//g, "+")}`
     : null;
   const editUrl = getUpdateEditUrl(suiteId, entry.id);
 
@@ -90,7 +89,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
         <PageHeading
           icon={Icon as LucideIcon}
           title={articleIdentity.title}
-          description={`${formatUpdateDisplayId(entry.id)} • ${entry.frontmatter.date}`}
+          description={articleIdentity.description}
           badge={
             <div className="flex items-center gap-1.5">
               <TagChip tag={entry.frontmatter.tag} size="title" />

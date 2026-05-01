@@ -13,6 +13,7 @@ import {
 import { HomePage } from "@/features/home";
 import { RailyardRoute, matchRailyardRoute } from "@/features/railyard";
 import { TemplateModRoute, matchTemplateModRoute } from "@/features/template-mod";
+import { DepotRoute, matchDepotRoute } from "@/features/depot";
 
 function RouteSwitch() {
   const location = useLocation();
@@ -59,6 +60,11 @@ function RouteSwitch() {
   const railyardMatch = matchRailyardRoute(location.pathname);
   if (railyardMatch.kind !== "none") {
     return <RailyardRoute />;
+  }
+
+  const depotMatch = matchDepotRoute(location.pathname);
+  if (depotMatch.kind !== "none") {
+    return <DepotRoute />;
   }
 
   return <HomePage />;

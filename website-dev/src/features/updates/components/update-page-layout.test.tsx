@@ -62,7 +62,7 @@ describe("UpdatePageLayout", () => {
     render(<UpdatePageLayout suiteId="railyard" id="v0.2.0" />);
 
     expect(screen.getByRole("heading", { name: "Railyard v0.2.0" })).toBeInTheDocument();
-    expect(screen.getByText("v0.2.0 • 2026-04-18")).toBeInTheDocument();
+    expect(screen.getByText("2026-04-18")).toBeInTheDocument();
     expect(screen.getAllByText("Latest").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: /View Analytics/i })).toHaveAttribute(
       "href",
@@ -107,5 +107,30 @@ describe("UpdatePageLayout", () => {
 
     render(<UpdatePageLayout suiteId="railyard" id="v0.2.1" />);
     expect(screen.queryByRole("link", { name: /Full Changelog/i })).not.toBeInTheDocument();
+  });
+
+  it("formats release candidate compare label with ellipsis separator", () => {
+    vi.mocked(updatesContent.findUpdateEntry).mockReturnValueOnce({
+      id: "v0.2.4/rc.1",
+      suiteId: "railyard",
+      key: "v0.2.4/rc.1",
+      depth: 1,
+      sourcePath: "/content/railyard/updates/v0.2.4/rc.1.mdx",
+      routePath: "/railyard/updates/v0.2.4/rc.1",
+      raw: "",
+      loader: vi.fn(),
+      frontmatter: {
+        title: "Railyard v0.2.4+rc.1",
+        icon: "TrainTrack",
+        date: "2026-04-30",
+        tag: "release-candidate",
+        previousVersion: "v0.2.3",
+        compareUrl: "https://github.com/example/repo/compare/v0.2.3...v0.2.4+rc.1",
+      },
+    });
+
+    render(<UpdatePageLayout suiteId="railyard" id="v0.2.4/rc.1" />);
+
+    expect(screen.getByText("v0.2.3...v0.2.4+rc.1")).toBeInTheDocument();
   });
 });

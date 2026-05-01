@@ -7,6 +7,17 @@ import {
 import { getSuiteUpdatesNavItem } from "@/config/site-navigation";
 import type { UpdateEntry } from "./types";
 
+const SUITE_TITLE_PREFIX_PATTERN = /^.+\s-\s(v[\w.+-]+)$/i;
+
+function normalizeUpdateTitle(title: string): string {
+  const match = title.trim().match(SUITE_TITLE_PREFIX_PATTERN);
+  if (!match) {
+    return title;
+  }
+
+  return match[1] ?? title;
+}
+
 /**
  * Returns the homepage description for an updates suite.
  * Single source of truth is the site-navigation Updates nav item description,
@@ -33,7 +44,7 @@ export function getUpdateArticleIdentity(entry: UpdateEntry | null) {
   }
 
   return {
-    title: entry.frontmatter.title,
-    description: `${entry.id} • ${entry.frontmatter.date}`,
+    title: normalizeUpdateTitle(entry.frontmatter.title),
+    description: entry.frontmatter.date,
   };
 }

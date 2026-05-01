@@ -10,16 +10,20 @@ export function RailyardRoute() {
   const match = matchRailyardRoute(location.pathname);
 
   const [summary, setSummary] = useState<RailyardRegistrySummary>({ mapsCount: 0, modsCount: 0 });
+  const [isSummaryLoading, setIsSummaryLoading] = useState(true);
 
   useEffect(() => {
+    setIsSummaryLoading(true);
+
     void fetchRailyardRegistrySummary()
       .then(setSummary)
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setIsSummaryLoading(false));
   }, []);
 
   if (match.kind !== "page") {
     return null;
   }
 
-  return <RailyardPage summary={summary} />;
+  return <RailyardPage summary={summary} isSummaryLoading={isSummaryLoading} />;
 }

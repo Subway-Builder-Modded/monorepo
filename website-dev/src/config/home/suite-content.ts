@@ -123,4 +123,30 @@ export const SUITE_STEPS: SuiteStep[] = [
       icon: "gitPullRequestArrow",
     },
   },
+  {
+    id: "depot",
+    accentSuiteId: "depot",
+    title: "Depot",
+    description:
+      "The Python build pipeline for turning raw geospatial sources into playable Subway Builder city artifacts.",
+    bullets: [
+      "Run the city build as staged passes instead of one opaque full rebuild.",
+      "Tune geometry, tiles, and labels from one compact MapGen recipe.",
+      "Ship PMTiles and supporting artifacts that plug into the rest of the ecosystem.",
+    ],
+    icon: "warehouse",
+    media: {
+      kind: "image",
+      imageLight: "/images/depot/hero-light.png",
+      imageDark: "/images/depot/hero-dark.png",
+      imageAlt: "Depot landing page preview",
+    },
+    primaryAction: { label: "Explore Depot", href: "/depot", icon: "warehouse" },
+    secondaryAction: {
+      label: "View GitHub",
+      href: "https://github.com/Subway-Builder-Modded/depot",
+      external: true,
+      icon: "github",
+    },
+  },
 ];

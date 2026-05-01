@@ -21,7 +21,7 @@ export const UPDATES_TAG_PRESENTATION: Record<UpdatesTag, UpdatesTagPresentation
     toneClassName: "bg-yellow-500/14 text-yellow-700 dark:text-yellow-300",
   },
   "release-candidate": {
-    label: "Release-Candidate",
+    label: "Release Candidate",
     toneClassName: "bg-red-500/12 text-red-700 dark:text-red-300",
   },
 };

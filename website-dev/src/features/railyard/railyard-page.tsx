@@ -10,14 +10,15 @@ import type { RailyardRegistrySummary } from "@/features/railyard/railyard-types
 
 type RailyardPageProps = {
   summary: RailyardRegistrySummary;
+  isSummaryLoading: boolean;
 };
 
-export function RailyardPage({ summary }: RailyardPageProps) {
+export function RailyardPage({ summary, isSummaryLoading }: RailyardPageProps) {
   const suite = getSuiteById("railyard");
 
   return (
     <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
-      <RailyardHero summary={summary} />
+      <RailyardHero summary={summary} isSummaryLoading={isSummaryLoading} />
       <RailyardAppStory />
       <RegistryDiscoveryPanel summary={summary} />
       <RailyardBridgeCards />

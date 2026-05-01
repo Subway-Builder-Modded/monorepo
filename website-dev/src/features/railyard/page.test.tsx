@@ -20,9 +20,8 @@ describe("RailyardRoute", () => {
     render(<RailyardRoute />);
 
     expect(screen.getByRole("heading", { name: "Railyard" })).toBeInTheDocument();
-    expect(
-      screen.getAllByRole("link", { name: /Install Railyard|Download Railyard/i }).length,
-    ).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "Downloads" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Documentation" }).length).toBeGreaterThan(0);
 
     await waitFor(() => {
       expect(screen.getByRole("link", { name: /120 Maps/i })).toBeInTheDocument();
@@ -35,8 +34,6 @@ describe("RailyardRoute", () => {
       .getAllByRole("link")
       .filter((link) => link.getAttribute("href")?.includes("/registry/world-map"));
     expect(worldMapLinks.length).toBeGreaterThan(0);
-
-    expect(screen.getByRole("link", { name: "View all downloads" })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "Windows" }).length).toBeGreaterThan(0);
   });
 });

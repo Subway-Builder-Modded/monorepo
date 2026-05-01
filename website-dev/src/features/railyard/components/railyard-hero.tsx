@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   Tooltip,
@@ -6,62 +6,32 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { BookText, Download, Globe, Map, Megaphone, Package, TrainTrack } from "lucide-react";
+import {
+  BookText,
+  ChartLine,
+  Download,
+  Globe,
+  Map,
+  Megaphone,
+  Package,
+  TrainTrack,
+} from "lucide-react";
 import { Link } from "@/lib/router";
-import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
-import { railyardHeroImage } from "@/features/railyard/railyard-assets";
 import { RAILYARD_HERO_BODY } from "@/features/railyard/railyard-content";
 import { RegistryLatestCarousel } from "@/features/registry/components/shared/registry-latest-carousel";
 import { fetchRailyardLatestRegistryItems } from "@/features/railyard/railyard-latest-registry";
-import {
-  buildRailyardDownloadUrl,
-  detectRailyardPlatformAccurate,
-  detectRailyardPlatform,
-  railyardDownloadOptions,
-  selectRecommendedRailyardDownload,
-} from "@/features/railyard/railyard-downloads";
 import type { RailyardRegistrySummary } from "@/features/railyard/railyard-types";
 
 type RailyardHeroProps = {
   summary: RailyardRegistrySummary;
+  isSummaryLoading: boolean;
 };
 
 const RAILYARD_TITLE = "Railyard";
 
-export function RailyardHero({ summary }: RailyardHeroProps) {
+export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
   type LatestRegistryItems = Awaited<ReturnType<typeof fetchRailyardLatestRegistryItems>>;
 
-  const initialRecommendedOption = useMemo(() => {
-    const detected =
-      typeof window === "undefined"
-        ? detectRailyardPlatform(null)
-        : detectRailyardPlatform(window.navigator);
-
-    return selectRecommendedRailyardDownload(railyardDownloadOptions, detected);
-  }, []);
-  const [recommendedOption, setRecommendedOption] = useState(initialRecommendedOption);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    let cancelled = false;
-
-    void detectRailyardPlatformAccurate(window.navigator).then((detected) => {
-      if (cancelled) {
-        return;
-      }
-
-      setRecommendedOption(selectRecommendedRailyardDownload(railyardDownloadOptions, detected));
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const recommendedUrl = buildRailyardDownloadUrl(recommendedOption);
   const [latestRegistryItems, setLatestRegistryItems] = useState<LatestRegistryItems>([]);
   const [isLatestRegistryLoading, setIsLatestRegistryLoading] = useState(true);
 
@@ -75,77 +45,115 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
   }, []);
 
   return (
-    <section className="relative -mt-12 flex min-h-[100svh] flex-col justify-center overflow-hidden border-b border-border/40 bg-background pb-12 pt-[calc(3rem+3rem)] sm:pb-14 sm:pt-[calc(3rem+3.5rem)] lg:pb-16 lg:pt-[calc(3rem+4rem)]">
-      <div className="pointer-events-none absolute inset-0" aria-hidden={true}>
-        <img
-          src={railyardHeroImage.light}
-          alt=""
-          className="absolute inset-0 block size-full object-cover dark:hidden"
-          style={{ objectPosition: railyardHeroImage.focalPointLight }}
-        />
-        <img
-          src={railyardHeroImage.dark}
-          alt=""
-          className="absolute inset-0 hidden size-full object-cover dark:block"
-          style={{ objectPosition: railyardHeroImage.focalPointDark }}
-        />
-        <div className="absolute inset-0 bg-background/25" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_68%_40%,color-mix(in_srgb,var(--suite-accent-light)_22%,transparent),transparent_68%)] dark:bg-[radial-gradient(circle_at_68%_40%,color-mix(in_srgb,var(--suite-accent-dark)_28%,transparent),transparent_70%)]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/45 to-transparent" />
-        <div className="absolute inset-0 backdrop-blur-[1.5px]" />
+    <section className="relative flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] items-center overflow-visible border-b border-border/40 bg-background">
+      <div className="pointer-events-none absolute -top-12 inset-x-0 bottom-0" aria-hidden={true}>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_8%_38%,color-mix(in_srgb,var(--suite-accent-light)_22%,transparent),transparent_52%)] dark:bg-[radial-gradient(ellipse_at_8%_38%,color-mix(in_srgb,var(--suite-accent-dark)_26%,transparent),transparent_56%)]" />
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(135deg,color-mix(in_srgb,var(--suite-accent-light)_9%,transparent)_0px,transparent_1px,transparent_36px,color-mix(in_srgb,var(--suite-accent-light)_9%,transparent)_37px)] dark:bg-[repeating-linear-gradient(135deg,color-mix(in_srgb,var(--suite-accent-dark)_11%,transparent)_0px,transparent_1px,transparent_36px,color-mix(in_srgb,var(--suite-accent-dark)_11%,transparent)_37px)]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-background/35 to-transparent" />
       </div>
 
-      <div className="relative z-10 grid w-full gap-8 px-5 sm:px-7 md:px-9 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.22fr)] lg:items-center lg:gap-10 lg:px-12 xl:grid-cols-[minmax(0,0.82fr)_minmax(0,1.28fr)]">
-        <div className="space-y-6 text-left lg:pr-2 xl:pr-4">
+      <div className="relative z-10 grid w-full gap-8 px-5 sm:px-7 md:px-9 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.22fr)] lg:items-center lg:gap-10 lg:px-12">
+        <div className="space-y-6">
           <div className="space-y-3">
-            <h1 className="flex items-center gap-3 text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.92] tracking-[-0.04em] text-foreground">
+            <h1 className="flex items-center gap-3 text-[clamp(2.8rem,7vw,5.6rem)] font-extrabold tracking-[-0.05em] text-foreground">
               <TrainTrack
-                className="size-[0.9em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                className="size-[0.85em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
                 aria-hidden={true}
               />
               <span>{RAILYARD_TITLE}</span>
             </h1>
-            <p className="max-w-[clamp(22rem,28vw,30rem)] text-[clamp(1rem,1.8vw,1.18rem)] leading-relaxed text-foreground/78">
+            <p className="max-w-lg text-[clamp(1rem,1.8vw,1.2rem)] leading-relaxed text-foreground/82">
               {RAILYARD_HERO_BODY}
             </p>
           </div>
 
-          <div className="flex w-fit flex-col items-center gap-2">
-            <Button asChild size="lg" className="h-12 px-7 text-sm font-bold tracking-[-0.01em]">
-              <a href={recommendedUrl}>
+          <div className="flex w-full flex-wrap gap-2.5 sm:w-[24rem] sm:flex-nowrap">
+            <Button
+              asChild
+              size="lg"
+              className="h-12 px-7 text-sm font-bold tracking-[-0.01em] sm:flex-1"
+            >
+              <a href="#downloads">
                 <Download className="size-4.5" aria-hidden={true} />
-                Install Railyard ({recommendedOption.label})
+                Downloads
               </a>
             </Button>
-            <a
-              href="#all-downloads"
-              className="inline-flex text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-[var(--suite-accent-light)] dark:hover:text-[var(--suite-accent-dark)]"
+
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="h-12 px-6 text-sm font-semibold sm:flex-1"
             >
-              View all downloads
-            </a>
+              <Link to="/railyard/docs">
+                <BookText className="size-4.5" aria-hidden={true} />
+                Documentation
+              </Link>
+            </Button>
           </div>
 
-          <div className="flex flex-wrap justify-start gap-2.5">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 rounded-md px-3.5"
-                  >
-                    <Link to="/registry">
-                      <Map className="size-3.5" aria-hidden={true} />
-                      {summary.mapsCount} Maps
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="z-[140]">
-                  Browse Maps
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-[24rem] sm:flex-nowrap sm:justify-between">
+            {isSummaryLoading ? (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  aria-busy={true}
+                  className="h-8 gap-1.5 rounded-lg border-border/55 bg-muted/30 px-3 text-foreground/70 sm:flex-1"
+                >
+                  <Map className="size-3.5" aria-hidden={true} />
+                  <span
+                    className="h-3 w-14 animate-pulse rounded bg-foreground/20"
+                    aria-hidden={true}
+                  />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  aria-busy={true}
+                  className="h-8 gap-1.5 rounded-lg border-border/55 bg-muted/30 px-3 text-foreground/70 sm:flex-1"
+                >
+                  <Package className="size-3.5" aria-hidden={true} />
+                  <span
+                    className="h-3 w-14 animate-pulse rounded bg-foreground/20"
+                    aria-hidden={true}
+                  />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-lg border-border/55 px-3 text-foreground/75 hover:border-border hover:text-foreground sm:flex-1"
+                >
+                  <Link to="/registry">
+                    <Map className="size-3.5" aria-hidden={true} />
+                    {summary.mapsCount} Maps
+                  </Link>
+                </Button>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1.5 rounded-lg border-border/55 px-3 text-foreground/75 hover:border-border hover:text-foreground sm:flex-1"
+                >
+                  <Link to="/registry">
+                    <Package className="size-3.5" aria-hidden={true} />
+                    {summary.modsCount} Mods
+                  </Link>
+                </Button>
+              </>
+            )}
+
+            <div className="hidden h-4 w-px bg-border/60 sm:block" aria-hidden={true} />
 
             <TooltipProvider>
               <Tooltip>
@@ -153,32 +161,16 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
                   <Button
                     asChild
                     variant="outline"
-                    size="sm"
-                    className="h-8 gap-1.5 rounded-md px-3.5"
+                    size="icon-sm"
+                    className="h-8 w-8 rounded-lg border-border/55 text-foreground/75 hover:border-border hover:text-foreground"
                   >
-                    <Link to="/registry">
-                      <Package className="size-3.5" aria-hidden={true} />
-                      {summary.modsCount} Mods
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="z-[140]">
-                  Browse Mods
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button asChild variant="outline" size="icon-sm" className="rounded-md">
                     <Link to="/railyard/updates">
-                      <Megaphone className="size-4" aria-hidden={true} />
+                      <Megaphone className="size-3.5" aria-hidden={true} />
                     </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="z-[140]">
-                  Open Updates
+                  Updates
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -186,14 +178,19 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button asChild variant="outline" size="icon-sm" className="rounded-md">
-                    <Link to="/railyard/docs">
-                      <BookText className="size-4" aria-hidden={true} />
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="icon-sm"
+                    className="h-8 w-8 rounded-lg border-border/55 text-foreground/75 hover:border-border hover:text-foreground"
+                  >
+                    <Link to="/railyard/analytics">
+                      <ChartLine className="size-3.5" aria-hidden={true} />
                     </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="z-[140]">
-                  Open Documentation
+                  Analytics
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -201,14 +198,19 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button asChild variant="outline" size="icon-sm" className="rounded-md">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="icon-sm"
+                    className="h-8 w-8 rounded-lg border-border/55 text-foreground/75 hover:border-border hover:text-foreground"
+                  >
                     <Link to="/registry/world-map">
-                      <Globe className="size-4" aria-hidden={true} />
+                      <Globe className="size-3.5" aria-hidden={true} />
                     </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="z-[140]">
-                  Open World Map
+                  World Map
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -218,14 +220,9 @@ export function RailyardHero({ summary }: RailyardHeroProps) {
         <RegistryLatestCarousel items={latestRegistryItems} isLoading={isLatestRegistryLoading} />
       </div>
 
-      <HeroAccentBar
-        segments={[
-          { light: "#0f8f68", dark: "#19d89c" },
-          { light: "#0b7a5a", dark: "#14c48c" },
-          { light: "#0f8f68", dark: "#19d89c" },
-          { light: "#0b7a5a", dark: "#14c48c" },
-          { light: "#0f8f68", dark: "#19d89c" },
-        ]}
+      <div
+        className="absolute inset-x-0 bottom-0 h-1 bg-[var(--suite-accent-light)] dark:bg-[var(--suite-accent-dark)]"
+        aria-hidden={true}
       />
     </section>
   );

@@ -102,11 +102,35 @@ export function buildRailyardDownloadUrl(
   return `https://github.com/Subway-Builder-Modded/monorepo/releases/download/${version}/railyard-${version}-${option.assetName}`;
 }
 
-export type NormalizedOS = RailyardDownloadOS | "unknown";
+export type DownloadOS = RailyardDownloadOS;
 
-export type NormalizedArch = RailyardDownloadArch | "unknown";
+export type DownloadArch = RailyardDownloadArch;
 
-function detectOsFromPlatform(platformValue: string): NormalizedOS {
+export type DetectionOS = DownloadOS | "unknown";
+
+export type DetectionArch = DownloadArch | "unknown";
+
+export type DetectionConfidence = "high" | "medium" | "low";
+
+export type DetectionSource = "manual" | "user-agent-data" | "user-agent" | "fallback";
+
+export type RailyardDetectedPlatform = {
+  os: DetectionOS;
+  arch: DetectionArch;
+  confidence: DetectionConfidence;
+  source: DetectionSource;
+};
+
+export type RailyardManualArchitectureOverride = Exclude<DownloadArch, "universal"> | null;
+
+export type RailyardDownloadOverride = {
+  os?: DownloadOS;
+  arch?: Exclude<DownloadArch, "universal">;
+};
+
+export const RAILYARD_ARCH_OVERRIDE_STORAGE_KEY = "railyard.download.arch.override";
+
+function detectOsFromPlatform(platformValue: string): DetectionOS {
   const platform = platformValue.toLowerCase();
   if (platform.includes("win")) return "windows";
   if (platform.includes("mac")) return "macos";
@@ -117,9 +141,13 @@ function detectOsFromPlatform(platformValue: string): NormalizedOS {
 export function normalizeRailyardArchitecture(
   architecture: string | undefined,
   bitness?: string | undefined,
-): NormalizedArch {
+): DetectionArch {
   const arch = architecture?.toLowerCase().replace(/[-\s]/g, "_") ?? "";
   const bits = bitness?.toLowerCase() ?? "";
+
+  if (arch === "universal") {
+    return "universal";
+  }
 
   if (["arm", "arm64", "aarch64"].includes(arch)) {
     return "arm64";
@@ -144,7 +172,7 @@ function hasArmSignal(architecture: string | undefined): boolean {
 function detectArchFromNavigatorSignals(
   userAgent: string | undefined,
   platform: string | undefined,
-): NormalizedArch {
+): DetectionArch {
   const aggregate = `${userAgent ?? ""} ${platform ?? ""}`.toLowerCase();
 
   if (/(aarch64|arm64|armv8|\barm\b)/.test(aggregate)) {
@@ -238,11 +266,6 @@ export function resolveRailyardReleaseAssetInfo(
   return matchedName ? (assetInfoByName[matchedName] ?? null) : null;
 }
 
-export type RailyardDetectedPlatform = {
-  os: NormalizedOS;
-  arch: NormalizedArch;
-};
-
 type NavigatorWithUaData = Navigator & {
   userAgentData?: {
     platform?: string;
@@ -260,120 +283,228 @@ type NavigatorWithUaData = Navigator & {
   };
 };
 
+function resolveDetectedOs(navWithUaData: NavigatorWithUaData): {
+  os: DetectionOS;
+  source: Exclude<DetectionSource, "manual">;
+} {
+  const uaDataOs = detectOsFromPlatform(navWithUaData.userAgentData?.platform ?? "");
+  if (uaDataOs !== "unknown") {
+    return { os: uaDataOs, source: "user-agent-data" };
+  }
+
+  const platformOs = detectOsFromPlatform(navWithUaData.platform ?? "");
+  if (platformOs !== "unknown") {
+    return { os: platformOs, source: "user-agent" };
+  }
+
+  const userAgentOs = detectOsFromPlatform(navWithUaData.userAgent ?? "");
+  if (userAgentOs !== "unknown") {
+    return { os: userAgentOs, source: "user-agent" };
+  }
+
+  return { os: "unknown", source: "fallback" };
+}
+
+function resolveDetectionConfidence(
+  os: DetectionOS,
+  arch: DetectionArch,
+  source: DetectionSource,
+  highEntropyUsed: boolean,
+): DetectionConfidence {
+  if (arch === "unknown") {
+    return "low";
+  }
+
+  if (source === "fallback") {
+    return "low";
+  }
+
+  if (os === "windows" && arch === "x64") {
+    return highEntropyUsed ? "medium" : "low";
+  }
+
+  if (source === "user-agent") {
+    return arch === "arm64" ? "medium" : "low";
+  }
+
+  return highEntropyUsed ? "high" : "medium";
+}
+
+function resolveArchitectureFromEvidence(args: {
+  os: DetectionOS;
+  userAgent: string | undefined;
+  platform: string | undefined;
+  lowEntropyArchitecture: string | undefined;
+  lowEntropyBitness: string | undefined;
+  highEntropyArchitecture?: string | undefined;
+  highEntropyBitness?: string | undefined;
+  highEntropyModel?: string | undefined;
+}): {
+  arch: DetectionArch;
+  source: Exclude<DetectionSource, "manual">;
+} {
+  const lowEntropyArch = normalizeRailyardArchitecture(
+    args.lowEntropyArchitecture,
+    args.lowEntropyBitness,
+  );
+  const highEntropyArch = normalizeRailyardArchitecture(
+    args.highEntropyArchitecture,
+    args.highEntropyBitness,
+  );
+  const userAgentArch = detectArchFromNavigatorSignals(args.userAgent, args.platform);
+
+  const armEvidence =
+    highEntropyArch === "arm64" ||
+    lowEntropyArch === "arm64" ||
+    hasArmSignal(args.highEntropyModel) ||
+    hasArmSignal(args.userAgent);
+
+  if (args.os === "windows" && armEvidence) {
+    return { arch: "arm64", source: "user-agent-data" };
+  }
+
+  if (highEntropyArch !== "unknown") {
+    return { arch: highEntropyArch, source: "user-agent-data" };
+  }
+
+  if (lowEntropyArch !== "unknown") {
+    return { arch: lowEntropyArch, source: "user-agent-data" };
+  }
+
+  if (userAgentArch !== "unknown") {
+    return { arch: userAgentArch, source: "user-agent" };
+  }
+
+  return { arch: "unknown", source: "fallback" };
+}
+
 export function detectRailyardPlatform(
   nav: Navigator | null | undefined,
 ): RailyardDetectedPlatform {
   if (!nav) {
-    return { os: "unknown", arch: "unknown" };
+    return { os: "unknown", arch: "unknown", confidence: "low", source: "fallback" };
   }
 
   const navWithUaData = nav as NavigatorWithUaData;
+  const resolvedOs = resolveDetectedOs(navWithUaData);
+  const resolvedArch = resolveArchitectureFromEvidence({
+    os: resolvedOs.os,
+    userAgent: navWithUaData.userAgent,
+    platform: navWithUaData.platform,
+    lowEntropyArchitecture: navWithUaData.userAgentData?.architecture,
+    lowEntropyBitness: navWithUaData.userAgentData?.bitness,
+  });
 
-  const os =
-    detectOsFromPlatform(navWithUaData.userAgentData?.platform ?? "") !== "unknown"
-      ? detectOsFromPlatform(navWithUaData.userAgentData?.platform ?? "")
-      : detectOsFromPlatform(nav.platform ?? "") !== "unknown"
-        ? detectOsFromPlatform(nav.platform ?? "")
-        : detectOsFromPlatform(nav.userAgent ?? "");
+  const source: DetectionSource =
+    resolvedArch.source === "fallback" ? resolvedOs.source : resolvedArch.source;
 
-  const lowEntropyArch = normalizeRailyardArchitecture(
-    navWithUaData.userAgentData?.architecture,
-    navWithUaData.userAgentData?.bitness,
-  );
-
-  const signalArch = detectArchFromNavigatorSignals(nav.userAgent, nav.platform);
-  const arch = lowEntropyArch !== "unknown" ? lowEntropyArch : signalArch;
-
-  return { os, arch };
+  return {
+    os: resolvedOs.os,
+    arch: resolvedArch.arch,
+    source,
+    confidence: resolveDetectionConfidence(resolvedOs.os, resolvedArch.arch, source, false),
+  };
 }
 
-export async function detectRailyardPlatformAccurate(
+export function detectRailyardPlatformAccurate(
   nav: Navigator | null | undefined,
 ): Promise<RailyardDetectedPlatform> {
   const detected = detectRailyardPlatform(nav);
   if (!nav) {
-    return detected;
+    return Promise.resolve(detected);
   }
 
   const navWithUaData = nav as NavigatorWithUaData;
   const getHighEntropyValues = navWithUaData.userAgentData?.getHighEntropyValues;
   if (!getHighEntropyValues) {
-    return detected;
+    return Promise.resolve(detected);
   }
 
-  try {
-    const highEntropy = await getHighEntropyValues([
-      "architecture",
-      "bitness",
-      "platform",
-      "platformVersion",
-      "wow64",
-      "model",
-    ]);
+  return getHighEntropyValues([
+    "architecture",
+    "bitness",
+    "platform",
+    "platformVersion",
+    "wow64",
+    "model",
+  ])
+    .then((highEntropy) => {
+      const highOs = detectOsFromPlatform(highEntropy.platform ?? "");
+      const os = highOs !== "unknown" ? highOs : detected.os;
 
-    const highOs = detectOsFromPlatform(highEntropy.platform ?? "");
-    const lowOs = detectOsFromPlatform(navWithUaData.userAgentData?.platform ?? "");
-    const os = highOs !== "unknown" ? highOs : lowOs !== "unknown" ? lowOs : detected.os;
+      const resolvedArch = resolveArchitectureFromEvidence({
+        os,
+        userAgent: navWithUaData.userAgent,
+        platform: navWithUaData.platform,
+        lowEntropyArchitecture: navWithUaData.userAgentData?.architecture,
+        lowEntropyBitness: navWithUaData.userAgentData?.bitness,
+        highEntropyArchitecture: highEntropy.architecture,
+        highEntropyBitness: highEntropy.bitness,
+        highEntropyModel: highEntropy.model,
+      });
 
-    const lowEntropyArchitecture = navWithUaData.userAgentData?.architecture;
-    const lowEntropyBitness = navWithUaData.userAgentData?.bitness;
-    const architecture = highEntropy.architecture;
-    const bitness = highEntropy.bitness;
-    const wow64 = Boolean(highEntropy.wow64 ?? navWithUaData.userAgentData?.wow64);
-    const lowEntropyArch = normalizeRailyardArchitecture(lowEntropyArchitecture, lowEntropyBitness);
-    const highEntropyArch = normalizeRailyardArchitecture(architecture, bitness);
-    const userAgentArch = detectArchFromNavigatorSignals(nav.userAgent, nav.platform);
-    let arch =
-      highEntropyArch !== "unknown"
-        ? highEntropyArch
-        : lowEntropyArch !== "unknown"
-          ? lowEntropyArch
-          : detected.arch !== "unknown"
-            ? detected.arch
-            : userAgentArch;
+      const source: DetectionSource = resolvedArch.source;
 
-    if (highEntropyArch === "x64" && lowEntropyArch === "arm64") {
-      arch = "arm64";
-    }
+      return {
+        os,
+        arch: resolvedArch.arch,
+        source,
+        confidence: resolveDetectionConfidence(os, resolvedArch.arch, source, true),
+      };
+    })
+    .catch(() => detected);
+}
 
-    if (highEntropyArch === "x64" && hasArmSignal(highEntropy.model)) {
-      arch = "arm64";
-    }
-
-    if (os === "windows" && wow64) {
-      // On Windows ARM, browsers can expose emulated process architecture.
-      if (
-        highEntropyArch === "arm64" ||
-        lowEntropyArch === "arm64" ||
-        hasArmSignal(highEntropy.model) ||
-        hasArmSignal(nav.userAgent) ||
-        highEntropyArch === "x64" ||
-        lowEntropyArch === "x64"
-      ) {
-        arch = "arm64";
-      } else if (arch === "unknown") {
-        arch = "arm64";
-      }
-    }
-
-    if (os === "linux" && arch === "unknown") {
-      arch = userAgentArch;
-    }
-
-    return { os, arch };
-  } catch {
-    return detected;
+export function getRailyardManualArchitectureOverride(
+  storage: Pick<Storage, "getItem"> | null | undefined,
+): RailyardManualArchitectureOverride {
+  const value = storage?.getItem(RAILYARD_ARCH_OVERRIDE_STORAGE_KEY)?.toLowerCase() ?? null;
+  if (value === "x64" || value === "arm64") {
+    return value;
   }
+
+  return null;
+}
+
+export function setRailyardManualArchitectureOverride(
+  storage: Pick<Storage, "setItem" | "removeItem"> | null | undefined,
+  override: RailyardManualArchitectureOverride,
+): void {
+  if (!storage) {
+    return;
+  }
+
+  if (override === null) {
+    storage.removeItem(RAILYARD_ARCH_OVERRIDE_STORAGE_KEY);
+    return;
+  }
+
+  storage.setItem(RAILYARD_ARCH_OVERRIDE_STORAGE_KEY, override);
+}
+
+export function getRailyardAvailableArchitecturesForOs(
+  options: RailyardDownloadOption[],
+  os: DownloadOS,
+): Exclude<DownloadArch, "universal">[] {
+  const arches = new Set<Exclude<DownloadArch, "universal">>();
+  for (const option of options) {
+    if (option.os === os && option.arch !== "universal") {
+      arches.add(option.arch);
+    }
+  }
+
+  return Array.from(arches);
 }
 
 export function selectRecommendedRailyardDownload(
   options: RailyardDownloadOption[],
-  detected: RailyardDetectedPlatform,
+  detected: Pick<RailyardDetectedPlatform, "os" | "arch">,
+  override?: RailyardDownloadOverride | null,
 ): RailyardDownloadOption {
-  const preferredOs = detected.os;
-  const preferredArch = detected.arch;
+  const preferredOs = override?.os ?? (detected.os !== "unknown" ? detected.os : undefined);
+  const preferredArch = override?.arch ?? (detected.arch !== "unknown" ? detected.arch : undefined);
 
-  if (preferredOs !== "unknown" && preferredArch !== "unknown") {
+  if (preferredOs && preferredArch) {
     const exact = options.find(
       (option) => option.os === preferredOs && option.arch === preferredArch,
     );
@@ -382,27 +513,51 @@ export function selectRecommendedRailyardDownload(
     }
   }
 
-  if (preferredOs !== "unknown") {
-    const osMatches = options.filter((option) => option.os === preferredOs);
+  if (preferredOs) {
+    const universal = options.find(
+      (option) => option.os === preferredOs && option.arch === "universal",
+    );
+    if (universal) {
+      return universal;
+    }
 
-    if (osMatches.length > 0) {
-      if (preferredOs === "linux" && preferredArch === "unknown") {
-        const linuxOnlyX64 = osMatches.every((option) => option.arch === "x64");
-        if (linuxOnlyX64) {
-          return osMatches[0]!;
-        }
-      }
+    const firstForOs = options.find((option) => option.os === preferredOs);
+    if (firstForOs) {
+      return firstForOs;
+    }
+  }
 
-      return osMatches[0]!;
+  if (override?.arch) {
+    const firstForArch = options.find((option) => option.arch === override.arch);
+    if (firstForArch) {
+      return firstForArch;
     }
   }
 
   return options[0]!;
 }
 
-export function getRailyardOptionsForOs(
+export function getRailyardDefaultDownloadOverride(
+  detected: Pick<RailyardDetectedPlatform, "os">,
+  archOverride: RailyardManualArchitectureOverride,
+): RailyardDownloadOverride | null {
+  if (!archOverride) {
+    return null;
+  }
+
+  return {
+    os: detected.os !== "unknown" ? detected.os : undefined,
+    arch: archOverride,
+  };
+}
+
+export function shouldShowArchitectureOverride(
   options: RailyardDownloadOption[],
-  os: RailyardDownloadOS,
-): RailyardDownloadOption[] {
-  return options.filter((option) => option.os === os);
+  detected: Pick<RailyardDetectedPlatform, "os">,
+): boolean {
+  if (detected.os === "unknown") {
+    return false;
+  }
+
+  return getRailyardAvailableArchitecturesForOs(options, detected.os).length > 1;
 }

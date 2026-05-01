@@ -1,13 +1,4 @@
 import type { RailyardBridgeCard, RailyardStoryStep } from "./railyard-types";
-
-export const railyardHeroImage = {
-  light: "/images/railyard/hero-light.png",
-  dark: "/images/railyard/hero-dark.png",
-  alt: "Railyard desktop app interface",
-  focalPointLight: "64% 44%",
-  focalPointDark: "64% 44%",
-} as const;
-
 export const railyardAppPreviewImages = {
   browse: {
     light: "/images/railyard/browse-light.png",

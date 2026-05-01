@@ -4,7 +4,10 @@ import {
   detectRailyardPlatform,
   detectRailyardPlatformAccurate,
   formatRailyardAssetSize,
+  getRailyardManualArchitectureOverride,
   getRailyardAssetFileType,
+  RAILYARD_ARCH_OVERRIDE_STORAGE_KEY,
+  setRailyardManualArchitectureOverride,
   normalizeRailyardArchitecture,
   resolveRailyardReleaseAssetInfo,
   railyardDownloadOptions,
@@ -87,7 +90,22 @@ describe("railyard downloads", () => {
     expect(detected.arch).toBe("arm64");
   });
 
-  it("detects Windows ARM64 when high-entropy UA data reports x86 under WoW64", async () => {
+  it("treats ambiguous Win32 x64 evidence as non-high confidence", () => {
+    const detected = detectRailyardPlatform({
+      platform: "Win32",
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      userAgentData: {
+        platform: "Windows",
+        architecture: "x64",
+      },
+    } as unknown as Navigator);
+
+    expect(detected.os).toBe("windows");
+    expect(detected.arch).toBe("x64");
+    expect(detected.confidence).not.toBe("high");
+  });
+
+  it("keeps Windows x64 when WoW64 is present but no ARM evidence exists", async () => {
     const detected = await detectRailyardPlatformAccurate({
       platform: "Win32",
       userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)",
@@ -100,6 +118,28 @@ describe("railyard downloads", () => {
           architecture: "x86",
           bitness: "64",
           wow64: true,
+        }),
+      },
+    } as unknown as Navigator);
+
+    expect(detected.os).toBe("windows");
+    expect(detected.arch).toBe("x64");
+    expect(detected.confidence).toBe("medium");
+  });
+
+  it("detects Windows ARM64 from high-entropy architecture values", async () => {
+    const detected = await detectRailyardPlatformAccurate({
+      platform: "Win32",
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      userAgentData: {
+        platform: "Windows",
+        architecture: "x64",
+        bitness: "64",
+        getHighEntropyValues: async () => ({
+          platform: "Windows",
+          architecture: "aarch64",
+          bitness: "64",
+          wow64: false,
         }),
       },
     } as unknown as Navigator);
@@ -136,6 +176,55 @@ describe("railyard downloads", () => {
 
     expect(detected.os).toBe("windows");
     expect(detected.arch).toBe("arm64");
+  });
+
+  it("prefers exact detected OS and architecture over fallbacks", () => {
+    const recommended = selectRecommendedRailyardDownload(railyardDownloadOptions, {
+      os: "windows",
+      arch: "arm64",
+    });
+
+    expect(recommended.label).toContain("ARM64");
+  });
+
+  it("falls back to detected OS when architecture exact match is unavailable", () => {
+    const recommended = selectRecommendedRailyardDownload(railyardDownloadOptions, {
+      os: "windows",
+      arch: "universal",
+    });
+
+    expect(recommended.os).toBe("windows");
+  });
+
+  it("manual ARM64 override wins over auto-detected x64", () => {
+    const recommended = selectRecommendedRailyardDownload(
+      railyardDownloadOptions,
+      {
+        os: "windows",
+        arch: "x64",
+      },
+      { os: "windows", arch: "arm64" },
+    );
+
+    expect(recommended.arch).toBe("arm64");
+  });
+
+  it("clearing manual override returns recommendation to auto detection", () => {
+    const storage = window.localStorage;
+    storage.clear();
+
+    setRailyardManualArchitectureOverride(storage, "arm64");
+    expect(getRailyardManualArchitectureOverride(storage)).toBe("arm64");
+
+    setRailyardManualArchitectureOverride(storage, null);
+    expect(storage.getItem(RAILYARD_ARCH_OVERRIDE_STORAGE_KEY)).toBeNull();
+    expect(getRailyardManualArchitectureOverride(storage)).toBeNull();
+
+    const recommended = selectRecommendedRailyardDownload(railyardDownloadOptions, {
+      os: "windows",
+      arch: "x64",
+    });
+    expect(recommended.arch).toBe("x64");
   });
 
   it("formats asset metadata for download rows", () => {

@@ -80,7 +80,7 @@ describe("collectUpdatesContent", () => {
     expect(result.errors).toEqual([]);
   });
 
-  it("fails when a nested folder has no landing page", () => {
+  it("allows nested updates without requiring a landing page file", () => {
     const root = makeTempRoot();
     writeMdx(
       root,
@@ -89,9 +89,7 @@ describe("collectUpdatesContent", () => {
     );
 
     const result = collectUpdatesContent(root);
-    expect(result.errors.some((e) => e.includes('missing folder landing page "v0.2.1.mdx"'))).toBe(
-      true,
-    );
+    expect(result.errors).toEqual([]);
   });
 
   it("passes for nested updates when landing page exists", () => {

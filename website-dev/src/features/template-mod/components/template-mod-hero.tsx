@@ -3,7 +3,6 @@ import { Package } from "lucide-react";
 import { LightMarkdown } from "@/features/content/components/light-markdown";
 import { resolveIcon } from "@subway-builder-modded/icons";
 import { Link } from "@/lib/router";
-import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
 import {
   TEMPLATE_MOD_HERO_COPY,
   TEMPLATE_MOD_TITLE,
@@ -18,8 +17,8 @@ function CtaButton({ cta, iconClassName }: { cta: TemplateModCta; iconClassName:
   const variant = cta.style === "outline" ? "outline" : undefined;
   const className =
     cta.style === "outline"
-      ? "h-11 rounded-xl border-[color-mix(in_srgb,var(--suite-accent-light)_42%,transparent)] px-6 text-base font-semibold text-[var(--suite-accent-light)] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_12%,transparent)] hover:text-[var(--suite-accent-light)] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_45%,transparent)] dark:text-[var(--suite-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_16%,transparent)] dark:hover:text-[var(--suite-accent-dark)]"
-      : "h-11 rounded-xl px-6 text-base font-semibold";
+      ? "h-12 px-6 text-sm font-semibold"
+      : "h-12 px-7 text-sm font-bold tracking-[-0.01em]";
 
   if (cta.external) {
     return (
@@ -51,22 +50,22 @@ export function TemplateModHero() {
       </div>
 
       <div className="relative z-10 grid w-full gap-8 px-5 sm:px-7 md:px-9 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-center lg:gap-9 lg:px-12">
-        <div className="origin-top-left scale-[0.85] space-y-6">
+        <div className="space-y-6">
           <div className="space-y-3">
-            <h1 className="flex items-center gap-3 text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[0.93] tracking-[-0.04em] text-foreground">
+            <h1 className="flex items-center gap-3 whitespace-nowrap text-[clamp(2.8rem,7vw,5.6rem)] font-extrabold tracking-[-0.05em] text-foreground">
               <Package
-                className="size-[0.9em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
+                className="size-[0.85em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
                 aria-hidden={true}
               />
               <span>{TEMPLATE_MOD_TITLE}</span>
             </h1>
-            <LightMarkdown className="max-w-[clamp(30rem,48vw,62rem)] text-[clamp(1rem,2vw,1.16rem)] leading-relaxed text-foreground/76">
+            <LightMarkdown className="max-w-lg text-[clamp(1rem,1.8vw,1.2rem)] leading-relaxed text-foreground/82">
               {TEMPLATE_MOD_HERO_COPY}
             </LightMarkdown>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <CtaButton cta={TEMPLATE_MOD_PRIMARY_CTA} iconClassName="size-5" />
+            <CtaButton cta={TEMPLATE_MOD_PRIMARY_CTA} iconClassName="size-4.5" />
             <CtaButton cta={TEMPLATE_MOD_SECONDARY_CTA} iconClassName="size-4.5" />
           </div>
         </div>
@@ -76,14 +75,9 @@ export function TemplateModHero() {
         </div>
       </div>
 
-      <HeroAccentBar
-        segments={[
-          { light: "#5ea5fa", dark: "#95c5fd" },
-          { light: "#3f89e8", dark: "#7db4fb" },
-          { light: "#5ea5fa", dark: "#95c5fd" },
-          { light: "#3f89e8", dark: "#7db4fb" },
-          { light: "#5ea5fa", dark: "#95c5fd" },
-        ]}
+      <div
+        className="absolute inset-x-0 bottom-0 h-1 bg-[var(--suite-accent-light)] dark:bg-[var(--suite-accent-dark)]"
+        aria-hidden={true}
       />
     </section>
   );

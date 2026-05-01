@@ -43,6 +43,17 @@ describe("resolvePageMetadata", () => {
     expect(metadata.suite.id).toBe("template-mod");
   });
 
+  it("resolves /depot homepage metadata from the site navigation config", () => {
+    const metadata = resolvePageMetadata("/depot");
+
+    expect(metadata.title).toBe("Depot");
+    expect(metadata.pageTitle).toBe("Depot");
+    expect(metadata.description).toBe(
+      "Discover the core Python library powering the Subway Builder Modded map creation ecosystem.",
+    );
+    expect(metadata.suite.id).toBe("depot");
+  });
+
   it("falls back to suite home metadata for unmatched suite routes", () => {
     const metadata = resolvePageMetadata("/registry/unknown/route");
 
@@ -66,8 +77,8 @@ describe("resolvePageMetadata", () => {
   it("resolves updates article metadata from update frontmatter", () => {
     const metadata = resolvePageMetadata("/template-mod/updates/v1.0.0");
 
-    expect(metadata.title).toBe("Template Mod - v1.0.0");
-    expect(metadata.pageTitle).toBe("Template Mod - v1.0.0 | Template Mod Updates");
+    expect(metadata.title).toBe("v1.0.0");
+    expect(metadata.pageTitle).toBe("v1.0.0 | Template Mod Updates");
     expect(metadata.suite.id).toBe("template-mod");
   });
 
