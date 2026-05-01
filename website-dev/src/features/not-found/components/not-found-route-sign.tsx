@@ -19,7 +19,9 @@ export function NotFoundRouteSign() {
       <div className="flex min-h-[12rem] flex-1 flex-col items-center justify-center gap-3 text-center">
         <div
           className="text-[5.5rem] font-bold leading-none sm:text-[6.5rem]"
-          style={{ fontFamily: "Noto Sans SC, Microsoft YaHei, PingFang SC, Inter, Segoe UI, sans-serif" }}
+          style={{
+            fontFamily: "Noto Sans SC, Microsoft YaHei, PingFang SC, Inter, Segoe UI, sans-serif",
+          }}
         >
           {NOT_FOUND_SIGN_CONTENT.chineseLineName}
         </div>
