@@ -66,7 +66,7 @@ export const DEPOT_SCROLLYTELLING_CONTENT: DepotScrollytellingSection = {
         imageAlt: "Depot generated artifact output",
       },
       bullets: [
-        "Creates an optimized PMTiles, including the buildings from `process_buildings`",
+        "Creates an optimized PMTiles, including the previously processed buildings.",
         "Choose which types of labels (e.g., cities, suburbs, towns, villages, neighborhoods) are added to the PMTiles at low, moderate, and high zoom levels",
       ],
     },

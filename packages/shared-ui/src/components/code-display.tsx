@@ -145,7 +145,6 @@ export function CodeDisplay({
   const activeTab = tabs?.find((tab) => tab.id === activeTabId) ?? firstTab;
 
   const code = isTabbed ? activeTab?.code ?? '' : props.code;
-  const lang = isTabbed ? activeTab?.lang ?? 'typescript' : props.lang ?? 'typescript';
   const title = isTabbed ? activeTab?.title : props.title;
 
   // Pre-highlight all tabs (or the single code block) so switching is instant.
