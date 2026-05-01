@@ -18,11 +18,13 @@ interface RegistryState {
   downloadTotalsLoaded: boolean;
   loading: boolean;
   refreshing: boolean;
+  startupRefreshing: boolean;
   error: string | null;
   initialized: boolean;
   ensureDownloadTotals: (options?: { force?: boolean }) => Promise<void>;
   initialize: () => Promise<void>;
   refresh: () => Promise<void>;
+  setStartupRefreshing: (value: boolean) => void;
 }
 
 let downloadTotalsRequest: Promise<void> | null = null;
@@ -61,8 +63,11 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
   downloadTotalsLoaded: false,
   loading: false,
   refreshing: false,
+  startupRefreshing: false,
   error: null,
   initialized: false,
+
+  setStartupRefreshing: (value) => set({ startupRefreshing: value }),
 
   ensureDownloadTotals: async (options) => {
     const force = options?.force ?? false;

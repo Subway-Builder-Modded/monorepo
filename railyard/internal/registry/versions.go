@@ -24,8 +24,6 @@ type modManifestDeps struct {
 	Dependencies map[string]string `json:"dependencies"`
 }
 
-var registryGitHubAPIBaseURL = types.GitHubAPIBaseURL
-
 // GetVersions fetches available versions for a mod or map.
 // updateType must be "github" or "custom".
 // repoOrURL is "owner/repo" for github, or a URL for custom.
@@ -82,7 +80,7 @@ func (r *Registry) getGitHubVersions(repo string) ([]types.VersionInfo, error) {
 		return nil, fmt.Errorf("invalid GitHub repo format %q: expected \"owner/repo\"", repo)
 	}
 
-	baseURL := strings.TrimRight(registryGitHubAPIBaseURL, "/")
+	baseURL := strings.TrimRight(r.githubAPIBase(), "/")
 	apiURL := fmt.Sprintf("%s/repos/%s/releases", baseURL, repo)
 
 	resp, err := requests.GetWithGithubToken(r.httpClient, requests.GithubTokenRequestArgs{
