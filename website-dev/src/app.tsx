@@ -14,6 +14,7 @@ import { HomePage } from "@/features/home";
 import { RailyardRoute, matchRailyardRoute } from "@/features/railyard";
 import { TemplateModRoute, matchTemplateModRoute } from "@/features/template-mod";
 import { DepotRoute, matchDepotRoute } from "@/features/depot";
+import { NotFoundPage } from "@/features/not-found";
 
 function RouteSwitch() {
   const location = useLocation();
@@ -67,7 +68,11 @@ function RouteSwitch() {
     return <DepotRoute />;
   }
 
-  return <HomePage />;
+  if (location.pathname === "/") {
+    return <HomePage />;
+  }
+
+  return <NotFoundPage />;
 }
 
 export default function App() {
