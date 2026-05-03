@@ -45,9 +45,6 @@ export function RegistrySearch({
 
   return (
     <div className={cn("relative flex items-center", className)}>
-      <label htmlFor={id} className="sr-only">
-        Search registry
-      </label>
       <Search
         className="pointer-events-none absolute left-4 z-10 size-5 text-foreground/60"
         aria-hidden={true}
@@ -57,7 +54,6 @@ export function RegistrySearch({
         id={id}
         type="search"
         role="searchbox"
-        aria-label="Search registry"
         value={query}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -78,7 +74,6 @@ export function RegistrySearch({
         <button
           type="button"
           onClick={handleClear}
-          aria-label="Clear search"
           className="absolute right-4 rounded-md p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="size-4" aria-hidden={true} />

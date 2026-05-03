@@ -16,7 +16,8 @@ export function RegistrySpotlightSearch({
   onClose,
 }: RegistrySpotlightSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const isMac = typeof navigator !== "undefined" && navigator.platform.toLowerCase().includes("mac");
+  const isMac =
+    typeof navigator !== "undefined" && navigator.platform.toLowerCase().includes("mac");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -40,12 +41,7 @@ export function RegistrySpotlightSearch({
 
   return (
     <div className="fixed inset-0 z-[120]">
-      <button
-        type="button"
-        aria-label="Close search"
-        className="absolute inset-0"
-        onClick={onClose}
-      />
+      <button type="button" className="absolute inset-0" onClick={onClose} />
 
       <div className="absolute inset-x-0 top-0 px-4 pt-[clamp(4rem,12vh,9rem)] sm:px-6">
         <div
@@ -57,15 +53,11 @@ export function RegistrySpotlightSearch({
         >
           <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <Search className="size-5 shrink-0 text-foreground/70" aria-hidden={true} />
-            <label htmlFor="registry-spotlight-search" className="sr-only">
-              Search registry
-            </label>
             <input
               ref={inputRef}
               id="registry-spotlight-search"
               type="search"
               role="searchbox"
-              aria-label="Search registry"
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
               placeholder="Search maps, mods, authors..."
@@ -87,7 +79,6 @@ export function RegistrySpotlightSearch({
               <button
                 type="button"
                 onClick={() => onQueryChange("")}
-                aria-label="Clear search"
                 className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <X className="size-4" aria-hidden={true} />

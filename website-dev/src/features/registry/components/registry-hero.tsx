@@ -36,7 +36,6 @@ export function RegistryHero({
     <section
       id="registry-hero"
       className="relative flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] flex-col items-center justify-center overflow-visible border-b border-border/45 bg-background"
-      aria-label="Registry hero"
     >
       {/* Background pattern – depot-style square grid */}
       <div className="pointer-events-none absolute -top-12 inset-x-0 bottom-0" aria-hidden={true}>
@@ -101,7 +100,6 @@ export function RegistryHero({
         <button
           type="button"
           onClick={onBrowse}
-          aria-label={`${REGISTRY_BROWSE_INDICATOR_LABEL} – scroll to browse`}
           className="group flex flex-col items-center gap-1 rounded-xl px-4 py-2 text-muted-foreground/70 transition-all duration-200 hover:scale-105 hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none motion-reduce:hover:scale-100"
         >
           <span className="text-xs font-medium tracking-wide">

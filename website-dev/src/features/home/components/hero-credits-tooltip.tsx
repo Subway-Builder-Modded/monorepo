@@ -94,7 +94,6 @@ function CreditsButton({ slide }: { slide: HeroSlide }) {
     >
       <button
         type="button"
-        aria-label="Image credits"
         onClick={() => setPinned((v) => !v)}
         aria-expanded={open}
         className={cn(

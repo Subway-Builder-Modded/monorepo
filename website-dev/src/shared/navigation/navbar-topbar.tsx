@@ -68,7 +68,6 @@ export function NavbarTopbar({
   const brandNode = (
     <Link
       to="/"
-      aria-label="Go to home"
       className="inline-flex h-full min-w-0 items-center gap-2.5 rounded-lg py-1 text-sm font-semibold text-foreground/90 outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring lg:gap-3"
     >
       <img

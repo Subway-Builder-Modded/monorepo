@@ -80,11 +80,7 @@ export function FloatingRegistrySearch({
           <div className="grid min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
             {/* Left — type + view */}
             <div className="flex items-center gap-2">
-              <RegistryTypeToggle
-                activeTypeId={typeId}
-                onChange={onTypeChange}
-                counts={counts}
-              />
+              <RegistryTypeToggle activeTypeId={typeId} onChange={onTypeChange} counts={counts} />
 
               <ToolbarSeparator />
 
@@ -96,7 +92,6 @@ export function FloatingRegistrySearch({
               <button
                 type="button"
                 onClick={onActivate}
-                aria-label={query ? `Search: ${query}` : "Open search"}
                 className="flex h-10 w-[clamp(14rem,22vw,28rem)] items-center gap-2 rounded-xl border border-border/50 bg-muted/30 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Search className="size-4 shrink-0" aria-hidden={true} />
@@ -106,7 +101,10 @@ export function FloatingRegistrySearch({
                   <span className="flex-1">Search…</span>
                 )}
                 {!query ? (
-                  <span className="ml-auto flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground" aria-hidden={true}>
+                  <span
+                    className="ml-auto flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground"
+                    aria-hidden={true}
+                  >
                     <kbd className="rounded border border-border/70 bg-background/90 px-1.5 py-0.5 font-mono font-medium leading-none">
                       {isMac ? "Cmd" : "Ctrl"}
                     </kbd>
@@ -120,8 +118,10 @@ export function FloatingRegistrySearch({
               {query ? (
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); onClearQuery(); }}
-                  aria-label="Clear search"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClearQuery();
+                  }}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <X className="size-3.5" aria-hidden={true} />
@@ -157,10 +157,5 @@ export function FloatingRegistrySearch({
 }
 
 function ToolbarSeparator() {
-  return (
-    <div
-      aria-hidden="true"
-      className="mx-0.5 h-6 w-px shrink-0 rounded-full bg-border/70"
-    />
-  );
+  return <div aria-hidden="true" className="mx-0.5 h-6 w-px shrink-0 rounded-full bg-border/70" />;
 }

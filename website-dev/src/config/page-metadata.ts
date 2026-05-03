@@ -8,6 +8,7 @@ import {
   type SiteSuite,
   type SiteSuiteId,
 } from "@/config/site-navigation";
+import { normalizePathname } from "@/lib/path-utils";
 import { matchDocsRoute, getDocsTree, findTreeNode } from "@/features/docs";
 import { DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
 import { matchUpdatesRoute, findUpdateEntry, getUpdateArticleIdentity } from "@/features/updates";
@@ -42,17 +43,6 @@ const PAGE_METADATA_OVERRIDES: Record<string, PageMetadataDefinition> = {
 
 function getSuiteHomeNavItem(suiteId: SiteSuiteId) {
   return getItemsForSuite(suiteId).find((item) => item.id === `${suiteId}-home`) ?? null;
-}
-
-function normalizePathname(pathname: string): string {
-  if (!pathname) return "/";
-
-  const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  if (withLeadingSlash !== "/" && withLeadingSlash.endsWith("/")) {
-    return withLeadingSlash.slice(0, -1);
-  }
-
-  return withLeadingSlash;
 }
 
 function getSuiteImagePath(suiteId: SiteSuiteId): string {

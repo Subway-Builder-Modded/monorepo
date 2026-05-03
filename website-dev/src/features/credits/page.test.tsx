@@ -95,16 +95,13 @@ describe("CreditsRoute", () => {
 
     const linkedName = await screen.findByRole("link", { name: /Lead Dev/i });
     expect(linkedName).toHaveAttribute("href", "https://example.com/lead");
-    expect(within(linkedName).getByLabelText("External profile link")).toBeInTheDocument();
+    expect(linkedName.querySelector(".lucide-external-link")).toBeInTheDocument();
 
     const fallbackName = await screen.findByText("FallbackUser");
     expect(fallbackName.closest("a")).toBeNull();
     const fallbackCard = fallbackName.closest("div");
     expect(fallbackCard).toBeTruthy();
-    expect(
-      within(fallbackCard as HTMLElement).queryByLabelText("External profile link"),
-    ).toBeNull();
-    expect(within(fallbackCard as HTMLElement).queryByLabelText("Profile link")).toBeNull();
+    expect((fallbackCard as HTMLElement).querySelector(".lucide-external-link")).toBeNull();
   });
 
   it("renders main sections with subsection order and icon accents", async () => {

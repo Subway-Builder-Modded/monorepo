@@ -19,7 +19,6 @@ export function RegistryTypeToggle({
   return (
     <div
       role="group"
-      aria-label="Asset type"
       className={cn(
         "isolate flex items-center gap-1 rounded-lg border border-border/50 bg-background p-0.5",
         className,

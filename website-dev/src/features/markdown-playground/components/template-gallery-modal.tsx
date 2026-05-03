@@ -328,10 +328,10 @@ export function TemplateGalleryModal({
                 </>
               ) : (
                 <>
-                  <DialogTitle className="sr-only">
+                  <DialogTitle>
                     {screen === "preview" ? previewBreadcrumb : selectedTemplate?.title}
                   </DialogTitle>
-                  <DialogDescription className="sr-only">
+                  <DialogDescription>
                     {screen === "preview"
                       ? `Previewing ${previewVersion?.version ?? "latest"} template version`
                       : `${selectedTemplate?.title} template`}

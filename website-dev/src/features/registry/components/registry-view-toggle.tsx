@@ -8,28 +8,26 @@ type RegistryViewToggleProps = {
   className?: string;
 };
 
-const VIEW_OPTIONS: { id: RegistryViewMode; label: string; icon: typeof LayoutGrid }[] = [
-  { id: "grid", label: "Grid View", icon: LayoutGrid },
-  { id: "list", label: "List View", icon: Rows3 },
+const VIEW_OPTIONS: { id: RegistryViewMode; icon: typeof LayoutGrid }[] = [
+  { id: "grid", icon: LayoutGrid },
+  { id: "list", icon: Rows3 },
 ];
 
 export function RegistryViewToggle({ viewMode, onChange, className }: RegistryViewToggleProps) {
   return (
     <div
       role="group"
-      aria-label="View mode"
       className={cn(
         "flex items-center gap-1 rounded-lg border border-border/50 bg-background p-0.5",
         className,
       )}
     >
-      {VIEW_OPTIONS.map(({ id, label, icon: Icon }) => (
+      {VIEW_OPTIONS.map(({ id, icon: Icon }) => (
         <button
           key={id}
           type="button"
           role="radio"
           aria-checked={viewMode === id}
-          aria-label={label}
           onClick={() => onChange(id)}
           className={cn(
             "inline-flex h-10 w-10 items-center justify-center rounded-md text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

@@ -79,14 +79,14 @@ describe("filterRegistryItems", () => {
     expect(result).toHaveLength(1);
   });
 
-  it("filters by selected tags (all must match)", () => {
+  it("filters by selected tags (any may match)", () => {
     const items = [
       makeItem({ tags: ["east-asia", "korea"] }),
       makeItem({ id: "map-2", tags: ["east-asia"] }),
       makeItem({ id: "map-3", tags: ["europe"] }),
     ];
     const result = filterRegistryItems(items, "", ["east-asia", "korea"]);
-    expect(result).toHaveLength(1);
+    expect(result).toHaveLength(2);
     expect(result[0]?.id).toBe("test-map");
   });
 

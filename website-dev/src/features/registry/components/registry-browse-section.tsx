@@ -4,12 +4,8 @@ import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-typ
 import { filterRegistryItems, collectTags } from "@/features/registry/lib/filter-registry-items";
 import { sortRegistryItems } from "@/features/registry/lib/sort-registry-items";
 import { FloatingRegistrySearch } from "./floating-registry-search";
-import { ThemedPagination } from "@/shared/components/themed-pagination";
-import {
-  REGISTRY_EMPTY_STATE_MESSAGE,
-  REGISTRY_LOADING_MESSAGE,
-} from "@/features/registry/registry-content";
-import { cn } from "@/lib/utils";
+import { Pagination } from "@subway-builder-modded/shared-ui";
+import { REGISTRY_EMPTY_STATE_MESSAGE } from "@/features/registry/registry-content";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
 
@@ -160,7 +156,6 @@ export function RegistryBrowseSection({
     <section
       ref={sectionRef}
       id="registry-browse"
-      aria-label="Browse registry"
       className="relative mx-auto w-full max-w-[96rem] px-5 pb-24 pt-12 sm:px-7 md:px-9 lg:px-12"
     >
       <FloatingRegistrySearch
@@ -242,7 +237,7 @@ export function RegistryBrowseSection({
           <>
             <RegistryGrid items={visibleItems} typeId={typeId} cardVariant={cardVariant} />
 
-            <ThemedPagination
+            <Pagination
               className="mt-10"
               page={page}
               totalPages={totalPages}
@@ -266,7 +261,6 @@ export function RegistryBrowseSection({
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
 type RegistryGridProps = {
   items: RegistrySearchItem[];
   typeId: string;
@@ -278,7 +272,7 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
 
   if (cardVariant === "list") {
     return (
-      <ul className="space-y-2" aria-label="Registry items">
+      <ul className="space-y-2">
         {items.map((item) => (
           <li key={item.id}>
             <RegistryItemCard
@@ -308,10 +302,7 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
 
   // Grid layout
   return (
-    <ul
-      className="grid grid-cols-1 gap-3 lg:grid-cols-3 xl:grid-cols-4"
-      aria-label="Registry items"
-    >
+    <ul className="grid grid-cols-1 gap-3 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => (
         <li key={item.id}>
           <RegistryItemCard
@@ -344,7 +335,7 @@ function RegistryLoadingState({ cardVariant }: { cardVariant: RegistryCardVarian
 
   if (cardVariant === "list") {
     return (
-      <div className="space-y-2" aria-label={REGISTRY_LOADING_MESSAGE} aria-busy={true}>
+      <div className="space-y-2">
         {shells.map((i) => (
           <div
             key={i}
@@ -362,11 +353,7 @@ function RegistryLoadingState({ cardVariant }: { cardVariant: RegistryCardVarian
   }
 
   return (
-    <div
-      className="grid gap-3 grid-cols-1 lg:grid-cols-3 xl:grid-cols-4"
-      aria-label={REGISTRY_LOADING_MESSAGE}
-      aria-busy={true}
-    >
+    <div className="grid gap-3 grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
       {shells.map((i) => (
         <div
           key={i}

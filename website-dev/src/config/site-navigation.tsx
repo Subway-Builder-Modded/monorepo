@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
+import { normalizePathname } from "@/lib/path-utils";
 import {
   Database,
   Globe,
@@ -392,15 +393,6 @@ const SUITE_BY_ID: Record<SiteSuiteId, SiteSuite> = {
   website: SITE_SUITES[4],
   depot: SITE_SUITES[5],
 };
-
-function normalizePathname(pathname: string): string {
-  if (!pathname) return "/";
-  const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  if (withLeadingSlash !== "/" && withLeadingSlash.endsWith("/")) {
-    return withLeadingSlash.slice(0, -1);
-  }
-  return withLeadingSlash;
-}
 
 function isRouteMatch(pathname: string, rule: SiteRouteMatchRule): boolean {
   const normalizedPathname = normalizePathname(pathname);

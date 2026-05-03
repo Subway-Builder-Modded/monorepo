@@ -139,10 +139,8 @@ function MapBadges({ cityCode, countryName, countryEmoji, population }: MapBadge
 }
 
 // ─── Thumbnail with skeleton pulse ───────────────────────────────────────────
-
 type ThumbnailImageProps = {
   src: string | null | undefined;
-  alt: string;
   className?: string;
   containerClassName?: string;
   hoverScale?: boolean;
@@ -151,7 +149,6 @@ type ThumbnailImageProps = {
 
 function ThumbnailImage({
   src,
-  alt,
   className,
   containerClassName,
   hoverScale = false,
@@ -160,11 +157,17 @@ function ThumbnailImage({
   const [loaded, setLoaded] = useState(false);
 
   return (
-    <div className={cn("relative overflow-hidden bg-muted/30", !loaded && src ? "animate-pulse" : undefined, containerClassName)}>
+    <div
+      className={cn(
+        "relative overflow-hidden bg-muted/30",
+        !loaded && src ? "animate-pulse" : undefined,
+        containerClassName,
+      )}
+    >
       {src ? (
         <img
           src={src}
-          alt={alt}
+          alt=""
           className={cn(
             "size-full object-cover transition-opacity duration-300",
             hoverScale && "transition-transform duration-500 group-hover:scale-[1.02]",
@@ -184,8 +187,13 @@ function ThumbnailImage({
 }
 
 // ─── Grid / Carousel variant ─────────────────────────────────────────────────
-
-function RegistryCardGrid({ data, typeConfig, onMouseEnter, onMouseLeave, className }: Omit<RegistryItemCardProps, "variant">) {
+function RegistryCardGrid({
+  data,
+  typeConfig,
+  onMouseEnter,
+  onMouseLeave,
+  className,
+}: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
 
   return (
@@ -202,7 +210,6 @@ function RegistryCardGrid({ data, typeConfig, onMouseEnter, onMouseLeave, classN
         <div className="relative aspect-[2/1] w-full">
           <ThumbnailImage
             src={data.thumbnailSrc}
-            alt={`${data.title} preview`}
             containerClassName="absolute inset-0"
             hoverScale
           />
@@ -256,77 +263,6 @@ function RegistryCardGrid({ data, typeConfig, onMouseEnter, onMouseLeave, classN
 }
 
 // ─── Full variant (kept for potential explicit use) ───────────────────────────
-
-function RegistryCardFull({ data, typeConfig, className }: Omit<RegistryItemCardProps, "variant">) {
-  const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
-
-  return (
-    <Link
-      to={data.href}
-      className={cn(
-        "group block overflow-hidden rounded-xl border border-border/50 bg-card/92 shadow-sm outline-none transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring",
-        className,
-      )}
-    >
-      <article>
-        <div className="relative aspect-[2/1] w-full">
-          <ThumbnailImage
-            src={data.thumbnailSrc}
-            alt={`${data.title} preview`}
-            containerClassName="absolute inset-0"
-            hoverScale
-          />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card/90 to-transparent" />
-        </div>
-
-        <div className="space-y-2 px-3 py-3">
-          <div className="flex items-center justify-between gap-2">
-            <TypeBadge typeConfig={typeConfig} />
-            <div className="flex items-center gap-3">
-              {data.population !== null && <PopulationCount count={data.population} />}
-              <DownloadCount count={data.totalDownloads} />
-            </div>
-          </div>
-
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <h3 className="line-clamp-1 text-sm font-semibold leading-snug text-foreground">
-                {data.title}
-              </h3>
-              <p className="text-xs text-muted-foreground">{data.author}</p>
-            </div>
-            <MapBadges
-              cityCode={data.cityCode}
-              countryName={data.countryName}
-              countryEmoji={data.countryEmoji}
-              population={null}
-            />
-          </div>
-
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {previewText}
-          </p>
-
-          {data.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-1">
-              {data.tags.slice(0, 4).map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded border border-border/50 bg-muted/40 px-1.5 py-px text-xs text-muted-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </article>
-    </Link>
-  );
-}
-
-// ─── List variant ─────────────────────────────────────────────────────────────
-
 function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, 160);
 
@@ -339,15 +275,12 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
       )}
     >
       <article className="flex w-full min-w-0 items-start gap-4">
-        {/* Thumbnail */}
         <ThumbnailImage
           src={data.thumbnailSrc}
-          alt={`${data.title} preview`}
           containerClassName="relative aspect-[4/3] w-24 shrink-0 rounded-lg sm:w-32"
           noImageLabel="N/A"
         />
 
-        {/* Content */}
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <TypeBadge typeConfig={typeConfig} size="sm" />
@@ -374,7 +307,6 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
           </p>
         </div>
 
-        {/* Trailing meta */}
         <div className="hidden shrink-0 items-center gap-3 sm:flex">
           {data.population !== null && <PopulationCount count={data.population} />}
           <DownloadCount count={data.totalDownloads} />
@@ -383,8 +315,6 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
     </Link>
   );
 }
-
-// ─── Public component ─────────────────────────────────────────────────────────
 
 export function RegistryItemCard({
   data,

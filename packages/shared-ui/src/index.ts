@@ -8,7 +8,6 @@ export {
   SITE_SECTION_PADDING_BOTTOM_CLASS,
   SITE_SHELL_CLASS,
   APP_SHELL_PADDING_CLASS,
-  APP_SHELL_OUTER_CONTAINER_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from './lib/layout-tokens';
 export { Badge } from './components/badge';
@@ -257,3 +256,12 @@ export {
   getToneVarsClass,
   type LocalAccentTone,
 } from './lib/local-accent';
+  export {
+    HeroAccentBar,
+    type HeroAccentBarProps,
+    type AccentSegment,
+  } from './components/hero-accent-bar';
+  export {
+    Pagination,
+    type PaginationProps,
+  } from './components/pagination';

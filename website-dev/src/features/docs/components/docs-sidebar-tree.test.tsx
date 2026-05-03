@@ -173,7 +173,7 @@ describe("DocsSidebarTree", () => {
       />,
     );
 
-    const toggleButton = screen.getByRole("button", { name: "Collapse section" });
+    const toggleButton = screen.getByRole("button");
     expect(toggleButton).toBeVisible();
   });
 
@@ -191,11 +191,11 @@ describe("DocsSidebarTree", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Collapse section" }));
+    fireEvent.click(screen.getByRole("button"));
     expect(onToggle).toHaveBeenCalledWith("parent");
   });
 
-  it("shows Expand section label when node is collapsed", () => {
+  it("still renders a toggle button when node is collapsed", () => {
     const child = makeNode("child");
     const parent = makeNode("parent", [child]);
     const onToggle = vi.fn();
@@ -209,6 +209,6 @@ describe("DocsSidebarTree", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Expand section" })).toBeVisible();
+    expect(screen.getByRole("button")).toBeVisible();
   });
 });

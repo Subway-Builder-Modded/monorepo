@@ -4,7 +4,6 @@ import type { RegistrySortId } from "@/features/registry/lib/types";
 import {
   ArrowDownAZ,
   ArrowUpAZ,
-  RefreshCw,
   Clock,
   ArrowDownToLine,
   Type,
@@ -64,7 +63,6 @@ export function RegistrySortBar({
           label: opt.label,
           icon: SORT_ICONS[opt.id],
         }))}
-        triggerAriaLabel="Sort by"
         triggerClassName="min-w-[10rem]"
         triggerContent={
           <>
@@ -79,11 +77,6 @@ export function RegistrySortBar({
         <button
           type="button"
           onClick={onDirToggle}
-          aria-label={
-            sortDir === "asc"
-              ? "Ascending – click to sort descending"
-              : "Descending – click to sort ascending"
-          }
           className="inline-flex h-10 items-center rounded-lg border border-border/50 bg-background px-3 text-sm text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]"
         >
           {sortDir === "asc" ? (
@@ -99,10 +92,8 @@ export function RegistrySortBar({
         <button
           type="button"
           onClick={onRandomReshuffle}
-          aria-label="Reshuffle results"
           className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]"
         >
-          <RefreshCw className="size-4" aria-hidden={true} />
           Reshuffle
         </button>
       ) : null}

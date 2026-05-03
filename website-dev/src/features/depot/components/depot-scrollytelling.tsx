@@ -25,7 +25,7 @@ function DepotPipelineRail({
   const tone = resolveAccentColor(resolvedTheme, DEPOT_ACCENT);
 
   return (
-    <nav className="relative" aria-label="Depot build stages">
+    <nav className="relative">
       <div className="mb-4 border-b border-border/55 pb-3">
         <p className="text-lg font-extrabold tracking-[-0.02em] text-foreground lg:text-xl">
           The Depot Pipeline
@@ -152,14 +152,14 @@ const DepotStoryPanel = memo(function DepotStoryPanel({
         >
           <img
             src={step.image.imageLight}
-            alt={step.image.imageAlt}
+            alt=""
             className="block w-full dark:hidden"
             loading="lazy"
             draggable={false}
           />
           <img
             src={step.image.imageDark}
-            alt={step.image.imageAlt}
+            alt=""
             className="hidden w-full dark:block"
             loading="lazy"
             draggable={false}

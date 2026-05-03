@@ -73,16 +73,8 @@ export function DepotMapForgeHero() {
 
         <div className="relative flex items-center justify-center">
           <div className="w-full overflow-hidden rounded-lg border border-border/45 bg-card shadow-lg dark:shadow-2xl">
-            <img
-              src="/images/depot/hero-light.png"
-              alt="Depot hero map illustration"
-              className="w-full dark:hidden"
-            />
-            <img
-              src="/images/depot/hero-dark.png"
-              alt="Depot hero map illustration"
-              className="hidden w-full dark:block"
-            />
+            <img src="/images/depot/hero-light.png" alt="" className="w-full dark:hidden" />
+            <img src="/images/depot/hero-dark.png" alt="" className="hidden w-full dark:block" />
           </div>
         </div>
       </div>

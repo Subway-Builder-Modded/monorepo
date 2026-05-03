@@ -26,38 +26,20 @@ export function NavbarActions({
 }: NavbarActionsProps) {
   return (
     <NavbarActionGroup>
-      <NavbarActionLink
-        aria-label="Open Discord"
-        href={discordLink?.href ?? "#"}
-        target="_blank"
-        rel="noreferrer"
-      >
+      <NavbarActionLink href={discordLink?.href ?? "#"} target="_blank" rel="noreferrer">
         {discordLink?.icon}
       </NavbarActionLink>
-      <NavbarActionLink
-        aria-label="Open GitHub"
-        href={githubLink?.href ?? "#"}
-        target="_blank"
-        rel="noreferrer"
-      >
+      <NavbarActionLink href={githubLink?.href ?? "#"} target="_blank" rel="noreferrer">
         {githubLink?.icon}
       </NavbarActionLink>
-      <NavbarActionButton
-        type="button"
-        aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"}
-        onClick={onThemeClick}
-      >
+      <NavbarActionButton type="button" onClick={onThemeClick}>
         {theme === "light" ? (
           <Sun className="size-4.5" aria-hidden="true" />
         ) : (
           <MoonStar className="size-4.5" aria-hidden="true" />
         )}
       </NavbarActionButton>
-      <NavbarActionButton
-        type="button"
-        aria-label={isExpanded ? "Close navigation" : "Open navigation"}
-        onClick={onMenuClick}
-      >
+      <NavbarActionButton type="button" onClick={onMenuClick}>
         {isExpanded ? (
           <X className="size-4.5" aria-hidden="true" />
         ) : (

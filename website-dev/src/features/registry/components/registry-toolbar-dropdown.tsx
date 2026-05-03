@@ -2,7 +2,12 @@ import { useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Check, ChevronDown, Search } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger, ScrollArea } from "@subway-builder-modded/shared-ui";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  ScrollArea,
+} from "@subway-builder-modded/shared-ui";
 
 export type RegistryToolbarDropdownOption = {
   id: string;
@@ -20,7 +25,7 @@ type RegistryToolbarDropdownProps = {
   searchable?: boolean;
   searchPlaceholder?: string;
   triggerContent: React.ReactNode;
-  triggerAriaLabel: string;
+  triggerAriaLabel?: string;
   triggerClassName?: string;
   contentClassName?: string;
   footerContent?: React.ReactNode;
@@ -37,7 +42,6 @@ export function RegistryToolbarDropdown({
   searchable = false,
   searchPlaceholder = "Search...",
   triggerContent,
-  triggerAriaLabel,
   triggerClassName,
   contentClassName,
   footerContent,
@@ -45,7 +49,9 @@ export function RegistryToolbarDropdown({
 }: RegistryToolbarDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [resolvedAccent, setResolvedAccent] = useState<{ light: string; dark: string } | null>(null);
+  const [resolvedAccent, setResolvedAccent] = useState<{ light: string; dark: string } | null>(
+    null,
+  );
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const filteredOptions = useMemo(() => {
@@ -87,7 +93,6 @@ export function RegistryToolbarDropdown({
         <button
           ref={triggerRef}
           type="button"
-          aria-label={triggerAriaLabel}
           className={cn(
             "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] inline-flex h-10 items-center gap-2 rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_10%,var(--background))] hover:text-[var(--tb-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_12%,var(--background))] dark:hover:text-[var(--tb-accent-dark)]",
             triggerClassName,
@@ -124,7 +129,6 @@ export function RegistryToolbarDropdown({
               />
               <input
                 type="search"
-                aria-label={searchPlaceholder}
                 placeholder={searchPlaceholder}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -175,7 +179,9 @@ export function RegistryToolbarDropdown({
                       </span>
                     ) : null}
 
-                    {Icon ? <Icon className="size-4 shrink-0 text-inherit" aria-hidden={true} /> : null}
+                    {Icon ? (
+                      <Icon className="size-4 shrink-0 text-inherit" aria-hidden={true} />
+                    ) : null}
                     <span className="truncate text-left">{option.label}</span>
                   </button>
                 );
@@ -185,9 +191,7 @@ export function RegistryToolbarDropdown({
         </ScrollArea>
 
         {footerContent ? (
-          <div className="border-t border-border/50 p-1.5">
-            {footerContent}
-          </div>
+          <div className="border-t border-border/50 p-1.5">{footerContent}</div>
         ) : null}
       </PopoverContent>
     </Popover>

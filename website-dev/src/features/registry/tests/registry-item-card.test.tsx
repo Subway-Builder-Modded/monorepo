@@ -87,45 +87,35 @@ describe("buildRegistryItemHref", () => {
 
 describe("RegistryItemCard", () => {
   it("renders compact variant with correct link to /registry/maps/<id>", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/registry/maps/gwangju-4");
   });
 
   it("renders mod compact card with correct link to /registry/mods/<id>", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute("href", "/registry/mods/simple-trains");
   });
 
   it("compact variant shows title and author", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByRole("heading", { name: "Gwangju (40km×40km)" })).toBeInTheDocument();
     expect(screen.getByText("kimth9")).toBeInTheDocument();
   });
 
   it("compact variant shows Map type badge", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByText("Map")).toBeInTheDocument();
   });
 
   it("compact variant shows Mod type badge for mods", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByText("Mod")).toBeInTheDocument();
   });
 
   it("full variant renders title and tags", () => {
-    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="full" />);
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByRole("heading", { name: "Gwangju (40km×40km)" })).toBeInTheDocument();
     expect(screen.getByText("east-asia")).toBeInTheDocument();
   });
@@ -143,7 +133,7 @@ describe("RegistryItemCard", () => {
 
   it("applies type accent from type config", () => {
     const { container } = render(
-      <RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="compact" />,
+      <RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />,
     );
     // The badge should have inline style referencing accentLight
     const badge = container.querySelector("[style]");
@@ -151,9 +141,7 @@ describe("RegistryItemCard", () => {
   });
 
   it("shows city code, country, population for maps", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByText("KWJ4")).toBeInTheDocument();
     expect(screen.getByText(/South Korea/)).toBeInTheDocument();
     // population should be formatted and shown
@@ -161,17 +149,13 @@ describe("RegistryItemCard", () => {
   });
 
   it("does not show map-specific fields for mods (null values)", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
     expect(screen.queryByText("KWJ4")).not.toBeInTheDocument();
     expect(screen.queryByText(/South Korea/)).not.toBeInTheDocument();
   });
 
   it("shows Preview unavailable when thumbnailSrc is null", () => {
-    render(
-      <RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="compact" />,
-    );
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByText("Preview unavailable")).toBeInTheDocument();
   });
 });

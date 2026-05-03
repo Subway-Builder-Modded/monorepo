@@ -216,6 +216,6 @@ describe("MarkdownPlaygroundRoute", () => {
     await user.click(screen.getByTestId("playground-use-template"));
     const card = await screen.findByTestId("template-card-map-description");
 
-    expect(within(card).getByLabelText("Verified author")).toBeInTheDocument();
+    expect(card.querySelector(".lucide-badge-check")).toBeInTheDocument();
   });
 });

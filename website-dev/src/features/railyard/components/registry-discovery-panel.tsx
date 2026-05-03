@@ -65,12 +65,12 @@ export function RegistryDiscoveryPanel({ summary }: RegistryDiscoveryPanelProps)
             <div className="relative aspect-[16/10]">
               <img
                 src={railyardRegistryPreviewImage.light}
-                alt={railyardRegistryPreviewImage.alt}
+                alt=""
                 className="absolute inset-0 block size-full object-cover object-center dark:hidden"
               />
               <img
                 src={railyardRegistryPreviewImage.dark}
-                alt={railyardRegistryPreviewImage.alt}
+                alt=""
                 className="absolute inset-0 hidden size-full object-cover object-center dark:block"
               />
             </div>
