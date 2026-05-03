@@ -11,5 +11,3 @@ foundry/schemas/dist/
 foundry/schemas/.npm-cache/
 
 node_modules/
-
-locomotive/.registry/
