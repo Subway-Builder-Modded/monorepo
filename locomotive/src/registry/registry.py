@@ -7,9 +7,17 @@ import aiofiles
 import git
 from loguru import logger
 
-from ..types import (InitialViewState, IntegrityReport, IntegrityVersionInfo,
-                     MapManifest, ModManifest, Update, Update1, UpdateConfig,
-                     registry_types)
+from ..types import (
+    InitialViewState,
+    IntegrityReport,
+    IntegrityVersionInfo,
+    MapManifest,
+    ModManifest,
+    Update,
+    Update1,
+    UpdateConfig,
+    registry_types,
+)
 from ..utils import files
 
 

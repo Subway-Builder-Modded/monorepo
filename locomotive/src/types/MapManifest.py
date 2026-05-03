@@ -5,8 +5,7 @@
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import (AnyUrl, BaseModel, ConfigDict, Field, RootModel,
-                      confloat, conint, constr)
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel, confloat, conint, constr
 
 
 class GalleryItem(RootModel[constr(min_length=1)]):
