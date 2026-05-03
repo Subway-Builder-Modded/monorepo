@@ -5,16 +5,8 @@
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import (
-    AnyUrl,
-    BaseModel,
-    ConfigDict,
-    Field,
-    RootModel,
-    confloat,
-    conint,
-    constr,
-)
+from pydantic import (AnyUrl, BaseModel, ConfigDict, Field, RootModel,
+                      confloat, conint, constr)
 
 
 class GalleryItem(RootModel[constr(min_length=1)]):
@@ -23,23 +15,23 @@ class GalleryItem(RootModel[constr(min_length=1)]):
 
 class Update(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
-    type: Literal['github']
-    repo: constr(pattern=r'^[^/]+\/[^/]+$')
+    type: Literal["github"]
+    repo: constr(pattern=r"^[^/]+\/[^/]+$")
 
 
 class Update1(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
-    type: Literal['custom']
+    type: Literal["custom"]
     url: AnyUrl
 
 
 class InitialViewState(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     latitude: float
     longitude: float
@@ -50,7 +42,7 @@ class InitialViewState(BaseModel):
 
 class ResidentWeightedNearestNeighborKm(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     p10: float
     p25: float
@@ -62,7 +54,7 @@ class ResidentWeightedNearestNeighborKm(BaseModel):
 
 class WorkerWeightedNearestNeighborKm(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     p10: float
     p25: float
@@ -74,7 +66,7 @@ class WorkerWeightedNearestNeighborKm(BaseModel):
 
 class CommuteDistanceKm(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     p10: float
     p25: float
@@ -86,7 +78,7 @@ class CommuteDistanceKm(BaseModel):
 
 class ResidentCellDensity(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     p10: float
     p25: float
@@ -98,7 +90,7 @@ class ResidentCellDensity(BaseModel):
 
 class WorkerCellDensity(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     p10: float
     p25: float
@@ -110,7 +102,7 @@ class WorkerCellDensity(BaseModel):
 
 class Detail(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     radiusKm: float
     expectedPointSpacingKm: float
@@ -125,14 +117,14 @@ class Detail(BaseModel):
 
 
 class SupportLevel(StrEnum):
-    low = 'low'
-    medium = 'medium'
-    high = 'high'
+    low = "low"
+    medium = "medium"
+    high = "high"
 
 
 class TopCenter(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     longitude: float
     latitude: float
@@ -144,7 +136,7 @@ class TopCenter(BaseModel):
 
 class Activity(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     score: float
     continuousScore: float
@@ -161,14 +153,14 @@ class Activity(BaseModel):
 
 class Polycentrism(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     activity: Activity
 
 
 class GridStatistics(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     residentWeightedNearestNeighborKm: ResidentWeightedNearestNeighborKm
     workerWeightedNearestNeighborKm: WorkerWeightedNearestNeighborKm
@@ -180,51 +172,51 @@ class GridStatistics(BaseModel):
 
 
 class SourceQuality(StrEnum):
-    low_quality = 'low-quality'
-    medium_quality = 'medium-quality'
-    high_quality = 'high-quality'
+    low_quality = "low-quality"
+    medium_quality = "medium-quality"
+    high_quality = "high-quality"
 
 
 class LevelOfDetail(StrEnum):
-    low_detail = 'low-detail'
-    medium_detail = 'medium-detail'
-    high_detail = 'high-detail'
+    low_detail = "low-detail"
+    medium_detail = "medium-detail"
+    high_detail = "high-detail"
 
 
 class Location(StrEnum):
-    caribbean = 'caribbean'
-    central_america = 'central-america'
-    central_asia = 'central-asia'
-    east_africa = 'east-africa'
-    east_asia = 'east-asia'
-    europe = 'europe'
-    middle_east = 'middle-east'
-    north_africa = 'north-africa'
-    north_america = 'north-america'
-    oceania = 'oceania'
-    south_america = 'south-america'
-    south_asia = 'south-asia'
-    southeast_asia = 'southeast-asia'
-    southern_africa = 'southern-africa'
-    west_africa = 'west-africa'
+    caribbean = "caribbean"
+    central_america = "central-america"
+    central_asia = "central-asia"
+    east_africa = "east-africa"
+    east_asia = "east-asia"
+    europe = "europe"
+    middle_east = "middle-east"
+    north_africa = "north-africa"
+    north_america = "north-america"
+    oceania = "oceania"
+    south_america = "south-america"
+    south_asia = "south-asia"
+    southeast_asia = "southeast-asia"
+    southern_africa = "southern-africa"
+    west_africa = "west-africa"
 
 
 class SpecialDemandEnum(StrEnum):
-    airports = 'airports'
-    entertainment = 'entertainment'
-    ferries = 'ferries'
-    hospitals = 'hospitals'
-    parks = 'parks'
-    schools = 'schools'
-    universities = 'universities'
+    airports = "airports"
+    entertainment = "entertainment"
+    ferries = "ferries"
+    hospitals = "hospitals"
+    parks = "parks"
+    schools = "schools"
+    universities = "universities"
 
 
 class MapManifest(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     schema_version: Literal[1]
-    id: constr(pattern=r'^[a-z0-9]+(-[a-z0-9]+)*$')
+    id: constr(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$")
     name: constr(min_length=1)
     author: constr(min_length=1)
     github_id: conint(ge=1)
@@ -234,8 +226,8 @@ class MapManifest(BaseModel):
     is_test: bool
     source: AnyUrl
     update: Update | Update1
-    city_code: constr(pattern=r'^[A-Z0-9]{2,4}$')
-    country: constr(pattern=r'^[A-Z]{2}$')
+    city_code: constr(pattern=r"^[A-Z0-9]{2,4}$")
+    country: constr(pattern=r"^[A-Z]{2}$")
     population: conint(ge=0)
     residents_total: conint(ge=0)
     points_count: conint(ge=0)

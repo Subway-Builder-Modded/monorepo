@@ -1,13 +1,15 @@
 import json
 import os
 import time
-from typing import List, Dict
+from typing import Dict, List
 
 import aiofiles
 import git
 from loguru import logger
 
-from ..types import MapManifest, ModManifest, IntegrityReport, InitialViewState, UpdateConfig, IntegrityVersionInfo, Update, Update1, registry_types
+from ..types import (InitialViewState, IntegrityReport, IntegrityVersionInfo,
+                     MapManifest, ModManifest, Update, Update1, UpdateConfig,
+                     registry_types)
 from ..utils import files
 
 
@@ -64,9 +66,7 @@ class RegistryService:
 
         integrity_index_path = os.path.join(RegistryService.get_repository_path(), f"{asset_type}s", "integrity.json")
         try:
-            integrity_report = await files.read_and_validate_schema(
-                integrity_index_path, IntegrityReport
-            )
+            integrity_report = await files.read_and_validate_schema(integrity_index_path, IntegrityReport)
             if asset_type == "map":
                 RegistryService._index_cache["map"][1] = integrity_report
                 RegistryService._index_cache["map"][0] = True

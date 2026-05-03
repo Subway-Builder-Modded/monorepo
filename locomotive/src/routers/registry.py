@@ -3,7 +3,7 @@ from fastapi.responses import Response
 
 from ..registry import RegistryService
 from ..shared import limiter
-from ..types import ModManifest, IntegrityVersionInfo, MapManifest
+from ..types import IntegrityVersionInfo, MapManifest, ModManifest
 
 router = APIRouter(prefix="/registry", tags=["registry"])
 

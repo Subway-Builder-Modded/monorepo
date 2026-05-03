@@ -9,19 +9,19 @@ from pydantic import BaseModel, ConfigDict, RootModel
 
 
 class Severity(StrEnum):
-    WARNING = 'WARNING'
-    ERROR = 'ERROR'
+    WARNING = "WARNING"
+    ERROR = "ERROR"
 
 
 class Type(StrEnum):
-    literal = 'literal'
-    regex = 'regex'
-    ast = 'ast'
+    literal = "literal"
+    regex = "regex"
+    ast = "ast"
 
 
 class Finding(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     rule_id: str
     severity: Severity
@@ -33,19 +33,19 @@ class Finding(BaseModel):
 
 class SecurityIssue(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     findings: list[Finding]
 
 
 class UpdateType(StrEnum):
-    github = 'github'
-    custom = 'custom'
+    github = "github"
+    custom = "custom"
 
 
 class Source(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     update_type: UpdateType
     repo: str | None = None
@@ -56,7 +56,7 @@ class Source(BaseModel):
 
 class Versions(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     is_complete: bool
     errors: list[str]
@@ -72,7 +72,7 @@ class Versions(BaseModel):
 
 class Listings(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     has_complete_version: bool
     latest_semver_version: str | None
@@ -84,7 +84,7 @@ class Listings(BaseModel):
 
 class IntegrityOutput(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     schema_version: Literal[1]
     generated_at: str

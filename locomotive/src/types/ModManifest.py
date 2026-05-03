@@ -9,26 +9,26 @@ from pydantic import AnyUrl, BaseModel, ConfigDict, RootModel, conint, constr
 
 class Update(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
-    type: Literal['github']
-    repo: constr(pattern=r'^[^/]+\/[^/]+$')
+    type: Literal["github"]
+    repo: constr(pattern=r"^[^/]+\/[^/]+$")
 
 
 class Update1(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
-    type: Literal['custom']
+    type: Literal["custom"]
     url: AnyUrl
 
 
 class ModManifest(BaseModel):
     model_config = ConfigDict(
-        extra='forbid',
+        extra="forbid",
     )
     schema_version: Literal[1]
-    id: constr(pattern=r'^[a-z0-9]+(-[a-z0-9]+)*$')
+    id: constr(pattern=r"^[a-z0-9]+(-[a-z0-9]+)*$")
     name: constr(min_length=1)
     author: constr(min_length=1)
     github_id: conint(ge=1)
