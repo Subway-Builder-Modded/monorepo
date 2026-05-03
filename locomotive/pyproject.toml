@@ -12,18 +12,40 @@ dependencies = [
     "gitpython (>=3.1.46,<4.0.0)",
     "loguru (>=0.7.3,<0.8.0)",
     "aiofiles (>=25.1.0,<26.0.0)",
-    "slowapi (>=0.1.9,<0.2.0)"
+    "slowapi (>=0.1.9,<0.2.0)",
 ]
 
 [dependency-groups]
 dev = [
     "black (>=26.3.1,<27.0.0)",
     "taskipy (>=1.14.1,<2.0.0)",
-    "isort (>=8.0.1,<9.0.0)"
+    "isort (>=8.0.1,<9.0.0)",
+    "datamodel-code-generator (>=0.56.1,<0.57.0)"
 ]
 
 [tool.poetry]
 package-mode = false
+
+[tool.datamodel-codegen.profiles.MapManifest]
+input=".registry/schemas/json-schemas/map-manifest.schema.json"
+output="src/types/MapManifest.py"
+target-python-version="3.14"
+output-model-type="pydantic_v2.BaseModel"
+
+[tool.datamodel-codegen.profiles.ModManifest]
+input=".registry/schemas/json-schemas/mod-manifest.schema.json"
+output="src/types/ModManifest.py"
+target-python-version="3.14"
+output-model-type="pydantic_v2.BaseModel"
+
+[tool.datamodel-codegen.profiles.IntegrityIndex]
+input=".registry/schemas/json-schemas/integrity-output.schema.json"
+output="src/types/IntegrityIndex.py"
+target-python-version="3.14"
+output-model-type="pydantic_v2.BaseModel"
+
+[tool.taskipy.tasks]
+build_schemas="datamodel-codegen --profile MapManifest && datamodel-codegen --profile ModManifest && datamodel-codegen --profile IntegrityIndex"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

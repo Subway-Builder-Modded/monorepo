@@ -3,13 +3,13 @@ from fastapi.responses import Response
 
 from ..registry import RegistryService
 from ..shared import limiter
-from ..types import AssetManifest, IntegrityVersionInfo, MapManifest
+from ..types import ModManifest, IntegrityVersionInfo, MapManifest
 
 router = APIRouter(prefix="/registry", tags=["registry"])
 
 
 @router.get("/mods/{mod}", tags=["registry"])
-async def get_mod(mod: str) -> AssetManifest | dict:
+async def get_mod(mod: str) -> ModManifest | dict:
     """Fetches mod information from the registry."""
     try:
         return await RegistryService.get_asset_manifest(mod, "mod")

@@ -1,23 +1,21 @@
 import json
 import os
 import time
+from typing import List, Dict
 
 import aiofiles
 import git
 from loguru import logger
 
-from ..types import registry_types
+from ..types import MapManifest, ModManifest, IntegrityReport, InitialViewState, UpdateConfig, IntegrityVersionInfo, Update, Update1, registry_types
 from ..utils import files
 
 
 class RegistryService:
-    _author_details_cache: dict[str, registry_types.AuthorDetails] | None = None
+    _author_details_cache: Dict[str, registry_types.AuthorDetails] | None = None
     _author_details_hash: str | None = None
 
-    _map_integrity_index_changed: bool = False
-    _map_integrity_index: registry_types.IntegrityReport | None = None
-    _mod_integrity_index_changed: bool = False
-    _mod_integrity_index: registry_types.IntegrityReport | None = None
+    _index_cache: Dict[str, List[bool, IntegrityReport]] = {"map": [False, None], "mod": [False, None]}
 
     @staticmethod
     def get_repository_path() -> str:
@@ -54,27 +52,27 @@ class RegistryService:
         return RegistryService._author_details_cache
 
     @staticmethod
-    async def _get_integrity_index(asset_type: str) -> registry_types.IntegrityReport:
+    async def _get_integrity_index(asset_type: str) -> IntegrityReport:
         if asset_type == "map":
-            if not RegistryService._map_integrity_index_changed and RegistryService._map_integrity_index is not None:
-                return RegistryService._map_integrity_index
+            if not RegistryService._index_cache["map"][0] and RegistryService._index_cache["map"][1] is not None:
+                return RegistryService._index_cache["map"][1]
         elif asset_type == "mod":
-            if not RegistryService._mod_integrity_index_changed and RegistryService._mod_integrity_index is not None:
-                return RegistryService._mod_integrity_index
+            if not RegistryService._index_cache["mod"][0] and RegistryService._index_cache["mod"][1] is not None:
+                return RegistryService._index_cache["mod"][1]
         else:
             raise ValueError(f"Invalid asset type: {asset_type}")
 
         integrity_index_path = os.path.join(RegistryService.get_repository_path(), f"{asset_type}s", "integrity.json")
         try:
             integrity_report = await files.read_and_validate_schema(
-                integrity_index_path, registry_types.IntegrityReport
+                integrity_index_path, IntegrityReport
             )
             if asset_type == "map":
-                RegistryService._map_integrity_index = integrity_report
-                RegistryService._map_integrity_index_changed = False
+                RegistryService._index_cache["map"][1] = integrity_report
+                RegistryService._index_cache["map"][0] = True
             else:
-                RegistryService._mod_integrity_index = integrity_report
-                RegistryService._mod_integrity_index_changed = False
+                RegistryService._index_cache["mod"][1] = integrity_report
+                RegistryService._index_cache["mod"][0] = True
             return integrity_report
         except FileNotFoundError:
             logger.error(f"Integrity index file not found for asset type {asset_type} in registry repository")
@@ -126,7 +124,7 @@ class RegistryService:
                     try:
                         manifest_data = await files.read_and_validate_schema(
                             manifest_path,
-                            registry_types.MapManifest if asset_type == "map" else registry_types.AssetManifest,
+                            MapManifest if asset_type == "map" else ModManifest,
                         )
                         if manifest_data.author.lower() == author_id:
                             id_list.append(asset_id)
@@ -180,10 +178,10 @@ class RegistryService:
 
     @staticmethod
     def _build_update_config(
-        manifest_data: registry_types.MapManifest | registry_types.AssetManifest,
-    ) -> registry_types.UpdateConfig:
+        manifest_data: MapManifest | ModManifest,
+    ) -> Update | Update1:
         update_data = manifest_data.update
-        return registry_types.UpdateConfig(
+        return UpdateConfig(
             type=update_data.type,
             repo=update_data.repo,
             url=update_data.url,
@@ -191,10 +189,10 @@ class RegistryService:
 
     @staticmethod
     def _build_initial_view_state(
-        manifest_data: registry_types.MapManifest | registry_types.AssetManifest,
-    ) -> registry_types.InitialViewState:
+        manifest_data: MapManifest | ModManifest,
+    ) -> InitialViewState:
         initial_view_state = manifest_data.initial_view_state
-        return registry_types.InitialViewState(
+        return InitialViewState(
             latitude=initial_view_state.latitude,
             longitude=initial_view_state.longitude,
             zoom=initial_view_state.zoom,
@@ -203,12 +201,12 @@ class RegistryService:
         )
 
     @staticmethod
-    async def get_asset_manifest(asset_id: str, asset_type: str) -> registry_types.AssetManifest:
+    async def get_asset_manifest(asset_id: str, asset_type: str) -> MapManifest | ModManifest:
         manifest_path = os.path.join(
             RegistryService.get_repository_path(), f"{asset_type}s", f"{asset_id}", "manifest.json"
         )
         try:
-            type_to_use = registry_types.MapManifest if asset_type == "map" else registry_types.AssetManifest
+            type_to_use = MapManifest if asset_type == "map" else ModManifest
             manifest_data = await files.read_and_validate_schema(manifest_path, type_to_use)
         except FileNotFoundError:
             logger.error(f"Manifest file not found for asset {asset_id} of type {asset_type}")
@@ -217,62 +215,10 @@ class RegistryService:
             logger.error(f"Invalid JSON in manifest file for asset {asset_id} of type {asset_type}")
             raise
 
-        try:
-            author_details = await RegistryService.get_author_info(manifest_data.author)
-        except FileNotFoundError:
-            logger.error(f"Author index file not found while loading asset {asset_id} of type {asset_type}")
-            raise
-        except json.JSONDecodeError:
-            logger.error(f"Invalid JSON in author index while loading asset {asset_id} of type {asset_type}")
-            raise
-
-        common_manifest_fields = {
-            "schema_version": manifest_data.schema_version,
-            "id": manifest_data.id,
-            "name": manifest_data.name,
-            "author": author_details,
-            "github_id": manifest_data.github_id,
-            "last_updated": manifest_data.last_updated,
-            "description": manifest_data.description,
-            "tags": manifest_data.tags,
-            "gallery": manifest_data.gallery,
-            "source": manifest_data.source,
-            "update": RegistryService._build_update_config(manifest_data),
-            "is_test": manifest_data.is_test,
-        }
-
-        try:
-            if asset_type == "map":
-                map_manifest_fields = {
-                    **common_manifest_fields,
-                    "city_code": manifest_data.city_code,
-                    "country": manifest_data.country,
-                    "location": manifest_data.location,
-                    "population": manifest_data.population,
-                    "data_source": manifest_data.data_source,
-                    "source_quality": manifest_data.source_quality,
-                    "level_of_detail": manifest_data.level_of_detail,
-                    "special_demand": manifest_data.special_demand,
-                    "initial_view_state": RegistryService._build_initial_view_state(manifest_data),
-                    "residents_total": manifest_data.residents_total,
-                    "points_count": manifest_data.points_count,
-                    "population_count": manifest_data.population_count,
-                    "file_sizes": manifest_data.file_sizes,
-                    "grid_statistics": manifest_data.grid_statistics,
-                }
-
-                return registry_types.MapManifest(**map_manifest_fields)
-
-            return registry_types.AssetManifest(**common_manifest_fields)
-        except KeyError as error:
-            logger.error(f"Manifest file for asset {asset_id} of type {asset_type} is missing required field: {error}")
-            raise
-        except Exception as error:
-            logger.error(f"Error loading manifest for asset {asset_id} of type {asset_type}: {str(error)}")
-            raise
+        return manifest_data
 
     @staticmethod
-    async def get_asset_versions(asset_id: str, asset_type: str) -> dict[str, registry_types.IntegrityVersionInfo]:
+    async def get_asset_versions(asset_id: str, asset_type: str) -> dict[str, IntegrityVersionInfo]:
         manifest = await RegistryService._get_integrity_index(asset_type)
         return manifest.listings[asset_id].versions
 
