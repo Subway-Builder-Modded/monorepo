@@ -114,7 +114,9 @@ export function RegistryPage() {
 
   // Scroll to browse section
   const scrollToBrowse = useCallback(() => {
-    const el = document.getElementById("registry-browse");
+    const el =
+      document.getElementById("registry-browse-content-start") ??
+      document.getElementById("registry-browse");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
     }
@@ -188,9 +190,6 @@ export function RegistryPage() {
         onSortChange={handleSortChange}
         onDirToggle={handleDirToggle}
         onViewChange={handleViewChange}
-        showFloatingSearch={!isHeroInView}
-        isSearchActive={isSpotlightOpen}
-        onActivateSearch={openSpotlight}
       />
 
       <RegistrySpotlightSearch

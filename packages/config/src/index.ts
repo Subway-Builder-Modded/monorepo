@@ -40,6 +40,13 @@ export {
 	type AssetListingCounts,
 } from './asset-listings/listing-counts';
 export {
+	buildRegistryTagCategories,
+	buildRegistryTagCounts,
+	formatRegistryTagLabel,
+	type RegistryTagCategory,
+	type RegistryTagCategoryId,
+} from './asset-listings/registry-sidebar';
+export {
 	sumVersionDownloads,
 	toCumulativeDownloadTotals,
 	type AssetDownloadCountsByVersion,

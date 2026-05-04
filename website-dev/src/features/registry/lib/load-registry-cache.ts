@@ -72,6 +72,28 @@ function resolveThumbnailSrc(
   return `/registry/${typeRouteSegment}/${id}/${first}`;
 }
 
+function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): string[] {
+  const tagSet = new Set<string>(Array.isArray(manifest.tags) ? manifest.tags : []);
+
+  if (typeId === "maps") {
+    if (manifest.source_quality?.trim()) {
+      tagSet.add(manifest.source_quality.trim());
+    }
+    if (manifest.level_of_detail?.trim()) {
+      tagSet.add(manifest.level_of_detail.trim());
+    }
+    if (Array.isArray(manifest.special_demand)) {
+      for (const demandTag of manifest.special_demand) {
+        if (typeof demandTag === "string" && demandTag.trim()) {
+          tagSet.add(demandTag.trim());
+        }
+      }
+    }
+  }
+
+  return [...tagSet];
+}
+
 type CountryInfo = { name: string; emoji: string | null };
 
 /** Resolve country name and emoji from a country code. */
@@ -172,7 +194,7 @@ export async function loadRegistryItemsForType(
       name: manifest.name?.trim() || id,
       author: manifest.author?.trim() || "Unknown creator",
       description: manifest.description?.trim() || "",
-      tags: Array.isArray(manifest.tags) ? manifest.tags : [],
+      tags: resolveNormalizedTags(typeId, manifest),
       thumbnailSrc: resolveThumbnailSrc(typeRouteSegment, id, manifest.gallery),
       totalDownloads: getTotalDownloads(id, downloads),
       lastActivityAt,

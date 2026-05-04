@@ -3,8 +3,17 @@ import { RegistryItemCard } from "@/shared/registry-card/registry-item-card";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { filterRegistryItems, collectTags } from "@/features/registry/lib/filter-registry-items";
 import { sortRegistryItems } from "@/features/registry/lib/sort-registry-items";
-import { FloatingRegistrySearch } from "./floating-registry-search";
-import { Pagination } from "@subway-builder-modded/shared-ui";
+import { RegistryFilterSidebar } from "./registry-filter-sidebar";
+import { RegistryViewToggle } from "./registry-view-toggle";
+import { RegistrySortBar } from "./registry-sort-bar";
+import { Search, Trash2, X } from "lucide-react";
+import {
+  Pagination,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@subway-builder-modded/shared-ui";
 import { REGISTRY_EMPTY_STATE_MESSAGE } from "@/features/registry/registry-content";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
@@ -29,9 +38,6 @@ type RegistryBrowseSectionProps = {
   onSortChange: (id: RegistrySortId) => void;
   onDirToggle: () => void;
   onViewChange: (mode: RegistryViewMode) => void;
-  showFloatingSearch: boolean;
-  isSearchActive?: boolean;
-  onActivateSearch: () => void;
 };
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48] as const;
@@ -53,34 +59,16 @@ export function RegistryBrowseSection({
   onSortChange,
   onDirToggle,
   onViewChange,
-  showFloatingSearch,
-  isSearchActive = false,
-  onActivateSearch,
 }: RegistryBrowseSectionProps) {
+  const [isMac, setIsMac] = useState(false);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const preloadedThumbnailSrcs = useRef<Set<string>>(new Set());
-  const sectionRef = useRef<HTMLElement>(null);
   const deferredQuery = useDeferredValue(query);
 
-  // Anchor the floating toolbar to the section once the section's bottom enters the viewport.
-  // At the exact threshold (section.bottom === window.innerHeight), both `fixed bottom-4` and
-  // `absolute bottom-4` produce the same visual position, so the switch is seamless.
-  const [isToolbarAnchored, setIsToolbarAnchored] = useState(false);
   useEffect(() => {
-    const check = () => {
-      const section = sectionRef.current;
-      if (!section) return;
-      setIsToolbarAnchored(section.getBoundingClientRect().bottom <= window.innerHeight);
-    };
-    window.addEventListener("scroll", check, { passive: true });
-    window.addEventListener("resize", check, { passive: true });
-    check();
-    return () => {
-      window.removeEventListener("scroll", check);
-      window.removeEventListener("resize", check);
-    };
+    setIsMac(navigator.platform.toLowerCase().includes("mac"));
   }, []);
 
   // Reset page when filters change
@@ -154,107 +142,169 @@ export function RegistryBrowseSection({
 
   return (
     <section
-      ref={sectionRef}
       id="registry-browse"
       className="relative mx-auto w-full max-w-[96rem] px-5 pb-24 pt-12 sm:px-7 md:px-9 lg:px-12"
     >
-      <FloatingRegistrySearch
-        isVisible={showFloatingSearch}
-        isSuppressed={isSearchActive}
-        isAnchored={isToolbarAnchored}
-        query={query}
-        onActivate={onActivateSearch}
-        typeId={typeId}
-        counts={counts}
-        onTypeChange={onTypeChange}
-        viewMode={viewMode}
-        onViewChange={onViewChange}
-        sortId={sortId}
-        sortDir={sortDir}
-        onSortChange={onSortChange}
-        onDirToggle={onDirToggle}
-        onRandomReshuffle={handleReshuffle}
-        availableTags={availableTags}
-        selectedTags={selectedTags}
-        onTagToggle={onTagToggle}
-        onTagsClear={onTagsClear}
-        onClearQuery={() => onQueryChange("")}
-      />
+      <div
+        id="registry-browse-content-start"
+        className="scroll-mt-20 grid gap-4 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:gap-5"
+      >
+        <RegistryFilterSidebar
+          typeId={typeId}
+          typeItems={typeItems}
+          counts={counts}
+          onTypeChange={onTypeChange}
+          availableTags={availableTags}
+          selectedTags={selectedTags}
+          onTagToggle={onTagToggle}
+          onTagsClear={onTagsClear}
+        />
 
-      <div className="mt-0">
-        {/* Section header */}
-        <div className="mb-6 space-y-5">
-          {/* Type database heading */}
-          <div
-            className="flex items-center justify-center gap-3.5 rounded-2xl px-6 py-5 text-3xl font-bold tracking-tight text-foreground shadow-sm"
-            style={{
-              background: `light-dark(
+        <div className="min-w-0">
+          <div className="mb-6 space-y-5">
+            <div
+              className="flex items-center justify-center gap-3.5 rounded-2xl px-6 py-5 text-3xl font-bold tracking-tight text-foreground shadow-sm"
+              style={{
+                background: `light-dark(
                 color-mix(in srgb, ${typeConfig.accentLight} 18%, transparent),
                 color-mix(in srgb, ${typeConfig.accentDark} 14%, transparent)
               )`,
-              border: `1.5px solid light-dark(
+                border: `1.5px solid light-dark(
                 color-mix(in srgb, ${typeConfig.accentLight} 30%, transparent),
                 color-mix(in srgb, ${typeConfig.accentDark} 22%, transparent)
               )`,
-            }}
-          >
-            {typeId === "maps" ? (
-              <Map
-                className="size-8 shrink-0"
-                aria-hidden
-                style={{ color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})` }}
-              />
-            ) : (
-              <Package
-                className="size-8 shrink-0"
-                aria-hidden
-                style={{ color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})` }}
-              />
-            )}
-            <span>{typeConfig.label} Database</span>
+              }}
+            >
+              {typeId === "maps" ? (
+                <Map
+                  className="size-8 shrink-0"
+                  aria-hidden
+                  style={{
+                    color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
+                  }}
+                />
+              ) : (
+                <Package
+                  className="size-8 shrink-0"
+                  aria-hidden
+                  style={{
+                    color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
+                  }}
+                />
+              )}
+              <span>{typeConfig.label} Database</span>
+            </div>
+
+            <div className="space-y-2">
+              <div className="group relative flex">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden={true}
+                />
+                <input
+                  type="search"
+                  role="searchbox"
+                  value={query}
+                  onChange={(event) => onQueryChange(event.target.value)}
+                  placeholder="Search…"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  className="h-10 w-full appearance-none rounded-xl border border-border/50 bg-muted/30 pl-9 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
+                />
+                {!query ? (
+                  <span
+                    className="pointer-events-none absolute right-3 top-1/2 ml-auto flex -translate-y-1/2 shrink-0 items-center gap-1 text-[11px] text-muted-foreground"
+                    aria-hidden={true}
+                  >
+                    <kbd className="rounded border border-border/70 bg-background/90 px-1.5 py-0.5 font-mono font-medium leading-none">
+                      {isMac ? "Cmd" : "Ctrl"}
+                    </kbd>
+                    <span className="text-muted-foreground/70">+</span>
+                    <kbd className="rounded border border-border/70 bg-background/90 px-1.5 py-0.5 font-mono font-medium leading-none">
+                      M
+                    </kbd>
+                  </span>
+                ) : null}
+                {query ? (
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onQueryChange("");
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <X className="size-3.5" aria-hidden={true} />
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <RegistryViewToggle viewMode={viewMode} onChange={onViewChange} />
+                  <RegistrySortBar
+                    activeTypeId={typeId}
+                    sortId={sortId}
+                    sortDir={sortDir}
+                    onSortChange={onSortChange}
+                    onDirToggle={onDirToggle}
+                    onRandomReshuffle={handleReshuffle}
+                  />
+                </div>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={handleClearAll}
+                        disabled={!hasActiveFilters}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border/50 bg-background text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-background disabled:hover:text-muted-foreground dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]"
+                      >
+                        <Trash2 className="size-4" aria-hidden={true} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="z-[140]">
+                      Clear All Filters
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
           </div>
 
-          {/* Filters summary row */}
-          {hasActiveFilters && (
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={handleClearAll}
-                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                Clear all filters
-              </button>
-            </div>
+          {isLoading ? (
+            <RegistryLoadingState cardVariant={cardVariant} />
+          ) : sortedItems.length === 0 ? (
+            <RegistryEmptyState
+              query={query}
+              selectedTags={selectedTags}
+              onClear={handleClearAll}
+            />
+          ) : (
+            <>
+              <RegistryGrid items={visibleItems} typeId={typeId} cardVariant={cardVariant} />
+
+              <Pagination
+                className="mt-10"
+                page={page}
+                totalPages={totalPages}
+                totalItems={sortedItems.length}
+                pageSize={pageSize}
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={(nextPage) => {
+                  const clamped = Math.min(Math.max(nextPage, 1), totalPages);
+                  setPage(clamped);
+                }}
+                onPageSizeChange={(nextPageSize) => {
+                  setPageSize(nextPageSize);
+                  setPage(1);
+                }}
+              />
+            </>
           )}
         </div>
-
-        {/* Grid / list */}
-        {isLoading ? (
-          <RegistryLoadingState cardVariant={cardVariant} />
-        ) : sortedItems.length === 0 ? (
-          <RegistryEmptyState query={query} selectedTags={selectedTags} onClear={handleClearAll} />
-        ) : (
-          <>
-            <RegistryGrid items={visibleItems} typeId={typeId} cardVariant={cardVariant} />
-
-            <Pagination
-              className="mt-10"
-              page={page}
-              totalPages={totalPages}
-              totalItems={sortedItems.length}
-              pageSize={pageSize}
-              pageSizeOptions={PAGE_SIZE_OPTIONS}
-              onPageChange={(nextPage) => {
-                const clamped = Math.min(Math.max(nextPage, 1), totalPages);
-                setPage(clamped);
-              }}
-              onPageSizeChange={(nextPageSize) => {
-                setPageSize(nextPageSize);
-                setPage(1);
-              }}
-            />
-          </>
-        )}
       </div>
     </section>
   );
