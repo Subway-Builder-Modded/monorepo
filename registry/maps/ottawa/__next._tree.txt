@@ -1,0 +1,3 @@
+:HL["/_next/static/chunks/15tn2l-.iz-5l.css","style"]
+:HL["/_next/static/chunks/13cgyfoo2fp_t.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"registry","param":null,"prefetchHints":0,"slots":{"children":{"name":"maps","param":null,"prefetchHints":0,"slots":{"children":{"name":"id","param":{"type":"d","key":"ottawa","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}}}},"staleTime":300,"buildId":"TqfEAAJuAGHIjivXdqxs2"}

@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+3:I[593081,["/_next/static/chunks/0w_0~p0d5kuzu.js","/_next/static/chunks/0c300ifq_-arb.js","/_next/static/chunks/0mmztvnuft4-e.js","/_next/static/chunks/01m92w15tol_v.js","/_next/static/chunks/05f04x-q3_r-c.js","/_next/static/chunks/02ru.hfawoiy-.js","/_next/static/chunks/16iw4lp385m5i.js","/_next/static/chunks/05ebcgyhk7x4d.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":["$L2",null,["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"TqfEAAJuAGHIjivXdqxs2"}
+5:null
+2:E{"digest":"NEXT_REDIRECT;replace;/railyard/updates/v0.1.0;308;"}

@@ -1,0 +1,11 @@
+{
+  "source": "Subway-Builder-Modded/registry@main",
+  "generatedAt": "2026-05-05T23:39:36.111Z",
+  "snapshotLabel": "2026-05-05 23:39 UTC",
+  "files": [
+    "railyard_app_downloads.json",
+    "railyard_app_by_day.csv",
+    "railyard_app_downloads_history.json"
+  ],
+  "failedFiles": []
+}

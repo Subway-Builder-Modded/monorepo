@@ -1,0 +1,23 @@
+{
+  "source": "Subway-Builder-Modded/registry@main",
+  "generatedAt": "2026-05-05T23:39:34.984Z",
+  "snapshotLabel": "2026-05-05 23:39 UTC",
+  "files": [
+    "most_popular_all_time.csv",
+    "most_popular_last_1d.csv",
+    "most_popular_last_3d.csv",
+    "most_popular_last_7d.csv",
+    "authors_by_total_downloads.csv",
+    "projects_most_popular_all_time.csv",
+    "projects_most_popular_last_1d.csv",
+    "projects_most_popular_last_3d.csv",
+    "projects_most_popular_last_7d.csv",
+    "listing_projects.csv",
+    "maps_statistics.csv",
+    "assets_by_day.csv",
+    "most_popular_by_day.csv",
+    "authors_by_day.csv",
+    "authors_index.json"
+  ],
+  "failedFiles": []
+}

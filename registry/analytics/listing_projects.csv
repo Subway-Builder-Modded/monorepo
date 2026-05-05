@@ -1,0 +1,174 @@
+listing_type,id,name,project_key,project_name
+map,yukina-cz-brno,Brno,ahkimn/subwaybuilder-eu-maps,subwaybuilder-eu-maps
+map,yukina-cz-hradec-pardubice,Hradec Králové - Pardubice,ahkimn/subwaybuilder-eu-maps,subwaybuilder-eu-maps
+map,yukina-cz-olomouc,Olomouc,ahkimn/subwaybuilder-eu-maps,subwaybuilder-eu-maps
+map,yukina-cz-ostrava,Ostrava,ahkimn/subwaybuilder-eu-maps,subwaybuilder-eu-maps
+map,yukina-cz-plzen,Plzeň,ahkimn/subwaybuilder-eu-maps,subwaybuilder-eu-maps
+map,yukina-cz-praha,Praha,ahkimn/subwaybuilder-eu-maps,subwaybuilder-eu-maps
+map,yukina-cz-ustecko-chomutov,Ústí nad Labem - Chomutov,ahkimn/subwaybuilder-eu-maps,subwaybuilder-eu-maps
+map,yukina-asahikawa,旭川 (Asahikawa),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-fukuoka,福岡 (Fukuoka),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-hakodate,函館 (Hakodate),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-hiroshima-kure,広島 (Hiroshima),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-kagoshima-kirishima,鹿児島 (Kagoshima),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-kitakyushu-shimonoseki,北九州 (Kitakyūshū),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-kobe-akashi,神戸 (Kōbe),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-kochi,高知 (Kōchi),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-kumamoto,熊本 (Kumamoto),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-kyoto,京都 (Kyōto),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-matsuyama,松山 (Matsuyama),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-morioka,盛岡 (Morioka),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-nagasaki,長崎 (Nagasaki),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-nagoya,名古屋 (Nagoya),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-nakadoori,中通り (Nakadōri),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-nakaumi,中海 (Nakaumi),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-niigata,新潟 (Niigata),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-northern-kyushu,福北 (Fukuoka & Kitakyūshū),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-okayama,岡山 (Okayama),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-okinawa,沖縄 (Okinawa),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-osaka,大阪 (Ōsaka),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-sapporo-chitose,札幌 (Sapporo),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-sendai,仙台 (Sendai),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-shizuoka-hamamatsu,静岡・浜松 (Shizuoka/Hamamatsu),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-takamatsu,高松 (Takamatsu),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-tottori,鳥取 (Tottori),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-toyama,富山 (Toyama),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-tsugaru,津軽 (Tsugaru),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+map,yukina-yamagata,山形 (Yamagata),ahkimn/subwaybuilder-jp-maps,subwaybuilder-jp-maps
+mod,subwaybuilder-regions,Regions,ahkimn/subwaybuilder-regions,subwaybuilder-regions
+map,jerusalem,Jerusalem,barkuperman/jerusalem-sb-map,jerusalem-sb-map
+map,tel-aviv,Tel Aviv,barkuperman/tlv-mod,TLV-mod
+mod,transit-overlay,Transit Overlay,barkuperman/transit-overlay-subway-builder-mod,transit-overlay-subway-builder-mod
+map,akron-oh,"Akron, OH",bean1322/akron-oh-map,akron-oh-map
+map,toledo-oh,Toledo,bean1322/toledo-oh-map.git,toledo-oh-map.git
+mod,simple-trains,Simple Trains,bobby-047/some-new-trains,Some-new-Trains
+map,mfn-hong-kong,Hong Kong,crumpetime/sb-maps-hkg,sb-maps-hkg
+map,mfn-lasvegas,Las Vegas,crumpetime/sb-maps-las,sb-maps-las
+map,mfn-madisonwi,Madison,crumpetime/sb-maps-msn,sb-maps-msn
+map,mfn-hamptonroads,Norfolk,crumpetime/sb-maps-orf,sb-maps-orf
+map,mfn-rdu,Raleigh,crumpetime/sb-maps-rdu,sb-maps-rdu
+map,mfn-northwestar,Northwest Arkansas,crumpetime/sb-maps-xna,sb-maps-xna
+mod,distance-circles,Station Catchment Viewer,crumpetime/subway_builder_distance_circles,subway_builder_distance_circles
+mod,danield1909-dantrains,"danTrains (v1.* ""Phoenix"")",danield1909/dantrains,danTrains
+map,greatertwincities,Greater Twin Cities,danield1909/improvedtwincities,improvedTwinCities
+map,calgary,Calgary,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+map,edmonton,Edmonton,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+map,montreal,Montreal,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+map,ottawa,Ottawa,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+map,quebec-city,Quebec City,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+map,toronto,Toronto,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+map,vancouver,Vancouver,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+map,winnipeg,Winnipeg,devenperez/subway-builder-canadian-maps,subway-builder-canadian-maps
+mod,citymapper,Citymapper,gio1112/subway-builder-citymapper,subway-builder-citymapper
+map,jelegend-tokyo,東京 (Tokyo),jelegend/subwaybuilder,subwaybuilder
+map,south-florida,South Florida,kaicardenas0618/subway-builder-sfl,subway-builder-sfl
+map,busan-3,Busan (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,busan-4,Busan (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,daegu-3,Daegu (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,daegu-4,Daegu (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,daejeon-3,Daejeon (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,daejeon-4,Daejeon (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,gwangju-3,Gwangju (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,gwangju-4,Gwangju (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,incheon-3,Incheon (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,incheon-4,Incheon (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,jeju-3,Jeju (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,jeju-4,Jeju (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,jeju-f,Jeju (Full Island),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,sejong-3,Sejong (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,sejong-4,Sejong (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,seoul-3,Seoul (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,seoul-4,Seoul (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,ulsan-3,Ulsan (30km×30km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+map,ulsan-4,Ulsan (40km×40km),kimth9/sb_korean_map_pack,sb_korean_map_pack
+mod,kr-ktp,Korean Transit Pack,kimth9/sb_korean_transit_pack_v2,sb_korean_transit_pack_v2
+map,guangzhou,Guangzhou,kronifer/sb-chinese-maps,sb-chinese-maps
+map,shanghai,Shanghai,kronifer/sb-chinese-maps,sb-chinese-maps
+map,dublin,Dublin,kronifer/sb-dublin-map,sb-dublin-map
+map,glasgow-edinburgh,Glasgow-Edinburgh,kronifer/sb-glasgow-edinburgh-map,sb-glasgow-edinburgh-map
+map,waterloo,Region of Waterloo,kronifer/sb-waterloo-map,sb-waterloo-map
+map,zurich,Zurich,kronifer/sb-zurich-map,sb-zurich-map
+map,greater-newyork,Greater NYC,lechicken-nyc/greater-new-york,greater-new-york
+map,barcelona,Barcelona,maximilian284/subwaybuilder-es-maps,subwaybuilder-es-maps
+map,bilbao,Bilbao,maximilian284/subwaybuilder-es-maps,subwaybuilder-es-maps
+map,madrid,Madrid,maximilian284/subwaybuilder-es-maps,subwaybuilder-es-maps
+map,valencia,Valencia,maximilian284/subwaybuilder-es-maps,subwaybuilder-es-maps
+map,bari,Bari,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,bologna,Bologna,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,catania,Catania,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,florence,Florence,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,garda-lake,Garda Lake,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,genoa,Genoa,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,milan,Milan,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,naples,Naples,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,palermo,Palermo,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,pianura-emiliana,Pianura Emiliana,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,pianura-veneta,Pianura Veneta,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,riviera-romagnola,Riviera Romagnola,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,rome,Rome,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,turin,Turin,maximilian284/subwaybuilder-it-maps,subwaybuilder-it-maps
+map,bucharest-medium,Bucharest,metatablestudios/subwaybuilder-romania,subwaybuilder-romania
+mod,any-money,anyMoney,nzh0172/sb-anymoney,sb-anymoney
+map,bangkok,Bangkok,nzh0172/sb-bangkok,sb-bangkok
+map,greater-kuala-lumpur,Greater Kuala Lumpur,nzh0172/sb-malaysia-map-pack,sb-malaysia-map-pack
+map,ipoh,Ipoh,nzh0172/sb-malaysia-map-pack-2,sb-malaysia-map-pack-2
+map,johor-bahru,Johor Bahru,nzh0172/sb-malaysia-map-pack-2,sb-malaysia-map-pack-2
+map,pulau-pinang,Pulau Pinang,nzh0172/sb-malaysia-map-pack-2,sb-malaysia-map-pack-2
+mod,station-dots,Station Dots,nzh0172/sb-station-dots,sb-station-dots
+map,willamette-valley,"Willamette Valley, OR",phineapoo/willamette-valley-or,Willamette-Valley-OR
+map,anchorage-ak,Anchorage,pswbsf/anchorage-ak,anchorage-ak
+map,buffalo-ny,Buffalo,pswbsf/buffalo-ny,buffalo-ny
+map,charleston-huntington-wv,Charleston-Huntington,pswbsf/charleston-huntington-wv,charleston-huntington-wv
+map,charleston-sc,"Charleston, SC",pswbsf/charleston-sc,charleston-sc
+map,dayton-oh,Dayton,pswbsf/dayton-oh,dayton-oh
+map,piedmont-triad,Piedmont Triad,pswbsf/piedmont-triad,piedmont-triad
+map,pyongyang-nk,Pyongyang,pswbsf/pyongyang-nk,pyongyang-nk
+map,syracuse-ny,"Syracuse, NY",pswbsf/syracuse-ny,syracuse-ny
+map,wilmington-nc,"Wilmington, NC",pswbsf/wilmington-nc,wilmington-nc
+map,baltimore-dc-corridor,Baltimore-DC Corridor,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,ciudad-de-mexico,Ciudad de México,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,ciudad-juarez-el-paso,Ciudad Juárez-El Paso,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,greater-baltimore,Greater Baltimore,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,greater-los-angeles,Greater Los Angeles,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,guadalajara,Guadalajara,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,helsinki,Helsinki,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,jacksonville,Jacksonville,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,knoxville,Knoxville,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,los-angeles-county,Los Angeles County,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,memphis,Memphis,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,monterrey,Monterrey,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,orange-county,Orange County,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,orlando,Orlando,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,puebla,Puebla,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,puerto-rico,Puerto Rico,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,richmond,Richmond,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,rochester,Rochester,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,saltillo,Saltillo,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,san-antonio,San Antonio,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,san-juan,San Juan,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,santa-barbara,Santa Barbara,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,tampa-bay,Tampa Bay,rslurry/subwaybuilder-maps,subwaybuilder-maps
+map,amsterdam,Amsterdam,ryandicicco/subway-builder-maps,Subway-Builder-Maps
+map,cairo,Cairo,ryandicicco/subway-builder-maps,Subway-Builder-Maps
+map,dubai,Dubai,ryandicicco/subway-builder-maps,Subway-Builder-Maps
+map,oklahoma-city,Oklahoma City,ryandicicco/subway-builder-maps,Subway-Builder-Maps
+map,rotterdam-the-hague,Rotterdam-The Hague,ryandicicco/subway-builder-maps,Subway-Builder-Maps
+map,spokane,Spokane,ryandicicco/subway-builder-maps,Subway-Builder-Maps
+map,albany,Albany,soccerjonj/albany,Albany
+map,colorado-ski-country,Colorado Ski Country,soccerjonj/colorado-ski-country,Colorado-Ski-Country
+map,daytonatti,Daytonatti,soccerjonj/daytonnati,Daytonnati
+map,louisville,Louisville,soccerjonj/louisville,Louisville
+map,nashville,Nashville,soccerjonj/nashville,Nashville
+map,providence,Providence,soccerjonj/providence,Providence
+map,sacramento,Sacramento,soccerjonj/sacramento,Sacramento
+mod,advanced-analytics,Advanced Analytics,stefanorigano/advanced_analytics,advanced_analytics
+mod,tathan-casino,TATHAN Casino,tathandev/tathancasino,TathanCasino
+mod,cinematic-camera,Cinematic Camera,transitcore/cinematic-camera,cinematic-camera
+mod,network-status,Network Status,valdotorium/network-status,network-status
+map,berlin-val,Berlin,valdotorium/railyard-maps-2,Railyard-Maps-2
+map,singapore-val,Singapore,valdotorium/railyard-maps-2,Railyard-Maps-2
+map,trondheim-val,Trondheim,valdotorium/railyard-maps-2,Railyard-Maps-2
+map,warsaw-val,Warsaw,valdotorium/railyard-maps-2,Railyard-Maps-2
+mod,game-speedup,Game SpeedUp,valdotorium/speed-mod,speed-mod
+mod,valdotoriums-trains,Valdotoriums S-Bahn and Trams,valdotorium/valdotoriums_trains,Valdotoriums_Trains
+map,sydney,Sydney,willbarouch/subwaybuilder-sydney,subwaybuilder-sydney
