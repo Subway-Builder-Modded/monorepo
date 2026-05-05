@@ -8,8 +8,6 @@ export function NotFoundPage() {
   return (
     <section className="flex min-h-[calc(100svh-3rem)] items-center justify-center px-5 py-10 sm:px-7 md:px-9 lg:px-12">
       <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-6 text-center">
-        <h1 className="sr-only">Page not found</h1>
-
         <div className="mx-auto w-full max-w-xl">
           <NotFoundRouteSign />
         </div>
@@ -17,7 +15,6 @@ export function NotFoundPage() {
         <div className="flex flex-col items-center gap-2.5 sm:flex-row">
           <Link
             to="/"
-            aria-label="Home"
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-5 text-sm font-semibold text-foreground shadow-xs transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <House aria-hidden={true} className="size-5" />
@@ -26,7 +23,6 @@ export function NotFoundPage() {
 
           <a
             href={COMMUNITY_DISCORD_LINK}
-            aria-label="Discord"
             target="_blank"
             rel="noreferrer"
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-background px-5 text-sm font-semibold text-foreground shadow-xs transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"

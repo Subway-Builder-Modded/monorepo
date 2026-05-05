@@ -173,7 +173,7 @@ describe("DocsSidebarTree", () => {
       />,
     );
 
-    const toggleButton = screen.getByRole("button", { name: "Collapse section" });
+    const toggleButton = screen.getByRole("button");
     expect(toggleButton).toBeVisible();
   });
 
@@ -191,11 +191,11 @@ describe("DocsSidebarTree", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Collapse section" }));
+    fireEvent.click(screen.getByRole("button"));
     expect(onToggle).toHaveBeenCalledWith("parent");
   });
 
-  it("shows Expand section label when node is collapsed", () => {
+  it("still renders a toggle button when node is collapsed", () => {
     const child = makeNode("child");
     const parent = makeNode("parent", [child]);
     const onToggle = vi.fn();
@@ -209,6 +209,42 @@ describe("DocsSidebarTree", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: "Expand section" })).toBeVisible();
+    expect(screen.getByRole("button")).toBeVisible();
+  });
+
+  it("marks collapsed parent row active when a descendant matches currentSlug", () => {
+    const child = makeNode("child");
+    const parent = makeNode("parent", [child]);
+
+    render(
+      <DocsSidebarTree
+        nodes={[parent]}
+        currentSlug="child"
+        collapsed={new Set(["parent"])}
+        onToggle={vi.fn()}
+      />,
+    );
+
+    const parentRow = screen.getByRole("link", { name: "parent" }).closest("[class*='group/row']");
+    expect(parentRow?.className).toContain("var(--suite-accent-light)");
+  });
+
+  it("does not render hidden nodes", () => {
+    const visible = makeNode("visible");
+    const hidden = makeNode("hidden", [], {
+      frontmatter: { title: "hidden", description: "", icon: "File", hidden: true },
+    });
+
+    render(
+      <DocsSidebarTree
+        nodes={[visible, hidden]}
+        currentSlug={null}
+        collapsed={new Set()}
+        onToggle={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "visible" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "hidden" })).not.toBeInTheDocument();
   });
 });

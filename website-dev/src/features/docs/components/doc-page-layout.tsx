@@ -62,7 +62,7 @@ export function DocPageLayout({
       <SuiteAccentScope accent={suite.accent}>
         <div className="py-6 lg:py-8">
           <div
-            className="grid gap-4 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(.22,.9,.35,1)] lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
+            className="grid gap-4 lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
             style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "2.75rem" : "17.5rem" }}
           >
             <DocsSidebar
@@ -96,7 +96,7 @@ export function DocPageLayout({
     <SuiteAccentScope accent={suite.accent}>
       <div className="py-6 lg:py-8">
         <div
-          className="grid gap-4 transition-[grid-template-columns] duration-300 ease-[cubic-bezier(.22,.9,.35,1)] lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
+          className="grid gap-4 lg:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)] xl:[grid-template-columns:var(--docs-sidebar-width)_minmax(0,1fr)_15rem]"
           style={{ ["--docs-sidebar-width" as string]: sidebarCollapsed ? "2.75rem" : "17.5rem" }}
         >
           <DocsSidebar

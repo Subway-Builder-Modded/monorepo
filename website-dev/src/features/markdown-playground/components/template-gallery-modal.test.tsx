@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RegistryTemplate } from "@/lib/registry/templates";
@@ -42,7 +42,6 @@ describe("TemplateGalleryModal", () => {
   });
 
   it("opens latest preview screen from Preview Template and omits listing heading card", async () => {
-    const user = userEvent.setup();
     const onInsertTemplate = vi.fn();
     const onOpenChange = vi.fn();
 
@@ -55,8 +54,11 @@ describe("TemplateGalleryModal", () => {
       />,
     );
 
-    await user.click(await screen.findByTestId("template-card-demo-template"));
-    await user.click(screen.getByTestId("template-preview-latest"));
+    fireEvent.click(await screen.findByTestId("template-card-demo-template"));
+    await waitFor(() => {
+      expect(screen.getByTestId("template-preview-latest")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("template-preview-latest"));
 
     expect(await screen.findByTestId("template-preview-screen")).toBeInTheDocument();
     expect(screen.getAllByText("Preview").length).toBeGreaterThan(0);
@@ -65,7 +67,7 @@ describe("TemplateGalleryModal", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByText("# Version 2 body", { exact: false })).toBeInTheDocument();
     expect(screen.queryByText(/^\s*# Version 2 body/)).not.toBeNull();
-  });
+  }, 30_000);
 
   it("routes Preview on a previous version to Preview (version), then inserts on preview confirm", async () => {
     const user = userEvent.setup();

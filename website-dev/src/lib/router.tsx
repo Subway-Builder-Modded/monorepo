@@ -129,16 +129,23 @@ export function shouldHandleClientNavigation(intent: LinkNavigationIntent) {
   return true;
 }
 
-export function navigate(to: string) {
+export type NavigateOptions = {
+  preserveScroll?: boolean;
+};
+
+export function navigate(to: string, options?: NavigateOptions) {
   const nextPath = to.startsWith("/") ? to : `/${to}`;
   const nextHref = addBasePath(nextPath);
+  const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
-  if (window.location.pathname === nextHref) {
+  if (currentHref === nextHref) {
     return;
   }
 
   window.history.pushState({}, "", nextHref);
-  window.scrollTo(0, 0);
+  if (!options?.preserveScroll) {
+    window.scrollTo(0, 0);
+  }
   emitNavigation();
 }
 

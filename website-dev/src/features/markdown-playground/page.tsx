@@ -354,7 +354,7 @@ export function MarkdownPlaygroundRoute() {
                 </Tooltip>
               </TooltipProvider>
 
-              <span aria-live="polite" role="status" className="sr-only">
+              <span aria-live="polite" role="status" className="hidden">
                 {copyFeedback !== "idle"
                   ? copyFeedback === "copy-failed"
                     ? "Copy failed"

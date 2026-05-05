@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { VersionSwitcherDropdown } from './version-switcher-dropdown';
 
@@ -119,5 +119,26 @@ describe('VersionSwitcherDropdown', () => {
     expect(chevron).not.toBeNull();
     const chevronClassName = chevron?.getAttribute('class') ?? '';
     expect(chevronClassName).toContain('transition-transform');
+  });
+
+  it('closes the menu when a scroll event occurs', async () => {
+    render(
+      <VersionSwitcherDropdown
+        items={items}
+        selectedId='v0.2'
+        onSelect={vi.fn()}
+        ariaLabel='Choose documentation version'
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Choose documentation version' });
+    fireEvent.click(trigger);
+    expect(screen.getByRole('option', { name: /v0.2/i })).toBeTruthy();
+
+    window.dispatchEvent(new Event('scroll'));
+
+    await waitFor(() => {
+      expect(screen.queryByRole('option', { name: /v0.2/i })).toBeNull();
+    });
   });
 });

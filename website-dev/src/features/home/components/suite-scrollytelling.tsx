@@ -100,14 +100,14 @@ const StoryPanel = memo(function StoryPanel({ step }: { step: SuiteStep }) {
           <div className="relative aspect-video">
             <img
               src={step.media.imageLight}
-              alt={step.media.imageAlt}
+              alt=""
               className="absolute inset-0 block size-full object-cover object-top dark:hidden"
               loading="lazy"
               draggable={false}
             />
             <img
               src={step.media.imageDark}
-              alt={step.media.imageAlt}
+              alt=""
               className="absolute inset-0 hidden size-full object-cover object-top dark:block"
               loading="lazy"
               draggable={false}

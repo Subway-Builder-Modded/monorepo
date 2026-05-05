@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { PanelLeftOpen, PanelLeftClose, Menu, X, BookText } from "lucide-react";
+import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
 import {
   SideRailBody,
   SideRailDivider,
@@ -57,23 +58,8 @@ function useCollapsedSections(treeKey: string) {
 }
 
 function useSidebarCollapsedState() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
-
-  const setCollapsedState = useCallback((next: boolean) => {
-    setSidebarCollapsed(next);
-    try {
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
-    } catch {
-      // ignore persisted state failures
-    }
-  }, []);
-
+  const { collapsed: sidebarCollapsed, setCollapsedState } =
+    useSidebarCollapsed(SIDEBAR_COLLAPSED_KEY);
   return { sidebarCollapsed, setCollapsedState };
 }
 
@@ -138,7 +124,6 @@ export function DocsSidebar({
         <div className="sticky top-20 self-start">
           <button
             type="button"
-            aria-label="Expand sidebar"
             onClick={handleExpandSidebar}
             className={cn(
               "inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_28%,var(--border))] bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
@@ -180,7 +165,7 @@ export function DocsSidebar({
         <SideRailDivider />
 
         <SideRailBody>
-          <nav aria-label="Documentation navigation">
+          <nav>
             <DocsSidebarTree
               nodes={visibleNodes}
               currentSlug={currentSlug}
@@ -193,10 +178,7 @@ export function DocsSidebar({
         <SideRailDivider />
 
         <div className="px-2.5 py-2">
-          <SideRailUtilityButton
-            aria-label="Collapse sidebar"
-            onClick={() => setCollapsedState(true)}
-          >
+          <SideRailUtilityButton onClick={() => setCollapsedState(true)}>
             <PanelLeftClose className="size-3.5" aria-hidden="true" />
             <span>Collapse Sidebar</span>
           </SideRailUtilityButton>
