@@ -50,6 +50,7 @@ export function RegistryListingCard({
     href: item.href,
     title: item.title,
     author: item.author,
+    authorId: item.authorId ?? item.author,
     description: item.description,
     thumbnailSrc: item.thumbnailSrc,
     totalDownloads: item.totalDownloads,

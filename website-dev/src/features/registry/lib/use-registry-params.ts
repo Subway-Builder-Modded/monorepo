@@ -43,7 +43,8 @@ function parseParams(search: string): RegistryBrowseParams {
 
   const viewMode = ((): RegistryViewMode => {
     const raw = p.get("view");
-    if (raw === "grid" || raw === "list") return raw;
+    if (raw === "compact" || raw === "full" || raw === "list") return raw;
+    if (raw === "grid") return "compact";
     return DEFAULT_VIEW_MODE;
   })();
 

@@ -17,6 +17,7 @@ function toLatestItem(item: RegistrySearchItem): RailyardLatestRegistryItem {
     href: item.href,
     title: item.name,
     author: item.author,
+    authorId: item.authorId,
     description: item.description || "No description provided.",
     thumbnailSrc: item.thumbnailSrc,
     totalDownloads: item.totalDownloads,

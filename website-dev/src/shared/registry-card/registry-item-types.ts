@@ -21,6 +21,7 @@ export type RegistryCardData = {
   href: string;
   title: string;
   author: string;
+  authorId: string | null;
   description: string;
   thumbnailSrc: string | null;
   totalDownloads: number;
@@ -34,4 +35,4 @@ export type RegistryCardData = {
 };
 
 /** View variant for the card. */
-export type RegistryCardVariant = "grid" | "list";
+export type RegistryCardVariant = "grid" | "full" | "list";

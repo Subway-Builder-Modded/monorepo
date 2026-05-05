@@ -94,12 +94,18 @@ export function RegistryToolbarDropdown({
           ref={triggerRef}
           type="button"
           className={cn(
-            "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] inline-flex h-10 items-center gap-2 rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_10%,var(--background))] hover:text-[var(--tb-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_12%,var(--background))] dark:hover:text-[var(--tb-accent-dark)]",
+            "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] inline-flex h-10 min-w-0 items-center justify-between gap-2 rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_10%,var(--background))] hover:text-[var(--tb-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_12%,var(--background))] dark:hover:text-[var(--tb-accent-dark)]",
             triggerClassName,
           )}
         >
-          {triggerContent}
-          <ChevronDown className="size-4 shrink-0 opacity-70" aria-hidden={true} />
+          <span className="flex min-w-0 flex-1 items-center gap-2 text-left">{triggerContent}</span>
+          <ChevronDown
+            className={cn(
+              "ml-auto size-4 shrink-0 opacity-70 transition-transform duration-200",
+              isOpen && "rotate-180",
+            )}
+            aria-hidden={true}
+          />
         </button>
       </PopoverTrigger>
 

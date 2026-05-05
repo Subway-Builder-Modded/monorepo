@@ -26,8 +26,20 @@ describe("useRegistryParams", () => {
       tags: [],
       sortId: "lastUpdated",
       sortDir: "desc",
-      viewMode: "grid",
+      viewMode: "compact",
     });
+  });
+
+  it("maps legacy view=grid to compact", () => {
+    mockUseLocation.mockReturnValue({
+      pathname: "/registry",
+      search: "?view=grid",
+      hash: "",
+    });
+
+    const { result } = renderHook(() => useRegistryParams());
+
+    expect(result.current.params.viewMode).toBe("compact");
   });
 
   it("parses valid params and trims tags", () => {

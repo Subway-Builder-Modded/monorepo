@@ -61,7 +61,7 @@ function TypeButton({ type, isActive, count, onClick }: TypeButtonProps) {
       onClick={onClick}
       style={accentStyle}
       className={cn(
-        "relative flex h-10 min-w-[7.75rem] items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group relative flex h-10 min-w-[7.75rem] items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         isActive
           ? "border-[color-mix(in_srgb,var(--type-accent-light)_35%,var(--border))] bg-[color-mix(in_srgb,var(--type-accent-light)_14%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_35%,var(--border))] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_16%,var(--background))] dark:text-[var(--type-accent-dark)]"
           : "border-transparent bg-background text-muted-foreground hover:border-[color-mix(in_srgb,var(--type-accent-light)_28%,var(--border))] hover:bg-[color-mix(in_srgb,var(--type-accent-light)_10%,var(--background))] hover:text-[var(--type-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--type-accent-dark)_28%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_12%,var(--background))] dark:hover:text-[var(--type-accent-dark)]",
@@ -79,7 +79,10 @@ function TypeButton({ type, isActive, count, onClick }: TypeButtonProps) {
       ) : (
         <span
           className={cn(
-            "min-w-[2.1rem] rounded-md border border-border/40 bg-background px-1.5 py-0.5 text-center text-xs font-medium tabular-nums text-inherit",
+            "min-w-[2.1rem] rounded-md border bg-background px-1.5 py-0.5 text-center text-xs font-medium tabular-nums text-inherit transition-colors",
+            isActive
+              ? "border-[color-mix(in_srgb,var(--type-accent-light)_45%,var(--border))] bg-[color-mix(in_srgb,var(--type-accent-light)_18%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_45%,var(--border))] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_20%,var(--background))] dark:text-[var(--type-accent-dark)]"
+              : "border-border/45 group-hover:border-[color-mix(in_srgb,var(--type-accent-light)_45%,var(--border))] group-hover:bg-[color-mix(in_srgb,var(--type-accent-light)_18%,var(--background))] group-hover:text-[var(--type-accent-light)] dark:group-hover:border-[color-mix(in_srgb,var(--type-accent-dark)_45%,var(--border))] dark:group-hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_20%,var(--background))] dark:group-hover:text-[var(--type-accent-dark)]",
           )}
         >
           {count}

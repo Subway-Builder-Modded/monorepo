@@ -10,6 +10,7 @@ export type RegistrySearchItem = {
   href: string;
   name: string;
   author: string;
+  authorId: string | null;
   description: string;
   tags: string[];
   thumbnailSrc: string | null;

@@ -46,6 +46,12 @@ function getTotalDownloads(id: string, downloads: RawRegistryDownloads): number 
 }
 
 type IntegrityListing = NonNullable<RawRegistryIntegrity["listings"]>[string];
+type RawRegistryAuthorsIndex = {
+  authors?: Array<{
+    author_id?: string;
+    author_alias?: string;
+  }>;
+};
 
 function hasCompleteVersion(listing: IntegrityListing | undefined): boolean {
   if (!listing) {
@@ -121,6 +127,26 @@ function getCountryInfo(code: string): Promise<CountryInfo> {
   return countryCache.get(upper)!;
 }
 
+function buildAuthorAliasMap(authorsIndex: RawRegistryAuthorsIndex): Map<string, string> {
+  const result = new Map<string, string>();
+  for (const author of authorsIndex.authors ?? []) {
+    const authorId = author.author_id?.trim();
+    const authorAlias = author.author_alias?.trim();
+    if (!authorId || !authorAlias) continue;
+    result.set(authorId.toLowerCase(), authorAlias);
+  }
+  return result;
+}
+
+function resolveAuthorDisplay(
+  manifestAuthor: string | undefined,
+  authorAliasMap: Map<string, string>,
+): string {
+  const authorId = manifestAuthor?.trim();
+  if (!authorId) return "Unknown creator";
+  return authorAliasMap.get(authorId.toLowerCase()) ?? authorId;
+}
+
 export async function loadRegistryItemsForType(
   typeId: string,
   typeRouteSegment: string,
@@ -128,14 +154,17 @@ export async function loadRegistryItemsForType(
   const baseUrl = `/registry/${typeRouteSegment}`;
 
   // Load shared data files in parallel
-  const [integrityRaw, downloadsRaw, indexRaw] = await Promise.all([
+  const [integrityRaw, downloadsRaw, indexRaw, authorsRaw] = await Promise.all([
     safeFetchText(`${baseUrl}/integrity.json`).catch(() => "{}"),
     safeFetchText(`${baseUrl}/downloads.json`).catch(() => "{}"),
     safeFetchText(`${baseUrl}/index.json`).catch(() => "{}"),
+    safeFetchText(`/registry/authors/index.json`).catch(() => "{}"),
   ]);
 
   const integrity = safeJson<RawRegistryIntegrity>(integrityRaw, {});
   const downloads = safeJson<RawRegistryDownloads>(downloadsRaw, {});
+  const authorsIndex = safeJson<RawRegistryAuthorsIndex>(authorsRaw, {});
+  const authorAliasMap = buildAuthorAliasMap(authorsIndex);
 
   // Collect IDs from index.json and integrity.json combined
   const indexData = safeJson<Record<string, string[]>>(indexRaw, {});
@@ -173,6 +202,7 @@ export async function loadRegistryItemsForType(
 
   for (const { id, manifest } of validEntries) {
     if (manifest.is_test === true) continue;
+    const authorId = manifest.author?.trim() || null;
 
     const countryCode = manifest.country?.toUpperCase() ?? null;
     let countryName: string | null = null;
@@ -192,7 +222,8 @@ export async function loadRegistryItemsForType(
       routeSegment: typeRouteSegment,
       href: `/registry/${typeRouteSegment}/${id}`,
       name: manifest.name?.trim() || id,
-      author: manifest.author?.trim() || "Unknown creator",
+      author: resolveAuthorDisplay(manifest.author, authorAliasMap),
+      authorId,
       description: manifest.description?.trim() || "",
       tags: resolveNormalizedTags(typeId, manifest),
       thumbnailSrc: resolveThumbnailSrc(typeRouteSegment, id, manifest.gallery),

@@ -38,6 +38,7 @@ const SAMPLE_MAP_DATA: RegistryCardData = {
   href: "/registry/maps/gwangju-4",
   title: "Gwangju (40km×40km)",
   author: "kimth9",
+  authorId: "kimth9",
   description: "Custom map of Gwangju, Korea.",
   thumbnailSrc: null,
   totalDownloads: 1234,
@@ -54,6 +55,7 @@ const SAMPLE_MOD_DATA: RegistryCardData = {
   href: "/registry/mods/simple-trains",
   title: "Simple Trains",
   author: "Bobby-047",
+  authorId: "Bobby-047",
   description: "Adds some simple trains.",
   thumbnailSrc: null,
   totalDownloads: 50,
@@ -88,13 +90,13 @@ describe("buildRegistryItemHref", () => {
 describe("RegistryItemCard", () => {
   it("renders compact variant with correct link to /registry/maps/<id>", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
-    const link = screen.getByRole("link");
+    const link = screen.getByRole("link", { name: "Open Gwangju (40km×40km)" });
     expect(link).toHaveAttribute("href", "/registry/maps/gwangju-4");
   });
 
   it("renders mod compact card with correct link to /registry/mods/<id>", () => {
     render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
-    const link = screen.getByRole("link");
+    const link = screen.getByRole("link", { name: "Open Simple Trains" });
     expect(link).toHaveAttribute("href", "/registry/mods/simple-trains");
   });
 
@@ -127,8 +129,26 @@ describe("RegistryItemCard", () => {
 
   it("defaults to compact variant", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} />);
-    const link = screen.getByRole("link");
+    const link = screen.getByRole("link", { name: "Open Gwangju (40km×40km)" });
     expect(link).toHaveAttribute("href", "/registry/maps/gwangju-4");
+  });
+
+  it("renders the card surface as a separate link", () => {
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
+
+    expect(screen.getByRole("link", { name: "Open Gwangju (40km×40km)" })).toHaveAttribute(
+      "href",
+      "/registry/maps/gwangju-4",
+    );
+  });
+
+  it("renders author as a separate link", () => {
+    render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
+
+    expect(screen.getByRole("link", { name: "kimth9" })).toHaveAttribute(
+      "href",
+      "/registry/authors/kimth9",
+    );
   });
 
   it("applies type accent from type config", () => {
@@ -143,7 +163,7 @@ describe("RegistryItemCard", () => {
   it("shows city code, country, population for maps", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByText("KWJ4")).toBeInTheDocument();
-    expect(screen.getByText(/South Korea/)).toBeInTheDocument();
+    expect(screen.getByText("KR")).toBeInTheDocument();
     // population should be formatted and shown
     expect(screen.getByText(/2,140,345/)).toBeInTheDocument();
   });
@@ -151,12 +171,34 @@ describe("RegistryItemCard", () => {
   it("does not show map-specific fields for mods (null values)", () => {
     render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
     expect(screen.queryByText("KWJ4")).not.toBeInTheDocument();
-    expect(screen.queryByText(/South Korea/)).not.toBeInTheDocument();
+    expect(screen.queryByText("KR")).not.toBeInTheDocument();
   });
 
   it("shows Preview unavailable when thumbnailSrc is null", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByText("Preview unavailable")).toBeInTheDocument();
+  });
+
+  it("renders HTML heading descriptions with bold headings and spaces between blocks", () => {
+    const { container } = render(
+      <RegistryItemCard
+        data={{
+          ...SAMPLE_MAP_DATA,
+          description:
+            "<h3>Regional Overview</h3><p>Serves the western corridor.</p><p>Includes airport demand.</p>",
+        }}
+        typeConfig={MAP_TYPE_CONFIG}
+        variant="grid"
+      />,
+    );
+
+    const description = container.querySelector("p.h-8");
+    expect(description?.textContent).toBe(
+      "Regional Overview Serves the western corridor. Includes airport demand.",
+    );
+
+    const boldHeading = description?.querySelector("strong");
+    expect(boldHeading?.textContent).toBe("Regional Overview");
   });
 });
 
@@ -173,6 +215,7 @@ describe("RegistryListingCard (backward compat wrapper)", () => {
           href: "/registry/maps/gwangju-4",
           title: "Gwangju (40km×40km)",
           author: "kimth9",
+          authorId: "kimth9",
           description: "A test map.",
           thumbnailSrc: null,
           totalDownloads: 50,
@@ -185,7 +228,10 @@ describe("RegistryListingCard (backward compat wrapper)", () => {
       />,
     );
     // Should render the compact card (same as carousel)
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/registry/maps/gwangju-4");
+    expect(screen.getByRole("link", { name: "Open Gwangju (40km×40km)" })).toHaveAttribute(
+      "href",
+      "/registry/maps/gwangju-4",
+    );
     expect(screen.getByText("Map")).toBeInTheDocument();
   });
 });

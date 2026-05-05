@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, useCallback, useDeferredValue, useRef } from "react";
+import { getInitialRegistrySidebarCollapsed } from "./registry-filter-sidebar";
 import { RegistryItemCard } from "@/shared/registry-card/registry-item-card";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { filterRegistryItems, collectTags } from "@/features/registry/lib/filter-registry-items";
@@ -61,6 +62,7 @@ export function RegistryBrowseSection({
   onViewChange,
 }: RegistryBrowseSectionProps) {
   const [isMac, setIsMac] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialRegistrySidebarCollapsed);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -71,9 +73,36 @@ export function RegistryBrowseSection({
     setIsMac(navigator.platform.toLowerCase().includes("mac"));
   }, []);
 
-  // Reset page when filters change
+  // Reset page when filters change, and scroll to content only after user interaction.
+  // This prevents URL/state hydration from auto-jumping past the hero on initial page load.
+  const hasMountedRef = useRef(false);
+  const hasUserInteractedRef = useRef(false);
+
   useEffect(() => {
+    const markInteracted = () => {
+      hasUserInteractedRef.current = true;
+    };
+
+    window.addEventListener("pointerdown", markInteracted, { passive: true });
+    window.addEventListener("keydown", markInteracted);
+
+    return () => {
+      window.removeEventListener("pointerdown", markInteracted);
+      window.removeEventListener("keydown", markInteracted);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
     setPage(1);
+    if (!hasUserInteractedRef.current) {
+      return;
+    }
+    const el = document.getElementById("registry-browse-content-start");
+    el?.scrollIntoView({ behavior: "instant", block: "start" });
   }, [typeId, query, selectedTags, sortId, sortDir, pageSize]);
 
   const typeItems = allItemsByType[typeId] ?? [];
@@ -127,7 +156,8 @@ export function RegistryBrowseSection({
   const typeConfig = getRegistryTypeConfigOrDefault(typeId);
 
   // Map view mode to card variant
-  const cardVariant: RegistryCardVariant = viewMode === "list" ? "list" : "grid";
+  const cardVariant: RegistryCardVariant =
+    viewMode === "list" ? "list" : viewMode === "full" ? "full" : "grid";
 
   const handleReshuffle = useCallback(() => {
     setRandomSeed(Date.now());
@@ -147,7 +177,8 @@ export function RegistryBrowseSection({
     >
       <div
         id="registry-browse-content-start"
-        className="scroll-mt-20 grid gap-4 lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:gap-5"
+        className="scroll-mt-20 grid gap-4 lg:gap-5 lg:[grid-template-columns:var(--registry-sidebar-width)_minmax(0,1fr)]"
+        style={{ ["--registry-sidebar-width" as string]: sidebarCollapsed ? "2.75rem" : "17.5rem" }}
       >
         <RegistryFilterSidebar
           typeId={typeId}
@@ -158,6 +189,7 @@ export function RegistryBrowseSection({
           selectedTags={selectedTags}
           onTagToggle={onTagToggle}
           onTagsClear={onTagsClear}
+          onCollapsedChange={setSidebarCollapsed}
         />
 
         <div className="min-w-0">
@@ -331,6 +363,7 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
                 href: item.href,
                 title: item.name,
                 author: item.author,
+                authorId: item.authorId,
                 description: item.description,
                 thumbnailSrc: item.thumbnailSrc,
                 totalDownloads: item.totalDownloads,
@@ -350,17 +383,50 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
     );
   }
 
+  if (cardVariant === "full") {
+    return (
+      <ul className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {items.map((item) => (
+          <li key={item.id} className="h-full">
+            <RegistryItemCard
+              data={{
+                id: item.id,
+                href: item.href,
+                title: item.name,
+                author: item.author,
+                authorId: item.authorId,
+                description: item.description,
+                thumbnailSrc: item.thumbnailSrc,
+                totalDownloads: item.totalDownloads,
+                tags: item.tags,
+                cityCode: item.cityCode,
+                countryCode: item.countryCode,
+                countryName: item.countryName,
+                countryEmoji: item.countryEmoji,
+                population: item.population,
+              }}
+              typeConfig={typeConfig}
+              variant="full"
+              className="h-full"
+            />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   // Grid layout
   return (
     <ul className="grid grid-cols-1 gap-3 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => (
-        <li key={item.id}>
+        <li key={item.id} className="h-full">
           <RegistryItemCard
             data={{
               id: item.id,
               href: item.href,
               title: item.name,
               author: item.author,
+              authorId: item.authorId,
               description: item.description,
               thumbnailSrc: item.thumbnailSrc,
               totalDownloads: item.totalDownloads,
@@ -373,6 +439,7 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
             }}
             typeConfig={typeConfig}
             variant="grid"
+            className="h-full"
           />
         </li>
       ))}
@@ -395,6 +462,32 @@ function RegistryLoadingState({ cardVariant }: { cardVariant: RegistryCardVarian
             <div className="flex-1 space-y-2 pt-1">
               <div className="h-4 w-1/3 rounded bg-muted/40" />
               <div className="h-3 w-1/2 rounded bg-muted/30" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (cardVariant === "full") {
+    return (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {shells.map((i) => (
+          <div
+            key={i}
+            className="animate-pulse overflow-hidden rounded-2xl border border-border/40 bg-card/60"
+          >
+            <div className="w-full bg-muted/40 aspect-[16/9]" />
+            <div className="space-y-3 p-4">
+              <div className="h-5 w-24 rounded bg-muted/40" />
+              <div className="h-6 w-4/5 rounded bg-muted/40" />
+              <div className="h-4 w-1/2 rounded bg-muted/30" />
+              <div className="space-y-1.5">
+                <div className="h-4 w-full rounded bg-muted/30" />
+                <div className="h-4 w-full rounded bg-muted/30" />
+                <div className="h-4 w-11/12 rounded bg-muted/30" />
+                <div className="h-4 w-10/12 rounded bg-muted/30" />
+              </div>
             </div>
           </div>
         ))}

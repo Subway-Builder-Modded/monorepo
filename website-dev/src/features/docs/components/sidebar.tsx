@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { PanelLeftOpen, PanelLeftClose, Menu, X, BookText } from "lucide-react";
+import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
 import {
   SideRailBody,
   SideRailDivider,
@@ -57,23 +58,8 @@ function useCollapsedSections(treeKey: string) {
 }
 
 function useSidebarCollapsedState() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true";
-    } catch {
-      return false;
-    }
-  });
-
-  const setCollapsedState = useCallback((next: boolean) => {
-    setSidebarCollapsed(next);
-    try {
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
-    } catch {
-      // ignore persisted state failures
-    }
-  }, []);
-
+  const { collapsed: sidebarCollapsed, setCollapsedState } =
+    useSidebarCollapsed(SIDEBAR_COLLAPSED_KEY);
   return { sidebarCollapsed, setCollapsedState };
 }
 

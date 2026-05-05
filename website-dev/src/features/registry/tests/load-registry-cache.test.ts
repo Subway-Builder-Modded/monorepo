@@ -68,6 +68,9 @@ describe("loadRegistryItemsForType", () => {
         "gwangju-4": { v1: 10, v2: 5 },
         "test-map": { v1: 999 },
       }),
+      "/registry/authors/index.json": JSON.stringify({
+        authors: [{ author_id: "kimth9", author_alias: "Kim Alias" }],
+      }),
       [`${base}/index.json`]: JSON.stringify({ maps: ["gwangju-4", "test-map"] }),
       [`${base}/gwangju-4/manifest.json`]: JSON.stringify({
         name: "  Gwangju 4  ",
@@ -94,7 +97,7 @@ describe("loadRegistryItemsForType", () => {
       routeSegment: "maps",
       href: "/registry/maps/gwangju-4",
       name: "Gwangju 4",
-      author: "kimth9",
+      author: "Kim Alias",
       description: "Test map",
       tags: ["east-asia", "korea"],
       thumbnailSrc: "/registry/maps/gwangju-4/thumb.webp",

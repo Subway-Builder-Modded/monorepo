@@ -10,6 +10,7 @@ function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchIt
     href: "/registry/maps/test-map",
     name: "Test Map",
     author: "Test Author",
+    authorId: "test-author",
     description: "A test map description",
     tags: ["east-asia"],
     thumbnailSrc: null,
