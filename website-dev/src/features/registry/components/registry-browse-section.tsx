@@ -7,9 +7,9 @@ import { sortRegistryItems } from "@/features/registry/lib/sort-registry-items";
 import { RegistryFilterSidebar } from "./registry-filter-sidebar";
 import { RegistryViewToggle } from "./registry-view-toggle";
 import { RegistrySortBar } from "./registry-sort-bar";
-import { Search, Trash2, X } from "lucide-react";
+import { Search, SearchX, Trash2, X } from "lucide-react";
 import {
-  Pagination,
+  StyledPagination,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -102,7 +102,7 @@ export function RegistryBrowseSection({
       return;
     }
     const el = document.getElementById("registry-browse-content-start");
-    el?.scrollIntoView({ behavior: "instant", block: "start" });
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [typeId, query, selectedTags, sortId, sortDir, pageSize]);
 
   const typeItems = allItemsByType[typeId] ?? [];
@@ -177,7 +177,7 @@ export function RegistryBrowseSection({
     >
       <div
         id="registry-browse-content-start"
-        className="scroll-mt-20 grid gap-4 lg:gap-5 lg:[grid-template-columns:var(--registry-sidebar-width)_minmax(0,1fr)]"
+        className="scroll-mt-20 grid gap-4 transition-[grid-template-columns] duration-200 ease-in-out motion-reduce:transition-none lg:gap-5 lg:[grid-template-columns:var(--registry-sidebar-width)_minmax(0,1fr)]"
         style={{ ["--registry-sidebar-width" as string]: sidebarCollapsed ? "2.75rem" : "17.5rem" }}
       >
         <RegistryFilterSidebar
@@ -195,15 +195,15 @@ export function RegistryBrowseSection({
         <div className="min-w-0">
           <div className="mb-6 space-y-5">
             <div
-              className="flex items-center justify-center gap-3.5 rounded-2xl px-6 py-5 text-3xl font-bold tracking-tight text-foreground shadow-sm"
+              className="flex items-center justify-center gap-3.5 rounded-2xl px-6 py-5 text-3xl font-bold tracking-tight text-foreground"
               style={{
                 background: `light-dark(
-                color-mix(in srgb, ${typeConfig.accentLight} 18%, transparent),
-                color-mix(in srgb, ${typeConfig.accentDark} 14%, transparent)
+                color-mix(in srgb, ${typeConfig.accentLight} 14%, transparent),
+                color-mix(in srgb, ${typeConfig.accentDark} 11%, transparent)
               )`,
                 border: `1.5px solid light-dark(
-                color-mix(in srgb, ${typeConfig.accentLight} 30%, transparent),
-                color-mix(in srgb, ${typeConfig.accentDark} 22%, transparent)
+                color-mix(in srgb, ${typeConfig.accentLight} 22%, transparent),
+                color-mix(in srgb, ${typeConfig.accentDark} 16%, transparent)
               )`,
               }}
             >
@@ -242,7 +242,7 @@ export function RegistryBrowseSection({
                   autoComplete="off"
                   autoCorrect="off"
                   spellCheck={false}
-                  className="h-10 w-full appearance-none rounded-xl border border-border/50 bg-muted/30 pl-9 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
+                  className="h-10 w-full appearance-none rounded-xl border border-border/35 bg-muted/20 pl-9 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
                 />
                 {!query ? (
                   <span
@@ -292,7 +292,7 @@ export function RegistryBrowseSection({
                         type="button"
                         onClick={handleClearAll}
                         disabled={!hasActiveFilters}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border/50 bg-background text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-background disabled:hover:text-muted-foreground dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border/35 bg-background/80 text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_8%,var(--background))] hover:text-[var(--suite-accent-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-background/80 disabled:hover:text-muted-foreground dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_10%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]"
                       >
                         <Trash2 className="size-4" aria-hidden={true} />
                       </button>
@@ -310,6 +310,7 @@ export function RegistryBrowseSection({
             <RegistryLoadingState cardVariant={cardVariant} />
           ) : sortedItems.length === 0 ? (
             <RegistryEmptyState
+              typeId={typeId}
               query={query}
               selectedTags={selectedTags}
               onClear={handleClearAll}
@@ -318,13 +319,14 @@ export function RegistryBrowseSection({
             <>
               <RegistryGrid items={visibleItems} typeId={typeId} cardVariant={cardVariant} />
 
-              <Pagination
+              <StyledPagination
                 className="mt-10"
                 page={page}
                 totalPages={totalPages}
                 totalItems={sortedItems.length}
                 pageSize={pageSize}
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
+                itemLabel="Cards"
                 onPageChange={(nextPage) => {
                   const clamped = Math.min(Math.max(nextPage, 1), totalPages);
                   setPage(clamped);
@@ -519,23 +521,30 @@ function RegistryLoadingState({ cardVariant }: { cardVariant: RegistryCardVarian
 }
 
 type RegistryEmptyStateProps = {
+  typeId: string;
   query: string;
   selectedTags: string[];
   onClear: () => void;
 };
 
-function RegistryEmptyState({ query, selectedTags, onClear }: RegistryEmptyStateProps) {
+function RegistryEmptyState({ typeId, query, selectedTags, onClear }: RegistryEmptyStateProps) {
+  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
+  const accentStyle = {
+    "--registry-empty-accent-light": typeConfig.accentLight,
+    "--registry-empty-accent-dark": typeConfig.accentDark,
+  } as React.CSSProperties;
+
   return (
-    <div className="flex flex-col items-center gap-4 py-24 text-center" role="status">
-      <Database className="size-10 text-muted-foreground/30" aria-hidden={true} />
+    <div className="flex flex-col items-center gap-4 py-24 text-center" role="status" style={accentStyle}>
+      <SearchX className="size-10 text-muted-foreground/40" aria-hidden={true} />
       <p className="text-sm font-medium text-muted-foreground">{REGISTRY_EMPTY_STATE_MESSAGE}</p>
       {(query.length > 0 || selectedTags.length > 0) && (
         <button
           type="button"
           onClick={onClear}
-          className="rounded-lg border border-border/60 px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-[color-mix(in_srgb,var(--registry-empty-accent-light)_30%,var(--border))] text-[var(--registry-empty-accent-light)] hover:border-[color-mix(in_srgb,var(--registry-empty-accent-light)_46%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-empty-accent-light)_12%,var(--background))] dark:border-[color-mix(in_srgb,var(--registry-empty-accent-dark)_34%,var(--border))] dark:text-[var(--registry-empty-accent-dark)] dark:hover:border-[color-mix(in_srgb,var(--registry-empty-accent-dark)_52%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--registry-empty-accent-dark)_14%,var(--background))]"
         >
-          Clear filters
+          Clear Filters
         </button>
       )}
     </div>

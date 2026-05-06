@@ -100,15 +100,6 @@ describe("sortRegistryItems", () => {
     expect(result[0]?.id).toBe("b");
   });
 
-  it("sorts by country", () => {
-    const items = [
-      makeItem({ id: "a", countryName: "Zimbabwe" }),
-      makeItem({ id: "b", countryName: "Argentina" }),
-    ];
-    const result = sortRegistryItems(items, "country", "asc", SEED);
-    expect(result[0]?.id).toBe("b");
-  });
-
   it("random sort produces a deterministic shuffle for same seed", () => {
     const items = Array.from({ length: 10 }, (_, i) => makeItem({ id: `item-${i}` }));
     const a = sortRegistryItems(items, "random", "asc", 999);

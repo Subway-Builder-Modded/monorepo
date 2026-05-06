@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@subway-builder-modded/shared-ui";
 import { ArrowDownToLine, Users } from "lucide-react";
 import { Link } from "@/lib/router";
@@ -24,6 +24,13 @@ const numberFormatter = new Intl.NumberFormat("en-US");
 const FULL_DESC_MAX = 260;
 const HTML_HEADING_START = "__SBM_HEADING_START__";
 const HTML_HEADING_END = "__SBM_HEADING_END__";
+const SYNTHETIC_COUNTRY_TAG_PREFIX = "country:";
+const CARD_SURFACE_TRANSITION_CLASS = "transition-[background-color,box-shadow] duration-200 ease-out";
+const TAG_SURFACE_TRANSITION_CLASS = "transition-[background-color] duration-200 ease-out";
+// Gradient fade from card surface color to transparent - avoids mask opacity artifacts
+const TAG_FADE_GRADIENT_STYLE = {
+  background: "linear-gradient(to left, var(--card-surface), var(--card-surface) 40%, transparent)",
+} as React.CSSProperties;
 
 type DescriptionSegment = {
   text: string;
@@ -89,6 +96,10 @@ function truncate(text: string, maxLength: number): string {
   return `${text.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
 }
 
+function getVisibleCardTags(tags: string[]) {
+  return tags.filter((tag) => !tag.startsWith(SYNTHETIC_COUNTRY_TAG_PREFIX));
+}
+
 function normalizeDescriptionSegments(input: string): DescriptionSegment[] {
   const normalizedInput = /<[^>]+>/.test(input) ? stripHtmlWithDescriptionMarkers(input) : input;
   const lines = normalizedInput.split(/\r?\n+/);
@@ -141,6 +152,43 @@ function useDescriptionPreview(description: string, maxLength: number): Descript
     const normalizedSegments = normalizeDescriptionSegments(description);
     return truncateDescriptionSegments(normalizedSegments, maxLength);
   }, [description, maxLength]);
+}
+
+function useTagOverflowHint(ref: React.RefObject<HTMLDivElement | null>, dependencies: unknown[]) {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      setIsOverflowing(false);
+      return;
+    }
+
+    const measure = () => {
+      const overflow = element.scrollWidth - element.clientWidth > 1;
+      setIsOverflowing(overflow);
+    };
+
+    const frame = window.requestAnimationFrame(measure);
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            measure();
+          })
+        : null;
+
+    resizeObserver?.observe(element);
+    window.addEventListener("resize", measure);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [ref, ...dependencies]);
+
+  return isOverflowing;
 }
 
 function DescriptionPreview({
@@ -326,7 +374,7 @@ function ThumbnailImage({
           alt=""
           className={cn(
             "size-full object-cover transition-opacity duration-300",
-            hoverScale && "transition-transform duration-500 group-hover:scale-[1.02]",
+            hoverScale && "transition-transform duration-500 group-hover:scale-[1.08]",
             loaded ? "opacity-100" : "opacity-0",
             className,
           )}
@@ -351,8 +399,9 @@ function RegistryCardGrid({
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
-  const allTagsText = data.tags.join(", ");
-  const showTagOverflowHint = allTagsText.length > 34;
+  const visibleTags = getVisibleCardTags(data.tags);
+  const gridTagStripRef = useRef<HTMLDivElement>(null);
+  const showTagOverflowHint = useTagOverflowHint(gridTagStripRef, [visibleTags.join("|")]);
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
@@ -363,7 +412,8 @@ function RegistryCardGrid({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "group relative h-full cursor-pointer overflow-hidden rounded-xl border border-border/50 bg-card/92 shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-md",
+        "group relative h-full cursor-pointer overflow-hidden rounded-xl border border-border/50 [--card-surface:color-mix(in_srgb,var(--card)_92%,transparent)] bg-[var(--card-surface)] shadow-sm hover:[--card-surface:color-mix(in_srgb,var(--card)_90%,black)] hover:shadow-md dark:[--card-surface:color-mix(in_srgb,var(--card)_95%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_96%,white)]",
+        CARD_SURFACE_TRANSITION_CLASS,
         className,
       )}
       style={typeAccentStyle}
@@ -376,7 +426,6 @@ function RegistryCardGrid({
             containerClassName="absolute inset-0"
             hoverScale
           />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card/90 to-transparent" />
         </div>
 
         <div className="flex h-full flex-col gap-2 px-3 py-3">
@@ -412,10 +461,10 @@ function RegistryCardGrid({
             className="h-8 overflow-hidden text-xs leading-4 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
           />
 
-          {data.tags.length > 0 ? (
-            <div className="relative isolate h-5 overflow-hidden bg-card">
-              <div className="flex flex-nowrap gap-1 pr-8">
-                {data.tags.map((tag) => (
+          {visibleTags.length > 0 ? (
+            <div className={cn("relative isolate h-5 overflow-hidden bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)}>
+              <div ref={gridTagStripRef} className="flex flex-nowrap gap-1 pr-8">
+                {visibleTags.map((tag) => (
                   <span
                     key={tag}
                     className="shrink-0 rounded border border-border/50 bg-muted/40 px-1.5 py-px text-xs text-muted-foreground"
@@ -426,9 +475,15 @@ function RegistryCardGrid({
               </div>
               {showTagOverflowHint ? (
                 <>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-card via-card/90 to-transparent" />
-                  <div className="pointer-events-none absolute inset-y-0 right-0 w-5 bg-card" />
-                  <span className="pointer-events-none absolute inset-y-0 right-0 inline-flex items-center bg-card pl-1 text-xs tracking-wide text-muted-foreground">
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 w-12",
+                      TAG_SURFACE_TRANSITION_CLASS,
+                    )}
+                    style={TAG_FADE_GRADIENT_STYLE}
+                  />
+                  <div className={cn("pointer-events-none absolute inset-y-0 right-0 w-5 bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)} />
+                  <span className={cn("pointer-events-none absolute inset-y-0 right-0 inline-flex items-center bg-[var(--card-surface)] pl-1 text-xs tracking-wide text-muted-foreground", TAG_SURFACE_TRANSITION_CLASS)}>
                     ...
                   </span>
                 </>
@@ -451,6 +506,7 @@ function RegistryCardFull({
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
+  const visibleTags = getVisibleCardTags(data.tags);
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
@@ -461,7 +517,8 @@ function RegistryCardFull({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "group relative h-full cursor-pointer overflow-hidden rounded-2xl border border-border/50 bg-card/95 shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-md",
+        "group relative h-full cursor-pointer overflow-hidden rounded-2xl border border-border/50 [--card-surface:color-mix(in_srgb,var(--card)_95%,transparent)] bg-[var(--card-surface)] shadow-sm hover:[--card-surface:color-mix(in_srgb,var(--card)_93%,black)] hover:shadow-md dark:[--card-surface:color-mix(in_srgb,var(--card)_96%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_97%,white)]",
+        CARD_SURFACE_TRANSITION_CLASS,
         className,
       )}
       style={typeAccentStyle}
@@ -474,7 +531,6 @@ function RegistryCardFull({
             containerClassName="absolute inset-0"
             hoverScale
           />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/92 to-transparent" />
         </div>
 
         <div className="flex h-full flex-col gap-3 px-4 py-4">
@@ -510,9 +566,9 @@ function RegistryCardFull({
             className="line-clamp-4 min-h-[5.6rem] text-sm leading-relaxed text-muted-foreground"
           />
 
-          {data.tags.length > 0 ? (
+          {visibleTags.length > 0 ? (
             <div className="overflow-hidden flex flex-wrap gap-1.5 content-start">
-              {data.tags.slice(0, 6).map((tag) => (
+              {visibleTags.slice(0, 6).map((tag) => (
                 <span
                   key={tag}
                   className="rounded border border-border/50 bg-muted/40 px-2 py-px text-xs text-muted-foreground"
@@ -530,7 +586,10 @@ function RegistryCardFull({
 
 // ─── Full variant (kept for potential explicit use) ───────────────────────────
 function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCardProps, "variant">) {
-  const previewText = useDescriptionPreview(data.description, 160);
+  const previewText = useDescriptionPreview(data.description, 240);
+  const visibleTags = getVisibleCardTags(data.tags);
+  const listTagStripRef = useRef<HTMLDivElement>(null);
+  const showTagOverflowHint = useTagOverflowHint(listTagStripRef, [visibleTags.join("|")]);
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
@@ -539,52 +598,85 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
   return (
     <article
       className={cn(
-        "group relative cursor-pointer overflow-hidden rounded-xl border border-border/50 bg-card/92 p-3 shadow-sm backdrop-blur-sm transition-[background,box-shadow] duration-200 hover:bg-card hover:shadow-md",
+        "group relative cursor-pointer overflow-hidden rounded-2xl border border-border/50 [--card-surface:color-mix(in_srgb,var(--card)_92%,transparent)] bg-[var(--card-surface)] p-4 shadow-sm backdrop-blur-sm hover:[--card-surface:color-mix(in_srgb,var(--card)_90%,black)] hover:shadow-md dark:[--card-surface:color-mix(in_srgb,var(--card)_95%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_96%,white)]",
+        CARD_SURFACE_TRANSITION_CLASS,
         className,
       )}
       style={typeAccentStyle}
     >
-      <CardSurfaceLink href={data.href} title={data.title} roundedClassName="rounded-xl" />
-      <div className="relative z-20 flex w-full min-w-0 items-start gap-4 pointer-events-none">
+      <CardSurfaceLink href={data.href} title={data.title} roundedClassName="rounded-2xl" />
+      <div className="relative z-20 flex w-full min-w-0 items-stretch gap-5 pointer-events-none">
         <ThumbnailImage
           src={data.thumbnailSrc}
-          containerClassName="relative aspect-[4/3] w-24 shrink-0 rounded-lg sm:w-32"
+          containerClassName="relative w-36 shrink-0 self-stretch overflow-hidden rounded-xl sm:w-48"
+          hoverScale
           noImageLabel="N/A"
         />
 
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <TypeBadge typeConfig={typeConfig} size="sm" />
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <TypeBadge typeConfig={typeConfig} size="sm" />
+              <div className="hidden items-center gap-3 sm:flex">
+                {data.population !== null && <PopulationCount count={data.population} />}
+                <DownloadCount count={data.totalDownloads} />
+              </div>
+            </div>
+            <MapBadges
+              cityCode={data.cityCode}
+              countryCode={data.countryCode}
+              countryEmoji={data.countryEmoji}
+              population={null}
+            />
           </div>
 
-          <div className="space-y-0">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-sm font-semibold">
-                <TitleLink
-                  title={data.title}
-                  href={data.href}
-                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
-                />
-              </h3>
-              <MapBadges
-                cityCode={data.cityCode}
-                countryCode={data.countryCode}
-                countryEmoji={data.countryEmoji}
-                population={null}
+          <div className="space-y-0.5">
+            <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold">
+              <TitleLink
+                title={data.title}
+                href={data.href}
+                className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
               />
-            </div>
+            </h3>
             <AuthorLink author={data.author} authorId={data.authorId} />
           </div>
 
           <DescriptionPreview
             segments={previewText}
-            className="line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:line-clamp-1"
+            className="min-h-[2.5rem] overflow-hidden text-sm leading-5 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
           />
-        </div>
 
-        <div className="hidden shrink-0 items-center gap-3 sm:flex">
-          {data.population !== null && <PopulationCount count={data.population} />}
-          <DownloadCount count={data.totalDownloads} />
+          {visibleTags.length > 0 ? (
+            <div className={cn("relative isolate h-5 overflow-hidden bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)}>
+              <div ref={listTagStripRef} className="flex flex-nowrap gap-1 pr-8">
+                {visibleTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="shrink-0 rounded border border-border/50 bg-muted/40 px-1.5 py-px text-xs text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              {showTagOverflowHint ? (
+                <>
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 w-12",
+                      TAG_SURFACE_TRANSITION_CLASS,
+                    )}
+                    style={TAG_FADE_GRADIENT_STYLE}
+                  />
+                  <div className={cn("pointer-events-none absolute inset-y-0 right-0 w-5 bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)} />
+                  <span className={cn("pointer-events-none absolute inset-y-0 right-0 inline-flex items-center bg-[var(--card-surface)] pl-1 text-xs tracking-wide text-muted-foreground", TAG_SURFACE_TRANSITION_CLASS)}>
+                    ...
+                  </span>
+                </>
+              ) : null}
+            </div>
+          ) : (
+            <div className="h-5" aria-hidden={true} />
+          )}
         </div>
       </div>
     </article>

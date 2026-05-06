@@ -5,7 +5,6 @@ export type RegistrySortId =
   | "population"
   | "name"
   | "cityCode"
-  | "country"
   | "author"
   | "random";
 
@@ -30,7 +29,6 @@ export const REGISTRY_SORT_OPTIONS: RegistrySortOption[] = [
   { id: "author", label: "Author", supportedTypes: "all", supportsDirection: true },
   { id: "population", label: "Population", supportedTypes: ["maps"], supportsDirection: true },
   { id: "cityCode", label: "City Code", supportedTypes: ["maps"], supportsDirection: true },
-  { id: "country", label: "Country", supportedTypes: ["maps"], supportsDirection: true },
   { id: "random", label: "Random", supportedTypes: "all", supportsDirection: false },
 ];
 

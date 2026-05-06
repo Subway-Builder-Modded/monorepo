@@ -22,6 +22,7 @@ import { DocsVersionChooser } from "./docs-version-chooser";
 import { DocsSidebarTree } from "./docs-sidebar-tree";
 
 const SIDEBAR_COLLAPSED_KEY = "sbm:docs-sidebar-collapsed";
+const SIDEBAR_LAYOUT_SHIFT_MS = 200;
 
 function useCollapsedSections(treeKey: string) {
   const [collapsed, setCollapsed] = useState<Set<string>>(() => {
@@ -107,10 +108,17 @@ export function DocsSidebar({
   const { collapsed, toggle } = useCollapsedSections(treeKey);
   const visibleNodes = useMemo(() => getVisibleNodes(tree.nodes), [tree]);
   const { sidebarCollapsed, setCollapsedState } = useSidebarCollapsedState();
-  const [playExpandAnimation, setPlayExpandAnimation] = useState(false);
+  const [showCollapsedRail, setShowCollapsedRail] = useState(sidebarCollapsed);
 
-  const handleExpandSidebar = useCallback(() => {
-    setPlayExpandAnimation(true);
+  const handleCollapse = useCallback(() => {
+    // Flip visual rail state immediately to avoid a one-frame squeeze glitch.
+    setShowCollapsedRail(true);
+    setCollapsedState(true);
+  }, [setCollapsedState]);
+
+  const handleExpand = useCallback(() => {
+    // Keep rail visible while layout shifts, then swap to full sidebar content.
+    setShowCollapsedRail(true);
     setCollapsedState(false);
   }, [setCollapsedState]);
 
@@ -118,13 +126,33 @@ export function DocsSidebar({
     onCollapsedChange?.(sidebarCollapsed);
   }, [onCollapsedChange, sidebarCollapsed]);
 
-  if (sidebarCollapsed) {
-    return (
-      <aside className="hidden w-11 shrink-0 lg:block">
+  useEffect(() => {
+    if (sidebarCollapsed) {
+      setShowCollapsedRail(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowCollapsedRail(false);
+    }, SIDEBAR_LAYOUT_SHIFT_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [sidebarCollapsed]);
+
+  return (
+    <aside
+      className={cn(
+        "hidden lg:block lg:shrink-0",
+        sidebarCollapsed ? "lg:w-11" : "lg:w-[17.5rem]",
+      )}
+    >
+      {showCollapsedRail ? (
         <div className="sticky top-20 self-start">
           <button
             type="button"
-            onClick={handleExpandSidebar}
+            onClick={handleExpand}
             className={cn(
               "inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_28%,var(--border))] bg-background/92 p-0 text-muted-foreground shadow-sm transition-colors",
               "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,transparent)] hover:text-[var(--suite-accent-light)]",
@@ -134,18 +162,7 @@ export function DocsSidebar({
             <PanelLeftOpen className="size-4" />
           </button>
         </div>
-      </aside>
-    );
-  }
-
-  return (
-    <aside
-      className={cn(
-        "hidden w-[17.5rem] shrink-0 lg:block",
-        playExpandAnimation && "animate-in slide-in-from-left-96 duration-200",
-      )}
-      onAnimationEnd={() => setPlayExpandAnimation(false)}
-    >
+      ) : (
       <SideRailShell>
         <SideRailHeader>
           <SidebarTitleRow suiteId={suiteId} currentVersion={currentVersion} />
@@ -178,12 +195,13 @@ export function DocsSidebar({
         <SideRailDivider />
 
         <div className="px-2.5 py-2">
-          <SideRailUtilityButton onClick={() => setCollapsedState(true)}>
+          <SideRailUtilityButton onClick={handleCollapse}>
             <PanelLeftClose className="size-3.5" aria-hidden="true" />
             <span>Collapse Sidebar</span>
           </SideRailUtilityButton>
         </div>
       </SideRailShell>
+      )}
     </aside>
   );
 }

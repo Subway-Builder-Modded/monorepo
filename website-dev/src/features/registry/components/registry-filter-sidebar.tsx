@@ -10,14 +10,13 @@ import {
   SideRailDivider,
   SideRailHeader,
   SideRailShell,
-  SideRailUtilityButton,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
   cn,
 } from "@subway-builder-modded/shared-ui";
-import { useMemo, useCallback, useEffect, useState } from "react";
+import { useMemo, useEffect, useCallback, useRef, useState, type ReactNode } from "react";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
@@ -32,9 +31,13 @@ import {
   PanelLeftOpen,
   PanelLeftClose,
   Trash2,
+  ChevronRight,
+  ArrowUpToLine,
 } from "lucide-react";
 
 const REGISTRY_SIDEBAR_COLLAPSED_KEY = "sbm:registry-sidebar-collapsed";
+const REGISTRY_TAG_CATEGORY_STATE_KEY = "sbm:registry-tag-categories-collapsed";
+const SIDEBAR_LAYOUT_SHIFT_MS = 200;
 
 type RegistryFilterSidebarProps = {
   typeId: string;
@@ -53,6 +56,7 @@ type TagCategory = {
   label: string;
   icon: typeof Tags;
   tags: string[];
+  defaultCollapsed?: boolean;
 };
 
 const CATEGORY_ICON_BY_ID: Record<RegistryTagCategoryId, typeof Tags> = {
@@ -96,6 +100,71 @@ function buildTagCategories(
   }));
 }
 
+function getInitialCollapsedTagCategories(): Set<string> {
+  try {
+    const raw = sessionStorage.getItem(REGISTRY_TAG_CATEGORY_STATE_KEY);
+    if (!raw) {
+      return new Set();
+    }
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function persistCollapsedTagCategories(next: Set<string>) {
+  try {
+    sessionStorage.setItem(REGISTRY_TAG_CATEGORY_STATE_KEY, JSON.stringify([...next]));
+  } catch {
+    // ignore persistence failures
+  }
+}
+
+function RegistryToolbarIconButton({
+  label,
+  onClick,
+  disabled = false,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  const button = (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={cn(
+        "inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-background/78 transition-colors",
+        "border-[color-mix(in_srgb,var(--suite-accent-light)_26%,var(--border))] text-[var(--suite-accent-light)]",
+        "dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_32%,var(--border))] dark:text-[var(--suite-accent-dark)]",
+        !disabled &&
+          "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_40%,var(--border))] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_8%,var(--background))] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_45%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_10%,var(--background))]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        disabled && "cursor-not-allowed border-border/50 text-muted-foreground opacity-55 dark:text-muted-foreground",
+      )}
+    >
+      {children}
+    </button>
+  );
+
+  if (disabled) {
+    return button;
+  }
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 export function getInitialRegistrySidebarCollapsed() {
   try {
     return localStorage.getItem(REGISTRY_SIDEBAR_COLLAPSED_KEY) === "true";
@@ -126,49 +195,81 @@ export function RegistryFilterSidebar({
   } as React.CSSProperties;
 
   const { collapsed, setCollapsedState } = useSidebarCollapsed(REGISTRY_SIDEBAR_COLLAPSED_KEY);
-  const [playExpandAnimation, setPlayExpandAnimation] = useState(false);
+  const scrollAreaContainerRef = useRef<HTMLDivElement>(null);
+  const [showCollapsedRail, setShowCollapsedRail] = useState(collapsed);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    getInitialCollapsedTagCategories,
+  );
 
-  const handleExpand = useCallback(() => {
-    setPlayExpandAnimation(true);
-    setCollapsedState(false);
-  }, [setCollapsedState]);
+  const toggleCategory = useCallback((categoryId: string) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      persistCollapsedTagCategories(next);
+      return next;
+    });
+  }, []);
+
+  const handleScrollToTop = useCallback(() => {
+    const viewport = scrollAreaContainerRef.current?.querySelector(
+      "[data-radix-scroll-area-viewport]",
+    ) as HTMLElement | null;
+    viewport?.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     onCollapsedChange?.(collapsed);
   }, [onCollapsedChange, collapsed]);
 
-  if (collapsed) {
-    return (
-      <aside className="hidden w-11 shrink-0 lg:block" style={sidebarAccentStyle}>
+  const handleExpand = useCallback(() => {
+    setShowCollapsedRail(true);
+    setCollapsedState(false);
+  }, [setCollapsedState]);
+
+  useEffect(() => {
+    if (collapsed) {
+      setShowCollapsedRail(true);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setShowCollapsedRail(false);
+    }, SIDEBAR_LAYOUT_SHIFT_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [collapsed]);
+
+  return (
+    <aside
+      className={cn(
+        "lg:shrink-0",
+        collapsed ? "hidden lg:block lg:w-11" : "w-full lg:w-[17.5rem]",
+      )}
+      style={sidebarAccentStyle}
+    >
+      {showCollapsedRail ? (
         <div className="sticky top-20 self-start">
           <button
             type="button"
             onClick={handleExpand}
             className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-lg border-2 bg-background/92 p-0 shadow-sm transition-colors",
-              "border-[color-mix(in_srgb,var(--asset-accent-light)_34%,var(--border))] text-[var(--asset-accent-light)]",
-              "dark:border-[color-mix(in_srgb,var(--asset-accent-dark)_40%,var(--border))] dark:text-[var(--asset-accent-dark)]",
-              "hover:border-[color-mix(in_srgb,var(--asset-accent-light)_55%,var(--border))] hover:bg-[color-mix(in_srgb,var(--asset-accent-light)_10%,var(--background))]",
-              "dark:hover:border-[color-mix(in_srgb,var(--asset-accent-dark)_60%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--asset-accent-dark)_12%,var(--background))]",
+              "inline-flex h-9 w-9 items-center justify-center rounded-lg border bg-background/80 p-0 text-muted-foreground transition-colors",
+              "border-[color-mix(in_srgb,var(--suite-accent-light)_22%,var(--border))] dark:border-[color-mix(in_srgb,var(--suite-accent-dark)_28%,var(--border))]",
+              "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_30%,transparent)] hover:text-[var(--suite-accent-light)]",
+              "dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_36%,transparent)] dark:hover:text-[var(--suite-accent-dark)]",
             )}
           >
             <PanelLeftOpen className="size-4" aria-hidden="true" />
             <span className="sr-only">Expand sidebar</span>
           </button>
         </div>
-      </aside>
-    );
-  }
-
-  return (
-    <aside
-      className={cn(
-        "w-full lg:w-[17.5rem] lg:shrink-0",
-        playExpandAnimation && "lg:animate-in lg:slide-in-from-left-96 lg:duration-200",
-      )}
-      style={sidebarAccentStyle}
-      onAnimationEnd={() => setPlayExpandAnimation(false)}
-    >
+      ) : (
       <SideRailShell>
         <SideRailHeader>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -178,6 +279,7 @@ export function RegistryFilterSidebar({
 
         <SideRailDivider />
 
+        <div ref={scrollAreaContainerRef}>
         <ScrollArea className="h-[calc(100vh-12rem)] [scrollbar-gutter:stable]">
           <div className="space-y-3 px-2.5 py-3">
             <section className="space-y-2" aria-label="Registry type">
@@ -208,7 +310,7 @@ export function RegistryFilterSidebar({
                         "group relative flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm font-semibold transition-colors",
                         isActive
                           ? "border-[color-mix(in_srgb,var(--type-accent-light)_30%,var(--border))] bg-[color-mix(in_srgb,var(--type-accent-light)_12%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_34%,var(--border))] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_16%,var(--background))] dark:text-[var(--type-accent-dark)]"
-                          : "border-border/60 text-muted-foreground hover:border-[color-mix(in_srgb,var(--type-accent-light)_28%,var(--border))] hover:bg-[color-mix(in_srgb,var(--type-accent-light)_9%,var(--background))] hover:text-[var(--type-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--type-accent-dark)_34%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_12%,var(--background))] dark:hover:text-[var(--type-accent-dark)]",
+                          : "border-border/40 bg-background/65 text-muted-foreground hover:border-[color-mix(in_srgb,var(--type-accent-light)_24%,var(--border))] hover:bg-[color-mix(in_srgb,var(--type-accent-light)_8%,var(--background))] hover:text-[var(--type-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--type-accent-dark)_30%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_10%,var(--background))] dark:hover:text-[var(--type-accent-dark)]",
                       )}
                     >
                       <Icon className="size-4 shrink-0" aria-hidden={true} />
@@ -219,7 +321,7 @@ export function RegistryFilterSidebar({
                             "rounded-md border bg-background px-1.5 py-0.5 text-xs tabular-nums text-inherit transition-colors",
                             isActive
                               ? "border-[color-mix(in_srgb,var(--type-accent-light)_45%,var(--border))] bg-[color-mix(in_srgb,var(--type-accent-light)_18%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_45%,var(--border))] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_20%,var(--background))] dark:text-[var(--type-accent-dark)]"
-                              : "border-border/45 group-hover:border-[color-mix(in_srgb,var(--type-accent-light)_45%,var(--border))] group-hover:bg-[color-mix(in_srgb,var(--type-accent-light)_18%,var(--background))] group-hover:text-[var(--type-accent-light)] dark:group-hover:border-[color-mix(in_srgb,var(--type-accent-dark)_45%,var(--border))] dark:group-hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_20%,var(--background))] dark:group-hover:text-[var(--type-accent-dark)]",
+                              : "border-border/35 group-hover:border-[color-mix(in_srgb,var(--type-accent-light)_42%,var(--border))] group-hover:bg-[color-mix(in_srgb,var(--type-accent-light)_16%,var(--background))] group-hover:text-[var(--type-accent-light)] dark:group-hover:border-[color-mix(in_srgb,var(--type-accent-dark)_42%,var(--border))] dark:group-hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_18%,var(--background))] dark:group-hover:text-[var(--type-accent-dark)]",
                           )}
                         >
                           {count}
@@ -238,39 +340,46 @@ export function RegistryFilterSidebar({
                 <p className="text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
                   Tags
                 </p>
-                {selectedTags.length > 0 ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          onClick={onTagsClear}
-                          aria-label="Clear all tags"
-                          className={cn(
-                            "rounded-md p-0.5 text-muted-foreground transition-colors",
-                            "hover:text-[var(--asset-accent-light)] dark:hover:text-[var(--asset-accent-dark)]",
-                          )}
-                        >
-                          <Trash2 className="size-3" aria-hidden="true" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent>Clear All</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : null}
               </div>
 
               {categories.length === 0 ? (
                 <p className="px-1 text-xs text-muted-foreground">No tags available.</p>
               ) : (
                 <div className="space-y-3">
-                  {categories.map((category) => (
+                  {categories.map((category) => {
+                    const hasSelectedTag = selectedTags.some((tag) => category.tags.includes(tag));
+                    const isCollapsed = collapsedCategories.has(category.id) && !hasSelectedTag;
+
+                    return (
                     <div key={category.id} className="space-y-1.5">
-                      <p className="flex items-center gap-2 px-1 text-sm font-bold tracking-wide text-[var(--asset-accent-light)] dark:text-[var(--asset-accent-dark)]">
-                        <category.icon className="size-4.5" aria-hidden={true} />
-                        {category.label}
-                      </p>
-                      <div className="space-y-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleCategory(category.id)}
+                        aria-expanded={!isCollapsed}
+                        className="group flex w-full items-center gap-2 rounded-md px-1 py-0.5 text-left transition-colors"
+                      >
+                        <category.icon
+                          className="size-4.5 shrink-0 text-[var(--asset-accent-light)] dark:text-[var(--asset-accent-dark)]"
+                          aria-hidden={true}
+                        />
+                        <span className="flex-1 text-sm font-bold tracking-wide text-[var(--asset-accent-light)] dark:text-[var(--asset-accent-dark)]">
+                          {category.label}
+                        </span>
+                        <ChevronRight
+                          className={cn(
+                            "size-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ease-out",
+                            !isCollapsed && "rotate-90",
+                          )}
+                          aria-hidden={true}
+                        />
+                      </button>
+                      <div
+                        className={cn(
+                          "grid transition-[grid-template-rows,opacity,margin] duration-200 ease-out",
+                          isCollapsed ? "mt-0 grid-rows-[0fr] opacity-0" : "mt-1 grid-rows-[1fr] opacity-100",
+                        )}
+                      >
+                      <div className="space-y-1 overflow-hidden">
                         {category.tags.map((tag) => {
                           const isSelected = selectedTags.includes(tag);
                           const count = tagCounts[tag] ?? 0;
@@ -294,7 +403,7 @@ export function RegistryFilterSidebar({
                                   "rounded-md border px-1.5 py-0.5 text-xs tabular-nums transition-colors",
                                   isSelected
                                     ? "border-[color-mix(in_srgb,var(--asset-accent-light)_45%,var(--border))] bg-[color-mix(in_srgb,var(--asset-accent-light)_18%,var(--background))] text-[var(--asset-accent-light)] dark:border-[color-mix(in_srgb,var(--asset-accent-dark)_45%,var(--border))] dark:bg-[color-mix(in_srgb,var(--asset-accent-dark)_20%,var(--background))] dark:text-[var(--asset-accent-dark)]"
-                                    : "border-border/55 bg-background text-muted-foreground group-hover:border-[color-mix(in_srgb,var(--asset-accent-light)_45%,var(--border))] group-hover:bg-[color-mix(in_srgb,var(--asset-accent-light)_18%,var(--background))] group-hover:text-[var(--asset-accent-light)] dark:group-hover:border-[color-mix(in_srgb,var(--asset-accent-dark)_45%,var(--border))] dark:group-hover:bg-[color-mix(in_srgb,var(--asset-accent-dark)_20%,var(--background))] dark:group-hover:text-[var(--asset-accent-dark)]",
+                                    : "border-border/35 bg-background/80 text-muted-foreground group-hover:border-[color-mix(in_srgb,var(--asset-accent-light)_42%,var(--border))] group-hover:bg-[color-mix(in_srgb,var(--asset-accent-light)_16%,var(--background))] group-hover:text-[var(--asset-accent-light)] dark:group-hover:border-[color-mix(in_srgb,var(--asset-accent-dark)_42%,var(--border))] dark:group-hover:bg-[color-mix(in_srgb,var(--asset-accent-dark)_18%,var(--background))] dark:group-hover:text-[var(--asset-accent-dark)]",
                                 )}
                               >
                                 {count}
@@ -304,22 +413,39 @@ export function RegistryFilterSidebar({
                         })}
                       </div>
                     </div>
-                  ))}
+                    </div>
+                  );})}
                 </div>
               )}
             </section>
           </div>
         </ScrollArea>
+        </div>
 
         <SideRailDivider />
 
         <div className="px-2.5 py-2">
-          <SideRailUtilityButton onClick={() => setCollapsedState(true)}>
-            <PanelLeftClose className="size-3.5" aria-hidden="true" />
-            <span>Collapse Sidebar</span>
-          </SideRailUtilityButton>
+          <div className="flex items-center justify-center gap-2">
+            <RegistryToolbarIconButton
+              label="Clear Filters"
+              onClick={onTagsClear}
+              disabled={selectedTags.length === 0}
+            >
+              <Trash2 className="size-3.5" aria-hidden={true} />
+            </RegistryToolbarIconButton>
+            <RegistryToolbarIconButton
+              label="Collapse Sidebar"
+              onClick={() => setCollapsedState(true)}
+            >
+              <PanelLeftClose className="size-3.5" aria-hidden={true} />
+            </RegistryToolbarIconButton>
+            <RegistryToolbarIconButton label="Jump to Top" onClick={handleScrollToTop}>
+              <ArrowUpToLine className="size-3.5" aria-hidden={true} />
+            </RegistryToolbarIconButton>
+          </div>
         </div>
       </SideRailShell>
+      )}
     </aside>
   );
 }

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { DocsSidebar } from "@/features/docs/components/sidebar";
@@ -123,7 +123,7 @@ describe("DocsSidebar", () => {
     );
 
     const initialSidebar = document.querySelector("nav")?.closest("aside");
-    expect(initialSidebar?.className).not.toContain("slide-in-from-left-96");
+    expect(initialSidebar?.className).toContain("w-[17.5rem]");
 
     await user.click(screen.getByRole("button", { name: "Collapse Sidebar" }));
     const expand = screen.getByRole("button");
@@ -131,11 +131,11 @@ describe("DocsSidebar", () => {
     expect(expand.className).not.toContain("absolute");
 
     await user.click(expand);
-    const collapse = screen.getByRole("button", { name: "Collapse Sidebar" });
+    const collapse = await waitFor(() => screen.getByRole("button", { name: "Collapse Sidebar" }));
     expect(collapse).toBeInTheDocument();
 
     const expandedSidebar = document.querySelector("nav")?.closest("aside");
-    expect(expandedSidebar?.className).toContain("slide-in-from-left-96");
+    expect(expandedSidebar?.className).toContain("w-[17.5rem]");
   });
 
   it("keeps hover row structure across label and chevron region", () => {

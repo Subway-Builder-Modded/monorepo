@@ -77,9 +77,6 @@ export function sortRegistryItems(
       case "cityCode":
         cmp = compareStrings(a.cityCode, b.cityCode);
         break;
-      case "country":
-        cmp = compareStrings(a.countryName ?? a.countryCode, b.countryName ?? b.countryCode);
-        break;
       default:
         cmp = 0;
     }

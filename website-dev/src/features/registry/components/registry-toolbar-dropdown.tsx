@@ -94,7 +94,7 @@ export function RegistryToolbarDropdown({
           ref={triggerRef}
           type="button"
           className={cn(
-            "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] inline-flex h-10 min-w-0 items-center justify-between gap-2 rounded-lg border border-border/50 bg-background px-3 text-sm font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_10%,var(--background))] hover:text-[var(--tb-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_12%,var(--background))] dark:hover:text-[var(--tb-accent-dark)]",
+            "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] inline-flex h-10 min-w-0 items-center justify-between gap-2 rounded-lg border border-border/35 bg-background/75 px-3 text-sm font-medium text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_8%,var(--background))] hover:text-[var(--tb-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_10%,var(--background))] dark:hover:text-[var(--tb-accent-dark)]",
             triggerClassName,
           )}
         >
@@ -122,7 +122,7 @@ export function RegistryToolbarDropdown({
             : undefined
         }
         className={cn(
-          "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-64 overflow-hidden border-border/50 bg-background p-0",
+          "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-64 overflow-hidden border-border/35 bg-background/95 p-0",
           contentClassName,
         )}
       >
@@ -138,7 +138,7 @@ export function RegistryToolbarDropdown({
                 placeholder={searchPlaceholder}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                className="h-9 w-full appearance-none rounded-md border border-border/50 bg-background pl-8 pr-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
+                className="h-9 w-full appearance-none rounded-md border border-border/35 bg-muted/20 pl-8 pr-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
               />
             </div>
           </div>
@@ -169,7 +169,7 @@ export function RegistryToolbarDropdown({
                       "group flex h-10 w-full items-center gap-2 rounded-md px-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       isSelected
                         ? "bg-[color-mix(in_srgb,var(--tb-accent-light)_14%,var(--background))] text-[var(--tb-accent-light)] hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_20%,var(--background))] hover:text-[var(--tb-accent-light)] focus-visible:bg-[color-mix(in_srgb,var(--tb-accent-light)_20%,var(--background))] focus-visible:text-[var(--tb-accent-light)] dark:bg-[color-mix(in_srgb,var(--tb-accent-dark)_16%,var(--background))] dark:text-[var(--tb-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_22%,var(--background))] dark:hover:text-[var(--tb-accent-dark)] dark:focus-visible:bg-[color-mix(in_srgb,var(--tb-accent-dark)_22%,var(--background))] dark:focus-visible:text-[var(--tb-accent-dark)]"
-                        : "text-muted-foreground hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_10%,var(--background))] hover:text-[var(--tb-accent-light)] focus-visible:bg-[color-mix(in_srgb,var(--tb-accent-light)_10%,var(--background))] focus-visible:text-[var(--tb-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_12%,var(--background))] dark:hover:text-[var(--tb-accent-dark)] dark:focus-visible:bg-[color-mix(in_srgb,var(--tb-accent-dark)_12%,var(--background))] dark:focus-visible:text-[var(--tb-accent-dark)]",
+                        : "text-muted-foreground hover:bg-[color-mix(in_srgb,var(--tb-accent-light)_8%,var(--background))] hover:text-[var(--tb-accent-light)] focus-visible:bg-[color-mix(in_srgb,var(--tb-accent-light)_8%,var(--background))] focus-visible:text-[var(--tb-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--tb-accent-dark)_10%,var(--background))] dark:hover:text-[var(--tb-accent-dark)] dark:focus-visible:bg-[color-mix(in_srgb,var(--tb-accent-dark)_10%,var(--background))] dark:focus-visible:text-[var(--tb-accent-dark)]",
                     )}
                   >
                     {multiSelect ? (

@@ -265,3 +265,7 @@ export {
     Pagination,
     type PaginationProps,
   } from './components/pagination';
+  export {
+    StyledPagination,
+    type StyledPaginationProps,
+  } from './components/styled-pagination';
