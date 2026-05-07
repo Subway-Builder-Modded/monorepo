@@ -143,10 +143,7 @@ export function DocsSidebar({
 
   return (
     <aside
-      className={cn(
-        "hidden lg:block lg:shrink-0",
-        sidebarCollapsed ? "lg:w-11" : "lg:w-[17.5rem]",
-      )}
+      className={cn("hidden lg:block lg:shrink-0", sidebarCollapsed ? "lg:w-11" : "lg:w-[17.5rem]")}
     >
       {showCollapsedRail ? (
         <div className="sticky top-20 self-start">
@@ -163,44 +160,44 @@ export function DocsSidebar({
           </button>
         </div>
       ) : (
-      <SideRailShell>
-        <SideRailHeader>
-          <SidebarTitleRow suiteId={suiteId} currentVersion={currentVersion} />
+        <SideRailShell>
+          <SideRailHeader>
+            <SidebarTitleRow suiteId={suiteId} currentVersion={currentVersion} />
 
-          {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
-            <div className="mt-2">
-              <DocsVersionChooser
-                suiteId={suiteId}
-                currentVersion={currentVersion}
-                docSlug={currentSlug}
-                triggerClassName="w-full"
+            {hasMultipleVisibleVersions(suiteId) && currentVersion ? (
+              <div className="mt-2">
+                <DocsVersionChooser
+                  suiteId={suiteId}
+                  currentVersion={currentVersion}
+                  docSlug={currentSlug}
+                  triggerClassName="w-full"
+                />
+              </div>
+            ) : null}
+          </SideRailHeader>
+
+          <SideRailDivider />
+
+          <SideRailBody>
+            <nav>
+              <DocsSidebarTree
+                nodes={visibleNodes}
+                currentSlug={currentSlug}
+                collapsed={collapsed}
+                onToggle={toggle}
               />
-            </div>
-          ) : null}
-        </SideRailHeader>
+            </nav>
+          </SideRailBody>
 
-        <SideRailDivider />
+          <SideRailDivider />
 
-        <SideRailBody>
-          <nav>
-            <DocsSidebarTree
-              nodes={visibleNodes}
-              currentSlug={currentSlug}
-              collapsed={collapsed}
-              onToggle={toggle}
-            />
-          </nav>
-        </SideRailBody>
-
-        <SideRailDivider />
-
-        <div className="px-2.5 py-2">
-          <SideRailUtilityButton onClick={handleCollapse}>
-            <PanelLeftClose className="size-3.5" aria-hidden="true" />
-            <span>Collapse Sidebar</span>
-          </SideRailUtilityButton>
-        </div>
-      </SideRailShell>
+          <div className="px-2.5 py-2">
+            <SideRailUtilityButton onClick={handleCollapse}>
+              <PanelLeftClose className="size-3.5" aria-hidden="true" />
+              <span>Collapse Sidebar</span>
+            </SideRailUtilityButton>
+          </div>
+        </SideRailShell>
       )}
     </aside>
   );

@@ -76,7 +76,7 @@ export function StyledPagination({
   return (
     <nav
       className={cn(
-        'flex flex-col items-center justify-between gap-4 rounded-2xl border border-border/40 bg-background/50 px-4 py-3 backdrop-blur-sm sm:flex-row',
+        'flex flex-col items-center justify-between gap-4 rounded-xl border border-border/30 bg-card px-4 py-3 shadow-sm sm:flex-row',
         className,
       )}
     >
@@ -89,7 +89,7 @@ export function StyledPagination({
               ref={triggerRef}
               type="button"
               className={cn(
-                '[--ps-accent-light:var(--suite-accent-light,var(--primary))] [--ps-accent-dark:var(--suite-accent-dark,var(--primary))] inline-flex h-8 items-center justify-between gap-2 rounded-lg border border-border/50 bg-background px-2.5 text-xs font-semibold text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_10%,var(--background))] hover:text-[var(--ps-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_12%,var(--background))] dark:hover:text-[var(--ps-accent-dark)]',
+                '[--ps-accent-light:var(--suite-accent-light,var(--primary))] [--ps-accent-dark:var(--suite-accent-dark,var(--primary))] inline-flex h-8 items-center justify-between gap-2 rounded-lg border border-border/30 bg-background px-2.5 text-xs font-semibold text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hover:border-[color-mix(in_srgb,var(--ps-accent-light)_30%,var(--border))] hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_8%,var(--background))] hover:text-[var(--ps-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--ps-accent-dark)_30%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_8%,var(--background))] dark:hover:text-[var(--ps-accent-dark)]',
               )}
             >
               <span className="min-w-8 text-center">{selectedPageSizeLabel}</span>
@@ -115,7 +115,7 @@ export function StyledPagination({
                 : undefined
             }
             className={cn(
-              '[--ps-accent-light:var(--suite-accent-light,var(--primary))] [--ps-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-[var(--radix-popover-trigger-width)] min-w-0 overflow-hidden border-border/50 bg-background p-1',
+              '[--ps-accent-light:var(--suite-accent-light,var(--primary))] [--ps-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-[var(--radix-popover-trigger-width)] min-w-0 overflow-hidden rounded-lg border border-border/30 bg-popover p-1 shadow-md',
             )}
           >
             <div>
@@ -134,8 +134,8 @@ export function StyledPagination({
                     className={cn(
                       'group flex h-8 w-full items-center justify-center rounded-md px-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       isSelected
-                        ? 'bg-[color-mix(in_srgb,var(--ps-accent-light)_14%,var(--background))] text-[var(--ps-accent-light)] hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_20%,var(--background))] dark:bg-[color-mix(in_srgb,var(--ps-accent-dark)_16%,var(--background))] dark:text-[var(--ps-accent-dark)] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_22%,var(--background))]'
-                        : 'text-muted-foreground hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_10%,var(--background))] hover:text-[var(--ps-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_12%,var(--background))] dark:hover:text-[var(--ps-accent-dark)]',
+                        ? 'bg-[color-mix(in_srgb,var(--ps-accent-light)_12%,var(--background))] text-[var(--ps-accent-light)] dark:bg-[color-mix(in_srgb,var(--ps-accent-dark)_12%,var(--background))] dark:text-[var(--ps-accent-dark)]'
+                        : 'text-muted-foreground hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_8%,var(--background))] hover:text-[var(--ps-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_8%,var(--background))] dark:hover:text-[var(--ps-accent-dark)]',
                     )}
                   >
                     {option}
@@ -158,7 +158,7 @@ export function StyledPagination({
             'inline-flex h-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors',
             page <= 1
               ? 'cursor-not-allowed opacity-40 text-muted-foreground'
-              : 'text-muted-foreground hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]',
+              : 'text-muted-foreground hover:bg-muted/10 hover:text-foreground',
           )}
           aria-label="Previous page"
         >
@@ -183,8 +183,8 @@ export function StyledPagination({
               className={cn(
                 'inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-1.5 text-xs font-semibold transition-colors',
                 entry === page
-                  ? 'bg-[color-mix(in_srgb,var(--suite-accent-light)_14%,transparent)] text-[var(--suite-accent-light)] dark:bg-[color-mix(in_srgb,var(--suite-accent-dark)_18%,transparent)] dark:text-[var(--suite-accent-dark)]'
-                  : 'text-muted-foreground hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]',
+                  ? 'border border-border/35 bg-muted/15 text-foreground'
+                  : 'text-muted-foreground hover:bg-muted/10 hover:text-foreground',
               )}
             >
               {entry}
@@ -200,7 +200,7 @@ export function StyledPagination({
             'inline-flex h-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors',
             page >= totalPages
               ? 'cursor-not-allowed opacity-40 text-muted-foreground'
-              : 'text-muted-foreground hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_12%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]',
+              : 'text-muted-foreground hover:bg-muted/10 hover:text-foreground',
           )}
           aria-label="Next page"
         >

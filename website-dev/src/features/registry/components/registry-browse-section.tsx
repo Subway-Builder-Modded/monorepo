@@ -20,7 +20,7 @@ import type { RegistrySearchItem } from "@/features/registry/lib/registry-search
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
 
 import type { RegistryCardVariant } from "@/shared/registry-card/registry-item-types";
-import { Database, Map, Package } from "lucide-react";
+import { Map, Package } from "lucide-react";
 
 type RegistryBrowseSectionProps = {
   allItemsByType: Record<string, RegistrySearchItem[]>;
@@ -173,7 +173,7 @@ export function RegistryBrowseSection({
   return (
     <section
       id="registry-browse"
-      className="relative mx-auto w-full max-w-[96rem] px-5 pb-24 pt-12 sm:px-7 md:px-9 lg:px-12"
+      className="relative w-full px-5 pb-24 pt-10 sm:px-7 md:px-9 lg:px-12"
     >
       <div
         id="registry-browse-content-start"
@@ -193,17 +193,17 @@ export function RegistryBrowseSection({
         />
 
         <div className="min-w-0">
-          <div className="mb-6 space-y-5">
+          <div className="mb-6 space-y-4">
             <div
-              className="flex items-center justify-center gap-3.5 rounded-2xl px-6 py-5 text-3xl font-bold tracking-tight text-foreground"
+              className="flex items-center justify-center gap-3 rounded-xl px-5 py-4 text-[1.7rem] font-semibold tracking-tight text-foreground"
               style={{
                 background: `light-dark(
-                color-mix(in srgb, ${typeConfig.accentLight} 14%, transparent),
-                color-mix(in srgb, ${typeConfig.accentDark} 11%, transparent)
+                color-mix(in srgb, ${typeConfig.accentLight} 10%, transparent),
+                color-mix(in srgb, ${typeConfig.accentDark} 8%, transparent)
               )`,
                 border: `1.5px solid light-dark(
-                color-mix(in srgb, ${typeConfig.accentLight} 22%, transparent),
-                color-mix(in srgb, ${typeConfig.accentDark} 16%, transparent)
+                color-mix(in srgb, ${typeConfig.accentLight} 16%, transparent),
+                color-mix(in srgb, ${typeConfig.accentDark} 12%, transparent)
               )`,
               }}
             >
@@ -227,81 +227,101 @@ export function RegistryBrowseSection({
               <span>{typeConfig.label} Database</span>
             </div>
 
-            <div className="space-y-2">
-              <div className="group relative flex">
-                <Search
-                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden={true}
-                />
-                <input
-                  type="search"
-                  role="searchbox"
-                  value={query}
-                  onChange={(event) => onQueryChange(event.target.value)}
-                  placeholder="Search…"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  spellCheck={false}
-                  className="h-10 w-full appearance-none rounded-xl border border-border/35 bg-muted/20 pl-9 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
-                />
-                {!query ? (
-                  <span
-                    className="pointer-events-none absolute right-3 top-1/2 ml-auto flex -translate-y-1/2 shrink-0 items-center gap-1 text-[11px] text-muted-foreground"
+            <div className="rounded-xl border border-border/30 bg-card px-3 py-3 shadow-sm">
+              <div className="space-y-3">
+                <div className="group relative flex">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                     aria-hidden={true}
-                  >
-                    <kbd className="rounded border border-border/70 bg-background/90 px-1.5 py-0.5 font-mono font-medium leading-none">
-                      {isMac ? "Cmd" : "Ctrl"}
-                    </kbd>
-                    <span className="text-muted-foreground/70">+</span>
-                    <kbd className="rounded border border-border/70 bg-background/90 px-1.5 py-0.5 font-mono font-medium leading-none">
-                      M
-                    </kbd>
-                  </span>
-                ) : null}
-                {query ? (
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onQueryChange("");
-                    }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <X className="size-3.5" aria-hidden={true} />
-                  </button>
-                ) : null}
-              </div>
-
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <RegistryViewToggle viewMode={viewMode} onChange={onViewChange} />
-                  <RegistrySortBar
-                    activeTypeId={typeId}
-                    sortId={sortId}
-                    sortDir={sortDir}
-                    onSortChange={onSortChange}
-                    onDirToggle={onDirToggle}
-                    onRandomReshuffle={handleReshuffle}
                   />
+                  <input
+                    type="search"
+                    role="searchbox"
+                    value={query}
+                    onChange={(event) => onQueryChange(event.target.value)}
+                    placeholder="Search…"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    className="h-11 w-full appearance-none rounded-lg border border-border/30 bg-background pl-9 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:border-border/35 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
+                  />
+                  {!query ? (
+                    <span
+                      className="pointer-events-none absolute right-3 top-1/2 ml-auto flex -translate-y-1/2 shrink-0 items-center gap-1 text-[11px] text-muted-foreground"
+                      aria-hidden={true}
+                    >
+                      <kbd className="rounded-md border border-border/45 bg-muted/20 px-1.5 py-0.5 font-mono font-medium leading-none">
+                        {isMac ? "Cmd" : "Ctrl"}
+                      </kbd>
+                      <span className="text-muted-foreground/70">+</span>
+                      <kbd className="rounded-md border border-border/45 bg-muted/20 px-1.5 py-0.5 font-mono font-medium leading-none">
+                        M
+                      </kbd>
+                    </span>
+                  ) : null}
+                  {query ? (
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onQueryChange("");
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <X className="size-3.5" aria-hidden={true} />
+                    </button>
+                  ) : null}
                 </div>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:justify-between lg:overflow-visible lg:pb-0">
+                  <div className="flex min-w-max items-center gap-2">
+                    <RegistryViewToggle
+                      className="shrink-0"
+                      viewMode={viewMode}
+                      onChange={onViewChange}
+                    />
+                    <RegistrySortBar
+                      className="shrink-0"
+                      activeTypeId={typeId}
+                      sortId={sortId}
+                      sortDir={sortDir}
+                      onSortChange={onSortChange}
+                      onDirToggle={onDirToggle}
+                      onRandomReshuffle={handleReshuffle}
+                    />
+                  </div>
+
+                  <div className="ml-auto shrink-0">
+                    {hasActiveFilters ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={handleClearAll}
+                              aria-label="Clear all filters"
+                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/30 bg-background text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--suite-accent-light)_30%,var(--border))] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_8%,var(--background))] hover:text-[var(--suite-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_30%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_8%,var(--background))] dark:hover:text-[var(--suite-accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                              <Trash2 className="size-4" aria-hidden={true} />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="z-[140]">
+                            Clear All Filters
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
                       <button
                         type="button"
-                        onClick={handleClearAll}
-                        disabled={!hasActiveFilters}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border/35 bg-background/80 text-muted-foreground transition-colors hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_8%,var(--background))] hover:text-[var(--suite-accent-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-background/80 disabled:hover:text-muted-foreground dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_10%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]"
+                        disabled
+                        aria-label="Clear all filters"
+                        className="inline-flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-lg border border-border/30 bg-background text-muted-foreground opacity-45"
                       >
                         <Trash2 className="size-4" aria-hidden={true} />
                       </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="z-[140]">
-                      Clear All Filters
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -358,7 +378,7 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
     return (
       <ul className="space-y-2">
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={`${cardVariant}-${item.id}`}>
             <RegistryItemCard
               data={{
                 id: item.id,
@@ -389,7 +409,7 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
     return (
       <ul className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {items.map((item) => (
-          <li key={item.id} className="h-full">
+          <li key={`${cardVariant}-${item.id}`} className="h-full">
             <RegistryItemCard
               data={{
                 id: item.id,
@@ -421,7 +441,7 @@ function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
   return (
     <ul className="grid grid-cols-1 gap-3 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => (
-        <li key={item.id} className="h-full">
+        <li key={`${cardVariant}-${item.id}`} className="h-full">
           <RegistryItemCard
             data={{
               id: item.id,
@@ -535,7 +555,11 @@ function RegistryEmptyState({ typeId, query, selectedTags, onClear }: RegistryEm
   } as React.CSSProperties;
 
   return (
-    <div className="flex flex-col items-center gap-4 py-24 text-center" role="status" style={accentStyle}>
+    <div
+      className="flex flex-col items-center gap-4 py-24 text-center"
+      role="status"
+      style={accentStyle}
+    >
       <SearchX className="size-10 text-muted-foreground/40" aria-hidden={true} />
       <p className="text-sm font-medium text-muted-foreground">{REGISTRY_EMPTY_STATE_MESSAGE}</p>
       {(query.length > 0 || selectedTags.length > 0) && (

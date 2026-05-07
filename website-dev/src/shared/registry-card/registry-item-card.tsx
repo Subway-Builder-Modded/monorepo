@@ -25,7 +25,8 @@ const FULL_DESC_MAX = 260;
 const HTML_HEADING_START = "__SBM_HEADING_START__";
 const HTML_HEADING_END = "__SBM_HEADING_END__";
 const SYNTHETIC_COUNTRY_TAG_PREFIX = "country:";
-const CARD_SURFACE_TRANSITION_CLASS = "transition-[background-color,box-shadow] duration-200 ease-out";
+const CARD_SURFACE_TRANSITION_CLASS =
+  "transition-[background-color,box-shadow] duration-200 ease-out";
 const TAG_SURFACE_TRANSITION_CLASS = "transition-[background-color] duration-200 ease-out";
 // Gradient fade from card surface color to transparent - avoids mask opacity artifacts
 const TAG_FADE_GRADIENT_STYLE = {
@@ -226,8 +227,8 @@ function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
       className="rounded-md px-2.5 font-semibold"
       style={{
         color: `var(--registry-type-accent-light, ${typeConfig.accentLight})`,
-        background: `color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 12%, transparent)`,
-        border: `1px solid color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 28%, transparent)`,
+        background: `color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
+        border: `1px solid color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
       }}
     >
       {typeConfig.label}
@@ -323,7 +324,7 @@ function MapBadges({ cityCode, countryCode, countryEmoji, population }: MapBadge
   return (
     <div className="flex max-w-[52%] items-center justify-end gap-2 text-xs text-muted-foreground">
       {hasLocation ? (
-        <span className="inline-flex items-center gap-1 rounded-md border border-border/55 bg-background/75 px-2 py-0.5 font-medium uppercase">
+        <span className="inline-flex items-center gap-1 rounded-md border border-border/30 bg-background px-2 py-0.5 font-medium uppercase">
           {cityCode ? <span className="truncate">{cityCode}</span> : null}
           {cityCode && (countryEmoji || normalizedCountryCode) ? (
             <span style={{ color: "color-mix(in srgb, currentColor 35%, transparent)" }}>|</span>
@@ -360,6 +361,10 @@ function ThumbnailImage({
 }: ThumbnailImageProps) {
   const [loaded, setLoaded] = useState(false);
 
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
+
   return (
     <div
       className={cn(
@@ -380,6 +385,7 @@ function ThumbnailImage({
           )}
           loading="eager"
           onLoad={() => setLoaded(true)}
+          onError={() => setLoaded(true)}
         />
       ) : (
         <div className="flex size-full items-center justify-center text-xs font-medium text-muted-foreground">
@@ -412,7 +418,7 @@ function RegistryCardGrid({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "group relative h-full cursor-pointer overflow-hidden rounded-xl border border-border/50 [--card-surface:color-mix(in_srgb,var(--card)_92%,transparent)] bg-[var(--card-surface)] shadow-sm hover:[--card-surface:color-mix(in_srgb,var(--card)_90%,black)] hover:shadow-md dark:[--card-surface:color-mix(in_srgb,var(--card)_95%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_96%,white)]",
+        "group relative h-full cursor-pointer overflow-hidden rounded-xl border border-border/30 [--card-surface:color-mix(in_srgb,var(--card)_97%,transparent)] bg-[var(--card-surface)] shadow-sm hover:border-border/45 hover:[--card-surface:color-mix(in_srgb,var(--card)_94%,black)] dark:[--card-surface:color-mix(in_srgb,var(--card)_98%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_97%,white)]",
         CARD_SURFACE_TRANSITION_CLASS,
         className,
       )}
@@ -428,7 +434,7 @@ function RegistryCardGrid({
           />
         </div>
 
-        <div className="flex h-full flex-col gap-2 px-3 py-3">
+        <div className="flex h-full flex-col gap-2 px-3 py-3 min-[1800px]:gap-2.5 min-[1800px]:px-4 min-[1800px]:py-4">
           <div className="flex items-center justify-between gap-2">
             <TypeBadge typeConfig={typeConfig} />
             <div className="flex items-center gap-3">
@@ -439,7 +445,7 @@ function RegistryCardGrid({
 
           <div className="space-y-0">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-sm font-semibold leading-snug">
+              <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-sm font-semibold leading-snug min-[1800px]:text-base">
                 <TitleLink
                   title={data.title}
                   href={data.href}
@@ -458,16 +464,21 @@ function RegistryCardGrid({
 
           <DescriptionPreview
             segments={previewText}
-            className="h-8 overflow-hidden text-xs leading-4 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
+            className="h-8 overflow-hidden text-xs leading-4 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] min-[1800px]:h-10 min-[1800px]:text-sm min-[1800px]:leading-5"
           />
 
           {visibleTags.length > 0 ? (
-            <div className={cn("relative isolate h-5 overflow-hidden bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)}>
+            <div
+              className={cn(
+                "relative isolate h-5 overflow-hidden bg-[var(--card-surface)]",
+                TAG_SURFACE_TRANSITION_CLASS,
+              )}
+            >
               <div ref={gridTagStripRef} className="flex flex-nowrap gap-1 pr-8">
                 {visibleTags.map((tag) => (
                   <span
                     key={tag}
-                    className="shrink-0 rounded border border-border/50 bg-muted/40 px-1.5 py-px text-xs text-muted-foreground"
+                    className="shrink-0 rounded-md border border-border/25 bg-muted/25 px-1.5 py-px text-xs text-muted-foreground"
                   >
                     {tag}
                   </span>
@@ -482,8 +493,18 @@ function RegistryCardGrid({
                     )}
                     style={TAG_FADE_GRADIENT_STYLE}
                   />
-                  <div className={cn("pointer-events-none absolute inset-y-0 right-0 w-5 bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)} />
-                  <span className={cn("pointer-events-none absolute inset-y-0 right-0 inline-flex items-center bg-[var(--card-surface)] pl-1 text-xs tracking-wide text-muted-foreground", TAG_SURFACE_TRANSITION_CLASS)}>
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 w-5 bg-[var(--card-surface)]",
+                      TAG_SURFACE_TRANSITION_CLASS,
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 inline-flex items-center bg-[var(--card-surface)] pl-1 text-xs tracking-wide text-muted-foreground",
+                      TAG_SURFACE_TRANSITION_CLASS,
+                    )}
+                  >
                     ...
                   </span>
                 </>
@@ -517,13 +538,13 @@ function RegistryCardFull({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn(
-        "group relative h-full cursor-pointer overflow-hidden rounded-2xl border border-border/50 [--card-surface:color-mix(in_srgb,var(--card)_95%,transparent)] bg-[var(--card-surface)] shadow-sm hover:[--card-surface:color-mix(in_srgb,var(--card)_93%,black)] hover:shadow-md dark:[--card-surface:color-mix(in_srgb,var(--card)_96%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_97%,white)]",
+        "group relative h-full cursor-pointer overflow-hidden rounded-xl border border-border/30 [--card-surface:color-mix(in_srgb,var(--card)_98%,transparent)] bg-[var(--card-surface)] shadow-sm hover:border-border/45 hover:[--card-surface:color-mix(in_srgb,var(--card)_95%,black)] dark:[--card-surface:color-mix(in_srgb,var(--card)_98%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_97%,white)]",
         CARD_SURFACE_TRANSITION_CLASS,
         className,
       )}
       style={typeAccentStyle}
     >
-      <CardSurfaceLink href={data.href} title={data.title} roundedClassName="rounded-2xl" />
+      <CardSurfaceLink href={data.href} title={data.title} roundedClassName="rounded-xl" />
       <div className="relative z-20 flex h-full flex-col pointer-events-none">
         <div className="relative aspect-[16/9] w-full">
           <ThumbnailImage
@@ -533,7 +554,7 @@ function RegistryCardFull({
           />
         </div>
 
-        <div className="flex h-full flex-col gap-3 px-4 py-4">
+        <div className="flex h-full flex-col gap-3 px-4 py-4 min-[1800px]:gap-4 min-[1800px]:px-5 min-[1800px]:py-5">
           <div className="flex items-center justify-between gap-2">
             <TypeBadge typeConfig={typeConfig} size="md" />
             <div className="flex items-center gap-3">
@@ -544,7 +565,7 @@ function RegistryCardFull({
 
           <div className="space-y-0.5">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-base font-semibold leading-snug">
+              <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-base font-semibold leading-snug min-[1800px]:text-[1.12rem]">
                 <TitleLink
                   title={data.title}
                   href={data.href}
@@ -563,7 +584,7 @@ function RegistryCardFull({
 
           <DescriptionPreview
             segments={previewText}
-            className="line-clamp-4 min-h-[5.6rem] text-sm leading-relaxed text-muted-foreground"
+            className="line-clamp-4 min-h-[5.6rem] text-sm leading-relaxed text-muted-foreground min-[1800px]:text-base"
           />
 
           {visibleTags.length > 0 ? (
@@ -571,7 +592,7 @@ function RegistryCardFull({
               {visibleTags.slice(0, 6).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded border border-border/50 bg-muted/40 px-2 py-px text-xs text-muted-foreground"
+                  className="rounded-md border border-border/25 bg-muted/25 px-2 py-px text-xs text-muted-foreground"
                 >
                   {tag}
                 </span>
@@ -598,22 +619,22 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
   return (
     <article
       className={cn(
-        "group relative cursor-pointer overflow-hidden rounded-2xl border border-border/50 [--card-surface:color-mix(in_srgb,var(--card)_92%,transparent)] bg-[var(--card-surface)] p-4 shadow-sm backdrop-blur-sm hover:[--card-surface:color-mix(in_srgb,var(--card)_90%,black)] hover:shadow-md dark:[--card-surface:color-mix(in_srgb,var(--card)_95%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_96%,white)]",
+        "group relative cursor-pointer overflow-hidden rounded-xl border border-border/30 [--card-surface:color-mix(in_srgb,var(--card)_97%,transparent)] bg-[var(--card-surface)] p-4 shadow-sm hover:border-border/45 hover:[--card-surface:color-mix(in_srgb,var(--card)_94%,black)] dark:[--card-surface:color-mix(in_srgb,var(--card)_98%,transparent)] dark:hover:[--card-surface:color-mix(in_srgb,var(--card)_97%,white)] min-[1800px]:p-5",
         CARD_SURFACE_TRANSITION_CLASS,
         className,
       )}
       style={typeAccentStyle}
     >
-      <CardSurfaceLink href={data.href} title={data.title} roundedClassName="rounded-2xl" />
-      <div className="relative z-20 flex w-full min-w-0 items-stretch gap-5 pointer-events-none">
+      <CardSurfaceLink href={data.href} title={data.title} roundedClassName="rounded-xl" />
+      <div className="relative z-20 flex w-full min-w-0 items-start gap-5 pointer-events-none">
         <ThumbnailImage
           src={data.thumbnailSrc}
-          containerClassName="relative w-36 shrink-0 self-stretch overflow-hidden rounded-xl sm:w-48"
+          containerClassName="relative self-stretch w-36 shrink-0 overflow-hidden rounded-lg sm:w-48 xl:w-56 min-[1800px]:w-64"
           hoverScale
           noImageLabel="N/A"
         />
 
-        <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="min-w-0 flex-1 overflow-hidden space-y-1.5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <TypeBadge typeConfig={typeConfig} size="sm" />
@@ -631,7 +652,7 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
           </div>
 
           <div className="space-y-0.5">
-            <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold">
+            <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold min-[1800px]:text-[1.12rem]">
               <TitleLink
                 title={data.title}
                 href={data.href}
@@ -643,16 +664,21 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
 
           <DescriptionPreview
             segments={previewText}
-            className="min-h-[2.5rem] overflow-hidden text-sm leading-5 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2]"
+            className="h-10 overflow-hidden text-sm leading-5 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] min-[1800px]:h-11 min-[1800px]:text-base"
           />
 
           {visibleTags.length > 0 ? (
-            <div className={cn("relative isolate h-5 overflow-hidden bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)}>
+            <div
+              className={cn(
+                "relative isolate h-5 overflow-hidden bg-[var(--card-surface)]",
+                TAG_SURFACE_TRANSITION_CLASS,
+              )}
+            >
               <div ref={listTagStripRef} className="flex flex-nowrap gap-1 pr-8">
                 {visibleTags.map((tag) => (
                   <span
                     key={tag}
-                    className="shrink-0 rounded border border-border/50 bg-muted/40 px-1.5 py-px text-xs text-muted-foreground"
+                    className="shrink-0 rounded-md border border-border/25 bg-muted/25 px-1.5 py-px text-xs text-muted-foreground"
                   >
                     {tag}
                   </span>
@@ -667,8 +693,18 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
                     )}
                     style={TAG_FADE_GRADIENT_STYLE}
                   />
-                  <div className={cn("pointer-events-none absolute inset-y-0 right-0 w-5 bg-[var(--card-surface)]", TAG_SURFACE_TRANSITION_CLASS)} />
-                  <span className={cn("pointer-events-none absolute inset-y-0 right-0 inline-flex items-center bg-[var(--card-surface)] pl-1 text-xs tracking-wide text-muted-foreground", TAG_SURFACE_TRANSITION_CLASS)}>
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 w-5 bg-[var(--card-surface)]",
+                      TAG_SURFACE_TRANSITION_CLASS,
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "pointer-events-none absolute inset-y-0 right-0 inline-flex items-center bg-[var(--card-surface)] pl-1 text-xs tracking-wide text-muted-foreground",
+                      TAG_SURFACE_TRANSITION_CLASS,
+                    )}
+                  >
                     ...
                   </span>
                 </>
