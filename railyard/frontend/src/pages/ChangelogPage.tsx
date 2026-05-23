@@ -50,7 +50,6 @@ import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
-import { isCompatible } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -62,6 +61,7 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import { isVersionInstallable } from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -257,12 +257,19 @@ export function ChangelogPage() {
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
     if (!item || !type) return;
-    if (
-      versionInfo?.version === version &&
-      isCompatible(gameVersion, versionInfo.game_version) === false
-    ) {
+    const requireStrictCompatibility = type === 'map';
+    const installable =
+      versionInfo?.version === version
+        ? isVersionInstallable(gameVersion, versionInfo.game_version, {
+            requireKnownGameVersion: requireStrictCompatibility,
+            requireExplicitCompatibility: requireStrictCompatibility,
+          })
+        : true;
+    if (!installable) {
       toast.error(
-        `Cannot install ${version}: it is not compatible with game version ${gameVersion}.`,
+        !gameVersion.trim() && requireStrictCompatibility
+          ? `Cannot install ${version}: current game version could not be detected.`
+          : `Cannot install ${version}: it is not compatible with game version ${gameVersion}.`,
       );
       return;
     }
@@ -366,8 +373,18 @@ export function ChangelogPage() {
 
   const renderInstallButton = () => {
     if (!versionInfo) return null;
-    const compat = isCompatible(gameVersion, versionInfo.game_version);
-    const incompatible = compat === false;
+    const requireStrictCompatibility = type === 'map';
+    const installable = isVersionInstallable(
+      gameVersion,
+      versionInfo.game_version,
+      {
+        requireKnownGameVersion: requireStrictCompatibility,
+        requireExplicitCompatibility: requireStrictCompatibility,
+      },
+    );
+    const missingGameVersion =
+      requireStrictCompatibility && !gameVersion.trim();
+    const installBlocked = !installable;
 
     if (uninstalling) {
       return (
@@ -423,7 +440,7 @@ export function ChangelogPage() {
         </div>
       );
     }
-    if (incompatible) {
+    if (installBlocked) {
       return (
         <TooltipProvider>
           <Tooltip>
@@ -440,8 +457,9 @@ export function ChangelogPage() {
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              Not compatible with your game version (you have {gameVersion},
-              need {versionInfo.game_version})
+              {missingGameVersion
+                ? 'Current game version could not be detected.'
+                : `Not compatible with your game version (you have ${gameVersion}, need ${versionInfo.game_version})`}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

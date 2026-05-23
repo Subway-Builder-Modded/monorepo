@@ -2,6 +2,7 @@ package registry
 
 import (
 	"testing"
+	"time"
 
 	"railyard/internal/config"
 	"railyard/internal/testutil"
@@ -50,6 +51,8 @@ func TestGetInstallableVersions(t *testing.T) {
 	require.Len(t, filtered, 2)
 	require.Equal(t, "1.1.0", filtered[0].Version)
 	require.Equal(t, "1.0.0", filtered[1].Version)
+	require.Equal(t, "<=1.3.0", filtered[0].GameVersion)
+	require.Equal(t, "<=1.3.0", filtered[1].GameVersion)
 }
 
 func TestGetInstallableVersionsRejectsMissingOrIncompleteListings(t *testing.T) {
@@ -91,4 +94,93 @@ func TestGetInstallableVersionsRejectsMissingOrIncompleteListings(t *testing.T) 
 
 	_, err = reg.GetInstallableVersions(types.AssetTypeMap, "map-a")
 	require.ErrorContains(t, err, "has no complete versions")
+}
+
+func TestGetInstallableVersionsPreservesExplicitMapGameVersion(t *testing.T) {
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	registrytest.SetManifestsForTest(t, reg, nil, []types.MapManifest{
+		func() types.MapManifest {
+			manifest := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+			manifest.Update = types.UpdateConfig{
+				Type: "custom",
+				URL:  "https://example.com/update.json",
+			}
+			return manifest
+		}(),
+	})
+	reg.integrityMaps = types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			"map-a": {
+				HasCompleteVersion: true,
+				CompleteVersions:   []string{"1.1.0"},
+				Versions: map[string]types.IntegrityVersionStatus{
+					"1.1.0": {IsComplete: true},
+				},
+			},
+		},
+	}
+	reg.setCachedVersions("custom|https://example.com/update.json", []types.VersionInfo{
+		{Version: "1.1.0", GameVersion: ">=1.0.0 <=1.3.1", Date: "2026-05-19"},
+	})
+
+	filtered, err := reg.GetInstallableVersions(types.AssetTypeMap, "map-a")
+	require.NoError(t, err)
+	require.Len(t, filtered, 1)
+	require.Equal(t, ">=1.0.0 <=1.3.1", filtered[0].GameVersion)
+}
+
+func TestGetInstallableVersionsCapsExplicitMapGameVersionOnSchemaCutoffOrEarlier(t *testing.T) {
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	registrytest.SetManifestsForTest(t, reg, nil, []types.MapManifest{
+		func() types.MapManifest {
+			manifest := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+			manifest.Update = types.UpdateConfig{
+				Type: "custom",
+				URL:  "https://example.com/update.json",
+			}
+			return manifest
+		}(),
+	})
+	reg.integrityMaps = types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			"map-a": {
+				HasCompleteVersion: true,
+				CompleteVersions:   []string{"1.1.0"},
+				Versions: map[string]types.IntegrityVersionStatus{
+					"1.1.0": {IsComplete: true},
+				},
+			},
+		},
+	}
+	reg.setCachedVersions("custom|https://example.com/update.json", []types.VersionInfo{
+		{Version: "1.1.0", GameVersion: ">=1.0.0 <=1.4.0", Date: "2026-05-18"},
+	})
+
+	filtered, err := reg.GetInstallableVersions(types.AssetTypeMap, "map-a")
+	require.NoError(t, err)
+	require.Len(t, filtered, 1)
+	require.Equal(t, ">=1.0.0 <=1.4.0 <=1.3.0", filtered[0].GameVersion)
+}
+
+func TestParseMapPolicyVersionDate(t *testing.T) {
+	t.Run("date only", func(t *testing.T) {
+		parsed, ok := parseMapPolicyVersionDate("2026-05-18")
+		require.True(t, ok)
+		require.Equal(t, time.Date(2026, time.May, 18, 0, 0, 0, 0, time.UTC), parsed)
+	})
+
+	t.Run("rfc3339", func(t *testing.T) {
+		parsed, ok := parseMapPolicyVersionDate("2026-05-18T22:30:00-04:00")
+		require.True(t, ok)
+		require.Equal(t, time.Date(2026, time.May, 19, 0, 0, 0, 0, time.UTC), parsed)
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		_, ok := parseMapPolicyVersionDate("2026/05/12")
+		require.False(t, ok)
+	})
 }
