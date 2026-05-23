@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { enrichAuthorIdentity } from '@/lib/authors';
+import { normalizeRegistryManifest } from '@/lib/railyard/manifest-normalization';
 import { getRegistryAuthorDirectory } from '@/lib/railyard/registry-author-directory';
 import { fetchRegistryJsonWithFallback } from '@/lib/railyard/registry-source';
 import type { ModManifest, MapManifest } from '@/types/registry';
@@ -32,7 +33,14 @@ export function useRegistryItem(
           ModManifest | MapManifest
         >(`${type}/${id}/manifest.json`);
         const authorDirectory = await getRegistryAuthorDirectory();
-        if (!cancelled) setItem(enrichAuthorIdentity(data, authorDirectory));
+        if (!cancelled) {
+          setItem(
+            enrichAuthorIdentity(
+              normalizeRegistryManifest(data),
+              authorDirectory,
+            ),
+          );
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load item');

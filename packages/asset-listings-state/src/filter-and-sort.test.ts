@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildAssetSearchText,
   buildFilteredTaggedListingCounts,
   filterAndSortTaggedItems,
   matchesSingleValueFilter,
@@ -11,10 +12,17 @@ import {
   type TaggedListingAccessors,
   type TaggedListingItem,
 } from './filter-and-sort';
+import {
+  buildCountryCodeSearchTerms,
+  normalizeMapCountry,
+  reverseIsoCountryCodeToNames,
+} from './country-search';
 
 interface TestItem {
   id: string;
   name: string;
+  city_code?: string;
+  country?: string;
   tags?: string[];
   location?: string;
   quality?: string;
@@ -30,6 +38,15 @@ interface TestMapFilters {
 }
 
 type TestTaggedItem = TaggedListingItem<TestItem>;
+type SearchFilters = {
+  query: string;
+  type: 'mod' | 'map';
+  sort: { field: string; direction: 'asc' | 'desc' };
+  randomSeed: number;
+  perPage: number;
+  mod: { tags: string[] };
+  map: TestMapFilters;
+};
 
 const items: TestTaggedItem[] = [
   {
@@ -124,8 +141,78 @@ const accessors: TaggedListingAccessors<TestTaggedItem, TestMapFilters> = {
   dimensions: testDimensions,
 };
 
+const searchAccessors: TaggedListingAccessors<TestTaggedItem, TestMapFilters> = {
+  buildSearchText: (item) => buildAssetSearchText(item, () => ''),
+  dimensions: testDimensions,
+};
+
 const compareItems = (left: TestTaggedItem, right: TestTaggedItem) =>
   left.item.name.localeCompare(right.item.name);
+
+const searchFuseOptions = { keys: ['searchText'], threshold: 0.4 } as const;
+
+function getRegionEndonym(locale: string, code: string): string | undefined {
+  return new Intl.DisplayNames([locale], { type: 'region' }).of(code);
+}
+
+function foldAscii(value: string): string {
+  return value.normalize('NFKD').replace(/\p{M}+/gu, '');
+}
+
+function makeMapItem(overrides: Partial<TestItem> = {}): TestTaggedItem {
+  return {
+    type: 'map',
+    item: {
+      id: 'map-prague',
+      name: 'Prague Metro',
+      country: 'CZ',
+      city_code: 'PRG',
+      ...overrides,
+    },
+  };
+}
+
+function makeFilters(overrides: Partial<SearchFilters>): SearchFilters {
+  return {
+    query: '',
+    type: 'map',
+    sort: { field: 'name', direction: 'asc' },
+    randomSeed: 1,
+    perPage: 12,
+    mod: { tags: [] },
+    map: mapFilters,
+    ...overrides,
+  };
+}
+
+function runSearch(
+  searchItems: TestTaggedItem[],
+  filters: Partial<SearchFilters>,
+): TestTaggedItem[] {
+  return filterAndSortTaggedItems({
+    items: searchItems,
+    filters: makeFilters(filters),
+    modDownloadTotals: {},
+    mapDownloadTotals: {},
+    compareItems,
+    accessors: searchAccessors,
+    fuseOptions: searchFuseOptions,
+  });
+}
+
+function expectCountryAliasesPresent(
+  searchText: string,
+  code: string,
+  exonym: string,
+  endonym: string | undefined,
+) {
+  expect(searchText).toContain(code);
+  expect(searchText).toContain(exonym);
+  if (endonym) {
+    expect(searchText).toContain(endonym);
+    expect(searchText).toContain(foldAscii(endonym));
+  }
+}
 
 describe('filter helpers', () => {
   it('matches selected single values and many-values filters', () => {
@@ -133,6 +220,42 @@ describe('filter helpers', () => {
     expect(matchesSingleValueFilter('asia', ['europe'])).toBe(false);
     expect(matchesZeroOrManyValuesFilter(['ui', 'sim'], ['ui'])).toBe(true);
     expect(matchesZeroOrManyValuesFilter(['sim'], ['ui'])).toBe(false);
+  });
+});
+
+describe('country search helpers', () => {
+  it('normalizes ISO country codes once at the manifest boundary', () => {
+    expect(normalizeMapCountry(' cz ')).toBe('CZ');
+    expect(normalizeMapCountry(' Ukraine ')).toBe('');
+    expect(normalizeMapCountry('1!')).toBe('');
+    expect(normalizeMapCountry(undefined)).toBe('');
+  });
+
+  it('expands ISO country codes into exonym and endonym search terms', () => {
+    const czechEndonym = getRegionEndonym('cs-CZ', 'CZ');
+    const ukrainianEndonym = getRegionEndonym('uk-UA', 'UA');
+
+    expect(reverseIsoCountryCodeToNames('CZ')).toEqual(
+      expect.arrayContaining([
+        'CZ',
+        'Czechia',
+        'Czech Republic',
+        czechEndonym ?? '',
+      ]),
+    );
+    if (czechEndonym) {
+      expect(reverseIsoCountryCodeToNames('CZ')).toContain(foldAscii(czechEndonym));
+    }
+    expect(reverseIsoCountryCodeToNames('UA')).toEqual(
+      expect.arrayContaining(['UA', 'Ukraine', ukrainianEndonym ?? '']),
+    );
+    expect(reverseIsoCountryCodeToNames('GB')).toEqual(
+      expect.arrayContaining(['GB', 'United Kingdom', 'UK']),
+    );
+  });
+
+  it('keeps non-ISO country labels searchable without expansion', () => {
+    expect(buildCountryCodeSearchTerms('Czechia')).toEqual([]);
   });
 });
 
@@ -148,6 +271,13 @@ describe('seeded ordering', () => {
 });
 
 describe('filterAndSortTaggedItems', () => {
+  it('includes country aliases in map search text', () => {
+    const czechEndonym = getRegionEndonym('cs-CZ', 'CZ');
+    const searchText = buildAssetSearchText(makeMapItem(), () => '');
+
+    expectCountryAliasesPresent(searchText, 'CZ', 'Czechia', czechEndonym);
+  });
+
   it('filters by type, tags, and map attributes before sorting', () => {
     const result = filterAndSortTaggedItems({
       items,
@@ -169,7 +299,7 @@ describe('filterAndSortTaggedItems', () => {
       mapDownloadTotals: {},
       compareItems,
       accessors,
-      fuseOptions: { keys: ['searchText'], threshold: 0.4 },
+      fuseOptions: searchFuseOptions,
     });
 
     expect(result.map((item) => item.item.id)).toEqual(['map-eu']);
@@ -178,23 +308,26 @@ describe('filterAndSortTaggedItems', () => {
   it('supports text search through Fuse', () => {
     const result = filterAndSortTaggedItems({
       items,
-      filters: {
+      filters: makeFilters({
         query: 'signal',
         type: 'mod',
-        sort: { field: 'name', direction: 'asc' },
-        randomSeed: 1,
-        perPage: 12,
-        mod: { tags: [] },
-        map: mapFilters,
-      },
+      }),
       modDownloadTotals: {},
       mapDownloadTotals: {},
       compareItems,
       accessors,
-      fuseOptions: { keys: ['searchText'], threshold: 0.4 },
+      fuseOptions: searchFuseOptions,
     });
 
     expect(result.map((item) => item.item.id)).toEqual(['mod-sim']);
+  });
+
+  it('matches map queries against country exonyms and endonyms', () => {
+    const result = runSearch([makeMapItem()], {
+      query: 'cesko',
+    });
+
+    expect(result.map((item) => item.item.id)).toEqual(['map-prague']);
   });
 
   it('uses seeded random ordering when random sort is requested', () => {
@@ -213,7 +346,7 @@ describe('filterAndSortTaggedItems', () => {
       mapDownloadTotals: {},
       compareItems,
       accessors,
-      fuseOptions: { keys: ['searchText'], threshold: 0.4 },
+      fuseOptions: searchFuseOptions,
     });
 
     expect(result.map((item) => item.item.id)).toEqual(
@@ -265,7 +398,7 @@ describe('filterAndSortTaggedItems', () => {
         },
       },
       accessors,
-      fuseOptions: { keys: ['searchText'], threshold: 0.4 },
+      fuseOptions: searchFuseOptions,
     });
 
     expect(counts.mapCount).toBe(1);

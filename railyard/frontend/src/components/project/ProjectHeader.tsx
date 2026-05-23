@@ -444,9 +444,8 @@ export function ProjectHeader({
       ].filter((v): v is string => Boolean(v))
     : (item.tags ?? []);
 
-  const CountryFlag = mapItem?.country
-    ? getCountryFlagIcon(mapItem.country.trim().toUpperCase())
-    : null;
+  const mapCountry = mapItem?.country ?? '';
+  const CountryFlag = getCountryFlagIcon(mapCountry);
 
   return (
     <>
@@ -479,7 +478,7 @@ export function ProjectHeader({
                         {CountryFlag && (
                           <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
                         )}
-                        <span>{mapItem.country.trim().toUpperCase()}</span>
+                        <span>{mapCountry}</span>
                       </span>
                     </>
                   )}
