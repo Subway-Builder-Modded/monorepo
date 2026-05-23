@@ -340,68 +340,47 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 	targetSet := makeTargetSet(targets)
 
 	latestAssetUpdates(
-		latestSubscriptionArgs[types.MapManifest]{
+		latestSubscriptionArgs{
 			assetType:     types.AssetTypeMap,
 			subscriptions: profile.Subscriptions.Maps,
-			getManifests:  s.Registry.GetMaps,
-			idFn:          func(m types.MapManifest) string { return m.ID },
-			updateFn:      func(m types.MapManifest) types.UpdateConfig { return m.Update },
+			getVersionsFn: s.installableVersionsResolver(types.AssetTypeMap),
 		},
-		profileID, targetSet, s.Registry.GetVersions, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, updates, &pendingUpdates, &warnings,
 	)
 
 	latestAssetUpdates(
-		latestSubscriptionArgs[types.ModManifest]{
+		latestSubscriptionArgs{
 			assetType:     types.AssetTypeMod,
 			subscriptions: profile.Subscriptions.Mods,
-			getManifests:  s.Registry.GetMods,
-			idFn:          func(m types.ModManifest) string { return m.ID },
-			updateFn:      func(m types.ModManifest) types.UpdateConfig { return m.Update },
+			getVersionsFn: s.installableVersionsResolver(types.AssetTypeMod),
 		},
-		profileID, targetSet, s.Registry.GetVersions, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, updates, &pendingUpdates, &warnings,
 	)
 
 	return updates, pendingUpdates, warnings
 }
 
-type latestSubscriptionArgs[T any] struct {
+type latestSubscriptionArgs struct {
 	assetType     types.AssetType
 	subscriptions map[string]string
-	getManifests  func() []T
-	idFn          func(T) string
-	updateFn      func(T) types.UpdateConfig
+	getVersionsFn installableVersionsFunc
 }
 
-func latestAssetUpdates[T any](
-	args latestSubscriptionArgs[T],
+func latestAssetUpdates(
+	args latestSubscriptionArgs,
 	profileID string,
 	targetSet map[assetVersionKey]struct{},
-	getVersionsFn func(string, string) ([]types.VersionInfo, error),
 	updates map[string]types.SubscriptionUpdateItem,
 	pendingUpdates *[]types.PendingSubscriptionUpdate,
 	errors *[]types.UserProfilesError,
 ) {
-	manifestUpdateByID := make(map[string]types.UpdateConfig)
-	for _, manifest := range args.getManifests() {
-		manifestUpdateByID[args.idFn(manifest)] = args.updateFn(manifest)
-	}
-
 	for assetID, currentVersion := range args.subscriptions {
 		// Check if the asset is within the requested update targets (if any were given)
 		if !shouldUpdate(targetSet, args.assetType, assetID) {
 			continue
 		}
 
-		update, ok := manifestUpdateByID[assetID]
-		if !ok {
-			*errors = append(*errors, updateSubscriptionError(
-				profileID, assetID, args.assetType, types.ErrorLookupFailed,
-				fmt.Errorf("Asset %q missing from registry manifests for %s", assetID, args.assetType),
-			))
-			continue
-		}
-
-		latestVersion, resolveErr := resolveLatestVersionForManifest(update, getVersionsFn)
+		latestVersion, resolveErr := resolveLatestVersion(assetID, args.getVersionsFn)
 		if resolveErr != nil {
 			*errors = append(*errors, updateSubscriptionError(
 				profileID, assetID, args.assetType, types.ErrorLookupFailed,
@@ -452,11 +431,11 @@ func shouldUpdate(targetSet map[assetVersionKey]struct{}, assetType types.AssetT
 	return ok
 }
 
-func resolveLatestVersionForManifest(
-	update types.UpdateConfig,
-	getVersionsFn func(string, string) ([]types.VersionInfo, error),
+func resolveLatestVersion(
+	assetID string,
+	getVersionsFn installableVersionsFunc,
 ) (string, error) {
-	versions, err := getVersionsFn(update.Type, update.Source())
+	versions, err := getVersionsFn(assetID)
 	if err != nil {
 		return "", fmt.Errorf("Failed to resolve versions: %w", err)
 	}

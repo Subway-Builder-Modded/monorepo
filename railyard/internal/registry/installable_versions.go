@@ -2,9 +2,14 @@ package registry
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
+	"railyard/internal/constants"
 	"railyard/internal/types"
 )
+
+var mapSchemaCompatibilityCutoff = time.Date(2026, time.May, 18, 0, 0, 0, 0, time.UTC)
 
 // getIntegrityListing returns the integrity entry for the requested asset.
 func (r *Registry) getIntegrityListing(assetType types.AssetType, assetID string) (types.IntegrityListing, bool) {
@@ -73,6 +78,57 @@ func (r *Registry) filterVersionsByIntegrity(
 	return filtered, nil
 }
 
+// applyMapGameVersionPolicy enforces map-specific compatibility defaults and cutoffs.
+func applyMapGameVersionPolicy(versions []types.VersionInfo) {
+	for i := range versions {
+		if strings.TrimSpace(versions[i].GameVersion) == "" {
+			versions[i].GameVersion = constants.DefaultMapGameVersionConstraint
+			continue
+		}
+
+		if !isOnOrBeforeMapSchemaCompatibilityCutoff(versions[i].Date) {
+			continue
+		}
+
+		// Subway Builder 1.3.1 introduces a schema-breaking map change. Keep the
+		// 2026-05-18 (Monday) cutoff hardcoded so any map published on or before
+		// that date stays capped at 1.3.0 unless the policy is intentionally
+		// revised here.
+		versions[i].GameVersion = strings.TrimSpace(versions[i].GameVersion + " " + constants.DefaultMapGameVersionConstraint)
+	}
+}
+
+// isOnOrBeforeMapSchemaCompatibilityCutoff reports whether the version date falls on or before the schema cutoff.
+func isOnOrBeforeMapSchemaCompatibilityCutoff(rawDate string) bool {
+	publishedAt, ok := parseMapPolicyVersionDate(rawDate)
+	return ok && !publishedAt.After(mapSchemaCompatibilityCutoff)
+}
+
+// parseMapPolicyVersionDate parses supported version date formats into a UTC day value.
+func parseMapPolicyVersionDate(rawDate string) (time.Time, bool) {
+	trimmed := strings.TrimSpace(rawDate)
+	if trimmed == "" {
+		return time.Time{}, false
+	}
+
+	layout := time.DateOnly
+	if strings.Contains(trimmed, "T") {
+		layout = time.RFC3339Nano
+	}
+
+	parsed, err := time.Parse(layout, trimmed)
+	if err != nil {
+		return time.Time{}, false
+	}
+
+	parsed = parsed.UTC()
+	if layout == time.DateOnly {
+		return parsed, true
+	}
+
+	return time.Date(parsed.Year(), parsed.Month(), parsed.Day(), 0, 0, 0, 0, time.UTC), true
+}
+
 // GetInstallableVersions returns the integrity-approved versions for an asset.
 func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID string) ([]types.VersionInfo, error) {
 	updateType, source, err := r.resolveAssetUpdateSource(assetType, assetID)
@@ -85,7 +141,16 @@ func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID str
 		return nil, err
 	}
 
-	return r.filterVersionsByIntegrity(assetType, assetID, versions)
+	filtered, err := r.filterVersionsByIntegrity(assetType, assetID, versions)
+	if err != nil {
+		return nil, err
+	}
+
+	if assetType == types.AssetTypeMap {
+		applyMapGameVersionPolicy(filtered)
+	}
+
+	return filtered, nil
 }
 
 // GetInstallableVersionsResponse returns installable versions with response metadata.

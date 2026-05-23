@@ -136,8 +136,11 @@ export function ProjectPage() {
 
   const latestVersion = versions[0];
   const latestCompatibleVersion = useMemo(() => {
-    return selectLatestCompatibleVersion(versions, gameVersion);
-  }, [versions, gameVersion]);
+    return selectLatestCompatibleVersion(versions, gameVersion, {
+      requireKnownGameVersion: type === 'map',
+      requireExplicitCompatibility: type === 'map',
+    });
+  }, [versions, gameVersion, type]);
 
   const totalDownloads = id
     ? type === 'mod'

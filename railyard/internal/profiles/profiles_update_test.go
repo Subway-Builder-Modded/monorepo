@@ -452,6 +452,7 @@ func TestUpdateSubscriptionsToLatest(t *testing.T) {
 		targets      []types.SubscriptionUpdateTarget
 		state        types.UserProfilesState
 		setup        func(t *testing.T, cfg *config.Config, reg *registry.Registry) func()
+		configureSvc func(*UserProfiles)
 		expected     expectation
 		assertResult func(t *testing.T, svc *UserProfiles, reg *registry.Registry, result types.UpdateSubscriptionsResult)
 	}{
@@ -508,6 +509,60 @@ func TestUpdateSubscriptionsToLatest(t *testing.T) {
 				require.Len(t, reg.GetInstalledMods(), 1)
 				require.Equal(t, "mod-a", reg.GetInstalledMods()[0].ID)
 				require.Equal(t, "1.5.0", reg.GetInstalledMods()[0].Version)
+			},
+		},
+		{
+			name:      "Incompatible map updates are skipped during latest resolution",
+			profileID: types.DefaultProfileID,
+			apply:     false,
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "1.0.0"
+				profile.Subscriptions.Mods["mod-a"] = "1.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:   "map-a",
+						assetType: types.AssetTypeMap,
+						versions:  []string{"1.0.0", "1.1.0"},
+						mapCode:   "AAA",
+					},
+					{
+						assetID:   "mod-a",
+						assetType: types.AssetTypeMod,
+						versions:  []string{"1.0.0", "1.5.0"},
+					},
+				})
+			},
+			configureSvc: func(svc *UserProfiles) {
+				svc.Downloader.GetGameVersion = func() types.GameVersionResponse {
+					return types.GameVersionResponse{
+						GenericResponse: types.SuccessResponse("Game version loaded"),
+						Version:         "1.3.1",
+					}
+				}
+			},
+			expected: expectation{
+				expectedStatus:       types.ResponseWarn,
+				expectedRequestType:  types.LatestCheck,
+				expectedHasUpdates:   true,
+				expectedPendingCount: 1,
+				expectedPendingByKey: map[string][2]string{
+					"mod:mod-a": {"1.0.0", "1.5.0"},
+				},
+				expectedApplied:         false,
+				expectedPersisted:       false,
+				expectedOperationByID:   map[string]string{},
+				expectedMapSubscription: "1.0.0",
+				expectedModID:           "mod-a",
+				expectedModSubscription: "1.0.0",
+				expectedWarnContains:    "Resolved update availability with 1 warning(s)",
 			},
 		},
 		{
@@ -807,6 +862,9 @@ func TestUpdateSubscriptionsToLatest(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			testutil.NewHarness(t)
 			svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, tc.state)
+			if tc.configureSvc != nil {
+				tc.configureSvc(svc)
+			}
 			var cleanup func()
 			if tc.setup != nil {
 				cleanup = tc.setup(t, cfg, reg)

@@ -127,6 +127,12 @@ func newConfiguredDownloader(t *testing.T, withValidConfig bool) (*Downloader, *
 		Config:      cfg,
 		Logger:      logger.LoggerAtPath(""),
 		OnCancelled: func(string, types.AssetType, string) {},
+		GetGameVersion: func() types.GameVersionResponse {
+			return types.GameVersionResponse{
+				GenericResponse: types.SuccessResponse("Game version loaded"),
+				Version:         "1.3.0",
+			}
+		},
 	}
 	d.tempPath = t.TempDir()
 	d.mapTilePath = t.TempDir()
@@ -673,6 +679,12 @@ func TestCancelDuringExtractRemovesInstalledFiles(t *testing.T) {
 		Config:      cfg,
 		Logger:      logger.LoggerAtPath(""),
 		OnCancelled: func(string, types.AssetType, string) {}, // no-op for testing
+		GetGameVersion: func() types.GameVersionResponse {
+			return types.GameVersionResponse{
+				GenericResponse: types.SuccessResponse("Game version loaded"),
+				Version:         "1.3.0",
+			}
+		},
 	}
 	d.tempPath = t.TempDir()
 	d.mapTilePath = d.getMapTilePath()

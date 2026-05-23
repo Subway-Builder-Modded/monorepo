@@ -73,6 +73,7 @@ func TestSyncSubscriptions(t *testing.T) {
 		initialMaps []types.InstalledMapInfo
 
 		prepare             func(t *testing.T, cfg *config.Config, reg *registry.Registry) func()
+		configureSvc        func(*UserProfiles)
 		assertSubscriptions func(t *testing.T, svc *UserProfiles)
 
 		expectedStatus     types.Status
@@ -174,12 +175,44 @@ func TestSyncSubscriptions(t *testing.T) {
 			},
 			// Error occurs during attempt to install unavailable errors
 			expectedErrors: []string{
-				`Subscribe mod "mod-b" failed`,
-				`Subscribe map "map-b" failed`,
+				`Failed to resolve available versions for map "map-b"`,
+				`Failed to resolve available versions for mod "mod-b"`,
 			},
 			expectedState: expectedState{
 				mods: []types.InstalledModInfo{},
 				maps: []types.InstalledMapInfo{},
+			},
+		},
+		{
+			name: "Sync blocks incompatible map installs before downloader execution",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-b"] = "1.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			prepare: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{assetID: "map-b", versions: []string{"1.0.0"}, assetType: types.AssetTypeMap, mapCode: "BBB"},
+				})
+			},
+			configureSvc: func(svc *UserProfiles) {
+				svc.Downloader.GetGameVersion = func() types.GameVersionResponse {
+					return types.GameVersionResponse{
+						GenericResponse: types.SuccessResponse("Game version loaded"),
+						Version:         "1.3.1",
+					}
+				}
+			},
+			expectedErrors: []string{
+				`Subscribe map "map-b" failed: version "1.0.0" is not available`,
+			},
+			expectedState: expectedState{
+				mods: nil,
+				maps: nil,
 			},
 		},
 		{
@@ -287,7 +320,7 @@ func TestSyncSubscriptions(t *testing.T) {
 				},
 			},
 			expectedErrors: []string{
-				`Subscribe map "map-a" failed`,
+				`Failed to resolve available versions for map "map-a"`,
 			},
 			expectedState: expectedState{
 				mods: nil,
@@ -352,6 +385,9 @@ func TestSyncSubscriptions(t *testing.T) {
 			testutil.NewHarness(t)
 
 			svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, tc.state)
+			if tc.configureSvc != nil {
+				tc.configureSvc(svc)
+			}
 			configureConfig(t, cfg)
 			for _, mod := range tc.initialMods {
 				reg.AddInstalledMod(mod.ID, mod.Version, false, nil)
