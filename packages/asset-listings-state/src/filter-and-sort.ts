@@ -9,12 +9,19 @@ import {
   type SortState,
 } from '@subway-builder-modded/config';
 
+import { buildCountryCodeSearchTerms } from './country-search';
+
 type SearchableItem<TItem> = {
   entry: TItem;
   searchText: string;
 };
 
-const normalizedSearchTextCache = new WeakMap<object, string>();
+type CachedSearchText = {
+  raw: string;
+  normalized: string;
+};
+
+const searchTextCache = new WeakMap<object, CachedSearchText>();
 
 export interface TaggedListingItem<TItem = { id: string }> {
   type: AssetType;
@@ -49,7 +56,7 @@ export function buildAssetSearchText<TItem extends AssetSearchable>(
   } else {
     values.push(
       item.city_code ?? '',
-      item.country ?? '',
+      ...buildCountryCodeSearchTerms(item.country),
       item.location ?? '',
       item.source_quality ?? '',
       item.level_of_detail ?? '',
@@ -60,19 +67,22 @@ export function buildAssetSearchText<TItem extends AssetSearchable>(
   return values.filter(Boolean).join(' ');
 }
 
-// Cache lowercased search text per tagged item to avoid rebuilding it on each query.
-function getNormalizedSearchText<TTaggedItem extends TaggedListingItem>(
+function getCachedSearchText<TTaggedItem extends TaggedListingItem>(
   item: TTaggedItem,
   buildSearchText: (item: TTaggedItem) => string,
-): string {
-  const cached = normalizedSearchTextCache.get(item as object);
+): CachedSearchText {
+  const cached = searchTextCache.get(item as object);
   if (cached) {
     return cached;
   }
 
-  const normalized = buildSearchText(item).toLowerCase();
-  normalizedSearchTextCache.set(item as object, normalized);
-  return normalized;
+  const raw = buildSearchText(item);
+  const next = {
+    raw,
+    normalized: raw.toLowerCase(),
+  };
+  searchTextCache.set(item as object, next);
+  return next;
 }
 
 // Prefer a cheap token-inclusion match before falling back to fuzzy search.
@@ -91,8 +101,8 @@ function filterByQueryFastPath<TTaggedItem extends TaggedListingItem>(
   }
 
   return items.filter((item) => {
-    const searchText = getNormalizedSearchText(item, buildSearchText);
-    return normalizedTerms.every((term) => searchText.includes(term));
+    const searchText = getCachedSearchText(item, buildSearchText);
+    return normalizedTerms.every((term) => searchText.normalized.includes(term));
   });
 }
 
@@ -265,7 +275,7 @@ function filterTaggedItems<
     } else {
       const searchable: SearchableItem<TTaggedItem>[] = result.map((entry) => ({
         entry,
-        searchText: accessors.buildSearchText(entry),
+        searchText: getCachedSearchText(entry, accessors.buildSearchText).raw,
       }));
 
       const fuse = new Fuse(

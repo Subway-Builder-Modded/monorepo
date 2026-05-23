@@ -82,7 +82,7 @@ function buildItemCardPresentation(
     isMap,
     badges: mapBadges,
     mapCityCode: isMap ? (city_code ?? '').trim() : '',
-    mapCountry: isMap ? (country ?? '').trim().toUpperCase() : '',
+    mapCountry: isMap ? (country ?? '') : '',
     mapPopulation: isMap ? population : undefined,
     showDownloads: typeof totalDownloads === 'number',
   };

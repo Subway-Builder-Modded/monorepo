@@ -253,8 +253,8 @@ function LibraryListRow({
   const map = isMap ? (entry.item as types.MapManifest) : null;
 
   const mapCityCode = map?.city_code?.trim().toUpperCase() ?? '';
-  const mapCountry = map?.country?.trim().toUpperCase() ?? '';
-  const CountryFlag = isMap ? getCountryFlagIcon(mapCountry) : null;
+  const mapCountry = map?.country ?? '';
+  const CountryFlag = getCountryFlagIcon(mapCountry);
 
   const badges = isMap
     ? [

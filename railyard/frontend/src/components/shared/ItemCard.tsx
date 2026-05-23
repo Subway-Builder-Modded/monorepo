@@ -38,7 +38,7 @@ export function ItemCard({
 }: ItemCardWrapperProps) {
   const isMap = isMapManifest(item);
   const mapItem = isMap ? (item as types.MapManifest) : null;
-  const CountryFlag = mapItem ? getCountryFlagIcon(mapItem.country) : null;
+  const CountryFlag = getCountryFlagIcon(mapItem?.country);
 
   const formatDescription = useMemo(() => {
     if (descriptionMode === 'preview') {
@@ -61,9 +61,7 @@ export function ItemCard({
       city_code={mapItem?.city_code}
       country={mapItem?.country}
       countryFlag={
-        CountryFlag ? (
-          <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
-        ) : undefined
+        CountryFlag && <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
       }
       location={mapItem?.location}
       source_quality={mapItem?.source_quality}
