@@ -46,10 +46,8 @@ export function ProjectHeader({
       ].filter((v): v is string => Boolean(v))
     : (item.tags ?? []);
 
-  const mapCountryCode = mapItem?.country?.trim().toUpperCase();
-  const CountryFlag = mapCountryCode
-    ? getCountryFlagIcon(mapCountryCode)
-    : null;
+  const mapCountry = mapItem?.country ?? '';
+  const CountryFlag = getCountryFlagIcon(mapCountry);
   const authorHref = getAuthorAttributionHref(item);
 
   const handleOpenInRailyard = () => {
@@ -97,7 +95,7 @@ export function ProjectHeader({
                         createElement(CountryFlag, {
                           className: 'h-3.5 w-5 rounded-[1px]',
                         })}
-                      <span>{mapItem.country.trim().toUpperCase()}</span>
+                      <span>{mapCountry}</span>
                     </span>
                   </>
                 )}

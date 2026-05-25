@@ -13,6 +13,7 @@ import {
   getRawRegistryUrls,
   getRegistryCdnUrls,
 } from '@/lib/railyard/registry-source';
+import { normalizeRegistryManifest } from '@/lib/railyard/manifest-normalization';
 import type {
   AssetDownloadCountsByVersion,
   ModManifest,
@@ -44,7 +45,10 @@ async function fetchIndex(type: 'mods' | 'maps'): Promise<string[]> {
 }
 
 async function fetchManifest<T>(type: 'mods' | 'maps', id: string): Promise<T> {
-  return fetchRegistryJsonWithFallback<T>(`${type}/${id}/manifest.json`);
+  const manifest = await fetchRegistryJsonWithFallback<T>(
+    `${type}/${id}/manifest.json`,
+  );
+  return normalizeRegistryManifest(manifest as ModManifest | MapManifest) as T;
 }
 
 async function fetchIntegrity(

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { enrichAuthorIdentity } from '@/lib/authors';
+import { normalizeRegistryManifest } from '@/lib/railyard/manifest-normalization';
 import { getRegistryAuthorDirectory } from '@/lib/railyard/registry-author-directory';
 import { buildEmbedMetadata } from '@/config/site/metadata';
 import {
@@ -117,7 +118,10 @@ export async function getRegistryManifest(
   if (!manifest) return null;
 
   const authorDirectory = await getRegistryAuthorDirectory();
-  return enrichAuthorIdentity(manifest, authorDirectory);
+  return enrichAuthorIdentity(
+    normalizeRegistryManifest(manifest),
+    authorDirectory,
+  );
 }
 
 export async function buildRailyardProjectEmbedMetadata({

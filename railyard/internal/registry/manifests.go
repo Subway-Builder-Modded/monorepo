@@ -151,7 +151,7 @@ func (r *Registry) convertMapManifests(
 		return types.MapManifest{
 			AssetManifest:    manifest,
 			CityCode:         raw.CityCode,
-			Country:          raw.Country,
+			Country:          normalizeMapCountry(raw.Country),
 			Location:         raw.Location,
 			Population:       raw.Population,
 			DataSource:       raw.DataSource,

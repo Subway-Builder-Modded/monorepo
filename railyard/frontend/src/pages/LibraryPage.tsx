@@ -1,3 +1,4 @@
+import { normalizeMapCountry } from '@subway-builder-modded/asset-listings-state';
 import {
   AssetSidebarPanel,
   EmptyState,
@@ -103,7 +104,7 @@ function localMapManifestFromInstalled(
       config.creator,
     ),
     city_code: config.code,
-    country: config.country ?? '',
+    country: normalizeMapCountry(config.country),
     location: '',
     population: config.population,
     data_source: '',
