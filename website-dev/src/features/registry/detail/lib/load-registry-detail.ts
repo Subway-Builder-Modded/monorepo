@@ -116,6 +116,7 @@ export async function loadRegistryDetail(
       thumbnailSrc: item.thumbnailSrc,
       totalDownloads: item.totalDownloads,
       cityCode: item.cityCode,
+      countryCode: item.countryCode,
       countryName: item.countryName,
       population: item.population,
     },

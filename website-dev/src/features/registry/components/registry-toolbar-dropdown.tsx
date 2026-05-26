@@ -122,7 +122,7 @@ export function RegistryToolbarDropdown({
             : undefined
         }
         className={cn(
-          "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-64 overflow-hidden rounded-lg border border-border/30 bg-popover p-0 shadow-md",
+          "[--tb-accent-light:var(--suite-accent-light,var(--primary))] [--tb-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-64 overflow-hidden rounded-lg border border-border/30 bg-background p-0 shadow-md",
           contentClassName,
         )}
       >

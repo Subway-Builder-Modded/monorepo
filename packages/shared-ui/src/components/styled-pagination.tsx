@@ -115,7 +115,7 @@ export function StyledPagination({
                 : undefined
             }
             className={cn(
-              '[--ps-accent-light:var(--suite-accent-light,var(--primary))] [--ps-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-[var(--radix-popover-trigger-width)] min-w-0 overflow-hidden rounded-lg border border-border/30 bg-popover p-1 shadow-md',
+              '[--ps-accent-light:var(--suite-accent-light,var(--primary))] [--ps-accent-dark:var(--suite-accent-dark,var(--primary))] z-[80] w-[var(--radix-popover-trigger-width)] min-w-0 overflow-hidden rounded-lg border border-border/30 bg-background p-1 shadow-md',
             )}
           >
             <div>
@@ -158,7 +158,7 @@ export function StyledPagination({
             'inline-flex h-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors',
             page <= 1
               ? 'cursor-not-allowed opacity-40 text-muted-foreground'
-              : 'text-muted-foreground hover:bg-muted/10 hover:text-foreground',
+              : 'text-[color-mix(in_srgb,var(--ps-accent-light)_78%,var(--foreground))] hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_8%,var(--background))] hover:text-[var(--ps-accent-light)] dark:text-[color-mix(in_srgb,var(--ps-accent-dark)_78%,var(--foreground))] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_8%,var(--background))] dark:hover:text-[var(--ps-accent-dark)]',
           )}
           aria-label="Previous page"
         >
@@ -183,8 +183,8 @@ export function StyledPagination({
               className={cn(
                 'inline-flex h-8 min-w-8 items-center justify-center rounded-lg px-1.5 text-xs font-semibold transition-colors',
                 entry === page
-                  ? 'border border-border/35 bg-muted/15 text-foreground'
-                  : 'text-muted-foreground hover:bg-muted/10 hover:text-foreground',
+                  ? 'border border-border/35 bg-[color-mix(in_srgb,var(--ps-accent-light)_12%,var(--background))] text-[var(--ps-accent-light)] dark:bg-[color-mix(in_srgb,var(--ps-accent-dark)_12%,var(--background))] dark:text-[var(--ps-accent-dark)]'
+                  : 'text-[color-mix(in_srgb,var(--ps-accent-light)_78%,var(--foreground))] hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_8%,var(--background))] hover:text-[var(--ps-accent-light)] dark:text-[color-mix(in_srgb,var(--ps-accent-dark)_78%,var(--foreground))] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_8%,var(--background))] dark:hover:text-[var(--ps-accent-dark)]',
               )}
             >
               {entry}
@@ -200,7 +200,7 @@ export function StyledPagination({
             'inline-flex h-8 items-center justify-center rounded-lg px-2 text-xs font-semibold transition-colors',
             page >= totalPages
               ? 'cursor-not-allowed opacity-40 text-muted-foreground'
-              : 'text-muted-foreground hover:bg-muted/10 hover:text-foreground',
+              : 'text-[color-mix(in_srgb,var(--ps-accent-light)_78%,var(--foreground))] hover:bg-[color-mix(in_srgb,var(--ps-accent-light)_8%,var(--background))] hover:text-[var(--ps-accent-light)] dark:text-[color-mix(in_srgb,var(--ps-accent-dark)_78%,var(--foreground))] dark:hover:bg-[color-mix(in_srgb,var(--ps-accent-dark)_8%,var(--background))] dark:hover:text-[var(--ps-accent-dark)]',
           )}
           aria-label="Next page"
         >

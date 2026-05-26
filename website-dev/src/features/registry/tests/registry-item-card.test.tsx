@@ -7,7 +7,7 @@ import type { RegistryCardData } from "@/shared/registry-card/registry-item-type
 import type { RegistryTypeConfig } from "@/shared/registry-card/registry-item-types";
 
 vi.mock("@/lib/router", () => ({
-  Link: vi.fn(({ to, children, ...props }: { to: string; children: React.ReactNode }) => (
+  Link: vi.fn(({ to, children, preserveScroll: _preserveScroll, ...props }: { to: string; children: React.ReactNode; preserveScroll?: boolean }) => (
     <a href={to} {...props}>
       {children}
     </a>
@@ -119,7 +119,10 @@ describe("RegistryItemCard", () => {
   it("full variant renders title and tags", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     expect(screen.getByRole("heading", { name: "Gwangju (40km×40km)" })).toBeInTheDocument();
-    expect(screen.getByText("east-asia")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "east-asia" })).toHaveAttribute(
+      "href",
+      "/registry/maps?tags=east-asia",
+    );
   });
 
   it("list variant renders title", () => {

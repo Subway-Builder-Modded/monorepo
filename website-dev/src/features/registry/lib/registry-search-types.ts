@@ -35,6 +35,7 @@ export type RawRegistryManifest = {
   description?: string;
   gallery?: string[];
   tags?: string[];
+  location?: string;
   source_quality?: string;
   level_of_detail?: string;
   special_demand?: string[];

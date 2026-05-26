@@ -98,40 +98,43 @@ export function RegistryDetailPage({ routeSegment, id }: RegistryDetailPageProps
   return (
     <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
       <div
-        className="mx-auto max-w-[1200px] space-y-6 px-5 py-6 sm:px-7 md:px-9 lg:px-12"
+        className="w-full space-y-6 px-5 py-6 sm:px-7 md:px-9 lg:px-12"
         style={{ ["--registry-type-accent" as string]: accentColor }}
       >
         <RegistryDetailHeader
           detail={detail}
           accentColor={accentColor}
           onOpenInRailyard={() => setDialogOpen(true)}
+          onOpenImage={openImageAt}
         />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-          <main className="min-w-0 space-y-4">
-            <RegistryDetailTabs value={activeTab} onValueChange={setActiveTab} />
+        <div className="space-y-4">
+          <RegistryDetailTabs value={activeTab} onValueChange={setActiveTab} />
 
-            <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-              {activeTab === "description" ? (
-                <DescriptionTab description={detail.description} />
-              ) : null}
-              {activeTab === "gallery" ? (
-                <GalleryTab
-                  itemName={detail.name}
-                  images={detail.galleryImages}
-                  onOpen={openImageAt}
-                />
-              ) : null}
-              {activeTab === "versions" ? <VersionsTab versions={detail.versions} /> : null}
-            </section>
-          </main>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:items-start">
+            <main className="min-w-0">
+              <section className="rounded-xl border border-border/70 bg-card p-4 sm:p-5">
+                {activeTab === "description" ? (
+                  <DescriptionTab description={detail.description} />
+                ) : null}
+                {activeTab === "gallery" ? (
+                  <GalleryTab
+                    itemName={detail.name}
+                    images={detail.galleryImages}
+                    onOpen={openImageAt}
+                  />
+                ) : null}
+                {activeTab === "versions" ? <VersionsTab versions={detail.versions} /> : null}
+              </section>
+            </main>
 
-          <RegistryDetailSidebar
-            detail={detail}
-            accentColor={accentColor}
-            onOpenInRailyard={() => setDialogOpen(true)}
-            onOpenImage={openImageAt}
-          />
+            <RegistryDetailSidebar
+              detail={detail}
+              accentColor={accentColor}
+              onOpenInRailyard={() => setDialogOpen(true)}
+              onOpenImage={openImageAt}
+            />
+          </div>
         </div>
       </div>
 

@@ -1,5 +1,7 @@
 import { Badge, Button } from "@subway-builder-modded/shared-ui";
 import { ExternalLink, FolderOpen } from "lucide-react";
+import { Link } from "@/lib/router";
+import { getRegistryTagBrowseUrl } from "@/features/registry/lib/routing";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 
 type RegistryDetailSidebarProps = {
@@ -24,31 +26,14 @@ export function RegistryDetailSidebar({
   detail,
   accentColor,
   onOpenInRailyard,
-  onOpenImage,
+  onOpenImage: _onOpenImage,
 }: RegistryDetailSidebarProps) {
-  const coverImage = detail.galleryImages[0] ?? null;
-
   return (
     <aside className="space-y-4 lg:sticky lg:top-22 lg:self-start">
       <section
         className="overflow-hidden rounded-xl border border-border/70 bg-card"
         style={{ borderLeftColor: accentColor, borderLeftWidth: "3px" }}
       >
-        {coverImage ? (
-          <button
-            type="button"
-            onClick={() => onOpenImage(0)}
-            className="group block w-full overflow-hidden border-b border-border/70"
-            aria-label="Open image gallery"
-          >
-            <img
-              src={coverImage}
-              alt={`${detail.name} preview image`}
-              className="aspect-video w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-            />
-          </button>
-        ) : null}
-
         <div className="p-4">
           <dl>
             {detail.downloads !== null ? (
@@ -98,6 +83,30 @@ export function RegistryDetailSidebar({
               </a>
             ) : null}
           </div>
+
+          {detail.tags.length > 0 ? (
+            <section className="mt-4 space-y-2 border-t border-border/70 pt-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Tags
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {detail.tags.map((tag) => (
+                  <Link
+                    key={tag}
+                    to={getRegistryTagBrowseUrl(detail.routeSegment, tag)}
+                    preserveScroll={true}
+                    className="inline-flex items-center rounded-md border border-border/70 bg-muted/30 px-2 py-1 text-xs font-medium lowercase tracking-normal text-muted-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                    style={{
+                      borderColor: `color-mix(in srgb, var(--border) 78%, transparent)`,
+                      background: `color-mix(in srgb, var(--muted) 45%, transparent)`,
+                    }}
+                  >
+                    {tag}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {detail.sourceLinks.length > 0 ? (
             <div className="mt-4 space-y-2 border-t border-border/70 pt-3">

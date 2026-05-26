@@ -1,8 +1,10 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@subway-builder-modded/shared-ui";
 import { ArrowDownToLine, Users } from "lucide-react";
+import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
+import { getRegistryTagBrowseUrl } from "@/features/registry/lib/routing";
 import type {
   RegistryCardData,
   RegistryCardVariant,
@@ -318,6 +320,7 @@ type MapBadgesProps = {
 
 function MapBadges({ cityCode, countryCode, countryEmoji, population }: MapBadgesProps) {
   const normalizedCountryCode = countryCode?.toUpperCase() ?? null;
+  const CountryFlagIcon = getCountryFlagIcon(normalizedCountryCode);
   const hasLocation = Boolean(cityCode || normalizedCountryCode || countryEmoji);
   if (!hasLocation && population === null) return null;
 
@@ -329,7 +332,14 @@ function MapBadges({ cityCode, countryCode, countryEmoji, population }: MapBadge
           {cityCode && (countryEmoji || normalizedCountryCode) ? (
             <span style={{ color: "color-mix(in srgb, currentColor 35%, transparent)" }}>|</span>
           ) : null}
-          {countryEmoji ? <span aria-hidden={true}>{countryEmoji}</span> : null}
+          {CountryFlagIcon ? (
+            <CountryFlagIcon
+              aria-hidden={true}
+              className="h-3.5 w-5 rounded-[2px] border border-border/50 object-cover"
+            />
+          ) : countryEmoji ? (
+            <span aria-hidden={true}>{countryEmoji}</span>
+          ) : null}
           {normalizedCountryCode ? <span className="truncate">{normalizedCountryCode}</span> : null}
         </span>
       ) : null}
@@ -378,8 +388,9 @@ function ThumbnailImage({
           src={src}
           alt=""
           className={cn(
-            "size-full object-cover transition-opacity duration-300",
-            hoverScale && "transition-transform duration-500 group-hover:scale-[1.08]",
+            "size-full object-cover [backface-visibility:hidden] [transform:translateZ(0)]",
+            hoverScale &&
+              "transform-gpu will-change-transform transition-transform duration-500 ease-out group-hover:scale-[1.06]",
             loaded ? "opacity-100" : "opacity-0",
             className,
           )}
@@ -476,12 +487,15 @@ function RegistryCardGrid({
             >
               <div ref={gridTagStripRef} className="flex flex-nowrap gap-1 pr-8">
                 {visibleTags.map((tag) => (
-                  <span
+                  <Link
                     key={tag}
-                    className="shrink-0 rounded-md border border-border/25 bg-muted/25 px-1.5 py-px text-xs text-muted-foreground"
+                    to={getRegistryTagBrowseUrl(typeConfig.routeSegment, tag)}
+                    preserveScroll={true}
+                    onClick={(event) => event.stopPropagation()}
+                    className="pointer-events-auto shrink-0 rounded-md border border-border/25 bg-muted/25 px-1.5 py-px text-xs text-muted-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
                   >
                     {tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
               {showTagOverflowHint ? (
@@ -590,12 +604,15 @@ function RegistryCardFull({
           {visibleTags.length > 0 ? (
             <div className="overflow-hidden flex flex-wrap gap-1.5 content-start">
               {visibleTags.slice(0, 6).map((tag) => (
-                <span
+                <Link
                   key={tag}
-                  className="rounded-md border border-border/25 bg-muted/25 px-2 py-px text-xs text-muted-foreground"
+                  to={getRegistryTagBrowseUrl(typeConfig.routeSegment, tag)}
+                  preserveScroll={true}
+                  onClick={(event) => event.stopPropagation()}
+                  className="pointer-events-auto rounded-md border border-border/25 bg-muted/25 px-2 py-px text-xs text-muted-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
                 >
                   {tag}
-                </span>
+                </Link>
               ))}
             </div>
           ) : null}
@@ -676,12 +693,15 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
             >
               <div ref={listTagStripRef} className="flex flex-nowrap gap-1 pr-8">
                 {visibleTags.map((tag) => (
-                  <span
+                  <Link
                     key={tag}
-                    className="shrink-0 rounded-md border border-border/25 bg-muted/25 px-1.5 py-px text-xs text-muted-foreground"
+                    to={getRegistryTagBrowseUrl(typeConfig.routeSegment, tag)}
+                    preserveScroll={true}
+                    onClick={(event) => event.stopPropagation()}
+                    className="pointer-events-auto shrink-0 rounded-md border border-border/25 bg-muted/25 px-1.5 py-px text-xs text-muted-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
                   >
                     {tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
               {showTagOverflowHint ? (

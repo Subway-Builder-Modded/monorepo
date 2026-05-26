@@ -1,4 +1,4 @@
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/router", () => ({
@@ -121,5 +121,25 @@ describe("RegistryRoute", () => {
     });
 
     expect(screen.queryByRole("heading", { name: "Registry" })).not.toBeInTheDocument();
+  });
+
+  it("clears browse state when switching asset types", async () => {
+    const { navigate } = await import("@/lib/router");
+    const { useLocation } = await import("@/lib/router");
+    vi.mocked(useLocation).mockReturnValue({
+      pathname: "/registry/maps",
+      search: "?q=tokyo&tags=alpha,beta&sort=name&dir=asc&view=list",
+      hash: "",
+    });
+
+    await act(async () => {
+      render(<RegistryRoute />);
+    });
+
+    fireEvent.click(screen.getByRole("radio", { name: /Mods/ }));
+
+    expect(navigate).toHaveBeenCalledWith("/registry/mods", {
+      preserveScroll: true,
+    });
   });
 });

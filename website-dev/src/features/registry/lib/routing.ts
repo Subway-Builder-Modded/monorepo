@@ -1,4 +1,5 @@
 import { createSimpleRouteMatcher } from "@/lib/routing";
+import { DEFAULT_REGISTRY_TYPE_ID } from "@/features/registry/registry-type-config";
 
 const REGISTRY_ROUTE = "/registry";
 const registryRoute = createSimpleRouteMatcher(REGISTRY_ROUTE, "registry");
@@ -24,6 +25,16 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
 
   const normalized = normalizePathname(pathname);
   const segments = normalized.split("/").filter(Boolean);
+  if (segments.length === 2 && segments[0] === "registry") {
+    const routeSegment = segments[1] ?? "";
+    if (routeSegment === "maps" || routeSegment === "mods") {
+      return {
+        kind: "page",
+        pageId: "registry",
+      };
+    }
+  }
+
   if (segments.length === 3 && segments[0] === "registry") {
     return {
       kind: "detail",
@@ -35,8 +46,13 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   return { kind: "none" };
 }
 
-export function getRegistryPageUrl(): string {
-  return registryRoute.getUrl();
+export function getRegistryPageUrl(typeId: string = DEFAULT_REGISTRY_TYPE_ID): string {
+  return `${REGISTRY_ROUTE}/${encodeURIComponent(typeId)}`;
+}
+
+export function getRegistryTagBrowseUrl(typeId: string, tag: string): string {
+  const search = new URLSearchParams({ tags: tag }).toString();
+  return `${getRegistryPageUrl(typeId)}?${search}`;
 }
 
 export function getRegistryDetailUrl(routeSegment: string, id: string): string {

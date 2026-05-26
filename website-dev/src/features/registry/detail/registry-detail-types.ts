@@ -13,6 +13,7 @@ export type RegistryDetailVersion = {
 
 export type RegistryDetailMapFields = {
   cityCode: string | null;
+  countryCode: string | null;
   country: string | null;
   population: number | null;
 };
@@ -50,6 +51,7 @@ export type RegistryDetailLoadedData = {
     thumbnailSrc: string | null;
     totalDownloads: number;
     cityCode: string | null;
+    countryCode: string | null;
     countryName: string | null;
     population: number | null;
   };

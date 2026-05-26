@@ -1,21 +1,13 @@
-import {
-  Badge,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  Button,
-} from "@subway-builder-modded/shared-ui";
-import { ArrowUpRight, ExternalLink, FolderOpen } from "lucide-react";
-import { Link } from "@/lib/router";
+import { Button } from "@subway-builder-modded/shared-ui";
+import { ArrowDownToLine, FolderOpen, Map, Package, Users } from "lucide-react";
+import { getCountryFlagIcon } from "@/lib/country-flags";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 
 type RegistryDetailHeaderProps = {
   detail: RegistryDetailModel;
   accentColor: string;
   onOpenInRailyard: () => void;
+  onOpenImage: (index: number) => void;
 };
 
 const numberFormatter = new Intl.NumberFormat("en-US");
@@ -24,125 +16,93 @@ export function RegistryDetailHeader({
   detail,
   accentColor,
   onOpenInRailyard,
+  onOpenImage,
 }: RegistryDetailHeaderProps) {
-  return (
-    <header className="space-y-4">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/registry">Registry</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/registry">{detail.typeConfig.pluralLabel}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{detail.name}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+  const coverImage = detail.galleryImages[0] ?? null;
+  const countryCode = detail.mapFields?.countryCode ?? null;
+  const CountryFlagIcon = getCountryFlagIcon(countryCode);
+  const TypeIcon = detail.typeConfig.id === "maps" ? Map : Package;
 
-      <div className="flex flex-col gap-4 rounded-xl border border-border/70 bg-card p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 space-y-3">
+  return (
+    <header className="space-y-6 pt-3 sm:pt-4">
+      <div className="bg-transparent py-2 sm:py-3">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-stretch">
+          {coverImage ? (
+            <button
+              type="button"
+              onClick={() => onOpenImage(0)}
+              className="group relative aspect-square w-full shrink-0 overflow-hidden rounded-lg border border-border/70 lg:h-full lg:aspect-square"
+              aria-label="Open image gallery"
+            >
+              <img
+                src={coverImage}
+                alt={`${detail.name} preview image`}
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+              />
+            </button>
+          ) : null}
+
+          <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                variant="secondary"
-                className="border px-2.5 py-0.5"
+              <span
+                className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1 text-sm font-semibold"
                 style={{
+                  borderColor: `color-mix(in srgb, ${accentColor} 34%, transparent)`,
+                  background: `color-mix(in srgb, ${accentColor} 16%, transparent)`,
                   color: accentColor,
-                  borderColor: `color-mix(in srgb, ${accentColor} 26%, transparent)`,
-                  background: `color-mix(in srgb, ${accentColor} 10%, transparent)`,
                 }}
               >
+                <TypeIcon className="size-4" aria-hidden={true} />
                 {detail.typeConfig.label}
-              </Badge>
-              {detail.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="outline"
-                  className="border px-2 py-0.5 text-xs"
-                  style={{
-                    borderColor: `color-mix(in srgb, ${accentColor} 20%, var(--border))`,
-                  }}
-                >
-                  {tag}
-                </Badge>
-              ))}
+              </span>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                {detail.name}
-              </h1>
-              {detail.excerpt ? (
-                <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  {detail.excerpt}
-                </p>
-              ) : null}
-            </div>
+            <h1 className="text-balance text-4xl font-semibold leading-[0.95] tracking-tight text-foreground sm:text-5xl">
+              {detail.name}
+            </h1>
 
-            <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-              {detail.downloads !== null ? (
-                <div className="flex items-center gap-1.5">
-                  <dt>Downloads</dt>
-                  <dd className="font-medium tabular-nums text-foreground">
-                    {numberFormatter.format(detail.downloads)}
-                  </dd>
-                </div>
-              ) : null}
-              {detail.latestVersion ? (
-                <div className="flex items-center gap-1.5">
-                  <dt>Latest Version</dt>
-                  <dd className="font-medium text-foreground">{detail.latestVersion}</dd>
-                </div>
-              ) : null}
-              <div className="flex items-center gap-1.5">
-                <dt>Author</dt>
-                <dd>
-                  {detail.authorHref ? (
-                    <a
-                      href={detail.authorHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 font-medium text-foreground underline decoration-transparent underline-offset-4 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-current"
-                    >
-                      {detail.authorLabel}
-                      <ExternalLink className="size-3.5" aria-hidden={true} />
-                    </a>
-                  ) : (
-                    <span className="font-medium text-foreground">{detail.authorLabel}</span>
-                  )}
-                </dd>
-              </div>
-            </dl>
-
-            {detail.sourceLinks.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                {detail.sourceLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-[var(--registry-type-accent)]"
-                  >
-                    {link.label}
-                    <ArrowUpRight className="size-3.5" aria-hidden={true} />
-                  </a>
-                ))}
-              </div>
+            {detail.mapFields?.country ? (
+              <p className="flex items-center gap-2 text-base font-semibold tracking-wide text-muted-foreground">
+                {detail.mapFields.cityCode ? <span className="uppercase">{detail.mapFields.cityCode}</span> : null}
+                {detail.mapFields.cityCode ? (
+                  <span
+                    aria-hidden={true}
+                    className="inline-block h-4 w-px bg-[color-mix(in_srgb,var(--muted-foreground)_55%,transparent)]"
+                  />
+                ) : null}
+                {CountryFlagIcon ? (
+                  <CountryFlagIcon
+                    aria-hidden={true}
+                    className="h-3.5 w-5 rounded-[2px] border border-border/60 object-cover"
+                  />
+                ) : null}
+                <span>{detail.mapFields.country}</span>
+              </p>
             ) : null}
+
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-base font-medium text-muted-foreground">
+              <div className="flex items-center gap-3 text-base font-medium text-muted-foreground">
+                {detail.downloads !== null ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <ArrowDownToLine className="size-4.5" aria-hidden={true} />
+                    <span className="tabular-nums">{numberFormatter.format(detail.downloads)}</span>
+                  </span>
+                ) : null}
+
+                {detail.mapFields?.population !== null && detail.mapFields?.population !== undefined ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Users className="size-4.5" aria-hidden={true} />
+                    <span className="tabular-nums">{numberFormatter.format(detail.mapFields.population)}</span>
+                  </span>
+                ) : null}
+              </div>
+
+            </div>
           </div>
 
           <Button
             type="button"
-            className="w-full shrink-0 gap-2 lg:w-auto"
+            className="w-full shrink-0 gap-2 text-base lg:w-auto lg:self-start"
             style={{
               background: accentColor,
               color: "var(--background)",

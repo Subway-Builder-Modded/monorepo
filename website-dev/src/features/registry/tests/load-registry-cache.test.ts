@@ -76,7 +76,8 @@ describe("loadRegistryItemsForType", () => {
         name: "  Gwangju 4  ",
         author: "  kimth9  ",
         description: "  Test map  ",
-        tags: ["east-asia", "korea"],
+        tags: ["europe", "korea"],
+        location: "east-asia",
         gallery: ["thumb.webp"],
         city_code: "KWJ4",
         country: "kr",
@@ -99,7 +100,7 @@ describe("loadRegistryItemsForType", () => {
       name: "Gwangju 4",
       author: "Kim Alias",
       description: "Test map",
-      tags: ["east-asia", "korea"],
+      tags: ["korea", "east-asia"],
       thumbnailSrc: "/registry/maps/gwangju-4/thumb.webp",
       totalDownloads: 15,
       cityCode: "KWJ4",
@@ -111,6 +112,7 @@ describe("loadRegistryItemsForType", () => {
     });
 
     expect(items[0]?.lastActivityAt).toBe(Date.parse("2025-01-12T00:00:00.000Z"));
+    expect(items[0]?.tags).not.toContain("europe");
   });
 
   it("falls back to integrity ids when index list is empty and handles defaults", async () => {

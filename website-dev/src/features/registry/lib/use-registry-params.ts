@@ -10,6 +10,7 @@ import {
   isSortSupportedForType,
 } from "@/features/registry/lib/types";
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
+import { getRegistryPageUrl } from "@/features/registry/lib/routing";
 
 export type RegistryBrowseParams = {
   typeId: string;
@@ -20,70 +21,130 @@ export type RegistryBrowseParams = {
   viewMode: RegistryViewMode;
 };
 
-function parseParams(search: string): RegistryBrowseParams {
-  const p = new URLSearchParams(search);
+type PersistedRegistryBrowseState = Omit<RegistryBrowseParams, "typeId">;
 
-  const typeId = (() => {
-    const raw = p.get("type") ?? "";
-    return REGISTRY_TYPES.some((t) => t.id === raw) ? raw : DEFAULT_REGISTRY_TYPE_ID;
-  })();
-
-  const sortId = (() => {
-    const raw = p.get("sort") ?? "";
-    const opt = REGISTRY_SORT_OPTIONS.find((s) => s.id === raw);
-    if (!opt) return DEFAULT_SORT_ID;
-    if (!isSortSupportedForType(opt, typeId)) return FALLBACK_SORT_ID;
-    return opt.id;
-  })();
-
-  const sortDir = ((): "asc" | "desc" => {
-    const raw = p.get("dir");
-    return raw === "asc" || raw === "desc" ? raw : DEFAULT_SORT_DIR;
-  })();
-
-  const viewMode = ((): RegistryViewMode => {
-    const raw = p.get("view");
-    if (raw === "compact" || raw === "full" || raw === "list") return raw;
-    if (raw === "grid") return "compact";
-    return DEFAULT_VIEW_MODE;
-  })();
-
-  const query = p.get("q") ?? "";
-  const tags = (p.get("tags") ?? "")
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean);
-
-  return { typeId, query, tags, sortId, sortDir, viewMode };
+function normalizePathname(pathname: string): string {
+  if (!pathname.startsWith("/")) {
+    return `/${pathname}`;
+  }
+  return pathname;
 }
 
-function serializeParams(params: RegistryBrowseParams): string {
+function parseTypeId(pathname: string, search: string): string {
+  const normalizedPathname = normalizePathname(pathname);
+  const segments = normalizedPathname.split("/").filter(Boolean);
+  if (segments.length >= 2 && segments[0] === "registry") {
+    const routeSegment = segments[1] ?? "";
+    const directMatch = REGISTRY_TYPES.find((type) => type.routeSegment === routeSegment);
+    if (directMatch) {
+      return directMatch.id;
+    }
+  }
+
+  const p = new URLSearchParams(search);
+  const raw = p.get("type") ?? "";
+  return REGISTRY_TYPES.some((t) => t.id === raw) ? raw : DEFAULT_REGISTRY_TYPE_ID;
+}
+
+function parseTags(raw: string | null): string[] {
+  if (!raw) {
+    return [];
+  }
+
+  return raw
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
+function normalizeViewMode(raw: unknown): RegistryViewMode {
+  if (raw === "compact" || raw === "full" || raw === "list") return raw;
+  if (raw === "grid") return "compact";
+  return DEFAULT_VIEW_MODE;
+}
+
+function normalizeSortId(typeId: string, sortId: RegistrySortId): RegistrySortId {
+  const opt = REGISTRY_SORT_OPTIONS.find((s) => s.id === sortId);
+  if (!opt) return DEFAULT_SORT_ID;
+  if (!isSortSupportedForType(opt, typeId)) return FALLBACK_SORT_ID;
+  return opt.id;
+}
+
+function serializeBrowseState(state: PersistedRegistryBrowseState): string {
   const p = new URLSearchParams();
-  if (params.typeId !== DEFAULT_REGISTRY_TYPE_ID) p.set("type", params.typeId);
-  if (params.query) p.set("q", params.query);
-  if (params.tags.length > 0) p.set("tags", params.tags.join(","));
-  if (params.sortId !== DEFAULT_SORT_ID) p.set("sort", params.sortId);
-  if (params.sortDir !== DEFAULT_SORT_DIR) p.set("dir", params.sortDir);
-  if (params.viewMode !== DEFAULT_VIEW_MODE) p.set("view", params.viewMode);
-  const str = p.toString();
-  return str ? `?${str}` : "";
+  if (state.query.trim()) {
+    p.set("q", state.query.trim());
+  }
+  if (state.tags.length > 0) {
+    p.set("tags", state.tags.map((tag) => tag.trim()).filter(Boolean).join(","));
+  }
+  if (state.sortId !== DEFAULT_SORT_ID) {
+    p.set("sort", state.sortId);
+  }
+  if (state.sortDir !== DEFAULT_SORT_DIR) {
+    p.set("dir", state.sortDir);
+  }
+  if (state.viewMode !== DEFAULT_VIEW_MODE) {
+    p.set("view", state.viewMode);
+  }
+
+  const search = p.toString();
+  return search ? `?${search}` : "";
+}
+
+function buildRegistryPageUrl(typeId: string, state: PersistedRegistryBrowseState): string {
+  return `${getRegistryPageUrl(typeId)}${serializeBrowseState(state)}`;
 }
 
 export function useRegistryParams() {
-  const { search } = useLocation();
-  const params = useMemo(() => parseParams(search), [search]);
+  const { pathname, search } = useLocation();
+  const typeId = useMemo(() => parseTypeId(pathname, search), [pathname, search]);
+  const persistedState = useMemo<PersistedRegistryBrowseState>(() => {
+    const p = new URLSearchParams(search);
+    const rawSortId = p.get("sort") ?? "";
+    const rawSortDir = p.get("dir") ?? "";
+    const sortId =
+      REGISTRY_SORT_OPTIONS.some((opt) => opt.id === rawSortId)
+        ? (rawSortId as RegistrySortId)
+        : DEFAULT_SORT_ID;
+    const sortDir = rawSortDir === "asc" || rawSortDir === "desc" ? rawSortDir : DEFAULT_SORT_DIR;
+    const query = p.get("q") ?? "";
+    const tags = parseTags(p.get("tags"));
+    const viewMode = normalizeViewMode(p.get("view"));
+
+    return {
+      query,
+      tags,
+      sortId,
+      sortDir,
+      viewMode,
+    };
+  }, [search]);
+
+  const params = useMemo<RegistryBrowseParams>(() => {
+    const normalizedSortId = normalizeSortId(typeId, persistedState.sortId);
+    return {
+      typeId,
+      query: persistedState.query,
+      tags: persistedState.tags,
+      sortId: normalizedSortId,
+      sortDir: persistedState.sortDir,
+      viewMode: persistedState.viewMode,
+    };
+  }, [typeId, persistedState]);
 
   const setParams = useCallback(
     (updates: Partial<RegistryBrowseParams>) => {
-      const next = { ...params, ...updates };
-      // If type changes, validate sort is still applicable
-      if (updates.typeId && updates.typeId !== params.typeId) {
-        const sortOpt = REGISTRY_SORT_OPTIONS.find((s) => s.id === next.sortId);
-        if (sortOpt && !isSortSupportedForType(sortOpt, updates.typeId)) {
-          next.sortId = FALLBACK_SORT_ID;
-        }
-      }
-      navigate(`/registry${serializeParams(next)}`, { preserveScroll: true });
+      const nextTypeId = updates.typeId ?? params.typeId;
+      const nextPersisted: PersistedRegistryBrowseState = {
+        query: updates.query ?? params.query,
+        tags: updates.tags ?? params.tags,
+        sortId: normalizeSortId(nextTypeId, (updates.sortId ?? params.sortId) as RegistrySortId),
+        sortDir: updates.sortDir ?? params.sortDir,
+        viewMode: updates.viewMode ?? params.viewMode,
+      };
+
+      navigate(buildRegistryPageUrl(nextTypeId, nextPersisted), { preserveScroll: true });
     },
     [params],
   );

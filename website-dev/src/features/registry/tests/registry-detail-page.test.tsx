@@ -46,6 +46,7 @@ const MAP_LOADED = {
     thumbnailSrc: null,
     totalDownloads: 1284,
     cityCode: "GZ",
+    countryCode: "CN",
     countryName: "China",
     population: 14_000_000,
   },
@@ -107,11 +108,16 @@ describe("RegistryDetailPage", () => {
     await waitFor(() => {
       expect(screen.getAllByRole("heading", { name: "Gwangju" }).length).toBeGreaterThan(0);
     });
-    expect(screen.getByText("City Code")).toBeInTheDocument();
-    expect(screen.getByText("GZ")).toBeInTheDocument();
-    expect(screen.getByText("east-asia")).toBeInTheDocument();
+    expect(screen.getByText("Map")).toBeInTheDocument();
+    expect(screen.getAllByText("China").length).toBeGreaterThan(0);
+    expect(screen.queryByText("City Code")).toBeInTheDocument();
+    expect(screen.getByText("Tags")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "east-asia" })).toHaveAttribute(
+      "href",
+      "/registry/maps?tags=east-asia",
+    );
     expect(screen.getAllByRole("link", { name: /source/i }).length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: /slurry/i })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /slurry/i })).not.toBeInTheDocument();
   });
 
   it("renders valid mod detail title and omits map-only fields", async () => {
@@ -122,7 +128,7 @@ describe("RegistryDetailPage", () => {
     await waitFor(() => {
       expect(screen.getAllByRole("heading", { name: "Example Mod" }).length).toBeGreaterThan(0);
     });
-    expect(screen.queryByText("City Code")).not.toBeInTheDocument();
+    expect(screen.queryByText("China")).not.toBeInTheDocument();
     expect(screen.queryByText("Population")).not.toBeInTheDocument();
   });
 

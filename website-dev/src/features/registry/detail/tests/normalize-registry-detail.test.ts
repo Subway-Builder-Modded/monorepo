@@ -23,6 +23,7 @@ const BASE: RegistryDetailLoadedData = {
     thumbnailSrc: null,
     totalDownloads: 1284,
     cityCode: "GZ",
+    countryCode: "CN",
     countryName: "China",
     population: 14_000_000,
   },
@@ -58,6 +59,7 @@ describe("normalizeRegistryDetail", () => {
     expect(model.versions.map((v) => v.version)).toEqual(["1.0.0", "0.9.0"]);
     expect(model.mapFields).toEqual({
       cityCode: "GZ",
+      countryCode: "CN",
       country: "China",
       population: 14_000_000,
     });
@@ -71,6 +73,7 @@ describe("normalizeRegistryDetail", () => {
         type: "mods",
         routeSegment: "mods",
         cityCode: null,
+        countryCode: null,
         countryName: null,
         population: null,
       },

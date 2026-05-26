@@ -8,6 +8,11 @@ import { useRegistryParams } from "./lib/use-registry-params";
 import { loadRegistryItemsForType } from "./lib/load-registry-cache";
 import { REGISTRY_TYPES } from "./registry-type-config";
 import type { RegistrySearchItem } from "./lib/registry-search-types";
+import {
+  DEFAULT_SORT_DIR,
+  DEFAULT_SORT_ID,
+  DEFAULT_VIEW_MODE,
+} from "./lib/types";
 import type { RegistrySortId, RegistryViewMode } from "./lib/types";
 
 export function RegistryPage() {
@@ -125,7 +130,18 @@ export function RegistryPage() {
   // Param setters
   const handleQueryChange = useCallback((q: string) => setQueryInput(q), []);
 
-  const handleTypeChange = useCallback((id: string) => setParams({ typeId: id }), [setParams]);
+  const handleTypeChange = useCallback(
+    (id: string) =>
+      setParams({
+        typeId: id,
+        query: "",
+        tags: [],
+        sortId: DEFAULT_SORT_ID,
+        sortDir: DEFAULT_SORT_DIR,
+        viewMode: DEFAULT_VIEW_MODE,
+      }),
+    [setParams],
+  );
 
   const handleTagToggle = useCallback(
     (tag: string) => {

@@ -44,4 +44,4 @@ export const FALLBACK_SORT_ID: RegistrySortId = "lastUpdated";
 /** The default sort and direction. */
 export const DEFAULT_SORT_ID: RegistrySortId = "lastUpdated";
 export const DEFAULT_SORT_DIR: "asc" | "desc" = "desc";
-export const DEFAULT_VIEW_MODE: RegistryViewMode = "compact";
+export const DEFAULT_VIEW_MODE: RegistryViewMode = "full";

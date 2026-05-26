@@ -174,9 +174,10 @@ export function useLocation(): LocationState {
 type LinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   to: string;
   children: ReactNode;
+  preserveScroll?: boolean;
 };
 
-export function Link({ to, onClick, target, rel, children, ...props }: LinkProps) {
+export function Link({ to, onClick, target, rel, children, preserveScroll, ...props }: LinkProps) {
   const href =
     to.startsWith("http://") ||
     to.startsWith("https://") ||
@@ -203,9 +204,9 @@ export function Link({ to, onClick, target, rel, children, ...props }: LinkProps
       }
 
       event.preventDefault();
-      navigate(to);
+      navigate(to, { preserveScroll });
     },
-    [onClick, target, to],
+    [onClick, preserveScroll, target, to],
   );
 
   return (

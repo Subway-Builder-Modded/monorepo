@@ -137,6 +137,7 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
       data.item.type === "maps"
         ? {
             cityCode: data.item.cityCode,
+            countryCode: data.item.countryCode,
             country: data.item.countryName,
             population: data.item.population,
           }

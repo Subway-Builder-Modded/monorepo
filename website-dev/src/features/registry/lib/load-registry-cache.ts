@@ -4,6 +4,9 @@ import type {
   RawRegistryIntegrity,
   RegistrySearchItem,
 } from "./registry-search-types";
+import { LOCATION_TAGS } from "@subway-builder-modded/config";
+
+const MAP_LOCATION_TAG_SET = new Set<string>(LOCATION_TAGS);
 
 function safeJson<T>(raw: string, fallback: T): T {
   try {
@@ -79,9 +82,19 @@ function resolveThumbnailSrc(
 }
 
 function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): string[] {
-  const tagSet = new Set<string>(Array.isArray(manifest.tags) ? manifest.tags : []);
+  const normalizedManifestTags = Array.isArray(manifest.tags)
+    ? manifest.tags.filter(
+        (tag) => typeId !== "maps" || !MAP_LOCATION_TAG_SET.has(tag.trim().toLowerCase()),
+      )
+    : [];
+  const tagSet = new Set<string>(normalizedManifestTags);
 
   if (typeId === "maps") {
+    const locationTag = manifest.location?.trim().toLowerCase();
+    if (locationTag) {
+      tagSet.add(locationTag);
+    }
+
     if (manifest.source_quality?.trim()) {
       tagSet.add(manifest.source_quality.trim());
     }
@@ -101,22 +114,59 @@ function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): s
 }
 
 type CountryInfo = { name: string; emoji: string | null };
+type CountryFlagEmojiApi = {
+  get: (countryCode: string) => unknown;
+};
+type CountryFlagEmojiEntry = {
+  name: string;
+  emoji?: string | null;
+};
+
+function getCountryFlagEmojiApi(importedModule: unknown): CountryFlagEmojiApi | null {
+  const imported = importedModule as {
+    default?: unknown;
+    "module.exports"?: unknown;
+  };
+  const candidate = imported.default ?? imported["module.exports"] ?? importedModule;
+  if (!candidate || typeof candidate !== "object") {
+    return null;
+  }
+
+  const get = (candidate as { get?: unknown }).get;
+  if (typeof get !== "function") {
+    return null;
+  }
+
+  return candidate as CountryFlagEmojiApi;
+}
+
+function isCountryFlagEmojiEntry(value: unknown): value is CountryFlagEmojiEntry {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return typeof record.name === "string";
+}
 
 /** Resolve country name and emoji from a country code. */
 async function resolveCountry(code: string): Promise<CountryInfo> {
   try {
-    const { default: countryFlagEmoji } = await import("country-flag-emoji");
+    const imported = await import("country-flag-emoji");
+    const countryFlagEmoji = getCountryFlagEmojiApi(imported);
+    if (!countryFlagEmoji) {
+      return { name: code.toUpperCase(), emoji: null };
+    }
+
     const entry = countryFlagEmoji.get(code.toUpperCase());
-    if (entry && !Array.isArray(entry) && typeof entry === "object") {
-      return { name: entry.name as string, emoji: (entry.emoji as string | null) ?? null };
+    if (isCountryFlagEmojiEntry(entry)) {
+      return { name: entry.name, emoji: entry.emoji ?? null };
     }
   } catch {
-    // fall through
   }
   return { name: code.toUpperCase(), emoji: null };
 }
 
-/** Cached country resolution to avoid re-importing per item. */
 const countryCache = new Map<string, Promise<CountryInfo>>();
 
 function getCountryInfo(code: string): Promise<CountryInfo> {
@@ -171,7 +221,6 @@ export async function loadRegistryItemsForType(
   const idsFromIndex: string[] = (indexData[typeRouteSegment] as string[] | undefined) ?? [];
   const idsFromIntegrity = Object.keys(integrity.listings ?? {});
 
-  // Union of both sources; index is primary
   const allIds = idsFromIndex.length > 0 ? idsFromIndex : idsFromIntegrity;
   const eligibleIds = allIds.filter((id) => hasCompleteVersion(integrity.listings?.[id]));
 
@@ -187,7 +236,6 @@ export async function loadRegistryItemsForType(
     }),
   );
 
-  // Resolve countries in parallel (cached)
   const validEntries = manifestEntries.filter(
     (e): e is { id: string; manifest: RawRegistryManifest } => e !== null,
   );
