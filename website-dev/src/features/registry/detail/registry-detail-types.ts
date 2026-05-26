@@ -11,6 +11,20 @@ export type RegistryDetailVersion = {
   downloads: number | null;
 };
 
+export type RegistryDetailIntegritySource = {
+  update_type?: string;
+  repo?: string;
+  tag?: string;
+  asset_name?: string;
+  download_url?: string;
+};
+
+export type RegistryDetailIntegrityVersion = {
+  is_complete?: boolean;
+  checked_at?: string;
+  source?: RegistryDetailIntegritySource;
+};
+
 export type RegistryDetailMapFields = {
   cityCode: string | null;
   countryCode: string | null;
@@ -28,12 +42,16 @@ export type RegistryDetailModel = {
   excerpt: string | null;
   authorLabel: string;
   authorHref: string | null;
+  sourceCodeLink: RegistryDetailSourceLink | null;
   tags: string[];
   downloads: number | null;
-  sourceLinks: RegistryDetailSourceLink[];
   galleryImages: string[];
   versions: RegistryDetailVersion[];
   latestVersion: string | null;
+  latestDownloadUrl: string | null;
+  publishedDate: string | null;
+  updatedDate: string | null;
+  integrityVersionCount: number;
   mapFields: RegistryDetailMapFields | null;
 };
 
@@ -67,7 +85,10 @@ export type RegistryDetailLoadedData = {
       url?: string;
     };
   };
-  listingVersions: Record<string, { is_complete?: boolean; checked_at?: string }>;
+  listingLatestSemverVersion: string | null;
+  listingLatestSemverComplete: boolean;
+  listingCompleteVersions: string[];
+  listingVersions: Record<string, RegistryDetailIntegrityVersion>;
   versionDownloads: Record<string, number>;
   authorAttributionHref: string | null;
 };

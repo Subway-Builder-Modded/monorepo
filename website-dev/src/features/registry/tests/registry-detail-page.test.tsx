@@ -59,9 +59,24 @@ const MAP_LOADED = {
     update: { type: "github", repo: "example/gwangju" },
   },
   listingVersions: {
-    "1.0.0": { is_complete: true, checked_at: "2026-04-26T00:00:00.000Z" },
-    "0.9.0": { is_complete: true, checked_at: "2026-04-20T00:00:00.000Z" },
+    "1.0.0": {
+      is_complete: true,
+      checked_at: "2026-04-26T00:00:00.000Z",
+      source: {
+        download_url: "https://downloads.example/gwangju-1.0.0.zip",
+      },
+    },
+    "0.9.0": {
+      is_complete: true,
+      checked_at: "2026-04-20T00:00:00.000Z",
+      source: {
+        download_url: "https://downloads.example/gwangju-0.9.0.zip",
+      },
+    },
   },
+  listingLatestSemverVersion: "1.0.0",
+  listingLatestSemverComplete: true,
+  listingCompleteVersions: ["1.0.0", "0.9.0"],
   versionDownloads: {
     "1.0.0": 102,
     "0.9.0": 25,
@@ -108,16 +123,24 @@ describe("RegistryDetailPage", () => {
     await waitFor(() => {
       expect(screen.getAllByRole("heading", { name: "Gwangju" }).length).toBeGreaterThan(0);
     });
-    expect(screen.getByText("Map")).toBeInTheDocument();
-    expect(screen.getAllByText("China").length).toBeGreaterThan(0);
-    expect(screen.queryByText("City Code")).toBeInTheDocument();
+    expect(screen.getAllByText("Map").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Source Code").length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "slurry" })).toHaveAttribute(
+      "href",
+      "https://github.com/rslurry",
+    );
+    expect(screen.getByText("Date Published")).toBeInTheDocument();
+    expect(screen.getByText("Date Updated")).toBeInTheDocument();
+    expect(screen.getByText("Version Count")).toBeInTheDocument();
     expect(screen.getByText("Tags")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "east-asia" })).toHaveAttribute(
       "href",
       "/registry/maps?tags=east-asia",
     );
-    expect(screen.getAllByRole("link", { name: /source/i }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole("link", { name: /slurry/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Source Code/i })).toHaveAttribute(
+      "href",
+      "https://github.com/example/gwangju",
+    );
   });
 
   it("renders valid mod detail title and omits map-only fields", async () => {
@@ -142,7 +165,7 @@ describe("RegistryDetailPage", () => {
     });
   });
 
-  it("renders all four tabs and analytics tab has no placeholder content", async () => {
+  it("renders all five tabs and analytics tab has no placeholder content", async () => {
     mockLoadRegistryDetail.mockResolvedValue(MAP_LOADED);
 
     render(<RegistryDetailPage routeSegment="maps" id="gwangju-4" />);
@@ -155,12 +178,13 @@ describe("RegistryDetailPage", () => {
     expect(screen.getByRole("tab", { name: /Analytics/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Gallery/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Versions/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /^Map$/i })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("tab", { name: /Analytics/i }));
     expect(screen.queryByText(/coming soon|placeholder|chart/i)).not.toBeInTheDocument();
   });
 
-  it("opens Open in Railyard confirmation dialog", async () => {
+  it("opens Download dialog with railyard and direct download actions", async () => {
     mockLoadRegistryDetail.mockResolvedValue(MAP_LOADED);
 
     render(<RegistryDetailPage routeSegment="maps" id="gwangju-4" />);
@@ -169,9 +193,15 @@ describe("RegistryDetailPage", () => {
       expect(screen.getAllByRole("heading", { name: "Gwangju" }).length).toBeGreaterThan(0);
     });
 
-    fireEvent.click(screen.getAllByRole("button", { name: /Open in Railyard/i })[0]!);
+    fireEvent.click(screen.getAllByRole("button", { name: /^Download$/i })[0]!);
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText("Open Gwangju in the Railyard app.")).toBeInTheDocument();
+    expect(screen.getAllByText("Download Gwangju").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /Open in Railyard/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Download Railyard/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /^Download$/i })).toHaveAttribute(
+      "href",
+      "https://downloads.example/gwangju-1.0.0.zip",
+    );
   });
 
   it("renders gallery and opens lightbox", async () => {

@@ -134,6 +134,7 @@ func (a *App) bringToFront() {
 
 	wailsruntime.WindowUnminimise(a.ctx)
 	wailsruntime.WindowShow(a.ctx)
+	wailsruntime.WindowMaximise(a.ctx)
 	wailsruntime.WindowSetAlwaysOnTop(a.ctx, true)
 	wailsruntime.WindowSetAlwaysOnTop(a.ctx, false)
 }

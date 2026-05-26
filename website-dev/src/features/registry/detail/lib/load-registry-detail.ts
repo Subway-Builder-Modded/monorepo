@@ -11,7 +11,6 @@ type RawManifest = {
   update?: {
     type?: string;
     repo?: string;
-    url?: string;
   };
 };
 
@@ -19,7 +18,23 @@ type RawIntegrity = {
   listings?: Record<
     string,
     {
-      versions?: Record<string, { is_complete?: boolean; checked_at?: string }>;
+      latest_semver_version?: string;
+      latest_semver_complete?: boolean;
+      complete_versions?: string[];
+      versions?: Record<
+        string,
+        {
+          is_complete?: boolean;
+          checked_at?: string;
+          source?: {
+            update_type?: string;
+            repo?: string;
+            tag?: string;
+            asset_name?: string;
+            download_url?: string;
+          };
+        }
+      >;
     }
   >;
 };
@@ -101,6 +116,7 @@ export async function loadRegistryDetail(
   const integrity = safeJson<RawIntegrity>(integrityRaw ?? "{}", {});
   const downloads = safeJson<RawDownloads>(downloadsRaw ?? "{}", {});
   const authorsIndex = safeJson<RawAuthorsIndex>(authorsRaw ?? "{}", {});
+  const listing = integrity.listings?.[id];
 
   return {
     typeConfig,
@@ -121,7 +137,10 @@ export async function loadRegistryDetail(
       population: item.population,
     },
     manifest,
-    listingVersions: integrity.listings?.[id]?.versions ?? {},
+    listingLatestSemverVersion: listing?.latest_semver_version ?? null,
+    listingLatestSemverComplete: listing?.latest_semver_complete === true,
+    listingCompleteVersions: listing?.complete_versions ?? [],
+    listingVersions: listing?.versions ?? {},
     versionDownloads: downloads[id] ?? {},
     authorAttributionHref: resolveAuthorHref(item.authorId, authorsIndex),
   };

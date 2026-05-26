@@ -1,5 +1,5 @@
 import { Button } from "@subway-builder-modded/shared-ui";
-import { ArrowDownToLine, FolderOpen, Map, Package, Users } from "lucide-react";
+import { ArrowDownToLine, Download, Map, Package, Users } from "lucide-react";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 
@@ -102,15 +102,14 @@ export function RegistryDetailHeader({
 
           <Button
             type="button"
-            className="w-full shrink-0 gap-2 text-base lg:w-auto lg:self-start"
+            className="w-full shrink-0 gap-2 text-base text-[var(--suite-text-inverted-light)] lg:w-auto lg:self-start"
             style={{
-              background: accentColor,
-              color: "var(--background)",
+              background: "var(--registry-type-accent)",
             }}
             onClick={onOpenInRailyard}
           >
-            <FolderOpen className="size-4" aria-hidden={true} />
-            Open in Railyard
+            <Download className="size-4" aria-hidden={true} />
+            Download
           </Button>
         </div>
       </div>

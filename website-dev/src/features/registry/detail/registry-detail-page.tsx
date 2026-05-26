@@ -25,6 +25,7 @@ type RegistryDetailPageProps = {
 
 export function RegistryDetailPage({ routeSegment, id }: RegistryDetailPageProps) {
   const suite = getSuiteById("registry");
+  const railyardSuite = getSuiteById("railyard");
   const [detail, setDetail] = useState<RegistryDetailModel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<RegistryDetailTabId>("description");
@@ -73,6 +74,9 @@ export function RegistryDetailPage({ routeSegment, id }: RegistryDetailPageProps
     return `light-dark(${detail.typeConfig.accentLight}, ${detail.typeConfig.accentDark})`;
   }, [detail]);
 
+  const railyardAccentLight = railyardSuite.accent.light;
+  const railyardAccentDark = railyardSuite.accent.dark;
+
   if (!isLoading && !detail) {
     return <NotFoundPage />;
   }
@@ -99,7 +103,10 @@ export function RegistryDetailPage({ routeSegment, id }: RegistryDetailPageProps
     <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
       <div
         className="w-full space-y-6 px-5 py-6 sm:px-7 md:px-9 lg:px-12"
-        style={{ ["--registry-type-accent" as string]: accentColor }}
+        style={{
+          ["--registry-type-accent" as string]: accentColor,
+          ["--registry-type-accent-strong" as string]: detail.typeConfig.accentLight,
+        }}
       >
         <RegistryDetailHeader
           detail={detail}
@@ -108,7 +115,7 @@ export function RegistryDetailPage({ routeSegment, id }: RegistryDetailPageProps
           onOpenImage={openImageAt}
         />
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <RegistryDetailTabs value={activeTab} onValueChange={setActiveTab} />
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:items-start">
@@ -141,8 +148,12 @@ export function RegistryDetailPage({ routeSegment, id }: RegistryDetailPageProps
       <OpenInRailyardDialog
         open={dialogOpen}
         itemName={detail.name}
+        itemThumbnailSrc={detail.galleryImages[0] ?? null}
+        latestDownloadUrl={detail.latestDownloadUrl}
+        railyardAccentLight={railyardAccentLight}
+        railyardAccentDark={railyardAccentDark}
         onOpenChange={setDialogOpen}
-        onConfirm={openRailyard}
+        onOpenRailyard={openRailyard}
       />
 
       <GalleryLightbox
