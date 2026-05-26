@@ -132,8 +132,10 @@ export function ProjectHeader({
   const installedVersion = getInstalledVersion(item.id);
   const installing = isInstalling(item.id);
   const uninstalling = isUninstalling(item.id);
+  const requiresKnownGameVersion = type === 'map';
+  const missingGameVersion = requiresKnownGameVersion && !gameVersion.trim();
   const noCompatibleVersion = Boolean(
-    gameVersion && latestVersion && !latestCompatibleVersion,
+    latestVersion && !latestCompatibleVersion,
   );
   const effectiveVersion = noCompatibleVersion
     ? undefined
@@ -312,6 +314,9 @@ export function ProjectHeader({
         break;
       case uninstalling:
         installUpdateTooltip = 'Uninstalling...';
+        break;
+      case missingGameVersion:
+        installUpdateTooltip = 'Current game version could not be detected';
         break;
       case !!noCompatibleVersion:
         installUpdateTooltip = latestVersion?.game_version

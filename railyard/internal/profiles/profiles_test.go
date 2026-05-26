@@ -52,6 +52,12 @@ func userProfilesServiceWithDependencies(t *testing.T) (*UserProfiles, *config.C
 	l := testUserProfilesLogger(t)
 	reg := registry.NewRegistry(l, cfg)
 	dl := downloader.NewDownloader(cfg, reg, l)
+	dl.GetGameVersion = func() types.GameVersionResponse {
+		return types.GameVersionResponse{
+			GenericResponse: types.SuccessResponse("Game version loaded"),
+			Version:         "1.3.0",
+		}
+	}
 	return NewUserProfiles(reg, dl, l, cfg), cfg, reg
 }
 
@@ -85,6 +91,7 @@ type registryFixture struct {
 	assetID            string
 	assetType          types.AssetType
 	versions           []string
+	gameVersion        string
 	mapCode            string
 	failVersions       bool
 	missingModManifest bool
@@ -129,6 +136,7 @@ func mockRegistry(t *testing.T, reg *registry.Registry, fixtures []registryFixtu
 			AssetID:            f.assetID,
 			AssetType:          f.assetType,
 			Versions:           f.versions,
+			GameVersion:        f.gameVersion,
 			MapCode:            f.mapCode,
 			FailVersions:       f.failVersions,
 			MissingModManifest: f.missingModManifest,
@@ -206,8 +214,8 @@ func orDefault[T comparable](value, fallback T) T {
 }
 
 // TODO: Let's make this a function within the profiles.go so that we don't have to invoke this both in the main file and the test file...
-func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, string) types.AssetInstallResponse, uninstall func(string) types.AssetUninstallResponse) assetSyncArgs[types.InstalledMapInfo, types.MapManifest] {
-	return assetSyncArgs[types.InstalledMapInfo, types.MapManifest]{
+func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, string) types.AssetInstallResponse, uninstall func(string) types.AssetUninstallResponse) assetSyncArgs[types.InstalledMapInfo] {
+	return assetSyncArgs[types.InstalledMapInfo]{
 		assetType:     types.AssetTypeMap,
 		subscriptions: fixture.subscriptions,
 		installedArgs: installedVersionArgs[types.InstalledMapInfo]{
@@ -221,21 +229,9 @@ func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 			idFn:      func(item types.InstalledMapInfo) string { return item.ID },
 			versionFn: func(item types.InstalledMapInfo) string { return item.Version },
 		},
-		availableArgs: availableVersionArgs[types.MapManifest]{
-			getManifestsFn: func() []types.MapManifest {
-				manifests := make([]types.MapManifest, 0, len(fixture.availableVersions))
-				for assetID := range fixture.availableVersions {
-					manifest := registrytest.MockMapManifestWithIDAndCode(assetID, "AAA")
-					manifest.Update = types.UpdateConfig{Type: "custom", URL: assetID}
-					manifests = append(manifests, manifest)
-				}
-				return manifests
-			},
-			idFn:           func(item types.MapManifest) string { return item.ID },
-			updateTypeFn:   func(item types.MapManifest) string { return item.Update.Type },
-			updateSourceFn: func(item types.MapManifest) string { return item.Update.URL },
-			getVersionsFn: func(_ string, repoOrURL string) ([]types.VersionInfo, error) {
-				versions := fixture.availableVersions[repoOrURL]
+		availableArgs: availableVersionArgs{
+			getVersionsFn: func(assetID string) ([]types.VersionInfo, error) {
+				versions := fixture.availableVersions[assetID]
 				list := make([]types.VersionInfo, 0, len(versions))
 				for version := range versions {
 					list = append(list, types.VersionInfo{Version: version})
@@ -249,8 +245,8 @@ func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 }
 
 // TODO: Let's make this a function within the profiles.go so that we don't have to invoke this both in the main file and the test file...
-func mockModAssetSyncArgs(fixture assetSyncTestFixture, install func(string, string) types.AssetInstallResponse, uninstall func(string) types.AssetUninstallResponse) assetSyncArgs[types.InstalledModInfo, types.ModManifest] {
-	return assetSyncArgs[types.InstalledModInfo, types.ModManifest]{
+func mockModAssetSyncArgs(fixture assetSyncTestFixture, install func(string, string) types.AssetInstallResponse, uninstall func(string) types.AssetUninstallResponse) assetSyncArgs[types.InstalledModInfo] {
+	return assetSyncArgs[types.InstalledModInfo]{
 		assetType:     types.AssetTypeMod,
 		subscriptions: fixture.subscriptions,
 		installedArgs: installedVersionArgs[types.InstalledModInfo]{
@@ -264,21 +260,9 @@ func mockModAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 			idFn:      func(item types.InstalledModInfo) string { return item.ID },
 			versionFn: func(item types.InstalledModInfo) string { return item.Version },
 		},
-		availableArgs: availableVersionArgs[types.ModManifest]{
-			getManifestsFn: func() []types.ModManifest {
-				manifests := make([]types.ModManifest, 0, len(fixture.availableVersions))
-				for assetID := range fixture.availableVersions {
-					manifest := registrytest.MockModManifestWithID(assetID)
-					manifest.Update = types.UpdateConfig{Type: "custom", URL: assetID}
-					manifests = append(manifests, manifest)
-				}
-				return manifests
-			},
-			idFn:           func(item types.ModManifest) string { return item.ID },
-			updateTypeFn:   func(item types.ModManifest) string { return item.Update.Type },
-			updateSourceFn: func(item types.ModManifest) string { return item.Update.URL },
-			getVersionsFn: func(_ string, repoOrURL string) ([]types.VersionInfo, error) {
-				versions := fixture.availableVersions[repoOrURL]
+		availableArgs: availableVersionArgs{
+			getVersionsFn: func(assetID string) ([]types.VersionInfo, error) {
+				versions := fixture.availableVersions[assetID]
 				list := make([]types.VersionInfo, 0, len(versions))
 				for version := range versions {
 					list = append(list, types.VersionInfo{Version: version})

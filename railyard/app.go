@@ -31,6 +31,7 @@ import (
 	"railyard/internal/updater"
 	"railyard/internal/utils"
 
+	semver "github.com/Masterminds/semver/v3"
 	"github.com/beescuit/asar"
 	"github.com/protomaps/go-pmtiles/pmtiles"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -343,19 +344,29 @@ func (a *App) cleanupTmpStaging(stage string) {
 }
 
 // GetGameVersion attempts to detect the installed Subway Builder version.
-// Returns an empty version with a warning status if detection fails.
+// Returns a semver-compliant version on success, or a warning response if detection fails.
 func (a *App) GetGameVersion() types.GameVersionResponse {
 	a.Logger.Info("Attempting to resolve game version")
 	if a.cachedGameVersion != (types.GameVersionResponse{}) {
 		a.Logger.Info("Returning cached game version", "version", a.cachedGameVersion.Version)
 		return a.cachedGameVersion
 	}
-	cfg := a.Config.GetConfig()
-	if !cfg.Validation.ExecutablePathValid {
-		return types.GameVersionResponse{
+
+	gameVersionNotDetected := func(message string, args ...any) types.GameVersionResponse {
+		if message != "" {
+			a.Logger.Warn(message, args...)
+		}
+		resp := types.GameVersionResponse{
 			GenericResponse: types.WarnResponse("Game version not detected"),
 			Version:         "",
 		}
+		a.cachedGameVersion = resp
+		return resp
+	}
+
+	cfg := a.Config.GetConfig()
+	if !cfg.Validation.ExecutablePathValid {
+		return gameVersionNotDetected("")
 	}
 	exePath := cfg.Config.ExecutablePath
 
@@ -368,41 +379,17 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 
 	archiveFile, err := os.Open(asarPath)
 	if err != nil {
-		a.Logger.Warn("Failed to open app.asar for game version detection", "error", err, "asarPath", asarPath)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return gameVersionNotDetected("Failed to open app.asar for game version detection", "error", err, "asarPath", asarPath)
 	}
 
 	archive, err := asar.Decode(archiveFile)
 	if err != nil {
-		a.Logger.Warn("Failed to decode app.asar for game version detection", "error", err, "asarPath", asarPath)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return gameVersionNotDetected("Failed to decode app.asar for game version detection", "error", err, "asarPath", asarPath)
 	}
 
 	packageFile := archive.Find("package.json")
 	if packageFile == nil {
-		a.Logger.Warn("Failed to find package.json in app.asar", "asarPath", asarPath)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return gameVersionNotDetected("Failed to find package.json in app.asar", "asarPath", asarPath)
 	}
 
 	packageReader := packageFile.Open()
@@ -411,21 +398,18 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	}
 
 	if err := json.NewDecoder(packageReader).Decode(&pkg); err != nil {
-		a.Logger.Warn("Failed to decode package.json", "asarPath", asarPath, "error", err)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return gameVersionNotDetected("Failed to decode package.json", "asarPath", asarPath, "error", err)
 	}
 
-	a.Logger.Info("Game version detected", "version", pkg.Version)
+	version := strings.TrimSpace(pkg.Version)
+	if _, err := semver.NewVersion(strings.TrimPrefix(version, "v")); err != nil {
+		return gameVersionNotDetected("Detected game version is not valid semver", "version", pkg.Version, "error", err)
+	}
+
+	a.Logger.Info("Game version detected", "version", version)
 	resp := types.GameVersionResponse{
 		GenericResponse: types.SuccessResponse("Game version detected"),
-		Version:         pkg.Version,
+		Version:         version,
 	}
 	a.cachedGameVersion = resp
 	return resp

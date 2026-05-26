@@ -19,6 +19,7 @@ type UpdateFixture struct {
 	AssetID      string
 	AssetType    types.AssetType
 	Versions     []string
+	GameVersion  string
 	MapCode      string
 	FailVersions bool
 	ArchiveBytes []byte
@@ -146,8 +147,9 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 			for _, version := range current.Versions {
 				downloadPath := "/downloads/" + current.AssetID + "-" + version + ".zip"
 				payload.Versions = append(payload.Versions, types.CustomUpdateVersion{
-					Version:  version,
-					Download: "http://" + r.Host + downloadPath,
+					Version:     version,
+					GameVersion: current.GameVersion,
+					Download:    "http://" + r.Host + downloadPath,
 				})
 			}
 

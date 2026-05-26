@@ -38,7 +38,6 @@ import semver from 'semver';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
-import { isCompatible } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -50,6 +49,7 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import { isVersionInstallable } from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -235,8 +235,18 @@ export function ProjectVersions({
           const installing = isInstalling(itemId);
           const installingVersion = getInstallingVersion(itemId);
           const uninstalling = isUninstalling(itemId);
-          const compat = isCompatible(gameVersion, v.game_version);
-          const incompatible = compat === false;
+          const requireStrictCompatibility = type === 'map';
+          const installable = isVersionInstallable(
+            gameVersion,
+            v.game_version,
+            {
+              requireKnownGameVersion: requireStrictCompatibility,
+              requireExplicitCompatibility: requireStrictCompatibility,
+            },
+          );
+          const missingGameVersion =
+            requireStrictCompatibility && !gameVersion.trim();
+          const installBlocked = !installable;
 
           return (
             <ProjectVersionRow
@@ -250,7 +260,7 @@ export function ProjectVersions({
               date={v.date}
               downloads={v.downloads}
               changelogHref={`/project/${typeListingPath}/${itemId}/changelog/${encodeURIComponent(v.version)}`}
-              className={incompatible ? 'opacity-50' : undefined}
+              className={installBlocked ? 'opacity-50' : undefined}
               renderLink={(href, className, children) => (
                 <Link href={href} className={className}>
                   {children}
@@ -272,7 +282,7 @@ export function ProjectVersions({
                     <CheckCircle className="h-2.5 w-2.5" />
                     Installed
                   </Badge>
-                ) : incompatible ? (
+                ) : installBlocked ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -288,8 +298,9 @@ export function ProjectVersions({
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        Not compatible with your game version (you have{' '}
-                        {gameVersion}, need {v.game_version})
+                        {missingGameVersion
+                          ? 'Current game version could not be detected.'
+                          : `Not compatible with your game version (you have ${gameVersion}, need ${v.game_version})`}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
