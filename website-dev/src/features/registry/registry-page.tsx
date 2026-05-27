@@ -8,11 +8,7 @@ import { useRegistryParams } from "./lib/use-registry-params";
 import { loadRegistryItemsForType } from "./lib/load-registry-cache";
 import { REGISTRY_TYPES } from "./registry-type-config";
 import type { RegistrySearchItem } from "./lib/registry-search-types";
-import {
-  DEFAULT_SORT_DIR,
-  DEFAULT_SORT_ID,
-  DEFAULT_VIEW_MODE,
-} from "./lib/types";
+import { DEFAULT_SORT_DIR, DEFAULT_SORT_ID, DEFAULT_VIEW_MODE } from "./lib/types";
 import type { RegistrySortId, RegistryViewMode } from "./lib/types";
 
 export function RegistryPage() {
@@ -139,6 +135,7 @@ export function RegistryPage() {
         sortId: DEFAULT_SORT_ID,
         sortDir: DEFAULT_SORT_DIR,
         viewMode: DEFAULT_VIEW_MODE,
+        page: 1,
       }),
     [setParams],
   );
@@ -148,25 +145,32 @@ export function RegistryPage() {
       const next = params.tags.includes(tag)
         ? params.tags.filter((t) => t !== tag)
         : [...params.tags, tag];
-      setParams({ tags: next });
+      setParams({ tags: next, page: 1 });
     },
     [params.tags, setParams],
   );
 
-  const handleTagsClear = useCallback(() => setParams({ tags: [] }), [setParams]);
+  const handleTagsClear = useCallback(() => setParams({ tags: [], page: 1 }), [setParams]);
 
   const handleSortChange = useCallback(
-    (id: RegistrySortId) => setParams({ sortId: id }),
+    (id: RegistrySortId) => setParams({ sortId: id, page: 1 }),
     [setParams],
   );
 
   const handleDirToggle = useCallback(
-    () => setParams({ sortDir: params.sortDir === "asc" ? "desc" : "asc" }),
+    () => setParams({ sortDir: params.sortDir === "asc" ? "desc" : "asc", page: 1 }),
     [params.sortDir, setParams],
   );
 
   const handleViewChange = useCallback(
-    (mode: RegistryViewMode) => setParams({ viewMode: mode }),
+    (mode: RegistryViewMode) => setParams({ viewMode: mode, page: 1 }),
+    [setParams],
+  );
+
+  const handlePageChange = useCallback((page: number) => setParams({ page }), [setParams]);
+
+  const handlePageSizeChange = useCallback(
+    (pageSize: number) => setParams({ pageSize, page: 1 }),
     [setParams],
   );
 
@@ -199,6 +203,8 @@ export function RegistryPage() {
         sortId={params.sortId}
         sortDir={params.sortDir}
         viewMode={params.viewMode}
+        page={params.page}
+        pageSize={params.pageSize}
         onTypeChange={handleTypeChange}
         onQueryChange={handleQueryChange}
         onTagToggle={handleTagToggle}
@@ -206,6 +212,8 @@ export function RegistryPage() {
         onSortChange={handleSortChange}
         onDirToggle={handleDirToggle}
         onViewChange={handleViewChange}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
       />
 
       <RegistrySpotlightSearch

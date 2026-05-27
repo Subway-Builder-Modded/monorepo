@@ -16,11 +16,11 @@ import {
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
 import { REGISTRY_EMPTY_STATE_MESSAGE } from "@/features/registry/registry-content";
+import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
 
 import type { RegistryCardVariant } from "@/shared/registry-card/registry-item-types";
-import { Map, Package } from "lucide-react";
 
 type RegistryBrowseSectionProps = {
   allItemsByType: Record<string, RegistrySearchItem[]>;
@@ -32,6 +32,8 @@ type RegistryBrowseSectionProps = {
   sortId: RegistrySortId;
   sortDir: "asc" | "desc";
   viewMode: RegistryViewMode;
+  page: number;
+  pageSize: number;
   onTypeChange: (id: string) => void;
   onQueryChange: (q: string) => void;
   onTagToggle: (tag: string) => void;
@@ -39,10 +41,11 @@ type RegistryBrowseSectionProps = {
   onSortChange: (id: RegistrySortId) => void;
   onDirToggle: () => void;
   onViewChange: (mode: RegistryViewMode) => void;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
 };
 
 const PAGE_SIZE_OPTIONS = [12, 24, 48] as const;
-const DEFAULT_PAGE_SIZE = 12;
 
 export function RegistryBrowseSection({
   allItemsByType,
@@ -53,6 +56,8 @@ export function RegistryBrowseSection({
   sortId,
   sortDir,
   viewMode,
+  page,
+  pageSize,
   onTypeChange,
   onQueryChange,
   onTagToggle,
@@ -60,14 +65,20 @@ export function RegistryBrowseSection({
   onSortChange,
   onDirToggle,
   onViewChange,
+  onPageChange,
+  onPageSizeChange,
 }: RegistryBrowseSectionProps) {
   const [isMac, setIsMac] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialRegistrySidebarCollapsed);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const preloadedThumbnailSrcs = useRef<Set<string>>(new Set());
   const deferredQuery = useDeferredValue(query);
+  const selectedTagsKey = useMemo(() => selectedTags.join("\u001f"), [selectedTags]);
+  const onPageChangeRef = useRef(onPageChange);
+
+  useEffect(() => {
+    onPageChangeRef.current = onPageChange;
+  }, [onPageChange]);
 
   useEffect(() => {
     setIsMac(navigator.platform.toLowerCase().includes("mac"));
@@ -97,13 +108,13 @@ export function RegistryBrowseSection({
       hasMountedRef.current = true;
       return;
     }
-    setPage(1);
+    onPageChangeRef.current(1);
     if (!hasUserInteractedRef.current) {
       return;
     }
     const el = document.getElementById("registry-browse-content-start");
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [typeId, query, selectedTags, sortId, sortDir, pageSize]);
+  }, [typeId, query, selectedTagsKey, sortId, sortDir]);
 
   const typeItems = allItemsByType[typeId] ?? [];
 
@@ -144,8 +155,14 @@ export function RegistryBrowseSection({
   );
 
   useEffect(() => {
-    setPage((current) => Math.min(current, totalPages));
-  }, [totalPages]);
+    if (isLoading) {
+      return;
+    }
+
+    if (page > totalPages) {
+      onPageChangeRef.current(totalPages);
+    }
+  }, [isLoading, page, totalPages]);
 
   const visibleItems = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -169,6 +186,7 @@ export function RegistryBrowseSection({
   }, [onTagsClear, onQueryChange]);
 
   const hasActiveFilters = query.length > 0 || selectedTags.length > 0;
+  const TypeIcon = getRegistryTypeIcon(typeId);
 
   return (
     <section
@@ -207,23 +225,13 @@ export function RegistryBrowseSection({
               )`,
               }}
             >
-              {typeId === "maps" ? (
-                <Map
-                  className="size-8 shrink-0"
-                  aria-hidden
-                  style={{
-                    color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
-                  }}
-                />
-              ) : (
-                <Package
-                  className="size-8 shrink-0"
-                  aria-hidden
-                  style={{
-                    color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
-                  }}
-                />
-              )}
+              <TypeIcon
+                className="size-8 shrink-0"
+                aria-hidden
+                style={{
+                  color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
+                }}
+              />
               <span>{typeConfig.label} Database</span>
             </div>
 
@@ -349,11 +357,10 @@ export function RegistryBrowseSection({
                 itemLabel="Cards"
                 onPageChange={(nextPage) => {
                   const clamped = Math.min(Math.max(nextPage, 1), totalPages);
-                  setPage(clamped);
+                  onPageChange(clamped);
                 }}
                 onPageSizeChange={(nextPageSize) => {
-                  setPageSize(nextPageSize);
-                  setPage(1);
+                  onPageSizeChange(nextPageSize);
                 }}
               />
             </>

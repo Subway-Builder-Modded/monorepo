@@ -36,6 +36,7 @@ export function SiteFooter() {
 
   return (
     <AppFooter
+      className="relative z-30 bg-background"
       brand={{
         href: "/",
         logoSrc: "/logo.svg",

@@ -31,6 +31,13 @@ const BASE: RegistryDetailLoadedData = {
     description: "# Gwangju\n\nGreat map",
     gallery: ["gallery/shot.png"],
     source: "https://github.com/example/repo",
+    source_quality: "high",
+    level_of_detail: "medium",
+    grid_statistics: {
+      detail: {
+        playableAreaKm2: 5617,
+      },
+    },
     update: {
       type: "github",
       repo: "example/repo",
@@ -61,6 +68,7 @@ const BASE: RegistryDetailLoadedData = {
     "0.9.0": 4,
   },
   authorAttributionHref: "https://github.com/rslurry",
+  projectId: null,
 };
 
 describe("normalizeRegistryDetail", () => {
@@ -70,7 +78,7 @@ describe("normalizeRegistryDetail", () => {
     expect(model.id).toBe("gwangju-4");
     expect(model.galleryImages).toEqual(["/registry/maps/gwangju-4/gallery/shot.png"]);
     expect(model.sourceCodeLink).toEqual({
-      label: "Source Code",
+      label: "Source",
       href: "https://github.com/example/repo",
     });
     expect(model.latestVersion).toBe("1.0.0");
@@ -84,6 +92,19 @@ describe("normalizeRegistryDetail", () => {
       countryCode: "CN",
       country: "China",
       population: 14_000_000,
+      populationCount: null,
+      pointsCount: null,
+      playableAreaKm2: 5617,
+      sourceQuality: "High",
+      levelOfDetail: "Medium",
+      fileSizes: {
+        pmtiles: null,
+        buildingsIndex: null,
+        demandData: null,
+        oceanDepthIndex: null,
+        roads: null,
+        runwaysTaxiways: null,
+      },
     });
   });
 
@@ -106,6 +127,7 @@ describe("normalizeRegistryDetail", () => {
       listingVersions: {},
       versionDownloads: {},
       authorAttributionHref: null,
+      projectId: null,
     });
 
     expect(model.mapFields).toBeNull();

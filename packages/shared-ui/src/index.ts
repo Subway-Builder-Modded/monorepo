@@ -176,6 +176,7 @@ export {
   SectionSeparator,
   type SectionSeparatorProps,
 } from './components/section-separator';
+export { NeutralFadedUnderline } from './components/neutral-faded-underline';
 export {
   SectionShell,
   type SectionShellProps,
@@ -244,6 +245,10 @@ export {
   type ReleaseStatusChipProps,
   type ReleaseStatusChipSize,
 } from './components/release-status-chip';
+export {
+  RankBadge,
+  type RankBadgeProps,
+} from './components/rank-badge';
 export {
   AnalyticsPreview,
   type AnalyticsPreviewProps,

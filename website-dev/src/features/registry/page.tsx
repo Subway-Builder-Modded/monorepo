@@ -12,7 +12,9 @@ export function RegistryRoute() {
   }
 
   if (match.kind === "detail") {
-    return <RegistryDetailPage routeSegment={match.routeSegment} id={match.id} />;
+    return (
+      <RegistryDetailPage routeSegment={match.routeSegment} id={match.id} tabId={match.tabId} />
+    );
   }
 
   return null;

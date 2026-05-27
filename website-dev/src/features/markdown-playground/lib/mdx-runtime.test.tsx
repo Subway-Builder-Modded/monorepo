@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   renderMarkdownHtml,
   renderPlaygroundHtml,
@@ -10,6 +12,111 @@ describe("renderPlaygroundHtml", () => {
 
     expect(result.warning).toBeUndefined();
     expect(result.html).toContain('role="tablist"');
+  });
+
+  it("normalizes legacy HTML attributes and renders via MDX component styling", async () => {
+    const source = [
+      "## Coverage",
+      "",
+      '<table style="width: auto">',
+      '<tr><td><strong>Rows</strong></td><td align="right">59</td></tr>',
+      "</table>",
+      "",
+      "<details>",
+      "<summary>District list</summary>",
+      "",
+      '<table style="width: auto">',
+      '<tr><th align="left">Code</th><th align="right">Population</th></tr>',
+      "<tr><td>TPE</td><td>123</td></tr>",
+      "</table>",
+      "",
+      "</details>",
+    ].join("\n");
+
+    const result = await renderPlaygroundHtml(source);
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain("overflow-x-auto rounded-lg border");
+    expect(result.html).toContain("mdx-table-wrap");
+    expect(result.html).toContain("table-fixed");
+    expect(result.html).toContain("border-t border-border/60");
+    expect(result.html).toContain("px-4 py-3");
+    expect(result.html).toContain("District list");
+    expect(result.html).toContain('id="coverage"');
+  });
+
+  it("wraps Details non-summary content in spoiler body for separator and inset spacing", async () => {
+    const result = await renderPlaygroundHtml(
+      "<details><summary>District list</summary><table><tr><td>Row</td><td>Value</td></tr></table></details>",
+    );
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain("group/summary");
+    expect(result.html).toContain("group-open:rotate-90");
+    expect(result.html).toContain("mdx-spoiler-label");
+    expect(result.html).toContain("border-t border-border/60");
+    expect(result.html).toContain("px-4 py-3");
+  });
+
+  it("styles legacy HTML lists with article list classes", async () => {
+    const manifestPath = resolve(process.cwd(), "public/registry/maps/mexicali/manifest.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { description: string };
+    const result = await renderPlaygroundHtml(manifest.description);
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain("list-disc");
+    expect(result.html).toContain("leading-relaxed");
+  });
+
+  it("converts raw HTML headings to canonical MDX heading rendering", async () => {
+    const result = await renderPlaygroundHtml("<h1>Guangzhou</h1>\n<h3>CAN · v1.0.0</h3>");
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain('id="guangzhou"');
+    expect(result.html).toContain("text-4xl font-extrabold");
+    expect(result.html).toContain("text-2xl font-semibold");
+  });
+
+  it("renders guangzhou manifest HTML through canonical heading components", async () => {
+    const manifestPath = resolve(process.cwd(), "public/registry/maps/guangzhou/manifest.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { description: string };
+
+    const result = await renderPlaygroundHtml(manifest.description);
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toMatch(/id="[^"]*guangzhou[^"]*"/i);
+    expect(result.html).toContain("text-4xl font-extrabold");
+    expect(result.html).toContain("text-2xl font-semibold");
+  });
+
+  it("does not center linked badge images unless explicitly requested", async () => {
+    const source =
+      "[![Latest Release](https://img.shields.io/github/v/release/Mpfk/subway-builder-mode-manager)](https://github.com/Mpfk/subway-builder-mode-manager/releases/latest)";
+
+    const result = await renderPlaygroundHtml(source);
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain("img.shields.io");
+    expect(result.html).not.toContain("mx-auto");
+  });
+
+  it("applies accent-aware link classes for markdown links", async () => {
+    const result = await renderPlaygroundHtml(
+      "Part of the [Taiwan Map Pack](https://ahkimn.github.io/subwaybuilder-tw-maps).",
+    );
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain("registry-type-accent");
+    expect(result.html).toContain("visited:text-");
+  });
+
+  it("keeps image centering when explicitly requested by source formatting", async () => {
+    const result = await renderPlaygroundHtml(
+      '<Image src="/badge.svg" alt="Badge" className="mx-auto" />',
+    );
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain("mx-auto");
   });
 });
 

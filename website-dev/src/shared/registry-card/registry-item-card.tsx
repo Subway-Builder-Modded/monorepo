@@ -5,6 +5,7 @@ import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
 import { getRegistryTagBrowseUrl } from "@/features/registry/lib/routing";
+import { AuthorRoleBadge } from "@/features/registry/components/author-role-badge";
 import type {
   RegistryCardData,
   RegistryCardVariant,
@@ -223,18 +224,26 @@ type TypeBadgeProps = {
 
 function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
   return (
-    <Badge
-      variant="secondary"
-      size={size}
-      className="rounded-md px-2.5 font-semibold"
-      style={{
-        color: `var(--registry-type-accent-light, ${typeConfig.accentLight})`,
-        background: `color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
-        border: `1px solid color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
-      }}
+    <Link
+      to={`/registry/${typeConfig.routeSegment}`}
+      preserveScroll={true}
+      onClick={(event) => event.stopPropagation()}
+      className="pointer-events-auto inline-flex cursor-pointer no-underline hover:no-underline"
+      aria-label={`Browse ${typeConfig.pluralLabel}`}
     >
-      {typeConfig.label}
-    </Badge>
+      <Badge
+        variant="secondary"
+        size={size}
+        className="rounded-md px-2.5 font-semibold"
+        style={{
+          color: `var(--registry-type-accent-light, ${typeConfig.accentLight})`,
+          background: `color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
+          border: `1px solid color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
+        }}
+      >
+        {typeConfig.label}
+      </Badge>
+    </Link>
   );
 }
 
@@ -266,13 +275,16 @@ function AuthorLink({ author, authorId }: { author: string; authorId: string | n
   }
 
   return (
-    <Link
-      to={`/registry/authors/${encodeURIComponent(authorId)}`}
-      onClick={(event) => event.stopPropagation()}
-      className="pointer-events-auto inline-block w-fit max-w-full cursor-pointer truncate text-left text-xs leading-snug text-muted-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_60%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--suite-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--suite-accent-dark)_60%,transparent)]"
-    >
-      {author}
-    </Link>
+    <div className="pointer-events-auto inline-flex w-fit max-w-full items-center gap-1.5 text-xs leading-snug text-muted-foreground">
+      <Link
+        to={`/registry/authors/${encodeURIComponent(authorId)}`}
+        onClick={(event) => event.stopPropagation()}
+        className="inline-block max-w-full cursor-pointer truncate text-left underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_60%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--suite-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--suite-accent-dark)_60%,transparent)]"
+      >
+        {author}
+      </Link>
+      <AuthorRoleBadge authorId={authorId} className="cursor-pointer" />
+    </div>
   );
 }
 

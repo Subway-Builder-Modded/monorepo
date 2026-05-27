@@ -15,6 +15,7 @@ describe("useRegistryParams", () => {
     mockNavigate.mockReset();
     mockUseLocation.mockReset();
     mockUseLocation.mockReturnValue({ pathname: "/registry/maps", search: "", hash: "" });
+    window.localStorage.clear();
   });
 
   it("parses defaults when URL search is empty", () => {
@@ -27,13 +28,16 @@ describe("useRegistryParams", () => {
       sortId: "lastUpdated",
       sortDir: "desc",
       viewMode: "full",
+      page: 1,
+      pageSize: 12,
     });
   });
 
   it("uses type from the pathname and non-type fields from the query string", () => {
+    window.localStorage.setItem("sbm:registry-view-mode", "list");
     mockUseLocation.mockReturnValue({
       pathname: "/registry/mods",
-      search: "?q=tokyo&tags=alpha,beta&sort=name&dir=asc&view=list",
+      search: "?q=tokyo&tags=alpha,beta&sort=name&dir=asc",
       hash: "",
     });
 
@@ -46,13 +50,16 @@ describe("useRegistryParams", () => {
       sortId: "name",
       sortDir: "asc",
       viewMode: "list",
+      page: 1,
+      pageSize: 12,
     });
   });
 
   it("parses query params from the URL", () => {
+    window.localStorage.setItem("sbm:registry-view-mode", "list");
     mockUseLocation.mockReturnValue({
       pathname: "/registry/maps",
-      search: "?q=tokyo&tags=alpha,%20beta,,&sort=name&dir=asc&view=list",
+      search: "?q=tokyo&tags=alpha,%20beta,,&sort=name&dir=asc",
       hash: "",
     });
 
@@ -64,7 +71,22 @@ describe("useRegistryParams", () => {
       sortId: "name",
       sortDir: "asc",
       viewMode: "list",
+      page: 1,
+      pageSize: 12,
     });
+  });
+
+  it("parses pagination params from the URL", () => {
+    mockUseLocation.mockReturnValue({
+      pathname: "/registry/maps",
+      search: "?page=3&pageSize=24",
+      hash: "",
+    });
+
+    const { result } = renderHook(() => useRegistryParams());
+
+    expect(result.current.params.page).toBe(3);
+    expect(result.current.params.pageSize).toBe(24);
   });
 
   it("falls back to supported sort when cached sort is not valid for selected type", () => {
@@ -90,10 +112,41 @@ describe("useRegistryParams", () => {
         sortId: "downloads",
         sortDir: "asc",
         viewMode: "list",
+        page: 2,
+        pageSize: 24,
       });
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith("/registry/maps?q=signals&tags=metro%2Casia&sort=downloads&dir=asc&view=list", {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      "/registry/maps?q=signals&tags=metro%2Casia&sort=downloads&dir=asc&page=2&pageSize=24",
+      {
+        preserveScroll: true,
+      },
+    );
+  });
+
+  it("reads view mode from localStorage instead of URL", () => {
+    window.localStorage.setItem("sbm:registry-view-mode", "list");
+    mockUseLocation.mockReturnValue({
+      pathname: "/registry/maps",
+      search: "?q=tokyo",
+      hash: "",
+    });
+
+    const { result } = renderHook(() => useRegistryParams());
+
+    expect(result.current.params.viewMode).toBe("list");
+  });
+
+  it("persists view mode to localStorage and does not add it to URL", () => {
+    const { result } = renderHook(() => useRegistryParams());
+
+    act(() => {
+      result.current.setParams({ viewMode: "compact" });
+    });
+
+    expect(window.localStorage.getItem("sbm:registry-view-mode")).toBe("compact");
+    expect(mockNavigate).toHaveBeenCalledWith("/registry/maps", {
       preserveScroll: true,
     });
   });
@@ -113,7 +166,7 @@ describe("useRegistryParams", () => {
   it("setParams normalizes unsupported sorts for a new type", () => {
     mockUseLocation.mockReturnValue({
       pathname: "/registry/maps",
-      search: "?q=tokyo&tags=alpha&sort=population&dir=asc&view=full",
+      search: "?q=tokyo&tags=alpha&sort=population&dir=asc",
       hash: "",
     });
 

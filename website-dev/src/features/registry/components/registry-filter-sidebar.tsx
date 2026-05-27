@@ -18,17 +18,16 @@ import {
 } from "@subway-builder-modded/shared-ui";
 import { useMemo, useEffect, useCallback, useRef, useState, type ReactNode } from "react";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
+import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import { RegistryTypeCountBadge } from "@/features/registry/components/registry-type-count-badge";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
 import {
-  Map as MapIcon,
-  Package,
   Tags,
   Layers3,
+  BadgeCheck,
   GraduationCap,
   Globe2,
-  ShieldCheck,
   PanelLeftOpen,
   PanelLeftClose,
   Trash2,
@@ -72,7 +71,7 @@ type RegistryTagCategorySectionProps = {
 
 const CATEGORY_ICON_BY_ID: Record<RegistryTagCategoryId, typeof Tags> = {
   regions: Globe2,
-  "data-quality": ShieldCheck,
+  "data-quality": BadgeCheck,
   "level-of-detail": Layers3,
   "special-demand": GraduationCap,
   content: Layers3,
@@ -105,10 +104,34 @@ function buildTagCategories(
     mapLevelOfDetailValues: levelOfDetailFromManifest,
   });
 
-  return categories.map((category) => ({
+  const categoriesWithIcons = categories.map((category) => ({
     ...category,
     icon: CATEGORY_ICON_BY_ID[category.id],
   }));
+
+  const bottomCategoryIds: RegistryTagCategoryId[] = ["data-quality", "level-of-detail"];
+
+  return categoriesWithIcons.sort((left, right) => {
+    const leftBottomIndex = bottomCategoryIds.indexOf(left.id);
+    const rightBottomIndex = bottomCategoryIds.indexOf(right.id);
+
+    const leftIsBottom = leftBottomIndex !== -1;
+    const rightIsBottom = rightBottomIndex !== -1;
+
+    if (leftIsBottom && rightIsBottom) {
+      return leftBottomIndex - rightBottomIndex;
+    }
+
+    if (leftIsBottom) {
+      return 1;
+    }
+
+    if (rightIsBottom) {
+      return -1;
+    }
+
+    return 0;
+  });
 }
 
 function RegistryTagCategorySection({
@@ -173,9 +196,7 @@ function RegistryTagCategorySection({
       <div
         className={cn(
           "grid overflow-hidden transition-[grid-template-rows,opacity,margin] duration-300 ease-out motion-reduce:transition-none",
-          isCollapsed
-            ? "mt-0 grid-rows-[0fr] opacity-0"
-            : "mt-1 grid-rows-[1fr] opacity-100",
+          isCollapsed ? "mt-0 grid-rows-[0fr] opacity-0" : "mt-1 grid-rows-[1fr] opacity-100",
         )}
       >
         <div className="overflow-hidden">
@@ -440,7 +461,7 @@ export function RegistryFilterSidebar({
                     <div className="space-y-1">
                       {REGISTRY_TYPES.map((type) => {
                         const isActive = typeId === type.id;
-                        const Icon = type.id === "maps" ? MapIcon : Package;
+                        const Icon = getRegistryTypeIcon(type.id);
                         const count = counts?.[type.id];
                         const accentLight = type.accentLight;
                         const accentDark = type.accentDark;
@@ -513,7 +534,7 @@ export function RegistryFilterSidebar({
                   <div className="space-y-1">
                     {REGISTRY_TYPES.map((type) => {
                       const isActive = typeId === type.id;
-                      const Icon = type.id === "maps" ? MapIcon : Package;
+                      const Icon = getRegistryTypeIcon(type.id);
                       const count = counts?.[type.id];
                       const accentLight = type.accentLight;
                       const accentDark = type.accentDark;

@@ -7,11 +7,22 @@ import type { RegistryCardData } from "@/shared/registry-card/registry-item-type
 import type { RegistryTypeConfig } from "@/shared/registry-card/registry-item-types";
 
 vi.mock("@/lib/router", () => ({
-  Link: vi.fn(({ to, children, preserveScroll: _preserveScroll, ...props }: { to: string; children: React.ReactNode; preserveScroll?: boolean }) => (
-    <a href={to} {...props}>
-      {children}
-    </a>
-  )),
+  Link: vi.fn(
+    ({
+      to,
+      children,
+      preserveScroll: _preserveScroll,
+      ...props
+    }: {
+      to: string;
+      children: React.ReactNode;
+      preserveScroll?: boolean;
+    }) => (
+      <a href={to} {...props}>
+        {children}
+      </a>
+    ),
+  ),
   navigate: vi.fn(),
 }));
 
@@ -108,12 +119,18 @@ describe("RegistryItemCard", () => {
 
   it("compact variant shows Map type badge", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
-    expect(screen.getByText("Map")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Browse Maps" })).toHaveAttribute(
+      "href",
+      "/registry/maps",
+    );
   });
 
   it("compact variant shows Mod type badge for mods", () => {
     render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
-    expect(screen.getByText("Mod")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Browse Mods" })).toHaveAttribute(
+      "href",
+      "/registry/mods",
+    );
   });
 
   it("full variant renders title and tags", () => {

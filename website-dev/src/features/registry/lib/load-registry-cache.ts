@@ -5,6 +5,7 @@ import type {
   RegistrySearchItem,
 } from "./registry-search-types";
 import { LOCATION_TAGS } from "@subway-builder-modded/config";
+import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 
 const MAP_LOCATION_TAG_SET = new Set<string>(LOCATION_TAGS);
 
@@ -82,14 +83,15 @@ function resolveThumbnailSrc(
 }
 
 function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): string[] {
+  const typeUiRules = getRegistryTypeUiRules(typeId);
   const normalizedManifestTags = Array.isArray(manifest.tags)
     ? manifest.tags.filter(
-        (tag) => typeId !== "maps" || !MAP_LOCATION_TAG_SET.has(tag.trim().toLowerCase()),
+        (tag) => !typeUiRules.hasMapMetadata || !MAP_LOCATION_TAG_SET.has(tag.trim().toLowerCase()),
       )
     : [];
   const tagSet = new Set<string>(normalizedManifestTags);
 
-  if (typeId === "maps") {
+  if (typeUiRules.hasMapMetadata) {
     const locationTag = manifest.location?.trim().toLowerCase();
     if (locationTag) {
       tagSet.add(locationTag);
@@ -162,8 +164,7 @@ async function resolveCountry(code: string): Promise<CountryInfo> {
     if (isCountryFlagEmojiEntry(entry)) {
       return { name: entry.name, emoji: entry.emoji ?? null };
     }
-  } catch {
-  }
+  } catch {}
   return { name: code.toUpperCase(), emoji: null };
 }
 
@@ -201,6 +202,7 @@ export async function loadRegistryItemsForType(
   typeId: string,
   typeRouteSegment: string,
 ): Promise<RegistrySearchItem[]> {
+  const typeUiRules = getRegistryTypeUiRules(typeId);
   const baseUrl = `/registry/${typeRouteSegment}`;
 
   // Load shared data files in parallel
@@ -277,18 +279,17 @@ export async function loadRegistryItemsForType(
       thumbnailSrc: resolveThumbnailSrc(typeRouteSegment, id, manifest.gallery),
       totalDownloads: getTotalDownloads(id, downloads),
       lastActivityAt,
-      cityCode: typeId === "maps" ? (manifest.city_code ?? null) : null,
-      countryCode: typeId === "maps" ? countryCode : null,
-      countryName: typeId === "maps" ? countryName : null,
-      countryEmoji: typeId === "maps" ? countryEmoji : null,
-      population:
-        typeId === "maps"
-          ? typeof manifest.population === "number"
-            ? manifest.population
-            : typeof manifest.residents_total === "number"
-              ? manifest.residents_total
-              : null
-          : null,
+      cityCode: typeUiRules.hasMapMetadata ? (manifest.city_code ?? null) : null,
+      countryCode: typeUiRules.hasMapMetadata ? countryCode : null,
+      countryName: typeUiRules.hasMapMetadata ? countryName : null,
+      countryEmoji: typeUiRules.hasMapMetadata ? countryEmoji : null,
+      population: typeUiRules.hasMapMetadata
+        ? typeof manifest.population === "number"
+          ? manifest.population
+          : typeof manifest.residents_total === "number"
+            ? manifest.residents_total
+            : null
+        : null,
       isTest: false,
       manifest,
     });

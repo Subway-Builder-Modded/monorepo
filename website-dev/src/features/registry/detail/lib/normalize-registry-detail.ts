@@ -33,6 +33,57 @@ function toExcerpt(input: string): string | null {
   return `${normalized.slice(0, 177).trimEnd()}...`;
 }
 
+function normalizeDemandLevel(value: string | undefined): "High" | "Medium" | "Low" | null {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.startsWith("h")) {
+    return "High";
+  }
+  if (normalized.startsWith("m")) {
+    return "Medium";
+  }
+  if (normalized.startsWith("l")) {
+    return "Low";
+  }
+
+  return null;
+}
+
+function isMapDemandDataTag(
+  normalizedTag: string,
+  sourceQuality: "High" | "Medium" | "Low" | null,
+  levelOfDetail: "High" | "Medium" | "Low" | null,
+): boolean {
+  const blocked = new Set([
+    "data-quality",
+    "source-quality",
+    "level-of-detail",
+    "high-quality",
+    "medium-quality",
+    "low-quality",
+    "high-detail",
+    "medium-detail",
+    "low-detail",
+  ]);
+
+  if (sourceQuality) {
+    const qualityBase = sourceQuality.toLowerCase();
+    blocked.add(qualityBase);
+    blocked.add(`${qualityBase}-quality`);
+  }
+
+  if (levelOfDetail) {
+    const detailBase = levelOfDetail.toLowerCase();
+    blocked.add(detailBase);
+    blocked.add(`${detailBase}-detail`);
+  }
+
+  return blocked.has(normalizedTag);
+}
+
 function resolveGalleryImages(
   routeSegment: string,
   id: string,
@@ -66,11 +117,11 @@ function resolveSourceCodeLink(
   update: { type?: string; repo?: string } | undefined,
 ): RegistryDetailSourceLink | null {
   if (source?.trim()) {
-    return { label: "Source Code", href: source.trim() };
+    return { label: "Source", href: source.trim() };
   }
 
   if (update?.type === "github" && update.repo?.trim()) {
-    return { label: "Source Code", href: `https://github.com/${update.repo.trim()}` };
+    return { label: "Source", href: `https://github.com/${update.repo.trim()}` };
   }
 
   return null;
@@ -177,9 +228,54 @@ function resolveLatestDownloadUrl(data: RegistryDetailLoadedData): string | null
   return null;
 }
 
+function resolveFileSizeMb(
+  fileSizes: Record<string, number> | undefined,
+  matcher: (normalizedKey: string) => boolean,
+): number | null {
+  if (!fileSizes) {
+    return null;
+  }
+
+  for (const [key, value] of Object.entries(fileSizes)) {
+    if (!Number.isFinite(value)) {
+      continue;
+    }
+
+    const normalizedKey = key.trim().toLowerCase();
+    if (!matcher(normalizedKey)) {
+      continue;
+    }
+
+    return value > 0 ? value : null;
+  }
+
+  return null;
+}
+
+function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
+  return {
+    pmtiles: resolveFileSizeMb(fileSizes, (key) => key.endsWith(".pmtiles")),
+    buildingsIndex: resolveFileSizeMb(fileSizes, (key) => key === "buildings_index.json"),
+    demandData: resolveFileSizeMb(fileSizes, (key) => key === "demand_data.json"),
+    oceanDepthIndex: resolveFileSizeMb(fileSizes, (key) => key === "ocean_depth_index.json"),
+    roads: resolveFileSizeMb(fileSizes, (key) => key === "roads.geojson"),
+    runwaysTaxiways: resolveFileSizeMb(fileSizes, (key) => key === "runways_taxiways.geojson"),
+  };
+}
+
 export function normalizeRegistryDetail(data: RegistryDetailLoadedData): RegistryDetailModel {
   const description = (data.manifest.description ?? data.item.description ?? "").trim();
-  const tags = Array.from(new Set([...(data.manifest.tags ?? []), ...(data.item.tags ?? [])]));
+  const sourceQuality = normalizeDemandLevel(data.manifest.source_quality);
+  const levelOfDetail = normalizeDemandLevel(data.manifest.level_of_detail);
+  const tags = Array.from(
+    new Set([...(data.manifest.tags ?? []), ...(data.item.tags ?? [])]),
+  ).filter((tag) => {
+    if (data.item.type !== "maps") {
+      return true;
+    }
+    const normalizedTag = tag.trim().toLowerCase();
+    return !isMapDemandDataTag(normalizedTag, sourceQuality, levelOfDetail);
+  });
   const versions = resolveVersions(data.listingVersions, data.versionDownloads);
   const latestDownloadUrl = resolveLatestDownloadUrl(data);
   const integrityStats = resolveIntegrityStats(versions);
@@ -193,8 +289,11 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
     description,
     excerpt: toExcerpt(description),
     authorLabel: data.item.author,
+    authorId: data.item.authorId,
     authorHref: data.authorAttributionHref,
+    collaborators: data.collaborators ?? [],
     sourceCodeLink: resolveSourceCodeLink(data.manifest.source, data.manifest.update),
+    projectId: data.projectId,
     tags,
     downloads: Number.isFinite(data.item.totalDownloads) ? data.item.totalDownloads : null,
     galleryImages: resolveGalleryImages(
@@ -215,6 +314,24 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
             countryCode: data.item.countryCode,
             country: data.item.countryName,
             population: data.item.population,
+            populationCount:
+              typeof data.manifest.population_count === "number" &&
+              Number.isFinite(data.manifest.population_count)
+                ? data.manifest.population_count
+                : null,
+            pointsCount:
+              typeof data.manifest.points_count === "number" &&
+              Number.isFinite(data.manifest.points_count)
+                ? data.manifest.points_count
+                : null,
+            playableAreaKm2:
+              typeof data.manifest.grid_statistics?.detail?.playableAreaKm2 === "number" &&
+              Number.isFinite(data.manifest.grid_statistics.detail.playableAreaKm2)
+                ? data.manifest.grid_statistics.detail.playableAreaKm2
+                : null,
+            sourceQuality,
+            levelOfDetail,
+            fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
           }
         : null,
   };

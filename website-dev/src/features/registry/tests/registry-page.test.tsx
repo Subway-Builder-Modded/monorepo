@@ -39,6 +39,30 @@ vi.mock("@/config/site-navigation", async (importOriginal) => {
 
 import { RegistryRoute } from "@/features/registry/page";
 
+function makeMapItem(id: string) {
+  return {
+    id,
+    type: "maps",
+    routeSegment: "maps",
+    href: `/registry/maps/${id}`,
+    name: id,
+    author: "tester",
+    authorId: null,
+    description: "",
+    tags: [],
+    thumbnailSrc: null,
+    totalDownloads: 0,
+    lastActivityAt: 0,
+    cityCode: null,
+    countryCode: null,
+    countryName: null,
+    countryEmoji: null,
+    population: null,
+    isTest: false,
+    manifest: {},
+  };
+}
+
 describe("RegistryRoute", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -141,5 +165,31 @@ describe("RegistryRoute", () => {
     expect(navigate).toHaveBeenCalledWith("/registry/mods", {
       preserveScroll: true,
     });
+  });
+
+  it("does not rewrite valid page param during initial async load", async () => {
+    const { useLocation, navigate } = await import("@/lib/router");
+    const { loadRegistryItemsForType } =
+      await import("@/features/registry/lib/load-registry-cache");
+
+    vi.mocked(useLocation).mockReturnValue({
+      pathname: "/registry/maps",
+      search: "?page=3",
+      hash: "",
+    });
+
+    vi.mocked(loadRegistryItemsForType).mockImplementation(async (typeId) => {
+      if (typeId !== "maps") {
+        return [];
+      }
+
+      return Array.from({ length: 40 }, (_, i) => makeMapItem(`map-${i + 1}`));
+    });
+
+    await act(async () => {
+      render(<RegistryRoute />);
+    });
+
+    expect(navigate).not.toHaveBeenCalledWith("/registry/maps", { preserveScroll: true });
   });
 });

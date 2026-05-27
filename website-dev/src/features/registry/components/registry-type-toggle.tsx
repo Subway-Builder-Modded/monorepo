@@ -1,6 +1,6 @@
-import { Map, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
+import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import type { RegistryTypeConfig } from "@/shared/registry-card/registry-item-types";
 import { RegistryTypeCountBadge } from "./registry-type-count-badge";
 
@@ -46,7 +46,7 @@ type TypeButtonProps = {
 };
 
 function TypeButton({ type, isActive, count, onClick }: TypeButtonProps) {
-  const Icon = type.id === "maps" ? Map : Package;
+  const Icon = getRegistryTypeIcon(type.id);
   const isCountLoading = count === undefined;
 
   const accentStyle = {

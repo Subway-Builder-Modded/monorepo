@@ -3,11 +3,19 @@ import { DEFAULT_REGISTRY_TYPE_ID } from "@/features/registry/registry-type-conf
 
 const REGISTRY_ROUTE = "/registry";
 const registryRoute = createSimpleRouteMatcher(REGISTRY_ROUTE, "registry");
+const REGISTRY_DETAIL_TABS = new Set([
+  "description",
+  "analytics",
+  "gallery",
+  "versions",
+  "map",
+  "details",
+]);
 
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
-  | { kind: "detail"; routeSegment: string; id: string };
+  | { kind: "detail"; routeSegment: string; id: string; tabId?: string };
 
 function normalizePathname(pathname: string): string {
   const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
@@ -43,6 +51,20 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
     };
   }
 
+  if (segments.length === 4 && segments[0] === "registry") {
+    const tabId = decodeURIComponent(segments[3] ?? "");
+    if (!REGISTRY_DETAIL_TABS.has(tabId)) {
+      return { kind: "none" };
+    }
+
+    return {
+      kind: "detail",
+      routeSegment: decodeURIComponent(segments[1] ?? ""),
+      id: decodeURIComponent(segments[2] ?? ""),
+      tabId,
+    };
+  }
+
   return { kind: "none" };
 }
 
@@ -55,6 +77,11 @@ export function getRegistryTagBrowseUrl(typeId: string, tag: string): string {
   return `${getRegistryPageUrl(typeId)}?${search}`;
 }
 
-export function getRegistryDetailUrl(routeSegment: string, id: string): string {
-  return `${REGISTRY_ROUTE}/${encodeURIComponent(routeSegment)}/${encodeURIComponent(id)}`;
+export function getRegistryDetailUrl(routeSegment: string, id: string, tabId?: string): string {
+  const base = `${REGISTRY_ROUTE}/${encodeURIComponent(routeSegment)}/${encodeURIComponent(id)}`;
+  if (!tabId) {
+    return base;
+  }
+
+  return `${base}/${encodeURIComponent(tabId)}`;
 }
