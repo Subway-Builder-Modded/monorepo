@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   renderMarkdownHtml,
   renderPlaygroundHtml,
 } from "@/features/markdown-playground/lib/mdx-runtime";
+
+function loadManifestDescription(relativePath: string, fallbackDescription: string) {
+  const manifestPath = resolve(process.cwd(), relativePath);
+  if (!existsSync(manifestPath)) {
+    return fallbackDescription;
+  }
+
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+    description?: string;
+  };
+
+  return manifest.description ?? fallbackDescription;
+}
 
 describe("renderPlaygroundHtml", () => {
   it("uses canonical MDX component rendering for rich preview/html", async () => {
@@ -59,9 +72,19 @@ describe("renderPlaygroundHtml", () => {
   });
 
   it("styles legacy HTML lists with article list classes", async () => {
-    const manifestPath = resolve(process.cwd(), "public/registry/maps/mexicali/manifest.json");
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { description: string };
-    const result = await renderPlaygroundHtml(manifest.description);
+    const description = loadManifestDescription(
+      "public/registry/maps/mexicali/manifest.json",
+      [
+        "# Mexicali",
+        "",
+        "Highlights:",
+        "",
+        "- Fast regional service",
+        "- Dense downtown stations",
+      ].join("\n"),
+    );
+
+    const result = await renderPlaygroundHtml(description);
 
     expect(result.warning).toBeUndefined();
     expect(result.html).toContain("list-disc");
@@ -78,10 +101,17 @@ describe("renderPlaygroundHtml", () => {
   });
 
   it("renders guangzhou manifest HTML through canonical heading components", async () => {
-    const manifestPath = resolve(process.cwd(), "public/registry/maps/guangzhou/manifest.json");
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as { description: string };
+    const description = loadManifestDescription(
+      "public/registry/maps/guangzhou/manifest.json",
+      [
+        "<h1>Guangzhou</h1>",
+        "<h3>CAN · v1.0.0</h3>",
+        "",
+        "An urban rail network with rapid growth corridors.",
+      ].join("\n"),
+    );
 
-    const result = await renderPlaygroundHtml(manifest.description);
+    const result = await renderPlaygroundHtml(description);
 
     expect(result.warning).toBeUndefined();
     expect(result.html).toMatch(/id="[^"]*guangzhou[^"]*"/i);

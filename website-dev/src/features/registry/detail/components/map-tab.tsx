@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Briefcase, Building2, House, MapPin, Users } from "lucide-react";
+import { AlertCircle, Briefcase, Building2, House, Loader2, MapPin, Users } from "lucide-react";
 import { cn } from "@subway-builder-modded/shared-ui";
 import type { StyleSpecification } from "maplibre-gl";
 import { useThemeMode } from "@/hooks/use-theme-mode";
@@ -608,6 +608,7 @@ export function MapTab({ mapId }: { mapId: string }) {
   const [status, setStatus] = useState<"loading" | "ready" | "empty" | "error">("loading");
   const [activeMetric, setActiveMetric] = useState<MetricId>("residentCount");
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
+  const [isMapRenderReady, setIsMapRenderReady] = useState(false);
 
   useEffect(() => {
     activeMetricRef.current = activeMetric;
@@ -621,6 +622,7 @@ export function MapTab({ mapId }: { mapId: string }) {
     setStatus("loading");
     setSnapshot(null);
     setHoverInfo(null);
+    setIsMapRenderReady(false);
 
     void (async () => {
       try {
@@ -656,6 +658,7 @@ export function MapTab({ mapId }: { mapId: string }) {
     let disposed = false;
     let map: any = null;
     let handleLoad: (() => void) | null = null;
+    setIsMapRenderReady(false);
 
     void (async () => {
       try {
@@ -666,7 +669,7 @@ export function MapTab({ mapId }: { mapId: string }) {
         map = new maplibregl.Map({
           container: containerRef.current,
           style,
-          attributionControl: {},
+          attributionControl: false,
           interactive: true,
           dragRotate: false,
           pitchWithRotate: false,
@@ -794,6 +797,14 @@ export function MapTab({ mapId }: { mapId: string }) {
           const handleLeave = () => setHoverInfo(null);
           map.on("mousemove", handleMove);
           map.on("mouseleave", handleLeave);
+
+          const markMapReady = () => {
+            if (!disposed) {
+              setIsMapRenderReady(true);
+            }
+          };
+
+          map.once("idle", markMapReady);
         };
 
         map.on("load", handleLoad);
@@ -845,7 +856,7 @@ export function MapTab({ mapId }: { mapId: string }) {
   if (status === "loading") {
     return (
       <div className="flex h-[26rem] items-center justify-center rounded-xl border border-border/65 bg-muted/25 text-sm text-muted-foreground">
-        Loading map layers...
+        Loading...
       </div>
     );
   }
@@ -882,8 +893,27 @@ export function MapTab({ mapId }: { mapId: string }) {
       <div className="overflow-visible rounded-xl border border-border/60 bg-card/65 p-1.5 ring-1 ring-foreground/5">
         <div className="relative h-[26rem] w-full overflow-visible rounded-lg">
           <div className="h-full w-full overflow-hidden rounded-lg">
-            <div ref={containerRef} className="h-full w-full" aria-label="City map" />
+            <div
+              ref={containerRef}
+              className={cn(
+                "h-full w-full transition-opacity duration-200",
+                isMapRenderReady ? "opacity-100" : "opacity-0",
+              )}
+              aria-label="City map"
+            />
           </div>
+
+          {!isMapRenderReady ? (
+            <div className="absolute inset-0 z-50 flex items-center justify-center rounded-lg bg-card/92 backdrop-blur-[1px]">
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <Loader2
+                  className="size-7 animate-spin will-change-transform motion-reduce:animate-none"
+                  aria-hidden={true}
+                />
+                <span className="text-sm font-medium">Loading...</span>
+              </div>
+            </div>
+          ) : null}
 
           {hoverInfo ? (
             <div
@@ -919,6 +949,37 @@ export function MapTab({ mapId }: { mapId: string }) {
               </div>
             </div>
           ) : null}
+
+          <div className="absolute bottom-2 right-2 z-30 rounded-full border border-border/75 bg-card/90 px-3 py-1.5 text-[11px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
+            <div className="whitespace-nowrap leading-none">
+              <a
+                href="https://openfreemap.org"
+                target="_blank"
+                rel="noreferrer"
+                className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:underline"
+              >
+                OpenFreeMap
+              </a>
+              <span aria-hidden={true}>{" © "}</span>
+              <a
+                href="https://www.openmaptiles.org"
+                target="_blank"
+                rel="noreferrer"
+                className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:underline"
+              >
+                OpenMapTiles
+              </a>
+              <span>{" Data from "}</span>
+              <a
+                href="https://www.openstreetmap.org/copyright"
+                target="_blank"
+                rel="noreferrer"
+                className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:underline"
+              >
+                OpenStreetMap
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -939,84 +1000,6 @@ export function MapTab({ mapId }: { mapId: string }) {
         </div>
       </div>
 
-      <style>{`
-        .registry-map-tab .maplibregl-ctrl-attrib.maplibregl-compact {
-          border: 1px solid color-mix(in oklab, var(--border) 80%, transparent);
-          border-radius: 9999px;
-          background: color-mix(in oklab, var(--card) 88%, transparent);
-          color: var(--foreground);
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-          backdrop-filter: blur(4px);
-          display: inline-flex;
-          align-items: center;
-        }
-
-        .registry-map-tab .maplibregl-ctrl-attrib.maplibregl-compact a {
-          color: color-mix(in oklab, var(--registry-type-accent) 84%, var(--foreground) 16%);
-        }
-
-        .registry-map-tab .maplibregl-ctrl-attrib-button {
-          order: 2;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 20px;
-          height: 20px;
-          margin-left: 6px;
-          margin-right: -18px;
-          vertical-align: middle;
-          float: none;
-          border-radius: 9999px;
-          border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
-          background-color: var(--background);
-          color: var(--foreground);
-          background-image: none !important;
-          opacity: 1;
-          -webkit-tap-highlight-color: transparent;
-          outline: none !important;
-          box-shadow: none !important;
-          position: relative;
-        }
-
-        .registry-map-tab .maplibregl-ctrl-attrib-button::before {
-          content: "i";
-          position: absolute;
-          inset: 0;
-          display: grid;
-          place-items: center;
-          color: var(--foreground);
-          font-size: 12px;
-          font-weight: 700;
-          line-height: 1;
-        }
-
-        .registry-map-tab .maplibregl-ctrl-attrib-button:focus,
-        .registry-map-tab .maplibregl-ctrl-attrib-button:focus-visible,
-        .registry-map-tab .maplibregl-ctrl-attrib-button:active,
-        .registry-map-tab .maplibregl-ctrl-attrib.maplibregl-compact:focus-within {
-          outline: none !important;
-          box-shadow: none !important;
-          border-color: color-mix(in oklab, var(--border) 82%, transparent) !important;
-        }
-
-        .dark .registry-map-tab .maplibregl-ctrl-attrib.maplibregl-compact {
-          background: color-mix(in oklab, var(--card) 82%, black 18%);
-          border-color: color-mix(in oklab, var(--border) 70%, black 30%);
-          color: color-mix(in oklab, var(--foreground) 82%, white 18%);
-        }
-
-        .dark .registry-map-tab .maplibregl-ctrl-attrib.maplibregl-compact a {
-          color: color-mix(in oklab, var(--registry-type-accent) 78%, white 22%);
-        }
-
-        .dark .registry-map-tab .maplibregl-ctrl-attrib-button {
-          background-color: var(--background);
-          color: var(--foreground);
-          border-color: color-mix(in oklab, var(--border) 78%, transparent);
-          filter: none;
-          opacity: 1;
-        }
-      `}</style>
     </div>
   );
 }

@@ -39,6 +39,11 @@ import { RegistryDetailHeader } from "@/features/registry/detail/components/regi
 import { RegistryDetailSidebar } from "@/features/registry/detail/components/registry-detail-sidebar";
 import { RegistryDetailTabs } from "@/features/registry/detail/components/registry-detail-tabs";
 import { VersionsTab } from "@/features/registry/detail/components/versions-tab";
+import { useFloatingAnchorVisibility } from "@/features/registry/detail/hooks/use-floating-anchor-visibility";
+import {
+  REGISTRY_DETAIL_TAB_ITEMS,
+  resolveRegistryDetailTabId,
+} from "@/features/registry/detail/lib/detail-tab-items";
 import {
   getRegistryDetailTabsForType,
   getRegistryTypeUiRules,
@@ -51,39 +56,7 @@ type RegistryDetailPageProps = {
   tabId?: string;
 };
 
-const DETAIL_TAB_IDS = new Set<RegistryDetailTabId>([
-  "description",
-  "details",
-  "analytics",
-  "gallery",
-  "versions",
-  "map",
-]);
-
-const TAB_ITEMS: Array<{
-  id: RegistryDetailTabId;
-  label: string;
-  icon: typeof FileText;
-}> = [
-  { id: "description", label: "Description", icon: FileText },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "gallery", label: "Gallery", icon: GalleryHorizontalEnd },
-  { id: "versions", label: "Versions", icon: History },
-  { id: "map", label: "Map", icon: Map },
-  { id: "details", label: "Details", icon: Info },
-];
-
 const numberFormatter = new Intl.NumberFormat("en-US");
-
-function resolveTabId(tabId: string | undefined): RegistryDetailTabId {
-  if (!tabId) {
-    return "description";
-  }
-
-  return DETAIL_TAB_IDS.has(tabId as RegistryDetailTabId)
-    ? (tabId as RegistryDetailTabId)
-    : "description";
-}
 
 function preloadImage(src: string): Promise<void> {
   if (typeof window === "undefined") {
@@ -142,13 +115,17 @@ export function RegistryDetailPage({ routeSegment, id, tabId }: RegistryDetailPa
   const railyardSuite = getSuiteById("railyard");
   const [detail, setDetail] = useState<RegistryDetailModel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const activeTab = resolveTabId(tabId);
+  const activeTab = resolveRegistryDetailTabId(tabId);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [showFloatingAnchor, setShowFloatingAnchor] = useState(false);
   const tabsAnchorRef = useRef<HTMLDivElement | null>(null);
   const sidebarAnchorRef = useRef<HTMLDivElement | null>(null);
+  const showFloatingAnchor = useFloatingAnchorVisibility({
+    enabled: Boolean(detail),
+    tabsAnchorRef,
+    sidebarAnchorRef,
+  });
 
   useEffect(() => {
     let isCancelled = false;
@@ -206,63 +183,6 @@ export function RegistryDetailPage({ routeSegment, id, tabId }: RegistryDetailPa
       ? `/registry/${detail.routeSegment}/${detail.id}/basemap.svg`
       : null;
 
-  useEffect(() => {
-    if (!detail) {
-      setShowFloatingAnchor(false);
-      return;
-    }
-
-    const resolveNavbarRect = () => {
-      const navbar = document.querySelector("nav.fixed.inset-x-0.top-4.z-50");
-      if (navbar instanceof HTMLElement) {
-        return navbar.getBoundingClientRect();
-      }
-      return null;
-    };
-
-    const updateFloatingAnchorVisibility = () => {
-      const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
-
-      // Sync desktop floating-pill reveal with a stable sidebar sentinel.
-      if (isDesktop && sidebarAnchorRef.current) {
-        const sidebarRect = sidebarAnchorRef.current.getBoundingClientRect();
-        const sidebarStickyTop = 140; // 8.75rem: matches anchored sidebar sticky top
-
-        // Hysteresis prevents flicker when rapidly scrolling around the threshold.
-        setShowFloatingAnchor((wasVisible) =>
-          wasVisible
-            ? sidebarRect.top <= sidebarStickyTop + 22
-            : sidebarRect.top <= sidebarStickyTop + 1,
-        );
-        return;
-      }
-
-      if (!tabsAnchorRef.current) {
-        setShowFloatingAnchor(false);
-        return;
-      }
-
-      const tabsRect = tabsAnchorRef.current.getBoundingClientRect();
-      const navbarRect = resolveNavbarRect();
-
-      if (!navbarRect) {
-        setShowFloatingAnchor(false);
-        return;
-      }
-
-      setShowFloatingAnchor(tabsRect.bottom <= navbarRect.top + 2);
-    };
-
-    updateFloatingAnchorVisibility();
-    window.addEventListener("scroll", updateFloatingAnchorVisibility, { passive: true });
-    window.addEventListener("resize", updateFloatingAnchorVisibility);
-
-    return () => {
-      window.removeEventListener("scroll", updateFloatingAnchorVisibility);
-      window.removeEventListener("resize", updateFloatingAnchorVisibility);
-    };
-  }, [detail]);
-
   if (isLoading) {
     return (
       <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
@@ -300,7 +220,7 @@ export function RegistryDetailPage({ routeSegment, id, tabId }: RegistryDetailPa
   const floatingTopOffset = "calc(1rem + 3.35rem)";
   const allowedTabIds = new Set<RegistryDetailTabId>(getRegistryDetailTabsForType(detail.typeId));
   const visibleActiveTab = allowedTabIds.has(activeTab) ? activeTab : "description";
-  const floatingTabItems = TAB_ITEMS.filter((tab) => allowedTabIds.has(tab.id));
+  const floatingTabItems = REGISTRY_DETAIL_TAB_ITEMS.filter((tab) => allowedTabIds.has(tab.id));
 
   return (
     <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">

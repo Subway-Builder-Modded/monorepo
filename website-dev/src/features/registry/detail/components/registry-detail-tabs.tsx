@@ -1,10 +1,9 @@
-import { BarChart3, FileText, GalleryHorizontalEnd, History, Info, Map } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@subway-builder-modded/shared-ui";
-import type { ComponentType } from "react";
 import {
   getRegistryDetailTabsForType,
   type RegistryDetailTabId,
 } from "@/features/registry/registry-type-ui";
+import { REGISTRY_DETAIL_TAB_ITEMS } from "@/features/registry/detail/lib/detail-tab-items";
 
 type RegistryDetailTabsProps = {
   value: RegistryDetailTabId;
@@ -12,22 +11,9 @@ type RegistryDetailTabsProps = {
   onValueChange: (next: RegistryDetailTabId) => void;
 };
 
-const TAB_ITEMS: Array<{
-  id: RegistryDetailTabId;
-  label: string;
-  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-}> = [
-  { id: "description", label: "Description", icon: FileText },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "gallery", label: "Gallery", icon: GalleryHorizontalEnd },
-  { id: "versions", label: "Versions", icon: History },
-  { id: "map", label: "Map", icon: Map },
-  { id: "details", label: "Details", icon: Info },
-];
-
 export function RegistryDetailTabs({ value, typeId, onValueChange }: RegistryDetailTabsProps) {
   const visibleTabIds = new Set(getRegistryDetailTabsForType(typeId));
-  const visibleTabs = TAB_ITEMS.filter((tab) => visibleTabIds.has(tab.id));
+  const visibleTabs = REGISTRY_DETAIL_TAB_ITEMS.filter((tab) => visibleTabIds.has(tab.id));
   const showsMapTab = visibleTabIds.has("map");
 
   return (

@@ -1,13 +1,10 @@
-import { useMemo, useState, useEffect, useCallback, useDeferredValue, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { getInitialRegistrySidebarCollapsed } from "./registry-filter-sidebar";
-import { RegistryItemCard } from "@/shared/registry-card/registry-item-card";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
-import { filterRegistryItems, collectTags } from "@/features/registry/lib/filter-registry-items";
-import { sortRegistryItems } from "@/features/registry/lib/sort-registry-items";
 import { RegistryFilterSidebar } from "./registry-filter-sidebar";
 import { RegistryViewToggle } from "./registry-view-toggle";
 import { RegistrySortBar } from "./registry-sort-bar";
-import { Search, SearchX, Trash2, X } from "lucide-react";
+import { Search, Trash2, X } from "lucide-react";
 import {
   StyledPagination,
   Tooltip,
@@ -15,10 +12,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { REGISTRY_EMPTY_STATE_MESSAGE } from "@/features/registry/registry-content";
 import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
+import { RegistryGrid } from "./browse/registry-grid";
+import { RegistryLoadingState } from "./browse/registry-loading-state";
+import { RegistryEmptyState } from "./browse/registry-empty-state";
+import { useRegistryBrowseData } from "./browse/use-registry-browse-data";
 
 import type { RegistryCardVariant } from "@/shared/registry-card/registry-item-types";
 
@@ -70,9 +70,6 @@ export function RegistryBrowseSection({
 }: RegistryBrowseSectionProps) {
   const [isMac, setIsMac] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialRegistrySidebarCollapsed);
-  const [randomSeed, setRandomSeed] = useState(() => Date.now());
-  const preloadedThumbnailSrcs = useRef<Set<string>>(new Set());
-  const deferredQuery = useDeferredValue(query);
   const selectedTagsKey = useMemo(() => selectedTags.join("\u001f"), [selectedTags]);
   const onPageChangeRef = useRef(onPageChange);
 
@@ -116,59 +113,19 @@ export function RegistryBrowseSection({
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [typeId, query, selectedTagsKey, sortId, sortDir]);
 
-  const typeItems = allItemsByType[typeId] ?? [];
-
-  const counts = useMemo(() => {
-    const result: Record<string, number> = {};
-    for (const [tid, items] of Object.entries(allItemsByType)) {
-      result[tid] = items.length;
-    }
-    return result;
-  }, [allItemsByType]);
-
-  const availableTags = useMemo(() => collectTags(typeItems), [typeItems]);
-
-  const filteredItems = useMemo(
-    () => filterRegistryItems(typeItems, deferredQuery, selectedTags),
-    [typeItems, deferredQuery, selectedTags],
-  );
-
-  const sortedItems = useMemo(
-    () => sortRegistryItems(filteredItems, sortId, sortDir, randomSeed),
-    [filteredItems, sortId, sortDir, randomSeed],
-  );
-
-  useEffect(() => {
-    for (const item of sortedItems) {
-      const src = item.thumbnailSrc;
-      if (!src || preloadedThumbnailSrcs.current.has(src)) continue;
-
-      const image = new Image();
-      image.src = src;
-      preloadedThumbnailSrcs.current.add(src);
-    }
-  }, [sortedItems]);
-
-  const totalPages = useMemo(
-    () => Math.max(1, Math.ceil(sortedItems.length / pageSize)),
-    [sortedItems.length, pageSize],
-  );
-
-  useEffect(() => {
-    if (isLoading) {
-      return;
-    }
-
-    if (page > totalPages) {
-      onPageChangeRef.current(totalPages);
-    }
-  }, [isLoading, page, totalPages]);
-
-  const visibleItems = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    return sortedItems.slice(start, end);
-  }, [sortedItems, page, pageSize]);
+  const { typeItems, counts, availableTags, sortedItems, totalPages, visibleItems, handleReshuffle } =
+    useRegistryBrowseData({
+      allItemsByType,
+      typeId,
+      query,
+      selectedTags,
+      sortId,
+      sortDir,
+      page,
+      pageSize,
+      isLoading,
+      onPageChange,
+    });
 
   const typeConfig = getRegistryTypeConfigOrDefault(typeId);
 
@@ -176,14 +133,10 @@ export function RegistryBrowseSection({
   const cardVariant: RegistryCardVariant =
     viewMode === "list" ? "list" : viewMode === "full" ? "full" : "grid";
 
-  const handleReshuffle = useCallback(() => {
-    setRandomSeed(Date.now());
-  }, []);
-
-  const handleClearAll = useCallback(() => {
+  const handleClearAll = () => {
     onTagsClear();
     onQueryChange("");
-  }, [onTagsClear, onQueryChange]);
+  };
 
   const hasActiveFilters = query.length > 0 || selectedTags.length > 0;
   const TypeIcon = getRegistryTypeIcon(typeId);
@@ -368,216 +321,5 @@ export function RegistryBrowseSection({
         </div>
       </div>
     </section>
-  );
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-type RegistryGridProps = {
-  items: RegistrySearchItem[];
-  typeId: string;
-  cardVariant: RegistryCardVariant;
-};
-
-function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
-  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
-
-  if (cardVariant === "list") {
-    return (
-      <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={`${cardVariant}-${item.id}`}>
-            <RegistryItemCard
-              data={{
-                id: item.id,
-                href: item.href,
-                title: item.name,
-                author: item.author,
-                authorId: item.authorId,
-                description: item.description,
-                thumbnailSrc: item.thumbnailSrc,
-                totalDownloads: item.totalDownloads,
-                tags: item.tags,
-                cityCode: item.cityCode,
-                countryCode: item.countryCode,
-                countryName: item.countryName,
-                countryEmoji: item.countryEmoji,
-                population: item.population,
-              }}
-              typeConfig={typeConfig}
-              variant="list"
-            />
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
-  if (cardVariant === "full") {
-    return (
-      <ul className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {items.map((item) => (
-          <li key={`${cardVariant}-${item.id}`} className="h-full">
-            <RegistryItemCard
-              data={{
-                id: item.id,
-                href: item.href,
-                title: item.name,
-                author: item.author,
-                authorId: item.authorId,
-                description: item.description,
-                thumbnailSrc: item.thumbnailSrc,
-                totalDownloads: item.totalDownloads,
-                tags: item.tags,
-                cityCode: item.cityCode,
-                countryCode: item.countryCode,
-                countryName: item.countryName,
-                countryEmoji: item.countryEmoji,
-                population: item.population,
-              }}
-              typeConfig={typeConfig}
-              variant="full"
-              className="h-full"
-            />
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
-  // Grid layout
-  return (
-    <ul className="grid grid-cols-1 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-      {items.map((item) => (
-        <li key={`${cardVariant}-${item.id}`} className="h-full">
-          <RegistryItemCard
-            data={{
-              id: item.id,
-              href: item.href,
-              title: item.name,
-              author: item.author,
-              authorId: item.authorId,
-              description: item.description,
-              thumbnailSrc: item.thumbnailSrc,
-              totalDownloads: item.totalDownloads,
-              tags: item.tags,
-              cityCode: item.cityCode,
-              countryCode: item.countryCode,
-              countryName: item.countryName,
-              countryEmoji: item.countryEmoji,
-              population: item.population,
-            }}
-            typeConfig={typeConfig}
-            variant="grid"
-            className="h-full"
-          />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function RegistryLoadingState({ cardVariant }: { cardVariant: RegistryCardVariant }) {
-  const shells = Array.from({ length: 8 }, (_, i) => i);
-
-  if (cardVariant === "list") {
-    return (
-      <div className="space-y-2">
-        {shells.map((i) => (
-          <div
-            key={i}
-            className="flex h-20 animate-pulse gap-4 rounded-xl border border-border/40 bg-card/60 p-3"
-          >
-            <div className="aspect-[4/3] w-24 rounded-lg bg-muted/40" />
-            <div className="flex-1 space-y-2 pt-1">
-              <div className="h-4 w-1/3 rounded bg-muted/40" />
-              <div className="h-3 w-1/2 rounded bg-muted/30" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (cardVariant === "full") {
-    return (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {shells.map((i) => (
-          <div
-            key={i}
-            className="animate-pulse overflow-hidden rounded-2xl border border-border/40 bg-card/60"
-          >
-            <div className="w-full bg-muted/40 aspect-[16/9]" />
-            <div className="space-y-3 p-4">
-              <div className="h-5 w-24 rounded bg-muted/40" />
-              <div className="h-6 w-4/5 rounded bg-muted/40" />
-              <div className="h-4 w-1/2 rounded bg-muted/30" />
-              <div className="space-y-1.5">
-                <div className="h-4 w-full rounded bg-muted/30" />
-                <div className="h-4 w-full rounded bg-muted/30" />
-                <div className="h-4 w-11/12 rounded bg-muted/30" />
-                <div className="h-4 w-10/12 rounded bg-muted/30" />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid gap-3 grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
-      {shells.map((i) => (
-        <div
-          key={i}
-          className="animate-pulse overflow-hidden rounded-xl border border-border/40 bg-card/60"
-        >
-          <div className="w-full bg-muted/40 aspect-[16/8]" />
-          <div className="space-y-2 p-3">
-            <div className="h-4 w-20 rounded bg-muted/40" />
-            <div className="h-5 w-3/4 rounded bg-muted/40" />
-            <div className="h-4 w-1/2 rounded bg-muted/30" />
-            <div className="space-y-1.5">
-              <div className="h-3 w-full rounded bg-muted/30" />
-              <div className="h-3 w-5/6 rounded bg-muted/30" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-type RegistryEmptyStateProps = {
-  typeId: string;
-  query: string;
-  selectedTags: string[];
-  onClear: () => void;
-};
-
-function RegistryEmptyState({ typeId, query, selectedTags, onClear }: RegistryEmptyStateProps) {
-  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
-  const accentStyle = {
-    "--registry-empty-accent-light": typeConfig.accentLight,
-    "--registry-empty-accent-dark": typeConfig.accentDark,
-  } as React.CSSProperties;
-
-  return (
-    <div
-      className="flex flex-col items-center gap-4 py-24 text-center"
-      role="status"
-      style={accentStyle}
-    >
-      <SearchX className="size-10 text-muted-foreground/40" aria-hidden={true} />
-      <p className="text-sm font-medium text-muted-foreground">{REGISTRY_EMPTY_STATE_MESSAGE}</p>
-      {(query.length > 0 || selectedTags.length > 0) && (
-        <button
-          type="button"
-          onClick={onClear}
-          className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-[color-mix(in_srgb,var(--registry-empty-accent-light)_30%,var(--border))] text-[var(--registry-empty-accent-light)] hover:border-[color-mix(in_srgb,var(--registry-empty-accent-light)_46%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-empty-accent-light)_12%,var(--background))] dark:border-[color-mix(in_srgb,var(--registry-empty-accent-dark)_34%,var(--border))] dark:text-[var(--registry-empty-accent-dark)] dark:hover:border-[color-mix(in_srgb,var(--registry-empty-accent-dark)_52%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--registry-empty-accent-dark)_14%,var(--background))]"
-        >
-          Clear Filters
-        </button>
-      )}
-    </div>
   );
 }

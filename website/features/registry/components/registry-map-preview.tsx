@@ -751,7 +751,7 @@ export function RegistryMapPreview({ mapId }: { mapId: string }) {
   if (status === 'loading') {
     return (
       <div className="flex h-[26rem] items-center justify-center rounded-xl border border-border/65 bg-muted/25 text-sm text-muted-foreground">
-        Loading map layers...
+        Loading...
       </div>
     );
   }

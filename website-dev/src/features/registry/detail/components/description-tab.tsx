@@ -60,8 +60,6 @@ function DescriptionMarkup({ source }: { source: string }) {
         "[&_h4_a:visited]:!text-inherit",
         "[&_h5_a]:!text-inherit [&_h5_a]:no-underline [&_h5_a:hover]:underline",
         "[&_h5_a:visited]:!text-inherit",
-        "[&_.group/summary:hover_.mdx-spoiler-label]:!text-[var(--registry-type-accent)]",
-        "[&_.dark_.group/summary:hover_.mdx-spoiler-label]:!text-[var(--registry-type-accent)]",
         "[&_h2]:scroll-mt-24",
       )}
       dangerouslySetInnerHTML={{ __html: html }}
