@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getRegistryDetailUrl,
   getRegistryPageUrl,
+  getRegistryVersionUrl,
   matchRegistryRoute,
 } from "@/features/registry/lib/routing";
 
@@ -32,6 +33,16 @@ describe("matchRegistryRoute", () => {
     });
   });
 
+  it("matches version changelog subroute", () => {
+    expect(matchRegistryRoute("/registry/maps/gwangju-4/versions/v1.0.0")).toEqual({
+      kind: "detail",
+      routeSegment: "maps",
+      id: "gwangju-4",
+      tabId: "versions",
+      versionId: "v1.0.0",
+    });
+  });
+
   it("returns none for invalid detail tab subpage", () => {
     expect(matchRegistryRoute("/registry/maps/gwangju-4/not-a-tab")).toEqual({ kind: "none" });
   });
@@ -54,6 +65,14 @@ describe("getRegistryDetailUrl", () => {
       "/registry/maps/gwangju-4/description",
     );
     expect(getRegistryDetailUrl("maps", "gwangju-4")).toBe("/registry/maps/gwangju-4");
+  });
+});
+
+describe("getRegistryVersionUrl", () => {
+  it("builds encoded versions changelog URL", () => {
+    expect(getRegistryVersionUrl("maps", "gwangju 4", "v1.0.0")).toBe(
+      "/registry/maps/gwangju%204/versions/v1.0.0",
+    );
   });
 });
 

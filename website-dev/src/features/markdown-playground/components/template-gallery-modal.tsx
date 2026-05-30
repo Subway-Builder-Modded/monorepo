@@ -239,11 +239,6 @@ export function TemplateGalleryModal({
     openPreviewForVersion(version, `Preview (${version.version})`);
   };
 
-  const headerDesc =
-    screen === "gallery"
-      ? "Browse templates, inspect details, and insert one into the editor."
-      : "Read the description, then choose a version to use below.";
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -263,7 +258,12 @@ export function TemplateGalleryModal({
               screen === "gallery" ? "items-start" : "items-center",
             )}
           >
-            <div className="min-w-0 space-y-1.5">
+            <div
+              className={cn(
+                "min-w-0",
+                screen === "gallery" ? "space-y-1.5" : "flex min-h-9 items-center",
+              )}
+            >
               {/* Breadcrumb */}
               {screen !== "gallery" ? (
                 <Breadcrumb>
@@ -323,18 +323,14 @@ export function TemplateGalleryModal({
                     </span>
                   </DialogTitle>
                   <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                    {headerDesc}
+                    Browse templates, inspect details, and insert one into the editor.
                   </DialogDescription>
                 </>
               ) : (
                 <>
-                  <DialogTitle>
-                    {screen === "preview" ? previewBreadcrumb : selectedTemplate?.title}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {screen === "preview"
-                      ? `Previewing ${previewVersion?.version ?? "latest"} template version`
-                      : `${selectedTemplate?.title} template`}
+                  <DialogTitle className="sr-only">Browse Templates</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Browse template listings and previews.
                   </DialogDescription>
                 </>
               )}

@@ -47,6 +47,7 @@ import {
   renderPlaygroundHtml,
   renderPlainHtml,
 } from "@/features/markdown-playground/lib/mdx-runtime";
+import { MdxRenderedHtml } from "@/features/content/mdx/rendered-html";
 import { copyPlaygroundContent } from "@/features/markdown-playground/lib/copy-playground-content";
 import { TemplateGalleryModal } from "./components/template-gallery-modal";
 import { cn } from "@/lib/utils";
@@ -103,15 +104,6 @@ export function MarkdownPlaygroundRoute() {
   const [selectionStart, setSelectionStart] = useState(0);
   const [selectionEnd, setSelectionEnd] = useState(0);
 
-  const autosizeTextarea = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      return;
-    }
-    textarea.style.height = "0px";
-    textarea.style.height = `${textarea.scrollHeight}px`;
-  };
-
   useEffect(() => {
     const timer = window.setTimeout(() => setCopyFeedback("idle"), 1400);
     return () => window.clearTimeout(timer);
@@ -131,10 +123,6 @@ export function MarkdownPlaygroundRoute() {
       active = false;
       window.clearTimeout(timer);
     };
-  }, [content]);
-
-  useEffect(() => {
-    autosizeTextarea();
   }, [content]);
 
   if (match.kind !== "page") {
@@ -170,6 +158,23 @@ export function MarkdownPlaygroundRoute() {
     setSelectionStart(textarea.selectionStart);
     setSelectionEnd(textarea.selectionEnd);
   };
+
+  const resizeTextareaToContent = (textarea: HTMLTextAreaElement | null) => {
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
+  useEffect(() => {
+    if (mode !== "markdown") {
+      return;
+    }
+
+    resizeTextareaToContent(textareaRef.current);
+  }, [content, mode]);
 
   const applyAction = (actionId: ToolbarActionId) => {
     const textarea = textareaRef.current;
@@ -364,14 +369,18 @@ export function MarkdownPlaygroundRoute() {
             </div>
           </div>
 
-          <div data-testid="playground-content-region" dir="ltr">
+          <div
+            data-testid="playground-content-region"
+            dir="ltr"
+            className="overscroll-contain"
+          >
             {mode === "markdown" ? (
               <textarea
                 ref={textareaRef}
                 value={content}
                 onChange={(event) => {
                   setContent(event.target.value);
-                  autosizeTextarea();
+                  resizeTextareaToContent(event.currentTarget);
                 }}
                 onSelect={onSelectionChange}
                 onKeyUp={onSelectionChange}
@@ -379,18 +388,18 @@ export function MarkdownPlaygroundRoute() {
                 dir="ltr"
                 spellCheck={true}
                 className={cn(
-                  "min-h-[56vh] w-full resize-none overflow-hidden border-0 bg-transparent px-4 py-4 font-mono text-[14px] leading-6 text-foreground",
+                  "min-h-[14rem] w-full resize-none overflow-hidden border-0 bg-transparent px-4 py-4 font-mono text-[14px] leading-6 text-foreground",
                   "placeholder:text-muted-foreground focus-visible:outline-none",
                 )}
                 placeholder="Write Markdown here..."
                 data-testid="playground-markdown-input"
               />
             ) : (
-              <div
+              <MdxRenderedHtml
                 dir="ltr"
-                className="prose prose-invert min-h-[56vh] max-w-none px-4 py-4"
-                dangerouslySetInnerHTML={{ __html: renderedHtml }}
-                data-testid="playground-rich-input"
+                className="px-4 py-4"
+                html={renderedHtml}
+                testId="playground-rich-input"
               />
             )}
           </div>

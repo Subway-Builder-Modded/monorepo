@@ -106,9 +106,7 @@ function applyLegacyHtmlArticleStyling(html: string): string {
 
       const summaryAttrs = appendClass(summaryMatch?.[1] ?? "", spoilerSummaryClass);
       const summaryContent = summaryMatch?.[2] ?? "";
-      const bodyContent = summaryMatch
-        ? content.replace(summaryMatch[0], "").trim()
-        : content;
+      const bodyContent = summaryMatch ? content.replace(summaryMatch[0], "").trim() : content;
       const detailsAttrs = appendClass(rawDetailsAttrs ?? "", spoilerDetailsClass);
 
       return `<details${detailsAttrs}><summary${summaryAttrs}>${spoilerChevronSvg}<span class="inline-flex items-center gap-2"><span class="${spoilerLabelClass}">${summaryContent}</span></span></summary><div class="${spoilerBodyClass}">${bodyContent}</div></details>`;
@@ -148,7 +146,10 @@ function applyLegacyHtmlArticleStyling(html: string): string {
     return `<thead${attrs}>`;
   });
   result = result.replace(/<th(\s[^>]*)?>/gi, (_full, rawAttrs: string | undefined) => {
-    const attrs = appendClass(rawAttrs ?? "", "px-4 py-2.5 text-left font-semibold text-foreground");
+    const attrs = appendClass(
+      rawAttrs ?? "",
+      "align-middle px-4 py-2.5 text-left font-semibold text-muted-foreground [&_svg]:text-muted-foreground",
+    );
     return `<th${attrs}>`;
   });
   result = result.replace(/<td(\s[^>]*)?>/gi, (_full, rawAttrs: string | undefined) => {
@@ -213,9 +214,9 @@ export function createMdxRuntime(options: CreateMdxRuntimeOptions = {}) {
       const html = renderToStaticMarkup(<Content components={components} />);
       return { html };
     } catch {
-      const fallback = await renderMarkdownHtml(source);
+      const markdownFallback = await renderMarkdownHtml(source);
       return {
-        html: fallback,
+        html: markdownFallback,
         warning:
           "Rich HTML fell back to Markdown rendering because the current content could not be fully rendered as MDX.",
       };
@@ -227,7 +228,7 @@ export function createMdxRuntime(options: CreateMdxRuntimeOptions = {}) {
       const Content = await evaluateMdx(source);
       return renderToStaticMarkup(<Content />);
     } catch {
-      return `<pre>${escapeHtml(source)}</pre>`;
+      return renderMarkdownHtml(source);
     }
   }
 

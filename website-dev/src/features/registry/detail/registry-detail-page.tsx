@@ -54,6 +54,7 @@ type RegistryDetailPageProps = {
   routeSegment: string;
   id: string;
   tabId?: string;
+  versionId?: string;
 };
 
 const numberFormatter = new Intl.NumberFormat("en-US");
@@ -110,7 +111,7 @@ async function preloadDetailTabAssets(detail: RegistryDetailModel): Promise<void
   await Promise.all(preloadTargets.map((imageSrc) => preloadImage(imageSrc)));
 }
 
-export function RegistryDetailPage({ routeSegment, id, tabId }: RegistryDetailPageProps) {
+export function RegistryDetailPage({ routeSegment, id, tabId, versionId }: RegistryDetailPageProps) {
   const suite = getSuiteById("registry");
   const railyardSuite = getSuiteById("railyard");
   const [detail, setDetail] = useState<RegistryDetailModel | null>(null);
@@ -438,7 +439,13 @@ export function RegistryDetailPage({ routeSegment, id, tabId }: RegistryDetailPa
                     />
                   </div>
                   <div hidden={visibleActiveTab !== "versions"}>
-                    <VersionsTab versions={detail.versions} />
+                    <VersionsTab
+                      versions={detail.versions}
+                      routeSegment={detail.routeSegment}
+                      listingId={detail.id}
+                      versionSource={detail.versionSource}
+                      selectedVersionId={versionId}
+                    />
                   </div>
                   <div hidden={visibleActiveTab !== "map"}>
                     <MapTab mapId={detail.id} />

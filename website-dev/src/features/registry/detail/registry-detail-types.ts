@@ -14,6 +14,9 @@ export type RegistryDetailVersion = {
   version: string;
   releaseDate: string | null;
   downloads: number | null;
+  downloadUrl: string | null;
+  sourceRepo: string | null;
+  sourceTag: string | null;
 };
 
 export type RegistryDetailIntegritySource = {
@@ -68,6 +71,10 @@ export type RegistryDetailModel = {
   downloads: number | null;
   galleryImages: string[];
   versions: RegistryDetailVersion[];
+  versionSource: {
+    updateType: string | null;
+    updateUrl: string | null;
+  } | null;
   latestVersion: string | null;
   latestDownloadUrl: string | null;
   publishedDate: string | null;

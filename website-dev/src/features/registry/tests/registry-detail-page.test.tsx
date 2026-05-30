@@ -80,6 +80,8 @@ const MAP_LOADED = {
       is_complete: true,
       checked_at: "2026-04-26T00:00:00.000Z",
       source: {
+        repo: "example/gwangju",
+        tag: "v1.0.0",
         download_url: "https://downloads.example/gwangju-1.0.0.zip",
       },
     },
@@ -87,6 +89,8 @@ const MAP_LOADED = {
       is_complete: true,
       checked_at: "2026-04-20T00:00:00.000Z",
       source: {
+        repo: "example/gwangju",
+        tag: "v0.9.0",
         download_url: "https://downloads.example/gwangju-0.9.0.zip",
       },
     },
@@ -125,6 +129,17 @@ const MOD_LOADED = {
   manifest: {
     ...MAP_LOADED.manifest,
     name: "Example Mod",
+  },
+};
+
+const CUSTOM_MAP_LOADED = {
+  ...MAP_LOADED,
+  manifest: {
+    ...MAP_LOADED.manifest,
+    update: {
+      type: "custom",
+      url: "https://updates.example/gwangju.json",
+    },
   },
 };
 
@@ -287,6 +302,71 @@ describe("RegistryDetailPage", () => {
     const versionsTab = screen.getByRole("tab", { name: /Versions/i });
     fireEvent.click(versionsTab);
     expect(versionsTab).toBeInTheDocument();
+  });
+
+  it("renders version changelog view when version subroute is provided", async () => {
+    mockLoadRegistryDetail.mockResolvedValue(MAP_LOADED);
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ body: "## Changelog\n\n- Added sample entry." }), {
+        status: 200,
+      }),
+    );
+
+    render(
+      <RegistryDetailPage
+        routeSegment="maps"
+        id="gwangju-4"
+        tabId="versions"
+        versionId="1.0.0"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("link", { name: "Versions" })).toHaveAttribute(
+        "href",
+        "/registry/maps/gwangju-4/versions",
+      );
+    });
+
+    expect(await screen.findByText("Release Notes")).toBeInTheDocument();
+    expect(await screen.findByText("Added sample entry.")).toBeInTheDocument();
+
+    fetchSpy.mockRestore();
+  });
+
+  it("renders version changelog view for custom update URLs", async () => {
+    mockLoadRegistryDetail.mockResolvedValue(CUSTOM_MAP_LOADED);
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          versions: [
+            {
+              version: "1.0.0",
+              changelog: "## Custom Changelog\n\n- Loaded from the update JSON.",
+            },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    render(
+      <RegistryDetailPage
+        routeSegment="maps"
+        id="gwangju-4"
+        tabId="versions"
+        versionId="1.0.0"
+      />,
+    );
+
+    expect(await screen.findByText("Release Notes")).toBeInTheDocument();
+    expect(await screen.findByText("Loaded from the update JSON.")).toBeInTheDocument();
+
+    expect(fetchSpy).toHaveBeenCalledWith("https://updates.example/gwangju.json");
+
+    fetchSpy.mockRestore();
   });
 
   it("renders details tab metric cards", async () => {

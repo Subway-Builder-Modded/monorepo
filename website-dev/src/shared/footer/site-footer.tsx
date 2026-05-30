@@ -15,7 +15,8 @@ export function SiteFooter() {
   const columns = SITE_SUITES.map((suite) => ({
     id: suite.id,
     title: SUITE_COLUMN_TITLES[suite.id] ?? suite.title,
-    accentColor: `color-mix(in srgb, ${suite.accent.dark} 62%, ${suite.accent.light})`,
+    accentLight: suite.accent.light,
+    accentDark: suite.accent.dark,
     links: getItemsForSuite(suite.id).map((item) => {
       const ItemIcon = item.icon;
 

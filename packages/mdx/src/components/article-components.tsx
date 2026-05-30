@@ -220,7 +220,10 @@ export function createArticleMdxComponents({
       </thead>
     ),
     th: ({ children, ...props }) => (
-      <th className="px-4 py-2.5 text-left font-semibold text-foreground" {...props}>
+      <th
+        className="align-middle px-4 py-2.5 text-left font-semibold text-muted-foreground [&_svg]:text-muted-foreground"
+        {...props}
+      >
         {children as ReactNode}
       </th>
     ),

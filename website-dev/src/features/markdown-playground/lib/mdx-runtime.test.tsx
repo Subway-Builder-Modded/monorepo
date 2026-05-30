@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
   renderMarkdownHtml,
+  renderPlainHtml,
   renderPlaygroundHtml,
 } from "@/features/markdown-playground/lib/mdx-runtime";
 
@@ -114,9 +115,9 @@ describe("renderPlaygroundHtml", () => {
     const result = await renderPlaygroundHtml(description);
 
     expect(result.warning).toBeUndefined();
-    expect(result.html).toMatch(/id="[^"]*guangzhou[^"]*"/i);
+    expect(result.html).toMatch(/id="[^"]*guangzhou"/i);
     expect(result.html).toContain("text-4xl font-extrabold");
-    expect(result.html).toContain("text-2xl font-semibold");
+    expect(result.html).toContain("Guangzhou");
   });
 
   it("does not center linked badge images unless explicitly requested", async () => {
@@ -148,6 +149,41 @@ describe("renderPlaygroundHtml", () => {
     expect(result.warning).toBeUndefined();
     expect(result.html).toContain("mx-auto");
   });
+
+  it("renders template placeholder syntax through rich preview styling", async () => {
+    const source = [
+      "---",
+      "version: v1.0.0",
+      "---",
+      "",
+      "# {{MAP_NAME}}",
+      "",
+      "## Coverage",
+      "",
+      "<table style=\"width: auto\">",
+      "  <tr><td><strong>Region</strong></td><td>{{ REGION_NAME }}</td></tr>",
+      "</table>",
+      "",
+      "{{#IF airport}}",
+      "<details>",
+      "<summary>Airports — {{airport_DEMAND}} ({{airport_PCT}}%)</summary>",
+      "<table style=\"width: auto\">",
+      "  {{ AIRPORT_ROWS }}",
+      "</table>",
+      "</details>",
+      "{{/IF}}",
+    ].join("\n");
+
+    const result = await renderPlaygroundHtml(source);
+
+    expect(result.warning).toBeUndefined();
+    expect(result.html).toContain("text-4xl font-extrabold");
+    expect(result.html).toContain("[Map Name]");
+    expect(result.html).toContain("mdx-table-wrap");
+    expect(result.html).toContain("group/summary");
+    expect(result.html).toContain("[Airport Demand]");
+    expect(result.html).toContain("Airport Rows");
+  });
 });
 
 describe("renderMarkdownHtml", () => {
@@ -156,6 +192,14 @@ describe("renderMarkdownHtml", () => {
 
     expect(html).toContain("<h1>Title</h1>");
     expect(html).toContain("<strong>bold</strong>");
+    expect(html).not.toContain("<pre>");
+  });
+});
+
+describe("renderPlainHtml", () => {
+  it("falls back without pre-wrapping when mdx evaluation fails", async () => {
+    const html = await renderPlainHtml("<div");
+
     expect(html).not.toContain("<pre>");
   });
 });

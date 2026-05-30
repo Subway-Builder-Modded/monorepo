@@ -128,7 +128,10 @@ function resolveSourceCodeLink(
 }
 
 function resolveVersions(
-  listingVersions: Record<string, { is_complete?: boolean; checked_at?: string }>,
+  listingVersions: Record<
+    string,
+    { is_complete?: boolean; checked_at?: string; source?: { download_url?: string } }
+  >,
   versionDownloads: Record<string, number>,
 ): RegistryDetailVersion[] {
   const versions = Object.entries(listingVersions)
@@ -140,6 +143,9 @@ function resolveVersions(
         typeof versionDownloads[version] === "number"
           ? Math.max(0, versionDownloads[version])
           : null,
+      downloadUrl: meta.source?.download_url?.trim() || null,
+      sourceRepo: meta.source?.repo?.trim() || null,
+      sourceTag: meta.source?.tag?.trim() || null,
     }));
 
   versions.sort((left, right) => {
@@ -332,6 +338,12 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
             sourceQuality,
             levelOfDetail,
             fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
+          }
+        : null,
+      versionSource: data.manifest.update
+        ? {
+            updateType: data.manifest.update.type?.trim() || null,
+            updateUrl: data.manifest.update.url?.trim() || null,
           }
         : null,
   };

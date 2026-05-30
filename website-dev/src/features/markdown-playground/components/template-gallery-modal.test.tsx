@@ -4,8 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RegistryTemplate } from "@/lib/registry/templates";
 import { TemplateGalleryModal } from "./template-gallery-modal";
 
+const renderPlaygroundHtmlMock = vi.fn(async () => ({ html: "<p>Template listing description.</p>" }));
+
 vi.mock("@/features/markdown-playground/lib/mdx-runtime", () => ({
-  renderPlaygroundHtml: vi.fn(async () => ({ html: "<p>Template listing description.</p>" })),
+  renderPlaygroundHtml: (source: string) => renderPlaygroundHtmlMock(source),
 }));
 
 const TEMPLATE_FIXTURE: RegistryTemplate = {
@@ -39,6 +41,7 @@ const TEMPLATE_FIXTURE: RegistryTemplate = {
 describe("TemplateGalleryModal", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    renderPlaygroundHtmlMock.mockClear();
   });
 
   it("opens latest preview screen from Preview Template and omits listing heading card", async () => {
@@ -94,5 +97,24 @@ describe("TemplateGalleryModal", () => {
 
     expect(onInsertTemplate).toHaveBeenCalledWith("# Version 1 body\n\nOlder content.");
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("shows breadcrumb-only header copy on listing screen", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TemplateGalleryModal
+        open={true}
+        onOpenChange={vi.fn()}
+        templates={[TEMPLATE_FIXTURE]}
+        onInsertTemplate={vi.fn()}
+      />,
+    );
+
+    await user.click(await screen.findByTestId("template-card-demo-template"));
+
+    expect(await screen.findByTestId("template-listing-screen")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Browse Templates" })).toBeInTheDocument();
+    expect(screen.queryByText("Demo Template template")).not.toBeInTheDocument();
   });
 });

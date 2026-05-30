@@ -15,7 +15,7 @@ const REGISTRY_DETAIL_TABS = new Set([
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
-  | { kind: "detail"; routeSegment: string; id: string; tabId?: string };
+  | { kind: "detail"; routeSegment: string; id: string; tabId?: string; versionId?: string };
 
 function normalizePathname(pathname: string): string {
   const withLeadingSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
@@ -65,6 +65,21 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
     };
   }
 
+  if (segments.length === 5 && segments[0] === "registry") {
+    const tabId = decodeURIComponent(segments[3] ?? "");
+    if (tabId !== "versions") {
+      return { kind: "none" };
+    }
+
+    return {
+      kind: "detail",
+      routeSegment: decodeURIComponent(segments[1] ?? ""),
+      id: decodeURIComponent(segments[2] ?? ""),
+      tabId,
+      versionId: decodeURIComponent(segments[4] ?? ""),
+    };
+  }
+
   return { kind: "none" };
 }
 
@@ -84,4 +99,8 @@ export function getRegistryDetailUrl(routeSegment: string, id: string, tabId?: s
   }
 
   return `${base}/${encodeURIComponent(tabId)}`;
+}
+
+export function getRegistryVersionUrl(routeSegment: string, id: string, version: string): string {
+  return `${getRegistryDetailUrl(routeSegment, id, "versions")}/${encodeURIComponent(version)}`;
 }
