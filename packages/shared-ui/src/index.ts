@@ -8,7 +8,6 @@ export {
   SITE_SECTION_PADDING_BOTTOM_CLASS,
   SITE_SHELL_CLASS,
   APP_SHELL_PADDING_CLASS,
-  APP_SHELL_OUTER_CONTAINER_CLASS,
   APP_SHELL_WIDTH_CLASS,
 } from './lib/layout-tokens';
 export { Badge } from './components/badge';
@@ -177,6 +176,7 @@ export {
   SectionSeparator,
   type SectionSeparatorProps,
 } from './components/section-separator';
+export { NeutralFadedUnderline } from './components/neutral-faded-underline';
 export {
   SectionShell,
   type SectionShellProps,
@@ -246,6 +246,10 @@ export {
   type ReleaseStatusChipSize,
 } from './components/release-status-chip';
 export {
+  RankBadge,
+  type RankBadgeProps,
+} from './components/rank-badge';
+export {
   AnalyticsPreview,
   type AnalyticsPreviewProps,
   type AnalyticsPreviewSeries,
@@ -257,3 +261,16 @@ export {
   getToneVarsClass,
   type LocalAccentTone,
 } from './lib/local-accent';
+  export {
+    HeroAccentBar,
+    type HeroAccentBarProps,
+    type AccentSegment,
+  } from './components/hero-accent-bar';
+  export {
+    Pagination,
+    type PaginationProps,
+  } from './components/pagination';
+  export {
+    StyledPagination,
+    type StyledPaginationProps,
+  } from './components/styled-pagination';

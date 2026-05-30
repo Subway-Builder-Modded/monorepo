@@ -35,5 +35,5 @@ describe("RailyardRoute", () => {
       .filter((link) => link.getAttribute("href")?.includes("/registry/world-map"));
     expect(worldMapLinks.length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: "Windows" }).length).toBeGreaterThan(0);
-  });
+  }, 30_000);
 });

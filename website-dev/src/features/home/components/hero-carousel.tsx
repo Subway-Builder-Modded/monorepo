@@ -2,7 +2,7 @@ import { type CSSProperties, useCallback, useEffect, useRef, useState } from "re
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
 import { GithubIcon, DiscordIcon } from "@subway-builder-modded/icons";
-import { HeroAccentBar } from "@/shared/components/hero-accent-bar";
+import { HeroAccentBar } from "@subway-builder-modded/shared-ui";
 import {
   HERO_SLIDES,
   HERO_AUTO_ROTATE_MS,
@@ -100,8 +100,6 @@ export function HeroCarousel() {
         if (multi && sectionRef.current && !sectionRef.current.contains(e.relatedTarget as Node))
           setPaused(false);
       }}
-      aria-label="Hero showcase"
-      aria-roledescription="carousel"
     >
       <div className="absolute -top-12 inset-x-0 bottom-0 overflow-hidden">
         <motion.div
@@ -120,12 +118,10 @@ export function HeroCarousel() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ opacity: { duration: 1.2, ease: "easeInOut" } }}
-              aria-label={slide.alt}
-              aria-roledescription="slide"
             >
               <img
                 src={slide.imageLight}
-                alt={slide.alt}
+                alt=""
                 className="absolute inset-0 block h-full w-full object-cover dark:hidden"
                 style={
                   slide.focalPointLight ? { objectPosition: slide.focalPointLight } : undefined
@@ -135,7 +131,7 @@ export function HeroCarousel() {
               />
               <img
                 src={slide.imageDark}
-                alt={slide.alt}
+                alt=""
                 className="absolute inset-0 hidden h-full w-full object-cover dark:block"
                 style={slide.focalPointDark ? { objectPosition: slide.focalPointDark } : undefined}
                 loading="eager"
@@ -244,7 +240,6 @@ export function HeroCarousel() {
               key={s.id}
               type="button"
               role="tab"
-              aria-label={`Slide ${i + 1}`}
               aria-selected={i === idx}
               onClick={() => go(i)}
               className={cn(

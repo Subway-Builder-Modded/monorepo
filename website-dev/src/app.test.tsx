@@ -7,6 +7,7 @@ const mockUseLocation = vi.fn();
 
 vi.mock("@/lib/router", () => ({
   useLocation: () => mockUseLocation(),
+  Link: ({ to, children }: { to: string; children: ReactNode }) => <a href={to}>{children}</a>,
 }));
 
 vi.mock("@/shell", () => ({

@@ -100,9 +100,6 @@ export function OnThisPage({
     [headings],
   );
 
-  // Track which heading IDs are actually rendered in the DOM. Headings that
-  // live inside an inactive tab panel are not in the DOM and must not appear
-  // in the "On This Page" rail until that tab becomes active.
   const [renderedIds, setRenderedIds] = useState<Set<string> | null>(null);
 
   useEffect(() => {
@@ -137,22 +134,18 @@ export function OnThisPage({
     };
 
     recompute();
-    scheduleRecompute();
 
     window.addEventListener("sbm-tab-group-change", scheduleRecompute);
     window.addEventListener("sbm-docs-content-change", scheduleRecompute);
-
-    const observer = new MutationObserver(scheduleRecompute);
-    const article = document.querySelector("article");
-    if (article) {
-      observer.observe(article, { childList: true, subtree: true });
-    }
+    window.addEventListener("resize", scheduleRecompute);
+    window.addEventListener("hashchange", scheduleRecompute);
 
     return () => {
       if (frameId) window.cancelAnimationFrame(frameId);
       window.removeEventListener("sbm-tab-group-change", scheduleRecompute);
       window.removeEventListener("sbm-docs-content-change", scheduleRecompute);
-      observer.disconnect();
+      window.removeEventListener("resize", scheduleRecompute);
+      window.removeEventListener("hashchange", scheduleRecompute);
     };
   }, [candidateHeadings]);
 

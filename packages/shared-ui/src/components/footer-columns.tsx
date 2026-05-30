@@ -15,7 +15,9 @@ export type FooterLink = {
 export type FooterColumn = {
   id: string;
   title: string;
-  accentColor: string;
+  accentColor?: string;
+  accentLight?: string;
+  accentDark?: string;
   links: FooterLink[];
 };
 
@@ -56,12 +58,39 @@ export function FooterColumns({ columns }: FooterColumnsProps) {
   return (
     <section className="mx-auto flex w-full max-w-[74rem] flex-wrap justify-center gap-x-3 gap-y-5 sm:gap-x-4 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(7.5rem,8.5rem))] lg:justify-center lg:gap-x-1">
       {columns.map((column) => (
-        <div key={column.id} className="min-w-0 shrink-0 basis-[10rem] sm:basis-[10.5rem] lg:basis-auto">
+        <div
+          key={column.id}
+          className="min-w-0 shrink-0 basis-[10rem] sm:basis-[10.5rem] lg:basis-auto"
+          style={
+            column.accentLight || column.accentDark
+              ? ({
+                  ["--column-accent-light" as string]:
+                    column.accentLight ?? column.accentColor ?? "currentColor",
+                  ["--column-accent-dark" as string]:
+                    column.accentDark ?? column.accentLight ?? column.accentColor ?? "currentColor",
+                } as CSSProperties)
+              : undefined
+          }
+        >
           <div className="min-h-[2.25rem]">
-            <span aria-hidden="true" className="mb-1 block h-0.5 w-8 rounded-full" style={{ backgroundColor: column.accentColor }} />
+            <span
+              aria-hidden="true"
+              className={cn(
+                "mb-1 block h-0.5 w-8 rounded-full",
+                column.accentLight || column.accentDark
+                  ? "bg-[color:var(--column-accent-light)] dark:bg-[color:var(--column-accent-dark)]"
+                  : undefined,
+              )}
+              style={!column.accentLight && !column.accentDark ? { backgroundColor: column.accentColor } : undefined}
+            />
             <h3
-              className="text-xs font-semibold uppercase leading-tight tracking-[0.14em] whitespace-nowrap"
-              style={{ color: column.accentColor }}
+              className={cn(
+                "text-xs font-semibold uppercase leading-tight tracking-[0.14em] whitespace-nowrap",
+                column.accentLight || column.accentDark
+                  ? "text-[color:var(--column-accent-light)] dark:text-[color:var(--column-accent-dark)]"
+                  : undefined,
+              )}
+              style={!column.accentLight && !column.accentDark ? { color: column.accentColor } : undefined}
             >
               {column.title}
             </h3>

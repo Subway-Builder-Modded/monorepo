@@ -4,6 +4,7 @@ export type RegistryItemBase = {
   href: string;
   title: string;
   author: string;
+  authorId: string | null;
   description: string;
   thumbnailSrc: string | null;
   totalDownloads: number;

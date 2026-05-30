@@ -208,7 +208,7 @@ export const PROJECT_COLOR_SCHEMES: Record<ProjectColorId, ThemedColorSet> = {
   }),
   website: withSharedTextColors({
     accentColor: createModeColorFromDarkAccent('#FFBE73'),
-    mutedColor: createModeColorFromDarkVibrant('#F2992E'),
+    mutedColor: createModeColorFromDarkVibrant('#A8641E'),
     primaryColor: createModeColorFromDarkVibrant('#F2992E55'),
     secondaryColor: createModeColorFromDarkVibrant('#FFBE7355'),
   }),

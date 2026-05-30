@@ -179,6 +179,7 @@ describe("MarkdownPlaygroundRoute", () => {
 
     expect(await screen.findByTestId("template-listing-screen")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Browse Templates" })).toBeInTheDocument();
+    expect(screen.queryByText("Map Description template")).not.toBeInTheDocument();
     expect(screen.getByTestId("template-version-row-v1.0.0")).toBeInTheDocument();
 
     // Clicking "Use Template" inserts latest version body and closes the modal
@@ -209,6 +210,27 @@ describe("MarkdownPlaygroundRoute", () => {
     });
   });
 
+  it("renders inserted map description template through the direct rich preview", async () => {
+    const user = userEvent.setup();
+    render(<MarkdownPlaygroundRoute />);
+
+    await user.click(screen.getByTestId("playground-use-template"));
+    await user.click(await screen.findByTestId("template-card-map-description"));
+    await user.click(screen.getByTestId("template-use-latest"));
+
+    await user.click(screen.getByTestId("mode-rich"));
+
+    const richInput = await screen.findByTestId("playground-rich-input");
+    await waitFor(() => {
+      expect(richInput.textContent).toContain("Coverage");
+    });
+
+    expect(richInput.innerHTML).toContain("text-4xl font-extrabold");
+    expect(richInput.innerHTML).toContain("mdx-table-wrap");
+    expect(richInput.innerHTML).toContain("group/summary");
+    expect(richInput.textContent).toContain("Coverage");
+  });
+
   it("shows verified indicator for verified template authors", async () => {
     const user = userEvent.setup();
     render(<MarkdownPlaygroundRoute />);
@@ -216,6 +238,25 @@ describe("MarkdownPlaygroundRoute", () => {
     await user.click(screen.getByTestId("playground-use-template"));
     const card = await screen.findByTestId("template-card-map-description");
 
-    expect(within(card).getByLabelText("Verified author")).toBeInTheDocument();
+    expect(card.querySelector(".lucide-badge-check")).toBeInTheDocument();
+  });
+
+  it("uses an unconstrained editor region with auto-growing markdown input", async () => {
+    const user = userEvent.setup();
+    render(<MarkdownPlaygroundRoute />);
+
+    const region = screen.getByTestId("playground-content-region");
+    const markdownInput = screen.getByTestId("playground-markdown-input");
+
+    expect(region.className).not.toContain("overflow-y-auto");
+    expect(region.className).not.toContain("h-[70vh]");
+    expect(region.className).not.toContain("max-h-[70vh]");
+    expect(markdownInput.className).toContain("overflow-hidden");
+    expect(markdownInput.className).not.toContain("overflow-y-auto");
+
+    await user.click(screen.getByTestId("mode-rich"));
+    const richInput = await screen.findByTestId("playground-rich-input");
+    expect(richInput.className).not.toContain("h-full");
+    expect(richInput.className).not.toContain("overflow-y-auto");
   });
 });

@@ -6,7 +6,7 @@ export const STORAGE_KEYS = {
   mode: "sbm.registry.markdownPlayground.mode",
 } as const;
 
-export const DEFAULT_MARKDOWN = "# Registry Markdown Playground\n\nStart writing your draft here.";
+export const DEFAULT_MARKDOWN = "# Subway Builder Modded Markdown Playground";
 
 function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";

@@ -53,10 +53,7 @@ export function TemplateCard({ template, onSelect }: TemplateCardProps) {
                   <TooltipTrigger asChild>
                     <span className="inline-flex items-center gap-1.5">
                       <span>{template.author}</span>
-                      <BadgeCheck
-                        className="size-3.5 text-emerald-500"
-                        aria-label="Verified author"
-                      />
+                      <BadgeCheck className="size-3.5 text-emerald-500" aria-hidden={true} />
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="z-[140]">

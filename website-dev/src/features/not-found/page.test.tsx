@@ -15,8 +15,8 @@ describe("NotFoundPage", () => {
   it("renders only the transit badge plus home and discord actions", () => {
     render(<NotFoundPage />);
 
-    expect(screen.getByRole("heading", { name: "Page not found" })).toBeInTheDocument();
-    expect(screen.getByText("404")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Page not found" })).not.toBeInTheDocument();
+    expect(screen.getByText("搵唔到")).toBeInTheDocument();
     expect(screen.getAllByText("Not Found").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Discord" })).toHaveAttribute(

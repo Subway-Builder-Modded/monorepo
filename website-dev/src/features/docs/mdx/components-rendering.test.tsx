@@ -38,7 +38,7 @@ describe("mdxComponents rendering behavior", () => {
     expect(summary?.className).toContain("cursor-pointer");
     expect(summary?.className).toContain("list-none");
     expect(screen.getByText("More Information").className).toContain(
-      "group-hover/summary:text-[var(--suite-accent-light)]",
+      "group-hover/summary:text-[var(--registry-type-accent,var(--suite-accent-light))]",
     );
 
     expect(screen.getByText("Inner content body")).toBeInTheDocument();

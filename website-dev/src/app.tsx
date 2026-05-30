@@ -12,6 +12,7 @@ import {
 } from "@/features/markdown-playground";
 import { HomePage } from "@/features/home";
 import { RailyardRoute, matchRailyardRoute } from "@/features/railyard";
+import { RegistryRoute, matchRegistryRoute } from "@/features/registry";
 import { TemplateModRoute, matchTemplateModRoute } from "@/features/template-mod";
 import { DepotRoute, matchDepotRoute } from "@/features/depot";
 import { NotFoundPage } from "@/features/not-found";
@@ -61,6 +62,11 @@ function RouteSwitch() {
   const railyardMatch = matchRailyardRoute(location.pathname);
   if (railyardMatch.kind !== "none") {
     return <RailyardRoute />;
+  }
+
+  const registryMatch = matchRegistryRoute(location.pathname);
+  if (registryMatch.kind !== "none") {
+    return <RegistryRoute />;
   }
 
   const depotMatch = matchDepotRoute(location.pathname);

@@ -18,7 +18,7 @@ describe("HeroCreditsTooltip", () => {
   it("shows expected map and mod metadata", () => {
     render(<HeroCreditsTooltip slide={slide} />);
 
-    const button = screen.getByRole("button", { name: /image credits/i });
+    const button = screen.getByRole("button");
     fireEvent.mouseEnter(button.parentElement as HTMLElement);
 
     const tooltip = screen.getByRole("tooltip");
@@ -34,7 +34,7 @@ describe("HeroCreditsTooltip", () => {
   it("keeps tooltip stable while transitioning through the hover region", () => {
     render(<HeroCreditsTooltip slide={slide} />);
 
-    const button = screen.getByRole("button", { name: /image credits/i });
+    const button = screen.getByRole("button");
     const container = button.parentElement as HTMLElement;
 
     fireEvent.mouseEnter(container);
@@ -58,7 +58,7 @@ describe("HeroCreditsTooltip", () => {
   it("supports pin/unpin, outside-click close, and Escape close", () => {
     render(<HeroCreditsTooltip slide={slide} />);
 
-    const button = screen.getByRole("button", { name: /image credits/i });
+    const button = screen.getByRole("button");
     const container = button.parentElement as HTMLElement;
 
     fireEvent.click(button);

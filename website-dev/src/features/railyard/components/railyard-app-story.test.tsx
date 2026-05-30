@@ -6,12 +6,16 @@ describe("RailyardAppStory", () => {
   it("updates the selected story content when a step is chosen", () => {
     render(<RailyardAppStory />);
 
-    expect(screen.getAllByAltText("Browsing maps and mods in Railyard").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /Browse Registry/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
 
     fireEvent.click(screen.getByRole("button", { name: /Install Content/i }));
 
-    expect(
-      screen.getAllByAltText("Viewing a registry listing in Railyard before download").length,
-    ).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /Install Content/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 });

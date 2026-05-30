@@ -57,10 +57,12 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             background: "var(--card)",
           }}
         >
-          <h1 style={{ margin: "0 0 10px", fontSize: "20px", lineHeight: 1.3 }}>Runtime error</h1>
+          <h1 style={{ margin: "0 0 10px", fontSize: "20px", lineHeight: 1.3 }}>
+            A Runtime Error Occurred
+          </h1>
           <p style={{ margin: "0 0 12px", opacity: 0.86 }}>
-            The app hit an error after load. This prevents the blackscreen and shows the failure
-            reason so it can be fixed quickly.
+            An unexpected error occurred while rendering the application. Please try reloading the
+            page. If the error persists, contact the developers with the error message below.
           </p>
           <pre
             style={{
@@ -87,7 +89,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
               cursor: "pointer",
             }}
           >
-            Reload page
+            Reload
           </button>
         </section>
       </main>

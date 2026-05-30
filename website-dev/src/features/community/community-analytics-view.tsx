@@ -74,7 +74,6 @@ function MetricDirectoryCard({
         </div>
       }
       className="rounded-2xl border border-border/70 bg-card/75 p-2"
-      contentClassName="items-start"
     />
   );
 }
@@ -204,11 +203,7 @@ export function CommunityAnalyticsView({ model }: { model: CommunityPageModel })
           })}
         </div>
 
-        <div
-          id="community-period-panel"
-          role="tabpanel"
-          aria-labelledby={`community-period-${period}`}
-        >
+        <div id="community-period-panel" role="tabpanel">
           {period !== "all" && active ? (
             <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <MetricDirectoryCard

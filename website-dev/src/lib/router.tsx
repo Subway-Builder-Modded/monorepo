@@ -129,16 +129,23 @@ export function shouldHandleClientNavigation(intent: LinkNavigationIntent) {
   return true;
 }
 
-export function navigate(to: string) {
+export type NavigateOptions = {
+  preserveScroll?: boolean;
+};
+
+export function navigate(to: string, options?: NavigateOptions) {
   const nextPath = to.startsWith("/") ? to : `/${to}`;
   const nextHref = addBasePath(nextPath);
+  const currentHref = `${window.location.pathname}${window.location.search}${window.location.hash}`;
 
-  if (window.location.pathname === nextHref) {
+  if (currentHref === nextHref) {
     return;
   }
 
   window.history.pushState({}, "", nextHref);
-  window.scrollTo(0, 0);
+  if (!options?.preserveScroll) {
+    window.scrollTo(0, 0);
+  }
   emitNavigation();
 }
 
@@ -167,9 +174,10 @@ export function useLocation(): LocationState {
 type LinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   to: string;
   children: ReactNode;
+  preserveScroll?: boolean;
 };
 
-export function Link({ to, onClick, target, rel, children, ...props }: LinkProps) {
+export function Link({ to, onClick, target, rel, children, preserveScroll, ...props }: LinkProps) {
   const href =
     to.startsWith("http://") ||
     to.startsWith("https://") ||
@@ -196,9 +204,9 @@ export function Link({ to, onClick, target, rel, children, ...props }: LinkProps
       }
 
       event.preventDefault();
-      navigate(to);
+      navigate(to, { preserveScroll });
     },
-    [onClick, target, to],
+    [onClick, preserveScroll, target, to],
   );
 
   return (
