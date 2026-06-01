@@ -17,7 +17,9 @@ export const REGISTRY_DETAIL_TAB_ITEMS: RegistryDetailTabItem[] = [
   { id: "details", label: "Details", icon: Info },
 ];
 
-const DETAIL_TAB_IDS = new Set<RegistryDetailTabId>(REGISTRY_DETAIL_TAB_ITEMS.map((item) => item.id));
+const DETAIL_TAB_IDS = new Set<RegistryDetailTabId>(
+  REGISTRY_DETAIL_TAB_ITEMS.map((item) => item.id),
+);
 
 export function resolveRegistryDetailTabId(tabId: string | undefined): RegistryDetailTabId {
   if (!tabId) {

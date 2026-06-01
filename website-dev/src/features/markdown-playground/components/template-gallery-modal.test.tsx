@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RegistryTemplate } from "@/lib/registry/templates";
 import { TemplateGalleryModal } from "./template-gallery-modal";
 
-const renderPlaygroundHtmlMock = vi.fn(async () => ({ html: "<p>Template listing description.</p>" }));
+const renderPlaygroundHtmlMock = vi.fn(async (_source: string) => ({
+  html: "<p>Template listing description.</p>",
+}));
 
 vi.mock("@/features/markdown-playground/lib/mdx-runtime", () => ({
   renderPlaygroundHtml: (source: string) => renderPlaygroundHtmlMock(source),

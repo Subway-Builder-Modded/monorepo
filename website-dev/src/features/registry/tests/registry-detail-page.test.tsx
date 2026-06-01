@@ -314,12 +314,7 @@ describe("RegistryDetailPage", () => {
     );
 
     render(
-      <RegistryDetailPage
-        routeSegment="maps"
-        id="gwangju-4"
-        tabId="versions"
-        versionId="1.0.0"
-      />,
+      <RegistryDetailPage routeSegment="maps" id="gwangju-4" tabId="versions" versionId="1.0.0" />,
     );
 
     await waitFor(() => {
@@ -353,12 +348,7 @@ describe("RegistryDetailPage", () => {
     );
 
     render(
-      <RegistryDetailPage
-        routeSegment="maps"
-        id="gwangju-4"
-        tabId="versions"
-        versionId="1.0.0"
-      />,
+      <RegistryDetailPage routeSegment="maps" id="gwangju-4" tabId="versions" versionId="1.0.0" />,
     );
 
     expect(await screen.findByText("Release Notes")).toBeInTheDocument();

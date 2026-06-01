@@ -369,11 +369,7 @@ export function MarkdownPlaygroundRoute() {
             </div>
           </div>
 
-          <div
-            data-testid="playground-content-region"
-            dir="ltr"
-            className="overscroll-contain"
-          >
+          <div data-testid="playground-content-region" dir="ltr" className="overscroll-contain">
             {mode === "markdown" ? (
               <textarea
                 ref={textareaRef}

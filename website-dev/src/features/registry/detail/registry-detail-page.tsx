@@ -1,17 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ArrowDownToLine,
-  ArrowUpRight,
-  BarChart3,
-  Download,
-  FileText,
-  GalleryHorizontalEnd,
-  History,
-  Info,
-  Loader2,
-  Map,
-  Users,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowUpRight, Download, Loader2, Users } from "lucide-react";
 import {
   NeutralFadedUnderline,
   SuiteAccentScope,
@@ -111,7 +99,12 @@ async function preloadDetailTabAssets(detail: RegistryDetailModel): Promise<void
   await Promise.all(preloadTargets.map((imageSrc) => preloadImage(imageSrc)));
 }
 
-export function RegistryDetailPage({ routeSegment, id, tabId, versionId }: RegistryDetailPageProps) {
+export function RegistryDetailPage({
+  routeSegment,
+  id,
+  tabId,
+  versionId,
+}: RegistryDetailPageProps) {
   const suite = getSuiteById("registry");
   const railyardSuite = getSuiteById("railyard");
   const [detail, setDetail] = useState<RegistryDetailModel | null>(null);

@@ -42,7 +42,5 @@ function DescriptionMarkup({ source }: { source: string }) {
     };
   }, [source]);
 
-  return (
-    <MdxRenderedHtml html={html} />
-  );
+  return <MdxRenderedHtml html={html} />;
 }

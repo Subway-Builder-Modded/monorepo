@@ -999,7 +999,6 @@ export function MapTab({ mapId }: { mapId: string }) {
           <span>{formatMetricValue(activeMetric, legendMax)}</span>
         </div>
       </div>
-
     </div>
   );
 }

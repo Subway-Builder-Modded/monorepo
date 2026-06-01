@@ -99,9 +99,7 @@ async function getCustomVersionChangelog(
     }) as { changelog?: unknown } | undefined;
 
     const changelog =
-      typeof matchingVersion?.changelog === "string"
-        ? matchingVersion.changelog.trim()
-        : "";
+      typeof matchingVersion?.changelog === "string" ? matchingVersion.changelog.trim() : "";
     return changelog || null;
   })();
 
@@ -189,7 +187,7 @@ export function VersionsTab({
   const selectedVersion = useMemo(
     () =>
       selectedVersionId
-        ? versions.find((version) => version.version === selectedVersionId) ?? null
+        ? (versions.find((version) => version.version === selectedVersionId) ?? null)
         : null,
     [versions, selectedVersionId],
   );
@@ -367,7 +365,9 @@ export function VersionsTab({
             ) : versionChangelogHtml ? (
               <MdxRenderedHtml html={versionChangelogHtml} />
             ) : (
-              <p className="text-sm text-muted-foreground">No changelog provided for this version.</p>
+              <p className="text-sm text-muted-foreground">
+                No changelog provided for this version.
+              </p>
             )}
           </section>
         )}
@@ -381,7 +381,11 @@ export function VersionsTab({
         <thead className="border-b border-border/50 bg-muted/30">
           <tr>
             <th className="align-middle px-4 py-2.5 text-left font-semibold text-muted-foreground">
-              <button type="button" onClick={() => handleSort("version")} className={getHeaderButtonClassName("version")}>
+              <button
+                type="button"
+                onClick={() => handleSort("version")}
+                className={getHeaderButtonClassName("version")}
+              >
                 <Tag className="size-4" />
                 Version
                 {renderSortIcon("version", "size-3.5")}

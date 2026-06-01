@@ -113,19 +113,26 @@ export function RegistryBrowseSection({
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [typeId, query, selectedTagsKey, sortId, sortDir]);
 
-  const { typeItems, counts, availableTags, sortedItems, totalPages, visibleItems, handleReshuffle } =
-    useRegistryBrowseData({
-      allItemsByType,
-      typeId,
-      query,
-      selectedTags,
-      sortId,
-      sortDir,
-      page,
-      pageSize,
-      isLoading,
-      onPageChange,
-    });
+  const {
+    typeItems,
+    counts,
+    availableTags,
+    sortedItems,
+    totalPages,
+    visibleItems,
+    handleReshuffle,
+  } = useRegistryBrowseData({
+    allItemsByType,
+    typeId,
+    query,
+    selectedTags,
+    sortId,
+    sortDir,
+    page,
+    pageSize,
+    isLoading,
+    onPageChange,
+  });
 
   const typeConfig = getRegistryTypeConfigOrDefault(typeId);
 

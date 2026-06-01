@@ -35,7 +35,9 @@ export function useFloatingAnchorVisibility({
         const sidebarStickyTop = 140;
 
         setShowFloatingAnchor((wasVisible) =>
-          wasVisible ? sidebarRect.top <= sidebarStickyTop + 22 : sidebarRect.top <= sidebarStickyTop + 1,
+          wasVisible
+            ? sidebarRect.top <= sidebarStickyTop + 22
+            : sidebarRect.top <= sidebarStickyTop + 1,
         );
         return;
       }

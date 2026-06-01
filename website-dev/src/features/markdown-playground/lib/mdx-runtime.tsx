@@ -27,7 +27,10 @@ function normalizeTemplateSyntax(source: string): string {
     .replace(TEMPLATE_ROW_PLACEHOLDER, (_full, token: string) => {
       return `<tr><td><em>${prettifyTemplateToken(token)}</em></td></tr>`;
     })
-    .replace(TEMPLATE_VALUE_PLACEHOLDER, (_full, token: string) => `[${prettifyTemplateToken(token)}]`);
+    .replace(
+      TEMPLATE_VALUE_PLACEHOLDER,
+      (_full, token: string) => `[${prettifyTemplateToken(token)}]`,
+    );
 }
 
 export const evaluatePlaygroundMdx = runtime.evaluateMdx;

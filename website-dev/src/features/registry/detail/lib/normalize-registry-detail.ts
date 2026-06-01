@@ -1,4 +1,5 @@
 import type {
+  RegistryDetailIntegrityVersion,
   RegistryDetailLoadedData,
   RegistryDetailModel,
   RegistryDetailSourceLink,
@@ -128,10 +129,7 @@ function resolveSourceCodeLink(
 }
 
 function resolveVersions(
-  listingVersions: Record<
-    string,
-    { is_complete?: boolean; checked_at?: string; source?: { download_url?: string } }
-  >,
+  listingVersions: Record<string, RegistryDetailIntegrityVersion>,
   versionDownloads: Record<string, number>,
 ): RegistryDetailVersion[] {
   const versions = Object.entries(listingVersions)
@@ -340,11 +338,11 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
             fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
           }
         : null,
-      versionSource: data.manifest.update
-        ? {
-            updateType: data.manifest.update.type?.trim() || null,
-            updateUrl: data.manifest.update.url?.trim() || null,
-          }
-        : null,
+    versionSource: data.manifest.update
+      ? {
+          updateType: data.manifest.update.type?.trim() || null,
+          updateUrl: data.manifest.update.url?.trim() || null,
+        }
+      : null,
   };
 }

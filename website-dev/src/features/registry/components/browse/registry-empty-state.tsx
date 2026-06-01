@@ -10,7 +10,12 @@ type RegistryEmptyStateProps = {
   onClear: () => void;
 };
 
-export function RegistryEmptyState({ typeId, query, selectedTags, onClear }: RegistryEmptyStateProps) {
+export function RegistryEmptyState({
+  typeId,
+  query,
+  selectedTags,
+  onClear,
+}: RegistryEmptyStateProps) {
   const typeConfig = getRegistryTypeConfigOrDefault(typeId);
   const accentStyle = {
     "--registry-empty-accent-light": typeConfig.accentLight,
@@ -18,7 +23,11 @@ export function RegistryEmptyState({ typeId, query, selectedTags, onClear }: Reg
   } as CSSProperties;
 
   return (
-    <div className="flex flex-col items-center gap-4 py-24 text-center" role="status" style={accentStyle}>
+    <div
+      className="flex flex-col items-center gap-4 py-24 text-center"
+      role="status"
+      style={accentStyle}
+    >
       <SearchX className="size-10 text-muted-foreground/40" aria-hidden={true} />
       <p className="text-sm font-medium text-muted-foreground">{REGISTRY_EMPTY_STATE_MESSAGE}</p>
       {(query.length > 0 || selectedTags.length > 0) && (
