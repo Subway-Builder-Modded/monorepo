@@ -74,7 +74,7 @@ describe("renderPlaygroundHtml", () => {
 
   it("styles legacy HTML lists with article list classes", async () => {
     const description = loadManifestDescription(
-      "public/registry/maps/mexicali/manifest.json",
+      "public/registry-cache/maps/mexicali/manifest.json",
       [
         "# Mexicali",
         "",
@@ -103,7 +103,7 @@ describe("renderPlaygroundHtml", () => {
 
   it("renders guangzhou manifest HTML through canonical heading components", async () => {
     const description = loadManifestDescription(
-      "public/registry/maps/guangzhou/manifest.json",
+      "public/registry-cache/maps/guangzhou/manifest.json",
       [
         "<h1>Guangzhou</h1>",
         "<h3>CAN · v1.0.0</h3>",

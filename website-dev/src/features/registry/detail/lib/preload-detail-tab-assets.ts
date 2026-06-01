@@ -1,5 +1,6 @@
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
+import { getRegistryItemCachePath } from "@/features/registry/lib/registry-asset-paths";
 
 function preloadImage(src: string): Promise<void> {
   if (typeof window === "undefined") {
@@ -46,7 +47,7 @@ function waitForNextFrame(): Promise<void> {
 
 export async function preloadDetailTabAssets(detail: RegistryDetailModel): Promise<void> {
   const mapBasemapSrc = getRegistryTypeUiRules(detail.typeId).showBasemapBackground
-    ? `/registry/${detail.routeSegment}/${detail.id}/basemap.svg`
+    ? getRegistryItemCachePath(detail.routeSegment, detail.id, "basemap.svg")
     : null;
 
   const preloadTargets = [...detail.galleryImages, ...(mapBasemapSrc ? [mapBasemapSrc] : [])];

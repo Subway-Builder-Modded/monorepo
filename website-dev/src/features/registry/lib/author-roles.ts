@@ -3,14 +3,15 @@ import type {
   RegistryMaintainersIndex,
   RegistrySupportersIndex,
 } from "@/features/credits/lib/types";
+import { getRegistryCreditsCachePath } from "@/features/registry/lib/registry-asset-paths";
 
 export type RegistryAuthorRole = {
   kind: "maintainer" | "contributor";
   tier: CreditsContributorTier;
 };
 
-const MAINTAINERS_INDEX_PATH = "/registry/credits/maintainers.json";
-const SUPPORTERS_INDEX_PATH = "/registry/credits/supporters.json";
+const MAINTAINERS_INDEX_PATH = getRegistryCreditsCachePath("maintainers.json");
+const SUPPORTERS_INDEX_PATH = getRegistryCreditsCachePath("supporters.json");
 
 let roleMapPromise: Promise<Map<string, RegistryAuthorRole>> | null = null;
 

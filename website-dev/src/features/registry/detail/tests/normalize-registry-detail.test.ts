@@ -76,7 +76,7 @@ describe("normalizeRegistryDetail", () => {
     const model = normalizeRegistryDetail(BASE);
 
     expect(model.id).toBe("gwangju-4");
-    expect(model.galleryImages).toEqual(["/registry/maps/gwangju-4/gallery/shot.png"]);
+    expect(model.galleryImages).toEqual(["/registry-cache/maps/gwangju-4/gallery/shot.png"]);
     expect(model.sourceCodeLink).toEqual({
       label: "Source",
       href: "https://github.com/example/repo",

@@ -194,7 +194,7 @@ describe("RegistryDetailPage", () => {
     expect(sidebar.queryByText("Runways & Taxiways")).not.toBeInTheDocument();
     expect(screen.getByTestId("map-basemap-background")).toHaveAttribute(
       "src",
-      "/registry/maps/gwangju-4/basemap.svg",
+      "/registry-cache/maps/gwangju-4/basemap.svg",
     );
     expect(screen.getByRole("link", { name: "east-asia" })).toHaveAttribute(
       "href",

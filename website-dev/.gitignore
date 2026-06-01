@@ -21,7 +21,7 @@ package-lock.json
 # Cached data
 /public/community/
 /public/railyard/
-/public/registry/
+/public/registry-cache/
 /public/website/
 
 # Misc

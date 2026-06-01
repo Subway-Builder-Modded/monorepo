@@ -6,6 +6,11 @@ import type {
 } from "./registry-search-types";
 import { LOCATION_TAGS } from "@subway-builder-modded/config";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
+import {
+  getRegistryAuthorsIndexPath,
+  getRegistryCollectionCachePath,
+  getRegistryItemCachePath,
+} from "@/features/registry/lib/registry-asset-paths";
 
 const MAP_LOCATION_TAG_SET = new Set<string>(LOCATION_TAGS);
 
@@ -79,7 +84,7 @@ function resolveThumbnailSrc(
   if (first.startsWith("http://") || first.startsWith("https://") || first.startsWith("/")) {
     return first;
   }
-  return `/registry/${typeRouteSegment}/${id}/${first}`;
+  return getRegistryItemCachePath(typeRouteSegment, id, first);
 }
 
 function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): string[] {
@@ -203,14 +208,14 @@ export async function loadRegistryItemsForType(
   typeRouteSegment: string,
 ): Promise<RegistrySearchItem[]> {
   const typeUiRules = getRegistryTypeUiRules(typeId);
-  const baseUrl = `/registry/${typeRouteSegment}`;
+  const baseUrl = getRegistryCollectionCachePath(typeRouteSegment);
 
   // Load shared data files in parallel
   const [integrityRaw, downloadsRaw, indexRaw, authorsRaw] = await Promise.all([
     safeFetchText(`${baseUrl}/integrity.json`).catch(() => "{}"),
     safeFetchText(`${baseUrl}/downloads.json`).catch(() => "{}"),
     safeFetchText(`${baseUrl}/index.json`).catch(() => "{}"),
-    safeFetchText(`/registry/authors/index.json`).catch(() => "{}"),
+    safeFetchText(getRegistryAuthorsIndexPath()).catch(() => "{}"),
   ]);
 
   const integrity = safeJson<RawRegistryIntegrity>(integrityRaw, {});
@@ -230,7 +235,9 @@ export async function loadRegistryItemsForType(
   const manifestEntries = await Promise.all(
     eligibleIds.map(async (id) => {
       try {
-        const raw = await safeFetchText(`${baseUrl}/${id}/manifest.json`);
+        const raw = await safeFetchText(
+          getRegistryItemCachePath(typeRouteSegment, id, "manifest.json"),
+        );
         return { id, manifest: safeJson<RawRegistryManifest>(raw, {}) };
       } catch {
         return null;

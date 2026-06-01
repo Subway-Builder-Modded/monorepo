@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Loader2, MapPin } from "lucide-react";
 import { cn } from "@subway-builder-modded/shared-ui";
+import { getRegistryItemCachePath } from "@/features/registry/lib/registry-asset-paths";
 import { useThemeMode } from "@/hooks/use-theme-mode";
 import { MapViewIndicator } from "@/features/registry/detail/components/map-view-indicator";
 import {
@@ -63,7 +64,7 @@ export function MapTab({ mapId }: { mapId: string }) {
 
     void (async () => {
       try {
-        const response = await fetch(`/registry/maps/${encodeURIComponent(mapId)}/grid.geojson`, {
+        const response = await fetch(getRegistryItemCachePath("maps", mapId, "grid.geojson"), {
           cache: "no-store",
         });
 

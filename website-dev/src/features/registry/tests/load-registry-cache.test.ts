@@ -45,7 +45,7 @@ afterEach(() => {
 
 describe("loadRegistryItemsForType", () => {
   it("loads maps from cached files, excludes test items, and normalizes fields", async () => {
-    const base = "/registry/maps";
+    const base = "/registry-cache/maps";
 
     mockFetchWithMap({
       [`${base}/integrity.json`]: JSON.stringify({
@@ -68,7 +68,7 @@ describe("loadRegistryItemsForType", () => {
         "gwangju-4": { v1: 10, v2: 5 },
         "test-map": { v1: 999 },
       }),
-      "/registry/authors/index.json": JSON.stringify({
+      "/registry-cache/authors/index.json": JSON.stringify({
         authors: [{ author_id: "kimth9", author_alias: "Kim Alias" }],
       }),
       [`${base}/index.json`]: JSON.stringify({ maps: ["gwangju-4", "test-map"] }),
@@ -101,7 +101,7 @@ describe("loadRegistryItemsForType", () => {
       author: "Kim Alias",
       description: "Test map",
       tags: ["korea", "east-asia"],
-      thumbnailSrc: "/registry/maps/gwangju-4/thumb.webp",
+      thumbnailSrc: "/registry-cache/maps/gwangju-4/thumb.webp",
       totalDownloads: 15,
       cityCode: "KWJ4",
       countryCode: "KR",
@@ -116,7 +116,7 @@ describe("loadRegistryItemsForType", () => {
   });
 
   it("falls back to integrity ids when index list is empty and handles defaults", async () => {
-    const base = "/registry/mods";
+    const base = "/registry-cache/mods";
 
     mockFetchWithMap({
       [`${base}/integrity.json`]: JSON.stringify({
@@ -158,7 +158,7 @@ describe("loadRegistryItemsForType", () => {
   });
 
   it("returns zero downloads and null thumbnail when optional data is missing", async () => {
-    const base = "/registry/maps";
+    const base = "/registry-cache/maps";
 
     mockFetchWithMap({
       [`${base}/integrity.json`]: JSON.stringify({
@@ -181,7 +181,7 @@ describe("loadRegistryItemsForType", () => {
   });
 
   it("excludes items that fail integrity completeness", async () => {
-    const base = "/registry/mods";
+    const base = "/registry-cache/mods";
 
     mockFetchWithMap({
       [`${base}/integrity.json`]: JSON.stringify({

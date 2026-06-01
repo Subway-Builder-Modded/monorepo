@@ -8,9 +8,10 @@ import type {
   RegistryMaintainersIndex,
   RegistrySupportersIndex,
 } from "./types";
+import { getRegistryCreditsCachePath } from "@/features/registry/lib/registry-asset-paths";
 
-const MAINTAINERS_INDEX_PATH = "/registry/credits/maintainers.json";
-const SUPPORTERS_INDEX_PATH = "/registry/credits/supporters.json";
+const MAINTAINERS_INDEX_PATH = getRegistryCreditsCachePath("maintainers.json");
+const SUPPORTERS_INDEX_PATH = getRegistryCreditsCachePath("supporters.json");
 
 const TIER_TITLE_BY_ID: Record<CreditsSubsectionId, string> = {
   developer: "Developer",

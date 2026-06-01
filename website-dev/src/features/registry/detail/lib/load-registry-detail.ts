@@ -1,4 +1,9 @@
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
+import {
+  getRegistryAuthorsIndexPath,
+  getRegistryCollectionCachePath,
+  getRegistryItemCachePath,
+} from "@/features/registry/lib/registry-asset-paths";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 import type {
   RegistryDetailCollaborator,
@@ -283,12 +288,12 @@ export async function loadRegistryDetail(
     return null;
   }
 
-  const baseUrl = `/registry/${typeConfig.routeSegment}`;
+  const baseUrl = getRegistryCollectionCachePath(typeConfig.routeSegment);
   const [manifestRaw, integrityRaw, downloadsRaw, authorsRaw] = await Promise.all([
-    safeFetchText(`${baseUrl}/${id}/manifest.json`),
+    safeFetchText(getRegistryItemCachePath(typeConfig.routeSegment, id, "manifest.json")),
     safeFetchText(`${baseUrl}/integrity.json`),
     safeFetchText(`${baseUrl}/downloads.json`),
-    safeFetchText(`/registry/authors/index.json`),
+    safeFetchText(getRegistryAuthorsIndexPath()),
   ]);
 
   if (!manifestRaw) {

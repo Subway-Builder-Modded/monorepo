@@ -1,4 +1,8 @@
 import type { RailyardRegistrySummary } from "./railyard-types";
+import {
+  getRegistryCollectionCachePath,
+  getRegistryItemCachePath,
+} from "@/features/registry/lib/registry-asset-paths";
 
 type RegistryManifest = {
   is_test?: boolean;
@@ -37,15 +41,16 @@ export function countRegistryManifestRecords(manifestRecords: Record<string, str
 }
 
 async function fetchManifestCount(kindPath: "maps" | "mods"): Promise<number> {
-  const index = await fetch(`/registry/${kindPath}/index.json`).then(
+  const basePath = getRegistryCollectionCachePath(kindPath);
+  const index = await fetch(`${basePath}/index.json`).then(
     (response) => response.json() as Promise<RegistryIndex>,
   );
   const ids = kindPath === "maps" ? (index.maps ?? []) : (index.mods ?? []);
 
   const manifestEntries = await Promise.all(
     ids.map(async (id) => {
-      const raw = await fetch(`/registry/${kindPath}/${id}/manifest.json`).then((response) =>
-        response.text(),
+      const raw = await fetch(getRegistryItemCachePath(kindPath, id, "manifest.json")).then(
+        (response) => response.text(),
       );
       return [id, raw] as const;
     }),

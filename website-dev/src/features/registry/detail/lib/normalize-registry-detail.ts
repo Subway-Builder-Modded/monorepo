@@ -5,6 +5,7 @@ import type {
   RegistryDetailSourceLink,
   RegistryDetailVersion,
 } from "@/features/registry/detail/registry-detail-types";
+import { getRegistryItemCachePath } from "@/features/registry/lib/registry-asset-paths";
 
 function normalizeVersionKey(version: string): string {
   return version.trim().replace(/^v/i, "");
@@ -108,7 +109,7 @@ function resolveGalleryImages(
         return imagePath;
       }
 
-      return `/registry/${routeSegment}/${id}/${imagePath}`;
+      return getRegistryItemCachePath(routeSegment, id, imagePath);
     })
     .filter((path): path is string => Boolean(path));
 }
