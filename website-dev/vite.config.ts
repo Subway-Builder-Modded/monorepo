@@ -139,7 +139,7 @@ export default defineConfig(async () => {
   // Keep dynamic imports for TypeScript resolution stability when vp lint
   // loads this config through Node's synchronous ESM linker.
   const { remarkHeadingIds, remarkStripFrontmatter, remarkAdmonitionDirectives } =
-    await import("@subway-builder-modded/mdx");
+    await import("@subway-builder-modded/mdx/remark");
 
   return {
     build: {
