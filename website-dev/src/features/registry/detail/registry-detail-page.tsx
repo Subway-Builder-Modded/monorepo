@@ -28,6 +28,7 @@ import { RegistryDetailSidebar } from "@/features/registry/detail/components/reg
 import { RegistryDetailTabs } from "@/features/registry/detail/components/registry-detail-tabs";
 import { VersionsTab } from "@/features/registry/detail/components/versions-tab";
 import { useFloatingAnchorVisibility } from "@/features/registry/detail/hooks/use-floating-anchor-visibility";
+import { preloadDetailTabAssets } from "@/features/registry/detail/lib/preload-detail-tab-assets";
 import {
   REGISTRY_DETAIL_TAB_ITEMS,
   resolveRegistryDetailTabId,
@@ -46,58 +47,6 @@ type RegistryDetailPageProps = {
 };
 
 const numberFormatter = new Intl.NumberFormat("en-US");
-
-function preloadImage(src: string): Promise<void> {
-  if (typeof window === "undefined") {
-    return Promise.resolve();
-  }
-
-  const userAgent = window.navigator?.userAgent?.toLowerCase() ?? "";
-  if (userAgent.includes("jsdom")) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve) => {
-    const image = new Image();
-    let isDone = false;
-    const done = () => {
-      if (isDone) {
-        return;
-      }
-      isDone = true;
-      clearTimeout(timeoutId);
-      resolve();
-    };
-    image.onload = done;
-    image.onerror = done;
-    const timeoutId = window.setTimeout(done, 3000);
-    image.src = src;
-
-    if (image.complete) {
-      done();
-    }
-  });
-}
-
-function waitForNextFrame(): Promise<void> {
-  return new Promise((resolve) => {
-    if (typeof window === "undefined") {
-      resolve();
-      return;
-    }
-
-    window.requestAnimationFrame(() => resolve());
-  });
-}
-
-async function preloadDetailTabAssets(detail: RegistryDetailModel): Promise<void> {
-  const mapBasemapSrc = getRegistryTypeUiRules(detail.typeId).showBasemapBackground
-    ? `/registry/${detail.routeSegment}/${detail.id}/basemap.svg`
-    : null;
-
-  const preloadTargets = [...detail.galleryImages, ...(mapBasemapSrc ? [mapBasemapSrc] : [])];
-  await Promise.all(preloadTargets.map((imageSrc) => preloadImage(imageSrc)));
-}
 
 export function RegistryDetailPage({
   routeSegment,
@@ -140,8 +89,6 @@ export function RegistryDetailPage({
 
         const normalized = normalizeRegistryDetail(loaded);
 
-        // Let the loading spinner paint before preloading heavier tab assets.
-        await waitForNextFrame();
         await preloadDetailTabAssets(normalized);
 
         if (!isCancelled) {

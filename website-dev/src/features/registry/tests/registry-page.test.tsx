@@ -4,11 +4,22 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 vi.mock("@/lib/router", () => ({
   useLocation: vi.fn(() => ({ pathname: "/registry", search: "", hash: "" })),
   navigate: vi.fn(),
-  Link: vi.fn(({ to, children, ...props }: { to: string; children: React.ReactNode }) => (
-    <a href={to} {...props}>
-      {children}
-    </a>
-  )),
+  Link: vi.fn(
+    ({
+      to,
+      children,
+      preserveScroll: _preserveScroll,
+      ...props
+    }: {
+      to: string;
+      children: React.ReactNode;
+      preserveScroll?: boolean;
+    }) => (
+      <a href={to} {...props}>
+        {children}
+      </a>
+    ),
+  ),
 }));
 
 vi.mock("@/features/registry/lib/load-registry-cache", () => ({

@@ -3,7 +3,7 @@ import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkFrontmatter from "remark-frontmatter";
 import type { Root } from "mdast";
-import { remarkStripFrontmatter } from "@/features/docs/mdx/remark-strip-frontmatter";
+import { remarkStripFrontmatter } from "@subway-builder-modded/mdx";
 
 function parse(md: string): Root {
   const processor = unified()

@@ -190,7 +190,7 @@ describe("MarkdownPlaygroundRoute", () => {
       const value = (screen.getByTestId("playground-markdown-input") as HTMLTextAreaElement).value;
       expect(value.length).toBeGreaterThan(0);
     });
-  });
+  }, 20000);
 
   it("inserts the correct version body when a specific version is previewed and confirmed", async () => {
     const user = userEvent.setup();

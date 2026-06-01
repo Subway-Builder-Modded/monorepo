@@ -19,5 +19,8 @@ export { CodeBlock } from "./code-block";
 export { Directory } from "./directory";
 export { Spoiler, MdxDetails, MdxSummary } from "./spoiler";
 export { RegionTags } from "./region-tags";
-export { remarkAdmonitionDirectives } from "./remark-admonitions";
-export { remarkHeadingIds } from "./remark-heading-ids";
+export {
+  remarkAdmonitionDirectives,
+  remarkHeadingIds,
+  remarkStripFrontmatter,
+} from "@subway-builder-modded/mdx";

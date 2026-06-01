@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
+import { isRouteMatch } from "@subway-builder-modded/config";
 import { normalizePathname } from "@/lib/path-utils";
 import {
   Database,
@@ -393,20 +394,6 @@ const SUITE_BY_ID: Record<SiteSuiteId, SiteSuite> = {
   website: SITE_SUITES[4],
   depot: SITE_SUITES[5],
 };
-
-function isRouteMatch(pathname: string, rule: SiteRouteMatchRule): boolean {
-  const normalizedPathname = normalizePathname(pathname);
-  const normalizedRulePath = normalizePathname(rule.path);
-
-  if (rule.kind === "exact") {
-    return normalizedPathname === normalizedRulePath;
-  }
-
-  return (
-    normalizedPathname === normalizedRulePath ||
-    normalizedPathname.startsWith(`${normalizedRulePath}/`)
-  );
-}
 
 export function getSuiteById(id: SiteSuiteId): SiteSuite {
   return SUITE_BY_ID[id];
