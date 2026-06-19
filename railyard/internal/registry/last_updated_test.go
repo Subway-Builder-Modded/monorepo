@@ -33,13 +33,13 @@ func integrityReport(id string, versions map[string]types.IntegrityVersionStatus
 	}
 }
 
-// TestLoadLastUpdatedPrefersManifestValue verifies the manifest-provided
+// TestAnnotateLastUpdatedPrefersManifestValue verifies the manifest-provided
 // last_updated (published by the registry pipeline) wins over integrity data
 // and requires no network access.
-func TestLoadLastUpdatedPrefersManifestValue(t *testing.T) {
+func TestAnnotateLastUpdatedPrefersManifestValue(t *testing.T) {
 	reg := newTestRegistry(t)
-	reg.mods = []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-a", LastUpdated: 1_700_000_000}}}
-	reg.maps = []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a", LastUpdated: 1_700_000_001}}}
+	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-a", LastUpdated: 1_700_000_000}}}
+	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a", LastUpdated: 1_700_000_001}}}
 	// Integrity data that, if it leaked through, would produce a different value.
 	reg.integrityMods = integrityReport("mod-a", map[string]types.IntegrityVersionStatus{
 		"1.0.0": {IsComplete: true, CheckedAt: "2020-01-01T00:00:00Z"},
@@ -48,27 +48,30 @@ func TestLoadLastUpdatedPrefersManifestValue(t *testing.T) {
 		"1.0.0": {IsComplete: true, CheckedAt: "2020-01-01T00:00:00Z"},
 	})
 
-	modLastUpdated, mapLastUpdated := reg.loadLastUpdated(reg.mods, reg.maps)
-	updateManifestLastUpdated(reg.mods, reg.maps, modLastUpdated, mapLastUpdated)
+	mods = reg.annotateModsLastUpdated(mods)
+	maps = reg.annotateMapsLastUpdated(maps)
 
-	require.Equal(t, int64(1_700_000_000), reg.mods[0].LastUpdated)
-	require.Equal(t, int64(1_700_000_001), reg.maps[0].LastUpdated)
+	require.Len(t, mods, 1)
+	require.Len(t, maps, 1)
+	require.Equal(t, int64(1_700_000_000), mods[0].LastUpdated)
+	require.Equal(t, int64(1_700_000_001), maps[0].LastUpdated)
 }
 
-// TestLoadLastUpdatedFallsBackToIntegrityCheckedAt verifies that when the
+// TestAnnotateLastUpdatedFallsBackToIntegrityCheckedAt verifies that when the
 // manifest carries no last_updated, the newest complete-version checked_at from
 // the integrity report is used.
-func TestLoadLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
+func TestAnnotateLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
 	reg := newTestRegistry(t)
-	reg.maps = []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a"}}}
+	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a"}}}
 	reg.integrityMaps = integrityReport("map-a", map[string]types.IntegrityVersionStatus{
 		"1.0.0": {IsComplete: true, CheckedAt: "2026-04-14T00:00:00Z"},
 		"1.1.0": {IsComplete: true, CheckedAt: "2026-04-15T03:51:46Z"},
 		"1.2.0": {IsComplete: false, CheckedAt: "2026-04-16T00:00:00Z"}, // incomplete: ignored
 	})
 
-	_, mapLastUpdated := reg.loadLastUpdated(reg.mods, reg.maps)
-	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), mapLastUpdated["map-a"])
+	maps = reg.annotateMapsLastUpdated(maps)
+	require.Len(t, maps, 1)
+	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), maps[0].LastUpdated)
 }
 
 func TestDetermineLatestTimestampWithStable(t *testing.T) {
@@ -107,15 +110,19 @@ func TestDetermineLatestTimestampRejectsWrongLayout(t *testing.T) {
 	require.Error(t, customErr)
 }
 
-// TestLoadLastUpdatedDefaultsToEpochWhenNoData verifies that assets with neither
-// a manifest last_updated nor integrity checked_at default to epoch (0) rather
-// than failing or making a network request.
-func TestLoadLastUpdatedDefaultsToEpochWhenNoData(t *testing.T) {
+// TestAnnotateLastUpdatedHidesAssetWithNoMetadata verifies that an asset with
+// neither a manifest last_updated nor integrity checked_at is dropped from the
+// returned set rather than surfaced with a misleading epoch date. In practice
+// this only happens with malformed integrity data, since a displayable asset
+// always has a complete version carrying checked_at.
+func TestAnnotateLastUpdatedHidesAssetWithNoMetadata(t *testing.T) {
 	reg := newTestRegistry(t)
-	reg.mods = []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-bad"}}}
-	reg.maps = []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-bad"}}}
+	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-bad"}}}
+	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-bad"}}}
 
-	modLastUpdated, mapLastUpdated := reg.loadLastUpdated(reg.mods, reg.maps)
-	require.Equal(t, int64(0), modLastUpdated["mod-bad"])
-	require.Equal(t, int64(0), mapLastUpdated["map-bad"])
+	mods = reg.annotateModsLastUpdated(mods)
+	maps = reg.annotateMapsLastUpdated(maps)
+
+	require.Empty(t, mods)
+	require.Empty(t, maps)
 }

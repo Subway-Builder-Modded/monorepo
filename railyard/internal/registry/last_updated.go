@@ -8,78 +8,92 @@ import (
 	"railyard/internal/types"
 )
 
-// loadLastUpdated resolves the latest-update timestamp for every mod and map
-// without making any network calls.
+// annotateModsLastUpdated resolves last_updated for each mod from on-disk data
+// and drops any mod for which no timestamp is available. See annotateLastUpdated.
+func (r *Registry) annotateModsLastUpdated(mods []types.ModManifest) []types.ModManifest {
+	return annotateLastUpdated(
+		mods,
+		types.AssetTypeMod,
+		func(m types.ModManifest) string { return m.ID },
+		func(m types.ModManifest) int64 { return m.LastUpdated },
+		func(m types.ModManifest, ts int64) types.ModManifest { m.LastUpdated = ts; return m },
+		r.resolveAssetLastUpdated,
+		r.logger,
+	)
+}
+
+// annotateMapsLastUpdated resolves last_updated for each map from on-disk data
+// and drops any map for which no timestamp is available. See annotateLastUpdated.
+func (r *Registry) annotateMapsLastUpdated(maps []types.MapManifest) []types.MapManifest {
+	return annotateLastUpdated(
+		maps,
+		types.AssetTypeMap,
+		func(m types.MapManifest) string { return m.ID },
+		func(m types.MapManifest) int64 { return m.LastUpdated },
+		func(m types.MapManifest, ts int64) types.MapManifest { m.LastUpdated = ts; return m },
+		r.resolveAssetLastUpdated,
+		r.logger,
+	)
+}
+
+// annotateLastUpdated resolves the latest-update timestamp for every manifest
+// without making any network calls, and returns only the manifests that could
+// be resolved.
 //
-// Historically this fanned out one GitHub releases request per listing (plus a
-// manifest.json fetch per release) on every registry load, which on a cold
-// start exhausted the unauthenticated GitHub API budget. The registry clone
-// already carries everything needed: the manifest may publish an authoritative
-// last_updated (emitted by the registry analytics pipeline) and the integrity
-// report records a checked_at timestamp for every complete version. We resolve
-// entirely from that on-disk data and leave live version lookups to the
-// on-demand install flow (GetInstallableVersions).
-func (r *Registry) loadLastUpdated(
-	mods []types.ModManifest,
-	maps []types.MapManifest,
-) (map[string]int64, map[string]int64) {
-	r.logger.Info(
-		"Resolving last updated metadata from disk",
-		"mod_count",
-		len(mods),
-		"map_count",
-		len(maps),
-	)
-
-	modEntries := make(map[string]int64, len(mods))
-	for _, m := range mods {
-		modEntries[m.ID] = r.resolveAssetLastUpdated(types.AssetTypeMod, m.ID, m.LastUpdated)
+// Historically last_updated was derived by fanning out one GitHub releases
+// request per listing (plus a manifest.json fetch per release) on every
+// registry load, which on a cold start exhausted the unauthenticated GitHub API
+// budget. The registry clone already carries everything needed: the manifest
+// may publish an authoritative last_updated (emitted by the registry analytics
+// pipeline) and the integrity report records a checked_at for every complete
+// version. We resolve entirely from that on-disk data and leave live version
+// lookups to the on-demand install flow (GetInstallableVersions).
+//
+// An asset that reaches this point has already passed the integrity filter
+// (has a complete version), and every complete version carries a checked_at, so
+// resolution effectively always succeeds. When it does not — i.e. malformed
+// integrity data with neither a manifest timestamp nor a checked_at — the asset
+// is dropped rather than shown with a misleading epoch date, matching the rule
+// that only integrity-complete entries are user-visible.
+func annotateLastUpdated[T any](
+	manifests []T,
+	assetType types.AssetType,
+	idOf func(T) string,
+	lastUpdatedOf func(T) int64,
+	withLastUpdated func(T, int64) T,
+	resolve func(types.AssetType, string, int64) (int64, bool),
+	logger logSink,
+) []T {
+	kept := make([]T, 0, len(manifests))
+	for _, manifest := range manifests {
+		ts, ok := resolve(assetType, idOf(manifest), lastUpdatedOf(manifest))
+		if !ok {
+			logger.Warn(
+				"Hiding registry asset with no resolvable last_updated metadata",
+				"asset_type", assetType,
+				"asset_id", idOf(manifest),
+			)
+			continue
+		}
+		kept = append(kept, withLastUpdated(manifest, ts))
 	}
-	mapEntries := make(map[string]int64, len(maps))
-	for _, m := range maps {
-		mapEntries[m.ID] = r.resolveAssetLastUpdated(types.AssetTypeMap, m.ID, m.LastUpdated)
-	}
-
-	r.logger.Info(
-		"Resolved last updated metadata",
-		"resolved_mods",
-		len(modEntries),
-		"resolved_maps",
-		len(mapEntries),
-	)
-
-	return modEntries, mapEntries
+	return kept
 }
 
 // resolveAssetLastUpdated prefers the manifest-provided timestamp (published by
 // the registry pipeline) and falls back to the newest complete-version
-// checked_at from the integrity report. Returns 0 (epoch) when neither is
-// available so the asset still sorts predictably.
-func (r *Registry) resolveAssetLastUpdated(assetType types.AssetType, assetID string, manifestValue int64) int64 {
+// checked_at from the integrity report. The bool is false when neither source
+// yields a timestamp, signalling that the asset should not be displayed.
+func (r *Registry) resolveAssetLastUpdated(assetType types.AssetType, assetID string, manifestValue int64) (int64, bool) {
 	if manifestValue > 0 {
-		return manifestValue
+		return manifestValue, true
 	}
 
 	fallback, err := r.latestIntegrityCheckedAt(assetType, assetID)
 	if err != nil {
-		r.logger.Warn("No last updated metadata available; defaulting to epoch", "asset_type", assetType, "asset_id", assetID, "error", err)
-		return 0
+		return 0, false
 	}
-	return fallback
-}
-
-func updateManifestLastUpdated(
-	mods []types.ModManifest,
-	maps []types.MapManifest,
-	modLastUpdated map[string]int64,
-	mapLastUpdated map[string]int64,
-) {
-	for i := range mods {
-		mods[i].LastUpdated = modLastUpdated[mods[i].ID]
-	}
-	for i := range maps {
-		maps[i].LastUpdated = mapLastUpdated[maps[i].ID]
-	}
+	return fallback, true
 }
 
 // latestIntegrityCheckedAt returns the latest complete-version checked_at timestamp for an asset.

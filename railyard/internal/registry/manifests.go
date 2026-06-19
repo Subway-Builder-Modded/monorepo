@@ -70,15 +70,18 @@ func (r *Registry) fetchFromDisk() error {
 		r.logger,
 	)
 
-	// Populate the in-memory registry view before deriving last_updated so
-	// installable version lookups can resolve manifests and integrity entries.
-	r.mods = mods
-	r.maps = maps
+	// last_updated resolution reads the integrity reports, so make them
+	// available first.
 	r.integrityMaps = mapIntegrity
 	r.integrityMods = modIntegrity
 
-	modLastUpdated, mapLastUpdated := r.loadLastUpdated(mods, maps)
-	updateManifestLastUpdated(mods, maps, modLastUpdated, mapLastUpdated)
+	// Resolve last_updated from on-disk data only (manifest value, else integrity
+	// checked_at). Assets that resolve neither are dropped: by the integrity
+	// contract a displayable asset always has a complete version with a
+	// checked_at, so a miss indicates malformed registry data and the entry is
+	// not shown rather than surfaced with a misleading epoch date.
+	mods = r.annotateModsLastUpdated(mods)
+	maps = r.annotateMapsLastUpdated(maps)
 
 	// Make updates only when all reads are successful to avoid partial registry updates
 	r.mods = mods
