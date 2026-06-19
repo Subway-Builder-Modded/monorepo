@@ -33,7 +33,7 @@ func integrityReport(id string, versions map[string]types.IntegrityVersionStatus
 	}
 }
 
-func TestAnnotateLastUpdatedPrefersManifestValue(t *testing.T) {
+func TestEnrichLastUpdatedPrefersManifestValue(t *testing.T) {
 	reg := newTestRegistry(t)
 	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-a", LastUpdated: 1_700_000_000}}}
 	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a", LastUpdated: 1_700_000_001}}}
@@ -45,8 +45,8 @@ func TestAnnotateLastUpdatedPrefersManifestValue(t *testing.T) {
 		"1.0.0": {IsComplete: true, CheckedAt: "2020-01-01T00:00:00Z"},
 	})
 
-	mods = reg.annotateModsLastUpdated(mods)
-	maps = reg.annotateMapsLastUpdated(maps)
+	mods = enrichLastUpdated(mods, types.AssetTypeMod, modManifestBase, reg.resolveAssetLastUpdated, reg.logger)
+	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, reg.resolveAssetLastUpdated, reg.logger)
 
 	require.Len(t, mods, 1)
 	require.Len(t, maps, 1)
@@ -55,7 +55,7 @@ func TestAnnotateLastUpdatedPrefersManifestValue(t *testing.T) {
 	require.Equal(t, int64(1_700_000_001), maps[0].LastUpdated)
 }
 
-func TestAnnotateLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
+func TestEnrichLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
 	reg := newTestRegistry(t)
 	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a"}}}
 	reg.integrityMaps = integrityReport("map-a", map[string]types.IntegrityVersionStatus{
@@ -64,7 +64,7 @@ func TestAnnotateLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
 		"1.2.0": {IsComplete: false, CheckedAt: "2026-04-16T00:00:00Z"}, // incomplete: ignored
 	})
 
-	maps = reg.annotateMapsLastUpdated(maps)
+	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, reg.resolveAssetLastUpdated, reg.logger)
 	require.Len(t, maps, 1)
 	// When no manifest `LastUpdated` is present, the newest complete-version `CheckedAt` is used
 	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), maps[0].LastUpdated)
@@ -106,13 +106,13 @@ func TestDetermineLatestTimestampRejectsWrongLayout(t *testing.T) {
 	require.Error(t, customErr)
 }
 
-func TestAnnotateLastUpdatedHidesAssetWithNoMetadata(t *testing.T) {
+func TestEnrichLastUpdatedHidesAssetWithNoMetadata(t *testing.T) {
 	reg := newTestRegistry(t)
 	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-bad"}}}
 	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-bad"}}}
 
-	mods = reg.annotateModsLastUpdated(mods)
-	maps = reg.annotateMapsLastUpdated(maps)
+	mods = enrichLastUpdated(mods, types.AssetTypeMod, modManifestBase, reg.resolveAssetLastUpdated, reg.logger)
+	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, reg.resolveAssetLastUpdated, reg.logger)
 
 	// If neither manifest nor integrity provided a timestamp, the asset is dropped
 	// This should only occur if the integrity data is malformed (displayable assets always have a complete version in the integrity cache)

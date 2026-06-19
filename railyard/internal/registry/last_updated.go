@@ -8,74 +8,39 @@ import (
 	"railyard/internal/types"
 )
 
-// annotateModsLastUpdated resolves last_updated for each mod from on-disk data
-// and drops any mod for which no timestamp is available. See annotateLastUpdated.
-func (r *Registry) annotateModsLastUpdated(mods []types.ModManifest) []types.ModManifest {
-	return annotateLastUpdated(
-		mods,
-		types.AssetTypeMod,
-		func(m types.ModManifest) string { return m.ID },
-		func(m types.ModManifest) int64 { return m.LastUpdated },
-		func(m types.ModManifest, ts int64) types.ModManifest { m.LastUpdated = ts; return m },
-		r.resolveAssetLastUpdated,
-		r.logger,
-	)
-}
+// modManifestBase and mapManifestBase expose the embedded AssetManifest so the
+// generic enrichLastUpdated can read and write last_updated for any asset type.
+func modManifestBase(m *types.ModManifest) *types.AssetManifest { return &m.AssetManifest }
+func mapManifestBase(m *types.MapManifest) *types.AssetManifest { return &m.AssetManifest }
 
-// annotateMapsLastUpdated resolves last_updated for each map from on-disk data
-// and drops any map for which no timestamp is available. See annotateLastUpdated.
-func (r *Registry) annotateMapsLastUpdated(maps []types.MapManifest) []types.MapManifest {
-	return annotateLastUpdated(
-		maps,
-		types.AssetTypeMap,
-		func(m types.MapManifest) string { return m.ID },
-		func(m types.MapManifest) int64 { return m.LastUpdated },
-		func(m types.MapManifest, ts int64) types.MapManifest { m.LastUpdated = ts; return m },
-		r.resolveAssetLastUpdated,
-		r.logger,
-	)
-}
-
-// annotateLastUpdated resolves the latest-update timestamp for every manifest
-// without making any network calls, and returns only the manifests that could
-// be resolved.
-//
-// Historically last_updated was derived by fanning out one GitHub releases
-// request per listing (plus a manifest.json fetch per release) on every
-// registry load, which on a cold start exhausted the unauthenticated GitHub API
-// budget. The registry clone already carries everything needed: the manifest
-// may publish an authoritative last_updated (emitted by the registry analytics
-// pipeline) and the integrity report records a checked_at for every complete
-// version. We resolve entirely from that on-disk data and leave live version
-// lookups to the on-demand install flow (GetInstallableVersions).
-//
-// An asset that reaches this point has already passed the integrity filter
-// (has a complete version), and every complete version carries a checked_at, so
-// resolution effectively always succeeds. When it does not — i.e. malformed
-// integrity data with neither a manifest timestamp nor a checked_at — the asset
-// is dropped rather than shown with a misleading epoch date, matching the rule
-// that only integrity-complete entries are user-visible.
-func annotateLastUpdated[T any](
+// enrichLastUpdated resolves each manifest's last_updated from on-disk data
+// (manifest value, else integrity checked_at) and returns only the manifests
+// that resolved one — leaving live version lookups to the on-demand install
+// flow. A miss implies malformed integrity data, so the asset is dropped rather
+// than surfaced with a misleading epoch date, consistent with only
+// integrity-complete entries being user-visible. base yields the embedded
+// AssetManifest, letting one implementation serve every asset type.
+func enrichLastUpdated[T any](
 	manifests []T,
 	assetType types.AssetType,
-	idOf func(T) string,
-	lastUpdatedOf func(T) int64,
-	withLastUpdated func(T, int64) T,
+	base func(*T) *types.AssetManifest,
 	resolve func(types.AssetType, string, int64) (int64, bool),
 	logger logSink,
 ) []T {
 	kept := make([]T, 0, len(manifests))
-	for _, manifest := range manifests {
-		ts, ok := resolve(assetType, idOf(manifest), lastUpdatedOf(manifest))
+	for i := range manifests {
+		asset := base(&manifests[i])
+		ts, ok := resolve(assetType, asset.ID, asset.LastUpdated)
 		if !ok {
 			logger.Warn(
 				"Hiding registry asset with no resolvable last_updated metadata",
 				"asset_type", assetType,
-				"asset_id", idOf(manifest),
+				"asset_id", asset.ID,
 			)
 			continue
 		}
-		kept = append(kept, withLastUpdated(manifest, ts))
+		asset.LastUpdated = ts
+		kept = append(kept, manifests[i])
 	}
 	return kept
 }

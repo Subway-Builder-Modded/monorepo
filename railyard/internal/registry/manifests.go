@@ -80,8 +80,8 @@ func (r *Registry) fetchFromDisk() error {
 	// contract a displayable asset always has a complete version with a
 	// checked_at, so a miss indicates malformed registry data and the entry is
 	// not shown rather than surfaced with a misleading epoch date.
-	mods = r.annotateModsLastUpdated(mods)
-	maps = r.annotateMapsLastUpdated(maps)
+	mods = enrichLastUpdated(mods, types.AssetTypeMod, modManifestBase, r.resolveAssetLastUpdated, r.logger)
+	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, r.resolveAssetLastUpdated, r.logger)
 
 	// Make updates only when all reads are successful to avoid partial registry updates
 	r.mods = mods
