@@ -1,57 +1,45 @@
 package registry
 
 import (
-	"errors"
 	"fmt"
 	"math"
-	"sync"
 	"time"
 
 	"railyard/internal/types"
 )
 
-const lastUpdatedWorkerLimit = 6
-
-type lastUpdatedArgs struct {
-	assetType  types.AssetType
-	id         string
-	updateType string
-}
-
+// loadLastUpdated resolves the latest-update timestamp for every mod and map
+// without making any network calls.
+//
+// Historically this fanned out one GitHub releases request per listing (plus a
+// manifest.json fetch per release) on every registry load, which on a cold
+// start exhausted the unauthenticated GitHub API budget. The registry clone
+// already carries everything needed: the manifest may publish an authoritative
+// last_updated (emitted by the registry analytics pipeline) and the integrity
+// report records a checked_at timestamp for every complete version. We resolve
+// entirely from that on-disk data and leave live version lookups to the
+// on-demand install flow (GetInstallableVersions).
 func (r *Registry) loadLastUpdated(
 	mods []types.ModManifest,
 	maps []types.MapManifest,
 ) (map[string]int64, map[string]int64) {
 	r.logger.Info(
-		"Resolving last updated metadata",
+		"Resolving last updated metadata from disk",
 		"mod_count",
 		len(mods),
 		"map_count",
 		len(maps),
 	)
 
-	mapSources := getLastUpdatedArgs(
-		maps,
-		func(manifest types.MapManifest) types.AssetType { return types.AssetTypeMap },
-		func(manifest types.MapManifest) string { return manifest.ID },
-		func(manifest types.MapManifest) string { return manifest.Update.Type },
-	)
-	modSources := getLastUpdatedArgs(
-		mods,
-		func(manifest types.ModManifest) types.AssetType { return types.AssetTypeMod },
-		func(manifest types.ModManifest) string { return manifest.ID },
-		func(manifest types.ModManifest) string { return manifest.Update.Type },
-	)
-
-	mapEntries, mapWarnings := r.resolveLastUpdated(mapSources)
-	modEntries, modWarnings := r.resolveLastUpdated(modSources)
-
-	if len(mapWarnings) > 0 {
-		r.logger.Warn("Last updated metadata resolved with warnings", "asset_type", types.AssetTypeMap, "warning_count", len(mapWarnings))
+	modEntries := make(map[string]int64, len(mods))
+	for _, m := range mods {
+		modEntries[m.ID] = r.resolveAssetLastUpdated(types.AssetTypeMod, m.ID, m.LastUpdated)
 	}
-	if len(modWarnings) > 0 {
-		r.logger.Warn("Last updated metadata resolved with warnings", "asset_type", types.AssetTypeMod, "warning_count", len(modWarnings))
+	mapEntries := make(map[string]int64, len(maps))
+	for _, m := range maps {
+		mapEntries[m.ID] = r.resolveAssetLastUpdated(types.AssetTypeMap, m.ID, m.LastUpdated)
 	}
+
 	r.logger.Info(
 		"Resolved last updated metadata",
 		"resolved_mods",
@@ -61,6 +49,23 @@ func (r *Registry) loadLastUpdated(
 	)
 
 	return modEntries, mapEntries
+}
+
+// resolveAssetLastUpdated prefers the manifest-provided timestamp (published by
+// the registry pipeline) and falls back to the newest complete-version
+// checked_at from the integrity report. Returns 0 (epoch) when neither is
+// available so the asset still sorts predictably.
+func (r *Registry) resolveAssetLastUpdated(assetType types.AssetType, assetID string, manifestValue int64) int64 {
+	if manifestValue > 0 {
+		return manifestValue
+	}
+
+	fallback, err := r.latestIntegrityCheckedAt(assetType, assetID)
+	if err != nil {
+		r.logger.Warn("No last updated metadata available; defaulting to epoch", "asset_type", assetType, "asset_id", assetID, "error", err)
+		return 0
+	}
+	return fallback
 }
 
 func updateManifestLastUpdated(
@@ -75,72 +80,6 @@ func updateManifestLastUpdated(
 	for i := range maps {
 		maps[i].LastUpdated = mapLastUpdated[maps[i].ID]
 	}
-}
-
-// resolveLastUpdated fetches version information for each source in parallel, returning a map of the latest update timestamp for each asset ID.
-func (r *Registry) resolveLastUpdated(
-	sources []lastUpdatedArgs,
-) (map[string]int64, []error) {
-	results := make(map[string]int64, len(sources))
-	warnings := make([]error, 0)
-
-	if len(sources) == 0 {
-		return results, warnings
-	}
-
-	workerLimit := lastUpdatedWorkerLimit
-	if len(sources) < workerLimit {
-		workerLimit = len(sources)
-	}
-	sem := make(chan struct{}, workerLimit)
-	var wg sync.WaitGroup
-	var mu sync.Mutex
-
-	for _, source := range sources {
-		current := source
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-
-			versions, err := r.GetInstallableVersions(current.assetType, current.id)
-			if err != nil {
-				r.logger.Warn("Failed to fetch installable versions for last updated", "asset_type", current.assetType, "asset_id", current.id, "error", err)
-				mu.Lock()
-				warnings = append(warnings, fmt.Errorf("failed to fetch versions for %q: %w", current.id, err))
-				results[current.id] = 0 // Default to epoch start if we can't fetch version
-				mu.Unlock()
-				return
-			}
-
-			latest, err := determineLatestTimestamp(r.logger, versions, current.updateType)
-			if err != nil {
-				fallback, fallbackErr := r.latestIntegrityCheckedAt(current.assetType, current.id)
-				if fallbackErr != nil {
-					r.logger.Warn("Failed to parse version dates for last updated", "asset_id", current.id, "version_count", len(versions), "error", err)
-					mu.Lock()
-					warnings = append(warnings, fmt.Errorf("failed to resolve latest update for %q: %w", current.id, errors.Join(err, fallbackErr)))
-					results[current.id] = 0 // Default to epoch start if we can't parse version dates
-					mu.Unlock()
-					return
-				}
-
-				r.logger.Warn("Falling back to integrity checked_at for last updated", "asset_type", current.assetType, "asset_id", current.id, "error", err, "timestamp", fallback)
-				mu.Lock()
-				results[current.id] = fallback
-				mu.Unlock()
-				return
-			}
-
-			mu.Lock()
-			results[current.id] = latest
-			mu.Unlock()
-		}()
-	}
-
-	wg.Wait()
-	return results, warnings
 }
 
 // latestIntegrityCheckedAt returns the latest complete-version checked_at timestamp for an asset.
@@ -172,25 +111,10 @@ func (r *Registry) latestIntegrityCheckedAt(assetType types.AssetType, assetID s
 	return best, nil
 }
 
-// getLastUpdatedArgs converts manifests into the asset identifiers needed for installable version lookups.
-func getLastUpdatedArgs[T any](
-	manifests []T,
-	assetTypeFn func(manifest T) types.AssetType,
-	idFn func(manifest T) string,
-	updateTypeFn func(manifest T) string,
-) []lastUpdatedArgs {
-	sources := make([]lastUpdatedArgs, 0, len(manifests))
-	for _, manifest := range manifests {
-		sources = append(sources, lastUpdatedArgs{
-			assetType:  assetTypeFn(manifest),
-			id:         idFn(manifest),
-			updateType: updateTypeFn(manifest),
-		})
-	}
-	return sources
-}
-
 // determineLatestTimestamp iterates through a list of versions to find the most recent stable release timestamp, falling back to a prerelease timestamp if no stable version is available.
+//
+// It is retained for the on-demand version-resolution path and unit coverage of
+// version-date parsing; the registry load path no longer calls it.
 func determineLatestTimestamp(logger logSink, versions []types.VersionInfo, updateType string) (int64, error) {
 	const unset = int64(math.MinInt64)
 	bestStable := unset
