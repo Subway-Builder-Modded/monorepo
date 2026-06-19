@@ -33,9 +33,6 @@ func integrityReport(id string, versions map[string]types.IntegrityVersionStatus
 	}
 }
 
-// TestAnnotateLastUpdatedPrefersManifestValue verifies the manifest-provided
-// last_updated (published by the registry pipeline) wins over integrity data
-// and requires no network access.
 func TestAnnotateLastUpdatedPrefersManifestValue(t *testing.T) {
 	reg := newTestRegistry(t)
 	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-a", LastUpdated: 1_700_000_000}}}
@@ -53,13 +50,11 @@ func TestAnnotateLastUpdatedPrefersManifestValue(t *testing.T) {
 
 	require.Len(t, mods, 1)
 	require.Len(t, maps, 1)
+	// Manifest provided `LastUpdated` (published by the registry pipeline) is preferred of integrity `CheckedAt`
 	require.Equal(t, int64(1_700_000_000), mods[0].LastUpdated)
 	require.Equal(t, int64(1_700_000_001), maps[0].LastUpdated)
 }
 
-// TestAnnotateLastUpdatedFallsBackToIntegrityCheckedAt verifies that when the
-// manifest carries no last_updated, the newest complete-version checked_at from
-// the integrity report is used.
 func TestAnnotateLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
 	reg := newTestRegistry(t)
 	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a"}}}
@@ -71,6 +66,7 @@ func TestAnnotateLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
 
 	maps = reg.annotateMapsLastUpdated(maps)
 	require.Len(t, maps, 1)
+	// When no manifest `LastUpdated` is present, the newest complete-version `CheckedAt` is used
 	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), maps[0].LastUpdated)
 }
 
@@ -110,11 +106,6 @@ func TestDetermineLatestTimestampRejectsWrongLayout(t *testing.T) {
 	require.Error(t, customErr)
 }
 
-// TestAnnotateLastUpdatedHidesAssetWithNoMetadata verifies that an asset with
-// neither a manifest last_updated nor integrity checked_at is dropped from the
-// returned set rather than surfaced with a misleading epoch date. In practice
-// this only happens with malformed integrity data, since a displayable asset
-// always has a complete version carrying checked_at.
 func TestAnnotateLastUpdatedHidesAssetWithNoMetadata(t *testing.T) {
 	reg := newTestRegistry(t)
 	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-bad"}}}
@@ -123,6 +114,8 @@ func TestAnnotateLastUpdatedHidesAssetWithNoMetadata(t *testing.T) {
 	mods = reg.annotateModsLastUpdated(mods)
 	maps = reg.annotateMapsLastUpdated(maps)
 
+	// If neither manifest nor integrity provided a timestamp, the asset is dropped
+	// This should only occur if the integrity data is malformed (displayable assets always have a complete version in the integrity cache)
 	require.Empty(t, mods)
 	require.Empty(t, maps)
 }

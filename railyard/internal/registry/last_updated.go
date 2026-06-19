@@ -80,10 +80,8 @@ func annotateLastUpdated[T any](
 	return kept
 }
 
-// resolveAssetLastUpdated prefers the manifest-provided timestamp (published by
-// the registry pipeline) and falls back to the newest complete-version
-// checked_at from the integrity report. The bool is false when neither source
-// yields a timestamp, signalling that the asset should not be displayed.
+// resolveAssetLastUpdated prefers the manifest-provided timestamp (published by the registry pipeline) and falls back to the newest complete-version checked_at from the integrity report.
+// The second return boolean value is false when neither source yields a timestamp, signalling a malformed asset integrity state that should be dropped.
 func (r *Registry) resolveAssetLastUpdated(assetType types.AssetType, assetID string, manifestValue int64) (int64, bool) {
 	if manifestValue > 0 {
 		return manifestValue, true
@@ -126,9 +124,7 @@ func (r *Registry) latestIntegrityCheckedAt(assetType types.AssetType, assetID s
 }
 
 // determineLatestTimestamp iterates through a list of versions to find the most recent stable release timestamp, falling back to a prerelease timestamp if no stable version is available.
-//
-// It is retained for the on-demand version-resolution path and unit coverage of
-// version-date parsing; the registry load path no longer calls it.
+// This is retained for the on-demand version-resolution path; the registry load path no longer calls it.
 func determineLatestTimestamp(logger logSink, versions []types.VersionInfo, updateType string) (int64, error) {
 	const unset = int64(math.MinInt64)
 	bestStable := unset
