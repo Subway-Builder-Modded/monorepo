@@ -8,18 +8,12 @@ import (
 	"railyard/internal/types"
 )
 
-// modManifestBase and mapManifestBase expose the embedded AssetManifest so the
-// generic enrichLastUpdated can read and write last_updated for any asset type.
+// Expose the embedded AssetManifest from the various manifest types
 func modManifestBase(m *types.ModManifest) *types.AssetManifest { return &m.AssetManifest }
 func mapManifestBase(m *types.MapManifest) *types.AssetManifest { return &m.AssetManifest }
 
-// enrichLastUpdated resolves each manifest's last_updated from on-disk data
-// (manifest value, else integrity checked_at) and returns only the manifests
-// that resolved one — leaving live version lookups to the on-demand install
-// flow. A miss implies malformed integrity data, so the asset is dropped rather
-// than surfaced with a misleading epoch date, consistent with only
-// integrity-complete entries being user-visible. base yields the embedded
-// AssetManifest, letting one implementation serve every asset type.
+// enrichLastUpdated resolves each manifest's last_updated from on-disk data and returns only the manifests that resolved one
+// Live version lookups are left only to the on-demand install flow.
 func enrichLastUpdated[T any](
 	manifests []T,
 	assetType types.AssetType,
