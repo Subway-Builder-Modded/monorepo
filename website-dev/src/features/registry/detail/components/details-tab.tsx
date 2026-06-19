@@ -16,6 +16,15 @@ type DetailsTabProps = {
   detail: RegistryDetailModel;
 };
 
+export type DetailMetric = {
+  title: string;
+  titleTooltipContent?: ReactNode;
+  titleTooltipAriaLabel?: string;
+  value: string | ReactNode;
+  icon: LucideIcon;
+  link?: string;
+};
+
 type DetailMetricCardProps = {
   title: string;
   titleTooltipContent?: ReactNode;
@@ -27,15 +36,6 @@ type DetailMetricCardProps = {
   accentDark: string;
   alignToWrappedRow: boolean;
   titleWraps: boolean;
-};
-
-type DetailMetric = {
-  title: string;
-  titleTooltipContent?: ReactNode;
-  titleTooltipAriaLabel?: string;
-  value: string | ReactNode;
-  icon: LucideIcon;
-  link?: string;
 };
 
 function DetailMetricCard({
@@ -128,7 +128,7 @@ function DetailMetricCard({
   );
 }
 
-function DetailsMetricGrid({
+export function DetailsMetricGrid({
   items,
   className,
   accentLight,

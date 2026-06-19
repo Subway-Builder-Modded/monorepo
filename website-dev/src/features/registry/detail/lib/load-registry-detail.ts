@@ -1,10 +1,12 @@
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import {
+  REGISTRY_CACHE_PUBLIC_BASE,
   getRegistryAuthorsIndexPath,
   getRegistryCollectionCachePath,
   getRegistryItemCachePath,
 } from "@/features/registry/lib/registry-asset-paths";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
+import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 import type {
   RegistryDetailCollaborator,
   RegistryDetailLoadedData,
@@ -70,6 +72,141 @@ type RawAuthorsIndex = {
 };
 
 let allRegistryManifestsPromise: Promise<RawManifest[]> | null = null;
+type MapRankingData = {
+  population: number | null;
+  populationCount: number | null;
+  pointsCount: number | null;
+  playableAreaKm2: number | null;
+};
+
+type ListingDownloadDailyData = {
+  last14Days: number | null;
+  last7Days: number | null;
+};
+
+function computeRank(
+  id: string,
+  items: Array<{ id: string; value: number | null }>,
+): number | null {
+  const sorted = items
+    .filter((item) => item.value !== null)
+    .sort((a, b) => (b.value as number) - (a.value as number));
+  const index = sorted.findIndex((item) => item.id === id);
+  return index === -1 ? null : index + 1;
+}
+
+function parseCsvLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    if (character === '"') {
+      if (inQuotes && line[index + 1] === '"') {
+        current += '"';
+        index += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (character === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += character;
+    }
+  }
+
+  result.push(current);
+  return result;
+}
+
+function parseCsvRows(text: string): Record<string, string>[] {
+  const lines = text
+    .trim()
+    .split(/\r?\n/)
+    .filter((line) => line.trim().length > 0);
+  const [headerLine, ...bodyLines] = lines;
+  if (!headerLine || bodyLines.length === 0) {
+    return [];
+  }
+
+  const headers = parseCsvLine(headerLine).map((header) => header.trim());
+  return bodyLines.map((line) => {
+    const values = parseCsvLine(line);
+    return Object.fromEntries(
+      headers.map((header, index) => [header, (values[index] ?? "").trim()]),
+    );
+  });
+}
+
+function sumLatestDailyDownloads(row: Record<string, string>, days: number): number | null {
+  const dailyValues = Object.entries(row)
+    .filter(([key]) => /^\d{4}_\d{2}_\d{2}$/.test(key))
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, value]) => Number(value))
+    .filter((value) => Number.isFinite(value));
+
+  if (dailyValues.length === 0) {
+    return null;
+  }
+
+  return dailyValues.slice(-days).reduce((total, value) => total + value, 0);
+}
+
+function resolveListingDownloadDailyData(
+  id: string,
+  dailyAnalyticsRaw: string | null,
+): ListingDownloadDailyData {
+  if (!dailyAnalyticsRaw) {
+    return { last14Days: null, last7Days: null };
+  }
+
+  const row = parseCsvRows(dailyAnalyticsRaw).find((entry) => entry["id"] === id);
+  if (!row) {
+    return { last14Days: null, last7Days: null };
+  }
+
+  return {
+    last14Days: sumLatestDailyDownloads(row, 14),
+    last7Days: sumLatestDailyDownloads(row, 7),
+  };
+}
+
+function computeMapRankings(
+  id: string,
+  allItems: Array<{ id: string; manifest: unknown; population: number | null }>,
+): MapRankingData {
+  const getManifestNumber = (
+    manifest: unknown,
+    getter: (m: RawManifest) => number | undefined,
+  ): number | null => {
+    const m = manifest as RawManifest;
+    const value = getter(m);
+    return typeof value === "number" && Number.isFinite(value) ? value : null;
+  };
+
+  const populationItems = allItems.map((item) => ({ id: item.id, value: item.population }));
+  const populationCountItems = allItems.map((item) => ({
+    id: item.id,
+    value: getManifestNumber(item.manifest, (m) => m.population_count),
+  }));
+  const pointsCountItems = allItems.map((item) => ({
+    id: item.id,
+    value: getManifestNumber(item.manifest, (m) => m.points_count),
+  }));
+  const playableAreaItems = allItems.map((item) => ({
+    id: item.id,
+    value: getManifestNumber(item.manifest, (m) => m.grid_statistics?.detail?.playableAreaKm2),
+  }));
+
+  return {
+    population: computeRank(id, populationItems),
+    populationCount: computeRank(id, populationCountItems),
+    pointsCount: computeRank(id, pointsCountItems),
+    playableAreaKm2: computeRank(id, playableAreaItems),
+  };
+}
 
 function toGithubId(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -289,12 +426,14 @@ export async function loadRegistryDetail(
   }
 
   const baseUrl = getRegistryCollectionCachePath(typeConfig.routeSegment);
-  const [manifestRaw, integrityRaw, downloadsRaw, authorsRaw] = await Promise.all([
-    safeFetchText(getRegistryItemCachePath(typeConfig.routeSegment, id, "manifest.json")),
-    safeFetchText(`${baseUrl}/integrity.json`),
-    safeFetchText(`${baseUrl}/downloads.json`),
-    safeFetchText(getRegistryAuthorsIndexPath()),
-  ]);
+  const [manifestRaw, integrityRaw, downloadsRaw, authorsRaw, dailyAnalyticsRaw] =
+    await Promise.all([
+      safeFetchText(getRegistryItemCachePath(typeConfig.routeSegment, id, "manifest.json")),
+      safeFetchText(`${baseUrl}/integrity.json`),
+      safeFetchText(`${baseUrl}/downloads.json`),
+      safeFetchText(getRegistryAuthorsIndexPath()),
+      safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
+    ]);
 
   if (!manifestRaw) {
     return null;
@@ -308,6 +447,30 @@ export async function loadRegistryDetail(
   const allManifests = await loadAllRegistryManifests();
   const projectId = resolveProjectId(manifest, allManifests);
   const collaborators = resolveCollaborators(manifest, authorsIndex, item.authorId);
+  const dailyDownloads = resolveListingDownloadDailyData(id, dailyAnalyticsRaw);
+  const downloadAnalytics = {
+    rank: computeRank(
+      id,
+      items.map((entry) => ({
+        id: entry.id,
+        value: Number.isFinite(entry.totalDownloads) ? entry.totalDownloads : null,
+      })),
+    ),
+    allTime: Number.isFinite(item.totalDownloads) ? item.totalDownloads : null,
+    last14Days: dailyDownloads.last14Days,
+    last7Days: dailyDownloads.last7Days,
+  };
+  const { hasMapMetadata } = getRegistryTypeUiRules(typeConfig.id);
+  const mapRankings = hasMapMetadata
+    ? computeMapRankings(
+        id,
+        items.map((entry) => ({
+          id: entry.id,
+          manifest: entry.manifest,
+          population: entry.population,
+        })),
+      )
+    : null;
 
   return {
     typeConfig,
@@ -327,6 +490,8 @@ export async function loadRegistryDetail(
       countryName: item.countryName,
       population: item.population,
     },
+    downloadAnalytics,
+    mapRankings,
     manifest,
     listingLatestSemverVersion: listing?.latest_semver_version ?? null,
     listingLatestSemverComplete: listing?.latest_semver_complete === true,

@@ -69,6 +69,13 @@ const BASE: RegistryDetailLoadedData = {
   },
   authorAttributionHref: "https://github.com/rslurry",
   projectId: null,
+  downloadAnalytics: {
+    rank: 3,
+    allTime: 1284,
+    last14Days: 140,
+    last7Days: 70,
+  },
+  mapRankings: null,
 };
 
 describe("normalizeRegistryDetail", () => {
@@ -86,8 +93,20 @@ describe("normalizeRegistryDetail", () => {
     expect(model.publishedDate).toBe("2026-03-01T00:00:00.000Z");
     expect(model.updatedDate).toBe("2026-04-25T00:00:00.000Z");
     expect(model.integrityVersionCount).toBe(2);
+    expect(model.downloadAnalytics).toEqual({
+      rank: 3,
+      allTime: 1284,
+      last14Days: 140,
+      last7Days: 70,
+    });
     expect(model.versions.map((v) => v.version)).toEqual(["1.0.0", "0.9.0"]);
     expect(model.mapFields).toEqual({
+      rankings: {
+        population: null,
+        populationCount: null,
+        pointsCount: null,
+        playableAreaKm2: null,
+      },
       cityCode: "GZ",
       countryCode: "CN",
       country: "China",

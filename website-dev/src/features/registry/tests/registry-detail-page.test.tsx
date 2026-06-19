@@ -379,7 +379,7 @@ describe("RegistryDetailPage", () => {
     expect(screen.getAllByText("Data Quality").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Level of Detail").length).toBeGreaterThan(0);
     expect(screen.queryByText("Population Rank")).not.toBeInTheDocument();
-    expect(screen.getByText("Playable Area")).toBeInTheDocument();
+    expect(screen.getAllByText("Playable Area").length).toBeGreaterThan(0);
     expect(screen.getByText("2,150,000")).toBeInTheDocument();
     expect(screen.getByText("8,934")).toBeInTheDocument();
     expect(

@@ -33,7 +33,20 @@ export type RegistryDetailIntegrityVersion = {
   source?: RegistryDetailIntegritySource;
 };
 
+export type RegistryDetailDownloadAnalytics = {
+  rank: number | null;
+  allTime: number | null;
+  last14Days: number | null;
+  last7Days: number | null;
+};
+
 export type RegistryDetailMapFields = {
+  rankings: {
+    population: number | null;
+    populationCount: number | null;
+    pointsCount: number | null;
+    playableAreaKm2: number | null;
+  };
   cityCode: string | null;
   countryCode: string | null;
   country: string | null;
@@ -69,6 +82,7 @@ export type RegistryDetailModel = {
   projectId: string | null;
   tags: string[];
   downloads: number | null;
+  downloadAnalytics: RegistryDetailDownloadAnalytics;
   galleryImages: string[];
   versions: RegistryDetailVersion[];
   versionSource: {
@@ -131,4 +145,11 @@ export type RegistryDetailLoadedData = {
   authorAttributionHref: string | null;
   collaborators?: RegistryDetailCollaborator[];
   projectId: string | null;
+  downloadAnalytics: RegistryDetailDownloadAnalytics;
+  mapRankings: {
+    population: number | null;
+    populationCount: number | null;
+    pointsCount: number | null;
+    playableAreaKm2: number | null;
+  } | null;
 };

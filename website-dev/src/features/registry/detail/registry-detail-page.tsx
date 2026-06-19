@@ -19,6 +19,7 @@ import { getRegistryItemCachePath } from "@/features/registry/lib/registry-asset
 import { getRegistryDetailUrl } from "@/features/registry/lib/routing";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 import { DetailsTab } from "@/features/registry/detail/components/details-tab";
+import { AnalyticsTab } from "@/features/registry/detail/components/analytics-tab";
 import { DescriptionTab } from "@/features/registry/detail/components/description-tab";
 import { GalleryLightbox } from "@/features/registry/detail/components/gallery-lightbox";
 import { GalleryTab } from "@/features/registry/detail/components/gallery-tab";
@@ -368,6 +369,9 @@ export function RegistryDetailPage({
                 >
                   <div hidden={visibleActiveTab !== "description"}>
                     <DescriptionTab description={detail.description} />
+                  </div>
+                  <div hidden={visibleActiveTab !== "analytics"}>
+                    <AnalyticsTab detail={detail} />
                   </div>
                   <div hidden={visibleActiveTab !== "details"}>
                     <DetailsTab detail={detail} />

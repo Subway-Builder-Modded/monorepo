@@ -284,6 +284,9 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
   const versions = resolveVersions(data.listingVersions, data.versionDownloads);
   const latestDownloadUrl = resolveLatestDownloadUrl(data);
   const integrityStats = resolveIntegrityStats(versions);
+  const totalDownloads = Number.isFinite(data.item.totalDownloads)
+    ? data.item.totalDownloads
+    : null;
 
   return {
     id: data.item.id,
@@ -300,7 +303,13 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
     sourceCodeLink: resolveSourceCodeLink(data.manifest.source, data.manifest.update),
     projectId: data.projectId,
     tags,
-    downloads: Number.isFinite(data.item.totalDownloads) ? data.item.totalDownloads : null,
+    downloads: totalDownloads,
+    downloadAnalytics: data.downloadAnalytics ?? {
+      rank: null,
+      allTime: totalDownloads,
+      last14Days: null,
+      last7Days: null,
+    },
     galleryImages: resolveGalleryImages(
       data.item.routeSegment,
       data.item.id,
@@ -315,6 +324,12 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
     mapFields:
       data.item.type === "maps"
         ? {
+            rankings: data.mapRankings ?? {
+              population: null,
+              populationCount: null,
+              pointsCount: null,
+              playableAreaKm2: null,
+            },
             cityCode: data.item.cityCode,
             countryCode: data.item.countryCode,
             country: data.item.countryName,
