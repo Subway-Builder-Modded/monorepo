@@ -134,7 +134,7 @@ func TestFetchFromDiskFiltersOutAssetsMissingIntegrityListings(t *testing.T) {
 			SchemaVersion: 1,
 			GeneratedAt:   "1970-01-01T00:00:00Z",
 			Listings: map[string]types.IntegrityListing{
-				"mod-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
+				"mod-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{"v1.0.0": {IsComplete: true, CheckedAt: "2026-01-01T00:00:00Z"}}},
 			},
 		},
 	))
@@ -145,7 +145,7 @@ func TestFetchFromDiskFiltersOutAssetsMissingIntegrityListings(t *testing.T) {
 			SchemaVersion: 1,
 			GeneratedAt:   "1970-01-01T00:00:00Z",
 			Listings: map[string]types.IntegrityListing{
-				"map-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
+				"map-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{"v1.0.0": {IsComplete: true, CheckedAt: "2026-01-01T00:00:00Z"}}},
 			},
 		},
 	))
@@ -180,7 +180,7 @@ func TestFetchFromDiskFiltersOutAssetsWithoutCompleteIntegrityVersions(t *testin
 			SchemaVersion: 1,
 			GeneratedAt:   "1970-01-01T00:00:00Z",
 			Listings: map[string]types.IntegrityListing{
-				"mod-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
+				"mod-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{"v1.0.0": {IsComplete: true, CheckedAt: "2026-01-01T00:00:00Z"}}},
 				"mod-b": {HasCompleteVersion: false, Versions: map[string]types.IntegrityVersionStatus{}},
 			},
 		},
@@ -192,7 +192,7 @@ func TestFetchFromDiskFiltersOutAssetsWithoutCompleteIntegrityVersions(t *testin
 			SchemaVersion: 1,
 			GeneratedAt:   "1970-01-01T00:00:00Z",
 			Listings: map[string]types.IntegrityListing{
-				"map-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{}},
+				"map-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{"v1.0.0": {IsComplete: true, CheckedAt: "2026-01-01T00:00:00Z"}}},
 				"map-b": {HasCompleteVersion: false, Versions: map[string]types.IntegrityVersionStatus{}},
 			},
 		},

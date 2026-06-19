@@ -1,14 +1,11 @@
 package registry
 
 import (
-	"context"
-	"net/http"
 	"testing"
 	"time"
 
 	"railyard/internal/config"
 	"railyard/internal/testutil"
-	"railyard/internal/testutil/registrytest"
 	"railyard/internal/types"
 
 	"github.com/stretchr/testify/require"
@@ -20,37 +17,57 @@ func mustUnix(t *testing.T, value string) int64 {
 	require.NoError(t, err)
 	return parsed.Unix()
 }
-func TestResolveLastUpdated(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
-	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
-	closeServer := registrytest.MockLastUpdatedServer(t, reg, []registrytest.LastUpdatedFixture{
-		{
-			AssetID:   "mod-a",
-			AssetType: types.AssetTypeMod,
-			Path:      "/updates/mod-a.json",
-			Versions: []types.CustomUpdateVersion{
-				{Version: "1.0.0", Date: "2025-01-01"},
-				{Version: "1.1.0", Date: "2025-02-01"},
-			},
-			Status: http.StatusOK,
+
+func newTestRegistry(t *testing.T) *Registry {
+	t.Helper()
+	return NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+}
+
+func integrityReport(id string, versions map[string]types.IntegrityVersionStatus) types.RegistryIntegrityReport {
+	return types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			id: {HasCompleteVersion: true, Versions: versions},
 		},
-		{
-			AssetID:   "map-a",
-			AssetType: types.AssetTypeMap,
-			Path:      "/updates/map-a.json",
-			Versions: []types.CustomUpdateVersion{
-				{Version: "2.0.0", Date: "2025-03-01"},
-			},
-			Status: http.StatusOK,
-		},
+	}
+}
+
+func TestEnrichLastUpdatedPrefersManifestValue(t *testing.T) {
+	reg := newTestRegistry(t)
+	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-a", LastUpdated: 1_700_000_000}}}
+	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a", LastUpdated: 1_700_000_001}}}
+	// Integrity data that, if it leaked through, would produce a different value.
+	reg.integrityMods = integrityReport("mod-a", map[string]types.IntegrityVersionStatus{
+		"1.0.0": {IsComplete: true, CheckedAt: "2020-01-01T00:00:00Z"},
 	})
-	defer closeServer()
+	reg.integrityMaps = integrityReport("map-a", map[string]types.IntegrityVersionStatus{
+		"1.0.0": {IsComplete: true, CheckedAt: "2020-01-01T00:00:00Z"},
+	})
 
-	modLastUpdated, mapLastUpdated := reg.loadLastUpdated(reg.mods, reg.maps)
-	updateManifestLastUpdated(reg.mods, reg.maps, modLastUpdated, mapLastUpdated)
+	mods = enrichLastUpdated(mods, types.AssetTypeMod, modManifestBase, reg.resolveAssetLastUpdated, reg.logger)
+	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, reg.resolveAssetLastUpdated, reg.logger)
 
-	require.Equal(t, mustUnix(t, "2025-02-01T00:00:00Z"), reg.mods[0].LastUpdated)
-	require.Equal(t, mustUnix(t, "2025-03-01T00:00:00Z"), reg.maps[0].LastUpdated)
+	require.Len(t, mods, 1)
+	require.Len(t, maps, 1)
+	// Manifest provided `LastUpdated` (published by the registry pipeline) is preferred of integrity `CheckedAt`
+	require.Equal(t, int64(1_700_000_000), mods[0].LastUpdated)
+	require.Equal(t, int64(1_700_000_001), maps[0].LastUpdated)
+}
+
+func TestEnrichLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
+	reg := newTestRegistry(t)
+	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-a"}}}
+	reg.integrityMaps = integrityReport("map-a", map[string]types.IntegrityVersionStatus{
+		"1.0.0": {IsComplete: true, CheckedAt: "2026-04-14T00:00:00Z"},
+		"1.1.0": {IsComplete: true, CheckedAt: "2026-04-15T03:51:46Z"},
+		"1.2.0": {IsComplete: false, CheckedAt: "2026-04-16T00:00:00Z"}, // incomplete: ignored
+	})
+
+	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, reg.resolveAssetLastUpdated, reg.logger)
+	require.Len(t, maps, 1)
+	// When no manifest `LastUpdated` is present, the newest complete-version `CheckedAt` is used
+	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), maps[0].LastUpdated)
 }
 
 func TestDetermineLatestTimestampWithStable(t *testing.T) {
@@ -89,54 +106,16 @@ func TestDetermineLatestTimestampRejectsWrongLayout(t *testing.T) {
 	require.Error(t, customErr)
 }
 
-func TestLoadLastUpdatedFallsBackToEpochOnFailures(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
-	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
-	closeServer := registrytest.MockLastUpdatedServer(t, reg, []registrytest.LastUpdatedFixture{
-		{
-			AssetID:   "mod-bad",
-			AssetType: types.AssetTypeMod,
-			Path:      "/updates/mod-bad.json",
-			Status:    http.StatusInternalServerError,
-		},
-		{
-			AssetID:   "map-bad",
-			AssetType: types.AssetTypeMap,
-			Path:      "/updates/map-bad.json",
-			Status:    http.StatusInternalServerError,
-		},
-	})
-	defer closeServer()
+func TestEnrichLastUpdatedHidesAssetWithNoMetadata(t *testing.T) {
+	reg := newTestRegistry(t)
+	mods := []types.ModManifest{{AssetManifest: types.AssetManifest{ID: "mod-bad"}}}
+	maps := []types.MapManifest{{AssetManifest: types.AssetManifest{ID: "map-bad"}}}
 
-	modLastUpdated, mapLastUpdated := reg.loadLastUpdated(reg.mods, reg.maps)
-	require.Equal(t, int64(0), modLastUpdated["mod-bad"])
-	require.Equal(t, int64(0), mapLastUpdated["map-bad"])
-}
+	mods = enrichLastUpdated(mods, types.AssetTypeMod, modManifestBase, reg.resolveAssetLastUpdated, reg.logger)
+	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, reg.resolveAssetLastUpdated, reg.logger)
 
-func TestLoadLastUpdatedFallsBackToIntegrityCheckedAtWhenVersionDatesDoNotParse(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
-	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
-	closeServer := registrytest.MockLastUpdatedServer(t, reg, []registrytest.LastUpdatedFixture{
-		{
-			AssetID:   "map-a",
-			AssetType: types.AssetTypeMap,
-			Path:      "/updates/map-a.json",
-			Versions: []types.CustomUpdateVersion{
-				{Version: "1.0.0", Date: "2026-04-14T00:00:00Z"},
-			},
-			Status: http.StatusOK,
-		},
-	})
-	defer closeServer()
-
-	integrity := reg.integrityMaps
-	listing := integrity.Listings["map-a"]
-	status := listing.Versions["1.0.0"]
-	status.CheckedAt = "2026-04-15T03:51:46Z"
-	listing.Versions["1.0.0"] = status
-	integrity.Listings["map-a"] = listing
-	reg.integrityMaps = integrity
-
-	_, mapLastUpdated := reg.loadLastUpdated(reg.mods, reg.maps)
-	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), mapLastUpdated["map-a"])
+	// If neither manifest nor integrity provided a timestamp, the asset is dropped
+	// This should only occur if the integrity data is malformed (displayable assets always have a complete version in the integrity cache)
+	require.Empty(t, mods)
+	require.Empty(t, maps)
 }
