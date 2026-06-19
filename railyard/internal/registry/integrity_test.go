@@ -39,7 +39,7 @@ func TestGetInstallableVersions(t *testing.T) {
 		},
 	}
 
-	reg.setCachedVersions("custom|https://example.com/update.json", []types.VersionInfo{
+	reg.versions.set("custom|https://example.com/update.json", []types.VersionInfo{
 		{Version: "2.0.0"},
 		{Version: "1.1.0"},
 		{Version: "1.0.0"},
@@ -72,10 +72,10 @@ func TestGetInstallableVersionsRejectsMissingOrIncompleteListings(t *testing.T) 
 			return manifest
 		}(),
 	})
-	reg.setCachedVersions("custom|https://example.com/missing-update.json", []types.VersionInfo{
+	reg.versions.set("custom|https://example.com/missing-update.json", []types.VersionInfo{
 		{Version: "1.0.0"},
 	})
-	reg.setCachedVersions("custom|https://example.com/update.json", []types.VersionInfo{
+	reg.versions.set("custom|https://example.com/update.json", []types.VersionInfo{
 		{Version: "1.0.0"},
 	})
 	reg.integrityMaps = types.RegistryIntegrityReport{

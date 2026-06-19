@@ -28,34 +28,23 @@ type modManifestDeps struct {
 // updateType must be "github" or "custom".
 // repoOrURL is "owner/repo" for github, or a URL for custom.
 func (r *Registry) GetVersions(updateType string, repoOrURL string) ([]types.VersionInfo, error) {
-	// Check cache first to avoid redundant network requests
 	cacheKey := updateType + "|" + repoOrURL
-	if cached, ok := r.getCachedVersions(cacheKey); ok {
+
+	// Fast path: a key already revalidated this session needs no request at all.
+	if cached, ok := r.versions.revalidatedLookup(cacheKey); ok {
 		return cached, nil
 	}
 
-	var (
-		versions []types.VersionInfo
-		err      error
-	)
-
+	// Otherwise issue a conditional fetch; the ETag carried on the persisted entry lets
+	// the helper short-circuit on a 304 instead of re-downloading the release list.
 	switch updateType {
 	case "github":
-		versions, err = r.getGitHubVersions(repoOrURL)
+		return r.getGitHubVersions(cacheKey, repoOrURL)
 	case "custom":
-		versions, err = r.getCustomVersions(repoOrURL)
+		return r.getCustomVersions(cacheKey, repoOrURL)
 	default:
 		return nil, fmt.Errorf("unsupported update type: %q", updateType)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	// If version resolution succeeded, cache the results for future calls
-	r.setCachedVersions(cacheKey, versions)
-	// Return a copy of the versions to prevent external mutation by callers
-	return cloneVersionInfos(versions), nil
 }
 
 // GetVersionsResponse fetches available versions and reports status metadata.
@@ -74,7 +63,7 @@ func (r *Registry) GetVersionsResponse(updateType string, repoOrURL string) type
 	}
 }
 
-func (r *Registry) getGitHubVersions(repo string) ([]types.VersionInfo, error) {
+func (r *Registry) getGitHubVersions(cacheKey string, repo string) ([]types.VersionInfo, error) {
 	parts := strings.SplitN(repo, "/", 2)
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		return nil, fmt.Errorf("invalid GitHub repo format %q: expected \"owner/repo\"", repo)
@@ -87,9 +76,7 @@ func (r *Registry) getGitHubVersions(repo string) ([]types.VersionInfo, error) {
 		URL:              apiURL,
 		GitHubToken:      r.config.GetGithubToken(),
 		ForceAuthByToken: true,
-		Headers: map[string]string{
-			"Accept": "application/vnd.github+json",
-		},
+		Headers:          r.versions.conditionalHeaders(cacheKey, map[string]string{"Accept": "application/vnd.github+json"}),
 		OnTokenRejected: func(statusCode int) {
 			r.logger.Warn("GitHub token rejected; retrying unauthenticated request", "repo", repo, "status", statusCode)
 			requestErrType := types.GetErrorTypeForStatus(statusCode)
@@ -100,6 +87,11 @@ func (r *Registry) getGitHubVersions(repo string) ([]types.VersionInfo, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch GitHub releases for %q: %w", repo, err)
+	}
+
+	// The releases are unchanged since the cached ETag, so reuse the cached versions.
+	if cached, ok := r.versions.notModified(resp, cacheKey); ok {
+		return cached, nil
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -144,7 +136,8 @@ func (r *Registry) getGitHubVersions(repo string) ([]types.VersionInfo, error) {
 	// Fetch manifest.json assets in parallel to extract game_version
 	r.enrichVersions(versions)
 
-	return versions, nil
+	r.versions.store(cacheKey, resp.Header.Get("ETag"), versions)
+	return cloneVersionInfos(versions), nil
 }
 
 // enrichVersions fetches manifest.json URLs in parallel and populates GameVersion and dependencies
@@ -202,14 +195,15 @@ func (r *Registry) enrichVersions(versions []types.VersionInfo) {
 	wg.Wait()
 }
 
-func (r *Registry) getCustomVersions(updateURL string) ([]types.VersionInfo, error) {
+func (r *Registry) getCustomVersions(cacheKey string, updateURL string) ([]types.VersionInfo, error) {
 	parsed, err := url.Parse(updateURL)
 	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
 		return nil, fmt.Errorf("invalid custom update URL %q: must be http or https", updateURL)
 	}
 
 	resp, err := requests.GetWithGithubToken(r.httpClient, requests.GithubTokenRequestArgs{
-		URL: updateURL,
+		URL:     updateURL,
+		Headers: r.versions.conditionalHeaders(cacheKey, nil),
 		OnTokenRejected: func(statusCode int) {
 			r.logger.Warn("GitHub token rejected on custom update URL; retrying unauthenticated request", "url", updateURL, "status", statusCode)
 			requestErrType := types.GetErrorTypeForStatus(statusCode)
@@ -220,6 +214,11 @@ func (r *Registry) getCustomVersions(updateURL string) ([]types.VersionInfo, err
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch custom update from %q: %w", updateURL, err)
+	}
+
+	// Custom URLs that support conditional requests (e.g. raw.githubusercontent.com) answer 304 when unchanged.
+	if cached, ok := r.versions.notModified(resp, cacheKey); ok {
+		return cached, nil
 	}
 	defer resp.Body.Close()
 
@@ -255,7 +254,9 @@ func (r *Registry) getCustomVersions(updateURL string) ([]types.VersionInfo, err
 	r.enrichVersions(versions)
 	filtered := r.filterSemverVersions(versions, "custom:"+updateURL)
 	sortSemverVersions(filtered)
-	return filtered, nil
+
+	r.versions.store(cacheKey, resp.Header.Get("ETag"), filtered)
+	return cloneVersionInfos(filtered), nil
 }
 
 func (r *Registry) filterSemverVersions(
@@ -288,26 +289,4 @@ func sortSemverVersions(versions []types.VersionInfo) {
 		right, _ := semver.NewVersion(rightVersion)
 		return left.GreaterThan(right)
 	})
-}
-
-func (r *Registry) getCachedVersions(key string) ([]types.VersionInfo, bool) {
-	r.versionsMu.RLock()
-	defer r.versionsMu.RUnlock()
-	versions, ok := r.versionsCache[key]
-	if !ok {
-		return nil, false
-	}
-	return cloneVersionInfos(versions), true
-}
-
-func (r *Registry) setCachedVersions(key string, versions []types.VersionInfo) {
-	r.versionsMu.Lock()
-	defer r.versionsMu.Unlock()
-	r.versionsCache[key] = cloneVersionInfos(versions)
-}
-
-func (r *Registry) clearVersionsCache() {
-	r.versionsMu.Lock()
-	defer r.versionsMu.Unlock()
-	r.versionsCache = map[string][]types.VersionInfo{}
 }

@@ -23,6 +23,8 @@ const (
 	InstalledMapsFileName = "installed_maps.json"
 	// UserProfilesFileName is the persisted user profiles file name.
 	UserProfilesFileName = "user_profiles.json"
+	// VersionsCacheFileName is the persisted upstream-release version cache file name.
+	VersionsCacheFileName = "versions_cache.json"
 	// LogFileName is the log file name.
 	LogFileName = "railyard.log"
 	// PrevLogFileName is the previous log file name.
@@ -64,6 +66,11 @@ func RegistryRepoPath() string {
 // ConfigPath returns the default filesystem path for persisted app config.
 func ConfigPath() string {
 	return filepath.Join(AppDataRoot(), ConfigFileName)
+}
+
+// VersionsCachePath returns the filesystem path for the persisted upstream-release version cache.
+func VersionsCachePath() string {
+	return filepath.Join(AppDataRoot(), VersionsCacheFileName)
 }
 
 // TilesPath returns the default filesystem path for cached map tiles.
