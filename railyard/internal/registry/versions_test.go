@@ -179,3 +179,31 @@ func TestGetCustomVersionsSortsSemverDescending(t *testing.T) {
 	require.Equal(t, "v1.0.1", versions[0].Version)
 	require.Equal(t, "v1.0.0", versions[1].Version)
 }
+
+func TestEnrichVersionsPreservesSourceProvidedGameVersionAndDeps(t *testing.T) {
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
+
+	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"dependencies":{"subway-builder":"1.0.0","other-mod":"^2.0.0"}}`)
+	}))
+	defer server.Close()
+	manifestURL := server.URL + "/manifest.json"
+
+	versions := []types.VersionInfo{
+		// Source (custom JSON) provided a game_version range — must be preserved.
+		{Version: "0.3.0", GameVersion: "<=1.3.0", Manifest: manifestURL},
+		// Source provided dependencies — must be preserved over the manifest's.
+		{Version: "0.2.0", Dependencies: map[string]string{"foo": "1.0.0"}, Manifest: manifestURL},
+		// Source provided neither — both filled from the manifest.
+		{Version: "0.1.0", Manifest: manifestURL},
+	}
+
+	reg.enrichVersions(versions)
+
+	require.Equal(t, "<=1.3.0", versions[0].GameVersion)
+	require.Equal(t, map[string]string{"foo": "1.0.0"}, versions[1].Dependencies)
+	require.Equal(t, "1.0.0", versions[2].GameVersion)
+	require.Equal(t, map[string]string{"other-mod": "^2.0.0"}, versions[2].Dependencies)
+}

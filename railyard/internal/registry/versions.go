@@ -140,8 +140,11 @@ func (r *Registry) getGitHubVersions(cacheKey string, repo string) ([]types.Vers
 	return cloneVersionInfos(versions), nil
 }
 
-// enrichVersions fetches manifest.json URLs in parallel and populates GameVersion and dependencies
-// from the game dependency key in the manifest. Errors are silently ignored per-version.
+// enrichVersions fetches manifest.json URLs in parallel and fills in GameVersion
+// and dependencies from the game dependency key in the manifest. Values already
+// supplied by the version source (e.g. a custom update JSON's game_version,
+// which may be an author-authored range like "<=1.3.0") take precedence and are
+// never overwritten by the manifest. Errors are silently ignored per-version.
 func (r *Registry) enrichVersions(versions []types.VersionInfo) {
 	var wg sync.WaitGroup
 	for i := range versions {
@@ -179,17 +182,26 @@ func (r *Registry) enrichVersions(versions []types.VersionInfo) {
 			if err := json.Unmarshal(body, &manifest); err != nil {
 				return
 			}
-			if sbRange, ok := manifest.Dependencies[constants.GameDependencyKey]; ok {
-				v.GameVersion = sbRange
-			}
-			newDeps := make(map[string]string)
-			for depID, depRange := range manifest.Dependencies {
-				if depID == constants.GameDependencyKey {
-					continue
+			// Only fill GameVersion from the manifest when the source did not
+			// already provide it, so a custom JSON's game_version wins.
+			if v.GameVersion == "" {
+				if sbRange, ok := manifest.Dependencies[constants.GameDependencyKey]; ok {
+					v.GameVersion = sbRange
 				}
-				newDeps[depID] = depRange
 			}
-			v.Dependencies = newDeps
+			// Likewise, keep source-provided dependencies over the manifest's.
+			if len(v.Dependencies) == 0 {
+				newDeps := make(map[string]string)
+				for depID, depRange := range manifest.Dependencies {
+					if depID == constants.GameDependencyKey {
+						continue
+					}
+					newDeps[depID] = depRange
+				}
+				if len(newDeps) > 0 {
+					v.Dependencies = newDeps
+				}
+			}
 		}(&versions[i])
 	}
 	wg.Wait()
