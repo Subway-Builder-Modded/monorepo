@@ -647,6 +647,19 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 		swappedProfile = reconcileResult.Profile
 	}
 
+	// Run before sync so a stuck subscription from the target profile does not fail the post-swap sync for every other asset.
+	versionReconcileResult := s.ReconcileSubscriptionVersions(targetProfile.ID)
+	if versionReconcileResult.Status == types.ResponseError {
+		return types.UserProfileResult{
+			GenericResponse: types.ErrorResponse("Active profile changed, but failed to reconcile subscription versions"),
+			Profile:         swappedProfile,
+			Errors:          versionReconcileResult.Errors,
+		}
+	}
+	if versionReconcileResult.Profile.ID != "" {
+		swappedProfile = versionReconcileResult.Profile
+	}
+
 	syncResult := s.SyncSubscriptions(targetProfile.ID, false, false)
 	if syncResult.Status == types.ResponseError {
 		return types.UserProfileResult{
@@ -655,8 +668,9 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 			Errors:          syncResult.Errors,
 		}
 	}
-	if syncResult.Status == types.ResponseWarn || reconcileResult.Status == types.ResponseWarn {
+	if syncResult.Status == types.ResponseWarn || reconcileResult.Status == types.ResponseWarn || versionReconcileResult.Status == types.ResponseWarn {
 		warnErrors := append([]types.UserProfilesError{}, reconcileResult.Errors...)
+		warnErrors = append(warnErrors, versionReconcileResult.Errors...)
 		warnErrors = append(warnErrors, syncResult.Errors...)
 		return types.UserProfileResult{
 			GenericResponse: types.WarnResponse("Profile swapped with reconciliation or sync warnings"),

@@ -269,6 +269,16 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		}
 	}
 
+	// Run before sync, and independently of the auto-update preference, so a single stuck
+	// subscription cannot fail the startup sync for every other asset.
+	reconcileResult := a.Profiles.ReconcileSubscriptionVersions(activeProfile.ID)
+	switch reconcileResult.Status {
+	case types.ResponseWarn:
+		a.Logger.Warn("Reconciled non-installable subscription versions on startup", "profile_id", activeProfile.ID, "message", reconcileResult.Message, "operation_count", len(reconcileResult.Operations))
+	case types.ResponseError:
+		a.Logger.MultipleError("Failed to reconcile subscription versions on startup", logger.AsErrors(reconcileResult.Errors), "profile_id", activeProfile.ID)
+	}
+
 	// Sync subscriptions for active profile on startup
 	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, false, false)
 	shouldRunAutoUpdate := activeProfile.SystemPreferences.AutoUpdateSubscriptions && syncResult.Status != types.ResponseError

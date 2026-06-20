@@ -94,6 +94,8 @@ var autoPurgeDownloadErrorTypes = map[DownloaderErrorType]struct{}{
 	InstallErrorInvalidManifest: {},
 	InstallErrorInvalidArchive:  {},
 	InstallErrorChecksumFailed:  {},
+	// Error for a version removed from the installable set while the app is running; ReconcileSubscriptionVersions repairs the same condition before sync at startup.
+	InstallErrorVersionNotFound: {},
 	// TODO: Add another error if the map/mod salt is not present in the installed folder
 }
 
