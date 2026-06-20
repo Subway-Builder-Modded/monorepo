@@ -231,6 +231,61 @@ func (s *UserProfiles) resolveLatestUpdatesForProfile(
 
 // ===== Registry Helpers ===== //
 
+type reconcileResponse struct {
+	noChangeMessage string
+	persistMessage  string
+	summary         func(count int) string
+	notice          func(profileID string, operation types.SubscriptionOperation) types.UserProfilesError
+}
+
+// finalizeReconcile persists the profile mutations from a reconciliation pass and passes back a summary result.
+func (s *UserProfiles) finalizeReconcile(
+	stateCopy types.UserProfilesState,
+	profileID string,
+	profile types.UserProfile,
+	operations []types.SubscriptionOperation,
+	response reconcileResponse,
+) types.UpdateSubscriptionsResult {
+	// Nothing to persist when no operations were applied, so skip directly to a success.
+	if len(operations) == 0 {
+		s.Logger.Info("Subscription reconciliation completed with no changes", "profile_id", profileID)
+		result := updateResultBase(types.UpdateSubscriptions, types.ResponseSuccess, response.noChangeMessage)
+		result.Profile = profile
+		return result
+	}
+
+	// Otherwise, commit the mutations to the store and return a summary of the applied operations with any persistence errors.
+	if err := s.commitProfileMutation(&stateCopy, profileID, profile, true); err != nil {
+		persistErr := updateSubscriptionError(profileID, "", "", types.ErrorPersistFailed, fmt.Errorf("%s: %w", response.persistMessage, err))
+		return subscriptionErrorResult(types.UpdateSubscriptions, profile, operations, response.persistMessage, persistErr)
+	}
+
+	result := updateResultBase(types.UpdateSubscriptions, types.ResponseWarn, response.summary(len(operations)))
+	result.Applied = true
+	result.Profile = profile
+	result.Persisted = true
+	result.Operations = operations
+	for _, operation := range operations {
+		result.Errors = append(result.Errors, response.notice(profileID, operation))
+	}
+	return result
+}
+
+// subscriptionErrorResult builds an error UpdateSubscriptionsResult for the given request type, carrying any operations applied so far and the supplied error.
+func subscriptionErrorResult(
+	requestType types.UpdateSubscriptionRequestType,
+	profile types.UserProfile,
+	operations []types.SubscriptionOperation,
+	message string,
+	err types.UserProfilesError,
+) types.UpdateSubscriptionsResult {
+	result := updateResultBase(requestType, types.ResponseError, message)
+	result.Profile = profile
+	result.Operations = operations
+	result.Errors = []types.UserProfilesError{err}
+	return result
+}
+
 // ReconcileLocalMapSubscriptions removes local-map subscriptions that are no longer recoverable from installed state.
 // Primarily used after bootstrap/swap fallback paths where local maps cannot be restored from archive.
 func (s *UserProfiles) ReconcileLocalMapSubscriptions(profileID string) types.UpdateSubscriptionsResult {
@@ -267,62 +322,199 @@ func (s *UserProfiles) ReconcileLocalMapSubscriptions(profileID string) types.Up
 		}
 	}
 
-	if len(assetsToRemove) == 0 {
-		s.Logger.Info("Local map subscription reconciliation completed with no removals", "profile_id", profileID)
-		result := updateResultBase(types.UpdateSubscriptions, types.ResponseSuccess, "Local map subscriptions reconciled")
-		result.Profile = profile
-		return result
-	}
-
 	// Apply mutations to remove unrecoverable local map subscriptions from the profile state so that it no longer erroneously references missing installed data
 	operations := make([]types.SubscriptionOperation, 0, len(assetsToRemove))
 	for assetID, item := range assetsToRemove {
 		operation, opErr := applySubscriptionMutation(&profile, types.SubscriptionActionUnsubscribe, strings.TrimSpace(assetID), item)
 		if opErr != nil {
 			s.Logger.Error("Failed to reconcile local map subscription", *opErr, "asset_id", assetID, "profile_id", profileID)
-			result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to reconcile local map subscriptions")
-			result.Profile = profile
-			result.Errors = []types.UserProfilesError{*opErr}
-			return result
+			return subscriptionErrorResult(types.UpdateSubscriptions, profile, nil, "Failed to reconcile local map subscriptions", *opErr)
 		}
 		operations = appendOperation(operations, operation)
 	}
 
-	if err := s.commitProfileMutation(&stateCopy, profileID, profile, true); err != nil {
-		persistErr := updateSubscriptionError(
-			profileID,
-			"",
-			types.AssetTypeMap,
-			types.ErrorPersistFailed,
-			fmt.Errorf("failed to persist reconciled local map subscriptions: %w", err),
-		)
-		result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to persist local map subscription reconciliation")
-		result.Profile = profile
-		result.Operations = operations
-		result.Errors = []types.UserProfilesError{persistErr}
-		return result
+	return s.finalizeReconcile(stateCopy, profileID, profile, operations, reconcileResponse{
+		noChangeMessage: "Local map subscriptions reconciled",
+		persistMessage:  "Failed to persist local map subscription reconciliation",
+		summary: func(count int) string {
+			return fmt.Sprintf("Removed %d unrecoverable local map subscription(s)", count)
+		},
+		notice: func(profileID string, operation types.SubscriptionOperation) types.UserProfilesError {
+			return userProfilesError(
+				profileID,
+				operation.AssetID,
+				types.AssetTypeMap,
+				types.ErrorArchiveMissing,
+				"",
+				fmt.Sprintf("Removed local map subscription %q because installed data is unavailable", operation.AssetID),
+			)
+		},
+	})
+}
+
+// ReconcileSubscriptionVersions repairs remote map and mod subscriptions set to a version that is not installable (not in the integrity-complete set), which can be:
+// - an asset version that never passed integrity
+// - an asset version that originally passed integrity, but was later removed upstream.
+// Such subscriptions can be invisible in the library if no version was ever installed and fail every subsequent sync, so they must be reconciled before sync runs.
+func (s *UserProfiles) ReconcileSubscriptionVersions(profileID string) types.UpdateSubscriptionsResult {
+	s.logRequest("ReconcileSubscriptionVersions", "profile_id", profileID)
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	stateCopy, profile, profileErr := s.resolveProfileFromCopy(profileID)
+	if profileErr != nil {
+		s.Logger.Error("Profile not found", profileErr, "profile_id", profileID)
+		return profileNotFoundUpdateResult(profileErr, types.UpdateSubscriptions, "profile not found")
 	}
 
-	result := updateResultBase(
-		types.UpdateSubscriptions,
-		types.ResponseWarn,
-		fmt.Sprintf("Removed %d unrecoverable local map subscription(s)", len(operations)),
+	cloneProfileSubscriptions(&profile)
+
+	operations := make([]types.SubscriptionOperation, 0)
+	// Reconcile every remote subscription type
+	for _, bucket := range profile.Subscriptions.RemoteSubscriptions() {
+		for assetID, pinnedVersion := range bucket.Entries {
+			operation, opErr := s.reconcileSubscriptionVersion(&profile, profileID, bucket.AssetType, assetID, pinnedVersion)
+			if opErr != nil {
+				s.Logger.Error("Failed to reconcile subscription version", *opErr, "asset_type", bucket.AssetType, "asset_id", assetID, "profile_id", profileID)
+				return subscriptionErrorResult(types.UpdateSubscriptions, profile, nil, "Failed to reconcile subscription versions", *opErr)
+			}
+			if operation != nil {
+				operations = appendOperation(operations, operation)
+			}
+		}
+	}
+
+	return s.finalizeReconcile(stateCopy, profileID, profile, operations, reconcileResponse{
+		noChangeMessage: "Subscription versions reconciled",
+		persistMessage:  "Failed to persist subscription version reconciliation",
+		summary: func(count int) string {
+			return fmt.Sprintf("Reconciled %d subscription(s) pinned to non-installable versions", count)
+		},
+		notice: subscriptionReconcileNotice,
+	})
+}
+
+// reconcileSubscriptionVersion repairs a single subscription version that is not installable.
+// It returns the applied subscription operation, or nil when no change is needed or the lookup could not be completed.
+func (s *UserProfiles) reconcileSubscriptionVersion(
+	profile *types.UserProfile,
+	profileID string,
+	assetType types.AssetType,
+	assetID string,
+	pinnedVersion string,
+) (*types.SubscriptionOperation, *types.UserProfilesError) {
+	pinned := strings.TrimSpace(pinnedVersion)
+
+	installable, lookupErr := s.Registry.GetInstallableVersions(assetType, assetID)
+	if lookupErr == nil {
+		for _, version := range installable {
+			if strings.TrimSpace(version.Version) == pinned {
+				return nil, nil // still installable; nothing to reconcile
+			}
+		}
+		// Downgrade to the latest installable version, or purge when none remain installable.
+		if len(installable) > 0 {
+			return s.downgradeSubscriptionToInstallable(profile, profileID, assetType, assetID, pinned, installable)
+		}
+		return s.purgeNonInstallableSubscription(profile, profileID, assetType, assetID, pinned)
+	}
+
+	// Lookup failed: only purge when the loaded integrity report definitively has no installable version, so a transient or unloaded registry never purges a valid subscription.
+	if s.assetHasNoInstallableVersions(assetType, assetID) {
+		return s.purgeNonInstallableSubscription(profile, profileID, assetType, assetID, pinned)
+	}
+	return s.skipVersionReconcile("Skipping subscription version reconciliation; installable versions unavailable", assetType, assetID, profileID, lookupErr)
+}
+
+// skipVersionReconcile logs that a subscription was left unchanged during version reconciliation and
+// returns a no-op result (nil operation, nil error).
+func (s *UserProfiles) skipVersionReconcile(message string, assetType types.AssetType, assetID, profileID string, cause error) (*types.SubscriptionOperation, *types.UserProfilesError) {
+	s.Logger.Warn(message, "asset_type", assetType, "asset_id", assetID, "profile_id", profileID, "error", cause.Error())
+	return nil, nil
+}
+
+// downgradeSubscriptionToInstallable rewrites the subscription to the latest installable version.
+func (s *UserProfiles) downgradeSubscriptionToInstallable(
+	profile *types.UserProfile,
+	profileID string,
+	assetType types.AssetType,
+	assetID string,
+	pinned string,
+	installable []types.VersionInfo,
+) (*types.SubscriptionOperation, *types.UserProfilesError) {
+	latest, err := latestSemverVersion(installable)
+	if err != nil {
+		return s.skipVersionReconcile("Skipping subscription version reconciliation; failed to resolve latest installable version", assetType, assetID, profileID, err)
+	}
+	s.Logger.Warn(
+		"Downgrading subscription pinned to non-installable version",
+		"asset_type", assetType,
+		"asset_id", assetID,
+		"profile_id", profileID,
+		"pinned_version", pinned,
+		"installable_version", latest,
 	)
-	result.Applied = true
-	result.Profile = profile
-	result.Persisted = true
-	result.Operations = operations
-	for _, operation := range operations {
-		result.Errors = append(result.Errors, userProfilesError(
+	return applySubscriptionMutation(profile, types.SubscriptionActionSubscribe, assetID, types.SubscriptionUpdateItem{
+		Type:    assetType,
+		Version: types.Version(latest),
+	})
+}
+
+// purgeNonInstallableSubscription removes a subscription that has no installable version available.
+func (s *UserProfiles) purgeNonInstallableSubscription(
+	profile *types.UserProfile,
+	profileID string,
+	assetType types.AssetType,
+	assetID string,
+	pinned string,
+) (*types.SubscriptionOperation, *types.UserProfilesError) {
+	s.Logger.Warn(
+		"Purging subscription pinned to non-installable version with no installable alternative",
+		"asset_type", assetType,
+		"asset_id", assetID,
+		"profile_id", profileID,
+		"pinned_version", pinned,
+	)
+	return applySubscriptionMutation(profile, types.SubscriptionActionUnsubscribe, assetID, types.SubscriptionUpdateItem{
+		Type: assetType,
+	})
+}
+
+// assetHasNoInstallableVersions reports whether the registry's integrity set is available and undeniably lists no complete version for the asset (delisted or never approved).
+func (s *UserProfiles) assetHasNoInstallableVersions(assetType types.AssetType, assetID string) bool {
+	report, err := s.Registry.GetIntegrityReport(assetType)
+	if err != nil || len(report.Listings) == 0 {
+		// Returns false when the report is not loaded, so a missing or unreadable registry never triggers a purge.
+		return false
+	}
+	listing, ok := report.Listings[assetID]
+	if !ok {
+		return true
+	}
+	return !listing.HasCompleteVersion
+}
+
+// subscriptionReconcileNotice builds an informational error describing a reconciliation operation.
+func subscriptionReconcileNotice(profileID string, operation types.SubscriptionOperation) types.UserProfilesError {
+	if operation.Action == types.SubscriptionActionUnsubscribe {
+		return userProfilesError(
 			profileID,
 			operation.AssetID,
-			types.AssetTypeMap,
-			types.ErrorArchiveMissing,
+			operation.Type,
+			types.ErrorLookupFailed,
 			"",
-			fmt.Sprintf("Removed local map subscription %q because installed data is unavailable", operation.AssetID),
-		))
+			fmt.Sprintf("Purged subscription %q because no installable version is available", operation.AssetID),
+		)
 	}
-	return result
+	return userProfilesError(
+		profileID,
+		operation.AssetID,
+		operation.Type,
+		types.ErrorLookupFailed,
+		"",
+		fmt.Sprintf("Downgraded subscription %q to installable version %q", operation.AssetID, strings.TrimSpace(string(operation.Version))),
+	)
 }
 
 func (s *UserProfiles) resolveLatestSubscriptionUpdates(
@@ -345,9 +537,8 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 			subscriptions: profile.Subscriptions.Maps,
 			getManifests:  s.Registry.GetMaps,
 			idFn:          func(m types.MapManifest) string { return m.ID },
-			updateFn:      func(m types.MapManifest) types.UpdateConfig { return m.Update },
 		},
-		profileID, targetSet, s.Registry.GetVersions, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, s.Registry.GetInstallableVersions, updates, &pendingUpdates, &warnings,
 	)
 
 	latestAssetUpdates(
@@ -356,9 +547,8 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 			subscriptions: profile.Subscriptions.Mods,
 			getManifests:  s.Registry.GetMods,
 			idFn:          func(m types.ModManifest) string { return m.ID },
-			updateFn:      func(m types.ModManifest) types.UpdateConfig { return m.Update },
 		},
-		profileID, targetSet, s.Registry.GetVersions, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, s.Registry.GetInstallableVersions, updates, &pendingUpdates, &warnings,
 	)
 
 	return updates, pendingUpdates, warnings
@@ -369,21 +559,20 @@ type latestSubscriptionArgs[T any] struct {
 	subscriptions map[string]string
 	getManifests  func() []T
 	idFn          func(T) string
-	updateFn      func(T) types.UpdateConfig
 }
 
 func latestAssetUpdates[T any](
 	args latestSubscriptionArgs[T],
 	profileID string,
 	targetSet map[assetVersionKey]struct{},
-	getVersionsFn func(string, string) ([]types.VersionInfo, error),
+	getInstallableVersionsFn func(types.AssetType, string) ([]types.VersionInfo, error),
 	updates map[string]types.SubscriptionUpdateItem,
 	pendingUpdates *[]types.PendingSubscriptionUpdate,
 	errors *[]types.UserProfilesError,
 ) {
-	manifestUpdateByID := make(map[string]types.UpdateConfig)
+	manifestIDs := make(map[string]struct{})
 	for _, manifest := range args.getManifests() {
-		manifestUpdateByID[args.idFn(manifest)] = args.updateFn(manifest)
+		manifestIDs[args.idFn(manifest)] = struct{}{}
 	}
 
 	for assetID, currentVersion := range args.subscriptions {
@@ -392,8 +581,7 @@ func latestAssetUpdates[T any](
 			continue
 		}
 
-		update, ok := manifestUpdateByID[assetID]
-		if !ok {
+		if _, ok := manifestIDs[assetID]; !ok {
 			*errors = append(*errors, updateSubscriptionError(
 				profileID, assetID, args.assetType, types.ErrorLookupFailed,
 				fmt.Errorf("Asset %q missing from registry manifests for %s", assetID, args.assetType),
@@ -401,7 +589,7 @@ func latestAssetUpdates[T any](
 			continue
 		}
 
-		latestVersion, resolveErr := resolveLatestVersionForManifest(update, getVersionsFn)
+		latestVersion, resolveErr := resolveLatestInstallableVersion(args.assetType, assetID, getInstallableVersionsFn)
 		if resolveErr != nil {
 			*errors = append(*errors, updateSubscriptionError(
 				profileID, assetID, args.assetType, types.ErrorLookupFailed,
@@ -452,14 +640,22 @@ func shouldUpdate(targetSet map[assetVersionKey]struct{}, assetType types.AssetT
 	return ok
 }
 
-func resolveLatestVersionForManifest(
-	update types.UpdateConfig,
-	getVersionsFn func(string, string) ([]types.VersionInfo, error),
+// resolveLatestInstallableVersion returns the latest integrity-complete version for the asset.
+// Resolving against the installable set rather than the raw upstream release list ensures auto-update (and other consumers of this function) never advance a subscription to a version the downloader would reject.
+func resolveLatestInstallableVersion(
+	assetType types.AssetType,
+	assetID string,
+	getInstallableVersionsFn func(types.AssetType, string) ([]types.VersionInfo, error),
 ) (string, error) {
-	versions, err := getVersionsFn(update.Type, update.Source())
+	versions, err := getInstallableVersionsFn(assetType, assetID)
 	if err != nil {
-		return "", fmt.Errorf("Failed to resolve versions: %w", err)
+		return "", fmt.Errorf("Failed to resolve installable versions: %w", err)
 	}
+	return latestSemverVersion(versions)
+}
+
+// latestSemverVersion returns the highest semver version from the provided list.
+func latestSemverVersion(versions []types.VersionInfo) (string, error) {
 	if len(versions) == 0 {
 		return "", errors.New("No versions found")
 	}
@@ -523,22 +719,14 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 		operation, opErr := applySubscriptionMutation(&profile, req.Action, strings.TrimSpace(assetID), item)
 		if opErr != nil {
 			s.Logger.Error("Failed to apply subscription mutation", *opErr, "asset_id", assetID, "asset_type", item.Type, "action", req.Action)
-			result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to apply subscription mutation")
-			result.Profile = profile
-			result.Errors = []types.UserProfilesError{*opErr}
-			return result
+			return subscriptionErrorResult(types.UpdateSubscriptions, profile, nil, "Failed to apply subscription mutation", *opErr)
 		}
 		operations = appendOperation(operations, operation)
 	}
 
 	if err := s.commitProfileMutation(&stateCopy, req.ProfileID, profile, shouldPersist(req.ApplyMode)); err != nil {
-		result := updateResultBase(types.UpdateSubscriptions, types.ResponseError, "Failed to persist subscriptions")
-		result.Profile = profile
-		result.Operations = operations
-		result.Errors = []types.UserProfilesError{
-			updateSubscriptionError(req.ProfileID, "", "", types.ErrorPersistFailed, fmt.Errorf("Failed to persist subscriptions: %w", err)),
-		}
-		return result
+		persistErr := updateSubscriptionError(req.ProfileID, "", "", types.ErrorPersistFailed, fmt.Errorf("Failed to persist subscriptions: %w", err))
+		return subscriptionErrorResult(types.UpdateSubscriptions, profile, operations, "Failed to persist subscriptions", persistErr)
 	}
 
 	result := updateResultBase(types.UpdateSubscriptions, types.ResponseSuccess, "Subscriptions updated")
@@ -660,11 +848,7 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 			types.ErrorPersistFailed,
 			fmt.Errorf("failed to persist imported asset subscriptions: %w", err),
 		)
-		result := updateResultBase(types.ImportAsset, types.ResponseError, "Failed to persist imported asset subscriptions")
-		result.Profile = nextProfile
-		result.Operations = operations
-		result.Errors = []types.UserProfilesError{persistErr}
-		return result
+		return subscriptionErrorResult(types.ImportAsset, nextProfile, operations, "Failed to persist imported asset subscriptions", persistErr)
 	}
 
 	status := types.ResponseSuccess

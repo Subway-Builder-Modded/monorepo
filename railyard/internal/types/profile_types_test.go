@@ -211,6 +211,24 @@ func TestSubscriptionsForEachSubscriptionTypeUsesJSONNames(t *testing.T) {
 	require.Equal(t, []string{"localMaps", "maps", "mods"}, buckets)
 }
 
+func TestSubscriptionsRemoteSubscriptionsExcludesLocal(t *testing.T) {
+	subscriptions := Subscriptions{
+		Maps:      map[string]string{"map-a": "1.0.0"},
+		LocalMaps: map[string]string{"local-map-a": "1.0.0"},
+		Mods:      map[string]string{"mod-a": "2.0.0"},
+	}
+
+	byAssetType := map[AssetType]map[string]string{}
+	for _, bucket := range subscriptions.RemoteSubscriptions() {
+		byAssetType[bucket.AssetType] = bucket.Entries
+	}
+
+	require.Equal(t, map[AssetType]map[string]string{
+		AssetTypeMap: {"map-a": "1.0.0"},
+		AssetTypeMod: {"mod-a": "2.0.0"},
+	}, byAssetType)
+}
+
 func TestSubscriptionsHasAny(t *testing.T) {
 	require.False(t, Subscriptions{
 		Maps:      map[string]string{},

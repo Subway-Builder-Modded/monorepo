@@ -24,6 +24,14 @@ type UpdateFixture struct {
 	ArchiveBytes []byte
 	// MissingModManifest serves a mod zip without manifest.json to exercise invalid-archive paths.
 	MissingModManifest bool
+	// IncompleteVersions are available upstream via Github API (so GetVersions sees them) but are not complete within integrity (so GetInstallableVersions excludes them). This test asset set directly targets this upstream/integrity gap.
+	IncompleteVersions []string
+}
+
+// remoteVersions returns every version the upstream releases endpoint returns
+func (f UpdateFixture) remoteVersions() []string {
+	served := append([]string{}, f.Versions...)
+	return append(served, f.IncompleteVersions...)
 }
 
 func MockZip(t *testing.T, files map[string][]byte) []byte {
@@ -138,12 +146,13 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 				return
 			}
 
+			remoteVersions := current.remoteVersions()
 			payload := types.CustomUpdateFile{
 				SchemaVersion: 1,
-				Versions:      make([]types.CustomUpdateVersion, 0, len(current.Versions)),
+				Versions:      make([]types.CustomUpdateVersion, 0, len(remoteVersions)),
 			}
 
-			for _, version := range current.Versions {
+			for _, version := range remoteVersions {
 				downloadPath := "/downloads/" + current.AssetID + "-" + version + ".zip"
 				payload.Versions = append(payload.Versions, types.CustomUpdateVersion{
 					Version:  version,
@@ -161,7 +170,7 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 		if current.FailVersions {
 			continue
 		}
-		for _, version := range current.Versions {
+		for _, version := range current.remoteVersions() {
 			downloadPath := "/downloads/" + current.AssetID + "-" + version + ".zip"
 			if current.ArchiveBytes != nil {
 				zipByDownloadPath[downloadPath] = current.ArchiveBytes
@@ -217,9 +226,13 @@ func integrityListingFromFixture(fixture UpdateFixture) types.IntegrityListing {
 	hasComplete := len(fixture.Versions) > 0 && !fixture.FailVersions
 	latestComplete := hasComplete
 	completeVersions := append([]string{}, fixture.Versions...)
-	versions := make(map[string]types.IntegrityVersionStatus, len(fixture.Versions))
+	incompleteVersions := append([]string{}, fixture.IncompleteVersions...)
+	versions := make(map[string]types.IntegrityVersionStatus, len(fixture.Versions)+len(fixture.IncompleteVersions))
 	for _, version := range fixture.Versions {
 		versions[version] = types.IntegrityVersionStatus{IsComplete: hasComplete}
+	}
+	for _, version := range fixture.IncompleteVersions {
+		versions[version] = types.IntegrityVersionStatus{IsComplete: false}
 	}
 
 	return types.IntegrityListing{
@@ -227,7 +240,7 @@ func integrityListingFromFixture(fixture UpdateFixture) types.IntegrityListing {
 		LatestSemverVersion:  nil,
 		LatestSemverComplete: &latestComplete,
 		CompleteVersions:     completeVersions,
-		IncompleteVersions:   []string{},
+		IncompleteVersions:   incompleteVersions,
 		Versions:             versions,
 	}
 }
