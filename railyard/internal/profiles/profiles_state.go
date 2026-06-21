@@ -637,11 +637,7 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 	// After bootstrapping the registry state from the profile, we should attempt to reconcile any local map subscriptions that may be out of sync due to the profile swap before running a full sync to update any remaining subscriptions
 	reconcileResult := s.ReconcileLocalMapSubscriptions(targetProfile.ID)
 	if reconcileResult.Status == types.ResponseError {
-		return types.UserProfileResult{
-			GenericResponse: types.ErrorResponse("Active profile changed, but failed to reconcile local map subscriptions"),
-			Profile:         swappedProfile,
-			Errors:          reconcileResult.Errors,
-		}
+		return profileStateErrorResult("Active profile changed, but failed to reconcile local map subscriptions", swappedProfile, reconcileResult.Errors...)
 	}
 	if reconcileResult.Profile.ID != "" {
 		swappedProfile = reconcileResult.Profile
@@ -650,11 +646,7 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 	// Run before sync so a stuck subscription from the target profile does not fail the post-swap sync for every other asset.
 	versionReconcileResult := s.ReconcileSubscriptionVersions(targetProfile.ID)
 	if versionReconcileResult.Status == types.ResponseError {
-		return types.UserProfileResult{
-			GenericResponse: types.ErrorResponse("Active profile changed, but failed to reconcile subscription versions"),
-			Profile:         swappedProfile,
-			Errors:          versionReconcileResult.Errors,
-		}
+		return profileStateErrorResult("Active profile changed, but failed to reconcile subscription versions", swappedProfile, versionReconcileResult.Errors...)
 	}
 	if versionReconcileResult.Profile.ID != "" {
 		swappedProfile = versionReconcileResult.Profile
@@ -662,11 +654,7 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 
 	syncResult := s.SyncSubscriptions(targetProfile.ID, false, false)
 	if syncResult.Status == types.ResponseError {
-		return types.UserProfileResult{
-			GenericResponse: types.ErrorResponse("Profile swapped, but failed to sync subscriptions"),
-			Profile:         swappedProfile,
-			Errors:          syncResult.Errors,
-		}
+		return profileStateErrorResult("Profile swapped, but failed to sync subscriptions", swappedProfile, syncResult.Errors...)
 	}
 	if syncResult.Status == types.ResponseWarn || reconcileResult.Status == types.ResponseWarn || versionReconcileResult.Status == types.ResponseWarn {
 		warnErrors := append([]types.UserProfilesError{}, reconcileResult.Errors...)

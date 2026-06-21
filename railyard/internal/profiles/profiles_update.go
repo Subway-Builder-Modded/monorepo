@@ -421,7 +421,7 @@ func (s *UserProfiles) reconcileSubscriptionVersion(
 	}
 
 	// Lookup failed: only purge when the loaded integrity report definitively has no installable version, so a transient or unloaded registry never purges a valid subscription.
-	if s.assetHasNoInstallableVersions(assetType, assetID) {
+	if s.Registry.AssetMissingInstallableVersion(assetType, assetID) {
 		return s.purgeNonInstallableSubscription(profile, profileID, assetType, assetID, pinned)
 	}
 	return s.skipVersionReconcile("Skipping subscription version reconciliation; installable versions unavailable", assetType, assetID, profileID, lookupErr)
@@ -479,20 +479,6 @@ func (s *UserProfiles) purgeNonInstallableSubscription(
 	return applySubscriptionMutation(profile, types.SubscriptionActionUnsubscribe, assetID, types.SubscriptionUpdateItem{
 		Type: assetType,
 	})
-}
-
-// assetHasNoInstallableVersions reports whether the registry's integrity set is available and undeniably lists no complete version for the asset (delisted or never approved).
-func (s *UserProfiles) assetHasNoInstallableVersions(assetType types.AssetType, assetID string) bool {
-	report, err := s.Registry.GetIntegrityReport(assetType)
-	if err != nil || len(report.Listings) == 0 {
-		// Returns false when the report is not loaded, so a missing or unreadable registry never triggers a purge.
-		return false
-	}
-	listing, ok := report.Listings[assetID]
-	if !ok {
-		return true
-	}
-	return !listing.HasCompleteVersion
 }
 
 // subscriptionReconcileNotice builds an informational error describing a reconciliation operation.
