@@ -10,8 +10,16 @@ const REPO_OWNER = 'Subway-Builder-Modded';
 const REPO_NAME = 'registry';
 const REPO_NAME_FALLBACK = 'The-Railyard';
 const REPO_BRANCH = 'main';
+// Large per-map artifacts (grid.geojson, basemap.svg) are relocated off main to
+// the map-data branch to keep the app's registry clone small. Read them from
+// there first, falling back to main during the transition.
+const MAP_DATA_BRANCH = 'map-data';
 const RAW_BASE = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${REPO_BRANCH}`;
 const RAW_BASE_FALLBACK = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME_FALLBACK}/${REPO_BRANCH}`;
+const MAP_DATA_BASE = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${MAP_DATA_BRANCH}`;
+const MAP_DATA_BASE_FALLBACK = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME_FALLBACK}/${MAP_DATA_BRANCH}`;
+// Grid lives on map-data post-relocation; try it before main.
+const GRID_BASES = [MAP_DATA_BASE, MAP_DATA_BASE_FALLBACK, RAW_BASE, RAW_BASE_FALLBACK];
 
 const TOKEN =
   process.env['RAILYARD_GITHUB_TOKEN']?.trim() ||
@@ -70,8 +78,7 @@ function buildHeaders() {
   return headers;
 }
 
-async function fetchJson(pathname) {
-  const bases = [RAW_BASE, RAW_BASE_FALLBACK];
+async function fetchJson(pathname, bases = [RAW_BASE, RAW_BASE_FALLBACK]) {
   let lastError;
   for (const base of bases) {
     const url = `${base}/${pathname}`;
@@ -281,7 +288,7 @@ async function main() {
 
   for (const mapId of mapIds) {
     try {
-      const grid = await fetchJson(`maps/${encodeURIComponent(mapId)}/grid.geojson`);
+      const grid = await fetchJson(`maps/${encodeURIComponent(mapId)}/grid.geojson`, GRID_BASES);
       const normalized = normalizeMapGrid(mapId, grid);
       const outputPath = path.join(OUTPUT_DIR, `${mapId}.json`);
       writeJson(outputPath, normalized);
