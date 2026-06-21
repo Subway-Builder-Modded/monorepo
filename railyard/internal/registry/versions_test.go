@@ -223,9 +223,9 @@ func TestApplyIntegrityGameMetaFillsGithubVersionsFromIntegrity(t *testing.T) {
 	}
 
 	versions := []types.VersionInfo{
-		{Version: "v1.2.3"},                          // filled from integrity
-		{Version: "v9.9.9"},                          // not in integrity -> untouched
-		{Version: "v1.0.0", GameVersion: "preset"},   // source-provided -> not overwritten
+		{Version: "v1.2.3"},                        // filled from integrity
+		{Version: "v9.9.9"},                        // not in integrity -> untouched
+		{Version: "v1.0.0", GameVersion: "preset"}, // source-provided -> not overwritten
 	}
 	// Repo match is case-insensitive (integrity stores lowercased repos).
 	reg.applyIntegrityGameMeta("Owner/Repo", versions)

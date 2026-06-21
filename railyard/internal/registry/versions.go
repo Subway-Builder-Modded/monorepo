@@ -9,7 +9,6 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"sync"
 
 	"railyard/internal/constants"
 	"railyard/internal/requests"
@@ -18,11 +17,6 @@ import (
 	semver "github.com/Masterminds/semver/v3"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
-
-// modManifestDeps is the minimal schema needed to extract dependencies from a mod's manifest.json.
-type modManifestDeps struct {
-	Dependencies map[string]string `json:"dependencies"`
-}
 
 // GetVersions fetches available versions for a mod or map.
 // updateType must be "github" or "custom".
@@ -141,113 +135,6 @@ func (r *Registry) getGitHubVersions(cacheKey string, repo string) ([]types.Vers
 
 	r.versions.store(cacheKey, resp.Header.Get("ETag"), versions)
 	return cloneVersionInfos(versions), nil
-}
-
-// applyIntegrityGameMeta fills GameVersion/Dependencies on each version from the
-// integrity report, matched by the github release's repo and tag. The integrity
-// version source carries repo+tag, so this works without the listing's asset ID.
-// Source-provided values (already set) are left untouched.
-func (r *Registry) applyIntegrityGameMeta(repo string, versions []types.VersionInfo) {
-	repoLower := strings.ToLower(repo)
-	byTag := make(map[string]types.IntegrityVersionStatus)
-	for _, report := range []types.RegistryIntegrityReport{r.integrityMaps, r.integrityMods} {
-		for _, listing := range report.Listings {
-			for tag, status := range listing.Versions {
-				if status.GameVersion == "" || status.Source.UpdateType != "github" {
-					continue
-				}
-				if strings.ToLower(status.Source.Repo) == repoLower {
-					byTag[tag] = status
-				}
-			}
-		}
-	}
-	if len(byTag) == 0 {
-		return
-	}
-	for i := range versions {
-		if versions[i].GameVersion != "" {
-			continue
-		}
-		if status, ok := byTag[versions[i].Version]; ok {
-			versions[i].GameVersion = status.GameVersion
-			if len(status.Dependencies) > 0 {
-				versions[i].Dependencies = status.Dependencies
-			}
-		}
-	}
-}
-
-// enrichVersions fetches manifest.json URLs in parallel and fills in GameVersion
-// and dependencies from the game dependency key in the manifest. Values already
-// supplied by the version source (e.g. a custom update JSON's game_version,
-// which may be an author-authored range like "<=1.3.0") take precedence and are
-// never overwritten by the manifest. Errors are silently ignored per-version.
-func (r *Registry) enrichVersions(versions []types.VersionInfo) {
-	var wg sync.WaitGroup
-	for i := range versions {
-		if versions[i].Manifest == "" {
-			continue
-		}
-		// game_version (and deps) already supplied by the source or the integrity
-		// report — skip the manifest fetch entirely.
-		if versions[i].GameVersion != "" {
-			continue
-		}
-		wg.Add(1)
-		go func(v *types.VersionInfo) {
-			defer wg.Done()
-			resp, err := requests.GetWithGithubToken(r.httpClient, requests.GithubTokenRequestArgs{
-				URL: v.Manifest,
-				Headers: map[string]string{
-					"Accept": "application/octet-stream",
-				},
-				OnTokenRejected: func(statusCode int) {
-					r.logger.Warn("GitHub token rejected; retrying unauthenticated request", "status", statusCode)
-					requestErrType := types.GetErrorTypeForStatus(statusCode)
-					if r.context.Value("test") != "true" {
-						wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
-					}
-				},
-			})
-			if err != nil {
-				return
-			}
-			defer resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				return
-			}
-			body, err := io.ReadAll(io.LimitReader(resp.Body, 256*1024))
-			if err != nil {
-				return
-			}
-			var manifest modManifestDeps
-			if err := json.Unmarshal(body, &manifest); err != nil {
-				return
-			}
-			// Only fill GameVersion from the manifest when the source did not
-			// already provide it, so a custom JSON's game_version wins.
-			if v.GameVersion == "" {
-				if sbRange, ok := manifest.Dependencies[constants.GameDependencyKey]; ok {
-					v.GameVersion = sbRange
-				}
-			}
-			// Likewise, keep source-provided dependencies over the manifest's.
-			if len(v.Dependencies) == 0 {
-				newDeps := make(map[string]string)
-				for depID, depRange := range manifest.Dependencies {
-					if depID == constants.GameDependencyKey {
-						continue
-					}
-					newDeps[depID] = depRange
-				}
-				if len(newDeps) > 0 {
-					v.Dependencies = newDeps
-				}
-			}
-		}(&versions[i])
-	}
-	wg.Wait()
 }
 
 func (r *Registry) getCustomVersions(cacheKey string, updateURL string) ([]types.VersionInfo, error) {
