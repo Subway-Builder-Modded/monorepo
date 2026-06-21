@@ -207,3 +207,31 @@ func TestEnrichVersionsPreservesSourceProvidedGameVersionAndDeps(t *testing.T) {
 	require.Equal(t, "1.0.0", versions[2].GameVersion)
 	require.Equal(t, map[string]string{"other-mod": "^2.0.0"}, versions[2].Dependencies)
 }
+
+func TestApplyIntegrityGameMetaFillsGithubVersionsFromIntegrity(t *testing.T) {
+	reg := newTestRegistry(t)
+	reg.integrityMaps = types.RegistryIntegrityReport{
+		Listings: map[string]types.IntegrityListing{
+			"map-a": {Versions: map[string]types.IntegrityVersionStatus{
+				"v1.2.3": {
+					GameVersion:  "<=1.3.0",
+					Dependencies: map[string]string{"dep": "^1.0.0"},
+					Source:       types.IntegrityVersionSource{UpdateType: "github", Repo: "owner/repo", Tag: "v1.2.3"},
+				},
+			}},
+		},
+	}
+
+	versions := []types.VersionInfo{
+		{Version: "v1.2.3"},                          // filled from integrity
+		{Version: "v9.9.9"},                          // not in integrity -> untouched
+		{Version: "v1.0.0", GameVersion: "preset"},   // source-provided -> not overwritten
+	}
+	// Repo match is case-insensitive (integrity stores lowercased repos).
+	reg.applyIntegrityGameMeta("Owner/Repo", versions)
+
+	require.Equal(t, "<=1.3.0", versions[0].GameVersion)
+	require.Equal(t, map[string]string{"dep": "^1.0.0"}, versions[0].Dependencies)
+	require.Equal(t, "", versions[1].GameVersion)
+	require.Equal(t, "preset", versions[2].GameVersion)
+}

@@ -133,11 +133,49 @@ func (r *Registry) getGitHubVersions(cacheKey string, repo string) ([]types.Vers
 	}
 
 	versions = r.filterSemverVersions(versions, "github:"+repo)
-	// Fetch manifest.json assets in parallel to extract game_version
+	// Prefer game_version/deps already recorded in the integrity report (parsed
+	// from the release manifest asset by the registry pipeline). enrichVersions
+	// then only fetches manifests for versions still missing it.
+	r.applyIntegrityGameMeta(repo, versions)
 	r.enrichVersions(versions)
 
 	r.versions.store(cacheKey, resp.Header.Get("ETag"), versions)
 	return cloneVersionInfos(versions), nil
+}
+
+// applyIntegrityGameMeta fills GameVersion/Dependencies on each version from the
+// integrity report, matched by the github release's repo and tag. The integrity
+// version source carries repo+tag, so this works without the listing's asset ID.
+// Source-provided values (already set) are left untouched.
+func (r *Registry) applyIntegrityGameMeta(repo string, versions []types.VersionInfo) {
+	repoLower := strings.ToLower(repo)
+	byTag := make(map[string]types.IntegrityVersionStatus)
+	for _, report := range []types.RegistryIntegrityReport{r.integrityMaps, r.integrityMods} {
+		for _, listing := range report.Listings {
+			for tag, status := range listing.Versions {
+				if status.GameVersion == "" || status.Source.UpdateType != "github" {
+					continue
+				}
+				if strings.ToLower(status.Source.Repo) == repoLower {
+					byTag[tag] = status
+				}
+			}
+		}
+	}
+	if len(byTag) == 0 {
+		return
+	}
+	for i := range versions {
+		if versions[i].GameVersion != "" {
+			continue
+		}
+		if status, ok := byTag[versions[i].Version]; ok {
+			versions[i].GameVersion = status.GameVersion
+			if len(status.Dependencies) > 0 {
+				versions[i].Dependencies = status.Dependencies
+			}
+		}
+	}
 }
 
 // enrichVersions fetches manifest.json URLs in parallel and fills in GameVersion
@@ -149,6 +187,11 @@ func (r *Registry) enrichVersions(versions []types.VersionInfo) {
 	var wg sync.WaitGroup
 	for i := range versions {
 		if versions[i].Manifest == "" {
+			continue
+		}
+		// game_version (and deps) already supplied by the source or the integrity
+		// report — skip the manifest fetch entirely.
+		if versions[i].GameVersion != "" {
 			continue
 		}
 		wg.Add(1)
