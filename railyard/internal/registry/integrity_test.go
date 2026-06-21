@@ -92,3 +92,23 @@ func TestGetInstallableVersionsRejectsMissingOrIncompleteListings(t *testing.T) 
 	_, err = reg.GetInstallableVersions(types.AssetTypeMap, "map-a")
 	require.ErrorContains(t, err, "has no complete versions")
 }
+
+func TestAssetMissingInstallableVersion(t *testing.T) {
+	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+
+	// No integrity report loaded: never reported as definitively missing (would be unsafe to purge).
+	require.False(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-a"))
+
+	reg.integrityMaps = types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			"map-complete":   {HasCompleteVersion: true},
+			"map-incomplete": {HasCompleteVersion: false},
+		},
+	}
+
+	require.False(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-complete"))  // has a complete version
+	require.True(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-incomplete")) // listed but no complete version
+	require.True(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-delisted"))   // absent from a loaded report
+}
