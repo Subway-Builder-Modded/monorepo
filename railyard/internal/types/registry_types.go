@@ -155,6 +155,19 @@ type VersionInfo struct {
 	Dependencies map[string]string `json:"dependencies,omitempty"` // Map of dependency mod IDs to version constraints
 }
 
+// VersionsCacheEntry is a persisted upstream-release lookup: the resolved versions plus the HTTP ETag used to revalidate them with a conditional request.
+type VersionsCacheEntry struct {
+	ETag     string        `json:"etag"`
+	Versions []VersionInfo `json:"versions"`
+}
+
+// VersionsCacheFile is the on-disk shape of the version cache, keyed by
+// "<updateType>|<repoOrURL>".
+type VersionsCacheFile struct {
+	SchemaVersion int                           `json:"schema_version"`
+	Entries       map[string]VersionsCacheEntry `json:"entries"`
+}
+
 // GithubRelease maps fields from the GitHub Releases API response.
 type GithubRelease struct {
 	TagName     string        `json:"tag_name"`
