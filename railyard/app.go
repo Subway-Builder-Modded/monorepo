@@ -31,10 +31,17 @@ import (
 	"railyard/internal/updater"
 	"railyard/internal/utils"
 
+	semver "github.com/Masterminds/semver/v3"
 	"github.com/beescuit/asar"
 	"github.com/protomaps/go-pmtiles/pmtiles"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+// binaryBuildingsIndexGameFloor is the game-version boundary for the buildings
+// index format: builds strictly newer than this read the packed binary
+// (buildings_index.bin); this version and older read the JSON form. Mirrors the
+// registry/jp-data 1.3.0 split.
+var binaryBuildingsIndexGameFloor = semver.MustParse("1.3.0")
 
 func panik(message string) {
 	panic(message)
@@ -847,9 +854,15 @@ func (a *App) generateMissingThumbnails(port int) {
 func (a *App) generateMod(port int) error {
 	maps := a.Registry.GetInstalledMaps()
 	a.Logger.Info("Generating mod with maps", "count", len(maps))
-	places := make([]types.ConfigData, 0, len(maps))
+
+	preferBinary := gameSupportsBinaryBuildings(a.GetGameVersion())
+	mapDataRoot := paths.MetroMakerMapsDataPath(a.Config.Cfg.MetroMakerDataPath)
+	places := make([]types.MetroMakerModPlace, 0, len(maps))
 	for _, m := range maps {
-		places = append(places, m.MapConfig)
+		places = append(places, types.MetroMakerModPlace{
+			ConfigData:         m.MapConfig,
+			BuildingsIndexFile: chooseBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary),
+		})
 	}
 	config := types.MetroMakerModConfig{
 		Port:          port,
@@ -893,6 +906,35 @@ func (a *App) generateMod(port int) error {
 		return fmt.Errorf("failed to write mod manifest.json: %w", err)
 	}
 	return nil
+}
+
+// gameSupportsBinaryBuildings reports whether the detected game version reads the
+// binary buildings index (game version strictly newer than the 1.3.0 floor). An
+// undetected or unparseable version falls back to false, i.e. the JSON form every
+// map ships and which older builds require.
+func gameSupportsBinaryBuildings(gv types.GameVersionResponse) bool {
+	if gv.Status != types.ResponseSuccess || gv.Version == "" {
+		return false
+	}
+	version, err := semver.NewVersion(strings.TrimPrefix(gv.Version, "v"))
+	if err != nil {
+		return false
+	}
+	return version.GreaterThan(binaryBuildingsIndexGameFloor)
+}
+
+// chooseBuildingsIndexStem picks the buildings-index filename stem the game should
+// load for a map. Binary-capable games use the .bin form when the installed map
+// actually has it; everything else uses the JSON form. The game API appends .gz, so
+// the stem resolves to buildings_index.bin.gz / buildings_index.json.gz on disk.
+func chooseBuildingsIndexStem(mapDataRoot string, code string, preferBinary bool) string {
+	if preferBinary {
+		binPath := paths.JoinLocalPath(mapDataRoot, code, files.MapBuildingsBinFileName+".gz")
+		if _, err := os.Stat(binPath); err == nil {
+			return files.MapBuildingsBinFileName
+		}
+	}
+	return files.MapBuildingsFileName
 }
 
 func (a *App) addSaltsOnFirstRun() error {

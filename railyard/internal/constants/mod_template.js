@@ -86,8 +86,9 @@ function generateTabs(places) {
         maxZoom: config.tileZoomLevel,
       });
       window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, {
-        // auto appends .gz, is this intended? if it is then its fine if not then that has to be removed so we can manually set the .gz file extension
-        buildingsIndex: "/data/" + place.code + "/buildings_index.json",
+        // The game API appends .gz, so we pass the stem; Railyard picks the .bin or
+        // .json form per the installed game version (binary on builds > 1.3.0).
+        buildingsIndex: "/data/" + place.code + "/" + place.buildingsIndexFile,
         demandData: "/data/" + place.code + "/demand_data.json", // drivingPaths supplied in demand_data.json.gz still aren't used
         roads: "/data/" + place.code + "/roads.geojson",
         runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
