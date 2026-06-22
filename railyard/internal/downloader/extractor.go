@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -41,6 +42,24 @@ func reportExtractProgress(fn ExtractProgressFunc, itemID string, extracted int6
 		return
 	}
 	fn(itemID, extracted, total)
+}
+
+// mapEntryStagedTarget resolves where a map archive entry is written in the staging
+// folder and whether it must be gzip-compressed on the way in. Installed map data
+// files live gzipped (<name>.gz), so uncompressed entries are gzipped; entries already
+// gzipped in the archive (e.g. buildings_index.bin.gz) are stored verbatim to avoid a
+// double-gzip. config.json is the exception: it is kept uncompressed for installed-state
+// bootstrapping, in particular for local maps.
+func mapEntryStagedTarget(key string, entryName string, stagingFolder string) (destinationPath string, gzipStream bool) {
+	base := path.Base(entryName)
+	switch {
+	case key == files.MapArchiveKeyConfig:
+		return paths.JoinLocalPath(stagingFolder, files.MapConfigFileName), false
+	case strings.HasSuffix(base, ".gz"):
+		return paths.JoinLocalPath(stagingFolder, base), false
+	default:
+		return paths.JoinLocalPath(stagingFolder, base+".gz"), true
+	}
 }
 
 // countSharedAssetPayloadFiles counts optional shared payload files that are copied into an asset directory.
@@ -340,14 +359,7 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 						}
 						defer srcFile.Close()
 
-						outputFileName := path.Base(fileStruct.FileObject.Name)
-						destinationPath := paths.JoinLocalPath(stagingFolder, outputFileName+".gz")
-						shouldArchive := true
-						// Extract out config.json for future bootstrapping from installed state, in particular for local maps.
-						if key == files.MapArchiveKeyConfig {
-							destinationPath = paths.JoinLocalPath(stagingFolder, files.MapConfigFileName)
-							shouldArchive = false
-						}
+						destinationPath, shouldArchive := mapEntryStagedTarget(key, fileStruct.FileObject.Name, stagingFolder)
 
 						if err := files.WriteArchiveStream(destinationPath, srcFile, shouldArchive); err != nil {
 							errChan <- err

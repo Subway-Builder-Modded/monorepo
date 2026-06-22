@@ -61,6 +61,39 @@ func TestValidateMapArchive(t *testing.T) {
 			wantErr:     true,
 		},
 		{
+			name: "valid archive with binary buildings index only",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				delete(f, MapBuildingsFileName)
+				f[MapBuildingsBinFileName+".gz"] = []byte("bin")
+				return f
+			}(),
+			wantErrType: "",
+			wantErr:     false,
+			wantCode:    "AAA",
+		},
+		{
+			name: "valid archive with both buildings index forms",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				f[MapBuildingsBinFileName+".gz"] = []byte("bin")
+				return f
+			}(),
+			wantErrType: "",
+			wantErr:     false,
+			wantCode:    "AAA",
+		},
+		{
+			name: "missing both buildings index forms",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				delete(f, MapBuildingsFileName)
+				return f
+			}(),
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
 			name: "invalid config json",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")
@@ -263,6 +296,25 @@ func TestValidateInstalledMapDataDownloaded(t *testing.T) {
 				writeInstalledDownloadedMapFixture(t, mapRoot, tilesRoot, cityCode)
 				demandPath := paths.JoinLocalPath(mapRoot, cityCode, MapDemandFileName+".gz")
 				require.NoError(t, os.Remove(demandPath))
+			},
+			wantErrType: types.InstallErrorInvalidArchive,
+			wantErr:     true,
+		},
+		{
+			name: "valid with binary buildings index only",
+			setup: func(t *testing.T, mapRoot, tilesRoot, cityCode string) {
+				writeInstalledDownloadedMapFixture(t, mapRoot, tilesRoot, cityCode)
+				require.NoError(t, os.Remove(paths.JoinLocalPath(mapRoot, cityCode, MapBuildingsFileName+".gz")))
+				require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapRoot, cityCode, MapBuildingsBinFileName+".gz"), []byte("bin"), 0o644))
+			},
+			wantErrType: "",
+			wantErr:     false,
+		},
+		{
+			name: "missing both buildings index forms",
+			setup: func(t *testing.T, mapRoot, tilesRoot, cityCode string) {
+				writeInstalledDownloadedMapFixture(t, mapRoot, tilesRoot, cityCode)
+				require.NoError(t, os.Remove(paths.JoinLocalPath(mapRoot, cityCode, MapBuildingsFileName+".gz")))
 			},
 			wantErrType: types.InstallErrorInvalidArchive,
 			wantErr:     true,
