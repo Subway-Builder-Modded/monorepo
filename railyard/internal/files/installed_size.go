@@ -52,7 +52,7 @@ func statIfExists(filePath string) (os.FileInfo, bool, error) {
 	return info, true, nil
 }
 
-// FileExists reports whether filePath exists. 
+// FileExists reports whether filePath exists.
 func FileExists(filePath string) (bool, error) {
 	_, exists, err := statIfExists(filePath)
 	return exists, err
