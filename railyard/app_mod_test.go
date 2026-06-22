@@ -32,7 +32,7 @@ func TestGameSupportsBinaryBuildings(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, gameSupportsBinaryBuildings(tt.resp))
+			require.Equal(t, tt.want, preferBinaryBuildingsIndex(tt.resp))
 		})
 	}
 }
@@ -51,16 +51,16 @@ func TestChooseBuildingsIndexStem(t *testing.T) {
 
 	t.Run("binary-capable game with the binary present loads the binary", func(t *testing.T) {
 		root := writeBin(t)
-		require.Equal(t, files.MapBuildingsBinFileName, chooseBuildingsIndexStem(root, code, true))
+		require.Equal(t, files.MapBuildingsBinFileName, setBuildingsIndexStem(root, code, true))
 	})
 
 	t.Run("binary-capable game without the binary falls back to json", func(t *testing.T) {
 		root := t.TempDir() // no bin written
-		require.Equal(t, files.MapBuildingsFileName, chooseBuildingsIndexStem(root, code, true))
+		require.Equal(t, files.MapBuildingsFileName, setBuildingsIndexStem(root, code, true))
 	})
 
 	t.Run("older game ignores an available binary and loads json", func(t *testing.T) {
 		root := writeBin(t)
-		require.Equal(t, files.MapBuildingsFileName, chooseBuildingsIndexStem(root, code, false))
+		require.Equal(t, files.MapBuildingsFileName, setBuildingsIndexStem(root, code, false))
 	})
 }

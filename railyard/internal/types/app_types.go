@@ -58,14 +58,13 @@ type GameRunningResponse struct {
 }
 
 type MetroMakerModConfig struct {
-	TileZoomLevel int                  `json:"tileZoomLevel"`
-	Places        []MetroMakerModPlace `json:"places"`
-	Port          int                  `json:"port"`
+	TileZoomLevel int               `json:"tileZoomLevel"`
+	Places        []MetroMakerPlace `json:"places"`
+	Port          int               `json:"port"`
 }
 
-// MetroMakerModPlace is a mod-config place entry: a map's ConfigData (embedded so its
-// fields stay top-level in JSON) plus the buildings-index stem the game should load.
-type MetroMakerModPlace struct {
+// MetroMakerPlace is a mod-config place entry: a map's ConfigData plus the buildings-index stem the game should load.
+type MetroMakerPlace struct {
 	ConfigData
 	BuildingsIndexFile string `json:"buildingsIndexFile"`
 }

@@ -1,4 +1,5 @@
 const config = $CONFIG;
+const baseURL = "http://127.0.0.1:" + config.port;
 function getFlagEmoji(countryCode) {
   let codePoints = countryCode
     .toUpperCase()
@@ -35,17 +36,14 @@ function generateTabs(places) {
 (async () => {
   await Promise.all(
     config.places.map(async (place) => {
+      const tilesURL = baseURL + "/" + place.code + "/{z}/{x}/{y}.mvt";
+      const mapImageURL = baseURL + "/thumbnails/" + place.code + ".svg";
       let newPlace = {
         code: place.code,
         name: place.name,
         population: place.population,
         description: place.description,
-        mapImageUrl:
-          "http://127.0.0.1:" +
-          config.port +
-          "/thumbnails/" +
-          place.code +
-          ".svg",
+        mapImageUrl: mapImageURL,
       };
       if (place.initialViewState) {
         newPlace.initialViewState = place.initialViewState;
@@ -75,14 +73,8 @@ function generateTabs(places) {
       });
       window.SubwayBuilderAPI.map.setTileURLOverride({
         cityCode: place.code,
-        tilesUrl:
-          "http://127.0.0.1:" +
-          config.port +
-          "/" +
-          place.code +
-          "/{z}/{x}/{y}.mvt",
-        foundationTilesUrl:
-          "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        tilesUrl: tilesURL,
+        foundationTilesUrl: tilesURL,
         maxZoom: config.tileZoomLevel,
       });
       window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, {

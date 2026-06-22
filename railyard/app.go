@@ -848,13 +848,13 @@ func (a *App) generateMod(port int) error {
 	maps := a.Registry.GetInstalledMaps()
 	a.Logger.Info("Generating mod with maps", "count", len(maps))
 
-	preferBinary := gameSupportsBinaryBuildings(a.GetGameVersion())
+	preferBinary := preferBinaryBuildingsIndex(a.GetGameVersion())
 	mapDataRoot := paths.MetroMakerMapsDataPath(a.Config.Cfg.MetroMakerDataPath)
-	places := make([]types.MetroMakerModPlace, 0, len(maps))
+	places := make([]types.MetroMakerPlace, 0, len(maps))
 	for _, m := range maps {
-		places = append(places, types.MetroMakerModPlace{
+		places = append(places, types.MetroMakerPlace{
 			ConfigData:         m.MapConfig,
-			BuildingsIndexFile: chooseBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary),
+			BuildingsIndexFile: setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary),
 		})
 	}
 	config := types.MetroMakerModConfig{

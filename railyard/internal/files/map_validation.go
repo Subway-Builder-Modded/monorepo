@@ -43,8 +43,7 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 		MapArchiveKeyDemandData: {Found: false, FileObject: nil, Required: true},
 		MapArchiveKeyRoads:      {Found: false, FileObject: nil, Required: true},
 		MapArchiveKeyRunways:    {Found: false, FileObject: nil, Required: true},
-		// Buildings index: neither form is individually required; ValidateMapArchive
-		// enforces that at least one of the two is present (buildingsIndexPresent).
+		// ValidateMapArchive enforces that at least one buildings index is present; neither is strictly required on its own.
 		MapArchiveKeyBuildings:    {Found: false, FileObject: nil, Required: false},
 		MapArchiveKeyBuildingsBin: {Found: false, FileObject: nil, Required: false},
 		MapArchiveKeyTiles:        {Found: false, FileObject: nil, Required: true},
@@ -71,8 +70,7 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 			filesFound[MapArchiveKeyRoads] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		case MapRunwaysFileName:
 			filesFound[MapArchiveKeyRunways] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
-		// Buildings index ships uncompressed (.json) or gzipped (.bin.gz); accept either
-		// compression for either form so both can be ingested.
+		// Authors should be able to submit either uncompressed (.json/.bin) or gzipped (.json.gz/.bin.gz); accept either compression for either form so both can be ingested.
 		case MapBuildingsFileName, MapBuildingsFileName + ".gz":
 			filesFound[MapArchiveKeyBuildings] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		case MapBuildingsBinFileName, MapBuildingsBinFileName + ".gz":
@@ -220,8 +218,7 @@ func validateRequiredInstalledMapFiles(mapInstallRoot string, mapTilesRoot strin
 	return installedBuildingsIndexPresent(mapInstallRoot, cityCode)
 }
 
-// installedBuildingsIndexPresent verifies at least one installed buildings-index form
-// (JSON or binary, both gzipped) exists for the city.
+// installedBuildingsIndexPresent verifies at least one installed buildings-index form exists for the city.
 func installedBuildingsIndexPresent(mapInstallRoot string, cityCode string) (types.DownloaderErrorType, error) {
 	for _, name := range []string{MapBuildingsFileName + ".gz", MapBuildingsBinFileName + ".gz"} {
 		exists, err := FileExists(paths.JoinLocalPath(mapInstallRoot, cityCode, name))

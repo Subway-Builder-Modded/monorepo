@@ -228,13 +228,13 @@ func NormalizeSemver(version string) string {
 	return "v" + trimmed
 }
 
-// DetectedVersion returns the detected game version as parsed semver. ok is false
-// when no version was detected; a detected version is assumed semver-compliant, as
-// install-time compatibility checks already assume.
+// DetectedVersion returns the detected game version as parsed semver.
 func (r GameVersionResponse) DetectedVersion() (*semver.Version, bool) {
+	// No version detecteed
 	if r.Status != ResponseSuccess || r.Version == "" {
 		return nil, false
 	}
+	// Assume detected version is semver-compliant
 	return semver.MustParse(strings.TrimPrefix(r.Version, "v")), true
 }
 
