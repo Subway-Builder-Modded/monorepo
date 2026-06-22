@@ -44,20 +44,18 @@ func reportExtractProgress(fn ExtractProgressFunc, itemID string, extracted int6
 	fn(itemID, extracted, total)
 }
 
-// mapEntryStagedTarget resolves where a map archive entry is written in the staging
-// folder and whether it must be gzip-compressed on the way in. Installed map data
-// files live gzipped (<name>.gz), so uncompressed entries are gzipped; entries already
-// gzipped in the archive (e.g. buildings_index.bin.gz) are stored verbatim to avoid a
-// double-gzip. config.json is the exception: it is kept uncompressed for installed-state
-// bootstrapping, in particular for local maps.
+// mapEntryStagedTarget resolves a map entry's staging path and whether to gzip it.
 func mapEntryStagedTarget(key string, entryName string, stagingFolder string) (destinationPath string, gzipStream bool) {
 	base := path.Base(entryName)
 	switch {
 	case key == files.MapArchiveKeyConfig:
+		// Kept uncompressed for installed-state bootstrapping, esp. local maps.
 		return paths.JoinLocalPath(stagingFolder, files.MapConfigFileName), false
 	case strings.HasSuffix(base, ".gz"):
+		// Already gzipped in the archive (e.g. buildings_index.bin.gz) — store verbatim.
 		return paths.JoinLocalPath(stagingFolder, base), false
 	default:
+		// Installed data files live gzipped as <name>.gz.
 		return paths.JoinLocalPath(stagingFolder, base+".gz"), true
 	}
 }

@@ -195,8 +195,7 @@ func requiredFilesPresent(filesFound map[string]types.FileFoundStruct) bool {
 	return true
 }
 
-// buildingsIndexPresent reports whether the archive carries a buildings index in
-// either form. A map needs the JSON form, the binary form, or both.
+// buildingsIndexPresent reports whether the archive carries a buildings index in either form.
 func buildingsIndexPresent(filesFound map[string]types.FileFoundStruct) bool {
 	return filesFound[MapArchiveKeyBuildings].Found || filesFound[MapArchiveKeyBuildingsBin].Found
 }
@@ -218,32 +217,20 @@ func validateRequiredInstalledMapFiles(mapInstallRoot string, mapTilesRoot strin
 		}
 	}
 
-	// The buildings index is installed gzipped in either form; require at least one.
-	buildingsJSON := paths.JoinLocalPath(mapInstallRoot, cityCode, MapBuildingsFileName+".gz")
-	buildingsBin := paths.JoinLocalPath(mapInstallRoot, cityCode, MapBuildingsBinFileName+".gz")
-	jsonOK, errorType, err := installedMapFileExists(buildingsJSON)
-	if err != nil {
-		return errorType, err
-	}
-	binOK, errorType, err := installedMapFileExists(buildingsBin)
-	if err != nil {
-		return errorType, err
-	}
-	if !jsonOK && !binOK {
-		return types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{fmt.Sprintf("missing installed buildings index for %q: need %s or %s", cityCode, MapBuildingsFileName+".gz", MapBuildingsBinFileName+".gz")}}
-	}
-
-	return "", nil
+	return installedBuildingsIndexPresent(mapInstallRoot, cityCode)
 }
 
-// installedMapFileExists reports whether filePath exists, distinguishing a missing
-// file (false, no error) from a genuine filesystem failure (returned).
-func installedMapFileExists(filePath string) (bool, types.DownloaderErrorType, error) {
-	if _, err := os.Stat(filePath); err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return false, "", nil
+// installedBuildingsIndexPresent verifies at least one installed buildings-index form
+// (JSON or binary, both gzipped) exists for the city.
+func installedBuildingsIndexPresent(mapInstallRoot string, cityCode string) (types.DownloaderErrorType, error) {
+	for _, name := range []string{MapBuildingsFileName + ".gz", MapBuildingsBinFileName + ".gz"} {
+		exists, err := FileExists(paths.JoinLocalPath(mapInstallRoot, cityCode, name))
+		if err != nil {
+			return types.InstallErrorFilesystem, fmt.Errorf("failed to stat installed map file %q: %w", name, err)
 		}
-		return false, types.InstallErrorFilesystem, fmt.Errorf("failed to stat installed map file %q: %w", filePath, err)
+		if exists {
+			return "", nil
+		}
 	}
-	return true, "", nil
+	return types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{fmt.Sprintf("missing installed buildings index for %q: need %s or %s", cityCode, MapBuildingsFileName+".gz", MapBuildingsBinFileName+".gz")}}
 }

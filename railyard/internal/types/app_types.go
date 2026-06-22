@@ -63,10 +63,8 @@ type MetroMakerModConfig struct {
 	Port          int                  `json:"port"`
 }
 
-// MetroMakerModPlace is a place entry in the generated map-loader mod config: the
-// map's ConfigData plus the buildings-index filename stem the game should load for
-// it, chosen from the installed forms per the detected game version. ConfigData is
-// embedded so its fields stay at the place's top level in the emitted JSON.
+// MetroMakerModPlace is a mod-config place entry: a map's ConfigData (embedded so its
+// fields stay top-level in JSON) plus the buildings-index stem the game should load.
 type MetroMakerModPlace struct {
 	ConfigData
 	BuildingsIndexFile string `json:"buildingsIndexFile"`

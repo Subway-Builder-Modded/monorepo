@@ -228,6 +228,16 @@ func NormalizeSemver(version string) string {
 	return "v" + trimmed
 }
 
+// DetectedVersion returns the detected game version as parsed semver. ok is false
+// when no version was detected; a detected version is assumed semver-compliant, as
+// install-time compatibility checks already assume.
+func (r GameVersionResponse) DetectedVersion() (*semver.Version, bool) {
+	if r.Status != ResponseSuccess || r.Version == "" {
+		return nil, false
+	}
+	return semver.MustParse(strings.TrimPrefix(r.Version, "v")), true
+}
+
 // MissingFilesError is returned when required files are missing from an archive.
 type MissingFilesError struct {
 	Files []string

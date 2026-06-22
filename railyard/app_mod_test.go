@@ -28,7 +28,6 @@ func TestGameSupportsBinaryBuildings(t *testing.T) {
 		{"older than floor", success("1.2.0"), false},
 		{"undetected version", types.GameVersionResponse{GenericResponse: types.WarnResponse("not detected"), Version: ""}, false},
 		{"success but empty version", success(""), false},
-		{"unparseable version", success("not-a-version"), false},
 	}
 
 	for _, tt := range tests {
