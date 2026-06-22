@@ -64,9 +64,6 @@ function generateTabs(places) {
       } else {
         newPlace.maxZoom = config.tileZoomLevel;
       }
-      if (place.demandDotScaling) {
-        newPlace.demandDotScaling = place.demandDotScaling;
-      }
       await window.SubwayBuilderAPI.registerCity(newPlace);
       window.SubwayBuilderAPI.map.setDefaultLayerVisibility(place.code, {
         oceanFoundations: false,

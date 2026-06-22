@@ -94,7 +94,6 @@ type ConfigData struct {
 	Version          string           `json:"version"`
 	MinZoom          *int             `json:"minZoom,omitempty"`
 	MaxZoom          *int             `json:"maxZoom,omitempty"`
-	DemandDotScaling *float64         `json:"demandDotScaling,omitempty"`
 	InitialViewState InitialViewState `json:"initialViewState"`
 	HasOceanDepth    bool             `json:"hasOceanDepth,omitempty"`
 }
