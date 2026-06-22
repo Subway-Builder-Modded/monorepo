@@ -9,7 +9,6 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"sync"
 
 	"railyard/internal/constants"
 	"railyard/internal/requests"
@@ -18,11 +17,6 @@ import (
 	semver "github.com/Masterminds/semver/v3"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
-
-// modManifestDeps is the minimal schema needed to extract dependencies from a mod's manifest.json.
-type modManifestDeps struct {
-	Dependencies map[string]string `json:"dependencies"`
-}
 
 // GetVersions fetches available versions for a mod or map.
 // updateType must be "github" or "custom".
@@ -133,66 +127,14 @@ func (r *Registry) getGitHubVersions(cacheKey string, repo string) ([]types.Vers
 	}
 
 	versions = r.filterSemverVersions(versions, "github:"+repo)
-	// Fetch manifest.json assets in parallel to extract game_version
+	// Prefer game_version/deps already recorded in the integrity report (parsed
+	// from the release manifest asset by the registry pipeline). enrichVersions
+	// then only fetches manifests for versions still missing it.
+	r.applyIntegrityGameMeta(repo, versions)
 	r.enrichVersions(versions)
 
 	r.versions.store(cacheKey, resp.Header.Get("ETag"), versions)
 	return cloneVersionInfos(versions), nil
-}
-
-// enrichVersions fetches manifest.json URLs in parallel and populates GameVersion and dependencies
-// from the game dependency key in the manifest. Errors are silently ignored per-version.
-func (r *Registry) enrichVersions(versions []types.VersionInfo) {
-	var wg sync.WaitGroup
-	for i := range versions {
-		if versions[i].Manifest == "" {
-			continue
-		}
-		wg.Add(1)
-		go func(v *types.VersionInfo) {
-			defer wg.Done()
-			resp, err := requests.GetWithGithubToken(r.httpClient, requests.GithubTokenRequestArgs{
-				URL: v.Manifest,
-				Headers: map[string]string{
-					"Accept": "application/octet-stream",
-				},
-				OnTokenRejected: func(statusCode int) {
-					r.logger.Warn("GitHub token rejected; retrying unauthenticated request", "status", statusCode)
-					requestErrType := types.GetErrorTypeForStatus(statusCode)
-					if r.context.Value("test") != "true" {
-						wailsruntime.EventsEmit(r.context, "requests:request-error", requestErrType)
-					}
-				},
-			})
-			if err != nil {
-				return
-			}
-			defer resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				return
-			}
-			body, err := io.ReadAll(io.LimitReader(resp.Body, 256*1024))
-			if err != nil {
-				return
-			}
-			var manifest modManifestDeps
-			if err := json.Unmarshal(body, &manifest); err != nil {
-				return
-			}
-			if sbRange, ok := manifest.Dependencies[constants.GameDependencyKey]; ok {
-				v.GameVersion = sbRange
-			}
-			newDeps := make(map[string]string)
-			for depID, depRange := range manifest.Dependencies {
-				if depID == constants.GameDependencyKey {
-					continue
-				}
-				newDeps[depID] = depRange
-			}
-			v.Dependencies = newDeps
-		}(&versions[i])
-	}
-	wg.Wait()
 }
 
 func (r *Registry) getCustomVersions(cacheKey string, updateURL string) ([]types.VersionInfo, error) {
