@@ -94,6 +94,21 @@ func TestValidateMapArchive(t *testing.T) {
 			wantErr:     true,
 		},
 		{
+			name: "valid archive with gzipped payload files",
+			files: func() map[string][]byte {
+				f := requiredFiles("AAA")
+				// Ship demand and the JSON buildings index gzipped instead of plain.
+				delete(f, MapDemandFileName)
+				f[MapDemandFileName+".gz"] = []byte("gz")
+				delete(f, MapBuildingsFileName)
+				f[MapBuildingsFileName+".gz"] = []byte("gz")
+				return f
+			}(),
+			wantErrType: "",
+			wantErr:     false,
+			wantCode:    "AAA",
+		},
+		{
 			name: "invalid config json",
 			files: func() map[string][]byte {
 				f := requiredFiles("AAA")

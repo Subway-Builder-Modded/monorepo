@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"strings"
 
 	"railyard/internal/paths"
 	"railyard/internal/types"
@@ -61,19 +62,24 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 			continue
 		}
 
-		switch normalizedName {
-		case MapConfigFileName:
+		// config.json is never compressed; it is stored verbatim for installed-state bootstrapping.
+		if normalizedName == MapConfigFileName {
 			filesFound[MapArchiveKeyConfig] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
+		}
+
+		// Payload files may be submitted compressed (<name>.gz) or not; match on the
+		// decompressed name so either form maps to the same key. The extractor
+		// normalizes them all to <name>.gz on install regardless.
+		switch strings.TrimSuffix(normalizedName, ".gz") {
 		case MapDemandFileName:
 			filesFound[MapArchiveKeyDemandData] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		case MapRoadsFileName:
 			filesFound[MapArchiveKeyRoads] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		case MapRunwaysFileName:
 			filesFound[MapArchiveKeyRunways] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
-		// Authors should be able to submit either uncompressed (.json/.bin) or gzipped (.json.gz/.bin.gz); accept either compression for either form so both can be ingested.
-		case MapBuildingsFileName, MapBuildingsFileName + ".gz":
+		case MapBuildingsFileName:
 			filesFound[MapArchiveKeyBuildings] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
-		case MapBuildingsBinFileName, MapBuildingsBinFileName + ".gz":
+		case MapBuildingsBinFileName:
 			filesFound[MapArchiveKeyBuildingsBin] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		case MapOceanDepthFileName:
 			filesFound[MapArchiveKeyOceanDepth] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
