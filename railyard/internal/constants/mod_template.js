@@ -17,9 +17,8 @@ function generateTabs(places) {
   let tabs = {};
   places.forEach((place) => {
     if (
-      place.country === undefined ||
-      place.country.toUpperCase() === "US" ||
-      place.country.toUpperCase() === "GB"
+      place.country === undefined
+      || place.country.toUpperCase() === "US"
     ) {
       // don't make tabs for these, we will have to do these on an upcoming update
       return;
@@ -55,36 +54,44 @@ function generateTabs(places) {
           bearing: 0,
         };
       }
+      if (place.minZoom) {
+        newPlace.minZoom = place.minZoom;
+      } else {
+        newPlace.minZoom = 9;
+      }
+      if (place.maxZoom) {
+        newPlace.maxZoom = place.maxZoom;
+      } else {
+        newPlace.maxZoom = config.tileZoomLevel;
+      }
+      if (place.demandDotScaling) {
+        newPlace.demandDotScaling = place.demandDotScaling;
+      }
       await window.SubwayBuilderAPI.registerCity(newPlace);
       window.SubwayBuilderAPI.map.setDefaultLayerVisibility(place.code, {
         oceanFoundations: false,
         trackElevations: false,
       });
-      // Fix layer schemas for custom tiles
-      window.SubwayBuilderAPI.map.setLayerOverride({
-        layerId: "parks-large",
-        sourceLayer: "landuse",
-        filter: ["==", ["get", "kind"], "park"],
-      });
-      window.SubwayBuilderAPI.map.setLayerOverride({
-        layerId: "airports",
-        sourceLayer: "landuse",
-        filter: ["==", ["get", "kind"], "aerodrome"],
-      });
+
+      let dataFiles = {
+        buildingsIndex: "/data/" + place.code + "/buildings_index.json",
+        demandData: "/data/" + place.code + "/demand_data.json",
+        roads: "/data/" + place.code + "/roads.geojson",
+        runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
+      }
+
+      if (place.hasOceanDepth) {
+        dataFiles.oceanDepthIndex = "/data/" + place.code + "/ocean_depth_index.json";
+      }
+
       window.SubwayBuilderAPI.map.setTileURLOverride({
         cityCode: place.code,
         tilesUrl: tilesURL,
         foundationTilesUrl: tilesURL,
         maxZoom: config.tileZoomLevel,
       });
-      window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, {
-        // The game API appends .gz, so we pass the stem; Railyard picks the .bin or
-        // .json form per the installed game version (binary on builds > 1.3.0).
-        buildingsIndex: "/data/" + place.code + "/" + place.buildingsIndexFile,
-        demandData: "/data/" + place.code + "/demand_data.json", // drivingPaths supplied in demand_data.json.gz still aren't used
-        roads: "/data/" + place.code + "/roads.geojson",
-        runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
-      });
+
+      window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, dataFiles);
     }),
   );
 
@@ -98,4 +105,93 @@ function generateTabs(places) {
       cityCodes: codes,
     });
   });
-})();
+
+  function addCustomLayers(map) {
+    let colorsData = JSON.parse(window.localStorage.getItem("map_custom_colors"));
+    let currentTheme = window.SubwayBuilderAPI.ui.getResolvedTheme();
+    let DEFAULT_COLORS_DARK = {
+      PARK: "#0b1715",
+      AIRPORT: "#181c28"
+    }
+    let DEFAULT_COLORS_LIGHT = {
+      PARK: "#A9D8B6",
+      AIRPORT: "#f0f1f5"
+    };
+    let colorToUsePark;
+    let colorToUseAirport;
+    if (colorsData.useCustomColors) {
+      if (currentTheme === "dark" && colorsData.customDarkColors.airport) {
+        colorToUseAirport = colorsData.customDarkColors.airport;
+      }
+      else if (currentTheme === "light" && colorsData.customLightColors.airport) {
+        colorToUseAirport = colorsData.customLightColors.airport;
+      } else {
+        colorToUseAirport = currentTheme === "dark" ? DEFAULT_COLORS_DARK.AIRPORT : DEFAULT_COLORS_LIGHT.AIRPORT;
+      }
+      if (currentTheme === "dark" && colorsData.customDarkColors.parks) {
+        colorToUsePark = colorsData.customDarkColors.parks;
+      }
+      else if (currentTheme === "light" && colorsData.customLightColors.parks) {
+        colorToUsePark = colorsData.customLightColors.parks;
+      }
+      else {
+        colorToUsePark = currentTheme === "dark" ? DEFAULT_COLORS_DARK.PARK : DEFAULT_COLORS_LIGHT.PARK;
+      }
+    } else {
+      colorToUsePark = currentTheme === "dark" ? DEFAULT_COLORS_DARK.PARK : DEFAULT_COLORS_LIGHT.PARK;
+      colorToUseAirport = currentTheme === "dark" ? DEFAULT_COLORS_DARK.AIRPORT : DEFAULT_COLORS_LIGHT.AIRPORT;
+    }
+    function isFoundationsVisible(map) {
+      const layers = map.getStyle().layers;
+      for (let layer of layers) {
+        if (layer.id === "building-foundations" && map.getLayoutProperty(layer.id, "visibility") === "visible") {
+          return true;
+        }
+      }
+      return false;
+    }
+    if (!map.getLayer("parks-modded")) {
+      map.addLayer({
+        id: "parks-modded",
+        type: "fill-extrusion",
+        source: "general-tiles",
+        "source-layer": "landuse",
+        filter: ["==", ["get", "kind"], "park"],
+        paint: {
+          "fill-extrusion-color": colorToUsePark,
+          "fill-extrusion-height": 0,
+          "fill-extrusion-base": 0,
+          "fill-extrusion-opacity": 0.8,
+        },
+        layout: {
+          visibility: isFoundationsVisible(map) ? "none" : "visible",
+        }
+      });
+    }
+    if (!map.getLayer("airports-modded")) {
+      map.addLayer({
+        id: "airports-modded",
+        type: "fill-extrusion",
+        source: "general-tiles",
+        "source-layer": "landuse",
+        filter: ["==", ["get", "kind"], "aerodrome"],
+        paint: {
+          "fill-extrusion-color": colorToUseAirport,
+          "fill-extrusion-height": 0,
+          "fill-extrusion-base": 0,
+          "fill-extrusion-opacity": 1,
+        },
+        layout: {
+          visibility: isFoundationsVisible(map) ? "none" : "visible",
+        }
+      })
+    }
+  }
+
+  window.SubwayBuilderAPI.hooks.onMapReady((map) => {
+    const resolvedMap = map ?? api.utils.getMap();
+    resolvedMap.on("styledata", () => addCustomLayers(resolvedMap));
+    resolvedMap.on("data", () => addCustomLayers(resolvedMap));
+    resolvedMap.on("load", () => addCustomLayers(resolvedMap));
+  });
+})()

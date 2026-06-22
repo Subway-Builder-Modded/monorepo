@@ -852,6 +852,9 @@ func (a *App) generateMod(port int) error {
 	mapDataRoot := paths.MetroMakerMapsDataPath(a.Config.Cfg.MetroMakerDataPath)
 	places := make([]types.MetroMakerPlace, 0, len(maps))
 	for _, m := range maps {
+		if _, err := os.Stat(paths.JoinLocalPath(a.Config.Cfg.GetMapsFolderPath(), m.MapConfig.Code, "ocean_depth_index.json.gz")); !errors.Is(err, fs.ErrNotExist) {
+			m.MapConfig.HasOceanDepth = true
+		}
 		places = append(places, types.MetroMakerPlace{
 			ConfigData:         m.MapConfig,
 			BuildingsIndexFile: setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary),

@@ -92,7 +92,11 @@ type ConfigData struct {
 	Bbox             *[4]float64      `json:"bbox,omitempty"`
 	Creator          string           `json:"creator"`
 	Version          string           `json:"version"`
+	MinZoom          *int             `json:"minZoom,omitempty"`
+	MaxZoom          *int             `json:"maxZoom,omitempty"`
+	DemandDotScaling *float64         `json:"demandDotScaling,omitempty"`
 	InitialViewState InitialViewState `json:"initialViewState"`
+	HasOceanDepth    bool             `json:"hasOceanDepth,omitempty"`
 }
 
 // CityInfo represents the metadata information about a city as defined in the cities.yaml file, including its code, name, version, hash, size, last modified time, and the file name of the map zip.
