@@ -907,6 +907,8 @@ export namespace types {
 	    errors: string[];
 	    required_checks: Record<string, boolean>;
 	    matched_files: Record<string, string>;
+	    game_version?: string;
+	    dependencies?: Record<string, string>;
 	    source: IntegrityVersionSource;
 	    fingerprint: string;
 	    checked_at: string;
@@ -921,6 +923,8 @@ export namespace types {
 	        this.errors = source["errors"];
 	        this.required_checks = source["required_checks"];
 	        this.matched_files = source["matched_files"];
+	        this.game_version = source["game_version"];
+	        this.dependencies = source["dependencies"];
 	        this.source = this.convertValues(source["source"], IntegrityVersionSource);
 	        this.fingerprint = source["fingerprint"];
 	        this.checked_at = source["checked_at"];
