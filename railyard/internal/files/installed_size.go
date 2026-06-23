@@ -39,19 +39,34 @@ func InstalledMapSize(mapsRoot string, tilesRoot string, cityCode string, marker
 	return size + tileSize, nil
 }
 
+// statIfExists stats filePath, treating a missing file as (nil, false, nil) and
+// surfacing only genuine stat failures.
+func statIfExists(filePath string) (os.FileInfo, bool, error) {
+	info, err := os.Stat(filePath)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	return info, true, nil
+}
+
+// FileExists reports whether filePath exists.
+func FileExists(filePath string) (bool, error) {
+	_, exists, err := statIfExists(filePath)
+	return exists, err
+}
+
 // FileSizeIfExists returns the size of the target file when it exists.
 // Missing files are treated as zero-size and non-fatal to the method.
 func FileSizeIfExists(filePath string) (int64, error) {
 	if strings.TrimSpace(filePath) == "" {
 		return 0, nil
 	}
-
-	info, err := os.Stat(filePath)
-	if err == nil {
-		return info.Size(), nil
+	info, exists, err := statIfExists(filePath)
+	if err != nil || !exists {
+		return 0, err
 	}
-	if errors.Is(err, fs.ErrNotExist) {
-		return 0, nil
-	}
-	return 0, err
+	return info.Size(), nil
 }

@@ -847,9 +847,15 @@ func (a *App) generateMissingThumbnails(port int) {
 func (a *App) generateMod(port int) error {
 	maps := a.Registry.GetInstalledMaps()
 	a.Logger.Info("Generating mod with maps", "count", len(maps))
-	places := make([]types.ConfigData, 0, len(maps))
+
+	preferBinary := preferBinaryBuildingsIndex(a.GetGameVersion())
+	mapDataRoot := paths.MetroMakerMapsDataPath(a.Config.Cfg.MetroMakerDataPath)
+	places := make([]types.MetroMakerPlace, 0, len(maps))
 	for _, m := range maps {
-		places = append(places, m.MapConfig)
+		places = append(places, types.MetroMakerPlace{
+			ConfigData:         m.MapConfig,
+			BuildingsIndexFile: setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary),
+		})
 	}
 	config := types.MetroMakerModConfig{
 		Port:          port,
