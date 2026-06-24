@@ -61,7 +61,7 @@ function generateTabs(places) {
       if (place.minZoom) {
         newPlace.minZoom = place.minZoom;
       } else {
-        newPlace.minZoom = 9;
+        newPlace.minZoom = 8;
       }
       if (place.maxZoom) {
         newPlace.maxZoom = place.maxZoom;
@@ -75,7 +75,7 @@ function generateTabs(places) {
       });
 
       let dataFiles = {
-        buildingsIndex: "/data/" + place.code + "/buildings_index.json",
+        buildingsIndex: "/data/" + place.code + place.buildingsIndexFile,
         demandData: "/data/" + place.code + "/demand_data.json",
         roads: "/data/" + place.code + "/roads.geojson",
         runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
