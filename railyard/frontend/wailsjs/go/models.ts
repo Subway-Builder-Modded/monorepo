@@ -131,7 +131,10 @@ export namespace types {
 	    bbox?: number[];
 	    creator: string;
 	    version: string;
+	    minZoom?: number;
+	    maxZoom?: number;
 	    initialViewState: InitialViewState;
+	    hasOceanDepth?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ConfigData(source);
@@ -148,7 +151,10 @@ export namespace types {
 	        this.bbox = source["bbox"];
 	        this.creator = source["creator"];
 	        this.version = source["version"];
+	        this.minZoom = source["minZoom"];
+	        this.maxZoom = source["maxZoom"];
 	        this.initialViewState = this.convertValues(source["initialViewState"], InitialViewState);
+	        this.hasOceanDepth = source["hasOceanDepth"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
