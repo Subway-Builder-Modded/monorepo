@@ -32,6 +32,9 @@ export interface AssetSearchable {
   name?: string | null;
   description?: string | null;
   tags?: string[] | null;
+  // Pre-resolved alternate search terms (e.g. city exonyms/endonyms), generated
+  // registry-side. Absent until the registry populates it, so matching is unaffected.
+  search_aliases?: string[] | null;
   city_code?: string | null;
   country?: string | null;
   location?: string | null;
@@ -45,15 +48,17 @@ export function buildAssetSearchText<TItem extends AssetSearchable>(
   getAuthorText: (item: TItem) => string,
 ): string {
   const item = tagged.item;
+  // description is intentionally excluded: it is large markdown and made unrelated
+  // listings match on shared body text (e.g. every map mentioning a city in its blurb).
+  // Tags are matched for both maps and mods (short, curated).
   const values: string[] = [
     item.name ?? '',
     getAuthorText(item),
-    item.description ?? '',
+    ...(item.tags ?? []),
+    ...(item.search_aliases ?? []),
   ];
 
-  if (tagged.type === 'mod') {
-    values.push(...(item.tags ?? []));
-  } else {
+  if (tagged.type === 'map') {
     values.push(
       item.city_code ?? '',
       ...buildCountryCodeSearchTerms(item.country),
