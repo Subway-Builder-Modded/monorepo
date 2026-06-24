@@ -899,14 +899,14 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 func (d *Downloader) ensureModDependencies(ctx context.Context, modID string, version string, versionInfo types.VersionInfo, skipDependencies bool) *types.AssetInstallResponse {
 	if d.GetGameVersion != nil {
 		gameVersionResp := d.GetGameVersion()
-		if gameVersionResp.Status == types.ResponseSuccess {
+		if gameVersion, ok := gameVersionResp.DetectedVersion(); ok {
 			if subwayBuilderDep, ok := versionInfo.Dependencies["subway-builder"]; ok {
 				constraint, err := semver.NewConstraint(strings.TrimPrefix(subwayBuilderDep, "v"))
 				if err != nil {
 					resp := d.installError(types.AssetTypeMod, modID, version, types.ConfigData{}, types.InstallErrorDependencyResolutionFailed, "Failed to parse mod dependency version constraint", err, "mod_id", modID, "dependency", "subway-builder", "constraint", subwayBuilderDep)
 					return &resp
 				}
-				if !constraint.Check(semver.MustParse(strings.TrimPrefix(gameVersionResp.Version, "v"))) {
+				if !constraint.Check(gameVersion) {
 					resp := d.installError(types.AssetTypeMod, modID, version, types.ConfigData{}, types.InstallErrorDependencyResolutionFailed, "Mod is not compatible with current game version", nil, "mod_id", modID, "dependency", "subway-builder", "constraint", subwayBuilderDep, "game_version", gameVersionResp.Version)
 					return &resp
 				}

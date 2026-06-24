@@ -58,9 +58,16 @@ type GameRunningResponse struct {
 }
 
 type MetroMakerModConfig struct {
-	TileZoomLevel int          `json:"tileZoomLevel"`
-	Places        []ConfigData `json:"places"`
-	Port          int          `json:"port"`
+	TileZoomLevel int                          `json:"tileZoomLevel"`
+	Places        []MetroMakerPlace            `json:"places"`
+	Port          int                          `json:"port"`
+	Colors        map[string]map[string]string `json:"colors"`
+}
+
+// MetroMakerPlace is a mod-config place entry: a map's ConfigData plus the buildings-index stem the game should load.
+type MetroMakerPlace struct {
+	ConfigData
+	BuildingsIndexFile string `json:"buildingsIndexFile"`
 }
 
 type MetroMakerModManifest struct {
@@ -86,7 +93,10 @@ type ConfigData struct {
 	Bbox             *[4]float64      `json:"bbox,omitempty"`
 	Creator          string           `json:"creator"`
 	Version          string           `json:"version"`
+	MinZoom          *int             `json:"minZoom,omitempty"`
+	MaxZoom          *int             `json:"maxZoom,omitempty"`
 	InitialViewState InitialViewState `json:"initialViewState"`
+	HasOceanDepth    bool             `json:"hasOceanDepth,omitempty"`
 }
 
 // CityInfo represents the metadata information about a city as defined in the cities.yaml file, including its code, name, version, hash, size, last modified time, and the file name of the map zip.

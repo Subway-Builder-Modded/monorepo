@@ -70,6 +70,24 @@ type Subscriptions struct {
 	Mods      map[string]string `json:"mods"`
 }
 
+// RemoteSubscriptionBucket pairs a non-local subscription map with the asset type it holds.
+type RemoteSubscriptionBucket struct {
+	AssetType AssetType
+	Entries   map[string]string
+}
+
+// RemoteSubscriptions returns each non-local subscription map paired with its asset type. Local
+// subscriptions are excluded because they are reconciled against installed state rather than
+// registry versions. This is the single source of truth for asset-type-agnostic operations over
+// remote subscriptions (e.g. version reconciliation); a new remote asset class is picked up
+// everywhere once it is added here.
+func (s Subscriptions) RemoteSubscriptions() []RemoteSubscriptionBucket {
+	return []RemoteSubscriptionBucket{
+		{AssetType: AssetTypeMap, Entries: s.Maps},
+		{AssetType: AssetTypeMod, Entries: s.Mods},
+	}
+}
+
 // ForEachSubscriptionType iterates over all map[string]string fields on Subscriptions.
 // It uses the field's JSON name as the subscription type key when available.
 func (s Subscriptions) ForEachSubscriptionType(fn func(subscriptionType string, entries map[string]string) bool) {

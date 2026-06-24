@@ -20,6 +20,19 @@ func (r *Registry) getIntegrityListing(assetType types.AssetType, assetID string
 	}
 }
 
+// AssetMissingInstallableVersion reports whether the loaded integrity report definitively lists no
+// installable (complete) version for the asset (delisted or never approved). It returns false when no
+// integrity report is loaded for the asset type, so an unloaded or unreachable registry is never
+// treated as "definitively none".
+func (r *Registry) AssetMissingInstallableVersion(assetType types.AssetType, assetID string) bool {
+	report, err := r.GetIntegrityReport(assetType)
+	if err != nil || len(report.Listings) == 0 {
+		return false
+	}
+	listing, ok := r.getIntegrityListing(assetType, assetID)
+	return !ok || !listing.HasCompleteVersion
+}
+
 // resolveAssetUpdateSource resolves the raw update source for an asset manifest.
 func (r *Registry) resolveAssetUpdateSource(assetType types.AssetType, assetID string) (string, string, error) {
 	switch assetType {

@@ -1,10 +1,15 @@
 const config = $CONFIG;
+const baseURL = "http://127.0.0.1:" + config.port;
 function getFlagEmoji(countryCode) {
   let codePoints = countryCode
     .toUpperCase()
     .split("")
     .map((char) => 127397 + char.charCodeAt());
   return String.fromCodePoint(...codePoints);
+}
+
+function capitalizeString(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 function getCountryName(countryCode) {
@@ -16,9 +21,8 @@ function generateTabs(places) {
   let tabs = {};
   places.forEach((place) => {
     if (
-      place.country === undefined ||
-      place.country.toUpperCase() === "US" ||
-      place.country.toUpperCase() === "GB"
+      place.country === undefined
+      || place.country.toUpperCase() === "US"
     ) {
       // don't make tabs for these, we will have to do these on an upcoming update
       return;
@@ -35,17 +39,14 @@ function generateTabs(places) {
 (async () => {
   await Promise.all(
     config.places.map(async (place) => {
+      const tilesURL = baseURL + "/" + place.code + "/{z}/{x}/{y}.mvt";
+      const mapImageURL = baseURL + "/thumbnails/" + place.code + ".svg";
       let newPlace = {
         code: place.code,
         name: place.name,
         population: place.population,
         description: place.description,
-        mapImageUrl:
-          "http://127.0.0.1:" +
-          config.port +
-          "/thumbnails/" +
-          place.code +
-          ".svg",
+        mapImageUrl: mapImageURL,
       };
       if (place.initialViewState) {
         newPlace.initialViewState = place.initialViewState;
@@ -57,41 +58,41 @@ function generateTabs(places) {
           bearing: 0,
         };
       }
+      if (place.minZoom) {
+        newPlace.minZoom = place.minZoom;
+      } else {
+        newPlace.minZoom = 8;
+      }
+      if (place.maxZoom) {
+        newPlace.maxZoom = place.maxZoom;
+      } else {
+        newPlace.maxZoom = config.tileZoomLevel;
+      }
       await window.SubwayBuilderAPI.registerCity(newPlace);
       window.SubwayBuilderAPI.map.setDefaultLayerVisibility(place.code, {
         oceanFoundations: false,
         trackElevations: false,
       });
-      // Fix layer schemas for custom tiles
-      window.SubwayBuilderAPI.map.setLayerOverride({
-        layerId: "parks-large",
-        sourceLayer: "landuse",
-        filter: ["==", ["get", "kind"], "park"],
-      });
-      window.SubwayBuilderAPI.map.setLayerOverride({
-        layerId: "airports",
-        sourceLayer: "landuse",
-        filter: ["==", ["get", "kind"], "aerodrome"],
-      });
-      window.SubwayBuilderAPI.map.setTileURLOverride({
-        cityCode: place.code,
-        tilesUrl:
-          "http://127.0.0.1:" +
-          config.port +
-          "/" +
-          place.code +
-          "/{z}/{x}/{y}.mvt",
-        foundationTilesUrl:
-          "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-        maxZoom: config.tileZoomLevel,
-      });
-      window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, {
-        // auto appends .gz, is this intended? if it is then its fine if not then that has to be removed so we can manually set the .gz file extension
-        buildingsIndex: "/data/" + place.code + "/buildings_index.json",
-        demandData: "/data/" + place.code + "/demand_data.json", // drivingPaths supplied in demand_data.json.gz still aren't used
+
+      let dataFiles = {
+        buildingsIndex: "/data/" + place.code + `/${place.buildingsIndexFile}`,
+        demandData: "/data/" + place.code + "/demand_data.json",
         roads: "/data/" + place.code + "/roads.geojson",
         runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
+      }
+
+      if (place.hasOceanDepth) {
+        dataFiles.oceanDepthIndex = "/data/" + place.code + "/ocean_depth_index.json";
+      }
+
+      window.SubwayBuilderAPI.map.setTileURLOverride({
+        cityCode: place.code,
+        tilesUrl: tilesURL,
+        foundationTilesUrl: tilesURL,
+        maxZoom: config.tileZoomLevel,
       });
+
+      window.SubwayBuilderAPI.cities.setCityDataFiles(place.code, dataFiles);
     }),
   );
 
@@ -105,4 +106,75 @@ function generateTabs(places) {
       cityCodes: codes,
     });
   });
-})();
+
+  function addCustomLayers(map) {
+    let colorsData = JSON.parse(window.localStorage.getItem("map_custom_colors"));
+    let currentTheme = window.SubwayBuilderAPI.ui.getResolvedTheme().toUpperCase();
+    let themeObject = `custom${capitalizeString(currentTheme)}Colors`;
+    let colorToUsePark;
+    let colorToUseAirport;
+
+    if (colorsData.useCustomColors) {
+      colorToUsePark = colorsData[themeObject]?.parks ? colorsData[themeObject].parks : config.colors[currentTheme].PARK;
+      colorToUseAirport = colorsData[themeObject]?.airports ? colorsData[themeObject].airports : config.colors[currentTheme].AIRPORT;
+    } else {
+      colorToUsePark = config.colors[currentTheme].PARK;
+      colorToUseAirport = config.colors[currentTheme].AIRPORT;
+    }
+
+    function isFoundationsVisible(map) {
+      const layers = map.getStyle().layers;
+      for (let layer of layers) {
+        if (layer.id === "building-foundations" && map.getLayoutProperty(layer.id, "visibility") === "visible") {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    if (!map.getLayer("parks-modded")) {
+      map.addLayer({
+        id: "parks-modded",
+        type: "fill-extrusion",
+        source: "general-tiles",
+        "source-layer": "landuse",
+        filter: ["==", ["get", "kind"], "park"],
+        paint: {
+          "fill-extrusion-color": colorToUsePark,
+          "fill-extrusion-height": 0,
+          "fill-extrusion-base": 0,
+          "fill-extrusion-opacity": 0.8,
+        },
+        layout: {
+          visibility: isFoundationsVisible(map) ? "none" : "visible",
+        }
+      });
+    }
+
+    if (!map.getLayer("airports-modded")) {
+      map.addLayer({
+        id: "airports-modded",
+        type: "fill-extrusion",
+        source: "general-tiles",
+        "source-layer": "landuse",
+        filter: ["==", ["get", "kind"], "aerodrome"],
+        paint: {
+          "fill-extrusion-color": colorToUseAirport,
+          "fill-extrusion-height": 0,
+          "fill-extrusion-base": 0,
+          "fill-extrusion-opacity": 1,
+        },
+        layout: {
+          visibility: isFoundationsVisible(map) ? "none" : "visible",
+        }
+      })
+    }
+  }
+
+  window.SubwayBuilderAPI.hooks.onMapReady((map) => {
+    const resolvedMap = map ?? api.utils.getMap();
+    resolvedMap.on("styledata", () => addCustomLayers(resolvedMap));
+    resolvedMap.on("data", () => addCustomLayers(resolvedMap));
+    resolvedMap.on("load", () => addCustomLayers(resolvedMap));
+  });
+})()

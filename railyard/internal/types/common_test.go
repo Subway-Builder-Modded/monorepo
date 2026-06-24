@@ -45,6 +45,7 @@ func TestAutoPurgeDownloadErrors(t *testing.T) {
 	require.True(t, AutoPurgeDownloadErrors(InstallErrorInvalidManifest))
 	require.True(t, AutoPurgeDownloadErrors(InstallErrorInvalidArchive))
 	require.True(t, AutoPurgeDownloadErrors(InstallErrorChecksumFailed))
+	require.True(t, AutoPurgeDownloadErrors(InstallErrorVersionNotFound))
 	require.False(t, AutoPurgeDownloadErrors(InstallErrorVersionLookup))
 }
 

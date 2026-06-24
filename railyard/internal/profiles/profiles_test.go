@@ -88,6 +88,7 @@ type registryFixture struct {
 	mapCode            string
 	failVersions       bool
 	missingModManifest bool
+	incompleteVersions []string
 }
 
 func configureConfig(t *testing.T, cfg *config.Config) {
@@ -132,6 +133,7 @@ func mockRegistry(t *testing.T, reg *registry.Registry, fixtures []registryFixtu
 			MapCode:            f.mapCode,
 			FailVersions:       f.failVersions,
 			MissingModManifest: f.missingModManifest,
+			IncompleteVersions: f.incompleteVersions,
 		})
 	}
 	return registrytest.MockRegistryServer(t, reg, sharedFixtures)

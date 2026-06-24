@@ -269,6 +269,16 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		}
 	}
 
+	// Run before sync, and independently of the auto-update preference, so a single stuck
+	// subscription cannot fail the startup sync for every other asset.
+	reconcileResult := a.Profiles.ReconcileSubscriptionVersions(activeProfile.ID)
+	switch reconcileResult.Status {
+	case types.ResponseWarn:
+		a.Logger.Warn("Reconciled non-installable subscription versions on startup", "profile_id", activeProfile.ID, "message", reconcileResult.Message, "operation_count", len(reconcileResult.Operations))
+	case types.ResponseError:
+		a.Logger.MultipleError("Failed to reconcile subscription versions on startup", logger.AsErrors(reconcileResult.Errors), "profile_id", activeProfile.ID)
+	}
+
 	// Sync subscriptions for active profile on startup
 	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, false, false)
 	shouldRunAutoUpdate := activeProfile.SystemPreferences.AutoUpdateSubscriptions && syncResult.Status != types.ResponseError
@@ -837,14 +847,24 @@ func (a *App) generateMissingThumbnails(port int) {
 func (a *App) generateMod(port int) error {
 	maps := a.Registry.GetInstalledMaps()
 	a.Logger.Info("Generating mod with maps", "count", len(maps))
-	places := make([]types.ConfigData, 0, len(maps))
+
+	preferBinary := preferBinaryBuildingsIndex(a.GetGameVersion())
+	mapDataRoot := paths.MetroMakerMapsDataPath(a.Config.Cfg.MetroMakerDataPath)
+	places := make([]types.MetroMakerPlace, 0, len(maps))
 	for _, m := range maps {
-		places = append(places, m.MapConfig)
+		if _, err := os.Stat(paths.JoinLocalPath(a.Config.Cfg.GetMapsFolderPath(), m.MapConfig.Code, "ocean_depth_index.json.gz")); !errors.Is(err, fs.ErrNotExist) {
+			m.MapConfig.HasOceanDepth = true
+		}
+		places = append(places, types.MetroMakerPlace{
+			ConfigData:         m.MapConfig,
+			BuildingsIndexFile: setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary),
+		})
 	}
 	config := types.MetroMakerModConfig{
 		Port:          port,
 		TileZoomLevel: 15,
 		Places:        places,
+		Colors:        constants.MAP_COLORS,
 	}
 	manifest := types.MetroMakerModManifest{
 		Id:          "com.railyard.maploader",

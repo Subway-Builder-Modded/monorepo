@@ -38,6 +38,10 @@ export function ReconcileLocalMapSubscriptions(arg1) {
   return window['go']['profiles']['UserProfiles']['ReconcileLocalMapSubscriptions'](arg1);
 }
 
+export function ReconcileSubscriptionVersions(arg1) {
+  return window['go']['profiles']['UserProfiles']['ReconcileSubscriptionVersions'](arg1);
+}
+
 export function RenameProfile(arg1, arg2) {
   return window['go']['profiles']['UserProfiles']['RenameProfile'](arg1, arg2);
 }

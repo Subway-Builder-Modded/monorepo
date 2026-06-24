@@ -155,6 +155,19 @@ type VersionInfo struct {
 	Dependencies map[string]string `json:"dependencies,omitempty"` // Map of dependency mod IDs to version constraints
 }
 
+// VersionsCacheEntry is a persisted upstream-release lookup: the resolved versions plus the HTTP ETag used to revalidate them with a conditional request.
+type VersionsCacheEntry struct {
+	ETag     string        `json:"etag"`
+	Versions []VersionInfo `json:"versions"`
+}
+
+// VersionsCacheFile is the on-disk shape of the version cache, keyed by
+// "<updateType>|<repoOrURL>".
+type VersionsCacheFile struct {
+	SchemaVersion int                           `json:"schema_version"`
+	Entries       map[string]VersionsCacheEntry `json:"entries"`
+}
+
 // GithubRelease maps fields from the GitHub Releases API response.
 type GithubRelease struct {
 	TagName     string        `json:"tag_name"`
@@ -212,13 +225,18 @@ type IntegrityListing struct {
 
 // IntegrityVersionStatus represents the status of a specific version
 type IntegrityVersionStatus struct {
-	IsComplete     bool                   `json:"is_complete"`
-	Errors         []string               `json:"errors"`
-	RequiredChecks map[string]bool        `json:"required_checks"`
-	MatchedFiles   map[string]string      `json:"matched_files"`
-	Source         IntegrityVersionSource `json:"source"`
-	Fingerprint    string                 `json:"fingerprint"`
-	CheckedAt      string                 `json:"checked_at"`
+	IsComplete     bool              `json:"is_complete"`
+	Errors         []string          `json:"errors"`
+	RequiredChecks map[string]bool   `json:"required_checks"`
+	MatchedFiles   map[string]string `json:"matched_files"`
+	// GameVersion and Dependencies are parsed from the release manifest asset by
+	// the registry analytics pipeline (github sources only). When present, the
+	// app uses them instead of fetching each release's manifest.json.
+	GameVersion  string                 `json:"game_version,omitempty"`
+	Dependencies map[string]string      `json:"dependencies,omitempty"`
+	Source       IntegrityVersionSource `json:"source"`
+	Fingerprint  string                 `json:"fingerprint"`
+	CheckedAt    string                 `json:"checked_at"`
 }
 
 // IntegrityVersionSource represents the source information for a version

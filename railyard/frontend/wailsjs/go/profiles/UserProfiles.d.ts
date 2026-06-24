@@ -20,6 +20,8 @@ export function QuarantineUserProfiles():Promise<boolean|string>;
 
 export function ReconcileLocalMapSubscriptions(arg1:string):Promise<types.UpdateSubscriptionsResult>;
 
+export function ReconcileSubscriptionVersions(arg1:string):Promise<types.UpdateSubscriptionsResult>;
+
 export function RenameProfile(arg1:string,arg2:string):Promise<types.UserProfileResult>;
 
 export function ResetUserProfiles():Promise<types.UserProfileResult>;

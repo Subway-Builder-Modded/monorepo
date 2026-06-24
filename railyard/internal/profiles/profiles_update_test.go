@@ -511,6 +511,52 @@ func TestUpdateSubscriptionsToLatest(t *testing.T) {
 			},
 		},
 		{
+			name:      "Stops at latest integrity-approved version and ignores newer upstream-only release",
+			profileID: types.DefaultProfileID,
+			apply:     true,
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "1.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:   "map-a",
+						assetType: types.AssetTypeMap,
+						versions:  []string{"1.0.0", "2.0.0"}, // integrity-approved versions
+						// 3.0.0 exists upstream but has not been integrity-approved yet; auto-update
+						// must not advance the subscription to it.
+						incompleteVersions: []string{"3.0.0"},
+						mapCode:            "AAA",
+					},
+				})
+			},
+			expected: expectation{
+				expectedStatus:       types.ResponseSuccess,
+				expectedRequestType:  types.LatestApply,
+				expectedHasUpdates:   true,
+				expectedPendingCount: 1,
+				expectedPendingByKey: map[string][2]string{
+					"map:map-a": {"1.0.0", "2.0.0"},
+				},
+				expectedApplied:         true,
+				expectedPersisted:       true,
+				expectedOperationByID:   map[string]string{"map-a": "2.0.0"},
+				expectedMapSubscription: "2.0.0", // upstream-only 3.0.0 is ignored
+			},
+			assertResult: func(t *testing.T, _ *UserProfiles, reg *registry.Registry, _ types.UpdateSubscriptionsResult) {
+				t.Helper()
+				require.Len(t, reg.GetInstalledMaps(), 1)
+				require.Equal(t, "map-a", reg.GetInstalledMaps()[0].ID)
+				require.Equal(t, "2.0.0", reg.GetInstalledMaps()[0].Version)
+			},
+		},
+		{
 			name:      "No-op when all subscriptions are up-to-date",
 			profileID: types.DefaultProfileID,
 			apply:     true,
@@ -878,6 +924,168 @@ func TestUpdateSubscriptionsToLatest(t *testing.T) {
 			if tc.expected.expectedModSubscription != "" && tc.expected.expectedModID != "" {
 				require.Equal(t, tc.expected.expectedModSubscription, persistedProfile.Subscriptions.Mods[tc.expected.expectedModID])
 			}
+		})
+	}
+}
+
+func TestReconcileSubscriptionVersions(t *testing.T) {
+	testCases := []struct {
+		name         string
+		state        types.UserProfilesState
+		setup        func(t *testing.T, cfg *config.Config, reg *registry.Registry) func()
+		expectStatus types.Status
+		assertResult func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile)
+	}{
+		{
+			name: "Downgrades a map subscription set to an upstream-only version",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "3.0.0" // upstream-only, not integrity-approved
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:            "map-a",
+						assetType:          types.AssetTypeMap,
+						versions:           []string{"1.0.0", "2.0.0"},
+						incompleteVersions: []string{"3.0.0"},
+						mapCode:            "AAA",
+					},
+				})
+			},
+			expectStatus: types.ResponseWarn, // User should be warned that their version was not valid and has been downgraded
+			assertResult: func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile) {
+				t.Helper()
+				require.Equal(t, "2.0.0", result.Profile.Subscriptions.Maps["map-a"]) // 2.0.0 is the latest integrity-complete version
+				require.Equal(t, "2.0.0", persisted.Subscriptions.Maps["map-a"])
+			},
+		},
+		{
+			name: "Downgrades a mod subscription set to an upstream-only version",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Mods["mod-a"] = "0.8.6" // upstream-only, not integrity-approved
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:            "mod-a",
+						assetType:          types.AssetTypeMod,
+						versions:           []string{"0.8.4", "0.8.5"},
+						incompleteVersions: []string{"0.8.6"},
+					},
+				})
+			},
+			expectStatus: types.ResponseWarn,
+			assertResult: func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile) {
+				t.Helper()
+				require.Equal(t, "0.8.5", result.Profile.Subscriptions.Mods["mod-a"]) // latest integrity-complete mod version
+				require.Equal(t, "0.8.5", persisted.Subscriptions.Mods["mod-a"])
+			},
+		},
+		{
+			name: "No change when current version is installable",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "2.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:   "map-a",
+						assetType: types.AssetTypeMap,
+						versions:  []string{"1.0.0", "2.0.0"},
+						mapCode:   "AAA",
+					},
+				})
+			},
+			expectStatus: types.ResponseSuccess,
+			assertResult: func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile) {
+				t.Helper()
+				require.Empty(t, result.Operations)
+				require.Equal(t, "2.0.0", persisted.Subscriptions.Maps["map-a"])
+			},
+		},
+		{
+			name: "Purges subscription when asset has no complete version",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "1.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:   "map-a",
+						assetType: types.AssetTypeMap,
+						// No integrity-approved versions; only an upstream-only release exists.
+						incompleteVersions: []string{"1.0.0"},
+						mapCode:            "AAA",
+					},
+				})
+			},
+			expectStatus: types.ResponseWarn,
+			assertResult: func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile) {
+				t.Helper()
+				_, exists := result.Profile.Subscriptions.Maps["map-a"] // Map subscription is removed from result profile
+				require.False(t, exists)
+				_, persistedExists := persisted.Subscriptions.Maps["map-a"]
+				require.False(t, persistedExists)
+			},
+		},
+		{
+			name: "Skips reconciliation when registry is not loaded",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "1.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			// No registry fixtures: integrity report is empty, so a missing asset must not be purged.
+			expectStatus: types.ResponseSuccess,
+			assertResult: func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile) {
+				t.Helper()
+				require.Empty(t, result.Operations)
+				require.Equal(t, "1.0.0", persisted.Subscriptions.Maps["map-a"])
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			svc, cfg, reg := loadedUserProfilesServiceWithDependencies(t, tc.state)
+			if tc.setup != nil {
+				if cleanup := tc.setup(t, cfg, reg); cleanup != nil {
+					defer cleanup()
+				}
+			}
+
+			result := svc.ReconcileSubscriptionVersions(types.DefaultProfileID)
+			require.Equal(t, tc.expectStatus, result.Status)
+
+			persisted, readErr := ReadUserProfilesState()
+			require.NoError(t, readErr)
+			tc.assertResult(t, result, persisted.Profiles[types.DefaultProfileID])
 		})
 	}
 }

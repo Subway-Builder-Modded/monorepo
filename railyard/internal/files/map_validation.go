@@ -8,30 +8,33 @@ import (
 	"io/fs"
 	"os"
 	"path"
+	"strings"
 
 	"railyard/internal/paths"
 	"railyard/internal/types"
 )
 
 const (
-	MapConfigFileName     = "config.json"
-	MapDemandFileName     = "demand_data.json"
-	MapRoadsFileName      = "roads.geojson"
-	MapRunwaysFileName    = "runways_taxiways.geojson"
-	MapBuildingsFileName  = "buildings_index.json"
-	MapOceanDepthFileName = "ocean_depth_index.json"
+	MapConfigFileName       = "config.json"
+	MapDemandFileName       = "demand_data.json"
+	MapRoadsFileName        = "roads.geojson"
+	MapRunwaysFileName      = "runways_taxiways.geojson"
+	MapBuildingsFileName    = "buildings_index.json" // legacy (pre 1.3.0) buildings index format
+	MapBuildingsBinFileName = "buildings_index.bin"  // newer (1.3.0+) buildings index format
+	MapOceanDepthFileName   = "ocean_depth_index.json"
 
 	MapTileFileExt      = ".pmtiles"
 	MapThumbnailFileExt = ".svg"
 
-	MapArchiveKeyConfig     = "config"
-	MapArchiveKeyDemandData = "demandData"
-	MapArchiveKeyRoads      = "roads"
-	MapArchiveKeyRunways    = "runways"
-	MapArchiveKeyBuildings  = "buildings"
-	MapArchiveKeyTiles      = "tiles"
-	MapArchiveKeyThumbnail  = "thumbnail"
-	MapArchiveKeyOceanDepth = "oceanDepth"
+	MapArchiveKeyConfig       = "config"
+	MapArchiveKeyDemandData   = "demandData"
+	MapArchiveKeyRoads        = "roads"
+	MapArchiveKeyRunways      = "runways"
+	MapArchiveKeyBuildings    = "buildings"
+	MapArchiveKeyBuildingsBin = "buildingsBin"
+	MapArchiveKeyTiles        = "tiles"
+	MapArchiveKeyThumbnail    = "thumbnail"
+	MapArchiveKeyOceanDepth   = "oceanDepth"
 )
 
 // BuildMapArchiveFileIndex builds an index of expected map archive files for validation, returning a map of file keys to their presence and file objects in the archive
@@ -41,10 +44,12 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 		MapArchiveKeyDemandData: {Found: false, FileObject: nil, Required: true},
 		MapArchiveKeyRoads:      {Found: false, FileObject: nil, Required: true},
 		MapArchiveKeyRunways:    {Found: false, FileObject: nil, Required: true},
-		MapArchiveKeyBuildings:  {Found: false, FileObject: nil, Required: true},
-		MapArchiveKeyTiles:      {Found: false, FileObject: nil, Required: true},
-		MapArchiveKeyThumbnail:  {Found: false, FileObject: nil, Required: false},
-		MapArchiveKeyOceanDepth: {Found: false, FileObject: nil, Required: false},
+		// ValidateMapArchive enforces that at least one buildings index is present; neither is strictly required on its own.
+		MapArchiveKeyBuildings:    {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyBuildingsBin: {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyTiles:        {Found: false, FileObject: nil, Required: true},
+		MapArchiveKeyThumbnail:    {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyOceanDepth:   {Found: false, FileObject: nil, Required: false},
 	}
 
 	for _, file := range zipFiles {
@@ -57,9 +62,15 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 			continue
 		}
 
-		switch normalizedName {
-		case MapConfigFileName:
+		// config.json is never compressed; it is stored verbatim for installed-state bootstrapping.
+		if normalizedName == MapConfigFileName {
 			filesFound[MapArchiveKeyConfig] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
+		}
+
+		// Payload files may be submitted compressed (<name>.gz) or not; match on the
+		// decompressed name so either form maps to the same key. The extractor
+		// normalizes them all to <name>.gz on install regardless.
+		switch strings.TrimSuffix(normalizedName, ".gz") {
 		case MapDemandFileName:
 			filesFound[MapArchiveKeyDemandData] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		case MapRoadsFileName:
@@ -67,7 +78,9 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 		case MapRunwaysFileName:
 			filesFound[MapArchiveKeyRunways] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		case MapBuildingsFileName:
-			filesFound[MapArchiveKeyBuildings] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
+			filesFound[MapArchiveKeyBuildings] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
+		case MapBuildingsBinFileName:
+			filesFound[MapArchiveKeyBuildingsBin] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		case MapOceanDepthFileName:
 			filesFound[MapArchiveKeyOceanDepth] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		}
@@ -95,6 +108,10 @@ func ValidateMapArchive(filePath string) (types.ConfigData, types.DownloaderErro
 
 	if !requiredFilesPresent(filesFound) {
 		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{"The map archive is missing one or more required files."}}
+	}
+
+	if !buildingsIndexPresent(filesFound) {
+		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{"The map archive is missing a buildings index (need buildings_index.json/.json.gz or buildings_index.bin/.bin.gz)."}}
 	}
 
 	for _, file := range reader.File {
@@ -182,12 +199,16 @@ func requiredFilesPresent(filesFound map[string]types.FileFoundStruct) bool {
 	return true
 }
 
+// buildingsIndexPresent reports whether the archive carries a buildings index in either form.
+func buildingsIndexPresent(filesFound map[string]types.FileFoundStruct) bool {
+	return filesFound[MapArchiveKeyBuildings].Found || filesFound[MapArchiveKeyBuildingsBin].Found
+}
+
 func validateRequiredInstalledMapFiles(mapInstallRoot string, mapTilesRoot string, cityCode string) (types.DownloaderErrorType, error) {
 	requiredPaths := []string{
 		paths.JoinLocalPath(mapInstallRoot, cityCode, MapDemandFileName+".gz"),
 		paths.JoinLocalPath(mapInstallRoot, cityCode, MapRoadsFileName+".gz"),
 		paths.JoinLocalPath(mapInstallRoot, cityCode, MapRunwaysFileName+".gz"),
-		paths.JoinLocalPath(mapInstallRoot, cityCode, MapBuildingsFileName+".gz"),
 		paths.JoinLocalPath(mapTilesRoot, cityCode+MapTileFileExt),
 	}
 
@@ -199,5 +220,20 @@ func validateRequiredInstalledMapFiles(mapInstallRoot string, mapTilesRoot strin
 			return types.InstallErrorFilesystem, fmt.Errorf("failed to stat installed map file %q: %w", filePath, err)
 		}
 	}
-	return "", nil
+
+	return installedBuildingsIndexPresent(mapInstallRoot, cityCode)
+}
+
+// installedBuildingsIndexPresent verifies at least one installed buildings-index form exists for the city.
+func installedBuildingsIndexPresent(mapInstallRoot string, cityCode string) (types.DownloaderErrorType, error) {
+	for _, name := range []string{MapBuildingsFileName + ".gz", MapBuildingsBinFileName + ".gz"} {
+		exists, err := FileExists(paths.JoinLocalPath(mapInstallRoot, cityCode, name))
+		if err != nil {
+			return types.InstallErrorFilesystem, fmt.Errorf("failed to stat installed map file %q: %w", name, err)
+		}
+		if exists {
+			return "", nil
+		}
+	}
+	return types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{fmt.Sprintf("missing installed buildings index for %q: need %s or %s", cityCode, MapBuildingsFileName+".gz", MapBuildingsBinFileName+".gz")}}
 }

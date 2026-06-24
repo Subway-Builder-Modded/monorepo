@@ -131,7 +131,10 @@ export namespace types {
 	    bbox?: number[];
 	    creator: string;
 	    version: string;
+	    minZoom?: number;
+	    maxZoom?: number;
 	    initialViewState: InitialViewState;
+	    hasOceanDepth?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ConfigData(source);
@@ -148,7 +151,10 @@ export namespace types {
 	        this.bbox = source["bbox"];
 	        this.creator = source["creator"];
 	        this.version = source["version"];
+	        this.minZoom = source["minZoom"];
+	        this.maxZoom = source["maxZoom"];
 	        this.initialViewState = this.convertValues(source["initialViewState"], InitialViewState);
+	        this.hasOceanDepth = source["hasOceanDepth"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -907,6 +913,8 @@ export namespace types {
 	    errors: string[];
 	    required_checks: Record<string, boolean>;
 	    matched_files: Record<string, string>;
+	    game_version?: string;
+	    dependencies?: Record<string, string>;
 	    source: IntegrityVersionSource;
 	    fingerprint: string;
 	    checked_at: string;
@@ -921,6 +929,8 @@ export namespace types {
 	        this.errors = source["errors"];
 	        this.required_checks = source["required_checks"];
 	        this.matched_files = source["matched_files"];
+	        this.game_version = source["game_version"];
+	        this.dependencies = source["dependencies"];
 	        this.source = this.convertValues(source["source"], IntegrityVersionSource);
 	        this.fingerprint = source["fingerprint"];
 	        this.checked_at = source["checked_at"];

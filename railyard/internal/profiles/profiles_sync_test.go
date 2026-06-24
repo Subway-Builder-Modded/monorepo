@@ -579,6 +579,42 @@ func TestSyncAssetSubscriptionsChecksumFailureProducesPurgeCandidate(t *testing.
 	require.Equal(t, types.InstallErrorChecksumFailed, assetsToPurge[0].errorCode)
 }
 
+func TestSyncAssetSubscriptionsVersionNotFoundProducesPurgeCandidate(t *testing.T) {
+	fixture := assetSyncTestFixture{
+		subscriptions: map[string]string{
+			"map-a": "1.0.1",
+		},
+		installedVersion: map[string]string{
+			"map-a": "1.0.0",
+		},
+		availableVersions: map[string]map[string]struct{}{
+			"map-a": {
+				"1.0.1": {},
+			},
+		},
+	}
+
+	// A version that passes the upstream availability pre-check but is rejected by the downloader as not installable (e.g. removed from the integrity cache) must be queued for purge so failure does not block syncing other assets, rather than recorded as a hard error.
+	_, errs, assetsToPurge, _ := syncAssetSubscriptions(testUserProfilesLogger(t), types.DefaultProfileID, mockMapAssetSyncArgs(
+		fixture,
+		mockInstallResponse(types.AssetTypeMap, nil, map[string]types.AssetInstallResponse{
+			"map-a": {
+				GenericResponse: types.GenericResponse{
+					Status:  types.ResponseError,
+					Message: "version not found",
+				},
+				ErrorType: types.InstallErrorVersionNotFound,
+			},
+		}),
+		mockUninstallResponse(types.AssetTypeMap, nil, nil),
+	))
+
+	require.Empty(t, errs)
+	require.Len(t, assetsToPurge, 1)
+	require.Equal(t, "map-a", assetsToPurge[0].assetID)
+	require.Equal(t, types.InstallErrorVersionNotFound, assetsToPurge[0].errorCode)
+}
+
 func TestApplyPurgeOperations(t *testing.T) {
 	testCases := []struct {
 		name        string

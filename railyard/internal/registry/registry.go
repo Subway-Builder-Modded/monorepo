@@ -33,8 +33,7 @@ type Registry struct {
 	mods           []types.ModManifest
 	maps           []types.MapManifest
 	downloadCounts map[types.AssetType]map[string]map[string]int
-	versionsCache  map[string][]types.VersionInfo
-	versionsMu     sync.RWMutex
+	versions       *versionCache // upstream-release version cache with ETag conditional revalidation; see versions_cache.go
 	installedMods  []types.InstalledModInfo
 	installedMaps  []types.InstalledMapInfo
 	integrityMaps  types.RegistryIntegrityReport
@@ -72,7 +71,7 @@ func NewRegistry(l logSink, cfg *config.Config) *Registry {
 			types.AssetTypeMap: {},
 			types.AssetTypeMod: {},
 		},
-		versionsCache: map[string][]types.VersionInfo{},
+		versions: newVersionCache(l),
 	}
 }
 
@@ -83,7 +82,7 @@ func (r *Registry) SetContext(ctx context.Context) {
 // Initialize ensures a valid local registry repo exists.
 // It does not force a remote refresh.
 func (r *Registry) Initialize() error {
-	r.clearVersionsCache()
+	r.versions.load()
 	if err := r.openOrClone(); err != nil {
 		return err
 	}
@@ -109,7 +108,7 @@ func (r *Registry) Refresh() error {
 		Percent: -1,
 	})
 
-	r.clearVersionsCache() // Clear versions cache on refresh to ensure we fetch fresh version
+	r.versions.resetRevalidated()
 
 	// Fast exit path: Skip the full fetch when the local repo already matches latest commit SHA.
 	// Failures here intentionally fall through to the normal, slow path
