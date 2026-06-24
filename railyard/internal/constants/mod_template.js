@@ -131,6 +131,7 @@ function generateTabs(places) {
       }
       return false;
     }
+
     if (!map.getLayer("parks-modded")) {
       map.addLayer({
         id: "parks-modded",
@@ -149,6 +150,7 @@ function generateTabs(places) {
         }
       });
     }
+
     if (!map.getLayer("airports-modded")) {
       map.addLayer({
         id: "airports-modded",
