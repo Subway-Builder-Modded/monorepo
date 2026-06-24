@@ -58,8 +58,6 @@ type App struct {
 
 	deepLinks deepLinkQueue
 
-	cachedGameVersion types.GameVersionResponse
-
 	// Test-only hooks for controlling the launch-starting window and event sink.
 	launchGameTestReady chan<- struct{}
 	launchGameTestBlock <-chan struct{}
@@ -352,20 +350,19 @@ func (a *App) cleanupTmpStaging(stage string) {
 	}
 }
 
-// GetGameVersion attempts to detect the installed Subway Builder version.
-// Returns an empty version with a warning status if detection fails.
+// GetGameVersion detects the installed Subway Builder version from app.asar's
+// package.json, returning an empty version with a warning status if detection fails.
+// It is intentionally uncached; the game can update while Railyard runs, so every call re-detects to keep compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
 func (a *App) GetGameVersion() types.GameVersionResponse {
 	a.Logger.Info("Attempting to resolve game version")
-	if a.cachedGameVersion != (types.GameVersionResponse{}) {
-		a.Logger.Info("Returning cached game version", "version", a.cachedGameVersion.Version)
-		return a.cachedGameVersion
+	notDetected := types.GameVersionResponse{
+		GenericResponse: types.WarnResponse("Game version not detected"),
+		Version:         "",
 	}
+
 	cfg := a.Config.GetConfig()
 	if !cfg.Validation.ExecutablePathValid {
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return notDetected
 	}
 	exePath := cfg.Config.ExecutablePath
 
@@ -379,66 +376,35 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	archiveFile, err := os.Open(asarPath)
 	if err != nil {
 		a.Logger.Warn("Failed to open app.asar for game version detection", "error", err, "asarPath", asarPath)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return notDetected
 	}
+	defer archiveFile.Close()
 
 	archive, err := asar.Decode(archiveFile)
 	if err != nil {
 		a.Logger.Warn("Failed to decode app.asar for game version detection", "error", err, "asarPath", asarPath)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return notDetected
 	}
 
 	packageFile := archive.Find("package.json")
 	if packageFile == nil {
 		a.Logger.Warn("Failed to find package.json in app.asar", "asarPath", asarPath)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return notDetected
 	}
 
-	packageReader := packageFile.Open()
 	var pkg struct {
 		Version string `json:"version"`
 	}
-
-	if err := json.NewDecoder(packageReader).Decode(&pkg); err != nil {
+	if err := json.NewDecoder(packageFile.Open()).Decode(&pkg); err != nil {
 		a.Logger.Warn("Failed to decode package.json", "asarPath", asarPath, "error", err)
-		a.cachedGameVersion = types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
-		return types.GameVersionResponse{
-			GenericResponse: types.WarnResponse("Game version not detected"),
-			Version:         "",
-		}
+		return notDetected
 	}
 
 	a.Logger.Info("Game version detected", "version", pkg.Version)
-	resp := types.GameVersionResponse{
+	return types.GameVersionResponse{
 		GenericResponse: types.SuccessResponse("Game version detected"),
 		Version:         pkg.Version,
 	}
-	a.cachedGameVersion = resp
-	return resp
 }
 
 func (a *App) LaunchGame() types.GenericResponse {
