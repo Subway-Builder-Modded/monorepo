@@ -441,6 +441,12 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	return resp
 }
 
+// refreshGameVersion invalidates the cached game version and re-detects it, as the user may have updated the game since it was last cached.
+func (a *App) refreshGameVersion() types.GameVersionResponse {
+	a.cachedGameVersion = types.GameVersionResponse{}
+	return a.GetGameVersion()
+}
+
 func (a *App) LaunchGame() types.GenericResponse {
 	a.gameMu.Lock()
 	if a.gameStarting {
@@ -502,6 +508,9 @@ func (a *App) LaunchGame() types.GenericResponse {
 	a.Logger.Info(fmt.Sprintf("Debug thumbnails: http://127.0.0.1:%d/debug/thumbnails", port))
 
 	a.generateMissingThumbnails(port)
+
+	// Re-detect the game version so the generated mod uses artifacts (e.g. buildings index) that the current game build expects.
+	a.refreshGameVersion()
 
 	if err := a.generateMod(port); err != nil {
 		a.Logger.Warn("Failed to generate mod", "error", err)
