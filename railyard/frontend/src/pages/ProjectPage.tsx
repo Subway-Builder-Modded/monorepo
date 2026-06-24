@@ -24,11 +24,11 @@ import { Link, useRoute } from 'wouter';
 import { ProjectGallery } from '@/components/project/ProjectGallery';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
 import { ProjectVersions } from '@/components/project/ProjectVersions';
+import { useGameVersion } from '@/hooks/use-game-version';
 import { selectLatestCompatibleVersion } from '@/lib/version-compatibility';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
-import { GetGameVersion } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetAssetDownloadCounts,
@@ -63,21 +63,11 @@ export function ProjectPage() {
   const [versions, setVersions] = useState<types.VersionInfo[]>([]);
   const [versionsLoading, setVersionsLoading] = useState(true);
   const [versionsError, setVersionsError] = useState<string | null>(null);
-  const [gameVersion, setGameVersion] = useState<string>('');
+  const gameVersion = useGameVersion();
 
   useEffect(() => {
     ensureDownloadTotals();
   }, [ensureDownloadTotals]);
-
-  useEffect(() => {
-    GetGameVersion()
-      .then((response) => {
-        if (response.status === 'success') {
-          setGameVersion(response.version || '');
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!item || !type) return;

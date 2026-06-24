@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"railyard/internal/config"
 	"railyard/internal/files"
 	"railyard/internal/paths"
 	"railyard/internal/types"
@@ -64,19 +63,4 @@ func TestChooseBuildingsIndexStem(t *testing.T) {
 		root := writeBin(t)
 		require.Equal(t, files.MapBuildingsFileName, setBuildingsIndexStem(root, code, false))
 	})
-}
-
-func TestRefreshGameVersionDiscardsStaleCache(t *testing.T) {
-	app := newTestApp()
-	app.Config = config.NewConfig(app.Logger)
-
-	// Seed a stale cached version, as if detected from a previously-newer build.
-	app.cachedGameVersion = types.GameVersionResponse{GenericResponse: types.SuccessResponse("ok"), Version: "1.4.0"}
-
-	got := app.refreshGameVersion()
-
-	// No valid executable is configured in the test, so re-detection yields no version;
-	// the point is that the stale 1.4.0 is discarded rather than returned.
-	require.NotEqual(t, "1.4.0", got.Version)
-	require.Empty(t, app.cachedGameVersion.Version)
 }

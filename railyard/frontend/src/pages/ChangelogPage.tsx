@@ -50,6 +50,7 @@ import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
+import { useGameVersion } from '@/hooks/use-game-version';
 import { isCompatible } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
@@ -70,7 +71,6 @@ import {
 import { useRegistryStore } from '@/stores/registry-store';
 
 import { ComputeDependencyList } from '../../wailsjs/go/downloader/Downloader';
-import { GetGameVersion } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetAssetDownloadCounts,
@@ -132,7 +132,7 @@ export function ChangelogPage() {
   );
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [gameVersion, setGameVersion] = useState<string>('');
+  const gameVersion = useGameVersion();
 
   const [activeTab, setActiveTab] = useState('changelog');
   const [resolvedDeps, setResolvedDeps] = useState<Record<
@@ -175,16 +175,6 @@ export function ChangelogPage() {
 
   const projectHref =
     routeType && id ? `/project/${routeType}/${id}` : '/browse';
-
-  useEffect(() => {
-    GetGameVersion()
-      .then((response) => {
-        if (response.status === 'success') {
-          setGameVersion(response.version || '');
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!item || !type || !versionParam) return;
