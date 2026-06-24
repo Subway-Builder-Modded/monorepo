@@ -110,6 +110,7 @@ func toAssetManifest(raw types.RawManifest, author types.AuthorDetails) types.As
 		Source:        raw.Source,
 		Update:        raw.Update,
 		IsTest:        raw.IsTest,
+		SearchAliases: raw.SearchAliases,
 	}
 }
 
