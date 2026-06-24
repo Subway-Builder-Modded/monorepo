@@ -75,7 +75,7 @@ function generateTabs(places) {
       });
 
       let dataFiles = {
-        buildingsIndex: "/data/" + place.code + place.buildingsIndexFile,
+        buildingsIndex: "/data/" + place.code + `/${place.buildingsIndexFile}`,
         demandData: "/data/" + place.code + "/demand_data.json",
         roads: "/data/" + place.code + "/roads.geojson",
         runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
