@@ -8,6 +8,10 @@ function getFlagEmoji(countryCode) {
   return String.fromCodePoint(...codePoints);
 }
 
+function capitalizeString(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 function getCountryName(countryCode) {
   const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
   return regionNames.of(countryCode.toUpperCase());
@@ -105,39 +109,19 @@ function generateTabs(places) {
 
   function addCustomLayers(map) {
     let colorsData = JSON.parse(window.localStorage.getItem("map_custom_colors"));
-    let currentTheme = window.SubwayBuilderAPI.ui.getResolvedTheme();
-    let DEFAULT_COLORS_DARK = {
-      PARK: "#0b1715",
-      AIRPORT: "#181c28"
-    }
-    let DEFAULT_COLORS_LIGHT = {
-      PARK: "#A9D8B6",
-      AIRPORT: "#f0f1f5"
-    };
+    let currentTheme = window.SubwayBuilderAPI.ui.getResolvedTheme().toUpperCase();
+    let themeObject = `custom${capitalizeString(currentTheme)}Colors`;
     let colorToUsePark;
     let colorToUseAirport;
+
     if (colorsData.useCustomColors) {
-      if (currentTheme === "dark" && colorsData.customDarkColors.airport) {
-        colorToUseAirport = colorsData.customDarkColors.airport;
-      }
-      else if (currentTheme === "light" && colorsData.customLightColors.airport) {
-        colorToUseAirport = colorsData.customLightColors.airport;
-      } else {
-        colorToUseAirport = currentTheme === "dark" ? DEFAULT_COLORS_DARK.AIRPORT : DEFAULT_COLORS_LIGHT.AIRPORT;
-      }
-      if (currentTheme === "dark" && colorsData.customDarkColors.parks) {
-        colorToUsePark = colorsData.customDarkColors.parks;
-      }
-      else if (currentTheme === "light" && colorsData.customLightColors.parks) {
-        colorToUsePark = colorsData.customLightColors.parks;
-      }
-      else {
-        colorToUsePark = currentTheme === "dark" ? DEFAULT_COLORS_DARK.PARK : DEFAULT_COLORS_LIGHT.PARK;
-      }
+      colorToUsePark = colorsData[themeObject]?.parks ? colorsData[themeObject].parks : config.colors[currentTheme].PARK;
+      colorToUseAirport = colorsData[themeObject]?.airports ? colorsData[themeObject].airports : config.colors[currentTheme].AIRPORT;
     } else {
-      colorToUsePark = currentTheme === "dark" ? DEFAULT_COLORS_DARK.PARK : DEFAULT_COLORS_LIGHT.PARK;
-      colorToUseAirport = currentTheme === "dark" ? DEFAULT_COLORS_DARK.AIRPORT : DEFAULT_COLORS_LIGHT.AIRPORT;
+      colorToUsePark = config.colors[currentTheme].PARK;
+      colorToUseAirport = config.colors[currentTheme].AIRPORT;
     }
+
     function isFoundationsVisible(map) {
       const layers = map.getStyle().layers;
       for (let layer of layers) {
@@ -147,6 +131,7 @@ function generateTabs(places) {
       }
       return false;
     }
+
     if (!map.getLayer("parks-modded")) {
       map.addLayer({
         id: "parks-modded",
@@ -165,6 +150,7 @@ function generateTabs(places) {
         }
       });
     }
+
     if (!map.getLayer("airports-modded")) {
       map.addLayer({
         id: "airports-modded",

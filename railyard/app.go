@@ -864,6 +864,7 @@ func (a *App) generateMod(port int) error {
 		Port:          port,
 		TileZoomLevel: 15,
 		Places:        places,
+		Colors:        constants.MAP_COLORS,
 	}
 	manifest := types.MetroMakerModManifest{
 		Id:          "com.railyard.maploader",

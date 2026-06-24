@@ -133,7 +133,6 @@ export namespace types {
 	    version: string;
 	    minZoom?: number;
 	    maxZoom?: number;
-	    demandDotScaling?: number;
 	    initialViewState: InitialViewState;
 	    hasOceanDepth?: boolean;
 	
@@ -154,7 +153,6 @@ export namespace types {
 	        this.version = source["version"];
 	        this.minZoom = source["minZoom"];
 	        this.maxZoom = source["maxZoom"];
-	        this.demandDotScaling = source["demandDotScaling"];
 	        this.initialViewState = this.convertValues(source["initialViewState"], InitialViewState);
 	        this.hasOceanDepth = source["hasOceanDepth"];
 	    }
