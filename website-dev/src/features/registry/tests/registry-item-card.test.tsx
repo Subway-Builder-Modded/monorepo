@@ -123,20 +123,14 @@ describe("RegistryItemCard", () => {
   it("compact variant shows Map type badge", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
     const typeBadge = screen.getByRole("link", { name: "Browse Maps" });
-    expect(typeBadge).toHaveAttribute(
-      "href",
-      "/registry/maps",
-    );
+    expect(typeBadge).toHaveAttribute("href", "/registry/maps");
     expect(typeBadge.querySelector("svg")).not.toBeNull();
   });
 
   it("compact variant shows Mod type badge for mods", () => {
     render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
     const typeBadge = screen.getByRole("link", { name: "Browse Mods" });
-    expect(typeBadge).toHaveAttribute(
-      "href",
-      "/registry/mods",
-    );
+    expect(typeBadge).toHaveAttribute("href", "/registry/mods");
     expect(typeBadge.querySelector("svg")).not.toBeNull();
   });
 

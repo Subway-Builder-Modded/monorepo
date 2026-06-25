@@ -25,6 +25,7 @@ type RegistryItemCardProps = {
   };
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  hideAuthor?: boolean;
   className?: string;
 };
 
@@ -312,6 +313,7 @@ function RegistryCardGrid({
   titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
+  hideAuthor = false,
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
@@ -346,7 +348,12 @@ function RegistryCardGrid({
           />
         </div>
 
-        <div className="flex h-full flex-col gap-2 px-3 py-3 min-[1800px]:gap-2.5 min-[1800px]:px-4 min-[1800px]:py-4">
+        <div
+          className={cn(
+            "flex h-full flex-col px-3 py-3 min-[1800px]:px-4 min-[1800px]:py-4",
+            hideAuthor ? "gap-1.5 min-[1800px]:gap-2" : "gap-2 min-[1800px]:gap-2.5",
+          )}
+        >
           <div className="flex items-center justify-between gap-2">
             <TypeBadge typeConfig={typeConfig} />
             <div className="flex items-center gap-3">
@@ -355,7 +362,7 @@ function RegistryCardGrid({
             </div>
           </div>
 
-          <div className="space-y-0">
+          <div className={hideAuthor ? "space-y-0" : "space-y-0.5"}>
             <div className="flex items-center justify-between gap-2">
               <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-sm font-semibold leading-snug min-[1800px]:text-base">
                 <TitleLink
@@ -371,7 +378,7 @@ function RegistryCardGrid({
                 population={null}
               />
             </div>
-            <AuthorLink author={data.author} authorId={data.authorId} />
+            {hideAuthor ? null : <AuthorLink author={data.author} authorId={data.authorId} />}
           </div>
 
           <DescriptionPreview
@@ -440,6 +447,7 @@ function RegistryCardFull({
   titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
+  hideAuthor = false,
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
@@ -472,7 +480,12 @@ function RegistryCardFull({
           />
         </div>
 
-        <div className="flex h-full flex-col gap-3 px-4 py-4 min-[1800px]:gap-4 min-[1800px]:px-5 min-[1800px]:py-5">
+        <div
+          className={cn(
+            "flex h-full flex-col px-4 py-4 min-[1800px]:px-5 min-[1800px]:py-5",
+            hideAuthor ? "gap-2 min-[1800px]:gap-3" : "gap-3 min-[1800px]:gap-4",
+          )}
+        >
           <div className="flex items-center justify-between gap-2">
             <TypeBadge typeConfig={typeConfig} size="md" />
             <div className="flex items-center gap-3">
@@ -481,7 +494,7 @@ function RegistryCardFull({
             </div>
           </div>
 
-          <div className="space-y-0.5">
+          <div className={hideAuthor ? "space-y-0" : "space-y-0.5"}>
             <div className="flex items-center justify-between gap-2">
               <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-base font-semibold leading-snug min-[1800px]:text-[1.12rem]">
                 <TitleLink
@@ -497,7 +510,7 @@ function RegistryCardFull({
                 population={null}
               />
             </div>
-            <AuthorLink author={data.author} authorId={data.authorId} />
+            {hideAuthor ? null : <AuthorLink author={data.author} authorId={data.authorId} />}
           </div>
 
           <DescriptionPreview
@@ -531,6 +544,7 @@ function RegistryCardList({
   data,
   typeConfig,
   titleHoverAccent,
+  hideAuthor = false,
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, 240);
@@ -562,7 +576,9 @@ function RegistryCardList({
           noImageLabel="N/A"
         />
 
-        <div className="min-w-0 flex-1 overflow-hidden space-y-1.5">
+        <div
+          className={cn("min-w-0 flex-1 overflow-hidden", hideAuthor ? "space-y-1" : "space-y-1.5")}
+        >
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <TypeBadge typeConfig={typeConfig} size="sm" />
@@ -579,7 +595,7 @@ function RegistryCardList({
             />
           </div>
 
-          <div className="space-y-0.5">
+          <div className={hideAuthor ? "space-y-0" : "space-y-0.5"}>
             <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold min-[1800px]:text-[1.12rem]">
               <TitleLink
                 title={data.title}
@@ -587,7 +603,7 @@ function RegistryCardList({
                 className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
               />
             </h3>
-            <AuthorLink author={data.author} authorId={data.authorId} />
+            {hideAuthor ? null : <AuthorLink author={data.author} authorId={data.authorId} />}
           </div>
 
           <DescriptionPreview
@@ -657,6 +673,7 @@ export function RegistryItemCard({
   titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
+  hideAuthor,
   className,
 }: RegistryItemCardProps) {
   switch (variant) {
@@ -668,6 +685,7 @@ export function RegistryItemCard({
           titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          hideAuthor={hideAuthor}
           className={className}
         />
       );
@@ -679,6 +697,7 @@ export function RegistryItemCard({
           titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          hideAuthor={hideAuthor}
           className={className}
         />
       );
@@ -691,6 +710,7 @@ export function RegistryItemCard({
           titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          hideAuthor={hideAuthor}
           className={className}
         />
       );

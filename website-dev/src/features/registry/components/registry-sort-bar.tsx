@@ -32,6 +32,7 @@ type RegistrySortBarProps = {
   onSortChange: (sortId: RegistrySortId) => void;
   onDirToggle: () => void;
   onRandomReshuffle: () => void;
+  excludedSortIds?: RegistrySortId[];
   className?: string;
 };
 
@@ -42,6 +43,7 @@ export function RegistrySortBar({
   onSortChange,
   onDirToggle,
   onRandomReshuffle,
+  excludedSortIds = [],
   className,
 }: RegistrySortBarProps) {
   const isRandom = sortId === "random";
@@ -49,7 +51,7 @@ export function RegistrySortBar({
   const ActiveIcon = SORT_ICONS[sortId];
   const supportedOptions = REGISTRY_SORT_OPTIONS.filter((opt) =>
     isSortSupportedForType(opt, activeTypeId),
-  );
+  ).filter((opt) => !excludedSortIds.includes(opt.id));
 
   return (
     <div className={cn("flex items-center gap-1.5", className)}>

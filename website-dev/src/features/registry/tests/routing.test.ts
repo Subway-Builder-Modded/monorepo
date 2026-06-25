@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  getRegistryAuthorUrl,
   getRegistryDetailUrl,
   getRegistryPageUrl,
   getRegistryVersionUrl,
@@ -24,6 +25,21 @@ describe("matchRegistryRoute", () => {
     });
   });
 
+  it("matches author routes before generic detail routes", () => {
+    expect(matchRegistryRoute("/registry/authors/ahkimn")).toEqual({
+      kind: "author",
+      authorId: "ahkimn",
+    });
+  });
+
+  it("matches author tab routes", () => {
+    expect(matchRegistryRoute("/registry/authors/ahkimn/analytics")).toEqual({
+      kind: "author",
+      authorId: "ahkimn",
+      tabId: "analytics",
+    });
+  });
+
   it("matches detail route with tab subpage", () => {
     expect(matchRegistryRoute("/registry/maps/gwangju-4/analytics")).toEqual({
       kind: "detail",
@@ -45,6 +61,7 @@ describe("matchRegistryRoute", () => {
 
   it("returns none for invalid detail tab subpage", () => {
     expect(matchRegistryRoute("/registry/maps/gwangju-4/not-a-tab")).toEqual({ kind: "none" });
+    expect(matchRegistryRoute("/registry/authors/ahkimn/not-a-tab")).toEqual({ kind: "none" });
   });
 
   it("returns none for unrelated route", () => {
@@ -65,6 +82,14 @@ describe("getRegistryDetailUrl", () => {
       "/registry/maps/gwangju-4/description",
     );
     expect(getRegistryDetailUrl("maps", "gwangju-4")).toBe("/registry/maps/gwangju-4");
+  });
+});
+
+describe("getRegistryAuthorUrl", () => {
+  it("builds author tab URLs and omits overview", () => {
+    expect(getRegistryAuthorUrl("ahkimn")).toBe("/registry/authors/ahkimn");
+    expect(getRegistryAuthorUrl("ahkimn", "overview")).toBe("/registry/authors/ahkimn");
+    expect(getRegistryAuthorUrl("ahkimn", "analytics")).toBe("/registry/authors/ahkimn/analytics");
   });
 });
 

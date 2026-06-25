@@ -18,6 +18,10 @@ export type RegistrySearchItem = {
   totalDownloads: number;
   /** Unix timestamp in milliseconds, 0 if unknown. */
   lastActivityAt: number;
+  /** Earliest known complete version timestamp in milliseconds, 0 if unknown. */
+  publishedAt?: number;
+  latestVersion?: string | null;
+  latestVersionUpdatedAt?: number;
   cityCode: string | null;
   countryCode: string | null;
   countryName: string | null;
@@ -66,6 +70,9 @@ export type RawRegistryIntegrity = {
     string,
     {
       has_complete_version?: boolean;
+      latest_semver_version?: string;
+      latest_semver_complete?: boolean;
+      complete_versions?: string[];
       last_updated?: number;
       versions?: Record<
         string,

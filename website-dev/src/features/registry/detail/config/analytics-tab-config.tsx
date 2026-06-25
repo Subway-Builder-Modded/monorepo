@@ -4,7 +4,7 @@ import {
   Circle,
   Earth,
   ExternalLink,
-  Trophy,
+  Download,
   User,
   Users,
   type LucideIcon,
@@ -99,7 +99,7 @@ const ANALYTICS_TAB_SECTIONS_CONFIG: AnalyticsTabSectionConfig[] = [
     cards: [
       {
         title: "Downloads",
-        icon: Trophy,
+        icon: Download,
         getValue: (detail) => formatNumber(detail.downloadAnalytics.allTime),
         getTitleAccessory: (detail) => (
           <RankAccessory detail={detail} rank={detail.downloadAnalytics.rank} />

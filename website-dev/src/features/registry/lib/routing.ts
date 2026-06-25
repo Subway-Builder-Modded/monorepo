@@ -11,10 +11,12 @@ const REGISTRY_DETAIL_TABS = new Set([
   "map",
   "details",
 ]);
+const REGISTRY_AUTHOR_TABS = new Set(["overview", "analytics"]);
 
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
+  | { kind: "author"; authorId: string; tabId?: string }
   | { kind: "detail"; routeSegment: string; id: string; tabId?: string; versionId?: string };
 
 function normalizePathname(pathname: string): string {
@@ -44,6 +46,13 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   }
 
   if (segments.length === 3 && segments[0] === "registry") {
+    if (segments[1] === "authors") {
+      return {
+        kind: "author",
+        authorId: decodeURIComponent(segments[2] ?? ""),
+      };
+    }
+
     return {
       kind: "detail",
       routeSegment: decodeURIComponent(segments[1] ?? ""),
@@ -53,6 +62,18 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
 
   if (segments.length === 4 && segments[0] === "registry") {
     const tabId = decodeURIComponent(segments[3] ?? "");
+    if (segments[1] === "authors") {
+      if (!REGISTRY_AUTHOR_TABS.has(tabId)) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "author",
+        authorId: decodeURIComponent(segments[2] ?? ""),
+        tabId,
+      };
+    }
+
     if (!REGISTRY_DETAIL_TABS.has(tabId)) {
       return { kind: "none" };
     }
@@ -98,6 +119,14 @@ export function getRegistryDetailUrl(routeSegment: string, id: string, tabId?: s
     return base;
   }
 
+  return `${base}/${encodeURIComponent(tabId)}`;
+}
+
+export function getRegistryAuthorUrl(authorId: string, tabId?: string): string {
+  const base = `${REGISTRY_ROUTE}/authors/${encodeURIComponent(authorId)}`;
+  if (!tabId || tabId === "overview") {
+    return base;
+  }
   return `${base}/${encodeURIComponent(tabId)}`;
 }
 

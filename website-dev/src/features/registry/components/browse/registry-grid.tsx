@@ -7,6 +7,7 @@ type RegistryGridProps = {
   items: RegistrySearchItem[];
   typeId: string;
   cardVariant: RegistryCardVariant;
+  hideAuthor?: boolean;
 };
 
 function toCardData(item: RegistrySearchItem) {
@@ -28,7 +29,12 @@ function toCardData(item: RegistrySearchItem) {
   };
 }
 
-export function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
+export function RegistryGrid({
+  items,
+  typeId,
+  cardVariant,
+  hideAuthor = false,
+}: RegistryGridProps) {
   const typeConfig = getRegistryTypeConfigOrDefault(typeId);
 
   if (cardVariant === "list") {
@@ -36,7 +42,12 @@ export function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) 
       <ul className="space-y-2">
         {items.map((item) => (
           <li key={`${cardVariant}-${item.id}`}>
-            <RegistryItemCard data={toCardData(item)} typeConfig={typeConfig} variant="list" />
+            <RegistryItemCard
+              data={toCardData(item)}
+              typeConfig={typeConfig}
+              variant="list"
+              hideAuthor={hideAuthor}
+            />
           </li>
         ))}
       </ul>
@@ -52,6 +63,7 @@ export function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) 
               data={toCardData(item)}
               typeConfig={typeConfig}
               variant="full"
+              hideAuthor={hideAuthor}
               className="h-full"
             />
           </li>
@@ -68,6 +80,7 @@ export function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) 
             data={toCardData(item)}
             typeConfig={typeConfig}
             variant="grid"
+            hideAuthor={hideAuthor}
             className="h-full"
           />
         </li>
