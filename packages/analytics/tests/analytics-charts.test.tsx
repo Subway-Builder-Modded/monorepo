@@ -4,6 +4,7 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AnalyticsLineChart } from "../src/charts/analytics-line-chart";
 import { AnalyticsBarChart } from "../src/charts/analytics-bar-chart";
+import { createCategoryTicks } from "../src/charts/chart-theme";
 import { AnalyticsTooltip } from "../src/charts/chart-tooltip";
 
 vi.mock("recharts", async () => {
@@ -67,6 +68,26 @@ describe("AnalyticsLineChart", () => {
       />,
     );
     expect(container.firstChild).not.toBeNull();
+  });
+});
+
+describe("createCategoryTicks", () => {
+  it("keeps category ticks within the requested limit while preserving the range endpoints", () => {
+    const values = Array.from(
+      { length: 14 },
+      (_, index) => `2026-04-${String(index + 1).padStart(2, "0")}`,
+    );
+
+    expect(createCategoryTicks(values, 8)).toEqual([
+      "2026-04-01",
+      "2026-04-03",
+      "2026-04-05",
+      "2026-04-07",
+      "2026-04-08",
+      "2026-04-10",
+      "2026-04-12",
+      "2026-04-14",
+    ]);
   });
 });
 

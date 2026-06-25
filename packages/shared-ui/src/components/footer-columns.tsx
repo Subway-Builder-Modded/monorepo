@@ -95,7 +95,7 @@ export function FooterColumns({ columns }: FooterColumnsProps) {
               {column.title}
             </h3>
           </div>
-          <ul className="-mx-2 mt-0.5 space-y-1.5">
+          <ul className="mt-0.5 space-y-1.5">
             {column.links.map((link) => (
               <li key={link.id}>
                 <FooterLinkRow link={link} />

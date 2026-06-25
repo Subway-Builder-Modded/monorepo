@@ -2,9 +2,9 @@ import type { ChartMargin } from "./chart-types";
 
 export const DEFAULT_CHART_MARGIN: ChartMargin = {
   top: 8,
-  right: 8,
+  right: 20,
   bottom: 0,
-  left: 0,
+  left: 8,
 };
 
 export const CHART_GRID_STROKE = "currentColor";
@@ -81,16 +81,18 @@ export function createLineChartTicks(
 
 export function createCategoryTicks<T>(values: T[], maxTickCount = 8): T[] {
   if (values.length <= maxTickCount) return values;
+  if (maxTickCount <= 1) return [values[0]];
 
-  const step = Math.ceil((values.length - 1) / (maxTickCount - 1));
+  const lastIndex = values.length - 1;
   const ticks: T[] = [];
-  for (let index = 0; index < values.length; index += step) {
-    ticks.push(values[index]);
-  }
+  const usedIndexes = new Set<number>();
 
-  const lastValue = values[values.length - 1];
-  if (ticks[ticks.length - 1] !== lastValue) {
-    ticks.push(lastValue);
+  for (let tickIndex = 0; tickIndex < maxTickCount; tickIndex += 1) {
+    const index = Math.round((tickIndex * lastIndex) / (maxTickCount - 1));
+    if (!usedIndexes.has(index)) {
+      usedIndexes.add(index);
+      ticks.push(values[index]);
+    }
   }
 
   return ticks;

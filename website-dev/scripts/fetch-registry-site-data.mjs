@@ -15,7 +15,9 @@ import { Buffer } from "node:buffer";
 
 const REGISTRY_REPO = "Subway-Builder-Modded/registry";
 const REGISTRY_REF = "main";
+const REGISTRY_MAP_DATA_REF = "map-data";
 const LOCAL_ENV_FILES = [".env", ".env.local"];
+const MAP_DATA_FILE_NAMES = new Set(["basemap.svg", "grid.geojson"]);
 
 const WEBSITE_PERIODS = ["1d", "7d", "30d", "all"];
 const WEBSITE_PERIOD_DAYS = {
@@ -136,8 +138,10 @@ const FETCH_STEPS = [
   "Load local environment",
   "Validate GitHub token",
   "Fetch registry snapshot",
+  "Fetch map data snapshot",
   "Copy registry, railyard, and community artifacts",
   "Mirror registry content trees",
+  "Mirror map data artifacts",
   "Transform website analytics",
   "Write website artifacts",
   "Write metadata",
@@ -183,6 +187,24 @@ function runGit(args, options = {}) {
   }
 
   return result.stdout?.trim() ?? "";
+}
+
+function cloneRegistryRef(ref, cloneDir, basicAuthHeader) {
+  runGit([
+    "-c",
+    `http.extraheader=AUTHORIZATION: basic ${basicAuthHeader}`,
+    "-c",
+    "credential.helper=",
+    "clone",
+    "--depth",
+    "1",
+    "--branch",
+    ref,
+    `https://github.com/${REGISTRY_REPO}.git`,
+    cloneDir,
+  ]);
+
+  return runGit(["-C", cloneDir, "rev-parse", "HEAD"]);
 }
 
 function ensureDirForFile(filePath) {
@@ -468,6 +490,10 @@ function copyMappedFiles(snapshotRoot, workspaceRoot, materializedFiles, progres
 }
 
 function shouldSkipMirroredFile(sourceRoot, relativePath) {
+  if (sourceRoot === "maps" && MAP_DATA_FILE_NAMES.has(path.basename(relativePath))) {
+    return true;
+  }
+
   const blacklist = MIRROR_FILE_BLACKLIST_BY_ROOT[sourceRoot] ?? [];
   if (blacklist.length === 0) return false;
 
@@ -544,6 +570,73 @@ function mirrorDirectoryRoots(snapshotRoot, workspaceRoot, materializedFiles, pr
   }
 }
 
+function removeStaleMapDataArtifacts(workspaceRoot) {
+  const mapsCacheRoot = path.join(workspaceRoot, "public", "registry-cache", "maps");
+  if (!existsSync(mapsCacheRoot)) {
+    return 0;
+  }
+
+  let removedCount = 0;
+  const stack = [mapsCacheRoot];
+
+  while (stack.length > 0) {
+    const currentDir = stack.pop() ?? mapsCacheRoot;
+    const entries = readdirSync(currentDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const entryPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(entryPath);
+        continue;
+      }
+
+      if (entry.isFile() && MAP_DATA_FILE_NAMES.has(entry.name)) {
+        rmSync(entryPath, { force: true });
+        removedCount += 1;
+      }
+    }
+  }
+
+  return removedCount;
+}
+
+function mirrorMapDataArtifacts(snapshotRoot, workspaceRoot, materializedFiles, progress) {
+  const sourceRootPath = path.join(snapshotRoot, "maps");
+  if (!existsSync(sourceRootPath)) {
+    fail("required registry map data directory is missing: maps");
+  }
+
+  const removedCount = removeStaleMapDataArtifacts(workspaceRoot);
+  let copiedCount = 0;
+  const entries = readdirSync(sourceRootPath, { withFileTypes: true }).sort((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    for (const fileName of MAP_DATA_FILE_NAMES) {
+      const sourcePath = path.join(sourceRootPath, entry.name, fileName);
+      if (!existsSync(sourcePath)) {
+        continue;
+      }
+
+      const materializedPath = path.posix.join("public/registry-cache/maps", entry.name, fileName);
+      const destinationPath = path.join(workspaceRoot, materializedPath);
+      ensureDirForFile(destinationPath);
+      copyFileSync(sourcePath, destinationPath);
+      materializedFiles.push(materializedPath);
+      copiedCount += 1;
+    }
+  }
+
+  progress.detail(
+    `Mirrored ${REGISTRY_MAP_DATA_REF}:maps/ -> public/registry-cache/maps/ (${copiedCount} files, ${removedCount} stale removed)`,
+  );
+}
+
 function writeWebsiteFiles(parsedWebsite, workspaceRoot, materializedFiles, progress) {
   const outputs = {
     "public/website/analytics/summary.json": parsedWebsite.summary,
@@ -583,35 +676,33 @@ function main() {
 
   const tempRoot = mkdtempSync(path.join(tmpdir(), "website-dev-registry-"));
   const cloneDir = path.join(tempRoot, "registry");
+  const mapDataCloneDir = path.join(tempRoot, "registry-map-data");
   const basicAuthHeader = Buffer.from(`x-access-token:${token}`, "utf8").toString("base64");
 
   try {
     progress.step("Fetch registry snapshot");
-    runGit([
-      "-c",
-      `http.extraheader=AUTHORIZATION: basic ${basicAuthHeader}`,
-      "-c",
-      "credential.helper=",
-      "clone",
-      "--depth",
-      "1",
-      "--branch",
-      REGISTRY_REF,
-      `https://github.com/${REGISTRY_REPO}.git`,
-      cloneDir,
-    ]);
+    const commitSha = cloneRegistryRef(REGISTRY_REF, cloneDir, basicAuthHeader);
+    progress.detail(`Fetched ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`);
 
-    const commitSha = runGit(["-C", cloneDir, "rev-parse", "HEAD"]);
+    progress.step("Fetch map data snapshot");
+    const mapDataCommitSha = cloneRegistryRef(
+      REGISTRY_MAP_DATA_REF,
+      mapDataCloneDir,
+      basicAuthHeader,
+    );
+    progress.detail(`Fetched ${REGISTRY_REPO}@${REGISTRY_MAP_DATA_REF} (${mapDataCommitSha})`);
+
     const fetchedAt = new Date().toISOString();
     const materializedFiles = [];
-
-    progress.detail(`Fetched ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`);
 
     progress.step("Copy registry, railyard, and community artifacts");
     copyMappedFiles(cloneDir, workspaceRoot, materializedFiles, progress);
 
     progress.step("Mirror registry content trees");
     mirrorDirectoryRoots(cloneDir, workspaceRoot, materializedFiles, progress);
+
+    progress.step("Mirror map data artifacts");
+    mirrorMapDataArtifacts(mapDataCloneDir, workspaceRoot, materializedFiles, progress);
 
     const websiteAnalyticsPath = path.join(cloneDir, "analytics", "website_analytics.json");
     if (!existsSync(websiteAnalyticsPath)) {
@@ -629,6 +720,8 @@ function main() {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
+      mapDataSourceRef: REGISTRY_MAP_DATA_REF,
+      mapDataCommitSha,
       fetchedAt,
       materializedFiles: materializedFiles.sort((left, right) => left.localeCompare(right)),
       websiteAnalyticsSourceGeneratedAt: parsedWebsite.sourceGeneratedAt,
@@ -637,7 +730,7 @@ function main() {
     progress.step("Write metadata");
     const metadataPath = path.join(workspaceRoot, "public", "website", "snapshot-meta.json");
     writeJson(metadataPath, metadata);
-    progress.detail("Wrote public/website/analytics/snapshot-meta.json");
+    progress.detail("Wrote public/website/snapshot-meta.json");
 
     const registryMetaPath = path.join(
       workspaceRoot,
@@ -650,6 +743,8 @@ function main() {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
+      mapDataSourceRef: REGISTRY_MAP_DATA_REF,
+      mapDataCommitSha,
       fetchedAt,
       files: materializedFiles
         .filter((file) => file.startsWith("public/registry-cache/analytics/"))
@@ -668,6 +763,8 @@ function main() {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
+      mapDataSourceRef: REGISTRY_MAP_DATA_REF,
+      mapDataCommitSha,
       fetchedAt,
       files: materializedFiles
         .filter((file) => file.startsWith("public/railyard/analytics/"))
@@ -676,7 +773,7 @@ function main() {
     progress.detail("Wrote public/railyard/analytics/snapshot-meta.json");
 
     console.log(
-      `[fetch-registry-site-data] materialized ${materializedFiles.length} files from ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`,
+      `[fetch-registry-site-data] materialized ${materializedFiles.length} files from ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha}) and ${REGISTRY_MAP_DATA_REF} (${mapDataCommitSha})`,
     );
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });
