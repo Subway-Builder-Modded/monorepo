@@ -19,7 +19,7 @@ export function RegistrySearch({
   onChange,
   onSubmit,
   onActivate,
-  placeholder = "Search maps, mods, authors…",
+  placeholder = "Search maps, mods, authors, tags…",
   autoFocus = false,
   className,
   inputClassName,

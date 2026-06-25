@@ -109,13 +109,15 @@ function resolveThumbnailSrc(
   return getRegistryItemCachePath(typeRouteSegment, id, first);
 }
 
+function normalizeStringList(values: string[] | undefined): string[] {
+  return Array.isArray(values) ? values.map((value) => value.trim()).filter(Boolean) : [];
+}
+
 function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): string[] {
   const typeUiRules = getRegistryTypeUiRules(typeId);
-  const normalizedManifestTags = Array.isArray(manifest.tags)
-    ? manifest.tags.filter(
-        (tag) => !typeUiRules.hasMapMetadata || !MAP_LOCATION_TAG_SET.has(tag.trim().toLowerCase()),
-      )
-    : [];
+  const normalizedManifestTags = normalizeStringList(manifest.tags).filter(
+    (tag) => !typeUiRules.hasMapMetadata || !MAP_LOCATION_TAG_SET.has(tag.toLowerCase()),
+  );
   const tagSet = new Set<string>(normalizedManifestTags);
 
   if (typeUiRules.hasMapMetadata) {
@@ -305,6 +307,7 @@ export async function loadRegistryItemsForType(
       authorId,
       description: manifest.description?.trim() || "",
       tags: resolveNormalizedTags(typeId, manifest),
+      searchAliases: normalizeStringList(manifest.search_aliases),
       thumbnailSrc: resolveThumbnailSrc(typeRouteSegment, id, manifest.gallery),
       totalDownloads: getTotalDownloads(id, downloads),
       lastActivityAt,

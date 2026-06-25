@@ -60,7 +60,7 @@ export function RegistrySpotlightSearch({
               role="searchbox"
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="Search maps, mods, authors..."
+              placeholder="Search maps, mods, authors, tags..."
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}

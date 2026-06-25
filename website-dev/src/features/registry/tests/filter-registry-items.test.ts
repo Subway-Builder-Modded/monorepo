@@ -53,19 +53,29 @@ describe("filterRegistryItems", () => {
     expect(result).toHaveLength(1);
   });
 
-  it("matches by description", () => {
+  it("does not match by description body text", () => {
     const items = [
       makeItem({ description: "Korean map with traffic data" }),
       makeItem({ description: "A generic map" }),
     ];
     const result = filterRegistryItems(items, "korean", []);
-    expect(result).toHaveLength(1);
+    expect(result).toHaveLength(0);
   });
 
   it("matches by tags", () => {
     const items = [makeItem({ tags: ["east-asia", "korea"] }), makeItem({ tags: ["europe"] })];
     const result = filterRegistryItems(items, "east-asia", []);
     expect(result).toHaveLength(1);
+  });
+
+  it("matches by registry-provided search aliases", () => {
+    const items = [
+      makeItem({ name: "Praha", searchAliases: ["Prague", "Prag"] }),
+      makeItem({ id: "vienna", name: "Wien", searchAliases: ["Vienna"] }),
+    ];
+    const result = filterRegistryItems(items, "prague", []);
+    expect(result).toHaveLength(1);
+    expect(result[0]?.name).toBe("Praha");
   });
 
   it("matches maps by city code", () => {

@@ -11,6 +11,10 @@ export function collectTags(items: RegistrySearchItem[]): string[] {
   return [...tagSet].sort();
 }
 
+function hasQueryMatch(values: Array<string | null | undefined>, query: string): boolean {
+  return values.some((value) => value?.toLowerCase().includes(query));
+}
+
 /** Filter registry items by search query and tag selection.
  * All matches are case-insensitive.
  */
@@ -35,18 +39,18 @@ export function filterRegistryItems(
 
     const q = trimmedQuery;
 
-    // Generic fields
-    if (item.name.toLowerCase().includes(q)) return true;
-    if (item.id.toLowerCase().includes(q)) return true;
-    if (item.author.toLowerCase().includes(q)) return true;
-    if (item.description.toLowerCase().includes(q)) return true;
-    if (item.tags.some((t) => t.toLowerCase().includes(q))) return true;
-
-    // Map-specific fields
-    if (item.cityCode?.toLowerCase().includes(q)) return true;
-    if (item.countryCode?.toLowerCase().includes(q)) return true;
-    if (item.countryName?.toLowerCase().includes(q)) return true;
-
-    return false;
+    return hasQueryMatch(
+      [
+        item.name,
+        item.id,
+        item.author,
+        ...item.tags,
+        ...(item.searchAliases ?? []),
+        item.cityCode,
+        item.countryCode,
+        item.countryName,
+      ],
+      q,
+    );
   });
 }

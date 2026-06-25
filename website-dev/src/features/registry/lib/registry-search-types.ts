@@ -13,6 +13,7 @@ export type RegistrySearchItem = {
   authorId: string | null;
   description: string;
   tags: string[];
+  searchAliases?: string[];
   thumbnailSrc: string | null;
   totalDownloads: number;
   /** Unix timestamp in milliseconds, 0 if unknown. */
@@ -35,6 +36,7 @@ export type RawRegistryManifest = {
   description?: string;
   gallery?: string[];
   tags?: string[];
+  search_aliases?: string[];
   location?: string;
   source_quality?: string;
   level_of_detail?: string;
