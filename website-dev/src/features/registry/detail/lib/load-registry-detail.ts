@@ -187,15 +187,15 @@ function sumLatestDailyDownloads(
   return history.slice(-days).reduce((total, point) => total + point.downloads, 0);
 }
 
+function resolveDailyDownloadRows(dailyAnalyticsRaw: string | null): Array<Record<string, string>> {
+  return dailyAnalyticsRaw ? parseCsvRows(dailyAnalyticsRaw) : [];
+}
+
 function resolveListingDownloadDailyData(
   id: string,
-  dailyAnalyticsRaw: string | null,
+  dailyRows: Array<Record<string, string>>,
 ): ListingDownloadDailyData {
-  if (!dailyAnalyticsRaw) {
-    return { last14Days: null, last7Days: null, history: [] };
-  }
-
-  const row = parseCsvRows(dailyAnalyticsRaw).find((entry) => entry["id"] === id);
+  const row = dailyRows.find((entry) => entry["id"] === id);
   if (!row) {
     return { last14Days: null, last7Days: null, history: [] };
   }
@@ -213,6 +213,44 @@ function getListingTypeForAnalytics(typeId: string): "map" | "mod" {
   return typeId === "maps" ? "map" : "mod";
 }
 
+function resolveListingDailyDownloadTrend(
+  id: string,
+  typeId: string,
+  period: TrendPeriod,
+  dailyRows: Array<Record<string, string>>,
+): RegistryDetailDownloadTrend {
+  const labels: Record<TrendPeriod, string> = {
+    "1d": "Last 24 Hours",
+    "3d": "Last 3 Days",
+    "7d": "Last 7 Days",
+    "14d": "Last 14 Days",
+  };
+  const listingType = getListingTypeForAnalytics(typeId);
+  const days = period === "14d" ? 14 : Number.parseInt(period, 10);
+  const rankedRows = dailyRows
+    .filter((row) => row["listing_type"] === listingType)
+    .map((row) => {
+      const history = trimLeadingZeroDownloadHistory(extractDailyDownloadHistory(row));
+      return {
+        id: row["id"] ?? "",
+        downloads: sumLatestDailyDownloads(history, days),
+      };
+    })
+    .filter((row): row is { id: string; downloads: number } => {
+      return Boolean(row.id) && typeof row.downloads === "number" && row.downloads > 0;
+    })
+    .sort((left, right) => right.downloads - left.downloads);
+  const index = rankedRows.findIndex((row) => row.id === id);
+  const row = index === -1 ? null : rankedRows[index];
+
+  return {
+    period,
+    label: labels[period],
+    downloads: row?.downloads ?? null,
+    rank: index === -1 ? null : index + 1,
+  };
+}
+
 function resolveListingDownloadTrend(
   id: string,
   typeId: string,
@@ -223,6 +261,7 @@ function resolveListingDownloadTrend(
     "1d": "Last 24 Hours",
     "3d": "Last 3 Days",
     "7d": "Last 7 Days",
+    "14d": "Last 14 Days",
   };
 
   if (!trendAnalyticsRaw) {
@@ -589,11 +628,13 @@ export async function loadRegistryDetail(
   const allManifests = await loadAllRegistryManifests();
   const projectId = resolveProjectId(manifest, allManifests);
   const collaborators = resolveCollaborators(manifest, authorsIndex, item.authorId);
-  const dailyDownloads = resolveListingDownloadDailyData(id, dailyAnalyticsRaw);
+  const dailyRows = resolveDailyDownloadRows(dailyAnalyticsRaw);
+  const dailyDownloads = resolveListingDownloadDailyData(id, dailyRows);
   const downloadTrends = [
     resolveListingDownloadTrend(id, typeConfig.id, "1d", trend1dRaw),
     resolveListingDownloadTrend(id, typeConfig.id, "3d", trend3dRaw),
     resolveListingDownloadTrend(id, typeConfig.id, "7d", trend7dRaw),
+    resolveListingDailyDownloadTrend(id, typeConfig.id, "14d", dailyRows),
   ];
   const downloadAnalytics = {
     rank: computeRank(

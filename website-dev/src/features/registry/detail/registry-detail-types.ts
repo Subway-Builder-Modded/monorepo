@@ -46,7 +46,7 @@ export type RegistryDetailDownloadHistoryPoint = {
 };
 
 export type RegistryDetailDownloadTrend = {
-  period: "1d" | "3d" | "7d";
+  period: "1d" | "3d" | "7d" | "14d";
   label: string;
   downloads: number | null;
   rank: number | null;

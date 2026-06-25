@@ -18,6 +18,7 @@ type DetailsTabProps = {
 
 export type DetailMetric = {
   title: string;
+  titleAccessory?: ReactNode;
   titleTooltipContent?: ReactNode;
   titleTooltipAriaLabel?: string;
   value: string | ReactNode;
@@ -27,6 +28,7 @@ export type DetailMetric = {
 
 type DetailMetricCardProps = {
   title: string;
+  titleAccessory?: ReactNode;
   titleTooltipContent?: ReactNode;
   titleTooltipAriaLabel?: string;
   value: string | ReactNode;
@@ -40,6 +42,7 @@ type DetailMetricCardProps = {
 
 function DetailMetricCard({
   title,
+  titleAccessory,
   titleTooltipContent,
   titleTooltipAriaLabel,
   value,
@@ -61,8 +64,8 @@ function DetailMetricCard({
         showChevron={false}
         accentLight={accentLight}
         accentDark={accentDark}
-        icon={<Icon className="size-3.5" aria-hidden={true} />}
-        iconClassName={`opacity-100 mt-[0.16rem] ${
+        icon={<Icon className="size-3.5 translate-y-[0.08rem]" aria-hidden={true} />}
+        iconClassName={`!mt-[0.28rem] flex h-4 items-center opacity-100 ${
           isLinked
             ? "text-muted-foreground dark:text-muted-foreground transition-colors group-hover:!text-[var(--registry-type-accent)]"
             : "text-muted-foreground dark:text-muted-foreground"
@@ -71,37 +74,41 @@ function DetailMetricCard({
           <div className="flex h-full flex-col py-0.5">
             <p
               data-metric-title={true}
-              className={`text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground ${
+              className={`min-h-4 text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground ${
                 isLinked
                   ? "transition-colors duration-150 ease-out group-hover:text-[var(--registry-type-accent)]"
                   : ""
               }`}
             >
-              <span className="inline-flex items-start gap-1 align-top">
-                <span>{title}</span>
-                {titleTooltipContent ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex items-center justify-center rounded-full text-muted-foreground/60 transition-colors hover:text-muted-foreground focus-visible:outline-none"
-                          aria-label={titleTooltipAriaLabel ?? `About ${title}`}
-                        >
-                          <CircleHelp
-                            className="mt-[0.06rem] size-3 text-current"
-                            aria-hidden={true}
-                          />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-60" side="top">
-                        {titleTooltipContent}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : null}
-                {isLinked ? (
-                  <ExternalLink className="mt-[0.06rem] size-3 text-current" aria-hidden={true} />
+              <span className="flex min-h-4 w-full items-center gap-1 align-middle">
+                <span className="inline-flex min-w-0 items-center gap-1">
+                  <span className="min-w-0">{title}</span>
+                  {titleTooltipContent ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex h-4 items-center justify-center rounded-full text-muted-foreground/60 transition-colors hover:text-muted-foreground focus-visible:outline-none"
+                            aria-label={titleTooltipAriaLabel ?? `About ${title}`}
+                          >
+                            <CircleHelp className="size-3 text-current" aria-hidden={true} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-60" side="top">
+                          {titleTooltipContent}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : null}
+                  {isLinked ? (
+                    <ExternalLink className="size-3 text-current" aria-hidden={true} />
+                  ) : null}
+                </span>
+                {titleAccessory ? (
+                  <span className="ml-auto inline-flex shrink-0 items-center">
+                    {titleAccessory}
+                  </span>
                 ) : null}
               </span>
             </p>
@@ -233,6 +240,7 @@ export function DetailsMetricGrid({
         <DetailMetricCard
           key={`${item.title}-${index}`}
           title={item.title}
+          titleAccessory={item.titleAccessory}
           titleTooltipContent={item.titleTooltipContent}
           titleTooltipAriaLabel={item.titleTooltipAriaLabel}
           value={item.value}

@@ -214,6 +214,7 @@ describe("loadRegistryDetail", () => {
       { period: "1d", label: "Last 24 Hours", downloads: 7, rank: 1 },
       { period: "3d", label: "Last 3 Days", downloads: 12, rank: 2 },
       { period: "7d", label: "Last 7 Days", downloads: 12, rank: 1 },
+      { period: "14d", label: "Last 14 Days", downloads: 12, rank: 1 },
     ]);
   });
 });

@@ -122,7 +122,14 @@ const MAP_LOADED = {
     { period: "1d", label: "Last 24 Hours", downloads: 20, rank: 4 },
     { period: "3d", label: "Last 3 Days", downloads: 50, rank: 3 },
     { period: "7d", label: "Last 7 Days", downloads: 70, rank: 2 },
+    { period: "14d", label: "Last 14 Days", downloads: 140, rank: 1 },
   ],
+  mapRankings: {
+    population: 8,
+    populationCount: 12,
+    pointsCount: 5,
+    playableAreaKm2: 3,
+  },
   authorAttributionHref: "https://github.com/rslurry",
   collaborators: [{ authorId: "Kronifer", authorLabel: "Kronifer" }],
 };
@@ -278,6 +285,14 @@ describe("RegistryDetailPage", () => {
     expect(screen.getByText("Last 24 Hours")).toBeInTheDocument();
     expect(screen.getByText("Last 3 Days")).toBeInTheDocument();
     expect(screen.getByText("Last 7 Days")).toBeInTheDocument();
+    expect(screen.getByText("Last 14 Days")).toBeInTheDocument();
+    expect(screen.queryByText("Rankings")).not.toBeInTheDocument();
+    expect(screen.queryByText("Downloads (Total)")).not.toBeInTheDocument();
+    expect(screen.queryByText("Downloads (14d)")).not.toBeInTheDocument();
+    expect(screen.queryByText("Downloads (7d)")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Modeled Demand").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Pops").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Demand Points").length).toBeGreaterThan(0);
   });
 
   it("opens Download dialog with railyard and direct download actions", async () => {
@@ -408,11 +423,11 @@ describe("RegistryDetailPage", () => {
     expect(screen.getAllByText("Level of Detail").length).toBeGreaterThan(0);
     expect(screen.queryByText("Population Rank")).not.toBeInTheDocument();
     expect(screen.getAllByText("Playable Area").length).toBeGreaterThan(0);
-    expect(screen.getByText("2,150,000")).toBeInTheDocument();
-    expect(screen.getByText("8,934")).toBeInTheDocument();
+    expect(screen.getAllByText("2,150,000").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("8,934").length).toBeGreaterThan(0);
     expect(
-      screen.getByText((_, element) => element?.textContent === "5,617 km2"),
-    ).toBeInTheDocument();
+      screen.getAllByText((_, element) => element?.textContent === "5,617 km2").length,
+    ).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: /Version Count/i })).toHaveAttribute(
       "href",
       "/registry/maps/gwangju-4/versions",

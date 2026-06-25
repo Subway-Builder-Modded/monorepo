@@ -59,27 +59,6 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
         </div>
       ))}
 
-      {chartData.length > 0 ? (
-        <div>
-          <SectionSeparator label="Download History" icon={History} className="mb-4 mt-7" />
-          <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-            <AnalyticsLineChart
-              data={chartData}
-              lines={[
-                {
-                  key: "Downloads",
-                  name: "Downloads",
-                  color: "var(--registry-type-accent)",
-                },
-              ]}
-              xAxisKey="date"
-              height={220}
-              startAtZero={true}
-            />
-          </article>
-        </div>
-      ) : null}
-
       {detail.downloadTrends.length > 0 ? (
         <div>
           <SectionSeparator label="Recent Trends" icon={TrendingUp} className="mb-4 mt-7" />
@@ -115,6 +94,27 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
               </TableBody>
             </Table>
           </div>
+        </div>
+      ) : null}
+
+      {chartData.length > 0 ? (
+        <div>
+          <SectionSeparator label="Download History" icon={History} className="mb-4 mt-7" />
+          <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+            <AnalyticsLineChart
+              data={chartData}
+              lines={[
+                {
+                  key: "Downloads",
+                  name: "Downloads",
+                  color: "var(--registry-type-accent)",
+                },
+              ]}
+              xAxisKey="date"
+              height={220}
+              startAtZero={true}
+            />
+          </article>
         </div>
       ) : null}
     </section>
