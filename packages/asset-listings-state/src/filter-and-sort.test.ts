@@ -21,6 +21,8 @@ import {
 interface TestItem {
   id: string;
   name: string;
+  description?: string;
+  search_aliases?: string[];
   city_code?: string;
   country?: string;
   tags?: string[];
@@ -326,6 +328,47 @@ describe('filterAndSortTaggedItems', () => {
     const result = runSearch([makeMapItem()], {
       query: 'cesko',
     });
+
+    expect(result.map((item) => item.item.id)).toEqual(['map-prague']);
+  });
+
+  it('excludes description from the search text but includes tags', () => {
+    const searchText = buildAssetSearchText(
+      makeMapItem({
+        description: 'Warszawa appears only in the blurb',
+        tags: ['nightlife'],
+      }),
+      () => '',
+    );
+
+    expect(searchText).toContain('Prague Metro');
+    expect(searchText).toContain('nightlife');
+    expect(searchText).not.toContain('Warszawa');
+  });
+
+  it('does not match maps by description body text', () => {
+    const result = runSearch(
+      [makeMapItem({ description: 'this blurb mentions Warszawa repeatedly' })],
+      { query: 'warszawa' },
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  it('matches maps by their tags', () => {
+    const result = runSearch([makeMapItem({ tags: ['nightlife'] })], {
+      query: 'nightlife',
+    });
+
+    expect(result.map((item) => item.item.id)).toEqual(['map-prague']);
+  });
+
+  it('matches maps by registry-provided search aliases (e.g. city exonyms)', () => {
+    // 'varsovie' appears only in search_aliases — not the name, country, or location.
+    const result = runSearch(
+      [makeMapItem({ search_aliases: ['Warsaw', 'Varsovie'] })],
+      { query: 'varsovie' },
+    );
 
     expect(result.map((item) => item.item.id)).toEqual(['map-prague']);
   });

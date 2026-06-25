@@ -1047,6 +1047,7 @@ export namespace types {
 	    // Go type: UpdateConfig
 	    update: any;
 	    is_test?: boolean;
+	    search_aliases?: string[];
 	    city_code: string;
 	    country: string;
 	    location: string;
@@ -1075,6 +1076,7 @@ export namespace types {
 	        this.source = source["source"];
 	        this.update = this.convertValues(source["update"], null);
 	        this.is_test = source["is_test"];
+	        this.search_aliases = source["search_aliases"];
 	        this.city_code = source["city_code"];
 	        this.country = source["country"];
 	        this.location = source["location"];
@@ -1155,6 +1157,7 @@ export namespace types {
 	    // Go type: UpdateConfig
 	    update: any;
 	    is_test?: boolean;
+	    search_aliases?: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new ModManifest(source);
@@ -1174,6 +1177,7 @@ export namespace types {
 	        this.source = source["source"];
 	        this.update = this.convertValues(source["update"], null);
 	        this.is_test = source["is_test"];
+	        this.search_aliases = source["search_aliases"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

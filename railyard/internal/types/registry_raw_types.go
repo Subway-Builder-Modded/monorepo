@@ -15,6 +15,7 @@ type RawManifest struct {
 	Source        string       `json:"source"`
 	Update        UpdateConfig `json:"update"`
 	IsTest        bool         `json:"is_test,omitempty"`
+	SearchAliases []string     `json:"search_aliases,omitempty"`
 }
 
 type RawModManifest struct {
