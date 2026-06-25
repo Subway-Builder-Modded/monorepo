@@ -18,7 +18,8 @@
     "lint:fix": "vp lint --max-warnings=0 --fix .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run test && pnpm run test:coverage",
-    "ci": "pnpm run typecheck && pnpm run lint:fix && pnpm run format && pnpm run test && pnpm run test:coverage"
+    "ci": "pnpm run typecheck && pnpm run lint:fix && pnpm run format && pnpm run test && pnpm run test:coverage",
+    "ci:no-tests": "pnpm run typecheck && pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
     "@mdx-js/mdx": "^3.1.1",

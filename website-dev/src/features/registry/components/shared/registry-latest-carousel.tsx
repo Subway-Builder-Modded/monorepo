@@ -96,13 +96,15 @@ export function RegistryLatestCarousel({ items, isLoading = false }: RegistryLat
       const previousFrameAt = lastFrameAtRef.current ?? now;
       const deltaMs = Math.min(now - previousFrameAt, 50);
       const targetSpeed = targetSpeedRef.current;
-      const easingDuration = targetSpeed === 0 ? MARQUEE_STOP_DURATION_MS : MARQUEE_RESUME_DURATION_MS;
+      const easingDuration =
+        targetSpeed === 0 ? MARQUEE_STOP_DURATION_MS : MARQUEE_RESUME_DURATION_MS;
 
       speedRef.current = approach(speedRef.current, targetSpeed, deltaMs, easingDuration);
 
       if (loopWidth > 0 && speedRef.current > 0) {
         const pixelsPerMs = loopWidth / (MARQUEE_DURATION_SECONDS * 1000);
-        offsetRef.current = (offsetRef.current + pixelsPerMs * speedRef.current * deltaMs) % loopWidth;
+        offsetRef.current =
+          (offsetRef.current + pixelsPerMs * speedRef.current * deltaMs) % loopWidth;
         marquee.style.transform = `translate3d(${-offsetRef.current}px, 0, 0)`;
       }
 
@@ -212,10 +214,7 @@ export function RegistryLatestCarousel({ items, isLoading = false }: RegistryLat
             className="flex w-max transform-gpu gap-4 py-1 pr-4 [will-change:transform]"
           >
             {marqueeItems.map((item, index) => (
-              <RegistryListingCard
-                key={`${item.kind}-${item.id}-${index}`}
-                item={item}
-              />
+              <RegistryListingCard key={`${item.kind}-${item.id}-${index}`} item={item} />
             ))}
           </div>
         </div>
