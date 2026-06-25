@@ -12,6 +12,7 @@ import remarkDirective from "remark-directive";
 import { remarkHeadingIds } from "./remark/remark-heading-ids.ts";
 import { remarkStripFrontmatter } from "./remark/remark-strip-frontmatter.ts";
 import { remarkAdmonitionDirectives } from "./remark/remark-admonitions.ts";
+import { remarkCodeBlockMeta } from "./remark/remark-code-block-meta.ts";
 import { normalizeHtmlToMdx } from "./lib/normalize-html-to-mdx.ts";
 import { slugify } from "./lib/slugify.ts";
 
@@ -178,6 +179,7 @@ export function createDefaultRemarkPlugins(): PluggableList {
     remarkGfm,
     remarkDirective,
     remarkAdmonitionDirectives,
+    remarkCodeBlockMeta,
   ];
 }
 

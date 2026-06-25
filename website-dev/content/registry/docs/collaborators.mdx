@@ -1,0 +1,89 @@
+---
+title: Collaborators
+description: Learn how to properly credit collaborators for your content in the Registry.
+icon: Users
+---
+
+This guide will walk you through how to properly credit collaborators for your content in the Registry. Collaborators are individuals who have contributed to or assisted in the creation of your content. They will be displayed on your project's listing page.
+
+:::tip
+
+Any collaborators will appear below the author's name and with a unique icon. On their respective author page, collaborated projects will be listed separately than published projects (projects in which they are the owner).
+
+:::
+
+## Finding GitHub IDs {#finding-github-ids}
+
+:::caution
+
+A user's GitHub ID is not the same as their username. For example, for user subway-builder-modded-admin, their username would be `subway-builder-modded-admin`, but their GitHub ID would be `268817724`.
+
+:::
+
+To add someone as a collaborator, you will need their GitHub ID. To find a user's GitHub ID, you can use the following link:
+
+```
+https://api.github.com/users/<username>
+```
+
+`<username>` should be replaced with the user's GitHub username. You will see a JSON response. For our example, the response would look like this:
+
+```json {3}
+{
+  "login": "subway-builder-modded-admin",
+  "id": 268817724,
+  "node_id": "U_kgDOEAXVPA",
+  "avatar_url": "https://avatars.githubusercontent.com/u/268817724?v=4",
+  "gravatar_id": "",
+  "url": "https://api.github.com/users/subway-builder-modded-admin",
+  "html_url": "https://github.com/subway-builder-modded-admin",
+  "followers_url": "https://api.github.com/users/subway-builder-modded-admin/followers",
+  "following_url": "https://api.github.com/users/subway-builder-modded-admin/following{/other_user}",
+  "gists_url": "https://api.github.com/users/subway-builder-modded-admin/gists{/gist_id}",
+  "starred_url": "https://api.github.com/users/subway-builder-modded-admin/starred{/owner}{/repo}",
+  "subscriptions_url": "https://api.github.com/users/subway-builder-modded-admin/subscriptions",
+  "organizations_url": "https://api.github.com/users/subway-builder-modded-admin/orgs",
+  "repos_url": "https://api.github.com/users/subway-builder-modded-admin/repos",
+  "events_url": "https://api.github.com/users/subway-builder-modded-admin/events{/privacy}",
+  "received_events_url": "https://api.github.com/users/subway-builder-modded-admin/received_events",
+  "type": "User",
+  "user_view_type": "public",
+  "site_admin": false,
+  "name": null,
+  "company": null,
+  "blog": "",
+  "location": null,
+  "email": null,
+  "hireable": null,
+  "bio": null,
+  "twitter_username": null,
+  "public_repos": 0,
+  "public_gists": 0,
+  "followers": 0,
+  "following": 0,
+  "created_at": "2026-03-17T06:08:07Z",
+  "updated_at": "2026-06-23T22:51:09Z"
+}
+```
+
+You are looking for the `id` field, which in this case is `268817724`. This is the GitHub ID you will need to add them as a collaborator.
+
+## Registry Submission {#registry-submission}
+
+In the registry submission form, you can add multiple collaborators by separating their GitHub IDs with commas.
+
+<p align="center">
+  <Image width="1600" alt="image" src="/images/registry/docs/collaborators/github-submission.png" />
+</p>
+
+:::tip
+
+If your project has already been published, you can also do this via the **Update Existing Metadata** issue templates in the Registry. The process is the same.
+
+:::
+
+Once your submission is reviewed and approved, the collaborators will be displayed on your project's listing page.
+
+<p align="center">
+  <Image width="300" alt="image" src="/images/registry/docs/collaborators/listing-page.png" />
+</p>
