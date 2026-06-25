@@ -237,6 +237,9 @@ func TestSyncSubscriptions(t *testing.T) {
 							Code: "BBB",
 							Name: "Fixture Map",
 						},
+						Constraints: []types.InstalledConstraint{
+							{Type: types.ConstraintTypeBuildingsIndex, Range: "<=1.3.0"},
+						},
 					},
 				},
 			},
@@ -340,6 +343,9 @@ func TestSyncSubscriptions(t *testing.T) {
 						MapConfig: types.ConfigData{
 							Code: "AAA",
 							Name: "Fixture Map",
+						},
+						Constraints: []types.InstalledConstraint{
+							{Type: types.ConstraintTypeBuildingsIndex, Range: "<=1.3.0"},
 						},
 					},
 				},

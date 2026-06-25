@@ -6,12 +6,64 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"slices"
 
 	"railyard/internal/constants"
 	"railyard/internal/files"
 	"railyard/internal/paths"
 	"railyard/internal/types"
 )
+
+// BuildingsIndexConstraintFromInstalled infers the buildings-index semver constraint for a map
+// by checking which index files are present on disk.
+//   - Binary only  → ">1.3.0"
+//   - JSON only    → "<=1.3.0"
+//   - Both present → "" (no format-driven restriction)
+//   - Neither      → "<0.0.0" (impossible constraint — broken install; integrity validation
+//     rejects archives missing both files, so this state should never arise via normal install)
+//
+// Used for the existing-install disk fallback and for local map imports.
+func BuildingsIndexConstraintFromInstalled(mapDataRoot, code string) string {
+	hasBin := installedFileExistsAt(paths.JoinLocalPath(mapDataRoot, code, files.MapBuildingsBinFileName+".gz"))
+	hasJSON := installedFileExistsAt(paths.JoinLocalPath(mapDataRoot, code, files.MapBuildingsFileName+".gz"))
+	switch {
+	case hasBin && !hasJSON:
+		return ">1.3.0"
+	case hasJSON && !hasBin:
+		return "<=1.3.0"
+	case hasBin && hasJSON:
+		return "" // both present — compatible with any game version
+	default:
+		return "<0.0.0" // neither present — broken install; marks asset incompatible
+	}
+}
+
+func installedFileExistsAt(p string) bool {
+	_, err := os.Stat(p)
+	return err == nil
+}
+
+// SetInstalledModConstraints updates the Constraints field of an installed mod in memory.
+// Call WriteInstalledToDisk to persist.
+func (r *Registry) SetInstalledModConstraints(modID string, constraints []types.InstalledConstraint) {
+	for i := range r.installedMods {
+		if r.installedMods[i].ID == modID {
+			r.installedMods[i].Constraints = constraints
+			return
+		}
+	}
+}
+
+// SetInstalledMapConstraints updates the Constraints field of an installed map in memory.
+// Call WriteInstalledToDisk to persist.
+func (r *Registry) SetInstalledMapConstraints(mapID string, constraints []types.InstalledConstraint) {
+	for i := range r.installedMaps {
+		if r.installedMaps[i].ID == mapID {
+			r.installedMaps[i].Constraints = constraints
+			return
+		}
+	}
+}
 
 // WriteInstalledToDisk persists installed mods and maps state to disk.
 func (r *Registry) WriteInstalledToDisk() error {
@@ -185,10 +237,12 @@ func (r *Registry) enrichModInfoWithFileSizes(mods []types.InstalledModInfo) []t
 	return updated
 }
 
-// enrichMapInfoWithFileSizes enriches installed map info with on-disk size metadata.
+// enrichMapInfoWithFileSizes enriches installed map info with on-disk size metadata and
+// infers a buildings_index constraint from disk for existing installs that predate constraint storage.
 func (r *Registry) enrichMapInfoWithFileSizes(maps []types.InstalledMapInfo) []types.InstalledMapInfo {
 	updated := make([]types.InstalledMapInfo, 0, len(maps))
 	mapsRoot := r.config.Cfg.GetMapsFolderPath()
+	mapDataRoot := paths.MetroMakerMapsDataPath(r.config.Cfg.MetroMakerDataPath)
 	tilesRoot := paths.TilesPath()
 	for _, item := range maps {
 		copyItem := item
@@ -198,6 +252,21 @@ func (r *Registry) enrichMapInfoWithFileSizes(maps []types.InstalledMapInfo) []t
 			size = 0
 		}
 		copyItem.InstalledSizeBytes = size
+
+		// Disk fallback: for pre-existing installs with no buildings_index constraint stored,
+		// infer it from installed files. Same migration-bridge pattern as InstalledSizeBytes.
+		hasBuildingsConstraint := slices.ContainsFunc(item.Constraints, func(c types.InstalledConstraint) bool {
+			return c.Type == types.ConstraintTypeBuildingsIndex
+		})
+		if !hasBuildingsConstraint {
+			if bc := BuildingsIndexConstraintFromInstalled(mapDataRoot, item.MapConfig.Code); bc != "" {
+				copyItem.Constraints = append(copyItem.Constraints, types.InstalledConstraint{
+					Type:  types.ConstraintTypeBuildingsIndex,
+					Range: bc,
+				})
+			}
+		}
+
 		updated = append(updated, copyItem)
 	}
 	return updated

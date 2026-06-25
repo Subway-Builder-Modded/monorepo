@@ -703,6 +703,12 @@ func (d *Downloader) importMapNow(zipPath string, replaceOnConflict bool) types.
 		d.Registry.RemoveInstalledMap(replacedConflict.ExistingAssetID)
 	}
 	d.Registry.AddInstalledMap(mapID, version, true, extractResp.Config)
+	// Disk is authoritative for local imports — compute and store the buildings_index constraint immediately.
+	if bc := registry.BuildingsIndexConstraintFromInstalled(d.getMapDataPath(), mapID); bc != "" {
+		d.Registry.SetInstalledMapConstraints(mapID, []types.InstalledConstraint{
+			{Type: types.ConstraintTypeBuildingsIndex, Range: bc},
+		})
+	}
 	if err := d.Registry.WriteInstalledToDisk(); err != nil {
 		return d.installError(types.AssetTypeMap, mapID, version, extractResp.Config, types.InstallErrorPersistStateFailed, "Failed to persist installed state after importing map", err, "map_id", mapID)
 	}
@@ -861,7 +867,8 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 	if versionInfo == nil {
 		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, types.InstallErrorVersionNotFound, "Specified version not found for mod", nil, "mod_id", modId, "version", version, "available_versions", availableVersions)
 	}
-	if depErr := d.ensureModDependencies(ctx, modId, version, *versionInfo, skipDependencies); depErr != nil {
+	modConstraints := constraintsFromVersionInfo(types.AssetTypeMod, *versionInfo)
+	if depErr := d.ensureModDependencies(ctx, modId, version, *versionInfo, modConstraints, skipDependencies); depErr != nil {
 		return *depErr
 	}
 
@@ -889,6 +896,7 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, extractResp.ErrorType, "Failed to extract mod zip: "+extractResp.Message, nil, "mod_id", modId, "version", version)
 	}
 	os.Remove(downloadResp.Path)
+	d.Registry.SetInstalledModConstraints(modId, modConstraints)
 	if err := d.Registry.WriteInstalledToDisk(); err != nil {
 		d.Logger.Warn("Failed to persist installed state after installing mod", "error", err)
 	}
@@ -896,22 +904,65 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 	return d.installSuccess(types.AssetTypeMod, modId, version, types.ConfigData{}, "Mod installed successfully", "mod_id", modId, "version", version)
 }
 
-func (d *Downloader) ensureModDependencies(ctx context.Context, modID string, version string, versionInfo types.VersionInfo, skipDependencies bool) *types.AssetInstallResponse {
-	if d.GetGameVersion != nil {
-		gameVersionResp := d.GetGameVersion()
-		if gameVersion, ok := gameVersionResp.DetectedVersion(); ok {
-			if subwayBuilderDep, ok := versionInfo.Dependencies["subway-builder"]; ok {
-				constraint, err := semver.NewConstraint(strings.TrimPrefix(subwayBuilderDep, "v"))
-				if err != nil {
-					resp := d.installError(types.AssetTypeMod, modID, version, types.ConfigData{}, types.InstallErrorDependencyResolutionFailed, "Failed to parse mod dependency version constraint", err, "mod_id", modID, "dependency", "subway-builder", "constraint", subwayBuilderDep)
-					return &resp
-				}
-				if !constraint.Check(gameVersion) {
-					resp := d.installError(types.AssetTypeMod, modID, version, types.ConfigData{}, types.InstallErrorDependencyResolutionFailed, "Mod is not compatible with current game version", nil, "mod_id", modID, "dependency", "subway-builder", "constraint", subwayBuilderDep, "game_version", gameVersionResp.Version)
-					return &resp
-				}
-			}
+// constraintsFromVersionInfo builds the Constraints slice for an asset installation.
+// It reads vi.GameVersion (not Dependencies["subway-builder"]) so all enrichment sources are
+// covered: integrity report, custom JSON game_version field, and manifest.json fallback.
+// Only maps receive a buildings_index entry (from vi.MapBuildingsConstraint).
+func constraintsFromVersionInfo(assetType types.AssetType, vi types.VersionInfo) []types.InstalledConstraint {
+	var cs []types.InstalledConstraint
+	if vi.GameVersion != "" {
+		cs = append(cs, types.InstalledConstraint{
+			Type:  types.ConstraintTypeManifest,
+			Range: vi.GameVersion,
+		})
+	}
+	if assetType == types.AssetTypeMap && vi.MapBuildingsConstraint != "" {
+		cs = append(cs, types.InstalledConstraint{
+			Type:  types.ConstraintTypeBuildingsIndex,
+			Range: vi.MapBuildingsConstraint,
+		})
+	}
+	return cs
+}
+
+// ensureCompatibilityConstraints gates an install on all applicable constraints.
+// Returns the first violation as an install error response, or nil if all pass.
+// Mods preserve InstallErrorDependencyResolutionFailed for backward compatibility;
+// maps use InstallErrorIncompatibleGameVersion.
+func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, assetID, version string, constraints []types.InstalledConstraint) *types.AssetInstallResponse {
+	if d.GetGameVersion == nil || len(constraints) == 0 {
+		return nil
+	}
+	gameVersionResp := d.GetGameVersion()
+	gameVersion, ok := gameVersionResp.DetectedVersion()
+	if !ok {
+		return nil // game not detected — do not block
+	}
+	for _, c := range constraints {
+		constraint, err := semver.NewConstraint(strings.TrimPrefix(c.Range, "v"))
+		if err != nil {
+			continue // unparseable — do not block
 		}
+		if !constraint.Check(gameVersion) {
+			errType := types.InstallErrorIncompatibleGameVersion
+			if assetType == types.AssetTypeMod {
+				errType = types.InstallErrorDependencyResolutionFailed
+			}
+			resp := d.installError(
+				assetType, assetID, version, types.ConfigData{}, errType,
+				fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersionResp.Version, c.Range, c.Type),
+				nil,
+				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range, "game_version", gameVersionResp.Version,
+			)
+			return &resp
+		}
+	}
+	return nil
+}
+
+func (d *Downloader) ensureModDependencies(ctx context.Context, modID string, version string, versionInfo types.VersionInfo, constraints []types.InstalledConstraint, skipDependencies bool) *types.AssetInstallResponse {
+	if resp := d.ensureCompatibilityConstraints(types.AssetTypeMod, modID, version, constraints); resp != nil {
+		return resp
 	}
 	if skipDependencies {
 		return nil
@@ -999,6 +1050,11 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 		return d.installError(types.AssetTypeMap, mapId, version, types.ConfigData{}, types.InstallErrorVersionNotFound, "Specified version not found for map", nil, "map_id", mapId, "version", version, "available_versions", availableVersions)
 	}
 
+	mapConstraints := constraintsFromVersionInfo(types.AssetTypeMap, *versionInfo)
+	if resp := d.ensureCompatibilityConstraints(types.AssetTypeMap, mapId, version, mapConstraints); resp != nil {
+		return *resp
+	}
+
 	d.Logger.Info("Downloading map", "map_id", mapId, "version", version, "download_url", versionInfo.DownloadURL)
 	// Pass in context to the download function so that it can be cancelled if the operation is no longer needed
 	downloadResp := d.downloadTempZip(ctx, versionInfo.DownloadURL, mapId)
@@ -1054,6 +1110,7 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 		d.Registry.RemoveInstalledMap(replacedConflict.ExistingAssetID)
 	}
 	d.Registry.AddInstalledMap(mapId, version, false, extractResp.Config)
+	d.Registry.SetInstalledMapConstraints(mapId, mapConstraints)
 	if err := d.Registry.WriteInstalledToDisk(); err != nil {
 		d.Logger.Warn("Failed to persist installed state after installing map", "error", err)
 	}

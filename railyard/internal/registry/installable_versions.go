@@ -98,7 +98,24 @@ func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID str
 		return nil, err
 	}
 
-	return r.filterVersionsByIntegrity(assetType, assetID, versions)
+	filtered, err := r.filterVersionsByIntegrity(assetType, assetID, versions)
+	if err != nil {
+		return nil, err
+	}
+
+	// For maps, enrich each version with its buildings-index constraint derived from
+	// the integrity report's matched_files. This is the authoritative source for remote maps.
+	if assetType == types.AssetTypeMap {
+		if listing, ok := r.getIntegrityListing(assetType, assetID); ok {
+			for i := range filtered {
+				if status, ok := listing.Versions[filtered[i].Version]; ok {
+					filtered[i].MapBuildingsConstraint = buildingsIndexConstraintFromMatchedFiles(status.MatchedFiles)
+				}
+			}
+		}
+	}
+
+	return filtered, nil
 }
 
 // GetInstallableVersionsResponse returns installable versions with response metadata.
