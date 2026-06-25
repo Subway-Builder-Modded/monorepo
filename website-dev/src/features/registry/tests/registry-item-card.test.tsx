@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { Map as MapIcon, Package } from "lucide-react";
 import { RegistryItemCard } from "@/shared/registry-card/registry-item-card";
 import { buildRegistryItemHref } from "@/shared/registry-card/registry-item-link";
 import { getRegistryIndexHref } from "@/shared/registry-card/registry-item-link";
@@ -30,6 +31,7 @@ const MAP_TYPE_CONFIG: RegistryTypeConfig = {
   id: "maps",
   label: "Map",
   pluralLabel: "Maps",
+  icon: MapIcon,
   routeSegment: "maps",
   accentLight: "#2563eb",
   accentDark: "#60a5fa",
@@ -39,6 +41,7 @@ const MOD_TYPE_CONFIG: RegistryTypeConfig = {
   id: "mods",
   label: "Mod",
   pluralLabel: "Mods",
+  icon: Package,
   routeSegment: "mods",
   accentLight: "#dc2626",
   accentDark: "#f87171",
@@ -119,18 +122,22 @@ describe("RegistryItemCard", () => {
 
   it("compact variant shows Map type badge", () => {
     render(<RegistryItemCard data={SAMPLE_MAP_DATA} typeConfig={MAP_TYPE_CONFIG} variant="grid" />);
-    expect(screen.getByRole("link", { name: "Browse Maps" })).toHaveAttribute(
+    const typeBadge = screen.getByRole("link", { name: "Browse Maps" });
+    expect(typeBadge).toHaveAttribute(
       "href",
       "/registry/maps",
     );
+    expect(typeBadge.querySelector("svg")).not.toBeNull();
   });
 
   it("compact variant shows Mod type badge for mods", () => {
     render(<RegistryItemCard data={SAMPLE_MOD_DATA} typeConfig={MOD_TYPE_CONFIG} variant="grid" />);
-    expect(screen.getByRole("link", { name: "Browse Mods" })).toHaveAttribute(
+    const typeBadge = screen.getByRole("link", { name: "Browse Mods" });
+    expect(typeBadge).toHaveAttribute(
       "href",
       "/registry/mods",
     );
+    expect(typeBadge.querySelector("svg")).not.toBeNull();
   });
 
   it("full variant renders title and tags", () => {

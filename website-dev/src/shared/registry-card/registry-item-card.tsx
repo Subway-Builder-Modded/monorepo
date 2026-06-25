@@ -107,6 +107,8 @@ type TypeBadgeProps = {
 };
 
 function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
+  const TypeIcon = typeConfig.icon;
+
   return (
     <Link
       to={`/registry/${typeConfig.routeSegment}`}
@@ -118,13 +120,14 @@ function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
       <Badge
         variant="secondary"
         size={size}
-        className="rounded-md px-2.5 font-semibold"
+        className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold"
         style={{
           color: `var(--registry-type-accent-light, ${typeConfig.accentLight})`,
           background: `color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
           border: `1px solid color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
         }}
       >
+        {TypeIcon ? <TypeIcon className="size-3.5" aria-hidden={true} /> : null}
         {typeConfig.label}
       </Badge>
     </Link>

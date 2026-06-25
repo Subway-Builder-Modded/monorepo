@@ -1,14 +1,21 @@
 // Canonical types for the registry item card system.
 // These live in shared/ so card components can import them without
 // depending on any specific feature module.
+import type { ComponentType } from "react";
 
 export type RegistryAssetTypeId = string;
+
+type RegistryTypeIcon = ComponentType<{
+  className?: string;
+  "aria-hidden"?: boolean;
+}>;
 
 /** Per-type visual and routing configuration. */
 export type RegistryTypeConfig = {
   id: RegistryAssetTypeId;
   label: string;
   pluralLabel: string;
+  icon?: RegistryTypeIcon;
   /** URL segment used in /registry/<routeSegment>/<id> */
   routeSegment: string;
   accentLight: string;
