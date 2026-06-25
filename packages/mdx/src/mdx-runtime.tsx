@@ -36,12 +36,15 @@ function escapeHtml(raw: string): string {
 }
 
 function stripTags(raw: string): string {
-  return raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return raw
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function looksLikeLegacyHtml(source: string): boolean {
   const htmlTagCount = source.match(/<\/?[a-z][^>]*>/gi)?.length ?? 0;
-  const markdownHeadingCount = source.match(/^#{1,6}\s/mg)?.length ?? 0;
+  const markdownHeadingCount = source.match(/^#{1,6}\s/gm)?.length ?? 0;
   return htmlTagCount >= 12 && markdownHeadingCount === 0;
 }
 
@@ -132,13 +135,10 @@ function applyLegacyHtmlArticleStyling(html: string): string {
     return `<li${attrs}>`;
   });
 
-  result = result.replace(
-    /<table(\s[^>]*)?>/gi,
-    (_full, rawAttrs: string | undefined) => {
-      const attrs = appendClass(rawAttrs ?? "", "w-full table-fixed text-sm");
-      return `<div class="mdx-table-wrap my-4 overflow-x-auto rounded-lg border border-border/50"><table${attrs}>`;
-    },
-  );
+  result = result.replace(/<table(\s[^>]*)?>/gi, (_full, rawAttrs: string | undefined) => {
+    const attrs = appendClass(rawAttrs ?? "", "w-full table-fixed text-sm");
+    return `<div class="mdx-table-wrap my-4 overflow-x-auto rounded-lg border border-border/50"><table${attrs}>`;
+  });
   result = result.replace(/<\/table>/gi, "</table></div>");
 
   result = result.replace(/<thead(\s[^>]*)?>/gi, (_full, rawAttrs: string | undefined) => {
@@ -153,16 +153,19 @@ function applyLegacyHtmlArticleStyling(html: string): string {
     return `<th${attrs}>`;
   });
   result = result.replace(/<td(\s[^>]*)?>/gi, (_full, rawAttrs: string | undefined) => {
-    const attrs = appendClass(rawAttrs ?? "", "border-t border-border/30 px-4 py-2.5 text-foreground/85");
+    const attrs = appendClass(
+      rawAttrs ?? "",
+      "border-t border-border/30 px-4 py-2.5 text-foreground/85",
+    );
     return `<td${attrs}>`;
   });
-  result = result.replace(
-    /<blockquote(\s[^>]*)?>/gi,
-    (_full, rawAttrs: string | undefined) => {
-      const attrs = appendClass(rawAttrs ?? "", "my-4 border-l-2 border-border/50 pl-4 text-foreground/70 italic");
-      return `<blockquote${attrs}>`;
-    },
-  );
+  result = result.replace(/<blockquote(\s[^>]*)?>/gi, (_full, rawAttrs: string | undefined) => {
+    const attrs = appendClass(
+      rawAttrs ?? "",
+      "my-4 border-l-2 border-border/50 pl-4 text-foreground/70 italic",
+    );
+    return `<blockquote${attrs}>`;
+  });
 
   return result;
 }
@@ -216,7 +219,7 @@ export function createMdxRuntime(options: CreateMdxRuntimeOptions = {}) {
     } catch {
       const markdownFallback = await renderMarkdownHtml(source);
       return {
-        html: markdownFallback,
+        html: applyLegacyHtmlArticleStyling(markdownFallback),
         warning:
           "Rich HTML fell back to Markdown rendering because the current content could not be fully rendered as MDX.",
       };

@@ -33,7 +33,9 @@ function normalizeTemplateSyntax(source: string): string {
     );
 }
 
-export const evaluatePlaygroundMdx = runtime.evaluateMdx;
+export function evaluatePlaygroundMdx(source: string) {
+  return runtime.evaluateMdx(normalizeTemplateSyntax(source));
+}
 
 export async function renderPlaygroundHtml(
   source: string,

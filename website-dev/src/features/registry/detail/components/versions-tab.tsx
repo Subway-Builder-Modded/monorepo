@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import {
   ArrowDownToLine,
   ArrowDownWideNarrow,
@@ -9,8 +9,12 @@ import {
   Tag,
 } from "lucide-react";
 import { Link } from "@/lib/router";
-import { renderPlaygroundHtml } from "@/features/markdown-playground/lib/mdx-runtime";
+import { articleMdxComponents } from "@/features/content/mdx";
 import { MdxRenderedHtml } from "@/features/content/mdx/rendered-html";
+import {
+  evaluatePlaygroundMdx,
+  renderPlaygroundHtml,
+} from "@/features/markdown-playground/lib/mdx-runtime";
 import { formatRegistryDate } from "@/features/registry/detail/lib/format-registry-date";
 import { getRegistryDetailUrl, getRegistryVersionUrl } from "@/features/registry/lib/routing";
 import type { RegistryDetailVersion } from "@/features/registry/detail/registry-detail-types";
@@ -28,6 +32,12 @@ type VersionsTabProps = {
 
 type VersionsSortKey = "version" | "releaseDate" | "downloads";
 type VersionsSortDirection = "asc" | "desc";
+type VersionChangelogComponent = ComponentType<{
+  components?: Record<string, ComponentType<any>>;
+}>;
+type VersionChangelogRenderState =
+  | { kind: "component"; Component: VersionChangelogComponent }
+  | { kind: "html"; html: string };
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 const changelogCache = new Map<string, Promise<string | null>>();
@@ -107,6 +117,16 @@ async function getCustomVersionChangelog(
   return request;
 }
 
+async function renderVersionChangelog(markdown: string): Promise<VersionChangelogRenderState> {
+  try {
+    const Component = await evaluatePlaygroundMdx(markdown);
+    return { kind: "component", Component };
+  } catch {
+    const { html } = await renderPlaygroundHtml(markdown);
+    return { kind: "html", html };
+  }
+}
+
 function formatDownloads(value: number | null): string {
   if (value === null || value === undefined) {
     return "\u2014";
@@ -166,7 +186,9 @@ export function VersionsTab({
   versionSource,
   selectedVersionId,
 }: VersionsTabProps) {
-  const [versionChangelogHtml, setVersionChangelogHtml] = useState<string | null>(null);
+  const [versionChangelog, setVersionChangelog] = useState<VersionChangelogRenderState | null>(
+    null,
+  );
   const [isChangelogLoading, setIsChangelogLoading] = useState(false);
   const [changelogError, setChangelogError] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<VersionsSortKey>("version");
@@ -191,6 +213,22 @@ export function VersionsTab({
         : null,
     [versions, selectedVersionId],
   );
+  const versionChangelogContent = useMemo(() => {
+    if (versionChangelog?.kind === "component") {
+      const Changelog = versionChangelog.Component;
+      return (
+        <div className="max-w-none text-sm leading-7 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+          <Changelog components={articleMdxComponents} />
+        </div>
+      );
+    }
+
+    if (versionChangelog?.kind === "html") {
+      return <MdxRenderedHtml html={versionChangelog.html} />;
+    }
+
+    return null;
+  }, [versionChangelog]);
 
   const handleSort = (nextKey: VersionsSortKey) => {
     if (nextKey === sortKey) {
@@ -223,7 +261,7 @@ export function VersionsTab({
     let cancelled = false;
 
     if (!selectedVersion) {
-      setVersionChangelogHtml(null);
+      setVersionChangelog(null);
       setChangelogError(null);
       setIsChangelogLoading(false);
       return;
@@ -237,7 +275,7 @@ export function VersionsTab({
     if (updateType === "custom" && updateUrl) {
       setIsChangelogLoading(true);
       setChangelogError(null);
-      setVersionChangelogHtml(null);
+      setVersionChangelog(null);
 
       void getCustomVersionChangelog(updateUrl, selectedVersion.version)
         .then(async (markdown) => {
@@ -246,13 +284,13 @@ export function VersionsTab({
           }
 
           if (!markdown) {
-            setVersionChangelogHtml(null);
+            setVersionChangelog(null);
             return;
           }
 
-          const { html } = await renderPlaygroundHtml(markdown);
+          const changelog = await renderVersionChangelog(markdown);
           if (!cancelled) {
-            setVersionChangelogHtml(html);
+            setVersionChangelog(changelog);
           }
         })
         .catch(() => {
@@ -272,7 +310,7 @@ export function VersionsTab({
     }
 
     if (!sourceRepo || !sourceTag) {
-      setVersionChangelogHtml(null);
+      setVersionChangelog(null);
       setChangelogError(null);
       setIsChangelogLoading(false);
       return;
@@ -280,7 +318,7 @@ export function VersionsTab({
 
     setIsChangelogLoading(true);
     setChangelogError(null);
-    setVersionChangelogHtml(null);
+    setVersionChangelog(null);
 
     void getGitHubReleaseChangelog(sourceRepo, sourceTag)
       .then(async (markdown) => {
@@ -289,13 +327,13 @@ export function VersionsTab({
         }
 
         if (!markdown) {
-          setVersionChangelogHtml(null);
+          setVersionChangelog(null);
           return;
         }
 
-        const { html } = await renderPlaygroundHtml(markdown);
+        const changelog = await renderVersionChangelog(markdown);
         if (!cancelled) {
-          setVersionChangelogHtml(html);
+          setVersionChangelog(changelog);
         }
       })
       .catch(() => {
@@ -362,8 +400,8 @@ export function VersionsTab({
               </div>
             ) : changelogError ? (
               <p className="text-sm text-muted-foreground">{changelogError}</p>
-            ) : versionChangelogHtml ? (
-              <MdxRenderedHtml html={versionChangelogHtml} />
+            ) : versionChangelogContent ? (
+              versionChangelogContent
             ) : (
               <p className="text-sm text-muted-foreground">
                 No changelog provided for this version.

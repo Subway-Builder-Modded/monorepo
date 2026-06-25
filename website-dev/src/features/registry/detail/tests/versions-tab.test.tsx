@@ -1,8 +1,12 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
 import { VersionsTab } from "@/features/registry/detail/components/versions-tab";
 
 describe("VersionsTab", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("renders version/date/download rows with icon-only action", () => {
     render(
       <VersionsTab
@@ -105,5 +109,68 @@ describe("VersionsTab", () => {
 
     fireEvent.click(versionSortButton!);
     expect(getFirstVersionCell()).toBe("1.2.0");
+  });
+
+  it("renders selected version release notes through article MDX components", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ body: "## Release Highlights\n\n- Faster trains" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    render(
+      <VersionsTab
+        routeSegment="maps"
+        listingId="gwangju-4"
+        selectedVersionId="1.0.0"
+        versions={[
+          {
+            version: "1.0.0",
+            releaseDate: "2026-04-26T00:00:00.000Z",
+            downloads: 102,
+            downloadUrl: "https://downloads.example/gwangju-1.0.0.zip",
+            sourceRepo: "example/gwangju",
+            sourceTag: "v1.0.0",
+          },
+        ]}
+      />,
+    );
+
+    const heading = await screen.findByRole("heading", { name: /Release Highlights/i });
+    expect(heading).toHaveClass("text-3xl", "font-bold");
+    expect(screen.getByText("Faster trains")).toBeInTheDocument();
+  });
+
+  it("falls back to styled markdown when release notes are not valid MDX", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ body: "## Release Highlights\n\nFixed <3 routes" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    render(
+      <VersionsTab
+        routeSegment="maps"
+        listingId="gwangju-4"
+        selectedVersionId="1.0.1"
+        versions={[
+          {
+            version: "1.0.1",
+            releaseDate: "2026-04-26T00:00:00.000Z",
+            downloads: 102,
+            downloadUrl: null,
+            sourceRepo: "example/gwangju",
+            sourceTag: "v1.0.1",
+          },
+        ]}
+      />,
+    );
+
+    const heading = await screen.findByRole("heading", { name: /Release Highlights/i });
+    expect(heading).toHaveClass("text-3xl", "font-bold");
+    expect(screen.getByText(/Fixed/)).toBeInTheDocument();
+    expect(screen.queryByText("Unable to load changelog for this version right now.")).toBeNull();
   });
 });

@@ -73,15 +73,18 @@ function DetailMetricCard({
         heading={
           <div className="flex h-full flex-col py-0.5">
             <p
-              data-metric-title={true}
               className={`min-h-4 text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground ${
                 isLinked
                   ? "transition-colors duration-150 ease-out group-hover:text-[var(--registry-type-accent)]"
                   : ""
               }`}
             >
-              <span className="flex min-h-4 w-full items-center gap-1 align-middle">
-                <span className="inline-flex min-w-0 items-center gap-1">
+              <span
+                className={`relative flex min-h-4 w-full items-center gap-1 align-middle ${
+                  titleAccessory ? "pr-11" : ""
+                }`}
+              >
+                <span data-metric-title={true} className="inline-flex min-w-0 items-center gap-1">
                   <span className="min-w-0">{title}</span>
                   {titleTooltipContent ? (
                     <TooltipProvider>
@@ -106,7 +109,7 @@ function DetailMetricCard({
                   ) : null}
                 </span>
                 {titleAccessory ? (
-                  <span className="ml-auto inline-flex shrink-0 items-center">
+                  <span className="absolute right-0 top-1/2 inline-flex shrink-0 -translate-y-1/2 items-center">
                     {titleAccessory}
                   </span>
                 ) : null}
