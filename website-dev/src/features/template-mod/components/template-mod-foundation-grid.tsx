@@ -19,23 +19,23 @@ export function TemplateModFoundationGrid() {
         }
       />
 
-      <div className="mt-7 grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-center">
+      <div className="mt-5 grid items-start gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-center">
         <TemplateModDirectoryTree tree={TEMPLATE_MOD_DIRECTORY_TREE} />
 
-        <div className="grid self-start gap-3 sm:grid-cols-2 lg:self-center">
+        <div className="grid w-full self-start gap-3 lg:self-center">
           {TEMPLATE_MOD_FOUNDATION_CARDS.map((card) => {
             const Icon = resolveIcon(card.icon);
 
             return (
-              <Card key={card.id} className="rounded-3xl border-border/55 bg-card/75">
+              <Card key={card.id} className="w-full rounded-2xl border-border/55 bg-card/75">
                 <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-foreground" aria-hidden={true} />
-                    <div className="space-y-2">
-                      <h3 className="text-base font-semibold tracking-tight text-foreground">
+                  <div className="flex items-start gap-3.5">
+                    <Icon className="mt-0.5 h-5 w-5 shrink-0 text-foreground" aria-hidden={true} />
+                    <div className="space-y-1.5">
+                      <h3 className="text-lg font-semibold tracking-tight text-foreground">
                         {card.title}
                       </h3>
-                      <LightMarkdown className="text-sm leading-relaxed text-muted-foreground">
+                      <LightMarkdown className="text-[15px] leading-relaxed text-muted-foreground">
                         {card.description}
                       </LightMarkdown>
                     </div>

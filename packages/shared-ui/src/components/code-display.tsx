@@ -15,6 +15,7 @@ export type CodeDisplayTab = {
 
 type CodeDisplaySharedProps = {
   resolvedTheme?: string;
+  disableAsyncHighlight?: boolean;
   className?: string;
   style?: CSSProperties;
 };
@@ -67,6 +68,86 @@ function highlightLog(code: string): string {
   return `<pre class="shiki" style="background-color:transparent"><code>${highlighted}</code></pre>`;
 }
 
+function fallbackHighlight(code: string, lang: string, theme: string): string {
+  const palette =
+    theme === 'dark'
+      ? {
+          comment: '#8b949e',
+          key: '#79c0ff',
+          string: '#a5d6ff',
+          number: '#ffa657',
+          keyword: '#ff7b72',
+          punctuation: '#c9d1d9',
+          text: '#c9d1d9',
+        }
+      : {
+          comment: '#6a737d',
+          key: '#005cc5',
+          string: '#032f62',
+          number: '#e36209',
+          keyword: '#d73a49',
+          punctuation: '#24292e',
+          text: '#24292e',
+        };
+
+  const color = (value: string, token: keyof typeof palette) =>
+    `<span style="color:${palette[token]};">${escapeHtml(value)}</span>`;
+
+  const highlightJsonLine = (line: string) =>
+    escapeHtml(line)
+      .replace(
+        /(&quot;[^&]*?&quot;)(\s*:)/g,
+        `<span style="color:${palette.key};">$1</span><span style="color:${palette.punctuation};">$2</span>`,
+      )
+      .replace(
+        /:\s*(&quot;[^&]*?&quot;)/g,
+        `: <span style="color:${palette.string};">$1</span>`,
+      )
+      .replace(
+        /:\s*(-?\d+(?:\.\d+)?)/g,
+        `: <span style="color:${palette.number};">$1</span>`,
+      )
+      .replace(
+        /:\s*(true|false|null)/g,
+        `: <span style="color:${palette.keyword};">$1</span>`,
+      );
+
+  const highlightTypeScriptLine = (line: string) => {
+    const commentIndex = line.indexOf('//');
+    const codePart = commentIndex >= 0 ? line.slice(0, commentIndex) : line;
+    const commentPart = commentIndex >= 0 ? line.slice(commentIndex) : '';
+
+    const highlightedCode = escapeHtml(codePart)
+      .replace(
+        /(`[^`]*?`|&quot;[^&]*?&quot;|&#39;[^&]*?&#39;)/g,
+        `<span style="color:${palette.string};">$1</span>`,
+      )
+      .replace(
+        /\b(const|let|var|return|import|export|from|function|type|interface|if|else|window)\b/g,
+        `<span style="color:${palette.keyword};">$1</span>`,
+      )
+      .replace(
+        /\b(api|hooks|ui|console|log|showNotification)\b/g,
+        `<span style="color:${palette.key};">$1</span>`,
+      );
+
+    return highlightedCode + (commentPart ? color(commentPart, 'comment') : '');
+  };
+
+  const lines = code.split('\n').map((line) => {
+    if (lang === 'log') {
+      return line.trimStart().startsWith('#') ? color(line, 'comment') : color(line, 'text');
+    }
+    if (lang === 'json') return highlightJsonLine(line);
+    if (lang === 'ts' || lang === 'tsx' || lang === 'typescript') {
+      return highlightTypeScriptLine(line);
+    }
+    return color(line, 'text');
+  });
+
+  return `<pre class="shiki" style="background-color:transparent"><code>${lines.join('\n')}</code></pre>`;
+}
+
 async function highlightOne(code: string, lang: string, theme: string): Promise<string> {
   if (lang === 'log') return highlightLog(code);
   const { codeToHtml } = await import('shiki');
@@ -80,6 +161,7 @@ async function highlightOne(code: string, lang: string, theme: string): Promise<
 function useAllHighlighted(
   entries: { key: string; code: string; lang: string }[],
   theme: string,
+  enabled: boolean,
 ): Record<string, string> {
   const [cache, setCache] = useState<Record<string, string>>({});
 
@@ -87,6 +169,11 @@ function useAllHighlighted(
   const entriesKey = entries.map((e) => `${e.key}:${e.lang}:${e.code}`).join('||');
 
   useEffect(() => {
+    if (!enabled) {
+      setCache({});
+      return;
+    }
+
     let cancelled = false;
     async function run() {
       const results = await Promise.all(
@@ -103,13 +190,14 @@ function useAllHighlighted(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entriesKey, theme]);
+  }, [enabled, entriesKey, theme]);
 
   return cache;
 }
 
 export function CodeDisplay({
   resolvedTheme = 'dark',
+  disableAsyncHighlight = false,
   className,
   style,
   ...props
@@ -151,10 +239,11 @@ export function CodeDisplay({
   const highlightEntries = isTabbed
     ? (tabs ?? []).map((t) => ({ key: t.id, code: t.code, lang: t.lang ?? 'typescript' }))
     : [{ key: '__single__', code: props.code, lang: props.lang ?? 'typescript' }];
-  const highlightCache = useAllHighlighted(highlightEntries, resolvedTheme);
+  const highlightCache = useAllHighlighted(highlightEntries, resolvedTheme, !disableAsyncHighlight);
   const highlighted = isTabbed
-    ? (activeTab ? highlightCache[activeTab.id] : undefined) ?? ''
-    : highlightCache['__single__'] ?? '';
+    ? (activeTab ? highlightCache[activeTab.id] : undefined) ??
+      fallbackHighlight(code, activeTab?.lang ?? 'typescript', resolvedTheme)
+    : highlightCache['__single__'] ?? fallbackHighlight(code, props.lang ?? 'typescript', resolvedTheme);
   const lineCount = code.split('\n').length;
   const maxLineCount = tabs?.reduce((max, tab) => Math.max(max, tab.code.split('\n').length), lineCount) ?? lineCount;
   const gutterDigits = Math.max(2, String(maxLineCount).length);

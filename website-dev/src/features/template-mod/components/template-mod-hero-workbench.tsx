@@ -18,6 +18,7 @@ export function TemplateModHeroWorkbench() {
           lang="tsx"
           title="ridership-chart.tsx"
           resolvedTheme={resolvedTheme}
+          disableAsyncHighlight
           className="w-full min-w-0"
         />
       </div>
