@@ -28,6 +28,27 @@ type RailyardHeroProps = {
 };
 
 const RAILYARD_TITLE = "Railyard";
+const HERO_BUTTON_BASE_CLASS = "transition-none";
+const HERO_OUTLINE_BUTTON_CLASS =
+  "border-border/55 text-foreground/75 transition-none hover:border-border hover:bg-muted/35 hover:text-foreground";
+
+const heroTooltipLinks = [
+  {
+    label: "Updates",
+    to: "/railyard/updates",
+    icon: Megaphone,
+  },
+  {
+    label: "Analytics",
+    to: "/railyard/analytics",
+    icon: ChartLine,
+  },
+  {
+    label: "World Map",
+    to: "/registry/world-map",
+    icon: Globe,
+  },
+];
 
 export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
   type LatestRegistryItems = Awaited<ReturnType<typeof fetchRailyardLatestRegistryItems>>;
@@ -45,24 +66,26 @@ export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
   }, []);
 
   return (
-    <section className="relative flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] items-center overflow-visible border-b border-border/45 bg-background">
-      <div className="pointer-events-none absolute -top-12 inset-x-0 bottom-0" aria-hidden={true}>
-        {" "}
-        {/* Route map background */}
+    <section className="relative isolate flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] items-center overflow-visible border-b border-border/45 bg-background">
+      <div
+        className="pointer-events-none absolute -top-12 inset-x-0 bottom-0 transform-gpu [contain:paint]"
+        aria-hidden={true}
+      >
         <img
           src="/assets/geojson/ZRH.svg"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-35 dark:opacity-25 [filter:drop-shadow(0_0_18px_color-mix(in_srgb,var(--suite-accent-light)_70%,transparent))_drop-shadow(0_0_6px_color-mix(in_srgb,var(--suite-accent-light)_50%,transparent))] dark:[filter:drop-shadow(0_0_18px_color-mix(in_srgb,var(--suite-accent-dark)_70%,transparent))_drop-shadow(0_0_6px_color-mix(in_srgb,var(--suite-accent-dark)_50%,transparent))]"
+          className="absolute inset-0 h-full w-full object-cover opacity-30 dark:opacity-24"
+          decoding="async"
           draggable={false}
-        />{" "}
+        />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_28%,color-mix(in_srgb,var(--suite-accent-light)_24%,transparent),transparent_58%)] dark:bg-[radial-gradient(circle_at_22%_28%,color-mix(in_srgb,var(--suite-accent-dark)_28%,transparent),transparent_62%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(transparent_0%,transparent_96%,color-mix(in_srgb,var(--suite-accent-light)_24%,transparent)_100%),linear-gradient(90deg,color-mix(in_srgb,var(--suite-accent-light)_20%,transparent)_1px,transparent_1px),linear-gradient(color-mix(in_srgb,var(--suite-accent-light)_20%,transparent)_1px,transparent_1px)] bg-[length:100%_100%,56px_56px,56px_56px] dark:bg-[linear-gradient(transparent_0%,transparent_96%,color-mix(in_srgb,var(--suite-accent-dark)_30%,transparent)_100%),linear-gradient(90deg,color-mix(in_srgb,var(--suite-accent-dark)_26%,transparent)_1px,transparent_1px),linear-gradient(color-mix(in_srgb,var(--suite-accent-dark)_26%,transparent)_1px,transparent_1px)]" />
       </div>
 
-      <div className="relative z-10 grid w-full gap-8 px-5 sm:px-7 md:px-9 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.22fr)] lg:items-center lg:gap-10 lg:px-12">
+      <div className="relative z-10 grid w-full transform-gpu gap-8 px-5 sm:px-7 md:px-9 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.22fr)] lg:items-center lg:gap-10 lg:px-12">
         <div className="space-y-6">
           <div className="space-y-3">
-            <h1 className="flex items-center gap-3 text-[clamp(2.8rem,7vw,5.6rem)] font-extrabold tracking-[-0.05em] text-foreground">
+            <h1 className="flex items-center gap-3 text-[clamp(2.8rem,7vw,5.6rem)] font-extrabold tracking-normal text-foreground">
               <TrainTrack
                 className="size-[0.85em] shrink-0 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
                 aria-hidden={true}
@@ -78,7 +101,7 @@ export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
             <Button
               asChild
               size="lg"
-              className="h-12 px-7 text-sm font-bold tracking-[-0.01em] sm:flex-1"
+              className={`h-12 px-7 text-sm font-bold tracking-normal sm:flex-1 ${HERO_BUTTON_BASE_CLASS}`}
             >
               <a href="#downloads">
                 <Download className="size-4.5" aria-hidden={true} />
@@ -90,7 +113,7 @@ export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
               asChild
               variant="outline"
               size="lg"
-              className="h-12 px-6 text-sm font-semibold sm:flex-1"
+              className={`h-12 px-6 text-sm font-semibold sm:flex-1 ${HERO_OUTLINE_BUTTON_CLASS}`}
             >
               <Link to="/railyard/docs">
                 <BookText className="size-4.5" aria-hidden={true} />
@@ -138,9 +161,9 @@ export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-lg border-border/55 px-3 text-foreground/75 hover:border-border hover:text-foreground sm:flex-1"
+                  className={`h-8 gap-1.5 rounded-lg px-3 sm:flex-1 ${HERO_OUTLINE_BUTTON_CLASS}`}
                 >
-                  <Link to="/registry">
+                  <Link to="/registry/maps">
                     <Map className="size-3.5" aria-hidden={true} />
                     {summary.mapsCount} Maps
                   </Link>
@@ -150,9 +173,9 @@ export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
                   asChild
                   variant="outline"
                   size="sm"
-                  className="h-8 gap-1.5 rounded-lg border-border/55 px-3 text-foreground/75 hover:border-border hover:text-foreground sm:flex-1"
+                  className={`h-8 gap-1.5 rounded-lg px-3 sm:flex-1 ${HERO_OUTLINE_BUTTON_CLASS}`}
                 >
-                  <Link to="/registry">
+                  <Link to="/registry/mods">
                     <Package className="size-3.5" aria-hidden={true} />
                     {summary.modsCount} Mods
                   </Link>
@@ -163,63 +186,25 @@ export function RailyardHero({ summary, isSummaryLoading }: RailyardHeroProps) {
             <div className="hidden h-4 w-px bg-border/60 sm:block" aria-hidden={true} />
 
             <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="icon-sm"
-                    className="h-8 w-8 rounded-lg border-border/55 text-foreground/75 hover:border-border hover:text-foreground"
-                  >
-                    <Link to="/railyard/updates">
-                      <Megaphone className="size-3.5" aria-hidden={true} />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="z-[140]">
-                  Updates
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="icon-sm"
-                    className="h-8 w-8 rounded-lg border-border/55 text-foreground/75 hover:border-border hover:text-foreground"
-                  >
-                    <Link to="/railyard/analytics">
-                      <ChartLine className="size-3.5" aria-hidden={true} />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="z-[140]">
-                  Analytics
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="icon-sm"
-                    className="h-8 w-8 rounded-lg border-border/55 text-foreground/75 hover:border-border hover:text-foreground"
-                  >
-                    <Link to="/registry/world-map">
-                      <Globe className="size-3.5" aria-hidden={true} />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="z-[140]">
-                  World Map
-                </TooltipContent>
-              </Tooltip>
+              {heroTooltipLinks.map(({ label, to, icon: Icon }) => (
+                <Tooltip key={to}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="icon-sm"
+                      className={`h-8 w-8 rounded-lg ${HERO_OUTLINE_BUTTON_CLASS}`}
+                    >
+                      <Link to={to} aria-label={label}>
+                        <Icon className="size-3.5" aria-hidden={true} />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="z-[140]">
+                    {label}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
             </TooltipProvider>
           </div>
         </div>

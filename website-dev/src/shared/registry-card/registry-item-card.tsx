@@ -19,6 +19,10 @@ type RegistryItemCardProps = {
   data: RegistryCardData;
   typeConfig: RegistryTypeConfig;
   variant?: RegistryCardVariant;
+  titleHoverAccent?: {
+    light: string;
+    dark: string;
+  };
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   className?: string;
@@ -303,6 +307,7 @@ function ThumbnailImage({
 function RegistryCardGrid({
   data,
   typeConfig,
+  titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
   className,
@@ -314,6 +319,8 @@ function RegistryCardGrid({
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
+    "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
+    "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
   } as React.CSSProperties;
 
   return (
@@ -352,7 +359,7 @@ function RegistryCardGrid({
                 <TitleLink
                   title={data.title}
                   href={data.href}
-                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
+                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
                 />
               </h3>
               <MapBadges
@@ -428,6 +435,7 @@ function RegistryCardGrid({
 function RegistryCardFull({
   data,
   typeConfig,
+  titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
   className,
@@ -437,6 +445,8 @@ function RegistryCardFull({
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
+    "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
+    "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
   } as React.CSSProperties;
 
   return (
@@ -475,7 +485,7 @@ function RegistryCardFull({
                 <TitleLink
                   title={data.title}
                   href={data.href}
-                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
+                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
                 />
               </h3>
               <MapBadges
@@ -515,7 +525,12 @@ function RegistryCardFull({
 }
 
 // ─── Full variant (kept for potential explicit use) ───────────────────────────
-function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCardProps, "variant">) {
+function RegistryCardList({
+  data,
+  typeConfig,
+  titleHoverAccent,
+  className,
+}: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, 240);
   const visibleTags = getVisibleCardTags(data.tags);
   const listTagStripRef = useRef<HTMLDivElement>(null);
@@ -523,6 +538,8 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
+    "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
+    "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
   } as React.CSSProperties;
 
   return (
@@ -565,7 +582,7 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
               <TitleLink
                 title={data.title}
                 href={data.href}
-                className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
+                className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
               />
             </h3>
             <AuthorLink author={data.author} authorId={data.authorId} />
@@ -635,6 +652,7 @@ export function RegistryItemCard({
   data,
   typeConfig,
   variant = "grid",
+  titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
   className,
@@ -645,6 +663,7 @@ export function RegistryItemCard({
         <RegistryCardList
           data={data}
           typeConfig={typeConfig}
+          titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           className={className}
@@ -655,6 +674,7 @@ export function RegistryItemCard({
         <RegistryCardFull
           data={data}
           typeConfig={typeConfig}
+          titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           className={className}
@@ -666,6 +686,7 @@ export function RegistryItemCard({
         <RegistryCardGrid
           data={data}
           typeConfig={typeConfig}
+          titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           className={className}
