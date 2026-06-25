@@ -284,9 +284,8 @@ function ThumbnailImage({
           src={src}
           alt=""
           className={cn(
-            "size-full object-cover [backface-visibility:hidden] [transform:translateZ(0)]",
-            hoverScale &&
-              "transform-gpu will-change-transform transition-transform duration-500 ease-out group-hover:scale-[1.06]",
+            "absolute inset-y-0 left-1/2 h-full w-auto max-w-none -translate-x-1/2 [backface-visibility:hidden]",
+            hoverScale && "transition-[filter] duration-200 ease-out group-hover:brightness-[1.03]",
             loaded ? "opacity-100" : "opacity-0",
             className,
           )}
