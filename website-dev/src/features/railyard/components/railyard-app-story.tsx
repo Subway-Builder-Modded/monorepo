@@ -29,12 +29,12 @@ export function RailyardAppStory() {
             <div className="relative h-full min-h-64 sm:min-h-72 lg:min-h-[26rem] xl:min-h-[30rem]">
               <img
                 src={selectedStep.imageLight}
-                alt={selectedStep.imageAlt}
+                alt=""
                 className="absolute inset-0 block size-full object-cover object-center dark:hidden"
               />
               <img
                 src={selectedStep.imageDark}
-                alt={selectedStep.imageAlt}
+                alt=""
                 className="absolute inset-0 hidden size-full object-cover object-center dark:block"
               />
             </div>

@@ -23,6 +23,15 @@ describe('isRouteMatch', () => {
       }),
     ).toBe(true);
   });
+
+  it('normalizes trailing slashes and missing leading slashes', () => {
+    expect(isRouteMatch('/browse/', { kind: 'exact', path: '/browse' })).toBe(
+      true,
+    );
+    expect(isRouteMatch('browse/maps', { kind: 'prefix', path: '/browse' })).toBe(
+      true,
+    );
+  });
 });
 
 describe('isNavItemActive', () => {
@@ -40,5 +49,10 @@ describe('isNavItemActive', () => {
 
   it('returns false when neither rules nor href match', () => {
     expect(isNavItemActive('/docs', undefined, undefined)).toBe(false);
+  });
+
+  it('normalizes pathname and href when using fallback href matching', () => {
+    expect(isNavItemActive('/updates/', undefined, 'updates')).toBe(true);
+    expect(isNavItemActive('docs/v1', undefined, '/docs')).toBe(true);
   });
 });

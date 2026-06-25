@@ -24,10 +24,16 @@ describe("navigate", () => {
     expect(scrollSpy).toHaveBeenCalledWith(0, 0);
   });
 
-  it("does not push a new history entry when pathname is unchanged", () => {
-    navigate("/about");
+  it("preserves scroll when requested", () => {
+    const scrollSpy = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    navigate("/contact?view=list", { preserveScroll: true });
+    expect(scrollSpy).not.toHaveBeenCalled();
+  });
+
+  it("does not push a new history entry when href is unchanged", () => {
+    navigate("/about?view=list#top");
     const historyLength = window.history.length;
-    navigate("/about"); // same path — no-op
+    navigate("/about?view=list#top");
     expect(window.history.length).toBe(historyLength);
   });
 

@@ -3,6 +3,11 @@ import type {
   RailyardDownloadOption,
   RailyardDownloadOS,
 } from "./railyard-types";
+import { RAILYARD_LATEST_RELEASE_VERSION } from "./railyard-release-version";
+export {
+  buildRailyardDownloadUrl,
+  RAILYARD_LATEST_RELEASE_VERSION,
+} from "./railyard-release-version";
 
 type GitHubReleaseAsset = {
   name?: string;
@@ -18,37 +23,6 @@ export type RailyardReleaseAssetInfo = {
   downloadUrl: string;
   sizeBytes: number;
 };
-
-function extractLatestRailyardVersion(): string {
-  const updateFiles = import.meta.glob("../../../content/railyard/updates/*.mdx", {
-    eager: true,
-    query: "?raw",
-    import: "default",
-  }) as Record<string, string>;
-
-  const versions = Object.keys(updateFiles)
-    .map((path) => {
-      const match = path.match(/v(\d+\.\d+\.\d+)/);
-      return match ? match[1] : null;
-    })
-    .filter((v): v is string => v !== null);
-
-  versions.sort((a, b) => {
-    const aParts = a.split(".").map(Number);
-    const bParts = b.split(".").map(Number);
-
-    for (let i = 0; i < 3; i++) {
-      if (aParts[i] !== bParts[i]) {
-        return bParts[i] - aParts[i];
-      }
-    }
-    return 0;
-  });
-
-  return `v${versions[0] || "0.1.0"}`;
-}
-
-export const RAILYARD_LATEST_RELEASE_VERSION = extractLatestRailyardVersion();
 
 export const railyardDownloadOptions: RailyardDownloadOption[] = [
   {
@@ -94,13 +68,6 @@ export const railyardDownloadOptions: RailyardDownloadOption[] = [
     assetName: "current-linux-amd64.flatpak",
   },
 ];
-
-export function buildRailyardDownloadUrl(
-  option: RailyardDownloadOption,
-  version = RAILYARD_LATEST_RELEASE_VERSION,
-): string {
-  return `https://github.com/Subway-Builder-Modded/monorepo/releases/download/${version}/railyard-${version}-${option.assetName}`;
-}
 
 export type DownloadOS = RailyardDownloadOS;
 

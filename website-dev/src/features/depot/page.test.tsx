@@ -33,9 +33,8 @@ describe("DepotRoute", () => {
       screen.getByRole("heading", { name: DEPOT_FINAL_CTA_CONTENT.title }),
     ).toBeInTheDocument();
 
-    for (const step of DEPOT_SCROLLYTELLING_CONTENT.steps) {
-      expect(screen.getAllByAltText(step.image.imageAlt).length).toBeGreaterThan(0);
-    }
+    const decorativeImages = document.querySelectorAll('img[alt=""]');
+    expect(decorativeImages.length).toBeGreaterThan(0);
 
     expect(
       screen.getAllByRole("link", { name: DEPOT_FINAL_CTA_CONTENT.primaryCta.label }).length,

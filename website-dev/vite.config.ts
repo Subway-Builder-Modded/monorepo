@@ -136,15 +136,10 @@ function toPluginList(plugin: unknown): Plugin[] {
 }
 
 export default defineConfig(async () => {
-  // Dynamic imports for local TypeScript modules: static top-level imports of
-  // project .ts files fail when vp lint loads this config via Node's synchronous
-  // ESM linker (which does not resolve .ts extensions). Dynamic imports use
-  // the async path where tsx can intercept and handle TypeScript resolution.
-  const { remarkHeadingIds } = await import("./src/features/content/mdx/remark-heading-ids.ts");
-  const { remarkStripFrontmatter } =
-    await import("./src/features/content/mdx/remark-strip-frontmatter.ts");
-  const { remarkAdmonitionDirectives } =
-    await import("./src/features/content/mdx/remark-admonitions.ts");
+  // Keep dynamic imports for TypeScript resolution stability when vp lint
+  // loads this config through Node's synchronous ESM linker.
+  const { remarkHeadingIds, remarkStripFrontmatter, remarkAdmonitionDirectives } =
+    await import("@subway-builder-modded/mdx/remark");
 
   return {
     build: {

@@ -167,8 +167,8 @@ describe("buildCreditsDirectory", () => {
 describe("loadCreditsDirectory", () => {
   it("fetches maintainers and supporters from registry credits paths", async () => {
     const responses: Record<string, unknown> = {
-      "/registry/credits/maintainers.json": { schema_version: 1, maintainers: [] },
-      "/registry/credits/supporters.json": { schema_version: 1, ko_fi: [] },
+      "/registry-cache/credits/maintainers.json": { schema_version: 1, maintainers: [] },
+      "/registry-cache/credits/supporters.json": { schema_version: 1, ko_fi: [] },
     };
 
     const fetchImpl = vi.fn(async (path: string) => ({
@@ -178,7 +178,7 @@ describe("loadCreditsDirectory", () => {
 
     await loadCreditsDirectory(fetchImpl);
 
-    expect(fetchImpl).toHaveBeenCalledWith("/registry/credits/maintainers.json");
-    expect(fetchImpl).toHaveBeenCalledWith("/registry/credits/supporters.json");
+    expect(fetchImpl).toHaveBeenCalledWith("/registry-cache/credits/maintainers.json");
+    expect(fetchImpl).toHaveBeenCalledWith("/registry-cache/credits/supporters.json");
   });
 });

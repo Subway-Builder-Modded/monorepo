@@ -10,6 +10,13 @@ export function DepotMapForgeHero() {
   return (
     <section className="relative flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] items-center overflow-visible border-b border-border/45 bg-background">
       <div className="pointer-events-none absolute -top-12 inset-x-0 bottom-0" aria-hidden={true}>
+        {/* Route map background */}
+        <img
+          src="/assets/geojson/FIN.svg"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover opacity-35 dark:opacity-25 [filter:drop-shadow(0_0_18px_color-mix(in_srgb,var(--suite-accent-light)_70%,transparent))_drop-shadow(0_0_6px_color-mix(in_srgb,var(--suite-accent-light)_50%,transparent))] dark:[filter:drop-shadow(0_0_18px_color-mix(in_srgb,var(--suite-accent-dark)_70%,transparent))_drop-shadow(0_0_6px_color-mix(in_srgb,var(--suite-accent-dark)_50%,transparent))]"
+          draggable={false}
+        />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_28%,color-mix(in_srgb,var(--suite-accent-light)_24%,transparent),transparent_58%)] dark:bg-[radial-gradient(circle_at_22%_28%,color-mix(in_srgb,var(--suite-accent-dark)_28%,transparent),transparent_62%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(transparent_0%,transparent_96%,color-mix(in_srgb,var(--suite-accent-light)_24%,transparent)_100%),linear-gradient(90deg,color-mix(in_srgb,var(--suite-accent-light)_20%,transparent)_1px,transparent_1px),linear-gradient(color-mix(in_srgb,var(--suite-accent-light)_20%,transparent)_1px,transparent_1px)] bg-[length:100%_100%,56px_56px,56px_56px] dark:bg-[linear-gradient(transparent_0%,transparent_96%,color-mix(in_srgb,var(--suite-accent-dark)_30%,transparent)_100%),linear-gradient(90deg,color-mix(in_srgb,var(--suite-accent-dark)_26%,transparent)_1px,transparent_1px),linear-gradient(color-mix(in_srgb,var(--suite-accent-dark)_26%,transparent)_1px,transparent_1px)]" />
       </div>
@@ -66,16 +73,8 @@ export function DepotMapForgeHero() {
 
         <div className="relative flex items-center justify-center">
           <div className="w-full overflow-hidden rounded-lg border border-border/45 bg-card shadow-lg dark:shadow-2xl">
-            <img
-              src="/images/depot/hero-light.png"
-              alt="Depot hero map illustration"
-              className="w-full dark:hidden"
-            />
-            <img
-              src="/images/depot/hero-dark.png"
-              alt="Depot hero map illustration"
-              className="hidden w-full dark:block"
-            />
+            <img src="/images/depot/hero-light.png" alt="" className="w-full dark:hidden" />
+            <img src="/images/depot/hero-dark.png" alt="" className="hidden w-full dark:block" />
           </div>
         </div>
       </div>

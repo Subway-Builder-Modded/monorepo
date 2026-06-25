@@ -2,9 +2,9 @@ import type { ChartMargin } from "./chart-types";
 
 export const DEFAULT_CHART_MARGIN: ChartMargin = {
   top: 8,
-  right: 8,
+  right: 20,
   bottom: 0,
-  left: 0,
+  left: 8,
 };
 
 export const CHART_GRID_STROKE = "currentColor";
@@ -81,16 +81,34 @@ export function createLineChartTicks(
 
 export function createCategoryTicks<T>(values: T[], maxTickCount = 8): T[] {
   if (values.length <= maxTickCount) return values;
+  if (maxTickCount <= 1) return [values[0]];
 
-  const step = Math.ceil((values.length - 1) / (maxTickCount - 1));
-  const ticks: T[] = [];
-  for (let index = 0; index < values.length; index += step) {
-    ticks.push(values[index]);
+  const lastIndex = values.length - 1;
+  const maxNiceTickCount = maxTickCount + 1;
+  let interval = 1;
+
+  for (let magnitude = 1; interval <= lastIndex; magnitude *= 10) {
+    const candidates = [1, 2, 5].map((step) => step * magnitude);
+    const match = candidates.find((step) => {
+      const cadenceTickCount = Math.floor(lastIndex / step) + 1;
+      const needsInitialTick = lastIndex % step !== 0;
+      return cadenceTickCount + (needsInitialTick ? 1 : 0) <= maxNiceTickCount;
+    });
+
+    if (match) {
+      interval = match;
+      break;
+    }
   }
 
-  const lastValue = values[values.length - 1];
-  if (ticks[ticks.length - 1] !== lastValue) {
-    ticks.push(lastValue);
+  const ticks: T[] = [values[0]];
+  const cadenceStart = lastIndex % interval;
+  for (
+    let index = cadenceStart === 0 ? interval : cadenceStart;
+    index <= lastIndex;
+    index += interval
+  ) {
+    ticks.push(values[index]);
   }
 
   return ticks;

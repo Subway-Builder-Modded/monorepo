@@ -1,11 +1,30 @@
 import type { ActiveRouteMatchRule } from './types';
 
-export function isRouteMatch(pathname: string, rule: ActiveRouteMatchRule): boolean {
-  if (rule.kind === 'exact') {
-    return pathname === rule.path;
+function normalizePathname(pathname: string): string {
+  if (!pathname) {
+    return '/';
   }
 
-  return pathname === rule.path || pathname.startsWith(`${rule.path}/`);
+  const withLeadingSlash = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  if (withLeadingSlash !== '/' && withLeadingSlash.endsWith('/')) {
+    return withLeadingSlash.slice(0, -1);
+  }
+
+  return withLeadingSlash;
+}
+
+export function isRouteMatch(pathname: string, rule: ActiveRouteMatchRule): boolean {
+  const normalizedPathname = normalizePathname(pathname);
+  const normalizedRulePath = normalizePathname(rule.path);
+
+  if (rule.kind === 'exact') {
+    return normalizedPathname === normalizedRulePath;
+  }
+
+  return (
+    normalizedPathname === normalizedRulePath ||
+    normalizedPathname.startsWith(`${normalizedRulePath}/`)
+  );
 }
 
 export function isNavItemActive(
@@ -13,17 +32,24 @@ export function isNavItemActive(
   rules: ActiveRouteMatchRule[] | undefined,
   href: string | undefined,
 ): boolean {
+  const normalizedPathname = normalizePathname(pathname);
+
   if (rules?.length) {
-    return rules.some((rule) => isRouteMatch(pathname, rule));
+    return rules.some((rule) => isRouteMatch(normalizedPathname, rule));
   }
 
   if (!href) {
     return false;
   }
 
-  if (href === '/') {
-    return pathname === '/';
+  const normalizedHref = normalizePathname(href);
+
+  if (normalizedHref === '/') {
+    return normalizedPathname === '/';
   }
 
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return (
+    normalizedPathname === normalizedHref ||
+    normalizedPathname.startsWith(`${normalizedHref}/`)
+  );
 }

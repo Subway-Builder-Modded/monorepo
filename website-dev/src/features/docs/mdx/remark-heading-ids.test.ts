@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { unified } from "unified";
 import remarkParse from "remark-parse";
-import { remarkHeadingIds } from "@/features/docs/mdx/remark-heading-ids";
+import { remarkHeadingIds } from "@subway-builder-modded/mdx";
 import type { Root, Heading } from "mdast";
 
 function parseWithPlugin(md: string): Root {

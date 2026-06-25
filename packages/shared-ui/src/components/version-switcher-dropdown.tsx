@@ -31,6 +31,15 @@ type MenuPosition = {
   minWidth: number;
 };
 
+function getMenuPosition(trigger: HTMLButtonElement): MenuPosition {
+  const rect = trigger.getBoundingClientRect();
+  return {
+    left: rect.left,
+    top: rect.bottom + 10,
+    minWidth: Math.max(rect.width, 236),
+  };
+}
+
 function isDeprecated(status: VersionSwitcherItemStatus | undefined) {
   return status === 'deprecated';
 }
@@ -78,20 +87,7 @@ export function VersionSwitcherDropdown({
       return;
     }
 
-    const updateMenuPosition = () => {
-      if (!triggerRef.current) {
-        return;
-      }
-
-      const rect = triggerRef.current.getBoundingClientRect();
-      setMenuPosition({
-        left: rect.left,
-        top: rect.bottom + 10,
-        minWidth: Math.max(rect.width, 236),
-      });
-    };
-
-    updateMenuPosition();
+    setMenuPosition(getMenuPosition(triggerRef.current));
 
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target as Node;
@@ -109,16 +105,21 @@ export function VersionSwitcherDropdown({
       }
     };
 
+    const closeMenu = () => {
+      setOpen(false);
+      setMenuPosition(null);
+    };
+
     window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('resize', updateMenuPosition);
-    window.addEventListener('scroll', updateMenuPosition, true);
+    window.addEventListener('resize', closeMenu);
+    window.addEventListener('scroll', closeMenu, { capture: true, passive: true });
 
     return () => {
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('resize', updateMenuPosition);
-      window.removeEventListener('scroll', updateMenuPosition, true);
+      window.removeEventListener('resize', closeMenu);
+      window.removeEventListener('scroll', closeMenu, true);
     };
   }, [open]);
 

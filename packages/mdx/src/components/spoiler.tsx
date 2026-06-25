@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Children, isValidElement, type ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { cx } from "../lib/cx.ts";
 import type { IconResolver } from "./tabs.tsx";
@@ -10,16 +10,16 @@ export const SPOILER_SUMMARY_CLASS =
   "group/summary flex cursor-pointer list-none items-center gap-2 px-4 py-3.5 text-sm font-semibold text-foreground outline-none hover:bg-muted/40 [&::-webkit-details-marker]:hidden";
 
 const SPOILER_LABEL_CLASS =
-  "text-foreground transition-colors group-hover/summary:text-[var(--suite-accent-light)] dark:group-hover/summary:text-[var(--suite-accent-dark)]";
+  "mdx-spoiler-label text-foreground transition-colors group-hover/summary:text-[var(--registry-type-accent,var(--suite-accent-light))] dark:group-hover/summary:text-[var(--registry-type-accent,var(--suite-accent-dark))]";
 
 export const SPOILER_BODY_CLASS =
-  "border-t border-border/60 bg-muted/20 px-4 py-3 text-sm leading-relaxed text-foreground/90 [&>:first-child]:mt-0 [&>:last-child]:mb-0";
+  "border-t border-border/60 bg-muted/20 px-4 py-3 text-sm leading-relaxed text-foreground/90 [&>:first-child]:mt-0 [&>:last-child]:mb-0 [&_.mdx-table-wrap]:!m-1";
 
 function SpoilerSummaryLabel({ children, icon }: { children: ReactNode; icon?: ReactNode }) {
   return (
     <>
       <ChevronRight
-        className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-out group-open:rotate-90"
+        className="size-4 shrink-0 text-muted-foreground transition-[transform,color] duration-200 ease-out group-open:rotate-90 group-hover/summary:text-[var(--registry-type-accent,var(--suite-accent-light))] dark:group-hover/summary:text-[var(--registry-type-accent,var(--suite-accent-dark))]"
         aria-hidden="true"
       />
       <span className="inline-flex items-center gap-2">
@@ -76,9 +76,34 @@ export function MdxDetails({
   className?: string;
   [key: string]: unknown;
 }) {
+  const childArray = Children.toArray(children);
+  const summaryIndex = childArray.findIndex((child) => {
+    if (!isValidElement(child)) {
+      return false;
+    }
+
+    if (typeof child.type === "string") {
+      return child.type.toLowerCase() === "summary";
+    }
+
+    return child.type === MdxSummary;
+  });
+
+  if (summaryIndex < 0) {
+    return (
+      <details className={cx(SPOILER_DETAILS_CLASS, className)} {...props}>
+        {children}
+      </details>
+    );
+  }
+
+  const summaryChild = childArray[summaryIndex] as ReactNode;
+  const contentChildren = childArray.filter((_, index) => index !== summaryIndex);
+
   return (
     <details className={cx(SPOILER_DETAILS_CLASS, className)} {...props}>
-      {children}
+      {summaryChild}
+      <div className={SPOILER_BODY_CLASS}>{contentChildren}</div>
     </details>
   );
 }

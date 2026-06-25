@@ -15,7 +15,9 @@ import { Buffer } from "node:buffer";
 
 const REGISTRY_REPO = "Subway-Builder-Modded/registry";
 const REGISTRY_REF = "main";
+const REGISTRY_MAP_DATA_REF = "map-data";
 const LOCAL_ENV_FILES = [".env", ".env.local"];
+const MAP_DATA_FILE_NAMES = new Set(["basemap.svg", "grid.geojson"]);
 
 const WEBSITE_PERIODS = ["1d", "7d", "30d", "all"];
 const WEBSITE_PERIOD_DAYS = {
@@ -28,59 +30,59 @@ const WEBSITE_PERIOD_DAYS = {
 const COPY_MAPPINGS = [
   {
     source: "analytics/most_popular_all_time.csv",
-    destination: "public/registry/analytics/most_popular_all_time.csv",
+    destination: "public/registry-cache/analytics/most_popular_all_time.csv",
   },
   {
     source: "analytics/most_popular_last_1d.csv",
-    destination: "public/registry/analytics/most_popular_last_1d.csv",
+    destination: "public/registry-cache/analytics/most_popular_last_1d.csv",
   },
   {
     source: "analytics/most_popular_last_3d.csv",
-    destination: "public/registry/analytics/most_popular_last_3d.csv",
+    destination: "public/registry-cache/analytics/most_popular_last_3d.csv",
   },
   {
     source: "analytics/most_popular_last_7d.csv",
-    destination: "public/registry/analytics/most_popular_last_7d.csv",
+    destination: "public/registry-cache/analytics/most_popular_last_7d.csv",
   },
   {
     source: "analytics/authors_by_total_downloads.csv",
-    destination: "public/registry/analytics/authors_by_total_downloads.csv",
+    destination: "public/registry-cache/analytics/authors_by_total_downloads.csv",
   },
   {
     source: "analytics/projects_most_popular_all_time.csv",
-    destination: "public/registry/analytics/projects_most_popular_all_time.csv",
+    destination: "public/registry-cache/analytics/projects_most_popular_all_time.csv",
   },
   {
     source: "analytics/projects_most_popular_last_1d.csv",
-    destination: "public/registry/analytics/projects_most_popular_last_1d.csv",
+    destination: "public/registry-cache/analytics/projects_most_popular_last_1d.csv",
   },
   {
     source: "analytics/projects_most_popular_last_3d.csv",
-    destination: "public/registry/analytics/projects_most_popular_last_3d.csv",
+    destination: "public/registry-cache/analytics/projects_most_popular_last_3d.csv",
   },
   {
     source: "analytics/projects_most_popular_last_7d.csv",
-    destination: "public/registry/analytics/projects_most_popular_last_7d.csv",
+    destination: "public/registry-cache/analytics/projects_most_popular_last_7d.csv",
   },
   {
     source: "analytics/listing_projects.csv",
-    destination: "public/registry/analytics/listing_projects.csv",
+    destination: "public/registry-cache/analytics/listing_projects.csv",
   },
   {
     source: "analytics/maps_statistics.csv",
-    destination: "public/registry/analytics/maps_statistics.csv",
+    destination: "public/registry-cache/analytics/maps_statistics.csv",
   },
   {
     source: "analytics/assets_by_day.csv",
-    destination: "public/registry/analytics/assets_by_day.csv",
+    destination: "public/registry-cache/analytics/assets_by_day.csv",
   },
   {
     source: "analytics/most_popular_by_day.csv",
-    destination: "public/registry/analytics/most_popular_by_day.csv",
+    destination: "public/registry-cache/analytics/most_popular_by_day.csv",
   },
   {
     source: "analytics/authors_by_day.csv",
-    destination: "public/registry/analytics/authors_by_day.csv",
+    destination: "public/registry-cache/analytics/authors_by_day.csv",
   },
   {
     source: "analytics/discord_server_by_day.csv",
@@ -90,7 +92,10 @@ const COPY_MAPPINGS = [
     source: "analytics/discord_user_message_by_day.csv",
     destination: "public/community/discord_user_message_by_day.csv",
   },
-  { source: "authors/index.json", destination: "public/registry/analytics/authors_index.json" },
+  {
+    source: "authors/index.json",
+    destination: "public/registry-cache/analytics/authors_index.json",
+  },
   {
     source: "analytics/railyard_app_downloads.json",
     destination: "public/railyard/analytics/railyard_app_downloads.json",
@@ -106,10 +111,10 @@ const COPY_MAPPINGS = [
 ];
 
 const MIRROR_DIRECTORY_MAPPINGS = [
-  { sourceRoot: "authors", destinationRoot: "public/registry/authors" },
-  { sourceRoot: "maps", destinationRoot: "public/registry/maps" },
-  { sourceRoot: "mods", destinationRoot: "public/registry/mods" },
-  { sourceRoot: "credits", destinationRoot: "public/registry/credits" },
+  { sourceRoot: "authors", destinationRoot: "public/registry-cache/authors" },
+  { sourceRoot: "maps", destinationRoot: "public/registry-cache/maps" },
+  { sourceRoot: "mods", destinationRoot: "public/registry-cache/mods" },
+  { sourceRoot: "credits", destinationRoot: "public/registry-cache/credits" },
 ];
 
 const MIRROR_FILE_BLACKLIST_BY_ROOT = {
@@ -133,8 +138,11 @@ const FETCH_STEPS = [
   "Load local environment",
   "Validate GitHub token",
   "Fetch registry snapshot",
+  "Fetch map data snapshot",
   "Copy registry, railyard, and community artifacts",
   "Mirror registry content trees",
+  "Mirror map data artifacts",
+  "Build release cache",
   "Transform website analytics",
   "Write website artifacts",
   "Write metadata",
@@ -180,6 +188,24 @@ function runGit(args, options = {}) {
   }
 
   return result.stdout?.trim() ?? "";
+}
+
+function cloneRegistryRef(ref, cloneDir, basicAuthHeader) {
+  runGit([
+    "-c",
+    `http.extraheader=AUTHORIZATION: basic ${basicAuthHeader}`,
+    "-c",
+    "credential.helper=",
+    "clone",
+    "--depth",
+    "1",
+    "--branch",
+    ref,
+    `https://github.com/${REGISTRY_REPO}.git`,
+    cloneDir,
+  ]);
+
+  return runGit(["-C", cloneDir, "rev-parse", "HEAD"]);
 }
 
 function ensureDirForFile(filePath) {
@@ -465,6 +491,10 @@ function copyMappedFiles(snapshotRoot, workspaceRoot, materializedFiles, progres
 }
 
 function shouldSkipMirroredFile(sourceRoot, relativePath) {
+  if (sourceRoot === "maps" && MAP_DATA_FILE_NAMES.has(path.basename(relativePath))) {
+    return true;
+  }
+
   const blacklist = MIRROR_FILE_BLACKLIST_BY_ROOT[sourceRoot] ?? [];
   if (blacklist.length === 0) return false;
 
@@ -541,6 +571,106 @@ function mirrorDirectoryRoots(snapshotRoot, workspaceRoot, materializedFiles, pr
   }
 }
 
+function removeStaleMapDataArtifacts(workspaceRoot) {
+  const mapsCacheRoot = path.join(workspaceRoot, "public", "registry-cache", "maps");
+  if (!existsSync(mapsCacheRoot)) {
+    return 0;
+  }
+
+  let removedCount = 0;
+  const stack = [mapsCacheRoot];
+
+  while (stack.length > 0) {
+    const currentDir = stack.pop() ?? mapsCacheRoot;
+    const entries = readdirSync(currentDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const entryPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(entryPath);
+        continue;
+      }
+
+      if (entry.isFile() && MAP_DATA_FILE_NAMES.has(entry.name)) {
+        rmSync(entryPath, { force: true });
+        removedCount += 1;
+      }
+    }
+  }
+
+  return removedCount;
+}
+
+function mirrorMapDataArtifacts(snapshotRoot, workspaceRoot, materializedFiles, progress) {
+  const sourceRootPath = path.join(snapshotRoot, "maps");
+  if (!existsSync(sourceRootPath)) {
+    fail("required registry map data directory is missing: maps");
+  }
+
+  const removedCount = removeStaleMapDataArtifacts(workspaceRoot);
+  let copiedCount = 0;
+  const entries = readdirSync(sourceRootPath, { withFileTypes: true }).sort((left, right) =>
+    left.name.localeCompare(right.name),
+  );
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    for (const fileName of MAP_DATA_FILE_NAMES) {
+      const sourcePath = path.join(sourceRootPath, entry.name, fileName);
+      if (!existsSync(sourcePath)) {
+        continue;
+      }
+
+      const materializedPath = path.posix.join("public/registry-cache/maps", entry.name, fileName);
+      const destinationPath = path.join(workspaceRoot, materializedPath);
+      ensureDirForFile(destinationPath);
+      copyFileSync(sourcePath, destinationPath);
+      materializedFiles.push(materializedPath);
+      copiedCount += 1;
+    }
+  }
+
+  progress.detail(
+    `Mirrored ${REGISTRY_MAP_DATA_REF}:maps/ -> public/registry-cache/maps/ (${copiedCount} files, ${removedCount} stale removed)`,
+  );
+}
+
+function buildReleaseCache(snapshotRoot, workspaceRoot, materializedFiles, progress) {
+  const relativePath = "public/registry-cache/github-releases-cache.json";
+  const outputPath = path.join(workspaceRoot, relativePath);
+  const result = spawnSync(
+    process.execPath,
+    [
+      "scripts/generate-github-release-cache.mjs",
+      "--snapshot-root",
+      snapshotRoot,
+      "--output",
+      outputPath,
+    ],
+    {
+      cwd: workspaceRoot,
+      stdio: "pipe",
+      encoding: "utf8",
+      env: process.env,
+    },
+  );
+
+  if (result.error) {
+    fail(`failed to run release cache generator: ${result.error.message}`);
+  }
+  if (result.status !== 0) {
+    const stderr = result.stderr?.trim();
+    const stdout = result.stdout?.trim();
+    fail(`release cache generator failed${stderr ? `: ${stderr}` : stdout ? `: ${stdout}` : ""}`);
+  }
+
+  materializedFiles.push(relativePath);
+  progress.detail(result.stdout.trim() || `Wrote ${relativePath}`);
+}
+
 function writeWebsiteFiles(parsedWebsite, workspaceRoot, materializedFiles, progress) {
   const outputs = {
     "public/website/analytics/summary.json": parsedWebsite.summary,
@@ -580,35 +710,36 @@ function main() {
 
   const tempRoot = mkdtempSync(path.join(tmpdir(), "website-dev-registry-"));
   const cloneDir = path.join(tempRoot, "registry");
+  const mapDataCloneDir = path.join(tempRoot, "registry-map-data");
   const basicAuthHeader = Buffer.from(`x-access-token:${token}`, "utf8").toString("base64");
 
   try {
     progress.step("Fetch registry snapshot");
-    runGit([
-      "-c",
-      `http.extraheader=AUTHORIZATION: basic ${basicAuthHeader}`,
-      "-c",
-      "credential.helper=",
-      "clone",
-      "--depth",
-      "1",
-      "--branch",
-      REGISTRY_REF,
-      `https://github.com/${REGISTRY_REPO}.git`,
-      cloneDir,
-    ]);
+    const commitSha = cloneRegistryRef(REGISTRY_REF, cloneDir, basicAuthHeader);
+    progress.detail(`Fetched ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`);
 
-    const commitSha = runGit(["-C", cloneDir, "rev-parse", "HEAD"]);
+    progress.step("Fetch map data snapshot");
+    const mapDataCommitSha = cloneRegistryRef(
+      REGISTRY_MAP_DATA_REF,
+      mapDataCloneDir,
+      basicAuthHeader,
+    );
+    progress.detail(`Fetched ${REGISTRY_REPO}@${REGISTRY_MAP_DATA_REF} (${mapDataCommitSha})`);
+
     const fetchedAt = new Date().toISOString();
     const materializedFiles = [];
-
-    progress.detail(`Fetched ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`);
 
     progress.step("Copy registry, railyard, and community artifacts");
     copyMappedFiles(cloneDir, workspaceRoot, materializedFiles, progress);
 
     progress.step("Mirror registry content trees");
     mirrorDirectoryRoots(cloneDir, workspaceRoot, materializedFiles, progress);
+
+    progress.step("Mirror map data artifacts");
+    mirrorMapDataArtifacts(mapDataCloneDir, workspaceRoot, materializedFiles, progress);
+
+    progress.step("Build release cache");
+    buildReleaseCache(cloneDir, workspaceRoot, materializedFiles, progress);
 
     const websiteAnalyticsPath = path.join(cloneDir, "analytics", "website_analytics.json");
     if (!existsSync(websiteAnalyticsPath)) {
@@ -626,6 +757,8 @@ function main() {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
+      mapDataSourceRef: REGISTRY_MAP_DATA_REF,
+      mapDataCommitSha,
       fetchedAt,
       materializedFiles: materializedFiles.sort((left, right) => left.localeCompare(right)),
       websiteAnalyticsSourceGeneratedAt: parsedWebsite.sourceGeneratedAt,
@@ -634,12 +767,12 @@ function main() {
     progress.step("Write metadata");
     const metadataPath = path.join(workspaceRoot, "public", "website", "snapshot-meta.json");
     writeJson(metadataPath, metadata);
-    progress.detail("Wrote public/website/analytics/snapshot-meta.json");
+    progress.detail("Wrote public/website/snapshot-meta.json");
 
     const registryMetaPath = path.join(
       workspaceRoot,
       "public",
-      "registry",
+      "registry-cache",
       "analytics",
       "snapshot-meta.json",
     );
@@ -647,12 +780,14 @@ function main() {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
+      mapDataSourceRef: REGISTRY_MAP_DATA_REF,
+      mapDataCommitSha,
       fetchedAt,
       files: materializedFiles
-        .filter((file) => file.startsWith("public/registry/analytics/"))
+        .filter((file) => file.startsWith("public/registry-cache/analytics/"))
         .sort((a, b) => a.localeCompare(b)),
     });
-    progress.detail("Wrote public/registry/analytics/snapshot-meta.json");
+    progress.detail("Wrote public/registry-cache/analytics/snapshot-meta.json");
 
     const railyardMetaPath = path.join(
       workspaceRoot,
@@ -665,6 +800,8 @@ function main() {
       sourceRepo: REGISTRY_REPO,
       sourceRef: REGISTRY_REF,
       commitSha,
+      mapDataSourceRef: REGISTRY_MAP_DATA_REF,
+      mapDataCommitSha,
       fetchedAt,
       files: materializedFiles
         .filter((file) => file.startsWith("public/railyard/analytics/"))
@@ -673,7 +810,7 @@ function main() {
     progress.detail("Wrote public/railyard/analytics/snapshot-meta.json");
 
     console.log(
-      `[fetch-registry-site-data] materialized ${materializedFiles.length} files from ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha})`,
+      `[fetch-registry-site-data] materialized ${materializedFiles.length} files from ${REGISTRY_REPO}@${REGISTRY_REF} (${commitSha}) and ${REGISTRY_MAP_DATA_REF} (${mapDataCommitSha})`,
     );
   } finally {
     rmSync(tempRoot, { recursive: true, force: true });

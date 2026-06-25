@@ -37,15 +37,9 @@ function PersonCard({
 }) {
   const trailing = person.link ? (
     isExternalHref(person.link) ? (
-      <ExternalLink
-        aria-label="External profile link"
-        className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100"
-      />
+      <ExternalLink className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100" />
     ) : (
-      <LinkIcon
-        aria-label="Profile link"
-        className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100"
-      />
+      <LinkIcon className="size-[clamp(0.8rem,1.2vw,0.95rem)] text-muted-foreground opacity-70 transition-opacity group-hover:opacity-100" />
     )
   ) : null;
 

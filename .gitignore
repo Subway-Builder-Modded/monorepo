@@ -4,6 +4,7 @@
 conventions.md
 CLAUDE.md
 AGENTS.md
+.github/copilot-instructions.md
 
 # Ignore cache and temporary files
 .gocache/

@@ -14,13 +14,13 @@
   --suite-primary-dark: #f2992e55;
   --suite-secondary-light: #ffbe7355;
   --suite-secondary-dark: #ffbe7355;
-  --suite-muted-light: #f2992e;
-  --suite-muted-dark: #f2992e;
+  --suite-muted-light: #a8641e;
+  --suite-muted-dark: #a8641e;
   --suite-text-light: #232323;
   --suite-text-dark: #f2f2f2;
   --suite-text-inverted-light: #f2f2f2;
   --suite-text-inverted-dark: #232323;
-  --suite-link-light: #b86507;
+  --suite-link-light: #f2992e;
   --suite-link-dark: #ffbe73;
 
   --primary: var(--suite-accent-light);
@@ -74,7 +74,7 @@
   --secondary: oklch(0.22 0 0);
   --secondary-foreground: oklch(0.92 0 0);
   --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.62 0 0);
+  --muted-foreground: oklch(0.72 0 0);
   --accent: color-mix(in srgb, var(--suite-accent-dark) 22%, black);
   --accent-foreground: color-mix(in srgb, var(--suite-accent-dark) 72%, white);
   --destructive: oklch(0.704 0.191 22.216);

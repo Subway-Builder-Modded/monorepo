@@ -21,7 +21,6 @@ import {
 import { Spoiler, MdxDetails, MdxSummary } from "./spoiler.tsx";
 
 type MdxComponentMap = Record<string, ComponentType<any>>;
-
 type InternalLinkProps = {
   to: string;
   className?: string;
@@ -49,9 +48,10 @@ function extractTextFromChildren(children: ReactNode): string {
   return "";
 }
 
-function createHeading(level: 2 | 3 | 4 | 5, slugify: (text: string) => string) {
+function createHeading(level: 1 | 2 | 3 | 4 | 5, slugify: (text: string) => string) {
   const Tag = `h${level}` as const;
   const sizeClass = {
+    1: "text-4xl font-extrabold mt-11 mb-5 tracking-tight",
     2: "text-3xl font-bold mt-10 mb-4 tracking-tight",
     3: "text-2xl font-semibold mt-7 mb-3 tracking-tight",
     4: "text-xl font-semibold mt-5 mb-2",
@@ -101,7 +101,7 @@ function createMdxLink(InternalLinkComponent?: ComponentType<InternalLinkProps>)
         <a
           href={href}
           {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-          className="text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] underline underline-offset-2 hover:opacity-80 transition-opacity"
+          className="text-[var(--registry-type-accent,var(--suite-accent-light))] dark:text-[var(--registry-type-accent,var(--suite-accent-dark))] visited:text-[var(--registry-type-accent,var(--suite-accent-light))] dark:visited:text-[var(--registry-type-accent,var(--suite-accent-dark))] underline underline-offset-2 hover:opacity-80 transition-opacity"
           {...props}
         >
           {children}
@@ -112,7 +112,7 @@ function createMdxLink(InternalLinkComponent?: ComponentType<InternalLinkProps>)
     return (
       <InternalLinkComponent
         to={href}
-        className="text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)] underline underline-offset-2 hover:opacity-80 transition-opacity"
+        className="text-[var(--registry-type-accent,var(--suite-accent-light))] dark:text-[var(--registry-type-accent,var(--suite-accent-dark))] visited:text-[var(--registry-type-accent,var(--suite-accent-light))] dark:visited:text-[var(--registry-type-accent,var(--suite-accent-dark))] underline underline-offset-2 hover:opacity-80 transition-opacity"
         {...props}
       >
         {children}
@@ -122,11 +122,16 @@ function createMdxLink(InternalLinkComponent?: ComponentType<InternalLinkProps>)
 }
 
 function MdxImage(props: ImgHTMLAttributes<HTMLImageElement>) {
+  const explicitAlign = (props as { align?: string }).align;
+  const hasExplicitCenterAlign =
+    explicitAlign === "center" ||
+    (typeof props.className === "string" && /(^|\s)mx-auto(\s|$)/.test(props.className));
+
   return (
     <img
       {...props}
       loading="lazy"
-      className={cx("mx-auto my-4 max-w-full rounded-lg", props.className)}
+      className={cx("my-4 max-w-full rounded-lg", hasExplicitCenterAlign && "mx-auto", props.className)}
     />
   );
 }
@@ -144,6 +149,7 @@ export function createArticleMdxComponents({
   const MdxLink = createMdxLink(internalLinkComponent) as ComponentType<Record<string, unknown>>;
 
   const baseComponents: MdxComponentMap = {
+    h1: createHeading(1, slugify),
     h2: createHeading(2, slugify),
     h3: createHeading(3, slugify),
     h4: createHeading(4, slugify),
@@ -160,6 +166,14 @@ export function createArticleMdxComponents({
       >
         {children as ReactNode}
       </ul>
+    ),
+    ol: ({ children, ...props }) => (
+      <ol
+        className="my-3 ml-6 list-decimal space-y-1 text-foreground/90 marker:text-muted-foreground"
+        {...props}
+      >
+        {children as ReactNode}
+      </ol>
     ),
     li: ({ children, ...props }) => (
       <li className="leading-relaxed" {...props}>
@@ -194,8 +208,8 @@ export function createArticleMdxComponents({
       );
     },
     table: ({ children, ...props }) => (
-      <div className="my-4 overflow-x-auto rounded-lg border border-border/50">
-        <table className="w-full text-sm" {...props}>
+      <div className="mdx-table-wrap my-4 overflow-x-auto rounded-lg border border-border/50">
+        <table className="w-full table-fixed text-sm" {...props}>
           {children as ReactNode}
         </table>
       </div>
@@ -206,7 +220,10 @@ export function createArticleMdxComponents({
       </thead>
     ),
     th: ({ children, ...props }) => (
-      <th className="px-4 py-2.5 text-left font-semibold text-foreground" {...props}>
+      <th
+        className="align-middle px-4 py-2.5 text-left font-semibold text-muted-foreground [&_svg]:text-muted-foreground"
+        {...props}
+      >
         {children as ReactNode}
       </th>
     ),
@@ -249,6 +266,40 @@ export function createArticleMdxComponents({
 
   return {
     ...baseComponents,
+    H1: baseComponents.h1,
+    H2: baseComponents.h2,
+    H3: baseComponents.h3,
+    H4: baseComponents.h4,
+    H5: baseComponents.h5,
+    Div: ({ children, ...props }) => (
+      <div className="my-3 leading-relaxed text-foreground/90" {...props}>
+        {children as ReactNode}
+      </div>
+    ),
+    P: baseComponents.p,
+    Ul: baseComponents.ul,
+    Ol: baseComponents.ol,
+    Li: baseComponents.li,
+    Strong: baseComponents.strong,
+    Em: ({ children, ...props }) => (
+      <em className="italic" {...props}>
+        {children as ReactNode}
+      </em>
+    ),
+    A: baseComponents.a,
+    Image: baseComponents.Image,
+    Pre: baseComponents.pre,
+    Code: baseComponents.code,
+    Table: baseComponents.table,
+    Thead: baseComponents.thead,
+    Tbody: ({ children, ...props }) => <tbody {...props}>{children as ReactNode}</tbody>,
+    Tr: ({ children, ...props }) => <tr {...props}>{children as ReactNode}</tr>,
+    Th: baseComponents.th,
+    Td: baseComponents.td,
+    Blockquote: baseComponents.blockquote,
+    Hr: baseComponents.hr,
+    Details: baseComponents.details,
+    Summary: baseComponents.summary,
     ...(additionalComponents ?? {}),
   };
 }

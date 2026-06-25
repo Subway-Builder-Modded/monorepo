@@ -17,7 +17,7 @@ describe("NavbarTopbar", () => {
       />,
     );
 
-    expect(screen.getByLabelText("Go to home")).toBeVisible();
+    expect(screen.getByRole("link", { name: /Subway Builder Modded/i })).toBeVisible();
     expect(screen.getByText("Registry")).toBeVisible();
     expect(screen.queryByRole("navigation", { name: /breadcrumb/i })).toBeNull();
 
@@ -38,7 +38,7 @@ describe("NavbarTopbar", () => {
       />,
     );
 
-    const brandLink = screen.getByLabelText("Go to home");
+    const brandLink = screen.getByRole("link", { name: /Subway Builder Modded/i });
     // Find the inner text span (not the overflow-clip wrapper).
     const brandTextSpan = brandLink.querySelector("span > span");
     expect(brandTextSpan).toBeTruthy();

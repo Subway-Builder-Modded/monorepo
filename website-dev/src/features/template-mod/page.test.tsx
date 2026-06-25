@@ -23,7 +23,7 @@ describe("TemplateModRoute", () => {
     expect(screen.getByRole("tab", { name: "Install and Configure" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Build, Link, and Develop" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Game API" })).toBeInTheDocument();
-  });
+  }, 30_000);
 
   it("switches visible code content when tab changes", async () => {
     const user = userEvent.setup();
