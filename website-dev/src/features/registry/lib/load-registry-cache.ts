@@ -29,8 +29,30 @@ function safeFetchText(url: string): Promise<string> {
   });
 }
 
-async function getLastActivityAt(id: string, integrity: RawRegistryIntegrity): Promise<number> {
+function getUnixSecondsAsMs(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return 0;
+  }
+
+  return value * 1000;
+}
+
+function getLastActivityAt(
+  id: string,
+  manifest: RawRegistryManifest,
+  integrity: RawRegistryIntegrity,
+): number {
+  const manifestTimestamp = getUnixSecondsAsMs(manifest.last_updated);
+  if (manifestTimestamp > 0) {
+    return manifestTimestamp;
+  }
+
   const listing = integrity.listings?.[id];
+  const listingTimestamp = getUnixSecondsAsMs(listing?.last_updated);
+  if (listingTimestamp > 0) {
+    return listingTimestamp;
+  }
+
   if (!listing?.versions) {
     const generated = Date.parse(integrity.generated_at ?? "");
     return Number.isFinite(generated) ? generated : 0;
@@ -271,7 +293,7 @@ export async function loadRegistryItemsForType(
       countryEmoji = info.emoji;
     }
 
-    const lastActivityAt = await getLastActivityAt(id, integrity);
+    const lastActivityAt = getLastActivityAt(id, manifest, integrity);
 
     items.push({
       id,

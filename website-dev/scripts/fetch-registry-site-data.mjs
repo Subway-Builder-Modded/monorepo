@@ -142,6 +142,7 @@ const FETCH_STEPS = [
   "Copy registry, railyard, and community artifacts",
   "Mirror registry content trees",
   "Mirror map data artifacts",
+  "Build release cache",
   "Transform website analytics",
   "Write website artifacts",
   "Write metadata",
@@ -637,6 +638,39 @@ function mirrorMapDataArtifacts(snapshotRoot, workspaceRoot, materializedFiles, 
   );
 }
 
+function buildReleaseCache(snapshotRoot, workspaceRoot, materializedFiles, progress) {
+  const relativePath = "public/registry-cache/github-releases-cache.json";
+  const outputPath = path.join(workspaceRoot, relativePath);
+  const result = spawnSync(
+    process.execPath,
+    [
+      "scripts/generate-github-release-cache.mjs",
+      "--snapshot-root",
+      snapshotRoot,
+      "--output",
+      outputPath,
+    ],
+    {
+      cwd: workspaceRoot,
+      stdio: "pipe",
+      encoding: "utf8",
+      env: process.env,
+    },
+  );
+
+  if (result.error) {
+    fail(`failed to run release cache generator: ${result.error.message}`);
+  }
+  if (result.status !== 0) {
+    const stderr = result.stderr?.trim();
+    const stdout = result.stdout?.trim();
+    fail(`release cache generator failed${stderr ? `: ${stderr}` : stdout ? `: ${stdout}` : ""}`);
+  }
+
+  materializedFiles.push(relativePath);
+  progress.detail(result.stdout.trim() || `Wrote ${relativePath}`);
+}
+
 function writeWebsiteFiles(parsedWebsite, workspaceRoot, materializedFiles, progress) {
   const outputs = {
     "public/website/analytics/summary.json": parsedWebsite.summary,
@@ -703,6 +737,9 @@ function main() {
 
     progress.step("Mirror map data artifacts");
     mirrorMapDataArtifacts(mapDataCloneDir, workspaceRoot, materializedFiles, progress);
+
+    progress.step("Build release cache");
+    buildReleaseCache(cloneDir, workspaceRoot, materializedFiles, progress);
 
     const websiteAnalyticsPath = path.join(cloneDir, "analytics", "website_analytics.json");
     if (!existsSync(websiteAnalyticsPath)) {

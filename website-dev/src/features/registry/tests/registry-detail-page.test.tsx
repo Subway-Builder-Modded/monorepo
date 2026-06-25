@@ -98,6 +98,10 @@ const MAP_LOADED = {
   listingLatestSemverVersion: "1.0.0",
   listingLatestSemverComplete: true,
   listingCompleteVersions: ["1.0.0", "0.9.0"],
+  versionReleaseDates: {
+    "1.0.0": "2026-04-26T00:00:00.000Z",
+    "0.9.0": "2026-04-20T00:00:00.000Z",
+  },
   versionDownloads: {
     "1.0.0": 102,
     "0.9.0": 25,
@@ -423,6 +427,7 @@ describe("RegistryDetailPage", () => {
         name: "Example Mod",
       },
       listingVersions: {},
+      versionReleaseDates: {},
       versionDownloads: {},
       authorAttributionHref: null,
     });

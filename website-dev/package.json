@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vp dev",
     "fetch": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/fetch-registry-site-data.mjs",
+    "generate:github-release-cache": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/generate-github-release-cache.mjs",
     "build": "vp build",
     "preview": "vp preview",
     "test": "vitest run",

@@ -44,6 +44,7 @@ export type RawRegistryManifest = {
   population?: number;
   residents_total?: number;
   is_test?: boolean;
+  last_updated?: number;
 };
 
 /** Shape of the index.json file in each type folder. */
@@ -63,6 +64,7 @@ export type RawRegistryIntegrity = {
     string,
     {
       has_complete_version?: boolean;
+      last_updated?: number;
       versions?: Record<
         string,
         {

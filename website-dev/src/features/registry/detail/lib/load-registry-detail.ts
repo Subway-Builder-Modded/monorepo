@@ -22,6 +22,7 @@ type RawManifest = {
   level_of_detail?: string;
   population_count?: number;
   points_count?: number;
+  last_updated?: number;
   grid_statistics?: {
     detail?: {
       playableAreaKm2?: number;
@@ -39,6 +40,7 @@ type RawIntegrity = {
   listings?: Record<
     string,
     {
+      last_updated?: number;
       latest_semver_version?: string;
       latest_semver_complete?: boolean;
       complete_versions?: string[];
@@ -69,6 +71,11 @@ type RawAuthorsIndex = {
     author_alias?: string;
     attribution_link?: string;
   }>;
+};
+
+type ReleaseCache = {
+  repos?: Record<string, Array<{ tag_name?: string; published_at?: string }>>;
+  custom_urls?: Record<string, Array<{ version?: string; date?: string }>>;
 };
 
 let allRegistryManifestsPromise: Promise<RawManifest[]> | null = null;
@@ -229,6 +236,10 @@ function safeJson<T>(raw: string, fallback: T): T {
   }
 }
 
+function normalizeVersionKey(version: string | undefined): string {
+  return (version ?? "").trim().replace(/^v/i, "").toLowerCase();
+}
+
 async function safeFetchText(url: string): Promise<string | null> {
   try {
     const response = await fetch(url);
@@ -239,6 +250,54 @@ async function safeFetchText(url: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+function resolveVersionReleaseDates(
+  manifest: RawManifest,
+  listingVersions: NonNullable<RawIntegrity["listings"]>[string]["versions"] | undefined,
+  releaseCache: ReleaseCache,
+): Record<string, string> {
+  const result: Record<string, string> = {};
+  const update = manifest.update;
+  const entries = Object.entries(listingVersions ?? {});
+
+  if (update?.type === "github" && update.repo?.trim()) {
+    const releases = releaseCache.repos?.[update.repo.trim().toLowerCase()] ?? [];
+    const releaseByVersion = new Map(
+      releases
+        .filter((release) => release.published_at?.trim())
+        .map((release) => [normalizeVersionKey(release.tag_name), release.published_at!.trim()]),
+    );
+
+    for (const [version, meta] of entries) {
+      const date =
+        releaseByVersion.get(normalizeVersionKey(meta.source?.tag)) ??
+        releaseByVersion.get(normalizeVersionKey(version));
+      if (date) {
+        result[version] = date;
+      }
+    }
+  }
+
+  if (update?.type === "custom" && update.url?.trim()) {
+    const versions = releaseCache.custom_urls?.[update.url.trim()] ?? [];
+    const dateByVersion = new Map(
+      versions
+        .filter((entry) => entry.date?.trim())
+        .map((entry) => [normalizeVersionKey(entry.version), entry.date!.trim()]),
+    );
+
+    for (const [version, meta] of entries) {
+      const date =
+        dateByVersion.get(normalizeVersionKey(meta.source?.tag)) ??
+        dateByVersion.get(normalizeVersionKey(version));
+      if (date) {
+        result[version] = date;
+      }
+    }
+  }
+
+  return result;
 }
 
 function getTypeConfigFromRouteSegment(routeSegment: string) {
@@ -426,13 +485,14 @@ export async function loadRegistryDetail(
   }
 
   const baseUrl = getRegistryCollectionCachePath(typeConfig.routeSegment);
-  const [manifestRaw, integrityRaw, downloadsRaw, authorsRaw, dailyAnalyticsRaw] =
+  const [manifestRaw, integrityRaw, downloadsRaw, authorsRaw, dailyAnalyticsRaw, releaseCacheRaw] =
     await Promise.all([
       safeFetchText(getRegistryItemCachePath(typeConfig.routeSegment, id, "manifest.json")),
       safeFetchText(`${baseUrl}/integrity.json`),
       safeFetchText(`${baseUrl}/downloads.json`),
       safeFetchText(getRegistryAuthorsIndexPath()),
       safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
+      safeFetchText("/registry-cache/github-releases-cache.json"),
     ]);
 
   if (!manifestRaw) {
@@ -443,6 +503,7 @@ export async function loadRegistryDetail(
   const integrity = safeJson<RawIntegrity>(integrityRaw ?? "{}", {});
   const downloads = safeJson<RawDownloads>(downloadsRaw ?? "{}", {});
   const authorsIndex = safeJson<RawAuthorsIndex>(authorsRaw ?? "{}", {});
+  const releaseCache = safeJson<ReleaseCache>(releaseCacheRaw ?? "{}", {});
   const listing = integrity.listings?.[id];
   const allManifests = await loadAllRegistryManifests();
   const projectId = resolveProjectId(manifest, allManifests);
@@ -493,10 +554,15 @@ export async function loadRegistryDetail(
     downloadAnalytics,
     mapRankings,
     manifest,
+    listingLastUpdated:
+      typeof listing?.last_updated === "number" && Number.isFinite(listing.last_updated)
+        ? listing.last_updated
+        : null,
     listingLatestSemverVersion: listing?.latest_semver_version ?? null,
     listingLatestSemverComplete: listing?.latest_semver_complete === true,
     listingCompleteVersions: listing?.complete_versions ?? [],
     listingVersions: listing?.versions ?? {},
+    versionReleaseDates: resolveVersionReleaseDates(manifest, listing?.versions, releaseCache),
     versionDownloads: downloads[id] ?? {},
     authorAttributionHref: resolveAuthorHref(item.authorId, authorsIndex),
     collaborators,

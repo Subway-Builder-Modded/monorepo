@@ -42,6 +42,7 @@ const BASE: RegistryDetailLoadedData = {
       type: "github",
       repo: "example/repo",
     },
+    last_updated: 1_772_000_000,
   },
   listingVersions: {
     "1.0.0": {
@@ -62,7 +63,12 @@ const BASE: RegistryDetailLoadedData = {
   },
   listingLatestSemverVersion: "1.0.0",
   listingLatestSemverComplete: true,
+  listingLastUpdated: 1_771_000_000,
   listingCompleteVersions: ["1.0.0", "0.9.0"],
+  versionReleaseDates: {
+    "1.0.0": "2026-04-24T00:00:00.000Z",
+    "0.9.0": "2026-02-28T00:00:00.000Z",
+  },
   versionDownloads: {
     "1.0.0": 10,
     "0.9.0": 4,
@@ -90,8 +96,8 @@ describe("normalizeRegistryDetail", () => {
     });
     expect(model.latestVersion).toBe("1.0.0");
     expect(model.latestDownloadUrl).toBe("https://downloads.example/gwangju-1.0.0.zip");
-    expect(model.publishedDate).toBe("2026-03-01T00:00:00.000Z");
-    expect(model.updatedDate).toBe("2026-04-25T00:00:00.000Z");
+    expect(model.publishedDate).toBe("2026-02-28T00:00:00.000Z");
+    expect(model.updatedDate).toBe("2026-02-25T06:13:20.000Z");
     expect(model.integrityVersionCount).toBe(2);
     expect(model.downloadAnalytics).toEqual({
       rank: 3,
@@ -99,7 +105,10 @@ describe("normalizeRegistryDetail", () => {
       last14Days: 140,
       last7Days: 70,
     });
-    expect(model.versions.map((v) => v.version)).toEqual(["1.0.0", "0.9.0"]);
+    expect(model.versions).toMatchObject([
+      { version: "1.0.0", releaseDate: "2026-04-24T00:00:00.000Z" },
+      { version: "0.9.0", releaseDate: "2026-02-28T00:00:00.000Z" },
+    ]);
     expect(model.mapFields).toEqual({
       rankings: {
         population: null,
@@ -142,8 +151,10 @@ describe("normalizeRegistryDetail", () => {
       manifest: {},
       listingLatestSemverVersion: null,
       listingLatestSemverComplete: false,
+      listingLastUpdated: null,
       listingCompleteVersions: [],
       listingVersions: {},
+      versionReleaseDates: {},
       versionDownloads: {},
       authorAttributionHref: null,
       projectId: null,
@@ -157,5 +168,20 @@ describe("normalizeRegistryDetail", () => {
     expect(model.publishedDate).toBeNull();
     expect(model.updatedDate).toBeNull();
     expect(model.integrityVersionCount).toBe(0);
+  });
+
+  it("falls back to checked_at dates when last_updated is unavailable", () => {
+    const model = normalizeRegistryDetail({
+      ...BASE,
+      manifest: {
+        ...BASE.manifest,
+        last_updated: undefined,
+      },
+      listingLastUpdated: null,
+      versionReleaseDates: {},
+    });
+
+    expect(model.publishedDate).toBe("2026-03-01T00:00:00.000Z");
+    expect(model.updatedDate).toBe("2026-04-25T00:00:00.000Z");
   });
 });

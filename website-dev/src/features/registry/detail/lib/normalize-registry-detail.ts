@@ -18,6 +18,18 @@ function compareVersionKeysDescending(left: string, right: string): number {
   });
 }
 
+function unixSecondsToIso(value: number | null | undefined): string | null {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return null;
+  }
+
+  return new Date(value * 1000).toISOString();
+}
+
+function resolveListingUpdatedDate(data: RegistryDetailLoadedData): string | null {
+  return unixSecondsToIso(data.manifest.last_updated) ?? unixSecondsToIso(data.listingLastUpdated);
+}
+
 function toExcerpt(input: string): string | null {
   const normalized = input
     .replace(/\s+/g, " ")
@@ -131,13 +143,14 @@ function resolveSourceCodeLink(
 
 function resolveVersions(
   listingVersions: Record<string, RegistryDetailIntegrityVersion>,
+  versionReleaseDates: Record<string, string>,
   versionDownloads: Record<string, number>,
 ): RegistryDetailVersion[] {
   const versions = Object.entries(listingVersions)
     .filter(([, meta]) => meta.is_complete === true)
     .map(([version, meta]) => ({
       version,
-      releaseDate: meta.checked_at ?? null,
+      releaseDate: versionReleaseDates[version] ?? meta.checked_at ?? null,
       downloads:
         typeof versionDownloads[version] === "number"
           ? Math.max(0, versionDownloads[version])
@@ -148,11 +161,6 @@ function resolveVersions(
     }));
 
   versions.sort((left, right) => {
-    const leftDate = left.releaseDate ? Date.parse(left.releaseDate) : 0;
-    const rightDate = right.releaseDate ? Date.parse(right.releaseDate) : 0;
-    if (rightDate !== leftDate) {
-      return rightDate - leftDate;
-    }
     return right.version.localeCompare(left.version, undefined, {
       numeric: true,
       sensitivity: "base",
@@ -162,7 +170,10 @@ function resolveVersions(
   return versions;
 }
 
-function resolveIntegrityStats(versions: RegistryDetailVersion[]): {
+function resolveIntegrityStats(
+  versions: RegistryDetailVersion[],
+  listingUpdatedDate: string | null,
+): {
   publishedDate: string | null;
   updatedDate: string | null;
   integrityVersionCount: number;
@@ -170,17 +181,17 @@ function resolveIntegrityStats(versions: RegistryDetailVersion[]): {
   if (versions.length === 0) {
     return {
       publishedDate: null,
-      updatedDate: null,
+      updatedDate: listingUpdatedDate,
       integrityVersionCount: 0,
     };
   }
 
-  const updatedDate = versions[0]?.releaseDate ?? null;
+  const fallbackUpdatedDate = listingUpdatedDate ?? versions[0]?.releaseDate ?? null;
   const publishedDate = versions[versions.length - 1]?.releaseDate ?? null;
 
   return {
     publishedDate,
-    updatedDate,
+    updatedDate: fallbackUpdatedDate,
     integrityVersionCount: versions.length,
   };
 }
@@ -281,9 +292,14 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
     const normalizedTag = tag.trim().toLowerCase();
     return !isMapDemandDataTag(normalizedTag, sourceQuality, levelOfDetail);
   });
-  const versions = resolveVersions(data.listingVersions, data.versionDownloads);
+  const listingUpdatedDate = resolveListingUpdatedDate(data);
+  const versions = resolveVersions(
+    data.listingVersions,
+    data.versionReleaseDates,
+    data.versionDownloads,
+  );
   const latestDownloadUrl = resolveLatestDownloadUrl(data);
-  const integrityStats = resolveIntegrityStats(versions);
+  const integrityStats = resolveIntegrityStats(versions, listingUpdatedDate);
   const totalDownloads = Number.isFinite(data.item.totalDownloads)
     ? data.item.totalDownloads
     : null;

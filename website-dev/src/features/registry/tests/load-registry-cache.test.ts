@@ -52,6 +52,7 @@ describe("loadRegistryItemsForType", () => {
         generated_at: "2025-01-01T00:00:00.000Z",
         listings: {
           "gwangju-4": {
+            last_updated: 1_720_000_000,
             versions: {
               v1: { is_complete: true, checked_at: "2025-01-10T00:00:00.000Z" },
               v2: { is_complete: true, checked_at: "2025-01-12T00:00:00.000Z" },
@@ -111,8 +112,38 @@ describe("loadRegistryItemsForType", () => {
       isTest: false,
     });
 
-    expect(items[0]?.lastActivityAt).toBe(Date.parse("2025-01-12T00:00:00.000Z"));
+    expect(items[0]?.lastActivityAt).toBe(1_720_000_000_000);
     expect(items[0]?.tags).not.toContain("europe");
+  });
+
+  it("prefers manifest last_updated over integrity metadata", async () => {
+    const base = "/registry-cache/mods";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        generated_at: "2025-02-01T00:00:00.000Z",
+        listings: {
+          "date-source-mod": {
+            has_complete_version: true,
+            last_updated: 1_710_000_000,
+            versions: {
+              v1: { is_complete: true, checked_at: "2026-06-21T07:16:20.303Z" },
+            },
+          },
+        },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ mods: ["date-source-mod"] }),
+      [`${base}/date-source-mod/manifest.json`]: JSON.stringify({
+        name: "Date Source Mod",
+        last_updated: 1_720_000_000,
+      }),
+    });
+
+    const items = await loadRegistryItemsForType("mods", "mods");
+
+    expect(items).toHaveLength(1);
+    expect(items[0]?.lastActivityAt).toBe(1_720_000_000_000);
   });
 
   it("falls back to integrity ids when index list is empty and handles defaults", async () => {

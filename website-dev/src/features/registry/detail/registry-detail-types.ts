@@ -131,16 +131,19 @@ export type RegistryDetailLoadedData = {
       };
     };
     file_sizes?: Record<string, number>;
+    last_updated?: number;
     update?: {
       type?: string;
       repo?: string;
       url?: string;
     };
   };
+  listingLastUpdated: number | null;
   listingLatestSemverVersion: string | null;
   listingLatestSemverComplete: boolean;
   listingCompleteVersions: string[];
   listingVersions: Record<string, RegistryDetailIntegrityVersion>;
+  versionReleaseDates: Record<string, string>;
   versionDownloads: Record<string, number>;
   authorAttributionHref: string | null;
   collaborators?: RegistryDetailCollaborator[];
