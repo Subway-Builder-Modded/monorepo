@@ -70,6 +70,7 @@ const MAP_LOADED = {
       "ocean_depth_index.json": 2.63,
       "roads.geojson": 11.46,
       "runways_taxiways.geojson": 0,
+      "water.geojson": 7.5,
     },
     gallery: ["gallery/one.png", "gallery/two.png"],
     source: "https://github.com/example/gwangju",
@@ -400,6 +401,8 @@ describe("RegistryDetailPage", () => {
     expect(screen.getAllByText("1.0.0").length).toBeGreaterThan(0);
     expect(screen.getAllByText("2").length).toBeGreaterThan(0);
     expect(screen.getAllByText("File Sizes").length).toBeGreaterThan(0);
+    expect(screen.getByText("Ocean Depth Index")).toBeInTheDocument();
+    expect(screen.getByText("Other")).toBeInTheDocument();
     expect(screen.getByText("Map Stats")).toBeInTheDocument();
     expect(screen.getAllByText("Data Quality").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Level of Detail").length).toBeGreaterThan(0);

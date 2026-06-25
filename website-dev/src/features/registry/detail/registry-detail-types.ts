@@ -75,6 +75,7 @@ export type RegistryDetailMapFields = {
     oceanDepthIndex: number | null;
     roads: number | null;
     runwaysTaxiways: number | null;
+    other: number | null;
   };
 };
 

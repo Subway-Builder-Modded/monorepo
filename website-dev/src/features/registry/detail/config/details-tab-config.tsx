@@ -3,6 +3,7 @@ import {
   Building2,
   CalendarDays,
   Database,
+  FileArchive,
   Road,
   History,
   Layers,
@@ -14,6 +15,7 @@ import {
   Users,
   LayoutGrid,
   Circle,
+  Waves,
   type LucideIcon,
 } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
@@ -44,6 +46,7 @@ type DetailsTabCardConfig = {
   icon: LucideIcon;
   getValue: (detail: RegistryDetailModel) => string | ReactNode;
   getLink?: (detail: RegistryDetailModel) => string | null;
+  shouldRender?: (detail: RegistryDetailModel) => boolean;
 };
 
 type DetailsTabSectionConfig = {
@@ -222,6 +225,12 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
         getValue: (detail) => formatFileSizeMb(detail.mapFields?.fileSizes.demandData ?? null),
       },
       {
+        title: "Ocean Depth Index",
+        icon: Waves,
+        getValue: (detail) => formatFileSizeMb(detail.mapFields?.fileSizes.oceanDepthIndex ?? null),
+        shouldRender: (detail) => typeof detail.mapFields?.fileSizes.oceanDepthIndex === "number",
+      },
+      {
         title: "Roads",
         icon: Road,
         getValue: (detail) => formatFileSizeMb(detail.mapFields?.fileSizes.roads ?? null),
@@ -230,6 +239,12 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
         title: "Runways & Taxiways",
         icon: Plane,
         getValue: (detail) => formatFileSizeMb(detail.mapFields?.fileSizes.runwaysTaxiways ?? null),
+      },
+      {
+        title: "Other",
+        icon: FileArchive,
+        getValue: (detail) => formatFileSizeMb(detail.mapFields?.fileSizes.other ?? null),
+        shouldRender: (detail) => typeof detail.mapFields?.fileSizes.other === "number",
       },
     ],
   },
@@ -244,16 +259,18 @@ export function getDetailsTabSections(detail: RegistryDetailModel): DetailsTabRe
   }).map((section) => ({
     title: section.title,
     icon: section.icon,
-    cards: section.cards.map((card) => {
-      const link = card.getLink?.(detail) ?? undefined;
-      return {
-        title: card.title,
-        titleTooltipContent: card.getTitleTooltipContent?.(detail) ?? card.titleTooltipContent,
-        titleTooltipAriaLabel: card.titleTooltipAriaLabel,
-        icon: card.icon,
-        value: card.getValue(detail),
-        link,
-      };
-    }),
+    cards: section.cards
+      .filter((card) => card.shouldRender?.(detail) ?? true)
+      .map((card) => {
+        const link = card.getLink?.(detail) ?? undefined;
+        return {
+          title: card.title,
+          titleTooltipContent: card.getTitleTooltipContent?.(detail) ?? card.titleTooltipContent,
+          titleTooltipAriaLabel: card.titleTooltipAriaLabel,
+          icon: card.icon,
+          value: card.getValue(detail),
+          link,
+        };
+      }),
   }));
 }

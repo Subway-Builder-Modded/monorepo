@@ -268,6 +268,33 @@ function resolveFileSizeMb(
   return null;
 }
 
+function isKnownMapFileSizeKey(normalizedKey: string): boolean {
+  return (
+    normalizedKey.endsWith(".pmtiles") ||
+    normalizedKey === "buildings_index.json" ||
+    normalizedKey === "demand_data.json" ||
+    normalizedKey === "ocean_depth_index.json" ||
+    normalizedKey === "roads.geojson" ||
+    normalizedKey === "runways_taxiways.geojson"
+  );
+}
+
+function resolveOtherMapFileSizes(fileSizes: Record<string, number> | undefined): number | null {
+  if (!fileSizes) {
+    return null;
+  }
+
+  const total = Object.entries(fileSizes).reduce((sum, [key, value]) => {
+    if (!Number.isFinite(value) || value <= 0) {
+      return sum;
+    }
+
+    return isKnownMapFileSizeKey(key.trim().toLowerCase()) ? sum : sum + value;
+  }, 0);
+
+  return total > 0 ? total : null;
+}
+
 function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
   return {
     pmtiles: resolveFileSizeMb(fileSizes, (key) => key.endsWith(".pmtiles")),
@@ -276,6 +303,7 @@ function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
     oceanDepthIndex: resolveFileSizeMb(fileSizes, (key) => key === "ocean_depth_index.json"),
     roads: resolveFileSizeMb(fileSizes, (key) => key === "roads.geojson"),
     runwaysTaxiways: resolveFileSizeMb(fileSizes, (key) => key === "runways_taxiways.geojson"),
+    other: resolveOtherMapFileSizes(fileSizes),
   };
 }
 
