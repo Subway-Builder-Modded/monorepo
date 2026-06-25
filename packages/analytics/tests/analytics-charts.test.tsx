@@ -72,7 +72,26 @@ describe("AnalyticsLineChart", () => {
 });
 
 describe("createCategoryTicks", () => {
-  it("keeps category ticks within the requested limit while preserving the range endpoints", () => {
+  it("keeps a clean cadence even when that needs one extra tick", () => {
+    const values = Array.from(
+      { length: 17 },
+      (_, index) => `2026-06-${String(index + 8).padStart(2, "0")}`,
+    );
+
+    expect(createCategoryTicks(values, 8)).toEqual([
+      "2026-06-08",
+      "2026-06-10",
+      "2026-06-12",
+      "2026-06-14",
+      "2026-06-16",
+      "2026-06-18",
+      "2026-06-20",
+      "2026-06-22",
+      "2026-06-24",
+    ]);
+  });
+
+  it("places leftover category days in the initial period, then uses uniform intervals", () => {
     const values = Array.from(
       { length: 14 },
       (_, index) => `2026-04-${String(index + 1).padStart(2, "0")}`,
@@ -80,9 +99,9 @@ describe("createCategoryTicks", () => {
 
     expect(createCategoryTicks(values, 8)).toEqual([
       "2026-04-01",
-      "2026-04-03",
-      "2026-04-05",
-      "2026-04-07",
+      "2026-04-02",
+      "2026-04-04",
+      "2026-04-06",
       "2026-04-08",
       "2026-04-10",
       "2026-04-12",

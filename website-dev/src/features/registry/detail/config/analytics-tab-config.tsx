@@ -57,7 +57,7 @@ const ANALYTICS_TAB_SECTIONS_CONFIG: AnalyticsTabSectionConfig[] = [
         getValue: (detail) => <RankValue rank={detail.downloadAnalytics.rank} />,
       },
       {
-        title: "Downloads (All-Time)",
+        title: "Downloads (Total)",
         icon: ArrowDownToLine,
         getValue: (detail) => formatNumber(detail.downloadAnalytics.allTime),
       },

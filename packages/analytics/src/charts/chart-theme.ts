@@ -84,15 +84,31 @@ export function createCategoryTicks<T>(values: T[], maxTickCount = 8): T[] {
   if (maxTickCount <= 1) return [values[0]];
 
   const lastIndex = values.length - 1;
-  const ticks: T[] = [];
-  const usedIndexes = new Set<number>();
+  const maxNiceTickCount = maxTickCount + 1;
+  let interval = 1;
 
-  for (let tickIndex = 0; tickIndex < maxTickCount; tickIndex += 1) {
-    const index = Math.round((tickIndex * lastIndex) / (maxTickCount - 1));
-    if (!usedIndexes.has(index)) {
-      usedIndexes.add(index);
-      ticks.push(values[index]);
+  for (let magnitude = 1; interval <= lastIndex; magnitude *= 10) {
+    const candidates = [1, 2, 5].map((step) => step * magnitude);
+    const match = candidates.find((step) => {
+      const cadenceTickCount = Math.floor(lastIndex / step) + 1;
+      const needsInitialTick = lastIndex % step !== 0;
+      return cadenceTickCount + (needsInitialTick ? 1 : 0) <= maxNiceTickCount;
+    });
+
+    if (match) {
+      interval = match;
+      break;
     }
+  }
+
+  const ticks: T[] = [values[0]];
+  const cadenceStart = lastIndex % interval;
+  for (
+    let index = cadenceStart === 0 ? interval : cadenceStart;
+    index <= lastIndex;
+    index += interval
+  ) {
+    ticks.push(values[index]);
   }
 
   return ticks;

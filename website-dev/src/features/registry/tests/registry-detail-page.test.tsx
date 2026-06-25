@@ -106,6 +106,22 @@ const MAP_LOADED = {
     "1.0.0": 102,
     "0.9.0": 25,
   },
+  downloadAnalytics: {
+    rank: 3,
+    allTime: 1284,
+    last14Days: 140,
+    last7Days: 70,
+  },
+  downloadHistory: [
+    { date: "2026-04-24", downloads: 12 },
+    { date: "2026-04-25", downloads: 18 },
+    { date: "2026-04-26", downloads: 20 },
+  ],
+  downloadTrends: [
+    { period: "1d", label: "Last 24 Hours", downloads: 20, rank: 4 },
+    { period: "3d", label: "Last 3 Days", downloads: 50, rank: 3 },
+    { period: "7d", label: "Last 7 Days", downloads: 70, rank: 2 },
+  ],
   authorAttributionHref: "https://github.com/rslurry",
   collaborators: [{ authorId: "Kronifer", authorLabel: "Kronifer" }],
 };
@@ -256,6 +272,11 @@ describe("RegistryDetailPage", () => {
 
     fireEvent.click(screen.getByRole("tab", { name: /Analytics/i }));
     expect(screen.queryByText(/coming soon|placeholder|chart/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Download History")).toBeInTheDocument();
+    expect(screen.getByText("Recent Trends")).toBeInTheDocument();
+    expect(screen.getByText("Last 24 Hours")).toBeInTheDocument();
+    expect(screen.getByText("Last 3 Days")).toBeInTheDocument();
+    expect(screen.getByText("Last 7 Days")).toBeInTheDocument();
   });
 
   it("opens Download dialog with railyard and direct download actions", async () => {

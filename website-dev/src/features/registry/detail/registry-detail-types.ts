@@ -40,6 +40,18 @@ export type RegistryDetailDownloadAnalytics = {
   last7Days: number | null;
 };
 
+export type RegistryDetailDownloadHistoryPoint = {
+  date: string;
+  downloads: number;
+};
+
+export type RegistryDetailDownloadTrend = {
+  period: "1d" | "3d" | "7d";
+  label: string;
+  downloads: number | null;
+  rank: number | null;
+};
+
 export type RegistryDetailMapFields = {
   rankings: {
     population: number | null;
@@ -83,6 +95,8 @@ export type RegistryDetailModel = {
   tags: string[];
   downloads: number | null;
   downloadAnalytics: RegistryDetailDownloadAnalytics;
+  downloadHistory: RegistryDetailDownloadHistoryPoint[];
+  downloadTrends: RegistryDetailDownloadTrend[];
   galleryImages: string[];
   versions: RegistryDetailVersion[];
   versionSource: {
@@ -149,6 +163,8 @@ export type RegistryDetailLoadedData = {
   collaborators?: RegistryDetailCollaborator[];
   projectId: string | null;
   downloadAnalytics: RegistryDetailDownloadAnalytics;
+  downloadHistory?: RegistryDetailDownloadHistoryPoint[];
+  downloadTrends?: RegistryDetailDownloadTrend[];
   mapRankings: {
     population: number | null;
     populationCount: number | null;

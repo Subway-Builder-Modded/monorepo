@@ -9,6 +9,8 @@ import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 import type {
   RegistryDetailCollaborator,
+  RegistryDetailDownloadHistoryPoint,
+  RegistryDetailDownloadTrend,
   RegistryDetailLoadedData,
 } from "@/features/registry/detail/registry-detail-types";
 
@@ -89,7 +91,10 @@ type MapRankingData = {
 type ListingDownloadDailyData = {
   last14Days: number | null;
   last7Days: number | null;
+  history: RegistryDetailDownloadHistoryPoint[];
 };
+
+type TrendPeriod = RegistryDetailDownloadTrend["period"];
 
 function computeRank(
   id: string,
@@ -147,18 +152,39 @@ function parseCsvRows(text: string): Record<string, string>[] {
   });
 }
 
-function sumLatestDailyDownloads(row: Record<string, string>, days: number): number | null {
-  const dailyValues = Object.entries(row)
+function extractDailyDownloadHistory(
+  row: Record<string, string>,
+): RegistryDetailDownloadHistoryPoint[] {
+  const points = Object.entries(row)
     .filter(([key]) => /^\d{4}_\d{2}_\d{2}$/.test(key))
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([, value]) => Number(value))
-    .filter((value) => Number.isFinite(value));
+    .map(([key, value]) => ({
+      date: key.replace(/_/g, "-"),
+      downloads: Number(value) || 0,
+    }));
 
-  if (dailyValues.length === 0) {
+  return points.length > 1 ? points.slice(1) : [];
+}
+
+function trimLeadingZeroDownloadHistory(
+  history: RegistryDetailDownloadHistoryPoint[],
+): RegistryDetailDownloadHistoryPoint[] {
+  const firstNonZeroIndex = history.findIndex((point) => point.downloads > 0);
+  if (firstNonZeroIndex <= 0) {
+    return history;
+  }
+  return history.slice(firstNonZeroIndex);
+}
+
+function sumLatestDailyDownloads(
+  history: RegistryDetailDownloadHistoryPoint[],
+  days: number,
+): number | null {
+  if (history.length === 0) {
     return null;
   }
 
-  return dailyValues.slice(-days).reduce((total, value) => total + value, 0);
+  return history.slice(-days).reduce((total, point) => total + point.downloads, 0);
 }
 
 function resolveListingDownloadDailyData(
@@ -166,17 +192,60 @@ function resolveListingDownloadDailyData(
   dailyAnalyticsRaw: string | null,
 ): ListingDownloadDailyData {
   if (!dailyAnalyticsRaw) {
-    return { last14Days: null, last7Days: null };
+    return { last14Days: null, last7Days: null, history: [] };
   }
 
   const row = parseCsvRows(dailyAnalyticsRaw).find((entry) => entry["id"] === id);
   if (!row) {
-    return { last14Days: null, last7Days: null };
+    return { last14Days: null, last7Days: null, history: [] };
   }
 
+  const history = trimLeadingZeroDownloadHistory(extractDailyDownloadHistory(row));
+
   return {
-    last14Days: sumLatestDailyDownloads(row, 14),
-    last7Days: sumLatestDailyDownloads(row, 7),
+    last14Days: sumLatestDailyDownloads(history, 14),
+    last7Days: sumLatestDailyDownloads(history, 7),
+    history,
+  };
+}
+
+function getListingTypeForAnalytics(typeId: string): "map" | "mod" {
+  return typeId === "maps" ? "map" : "mod";
+}
+
+function resolveListingDownloadTrend(
+  id: string,
+  typeId: string,
+  period: TrendPeriod,
+  trendAnalyticsRaw: string | null,
+): RegistryDetailDownloadTrend {
+  const labels: Record<TrendPeriod, string> = {
+    "1d": "Last 24 Hours",
+    "3d": "Last 3 Days",
+    "7d": "Last 7 Days",
+  };
+
+  if (!trendAnalyticsRaw) {
+    return { period, label: labels[period], downloads: null, rank: null };
+  }
+
+  const listingType = getListingTypeForAnalytics(typeId);
+  const rows = parseCsvRows(trendAnalyticsRaw).filter((row) => Number(row["download_change"]) > 0);
+  const row = rows.find((entry) => entry["id"] === id && entry["listing_type"] === listingType);
+  if (!row) {
+    return { period, label: labels[period], downloads: null, rank: null };
+  }
+
+  const index = rows.findIndex(
+    (entry) => entry["id"] === id && entry["listing_type"] === listingType,
+  );
+  const downloads = Number(row["download_change"]);
+
+  return {
+    period,
+    label: labels[period],
+    downloads: Number.isFinite(downloads) ? downloads : null,
+    rank: index === -1 ? null : index + 1,
   };
 }
 
@@ -485,15 +554,27 @@ export async function loadRegistryDetail(
   }
 
   const baseUrl = getRegistryCollectionCachePath(typeConfig.routeSegment);
-  const [manifestRaw, integrityRaw, downloadsRaw, authorsRaw, dailyAnalyticsRaw, releaseCacheRaw] =
-    await Promise.all([
-      safeFetchText(getRegistryItemCachePath(typeConfig.routeSegment, id, "manifest.json")),
-      safeFetchText(`${baseUrl}/integrity.json`),
-      safeFetchText(`${baseUrl}/downloads.json`),
-      safeFetchText(getRegistryAuthorsIndexPath()),
-      safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
-      safeFetchText("/registry-cache/github-releases-cache.json"),
-    ]);
+  const [
+    manifestRaw,
+    integrityRaw,
+    downloadsRaw,
+    authorsRaw,
+    dailyAnalyticsRaw,
+    trend1dRaw,
+    trend3dRaw,
+    trend7dRaw,
+    releaseCacheRaw,
+  ] = await Promise.all([
+    safeFetchText(getRegistryItemCachePath(typeConfig.routeSegment, id, "manifest.json")),
+    safeFetchText(`${baseUrl}/integrity.json`),
+    safeFetchText(`${baseUrl}/downloads.json`),
+    safeFetchText(getRegistryAuthorsIndexPath()),
+    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
+    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_1d.csv`),
+    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_3d.csv`),
+    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_7d.csv`),
+    safeFetchText("/registry-cache/github-releases-cache.json"),
+  ]);
 
   if (!manifestRaw) {
     return null;
@@ -509,6 +590,11 @@ export async function loadRegistryDetail(
   const projectId = resolveProjectId(manifest, allManifests);
   const collaborators = resolveCollaborators(manifest, authorsIndex, item.authorId);
   const dailyDownloads = resolveListingDownloadDailyData(id, dailyAnalyticsRaw);
+  const downloadTrends = [
+    resolveListingDownloadTrend(id, typeConfig.id, "1d", trend1dRaw),
+    resolveListingDownloadTrend(id, typeConfig.id, "3d", trend3dRaw),
+    resolveListingDownloadTrend(id, typeConfig.id, "7d", trend7dRaw),
+  ];
   const downloadAnalytics = {
     rank: computeRank(
       id,
@@ -552,6 +638,8 @@ export async function loadRegistryDetail(
       population: item.population,
     },
     downloadAnalytics,
+    downloadHistory: dailyDownloads.history,
+    downloadTrends,
     mapRankings,
     manifest,
     listingLastUpdated:

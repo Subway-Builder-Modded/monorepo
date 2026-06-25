@@ -166,4 +166,54 @@ describe("loadRegistryDetail", () => {
       "1.0.0": "2026-03-08",
     });
   });
+
+  it("loads daily download history and recent trend rows", async () => {
+    const id = "akron-oh";
+    const manifest = { name: "Akron" };
+    const item = {
+      ...makeItem(id, manifest),
+      totalDownloads: 42,
+    };
+
+    mockRegistryItems(item);
+    mockFetchWithMap({
+      [`/registry-cache/maps/${id}/manifest.json`]: JSON.stringify(manifest),
+      "/registry-cache/maps/integrity.json": JSON.stringify({
+        listings: {
+          [id]: {
+            versions: {},
+          },
+        },
+      }),
+      "/registry-cache/maps/downloads.json": JSON.stringify({}),
+      "/registry-cache/authors/index.json": JSON.stringify({ authors: [] }),
+      "/registry-cache/analytics/most_popular_by_day.csv":
+        "id,listing_type,2026_01_01,2026_01_02,2026_01_03\nakron-oh,map,0,5,7\n",
+      "/registry-cache/analytics/most_popular_last_1d.csv":
+        "listing_type,id,download_change,current_total,baseline_total\nmap,akron-oh,7,42,35\n",
+      "/registry-cache/analytics/most_popular_last_3d.csv":
+        "listing_type,id,download_change,current_total,baseline_total\nmap,other-map,9,100,91\nmap,akron-oh,12,42,30\n",
+      "/registry-cache/analytics/most_popular_last_7d.csv":
+        "listing_type,id,download_change,current_total,baseline_total\nmap,akron-oh,12,42,30\n",
+      "/registry-cache/github-releases-cache.json": JSON.stringify({}),
+    });
+
+    const detail = await loadRegistryDetail("maps", id);
+
+    expect(detail?.downloadAnalytics).toEqual({
+      rank: 1,
+      allTime: 42,
+      last14Days: 12,
+      last7Days: 12,
+    });
+    expect(detail?.downloadHistory).toEqual([
+      { date: "2026-01-02", downloads: 5 },
+      { date: "2026-01-03", downloads: 7 },
+    ]);
+    expect(detail?.downloadTrends).toEqual([
+      { period: "1d", label: "Last 24 Hours", downloads: 7, rank: 1 },
+      { period: "3d", label: "Last 3 Days", downloads: 12, rank: 2 },
+      { period: "7d", label: "Last 7 Days", downloads: 12, rank: 1 },
+    ]);
+  });
 });
