@@ -1,4 +1,4 @@
-export const SEARCH_BAR_PLACEHOLDER = 'Search by name, author, description...';
+export const SEARCH_BAR_PLACEHOLDER = 'Search by name, author, tags...';
 
 export const ASSET_LISTING_FUSE_SEARCH_OPTIONS = {
   keys: ['searchText'],

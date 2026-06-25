@@ -36,6 +36,7 @@ type AssetManifest struct {
 	Source        string        `json:"source"`
 	Update        UpdateConfig  `json:"update"`
 	IsTest        bool          `json:"is_test,omitempty"` // Indicates whether this asset is a test asset that should only be shown when "View Test Mods" is enabled in settings
+	SearchAliases []string      `json:"search_aliases,omitempty"`
 }
 
 // ModManifest is the manifest schema for a mod entry in the registry.
