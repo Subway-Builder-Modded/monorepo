@@ -35,15 +35,19 @@ export function RegistryHero({
   return (
     <section
       id="registry-hero"
-      className="relative flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] flex-col items-center justify-center overflow-visible border-b border-border/45 bg-background"
+      className="relative isolate flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] flex-col items-center justify-center overflow-visible border-b border-border/45 bg-background"
     >
       {/* Background pattern – depot-style square grid */}
-      <div className="pointer-events-none absolute -top-12 inset-x-0 bottom-0" aria-hidden={true}>
+      <div
+        className="pointer-events-none absolute -top-12 inset-x-0 bottom-0 transform-gpu [contain:paint]"
+        aria-hidden={true}
+      >
         {/* Route map background */}
         <img
           src="/assets/geojson/SHA.svg"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-35 dark:opacity-25 [filter:drop-shadow(0_0_18px_color-mix(in_srgb,var(--suite-accent-light)_70%,transparent))_drop-shadow(0_0_6px_color-mix(in_srgb,var(--suite-accent-light)_50%,transparent))] dark:[filter:drop-shadow(0_0_18px_color-mix(in_srgb,var(--suite-accent-dark)_70%,transparent))_drop-shadow(0_0_6px_color-mix(in_srgb,var(--suite-accent-dark)_50%,transparent))]"
+          className="absolute inset-0 h-full w-full object-cover opacity-30 dark:opacity-24"
+          decoding="async"
           draggable={false}
         />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_28%,color-mix(in_srgb,var(--suite-accent-light)_24%,transparent),transparent_58%)] dark:bg-[radial-gradient(circle_at_22%_28%,color-mix(in_srgb,var(--suite-accent-dark)_28%,transparent),transparent_62%)]" />
@@ -51,12 +55,12 @@ export function RegistryHero({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-4xl px-5 sm:px-7">
+      <div className="relative z-10 w-full max-w-4xl transform-gpu px-5 sm:px-7">
         <div className="space-y-8 text-center">
           <div className="space-y-3">
             <h1 className="inline-flex items-center justify-center gap-3 text-[clamp(2.8rem,7vw,5.4rem)] font-extrabold tracking-[-0.05em] text-foreground">
               <Database
-                className="size-[0.85em] text-[var(--suite-accent-light)] drop-shadow-[0_0_1.35rem_color-mix(in_srgb,var(--suite-accent-light)_36%,transparent)] dark:text-[var(--suite-accent-dark)] dark:drop-shadow-[0_0_1.6rem_color-mix(in_srgb,var(--suite-accent-dark)_46%,transparent)]"
+                className="size-[0.85em] text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]"
                 aria-hidden={true}
               />
               <span>{REGISTRY_PAGE_TITLE}</span>
