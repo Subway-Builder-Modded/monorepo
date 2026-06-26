@@ -123,9 +123,9 @@ function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
         size={size}
         className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold"
         style={{
-          color: `var(--registry-type-accent-light, ${typeConfig.accentLight})`,
-          background: `color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
-          border: `1px solid color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
+          color: `var(--card-type-accent-light, ${typeConfig.accentLight})`,
+          background: `color-mix(in srgb, var(--card-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
+          border: `1px solid color-mix(in srgb, var(--card-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
         }}
       >
         {TypeIcon ? <TypeIcon className="size-3.5" aria-hidden={true} /> : null}
@@ -174,6 +174,49 @@ function AuthorLink({ author, authorId }: { author: string; authorId: string | n
       <AuthorRoleBadge authorId={authorId} className="cursor-pointer" />
     </div>
   );
+}
+
+function ContributorLinks({
+  contributors,
+}: {
+  contributors: NonNullable<RegistryCardData["contributors"]>;
+}) {
+  if (contributors.length === 0) return null;
+
+  return (
+    <div className="pointer-events-auto mt-2 flex max-w-full flex-col items-start gap-0.5 text-xs leading-snug text-muted-foreground">
+      {contributors.map((contributor) => (
+        <Link
+          key={contributor.authorId}
+          to={`/registry/authors/${encodeURIComponent(contributor.authorId)}`}
+          onClick={(event) => event.stopPropagation()}
+          className="group/contributor inline-flex max-w-full items-center gap-1.5 truncate text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Users
+            className="size-3.5 shrink-0 self-center text-muted-foreground"
+            aria-hidden={true}
+          />
+          <span className="truncate underline underline-offset-2 decoration-transparent transition-colors group-hover/contributor:text-[var(--registry-contributor-accent-light,var(--suite-accent-light))] group-hover/contributor:decoration-[color-mix(in_srgb,var(--registry-contributor-accent-light,var(--suite-accent-light))_60%,transparent)] dark:group-hover/contributor:text-[var(--registry-contributor-accent-dark,var(--suite-accent-dark))] dark:group-hover/contributor:decoration-[color-mix(in_srgb,var(--registry-contributor-accent-dark,var(--suite-accent-dark))_60%,transparent)]">
+            {contributor.authorLabel}
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function AuthorOrContributors({
+  data,
+  hideAuthor,
+}: {
+  data: RegistryCardData;
+  hideAuthor: boolean;
+}) {
+  if (hideAuthor) {
+    return data.contributors?.length ? <ContributorLinks contributors={data.contributors} /> : null;
+  }
+
+  return <AuthorLink author={data.author} authorId={data.authorId} />;
 }
 
 function TitleLink({ title, href, className }: { title: string; href: string; className: string }) {
@@ -378,7 +421,7 @@ function RegistryCardGrid({
                 population={null}
               />
             </div>
-            {hideAuthor ? null : <AuthorLink author={data.author} authorId={data.authorId} />}
+            <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
           </div>
 
           <DescriptionPreview
@@ -510,7 +553,7 @@ function RegistryCardFull({
                 population={null}
               />
             </div>
-            {hideAuthor ? null : <AuthorLink author={data.author} authorId={data.authorId} />}
+            <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
           </div>
 
           <DescriptionPreview
@@ -603,7 +646,7 @@ function RegistryCardList({
                 className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
               />
             </h3>
-            {hideAuthor ? null : <AuthorLink author={data.author} authorId={data.authorId} />}
+            <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
           </div>
 
           <DescriptionPreview

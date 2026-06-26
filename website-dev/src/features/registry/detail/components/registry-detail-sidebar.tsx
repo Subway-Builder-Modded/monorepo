@@ -10,7 +10,15 @@ import {
   RefreshCcw,
   UserRound,
 } from "lucide-react";
-import { Fragment, type ReactNode, useLayoutEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  type CSSProperties,
+  type ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { getSuiteById } from "@/config/site-navigation";
 import { Link } from "@/lib/router";
 import { getRegistryTagBrowseUrl } from "@/features/registry/lib/routing";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
@@ -129,6 +137,11 @@ export function RegistryDetailSidebar({
   const [dynamicSidebarHeight, setDynamicSidebarHeight] = useState("calc(100vh - 10.75rem)");
   const typeUiRules = getRegistryTypeUiRules(detail.typeId);
   const hasDemandData = typeUiRules.showDemandDataSection && detail.mapFields != null;
+  const registryAccent = getSuiteById("registry").accent;
+  const authorLinkAccentVars = {
+    "--registry-author-accent-light": registryAccent.light,
+    "--registry-author-accent-dark": registryAccent.dark,
+  } as CSSProperties;
 
   const sections: Array<{ key: string; content: ReactNode }> = [];
 
@@ -136,14 +149,14 @@ export function RegistryDetailSidebar({
     key: "authors",
     content: (
       <SidebarSection title="Authors">
-        <div className="space-y-0.5">
+        <div className="space-y-0.5" style={authorLinkAccentVars}>
           <div className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground">
             <UserStar className="size-4.5 text-foreground" aria-hidden={true} />
             <span className="inline-flex items-center gap-1.5">
               {detail.authorId ? (
                 <Link
                   to={`/registry/authors/${encodeURIComponent(detail.authorId)}`}
-                  className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                  className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-author-accent-light)] hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-light)_62%,transparent)] dark:hover:text-[var(--registry-author-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-dark)_62%,transparent)]"
                 >
                   {detail.authorLabel}
                 </Link>
@@ -165,7 +178,7 @@ export function RegistryDetailSidebar({
               <UserRound className="size-4.5 text-foreground" aria-hidden={true} />
               <Link
                 to={`/registry/authors/${encodeURIComponent(collaborator.authorId)}`}
-                className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-author-accent-light)] hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-light)_62%,transparent)] dark:hover:text-[var(--registry-author-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-dark)_62%,transparent)]"
               >
                 {collaborator.authorLabel}
               </Link>

@@ -18,8 +18,15 @@ export type RegistryAuthorProfile = {
 export type RegistryAuthorPageData = {
   author: RegistryAuthorProfile;
   itemsByType: Record<string, RegistrySearchItem[]>;
+  collaborations: RegistrySearchItem[];
+  contributorsByItemKey: Record<string, RegistryAuthorContributor[]>;
   overview: RegistryAuthorOverview;
   analytics: RegistryAuthorAnalytics;
+};
+
+export type RegistryAuthorContributor = {
+  authorId: string;
+  authorLabel: string;
 };
 
 export type RegistryAuthorAssetSummary = {
@@ -96,6 +103,7 @@ type RegistryManifestWithUpdate = {
     repo?: string;
     url?: string;
   };
+  collaborators?: unknown[];
 };
 
 type ReleaseEntry = {
@@ -123,6 +131,23 @@ async function safeFetchText(url: string): Promise<string | null> {
 
 function normalizeAuthorId(value: string) {
   return value.trim().toLowerCase();
+}
+
+function toGithubId(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function getItemKey(item: RegistrySearchItem) {
+  return `${item.type}:${item.id}`;
 }
 
 function parseReleaseTimestamp(value: string | undefined | null) {
@@ -448,6 +473,88 @@ function computeAuthorOverview(
   };
 }
 
+function getAuthorCollaborations(
+  author: RegistryAuthorProfile,
+  normalizedAuthorId: string,
+  allItemsByType: Record<string, RegistrySearchItem[]>,
+): RegistrySearchItem[] {
+  if (author.githubId === null) {
+    return [];
+  }
+
+  return Object.values(allItemsByType)
+    .flat()
+    .filter((item) => {
+      if (normalizeAuthorId(item.authorId ?? "") === normalizedAuthorId) {
+        return false;
+      }
+
+      const manifest = item.manifest as RegistryManifestWithUpdate;
+      const collaboratorIds = Array.isArray(manifest.collaborators) ? manifest.collaborators : [];
+      return collaboratorIds.some(
+        (collaboratorId) => toGithubId(collaboratorId) === author.githubId,
+      );
+    });
+}
+
+function buildAuthorByGithubId(authorsIndex: RawAuthorsIndex) {
+  const authorByGithubId = new Map<number, RegistryAuthorContributor>();
+
+  for (const author of authorsIndex.authors ?? []) {
+    const githubId = toGithubId(author.github_id);
+    const authorId = author.author_id?.trim();
+    if (githubId === null || !authorId) continue;
+
+    authorByGithubId.set(githubId, {
+      authorId,
+      authorLabel: author.author_alias?.trim() || authorId,
+    });
+  }
+
+  return authorByGithubId;
+}
+
+function getItemContributors(
+  item: RegistrySearchItem,
+  authorByGithubId: Map<number, RegistryAuthorContributor>,
+): RegistryAuthorContributor[] {
+  const manifest = item.manifest as RegistryManifestWithUpdate;
+  const collaboratorIds = Array.isArray(manifest.collaborators) ? manifest.collaborators : [];
+  const normalizedMainAuthorId = normalizeAuthorId(item.authorId ?? "");
+  const seenAuthorIds = new Set<string>();
+  const contributors: RegistryAuthorContributor[] = [];
+
+  for (const collaboratorId of collaboratorIds) {
+    const githubId = toGithubId(collaboratorId);
+    if (githubId === null) continue;
+
+    const contributor = authorByGithubId.get(githubId);
+    if (!contributor) continue;
+
+    const normalizedContributorId = normalizeAuthorId(contributor.authorId);
+    if (normalizedMainAuthorId && normalizedContributorId === normalizedMainAuthorId) continue;
+    if (seenAuthorIds.has(normalizedContributorId)) continue;
+
+    seenAuthorIds.add(normalizedContributorId);
+    contributors.push(contributor);
+  }
+
+  return contributors;
+}
+
+function buildContributorsByItemKey(
+  itemsByType: Record<string, RegistrySearchItem[]>,
+  authorsIndex: RawAuthorsIndex,
+) {
+  const authorByGithubId = buildAuthorByGithubId(authorsIndex);
+  const entries = Object.values(itemsByType)
+    .flat()
+    .map((item) => [getItemKey(item), getItemContributors(item, authorByGithubId)] as const)
+    .filter(([, contributors]) => contributors.length > 0);
+
+  return Object.fromEntries(entries);
+}
+
 export async function loadAuthorPageData(authorId: string): Promise<RegistryAuthorPageData | null> {
   const authorsIndex = await loadAuthorsIndex().catch((): RawAuthorsIndex => ({}));
   const author = resolveAuthorProfile(authorId, authorsIndex);
@@ -467,13 +574,15 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
       items.filter((item) => normalizeAuthorId(item.authorId ?? "") === normalizedAuthorId),
     ]),
   );
+  const collaborations = getAuthorCollaborations(author, normalizedAuthorId, allItemsByType);
+  const contributorsByItemKey = buildContributorsByItemKey(itemsByType, authorsIndex);
   const hasAssets = Object.values(itemsByType).some((items) => items.length > 0);
 
   const hasAuthorRecord = authorsIndex.authors?.some(
     (entry) => normalizeAuthorId(entry.author_id ?? "") === normalizedAuthorId,
   );
 
-  if (!hasAssets && !hasAuthorRecord) {
+  if (!hasAssets && collaborations.length === 0 && !hasAuthorRecord) {
     return null;
   }
 
@@ -503,6 +612,8 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
   return {
     author,
     itemsByType,
+    collaborations,
+    contributorsByItemKey,
     overview: computeAuthorOverview(itemsByType, releaseCache),
     analytics,
   };

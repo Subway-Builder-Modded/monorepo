@@ -29,6 +29,10 @@ export type RegistryCardData = {
   title: string;
   author: string;
   authorId: string | null;
+  contributors?: Array<{
+    authorId: string;
+    authorLabel: string;
+  }>;
   description: string;
   thumbnailSrc: string | null;
   totalDownloads: number;

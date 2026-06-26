@@ -22,10 +22,12 @@ import {
   Package,
   Plus,
   Search,
+  StickyNoteX,
   TrendingUp,
   Download,
   Trophy,
   User,
+  Users,
   X,
 } from "lucide-react";
 import {
@@ -87,6 +89,11 @@ type AuthorTabId = "overview" | "analytics";
 type AuthorAssetSectionProps = {
   typeId: string;
   items: RegistrySearchItem[];
+  hideAuthor?: boolean;
+  excludedSortIds?: RegistrySortId[];
+  getContributors?: (
+    item: RegistrySearchItem,
+  ) => Array<{ authorId: string; authorLabel: string }> | undefined;
 };
 
 type SortDirection = "asc" | "desc";
@@ -94,7 +101,7 @@ type AuthorTrendSortKey = "label" | "downloads";
 type AuthorRankingSortKey = "name" | "downloads";
 type AuthorHistoryMode = "total" | "maps" | "mods";
 type AuthorAssetRankingMode = "maps" | "mods";
-type AuthorAssetBrowserMode = "maps" | "mods";
+type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations";
 
 const AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS = {
   primary: "56%",
@@ -254,6 +261,10 @@ function getCardVariant(viewMode: RegistryViewMode) {
   return viewMode === "list" ? "list" : viewMode === "full" ? "full" : "grid";
 }
 
+function getRegistryItemKey(item: RegistrySearchItem) {
+  return `${item.type}:${item.id}`;
+}
+
 function AssetMetricLink({
   item,
   tooltip,
@@ -291,11 +302,7 @@ function AssetSummaryValue({ item }: { item: RegistryAuthorAssetSummary | null }
   return (
     <AssetMetricLink
       item={item}
-      tooltip={
-        <span className="text-foreground">
-          {formatDate(item?.publishedAt ?? 0)}
-        </span>
-      }
+      tooltip={<span className="text-foreground">{formatDate(item?.publishedAt ?? 0)}</span>}
     />
   );
 }
@@ -354,8 +361,26 @@ function AuthorTabs({
   );
 }
 
-function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
-  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
+function AuthorAssetSection({
+  typeId,
+  items,
+  hideAuthor = true,
+  excludedSortIds = ["author"],
+  getContributors,
+}: AuthorAssetSectionProps) {
+  const registrySuite = getSuiteById("registry");
+  const typeConfig =
+    typeId === "collaborations"
+      ? {
+          id: "collaborations",
+          label: "Collaboration",
+          pluralLabel: "Collaborations",
+          icon: Users,
+          routeSegment: "collaborations",
+          accentLight: registrySuite.accent.light,
+          accentDark: registrySuite.accent.dark,
+        }
+      : getRegistryTypeConfigOrDefault(typeId);
   const [query, setQuery] = useState("");
   const [sortId, setSortId] = useState<RegistrySortId>(DEFAULT_SORT_ID);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(DEFAULT_SORT_DIR);
@@ -386,6 +411,8 @@ function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
           "--registry-type-accent-dark": typeConfig.accentDark,
           "--suite-accent-light": typeConfig.accentLight,
           "--suite-accent-dark": typeConfig.accentDark,
+          "--registry-contributor-accent-light": registrySuite.accent.light,
+          "--registry-contributor-accent-dark": registrySuite.accent.dark,
         } as CSSProperties
       }
     >
@@ -455,7 +482,7 @@ function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
                 activeTypeId={typeId}
                 sortId={sortId}
                 sortDir={sortDir}
-                excludedSortIds={["author"]}
+                excludedSortIds={excludedSortIds}
                 onSortChange={(nextSortId) => {
                   setSortId(nextSortId);
                 }}
@@ -480,7 +507,8 @@ function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
             items={visibleItems}
             typeId={typeId}
             cardVariant={getCardVariant(viewMode)}
-            hideAuthor
+            hideAuthor={hideAuthor}
+            getContributors={getContributors}
           />
           {hasMoreItems ? (
             <div className="flex justify-center pt-3">
@@ -494,7 +522,7 @@ function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
                 className="inline-flex h-10 items-center gap-2 rounded-lg border border-[light-dark(var(--registry-type-accent-light),var(--registry-type-accent-dark))] bg-[light-dark(var(--registry-type-accent-light),var(--registry-type-accent-dark))] px-4 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--registry-type-accent-light)_44%,transparent)]"
               >
                 <Plus className="size-4" aria-hidden={true} />
-                Load More Assets
+                Load More
               </button>
             </div>
           ) : null}
@@ -507,11 +535,14 @@ function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
 function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
   const mapsItems = data.itemsByType.maps ?? [];
   const modsItems = data.itemsByType.mods ?? [];
+  const collaborationItems = data.collaborations;
   const hasMaps = mapsItems.length > 0;
   const hasMods = modsItems.length > 0;
+  const hasCollaborations = collaborationItems.length > 0;
   const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(hasMaps ? "maps" : "mods");
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
+  const registrySuite = getSuiteById("registry");
   const typeOptions = [
     {
       id: "maps" as const,
@@ -529,9 +560,20 @@ function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
       accentDark: modsConfig.accentDark,
       enabled: hasMods,
     },
+    {
+      id: "collaborations" as const,
+      label: "Collaborations",
+      icon: Users,
+      accentLight: registrySuite.accent.light,
+      accentDark: registrySuite.accent.dark,
+      enabled: hasCollaborations,
+    },
   ].filter((option) => option.enabled);
-  const activeTypeId = typeOptions.length === 1 ? typeOptions[0].id : typeId;
-  const activeItems = data.itemsByType[activeTypeId] ?? [];
+  const activeTypeId = typeOptions.some((option) => option.id === typeId)
+    ? typeId
+    : (typeOptions[0]?.id ?? "maps");
+  const activeItems =
+    activeTypeId === "collaborations" ? collaborationItems : (data.itemsByType[activeTypeId] ?? []);
 
   useEffect(() => {
     if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
@@ -562,7 +604,17 @@ function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
             />
           </div>
         ) : null}
-        <AuthorAssetSection typeId={activeTypeId} items={activeItems} />
+        <AuthorAssetSection
+          typeId={activeTypeId}
+          items={activeItems}
+          hideAuthor={activeTypeId !== "collaborations"}
+          excludedSortIds={activeTypeId === "collaborations" ? [] : ["author"]}
+          getContributors={
+            activeTypeId === "collaborations"
+              ? undefined
+              : (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
+          }
+        />
       </section>
     </div>
   );
@@ -873,6 +925,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
 function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
   const hasMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  const hasPublishedAssets = hasMaps || hasMods;
   const hasMultipleAssetTypes = hasMaps && hasMods;
   const cards: DetailMetric[] = hasMultipleAssetTypes
     ? [
@@ -904,6 +957,27 @@ function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
         },
       ];
 
+  if (!hasPublishedAssets) {
+    return (
+      <section className="space-y-3 [--registry-type-accent:var(--suite-accent-light)]">
+        <div>
+          <SectionSeparator label="Analytics" icon={BarChart3} className="mb-4" />
+          <div
+            className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-xl border border-border/70 p-6 text-center"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
+            }}
+          >
+            <StickyNoteX className="size-9 text-muted-foreground" aria-hidden={true} />
+            <p className="max-w-md text-sm font-medium text-muted-foreground">
+              This user has not published any content to the registry.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       className="space-y-3 [--registry-type-accent:var(--suite-accent-light)]"
@@ -928,6 +1002,7 @@ function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
 function AuthorOverview({ data }: { data: RegistryAuthorPageData }) {
   const allItems = Object.values(data.itemsByType).flat();
   const totalDownloads = allItems.reduce((sum, item) => sum + item.totalDownloads, 0);
+  const hasPublishedAssets = allItems.length > 0;
 
   const metrics: DetailMetric[] = [
     {
@@ -954,22 +1029,24 @@ function AuthorOverview({ data }: { data: RegistryAuthorPageData }) {
 
   return (
     <div className="space-y-8">
-      <div>
-        <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
-        <section
-          className="rounded-xl border border-border/70 p-4 sm:p-5"
-          style={{
-            backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-          }}
-        >
-          <DetailsMetricGrid
-            className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
-            items={metrics}
-            accentLight="var(--suite-accent-light)"
-            accentDark="var(--suite-accent-dark)"
-          />
-        </section>
-      </div>
+      {hasPublishedAssets ? (
+        <div>
+          <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
+          <section
+            className="rounded-xl border border-border/70 p-4 sm:p-5"
+            style={{
+              backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
+            }}
+          >
+            <DetailsMetricGrid
+              className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+              items={metrics}
+              accentLight="var(--suite-accent-light)"
+              accentDark="var(--suite-accent-dark)"
+            />
+          </section>
+        </div>
+      ) : null}
 
       <AuthorPublishedAssets data={data} />
     </div>

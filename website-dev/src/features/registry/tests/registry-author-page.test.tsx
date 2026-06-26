@@ -98,6 +98,8 @@ describe("RegistryAuthorPage", () => {
           },
         ],
       },
+      collaborations: [],
+      contributorsByItemKey: {},
       overview: {
         newestAsset: {
           id: "yukina-osaka",
@@ -179,7 +181,7 @@ describe("RegistryAuthorPage", () => {
         .some((link) => link.getAttribute("href") === "/registry/maps/yukina-osaka"),
     ).toBe(true);
 
-    const mapsSection = screen.getByRole("heading", { name: "Maps" }).closest("section");
+    const mapsSection = screen.getByRole("heading", { name: "Published Maps" }).closest("section");
     expect(mapsSection).not.toBeNull();
     expect(within(mapsSection!).getAllByText("1").length).toBeGreaterThan(0);
     expect(screen.getByRole("radio", { name: "Mods" })).toBeInTheDocument();
