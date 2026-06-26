@@ -39,11 +39,11 @@ export function AnalyticsSection() {
         reverseOnDesktop
         className="lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] min-[1920px]:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]"
         left={
-          <div className="w-full max-w-md min-w-0 text-center lg:text-left">
+          <div className="w-full max-w-md min-w-0 text-center">
             <p className="text-[15px] leading-relaxed text-muted-foreground lg:text-[16px] min-[1920px]:text-[17px]">
               {ANALYTICS_SECTION.body}
             </p>
-            <div className="mx-auto mt-6 flex w-full max-w-xs flex-col gap-2.5 lg:mx-0 lg:mt-7">
+            <div className="mx-auto mt-6 flex w-full max-w-xs flex-col gap-2.5 lg:mt-7">
               {ANALYTICS_LINKS.map((link) => {
                 const Icon = getHomeIcon(link.icon);
                 const accent = getHomepageSuiteAccent(link.accentSuiteId);
@@ -52,7 +52,7 @@ export function AnalyticsSection() {
                   <Link
                     key={link.href}
                     to={link.href}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-center text-sm font-semibold transition-all hover:brightness-110 lg:justify-start"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg border px-5 py-2.5 text-center text-sm font-semibold transition-all hover:brightness-110"
                     style={{
                       borderColor: `${color}40`,
                       color,
@@ -68,7 +68,7 @@ export function AnalyticsSection() {
           </div>
         }
         right={
-          <div className="w-full max-w-3xl min-w-0">
+          <div className="w-full min-w-0">
             <AnalyticsGraphic />
           </div>
         }

@@ -63,18 +63,31 @@ describe("loadAuthorPageData", () => {
               "v0.2.0": { is_complete: true, checked_at: "2026-06-15T00:00:00Z" },
             },
           },
+          "yukina-kyoto": {
+            versions: {
+              "v0.1.0": { is_complete: true, checked_at: "2026-06-01T00:00:00Z" },
+            },
+          },
         },
       }),
       "/registry-cache/maps/downloads.json": JSON.stringify({
         "yukina-osaka": { "v0.1.0": 50, "v0.2.0": 70 },
+        "yukina-kyoto": { "v0.1.0": 20 },
       }),
-      "/registry-cache/maps/index.json": JSON.stringify({ maps: ["yukina-osaka"] }),
+      "/registry-cache/maps/index.json": JSON.stringify({ maps: ["yukina-osaka", "yukina-kyoto"] }),
       "/registry-cache/maps/yukina-osaka/manifest.json": JSON.stringify({
         name: "Osaka",
         author: "ahkimn",
         description: "A detailed Osaka map.",
+        source: "https://ahkimn.github.io/subwaybuilder-jp-maps/",
         update: { type: "github", repo: "Yukina/Osaka" },
         collaborators: [42, 19807509],
+      }),
+      "/registry-cache/maps/yukina-kyoto/manifest.json": JSON.stringify({
+        name: "Kyoto",
+        author: "ahkimn",
+        description: "A detailed Kyoto map.",
+        source: "https://ahkimn.github.io/subwaybuilder-jp-maps/",
       }),
       "/registry-cache/mods/integrity.json": JSON.stringify({
         generated_at: "2026-06-01T00:00:00Z",
@@ -139,9 +152,20 @@ describe("loadAuthorPageData", () => {
       authorAlias: "Yukina-",
       attributionLink: "https://subwaybuildermodded.com/credits",
     });
-    expect(data?.itemsByType.maps.map((item) => item.id)).toEqual(["yukina-osaka"]);
+    expect(data?.itemsByType.maps.map((item) => item.id)).toEqual(["yukina-osaka", "yukina-kyoto"]);
     expect(data?.itemsByType.mods.map((item) => item.id)).toEqual(["signal-pack"]);
     expect(data?.collaborations.map((item) => item.id)).toEqual(["japanese-trains"]);
+    expect(data?.projects).toEqual([
+      {
+        projectId: "ahkimn/subwaybuilder-jp-maps",
+        projectName: "subwaybuilder-jp-maps",
+        href: "/registry/authors/ahkimn/subwaybuilder-jp-maps",
+        maps: 2,
+        mods: 0,
+        totalDownloads: 140,
+        rank: 1,
+      },
+    ]);
     expect(data?.contributorsByItemKey["maps:yukina-osaka"]).toEqual([
       { authorId: "kimth9", authorLabel: "Kim Alias" },
     ]);
@@ -151,7 +175,7 @@ describe("loadAuthorPageData", () => {
       latestVersion: "v0.2.0",
       latestVersionUpdatedAt: Date.parse("2026-06-20T00:00:00Z"),
     });
-    expect(data?.analytics.downloads).toEqual({ total: 150, maps: 120, mods: 30 });
+    expect(data?.analytics.downloads).toEqual({ total: 170, maps: 140, mods: 30 });
     expect(data?.analytics.history).toEqual([
       { date: "2026-06-18", total: 1, maps: 0, mods: 1 },
       { date: "2026-06-19", total: 5, maps: 3, mods: 2 },
@@ -168,6 +192,13 @@ describe("loadAuthorPageData", () => {
         href: "/registry/maps/yukina-osaka",
         downloads: 120,
         rank: 1,
+      },
+      {
+        id: "yukina-kyoto",
+        name: "Kyoto",
+        href: "/registry/maps/yukina-kyoto",
+        downloads: 20,
+        rank: 2,
       },
     ]);
   });

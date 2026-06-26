@@ -289,6 +289,53 @@ function resolveAuthorDisplay(
   return authorAliasMap.get(authorId.toLowerCase()) ?? authorId;
 }
 
+function extractGithubRepoSlugFromPathParts(parts: string[]): string | null {
+  const owner = parts[0]?.trim();
+  const repo = parts[1]?.replace(/\.git$/i, "").trim();
+  if (!owner || !repo) {
+    return null;
+  }
+  return `${owner}/${repo}`;
+}
+
+function extractGithubRepoSlugFromUrl(value: string | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname.endsWith(".github.io")) {
+      const owner = hostname.slice(0, -".github.io".length);
+      const repo = parsed.pathname
+        .split("/")
+        .filter(Boolean)[0]
+        ?.replace(/\.git$/i, "")
+        .trim();
+      return owner && repo ? `${owner}/${repo}` : null;
+    }
+
+    if (
+      hostname !== "github.com" &&
+      hostname !== "www.github.com" &&
+      hostname !== "raw.githubusercontent.com"
+    ) {
+      return null;
+    }
+    return extractGithubRepoSlugFromPathParts(parsed.pathname.split("/").filter(Boolean));
+  } catch {
+    const matched = trimmed.match(
+      /(?:github\.com|raw\.githubusercontent\.com)\/([^/?#]+)\/([^/?#]+)/i,
+    );
+    if (!matched) {
+      return null;
+    }
+    return extractGithubRepoSlugFromPathParts([matched[1] ?? "", matched[2] ?? ""]);
+  }
+}
+
 export async function loadRegistryItemsForType(
   typeId: string,
   typeRouteSegment: string,
@@ -366,6 +413,7 @@ export async function loadRegistryItemsForType(
       type: typeId,
       routeSegment: typeRouteSegment,
       href: `/registry/${typeRouteSegment}/${id}`,
+      projectId: extractGithubRepoSlugFromUrl(manifest.source),
       name: manifest.name?.trim() || id,
       author: resolveAuthorDisplay(manifest.author, authorAliasMap),
       authorId,

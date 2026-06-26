@@ -25,6 +25,7 @@ import {
   StickyNoteX,
   TrendingUp,
   Download,
+  FolderGit2,
   Trophy,
   User,
   Users,
@@ -64,7 +65,7 @@ import {
   type DetailMetric,
 } from "@/features/registry/detail/components/details-tab";
 import { filterRegistryItems } from "@/features/registry/lib/filter-registry-items";
-import { getRegistryAuthorUrl } from "@/features/registry/lib/routing";
+import { getRegistryAuthorUrl, getRegistryProjectUrl } from "@/features/registry/lib/routing";
 import { sortRegistryItems } from "@/features/registry/lib/sort-registry-items";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import {
@@ -77,20 +78,33 @@ import {
   loadAuthorPageData,
   type RegistryAuthorAssetSummary,
   type RegistryAuthorPageData,
+  type RegistryAuthorProjectSummary,
 } from "@/features/registry/authors/lib/load-author-page-data";
+import {
+  loadProjectPageData,
+  type RegistryProjectPageData,
+} from "@/features/registry/authors/lib/load-project-page-data";
 
 type RegistryAuthorPageProps = {
   authorId: string;
   tabId?: string;
 };
 
-type AuthorTabId = "overview" | "analytics";
+type RegistryProjectPageProps = {
+  authorId: string;
+  projectName: string;
+  tabId?: string;
+};
+
+type AuthorTabId = "overview" | "projects" | "analytics";
 
 type AuthorAssetSectionProps = {
   typeId: string;
   items: RegistrySearchItem[];
   hideAuthor?: boolean;
   excludedSortIds?: RegistrySortId[];
+  headingLabel?: string;
+  headingPrefix?: string;
   getContributors?: (
     item: RegistrySearchItem,
   ) => Array<{ authorId: string; authorLabel: string }> | undefined;
@@ -102,6 +116,15 @@ type AuthorRankingSortKey = "name" | "downloads";
 type AuthorHistoryMode = "total" | "maps" | "mods";
 type AuthorAssetRankingMode = "maps" | "mods";
 type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations";
+type RegistryEntityPageData = Pick<
+  RegistryAuthorPageData,
+  "analytics" | "collaborations" | "contributorsByItemKey" | "itemsByType" | "overview"
+>;
+type AuthorTabOption = {
+  id: AuthorTabId;
+  label: string;
+  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+};
 
 const AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS = {
   primary: "56%",
@@ -324,12 +347,15 @@ function AssetUpdateValue({ item }: { item: RegistryAuthorAssetSummary | null })
 function AuthorTabs({
   value,
   onValueChange,
+  options,
 }: {
   value: AuthorTabId;
   onValueChange: (next: AuthorTabId) => void;
+  options?: AuthorTabOption[];
 }) {
-  const tabs = [
+  const tabs = options ?? [
     { id: "overview" as const, label: "Overview", icon: LayoutDashboard },
+    { id: "projects" as const, label: "Projects", icon: FolderGit2 },
     { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
   ];
 
@@ -338,10 +364,13 @@ function AuthorTabs({
       <TabsList
         variant="default"
         aria-label="Registry author tabs"
-        className="grid w-full grid-cols-2 gap-1 rounded-xl border border-border/70 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:gap-2 sm:p-2"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-        }}
+        className="grid w-full gap-1 rounded-xl border border-border/70 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:gap-2 sm:p-2"
+        style={
+          {
+            gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
+            backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
+          } as CSSProperties
+        }
       >
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -367,6 +396,8 @@ function AuthorAssetSection({
   hideAuthor = true,
   excludedSortIds = ["author"],
   getContributors,
+  headingLabel,
+  headingPrefix = "Published ",
 }: AuthorAssetSectionProps) {
   const registrySuite = getSuiteById("registry");
   const typeConfig =
@@ -388,6 +419,7 @@ function AuthorAssetSection({
   const [visibleCount, setVisibleCount] = useState(AUTHOR_ASSET_INCREMENT);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
   const TypeIcon = typeConfig.icon ?? (typeId === "maps" ? MapIcon : Package);
+  const displayedHeading = headingLabel ?? `${headingPrefix}${typeConfig.pluralLabel}`;
 
   const filteredItems = useMemo(() => filterRegistryItems(items, query, []), [items, query]);
   const sortedItems = useMemo(
@@ -430,7 +462,7 @@ function AuthorAssetSection({
             style={{ color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})` }}
           />
           <h3 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Published {typeConfig.pluralLabel}
+            {displayedHeading}
           </h3>
           <span
             className="rounded-lg border px-3 py-1 text-lg font-semibold tabular-nums sm:text-xl"
@@ -532,7 +564,15 @@ function AuthorAssetSection({
   );
 }
 
-function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
+function AuthorPublishedAssets({
+  data,
+  sectionLabel = "Published Assets",
+  headingPrefix = "Published ",
+}: {
+  data: RegistryEntityPageData;
+  sectionLabel?: string;
+  headingPrefix?: string;
+}) {
   const mapsItems = data.itemsByType.maps ?? [];
   const modsItems = data.itemsByType.mods ?? [];
   const collaborationItems = data.collaborations;
@@ -574,6 +614,12 @@ function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
     : (typeOptions[0]?.id ?? "maps");
   const activeItems =
     activeTypeId === "collaborations" ? collaborationItems : (data.itemsByType[activeTypeId] ?? []);
+  const activeTypeConfig =
+    activeTypeId === "collaborations" ? null : getRegistryTypeConfigOrDefault(activeTypeId);
+  const activeHeadingLabel =
+    activeTypeId === "collaborations"
+      ? "Collaborations"
+      : `${headingPrefix}${activeTypeConfig?.pluralLabel ?? ""}`;
 
   useEffect(() => {
     if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
@@ -587,7 +633,7 @@ function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
 
   return (
     <div>
-      <SectionSeparator label="Published Assets" icon={Package} className="mb-4" />
+      <SectionSeparator label={sectionLabel} icon={Package} className="mb-4" />
       <section
         className="space-y-5 rounded-xl border border-border/70 p-4 sm:p-5"
         style={{
@@ -614,6 +660,8 @@ function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
               ? undefined
               : (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
           }
+          headingLabel={activeHeadingLabel}
+          headingPrefix={headingPrefix}
         />
       </section>
     </div>
@@ -626,7 +674,133 @@ function AuthorRankAccessory({ rank }: { rank: number | null }) {
   );
 }
 
-function AuthorRecentTrendsTable({ data }: { data: RegistryAuthorPageData }) {
+function ProjectTypeCountPill({ typeId, count }: { typeId: "maps" | "mods"; count: number }) {
+  if (count <= 0) return null;
+
+  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
+  const Icon = typeConfig.icon ?? (typeId === "maps" ? MapIcon : Package);
+
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold"
+      style={
+        {
+          color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
+          borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 34%, transparent)`,
+          background: `color-mix(in srgb, ${typeConfig.accentLight} 10%, transparent)`,
+        } as CSSProperties
+      }
+    >
+      <Icon className="size-3.5" aria-hidden={true} />
+      <span>{typeConfig.pluralLabel}</span>
+      <span
+        className="rounded border px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums"
+        style={{
+          borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 38%, transparent)`,
+          background: `color-mix(in srgb, ${typeConfig.accentLight} 14%, transparent)`,
+        }}
+      >
+        {formatNumber(count)}
+      </span>
+    </span>
+  );
+}
+
+function AuthorProjectCard({ project }: { project: RegistryAuthorProjectSummary }) {
+  return (
+    <article className="flex min-w-0 items-center justify-between gap-4 rounded-xl border border-border/70 bg-card/75 px-4 py-3 shadow-sm">
+      <div className="min-w-0 space-y-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <Link
+            to={project.href}
+            className="min-w-0 truncate text-base font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+          >
+            {project.projectName}
+          </Link>
+          <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          <ProjectTypeCountPill typeId="maps" count={project.maps} />
+          <ProjectTypeCountPill typeId="mods" count={project.mods} />
+        </div>
+        <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+          <Download className="size-4" aria-hidden={true} />
+          <span className="tabular-nums">{formatNumber(project.totalDownloads)}</span>
+        </div>
+      </div>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="shrink-0">
+              <RankBadge rank={project.rank} className="size-9 text-sm" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">Ranking among Projects</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </article>
+  );
+}
+
+function AuthorProjects({ projects }: { projects: RegistryAuthorProjectSummary[] }) {
+  const [query, setQuery] = useState("");
+  const filteredProjects = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return projects;
+    return projects.filter(
+      (project) =>
+        project.projectName.toLowerCase().includes(normalizedQuery) ||
+        project.projectId.toLowerCase().includes(normalizedQuery),
+    );
+  }, [projects, query]);
+
+  if (projects.length === 0) return null;
+
+  return (
+    <section className="space-y-4">
+      <SectionSeparator label="Published Projects" icon={FolderGit2} className="mb-4" />
+      <div
+        className="space-y-4 rounded-xl border border-border/70 p-4 sm:p-5"
+        style={{
+          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
+        }}
+      >
+        <div className="group relative flex">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden={true}
+          />
+          <input
+            type="search"
+            role="searchbox"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search projects..."
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className="h-11 w-full appearance-none rounded-lg border border-border/30 bg-background pl-9 pr-10 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,var(--border))] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_5%,var(--background))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--suite-accent-light)_44%,transparent)] [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
+          />
+          {query ? (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-[color,opacity] group-hover:opacity-100 hover:text-[var(--suite-accent-light)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--suite-accent-light)_44%,transparent)]"
+              aria-label="Clear project search"
+            >
+              <X className="size-3.5" aria-hidden={true} />
+            </button>
+          ) : null}
+        </div>
+        <div className="space-y-3">
+          {filteredProjects.map((project) => (
+            <AuthorProjectCard key={project.projectId} project={project} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
   const [sortKey, setSortKey] = useState<AuthorTrendSortKey>("downloads");
   const [directions, setDirections] = useState<Record<AuthorTrendSortKey, SortDirection>>({
     label: "asc",
@@ -698,7 +872,7 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryAuthorPageData }) {
   );
 }
 
-function AuthorDownloadHistory({ data }: { data: RegistryAuthorPageData }) {
+function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
   const hasMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasMods = (data.itemsByType.mods ?? []).length > 0;
   const hasMultipleAssetTypes = hasMaps && hasMods;
@@ -784,7 +958,7 @@ function AuthorDownloadHistory({ data }: { data: RegistryAuthorPageData }) {
   );
 }
 
-function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
+function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
   const hasMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasMods = (data.itemsByType.mods ?? []).length > 0;
   const hasMultipleAssetTypes = hasMaps && hasMods;
@@ -922,7 +1096,13 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
   );
 }
 
-function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
+function AuthorAnalytics({
+  data,
+  emptyMessage = "This user has not published any content to the registry.",
+}: {
+  data: RegistryEntityPageData;
+  emptyMessage?: string;
+}) {
   const hasMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasMods = (data.itemsByType.mods ?? []).length > 0;
   const hasPublishedAssets = hasMaps || hasMods;
@@ -969,9 +1149,7 @@ function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
             }}
           >
             <StickyNoteX className="size-9 text-muted-foreground" aria-hidden={true} />
-            <p className="max-w-md text-sm font-medium text-muted-foreground">
-              This user has not published any content to the registry.
-            </p>
+            <p className="max-w-md text-sm font-medium text-muted-foreground">{emptyMessage}</p>
           </div>
         </div>
       </section>
@@ -999,14 +1177,24 @@ function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
   );
 }
 
-function AuthorOverview({ data }: { data: RegistryAuthorPageData }) {
+function AuthorOverview({
+  data,
+  assetMetricTitle = "Assets Published",
+  assetSectionLabel = "Published Assets",
+  assetHeadingPrefix = "Published ",
+}: {
+  data: RegistryEntityPageData;
+  assetMetricTitle?: string;
+  assetSectionLabel?: string;
+  assetHeadingPrefix?: string;
+}) {
   const allItems = Object.values(data.itemsByType).flat();
   const totalDownloads = allItems.reduce((sum, item) => sum + item.totalDownloads, 0);
   const hasPublishedAssets = allItems.length > 0;
 
   const metrics: DetailMetric[] = [
     {
-      title: "Assets Published",
+      title: assetMetricTitle,
       value: formatNumber(allItems.length),
       icon: LayoutDashboard,
     },
@@ -1048,7 +1236,11 @@ function AuthorOverview({ data }: { data: RegistryAuthorPageData }) {
         </div>
       ) : null}
 
-      <AuthorPublishedAssets data={data} />
+      <AuthorPublishedAssets
+        data={data}
+        sectionLabel={assetSectionLabel}
+        headingPrefix={assetHeadingPrefix}
+      />
     </div>
   );
 }
@@ -1057,7 +1249,6 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
   const suite = getSuiteById("registry");
   const [data, setData] = useState<RegistryAuthorPageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const activeTab: AuthorTabId = tabId === "analytics" ? "analytics" : "overview";
 
   useEffect(() => {
     let cancelled = false;
@@ -1107,6 +1298,20 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
   }
 
   const attributionLink = data.author.attributionLink;
+  const hasPublishedAssets = Object.values(data.itemsByType).some((items) => items.length > 0);
+  const hasProjects = data.projects.length > 0;
+  const authorTabOptions: AuthorTabOption[] = [
+    { id: "overview", label: "Overview", icon: LayoutDashboard },
+    ...(hasProjects ? [{ id: "projects" as const, label: "Projects", icon: FolderGit2 }] : []),
+    ...(hasPublishedAssets
+      ? [{ id: "analytics" as const, label: "Analytics", icon: BarChart3 }]
+      : []),
+  ];
+  const requestedTab: AuthorTabId =
+    tabId === "projects" || tabId === "analytics" ? tabId : "overview";
+  const activeTab = authorTabOptions.some((option) => option.id === requestedTab)
+    ? requestedTab
+    : "overview";
 
   return (
     <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
@@ -1177,6 +1382,7 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
           <div className="space-y-5">
             <AuthorTabs
               value={activeTab}
+              options={authorTabOptions}
               onValueChange={(nextTab) => {
                 navigate(getRegistryAuthorUrl(authorId, nextTab), { preserveScroll: true });
               }}
@@ -1186,8 +1392,175 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
               <div hidden={activeTab !== "overview"}>
                 <AuthorOverview data={data} />
               </div>
+              {hasProjects ? (
+                <div hidden={activeTab !== "projects"}>
+                  <AuthorProjects projects={data.projects} />
+                </div>
+              ) : null}
+              {hasPublishedAssets ? (
+                <div hidden={activeTab !== "analytics"}>
+                  <AuthorAnalytics data={data} />
+                </div>
+              ) : null}
+            </main>
+          </div>
+        </div>
+      </div>
+    </SuiteAccentScope>
+  );
+}
+
+export function RegistryProjectPage({ authorId, projectName, tabId }: RegistryProjectPageProps) {
+  const suite = getSuiteById("registry");
+  const [data, setData] = useState<RegistryProjectPageData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const activeTab: AuthorTabId = tabId === "analytics" ? "analytics" : "overview";
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setData(null);
+
+    void loadProjectPageData(authorId, projectName)
+      .then((loaded) => {
+        if (!cancelled) {
+          setData(loaded);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setData(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authorId, projectName]);
+
+  if (isLoading) {
+    return (
+      <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
+        <div className="relative isolate flex min-h-[55vh] items-center justify-center px-5 py-6 sm:px-7 md:px-9 lg:px-12">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground">
+            <Loader2
+              className="size-11 animate-spin will-change-transform motion-reduce:animate-none"
+              aria-hidden={true}
+            />
+            <span className="text-2xl font-semibold tracking-tight">Loading...</span>
+          </div>
+        </div>
+      </SuiteAccentScope>
+    );
+  }
+
+  if (!data) {
+    return <NotFoundPage />;
+  }
+
+  return (
+    <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
+      <div
+        className="relative isolate w-full px-5 py-6 sm:px-7 md:px-9 lg:px-12"
+        style={
+          {
+            "--registry-type-accent": "var(--suite-accent-light)",
+            "--registry-type-accent-strong": "var(--suite-accent-light)",
+          } as CSSProperties
+        }
+      >
+        <div className="relative z-10 space-y-6">
+          <header className="space-y-6 pt-3 sm:pt-4">
+            <div className="bg-transparent py-2 sm:py-3">
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+                <div className="relative min-w-0 flex-1">
+                  <div className="relative z-10">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1 text-sm font-semibold"
+                        style={{
+                          borderColor:
+                            "color-mix(in srgb, var(--suite-accent-light) 34%, transparent)",
+                          background:
+                            "color-mix(in srgb, var(--suite-accent-light) 16%, transparent)",
+                          color: "var(--suite-accent-light)",
+                        }}
+                      >
+                        <FolderGit2 className="size-4" aria-hidden={true} />
+                        Project
+                      </span>
+                    </div>
+
+                    <div className="mt-2.5">
+                      <div className="inline-block max-w-full align-top">
+                        <h1 className="m-0 text-balance text-4xl font-semibold leading-[0.95] tracking-tight text-foreground sm:text-5xl">
+                          {data.project.projectName}
+                        </h1>
+
+                        <NeutralFadedUnderline className="mt-2" />
+                      </div>
+                      <p className="m-0 mt-3 flex items-center gap-1.5 text-base font-medium leading-[1.1] tracking-normal text-muted-foreground">
+                        <Link
+                          to={getRegistryAuthorUrl(data.project.authorId)}
+                          className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+                        >
+                          {data.project.authorLabel}
+                        </Link>
+                        <ExternalLink
+                          className="size-3.5 shrink-0 text-muted-foreground"
+                          aria-hidden={true}
+                        />
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href={data.project.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Open ${data.project.projectName} on GitHub`}
+                  className="inline-flex h-10 w-10 items-center justify-center justify-self-start rounded-lg text-muted-foreground transition-colors hover:text-[var(--suite-accent-light)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:justify-self-end"
+                >
+                  <ExternalLink className="size-6" aria-hidden={true} />
+                </a>
+              </div>
+            </div>
+          </header>
+
+          <div className="space-y-5">
+            <AuthorTabs
+              value={activeTab}
+              options={[
+                { id: "overview", label: "Overview", icon: LayoutDashboard },
+                { id: "analytics", label: "Analytics", icon: BarChart3 },
+              ]}
+              onValueChange={(nextTab) => {
+                navigate(getRegistryProjectUrl(authorId, projectName, nextTab), {
+                  preserveScroll: true,
+                });
+              }}
+            />
+
+            <main className="min-w-0">
+              <div hidden={activeTab !== "overview"}>
+                <AuthorOverview
+                  data={data}
+                  assetMetricTitle="Assets"
+                  assetSectionLabel="Assets"
+                  assetHeadingPrefix=""
+                />
+              </div>
               <div hidden={activeTab !== "analytics"}>
-                <AuthorAnalytics data={data} />
+                <AuthorAnalytics
+                  data={data}
+                  emptyMessage="This project has no published content in the registry."
+                />
               </div>
             </main>
           </div>

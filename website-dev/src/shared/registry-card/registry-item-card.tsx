@@ -363,6 +363,7 @@ function RegistryCardGrid({
   const visibleTags = getVisibleCardTags(data.tags);
   const gridTagStripRef = useRef<HTMLDivElement>(null);
   const showTagOverflowHint = useTagOverflowHint(gridTagStripRef, [visibleTags.join("|")]);
+  const compactTagGapClass = hideAuthor ? "mt-2" : "mt-2.5";
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
@@ -433,6 +434,7 @@ function RegistryCardGrid({
             <div
               className={cn(
                 "relative isolate h-5 overflow-hidden bg-[var(--card-surface)]",
+                compactTagGapClass,
                 TAG_SURFACE_TRANSITION_CLASS,
               )}
             >
@@ -476,7 +478,7 @@ function RegistryCardGrid({
               ) : null}
             </div>
           ) : (
-            <div className="h-5" aria-hidden={true} />
+            <div className={cn("h-5", compactTagGapClass)} aria-hidden={true} />
           )}
         </div>
       </div>
@@ -594,6 +596,8 @@ function RegistryCardList({
   const visibleTags = getVisibleCardTags(data.tags);
   const listTagStripRef = useRef<HTMLDivElement>(null);
   const showTagOverflowHint = useTagOverflowHint(listTagStripRef, [visibleTags.join("|")]);
+  const listDescriptionGapClass = hideAuthor ? "mt-2" : "mt-2.5";
+  const listTagGapClass = hideAuthor ? "mt-2.5" : "mt-3";
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
@@ -619,9 +623,7 @@ function RegistryCardList({
           noImageLabel="N/A"
         />
 
-        <div
-          className={cn("min-w-0 flex-1 overflow-hidden", hideAuthor ? "space-y-1" : "space-y-1.5")}
-        >
+        <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <TypeBadge typeConfig={typeConfig} size="sm" />
@@ -638,26 +640,32 @@ function RegistryCardList({
             />
           </div>
 
-          <div className={hideAuthor ? "space-y-0" : "space-y-0.5"}>
-            <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold min-[1800px]:text-[1.12rem]">
+          <div className="mt-1 space-y-0">
+            <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold leading-tight min-[1800px]:text-[1.12rem]">
               <TitleLink
                 title={data.title}
                 href={data.href}
                 className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
               />
             </h3>
-            <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
+            <div className={hideAuthor ? undefined : "-mt-px"}>
+              <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
+            </div>
           </div>
 
           <DescriptionPreview
             segments={previewText}
-            className="h-10 overflow-hidden text-sm leading-5 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] min-[1800px]:h-11 min-[1800px]:text-base"
+            className={cn(
+              "overflow-hidden text-sm leading-5 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] min-[1800px]:text-base",
+              listDescriptionGapClass,
+            )}
           />
 
           {visibleTags.length > 0 ? (
             <div
               className={cn(
                 "relative isolate h-5 overflow-hidden bg-[var(--card-surface)]",
+                listTagGapClass,
                 TAG_SURFACE_TRANSITION_CLASS,
               )}
             >
@@ -701,7 +709,7 @@ function RegistryCardList({
               ) : null}
             </div>
           ) : (
-            <div className="h-5" aria-hidden={true} />
+            <div className={cn("h-5", listTagGapClass)} aria-hidden={true} />
           )}
         </div>
       </div>

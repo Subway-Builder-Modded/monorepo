@@ -108,6 +108,23 @@ describe("createCategoryTicks", () => {
       "2026-04-14",
     ]);
   });
+
+  it("combines a short initial interval with the next category interval", () => {
+    const values = Array.from(
+      { length: 33 },
+      (_, index) => `2026-05-${String(index + 1).padStart(2, "0")}`,
+    );
+
+    expect(createCategoryTicks(values, 8)).toEqual([
+      "2026-05-01",
+      "2026-05-08",
+      "2026-05-13",
+      "2026-05-18",
+      "2026-05-23",
+      "2026-05-28",
+      "2026-05-33",
+    ]);
+  });
 });
 
 describe("AnalyticsBarChart", () => {

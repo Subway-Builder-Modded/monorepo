@@ -165,7 +165,7 @@ export function RegistryDetailSidebar({
               )}
               <AuthorRoleBadge authorId={detail.authorId} className="cursor-pointer" />
               {detail.authorId ? (
-                <ExternalLink className="size-3.5 text-foreground" aria-hidden={true} />
+                <ExternalLink className="size-3.5 text-muted-foreground" aria-hidden={true} />
               ) : null}
             </span>
           </div>
@@ -188,7 +188,7 @@ export function RegistryDetailSidebar({
                 className="inline-flex items-center"
                 aria-label={`${collaborator.authorLabel} external link`}
               >
-                <ExternalLink className="size-3.5 text-foreground" aria-hidden={true} />
+                <ExternalLink className="size-3.5 text-muted-foreground" aria-hidden={true} />
               </Link>
             </div>
           ))}
@@ -208,16 +208,19 @@ export function RegistryDetailSidebar({
       key: "project",
       content: (
         <SidebarSection title="Project">
-          <Link
-            to={projectHref}
-            className="group flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground"
+          <div
+            className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground"
+            style={authorLinkAccentVars}
           >
             <FolderGit2 className="size-4.5 text-foreground" aria-hidden={true} />
-            <span className="underline decoration-transparent underline-offset-2 transition-colors group-hover:text-[var(--registry-type-accent)] group-hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]">
+            <Link
+              to={projectHref}
+              className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-author-accent-light)] hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-light)_62%,transparent)] dark:hover:text-[var(--registry-author-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-dark)_62%,transparent)]"
+            >
               {projectRepoName}
-            </span>
-            <ExternalLink className="size-3.5 text-foreground" aria-hidden={true} />
-          </Link>
+            </Link>
+            <ExternalLink className="size-3.5 text-muted-foreground" aria-hidden={true} />
+          </div>
         </SidebarSection>
       ),
     });
@@ -254,18 +257,18 @@ export function RegistryDetailSidebar({
       key: "links",
       content: (
         <SidebarSection title="Links">
-          <a
-            href={detail.sourceCodeLink.href}
-            target="_blank"
-            rel="noreferrer"
-            className="group flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground"
-          >
+          <div className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground">
             <Code2 className="size-4.5 text-foreground" aria-hidden={true} />
-            <span className="underline decoration-transparent underline-offset-2 transition-colors group-hover:text-[var(--registry-type-accent)] group-hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]">
+            <a
+              href={detail.sourceCodeLink.href}
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+            >
               {detail.sourceCodeLink.label}
-            </span>
-            <ExternalLink className="size-4 text-foreground" aria-hidden={true} />
-          </a>
+            </a>
+            <ExternalLink className="size-4 text-muted-foreground" aria-hidden={true} />
+          </div>
         </SidebarSection>
       ),
     });

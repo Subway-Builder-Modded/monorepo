@@ -8,6 +8,8 @@ export type RegistrySearchItem = {
   routeSegment: string;
   /** Resolved canonical href, e.g. /registry/maps/gwangju-4 */
   href: string;
+  /** GitHub owner/repo slug when the asset belongs to a GitHub-backed project. */
+  projectId?: string | null;
   name: string;
   author: string;
   authorId: string | null;
@@ -51,6 +53,7 @@ export type RawRegistryManifest = {
   residents_total?: number;
   is_test?: boolean;
   last_updated?: number;
+  source?: string;
 };
 
 /** Shape of the index.json file in each type folder. */

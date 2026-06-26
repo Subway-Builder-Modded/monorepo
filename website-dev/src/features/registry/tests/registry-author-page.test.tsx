@@ -1,11 +1,19 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { RegistryAuthorPage } from "@/features/registry/authors/registry-author-page";
+import {
+  RegistryAuthorPage,
+  RegistryProjectPage,
+} from "@/features/registry/authors/registry-author-page";
 
 const mockLoadAuthorPageData = vi.fn();
+const mockLoadProjectPageData = vi.fn();
 
 vi.mock("@/features/registry/authors/lib/load-author-page-data", () => ({
   loadAuthorPageData: (...args: unknown[]) => mockLoadAuthorPageData(...args),
+}));
+
+vi.mock("@/features/registry/authors/lib/load-project-page-data", () => ({
+  loadProjectPageData: (...args: unknown[]) => mockLoadProjectPageData(...args),
 }));
 
 vi.mock("@subway-builder-modded/analytics", () => ({
@@ -76,6 +84,7 @@ describe("RegistryAuthorPage", () => {
             type: "maps",
             routeSegment: "maps",
             href: "/registry/maps/yukina-osaka",
+            projectId: "ahkimn/subwaybuilder-jp-maps",
             name: "Osaka",
             totalDownloads: 120,
             lastActivityAt: Date.parse("2026-06-20T00:00:00Z"),
@@ -105,6 +114,17 @@ describe("RegistryAuthorPage", () => {
         ],
       },
       collaborations: [],
+      projects: [
+        {
+          projectId: "ahkimn/subwaybuilder-jp-maps",
+          projectName: "subwaybuilder-jp-maps",
+          href: "/registry/authors/ahkimn/subwaybuilder-jp-maps",
+          maps: 1,
+          mods: 0,
+          totalDownloads: 120,
+          rank: 3,
+        },
+      ],
       contributorsByItemKey: {},
       overview: {
         newestAsset: {
@@ -193,6 +213,14 @@ describe("RegistryAuthorPage", () => {
     expect(screen.getByRole("radio", { name: "Mods" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Mods" })).not.toBeInTheDocument();
 
+    rerender(<RegistryAuthorPage authorId="ahkimn" tabId="projects" />);
+    expect(await screen.findByText("Published Projects")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "subwaybuilder-jp-maps" })).toHaveAttribute(
+      "href",
+      "/registry/authors/ahkimn/subwaybuilder-jp-maps",
+    );
+    expect(screen.getAllByText("Maps").length).toBeGreaterThan(0);
+
     rerender(<RegistryAuthorPage authorId="ahkimn" tabId="analytics" />);
     expect(await screen.findByText("Downloads (Total)")).toBeInTheDocument();
     expect(screen.getByText("Recent Trends")).toBeInTheDocument();
@@ -202,5 +230,102 @@ describe("RegistryAuthorPage", () => {
     await waitFor(() => {
       expect(screen.queryByText("Loading...")).not.toBeInTheDocument();
     });
+  }, 20_000);
+
+  it("renders the project overview with project-specific copy and links", async () => {
+    mockLoadProjectPageData.mockResolvedValue({
+      project: {
+        projectId: "ahkimn/subwaybuilder-jp-maps",
+        projectName: "subwaybuilder-jp-maps",
+        authorId: "ahkimn",
+        authorLabel: "Yukina-",
+        githubUrl: "https://github.com/ahkimn/subwaybuilder-jp-maps",
+      },
+      itemsByType: {
+        maps: [
+          {
+            ...SAMPLE_ITEM_BASE,
+            id: "yukina-osaka",
+            type: "maps",
+            routeSegment: "maps",
+            href: "/registry/maps/yukina-osaka",
+            projectId: "ahkimn/subwaybuilder-jp-maps",
+            name: "Osaka",
+            totalDownloads: 120,
+            lastActivityAt: Date.parse("2026-06-20T00:00:00Z"),
+            publishedAt: Date.parse("2026-05-01T00:00:00Z"),
+            latestVersion: "v0.2.0",
+            latestVersionUpdatedAt: Date.parse("2026-06-20T00:00:00Z"),
+          },
+        ],
+        mods: [],
+      },
+      collaborations: [],
+      projects: [],
+      contributorsByItemKey: {},
+      overview: {
+        newestAsset: {
+          id: "yukina-osaka",
+          name: "Osaka",
+          href: "/registry/maps/yukina-osaka",
+          publishedAt: Date.parse("2026-05-01T00:00:00Z"),
+          latestVersion: "v0.2.0",
+          latestVersionUpdatedAt: Date.parse("2026-06-20T00:00:00Z"),
+        },
+        mostRecentUpdate: {
+          id: "yukina-osaka",
+          name: "Osaka",
+          href: "/registry/maps/yukina-osaka",
+          publishedAt: Date.parse("2026-05-01T00:00:00Z"),
+          latestVersion: "v0.2.0",
+          latestVersionUpdatedAt: Date.parse("2026-06-20T00:00:00Z"),
+        },
+      },
+      analytics: {
+        downloads: {
+          total: 120,
+          maps: 120,
+          mods: 0,
+        },
+        ranks: {
+          total: 3,
+          maps: 2,
+          mods: null,
+        },
+        history: [{ date: "2026-06-20", total: 7, maps: 7, mods: 0 }],
+        trends: [{ period: "1d", label: "Last 24 Hours", downloads: 7, rank: 2 }],
+        rankingsByType: {
+          maps: [
+            {
+              id: "yukina-osaka",
+              name: "Osaka",
+              href: "/registry/maps/yukina-osaka",
+              downloads: 120,
+              rank: 1,
+            },
+          ],
+          mods: [],
+        },
+      },
+    });
+
+    render(<RegistryProjectPage authorId="ahkimn" projectName="subwaybuilder-jp-maps" />);
+
+    expect(
+      await screen.findByRole("heading", { name: "subwaybuilder-jp-maps" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Project")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Yukina-" })).toHaveAttribute(
+      "href",
+      "/registry/authors/ahkimn",
+    );
+    expect(screen.getByLabelText("Open subwaybuilder-jp-maps on GitHub")).toHaveAttribute(
+      "href",
+      "https://github.com/ahkimn/subwaybuilder-jp-maps",
+    );
+    expect(screen.getAllByText("Assets").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Assets Published")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Maps" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Published Maps" })).not.toBeInTheDocument();
   });
 });

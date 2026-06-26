@@ -3,6 +3,7 @@ import {
   getRegistryAuthorUrl,
   getRegistryDetailUrl,
   getRegistryPageUrl,
+  getRegistryProjectUrl,
   getRegistryVersionUrl,
   matchRegistryRoute,
 } from "@/features/registry/lib/routing";
@@ -38,6 +39,28 @@ describe("matchRegistryRoute", () => {
       authorId: "ahkimn",
       tabId: "analytics",
     });
+    expect(matchRegistryRoute("/registry/authors/ahkimn/projects")).toEqual({
+      kind: "author",
+      authorId: "ahkimn",
+      tabId: "projects",
+    });
+  });
+
+  it("matches project routes under author routes", () => {
+    expect(matchRegistryRoute("/registry/authors/ahkimn/subwaybuilder-jp-maps")).toEqual({
+      kind: "project",
+      authorId: "ahkimn",
+      projectName: "subwaybuilder-jp-maps",
+    });
+  });
+
+  it("matches project tab routes", () => {
+    expect(matchRegistryRoute("/registry/authors/ahkimn/subwaybuilder-jp-maps/analytics")).toEqual({
+      kind: "project",
+      authorId: "ahkimn",
+      projectName: "subwaybuilder-jp-maps",
+      tabId: "analytics",
+    });
   });
 
   it("matches detail route with tab subpage", () => {
@@ -61,7 +84,9 @@ describe("matchRegistryRoute", () => {
 
   it("returns none for invalid detail tab subpage", () => {
     expect(matchRegistryRoute("/registry/maps/gwangju-4/not-a-tab")).toEqual({ kind: "none" });
-    expect(matchRegistryRoute("/registry/authors/ahkimn/not-a-tab")).toEqual({ kind: "none" });
+    expect(matchRegistryRoute("/registry/authors/ahkimn/project/not-a-tab")).toEqual({
+      kind: "none",
+    });
   });
 
   it("returns none for unrelated route", () => {
@@ -90,6 +115,21 @@ describe("getRegistryAuthorUrl", () => {
     expect(getRegistryAuthorUrl("ahkimn")).toBe("/registry/authors/ahkimn");
     expect(getRegistryAuthorUrl("ahkimn", "overview")).toBe("/registry/authors/ahkimn");
     expect(getRegistryAuthorUrl("ahkimn", "analytics")).toBe("/registry/authors/ahkimn/analytics");
+    expect(getRegistryAuthorUrl("ahkimn", "projects")).toBe("/registry/authors/ahkimn/projects");
+  });
+});
+
+describe("getRegistryProjectUrl", () => {
+  it("builds project tab URLs and omits overview", () => {
+    expect(getRegistryProjectUrl("ahkimn", "subwaybuilder-jp-maps")).toBe(
+      "/registry/authors/ahkimn/subwaybuilder-jp-maps",
+    );
+    expect(getRegistryProjectUrl("ahkimn", "subwaybuilder-jp-maps", "overview")).toBe(
+      "/registry/authors/ahkimn/subwaybuilder-jp-maps",
+    );
+    expect(getRegistryProjectUrl("ahkimn", "subwaybuilder-jp-maps", "analytics")).toBe(
+      "/registry/authors/ahkimn/subwaybuilder-jp-maps/analytics",
+    );
   });
 });
 

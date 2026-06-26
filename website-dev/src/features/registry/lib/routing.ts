@@ -11,12 +11,13 @@ const REGISTRY_DETAIL_TABS = new Set([
   "map",
   "details",
 ]);
-const REGISTRY_AUTHOR_TABS = new Set(["overview", "analytics"]);
+const REGISTRY_AUTHOR_TABS = new Set(["overview", "projects", "analytics"]);
 
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
   | { kind: "author"; authorId: string; tabId?: string }
+  | { kind: "project"; authorId: string; projectName: string; tabId?: string }
   | { kind: "detail"; routeSegment: string; id: string; tabId?: string; versionId?: string };
 
 function normalizePathname(pathname: string): string {
@@ -64,7 +65,11 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
     const tabId = decodeURIComponent(segments[3] ?? "");
     if (segments[1] === "authors") {
       if (!REGISTRY_AUTHOR_TABS.has(tabId)) {
-        return { kind: "none" };
+        return {
+          kind: "project",
+          authorId: decodeURIComponent(segments[2] ?? ""),
+          projectName: tabId,
+        };
       }
 
       return {
@@ -87,6 +92,20 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   }
 
   if (segments.length === 5 && segments[0] === "registry") {
+    if (segments[1] === "authors") {
+      const tabId = decodeURIComponent(segments[4] ?? "");
+      if (!REGISTRY_AUTHOR_TABS.has(tabId)) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "project",
+        authorId: decodeURIComponent(segments[2] ?? ""),
+        projectName: decodeURIComponent(segments[3] ?? ""),
+        tabId,
+      };
+    }
+
     const tabId = decodeURIComponent(segments[3] ?? "");
     if (tabId !== "versions") {
       return { kind: "none" };
@@ -124,6 +143,18 @@ export function getRegistryDetailUrl(routeSegment: string, id: string, tabId?: s
 
 export function getRegistryAuthorUrl(authorId: string, tabId?: string): string {
   const base = `${REGISTRY_ROUTE}/authors/${encodeURIComponent(authorId)}`;
+  if (!tabId || tabId === "overview") {
+    return base;
+  }
+  return `${base}/${encodeURIComponent(tabId)}`;
+}
+
+export function getRegistryProjectUrl(
+  authorId: string,
+  projectName: string,
+  tabId?: string,
+): string {
+  const base = `${REGISTRY_ROUTE}/authors/${encodeURIComponent(authorId)}/${encodeURIComponent(projectName)}`;
   if (!tabId || tabId === "overview") {
     return base;
   }

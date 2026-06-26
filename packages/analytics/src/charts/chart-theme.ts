@@ -103,11 +103,14 @@ export function createCategoryTicks<T>(values: T[], maxTickCount = 8): T[] {
 
   const ticks: T[] = [values[0]];
   const cadenceStart = lastIndex % interval;
-  for (
-    let index = cadenceStart === 0 ? interval : cadenceStart;
-    index <= lastIndex;
-    index += interval
-  ) {
+  const shouldCombineShortInitialInterval = cadenceStart > 0 && cadenceStart < interval / 2;
+  const firstCadenceIndex =
+    cadenceStart === 0
+      ? interval
+      : shouldCombineShortInitialInterval
+        ? cadenceStart + interval
+        : cadenceStart;
+  for (let index = firstCadenceIndex; index <= lastIndex; index += interval) {
     ticks.push(values[index]);
   }
 
