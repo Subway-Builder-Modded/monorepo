@@ -18,7 +18,22 @@ export type RegistryAuthorProfile = {
 export type RegistryAuthorPageData = {
   author: RegistryAuthorProfile;
   itemsByType: Record<string, RegistrySearchItem[]>;
+  overview: RegistryAuthorOverview;
   analytics: RegistryAuthorAnalytics;
+};
+
+export type RegistryAuthorAssetSummary = {
+  id: string;
+  name: string;
+  href: string;
+  publishedAt: number;
+  latestVersion: string | null;
+  latestVersionUpdatedAt: number;
+};
+
+export type RegistryAuthorOverview = {
+  newestAsset: RegistryAuthorAssetSummary | null;
+  mostRecentUpdate: RegistryAuthorAssetSummary | null;
 };
 
 export type RegistryAuthorDownloadHistoryPoint = {
@@ -70,6 +85,24 @@ type RawAuthorsIndex = {
   }>;
 };
 
+type ReleaseCache = {
+  repos?: Record<string, Array<{ tag_name?: string; name?: string; published_at?: string }>>;
+  custom_urls?: Record<string, Array<{ version?: string; date?: string }>>;
+};
+
+type RegistryManifestWithUpdate = {
+  update?: {
+    type?: string;
+    repo?: string;
+    url?: string;
+  };
+};
+
+type ReleaseEntry = {
+  version: string | null;
+  timestamp: number;
+};
+
 function safeJson<T>(raw: string, fallback: T): T {
   try {
     return JSON.parse(raw) as T;
@@ -90,6 +123,11 @@ async function safeFetchText(url: string): Promise<string | null> {
 
 function normalizeAuthorId(value: string) {
   return value.trim().toLowerCase();
+}
+
+function parseReleaseTimestamp(value: string | undefined | null) {
+  const timestamp = Date.parse(value ?? "");
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function parseCsvLine(line: string): string[] {
@@ -338,6 +376,78 @@ function buildItemAuthorLookup(allItemsByType: Record<string, RegistrySearchItem
   return lookup;
 }
 
+function getReleaseEntriesForItem(
+  item: RegistrySearchItem,
+  releaseCache: ReleaseCache,
+): ReleaseEntry[] {
+  const manifest = item.manifest as RegistryManifestWithUpdate;
+  const update = manifest.update;
+
+  if (update?.type === "github" && update.repo?.trim()) {
+    return (releaseCache.repos?.[update.repo.trim().toLowerCase()] ?? [])
+      .map((release) => ({
+        version: release.tag_name?.trim() || release.name?.trim() || null,
+        timestamp: parseReleaseTimestamp(release.published_at),
+      }))
+      .filter((release) => release.timestamp > 0);
+  }
+
+  if (update?.type === "custom" && update.url?.trim()) {
+    return (releaseCache.custom_urls?.[update.url.trim()] ?? [])
+      .map((release) => ({
+        version: release.version?.trim() || null,
+        timestamp: parseReleaseTimestamp(release.date),
+      }))
+      .filter((release) => release.timestamp > 0);
+  }
+
+  return [];
+}
+
+function summarizeAssetFromReleaseCache(
+  item: RegistrySearchItem,
+  releaseCache: ReleaseCache,
+): RegistryAuthorAssetSummary | null {
+  const releaseEntries = getReleaseEntriesForItem(item, releaseCache).sort(
+    (left, right) => left.timestamp - right.timestamp,
+  );
+
+  if (releaseEntries.length === 0) {
+    return null;
+  }
+
+  const firstRelease = releaseEntries[0];
+  const latestRelease = releaseEntries[releaseEntries.length - 1];
+
+  return {
+    id: item.id,
+    name: item.name,
+    href: item.href,
+    publishedAt: firstRelease.timestamp,
+    latestVersion: latestRelease.version?.trim() || null,
+    latestVersionUpdatedAt: latestRelease.timestamp,
+  };
+}
+
+function computeAuthorOverview(
+  itemsByType: Record<string, RegistrySearchItem[]>,
+  releaseCache: ReleaseCache,
+): RegistryAuthorOverview {
+  const assetSummaries = Object.values(itemsByType)
+    .flat()
+    .map((item) => summarizeAssetFromReleaseCache(item, releaseCache))
+    .filter((item): item is RegistryAuthorAssetSummary => item !== null);
+
+  return {
+    newestAsset:
+      [...assetSummaries].sort((left, right) => right.publishedAt - left.publishedAt)[0] ?? null,
+    mostRecentUpdate:
+      [...assetSummaries].sort(
+        (left, right) => right.latestVersionUpdatedAt - left.latestVersionUpdatedAt,
+      )[0] ?? null,
+  };
+}
+
 export async function loadAuthorPageData(authorId: string): Promise<RegistryAuthorPageData | null> {
   const authorsIndex = await loadAuthorsIndex().catch((): RawAuthorsIndex => ({}));
   const author = resolveAuthorProfile(authorId, authorsIndex);
@@ -370,7 +480,11 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
   const dailyAnalyticsRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`,
   );
+  const releaseCacheRaw = await safeFetchText(
+    `${REGISTRY_CACHE_PUBLIC_BASE}/github-releases-cache.json`,
+  );
   const dailyRows = dailyAnalyticsRaw ? parseCsvRows(dailyAnalyticsRaw) : [];
+  const releaseCache = safeJson<ReleaseCache>(releaseCacheRaw ?? "{}", {});
   const itemAuthorByTypeAndId = buildItemAuthorLookup(allItemsByType);
   const downloads = getAuthorTotals(itemsByType);
   const analytics: RegistryAuthorAnalytics = {
@@ -389,6 +503,7 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
   return {
     author,
     itemsByType,
+    overview: computeAuthorOverview(itemsByType, releaseCache),
     analytics,
   };
 }

@@ -98,6 +98,24 @@ describe("RegistryAuthorPage", () => {
           },
         ],
       },
+      overview: {
+        newestAsset: {
+          id: "yukina-osaka",
+          name: "Osaka",
+          href: "/registry/maps/yukina-osaka",
+          publishedAt: Date.parse("2026-05-01T00:00:00Z"),
+          latestVersion: "v0.2.0",
+          latestVersionUpdatedAt: Date.parse("2026-06-20T00:00:00Z"),
+        },
+        mostRecentUpdate: {
+          id: "yukina-osaka",
+          name: "Osaka",
+          href: "/registry/maps/yukina-osaka",
+          publishedAt: Date.parse("2026-05-01T00:00:00Z"),
+          latestVersion: "v0.2.0",
+          latestVersionUpdatedAt: Date.parse("2026-06-20T00:00:00Z"),
+        },
+      },
       analytics: {
         downloads: {
           total: 150,
@@ -146,7 +164,7 @@ describe("RegistryAuthorPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Yukina-" })).toBeInTheDocument();
     expect(screen.getByText("Author")).toBeInTheDocument();
-    expect(screen.getByText("ahkimn")).toBeInTheDocument();
+    expect(screen.queryByText("ahkimn")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Open Yukina- attribution link")).toHaveAttribute(
       "href",
       "https://subwaybuildermodded.com/credits",
@@ -164,10 +182,8 @@ describe("RegistryAuthorPage", () => {
     const mapsSection = screen.getByRole("heading", { name: "Maps" }).closest("section");
     expect(mapsSection).not.toBeNull();
     expect(within(mapsSection!).getAllByText("1").length).toBeGreaterThan(0);
-
-    const modsSection = screen.getByRole("heading", { name: "Mods" }).closest("section");
-    expect(modsSection).not.toBeNull();
-    expect(within(modsSection!).getAllByText("1").length).toBeGreaterThan(0);
+    expect(screen.getByRole("radio", { name: "Mods" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Mods" })).not.toBeInTheDocument();
 
     rerender(<RegistryAuthorPage authorId="ahkimn" tabId="analytics" />);
     expect(await screen.findByText("Downloads (Total)")).toBeInTheDocument();

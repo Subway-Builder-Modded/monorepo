@@ -73,6 +73,7 @@ import {
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
 import {
   loadAuthorPageData,
+  type RegistryAuthorAssetSummary,
   type RegistryAuthorPageData,
 } from "@/features/registry/authors/lib/load-author-page-data";
 
@@ -93,6 +94,7 @@ type AuthorTrendSortKey = "label" | "downloads";
 type AuthorRankingSortKey = "name" | "downloads";
 type AuthorHistoryMode = "total" | "maps" | "mods";
 type AuthorAssetRankingMode = "maps" | "mods";
+type AuthorAssetBrowserMode = "maps" | "mods";
 
 const AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS = {
   primary: "56%",
@@ -256,7 +258,7 @@ function AssetMetricLink({
   item,
   tooltip,
 }: {
-  item: RegistrySearchItem | null;
+  item: RegistryAuthorAssetSummary | null;
   tooltip: ReactNode;
 }) {
   if (!item) {
@@ -285,26 +287,26 @@ function AssetMetricLink({
   );
 }
 
-function AssetSummaryValue({ item }: { item: RegistrySearchItem | null }) {
+function AssetSummaryValue({ item }: { item: RegistryAuthorAssetSummary | null }) {
   return (
     <AssetMetricLink
       item={item}
       tooltip={
         <span className="text-foreground">
-          {formatDate(item?.publishedAt ?? item?.lastActivityAt ?? 0)}
+          {formatDate(item?.publishedAt ?? 0)}
         </span>
       }
     />
   );
 }
 
-function AssetUpdateValue({ item }: { item: RegistrySearchItem | null }) {
+function AssetUpdateValue({ item }: { item: RegistryAuthorAssetSummary | null }) {
   return (
     <AssetMetricLink
       item={item}
       tooltip={
         <span className="text-foreground">
-          {formatDate(item?.latestVersionUpdatedAt || item?.lastActivityAt || 0)} •{" "}
+          {formatDate(item?.latestVersionUpdatedAt || 0)} •{" "}
           <span>{item?.latestVersion ?? "unknown"}</span>
         </span>
       }
@@ -401,7 +403,7 @@ function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
             style={{ color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})` }}
           />
           <h3 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {typeConfig.pluralLabel}
+            Published {typeConfig.pluralLabel}
           </h3>
           <span
             className="rounded-lg border px-3 py-1 text-lg font-semibold tabular-nums sm:text-xl"
@@ -502,6 +504,70 @@ function AuthorAssetSection({ typeId, items }: AuthorAssetSectionProps) {
   );
 }
 
+function AuthorPublishedAssets({ data }: { data: RegistryAuthorPageData }) {
+  const mapsItems = data.itemsByType.maps ?? [];
+  const modsItems = data.itemsByType.mods ?? [];
+  const hasMaps = mapsItems.length > 0;
+  const hasMods = modsItems.length > 0;
+  const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(hasMaps ? "maps" : "mods");
+  const mapsConfig = getRegistryTypeConfigOrDefault("maps");
+  const modsConfig = getRegistryTypeConfigOrDefault("mods");
+  const typeOptions = [
+    {
+      id: "maps" as const,
+      label: "Maps",
+      icon: mapsConfig.icon ?? MapIcon,
+      accentLight: mapsConfig.accentLight,
+      accentDark: mapsConfig.accentDark,
+      enabled: hasMaps,
+    },
+    {
+      id: "mods" as const,
+      label: "Mods",
+      icon: modsConfig.icon ?? Package,
+      accentLight: modsConfig.accentLight,
+      accentDark: modsConfig.accentDark,
+      enabled: hasMods,
+    },
+  ].filter((option) => option.enabled);
+  const activeTypeId = typeOptions.length === 1 ? typeOptions[0].id : typeId;
+  const activeItems = data.itemsByType[activeTypeId] ?? [];
+
+  useEffect(() => {
+    if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
+      setTypeId(typeOptions[0].id);
+    }
+  }, [typeId, typeOptions]);
+
+  if (typeOptions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <SectionSeparator label="Published Assets" icon={Package} className="mb-4" />
+      <section
+        className="space-y-5 rounded-xl border border-border/70 p-4 sm:p-5"
+        style={{
+          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
+        }}
+      >
+        {typeOptions.length > 1 ? (
+          <div className="flex justify-center">
+            <AuthorAnalyticsModeToggle
+              value={typeId}
+              options={typeOptions}
+              onChange={setTypeId}
+              ariaLabel="Published asset type"
+            />
+          </div>
+        ) : null}
+        <AuthorAssetSection typeId={activeTypeId} items={activeItems} />
+      </section>
+    </div>
+  );
+}
+
 function AuthorRankAccessory({ rank }: { rank: number | null }) {
   return (
     <RankBadge rank={rank} className="h-6 w-auto min-w-6 rounded-md px-1.5 text-[11px] shadow-sm" />
@@ -583,7 +649,15 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryAuthorPageData }) {
 function AuthorDownloadHistory({ data }: { data: RegistryAuthorPageData }) {
   const hasMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  const hasMultipleAssetTypes = hasMaps && hasMods;
   const [mode, setMode] = useState<AuthorHistoryMode>("total");
+  const activeMode: AuthorHistoryMode = hasMultipleAssetTypes
+    ? mode
+    : hasMaps
+      ? "maps"
+      : hasMods
+        ? "mods"
+        : "total";
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
   const modeOptions = [
@@ -615,10 +689,10 @@ function AuthorDownloadHistory({ data }: { data: RegistryAuthorPageData }) {
       enabled: hasMods,
     },
   ].filter((option) => option.enabled);
-  const activeOption = modeOptions.find((option) => option.id === mode) ?? modeOptions[0];
+  const activeOption = modeOptions.find((option) => option.id === activeMode) ?? modeOptions[0];
   const chartData = data.analytics.history.map((point) => ({
     date: point.date,
-    Downloads: point[mode],
+    Downloads: point[activeMode],
   }));
 
   useEffect(() => {
@@ -636,14 +710,16 @@ function AuthorDownloadHistory({ data }: { data: RegistryAuthorPageData }) {
         className="space-y-4 rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5"
         style={{ "--registry-type-accent": activeOption.color } as CSSProperties}
       >
-        <div className="flex justify-center">
-          <AuthorAnalyticsModeToggle
-            value={mode}
-            options={modeOptions}
-            onChange={setMode}
-            ariaLabel="Download history mode"
-          />
-        </div>
+        {hasMultipleAssetTypes ? (
+          <div className="flex justify-center">
+            <AuthorAnalyticsModeToggle
+              value={mode}
+              options={modeOptions}
+              onChange={setMode}
+              ariaLabel="Download history mode"
+            />
+          </div>
+        ) : null}
         <AnalyticsLineChart
           data={chartData}
           lines={[{ key: "Downloads", name: activeOption.label, color: activeOption.color }]}
@@ -659,9 +735,8 @@ function AuthorDownloadHistory({ data }: { data: RegistryAuthorPageData }) {
 function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
   const hasMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  const hasMultipleAssetTypes = hasMaps && hasMods;
   const [typeId, setTypeId] = useState<AuthorAssetRankingMode>(hasMaps ? "maps" : "mods");
-  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
-  const rowsForType = data.analytics.rankingsByType[typeId] ?? [];
   const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
   const [directions, setDirections] = useState<Record<AuthorRankingSortKey, SortDirection>>({
     name: "asc",
@@ -688,8 +763,11 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
       enabled: hasMods,
     },
   ].filter((option) => option.enabled);
+  const activeTypeId = hasMultipleAssetTypes ? typeId : (typeOptions[0]?.id ?? typeId);
+  const activeTypeConfig = getRegistryTypeConfigOrDefault(activeTypeId);
+  const activeRowsForType = data.analytics.rankingsByType[activeTypeId] ?? [];
   const sortedRows = useMemo(() => {
-    return [...rowsForType].sort((left, right) => {
+    return [...activeRowsForType].sort((left, right) => {
       if (sortKey === "name") {
         return direction === "asc"
           ? left.name.localeCompare(right.name)
@@ -697,7 +775,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
       }
       return compareNullableNumbers(left[sortKey], right[sortKey], direction);
     });
-  }, [direction, rowsForType, sortKey]);
+  }, [activeRowsForType, direction, sortKey]);
 
   const handleSort = (nextKey: AuthorRankingSortKey) => {
     setDirections((current) => ({
@@ -719,22 +797,24 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
     <div
       style={
         {
-          "--registry-type-accent": typeConfig.accentLight,
-          "--registry-type-accent-light": typeConfig.accentLight,
-          "--registry-type-accent-dark": typeConfig.accentDark,
+          "--registry-type-accent": activeTypeConfig.accentLight,
+          "--registry-type-accent-light": activeTypeConfig.accentLight,
+          "--registry-type-accent-dark": activeTypeConfig.accentDark,
         } as CSSProperties
       }
     >
       <SectionSeparator label="Asset Rankings" icon={Trophy} className="mb-4 mt-7" />
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-        <div className="flex justify-center border-b border-border/70 bg-muted/20 p-3">
-          <AuthorAnalyticsModeToggle
-            value={typeId}
-            options={typeOptions}
-            onChange={setTypeId}
-            ariaLabel="Asset ranking type"
-          />
-        </div>
+        {hasMultipleAssetTypes ? (
+          <div className="flex justify-center border-b border-border/70 bg-muted/20 p-3">
+            <AuthorAnalyticsModeToggle
+              value={typeId}
+              options={typeOptions}
+              onChange={setTypeId}
+              ariaLabel="Asset ranking type"
+            />
+          </div>
+        ) : null}
         <Table>
           <colgroup>
             <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
@@ -744,7 +824,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
           <TableHeader>
             <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
               <SortableTableHead
-                label={`${typeConfig.label} Name`}
+                label={`${activeTypeConfig.label} Name`}
                 active={sortKey === "name"}
                 direction={direction}
                 onClick={() => handleSort("name")}
@@ -793,34 +873,36 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryAuthorPageData }) {
 function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
   const hasMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasMods = (data.itemsByType.mods ?? []).length > 0;
-  const cards: DetailMetric[] = [
-    {
-      title: "Downloads (Total)",
-      value: formatNumber(data.analytics.downloads.total),
-      icon: Download,
-      titleAccessory: <AuthorRankAccessory rank={data.analytics.ranks.total} />,
-    },
-    ...(hasMaps
-      ? [
-          {
-            title: "Downloads (Maps)",
-            value: formatNumber(data.analytics.downloads.maps),
-            icon: MapIcon,
-            titleAccessory: <AuthorRankAccessory rank={data.analytics.ranks.maps} />,
-          } satisfies DetailMetric,
-        ]
-      : []),
-    ...(hasMods
-      ? [
-          {
-            title: "Downloads (Mods)",
-            value: formatNumber(data.analytics.downloads.mods),
-            icon: Package,
-            titleAccessory: <AuthorRankAccessory rank={data.analytics.ranks.mods} />,
-          } satisfies DetailMetric,
-        ]
-      : []),
-  ];
+  const hasMultipleAssetTypes = hasMaps && hasMods;
+  const cards: DetailMetric[] = hasMultipleAssetTypes
+    ? [
+        {
+          title: "Downloads (Total)",
+          value: formatNumber(data.analytics.downloads.total),
+          icon: Download,
+          titleAccessory: <AuthorRankAccessory rank={data.analytics.ranks.total} />,
+        },
+        {
+          title: "Downloads (Maps)",
+          value: formatNumber(data.analytics.downloads.maps),
+          icon: MapIcon,
+          titleAccessory: <AuthorRankAccessory rank={data.analytics.ranks.maps} />,
+        },
+        {
+          title: "Downloads (Mods)",
+          value: formatNumber(data.analytics.downloads.mods),
+          icon: Package,
+          titleAccessory: <AuthorRankAccessory rank={data.analytics.ranks.mods} />,
+        },
+      ]
+    : [
+        {
+          title: "Downloads",
+          value: formatNumber(data.analytics.downloads.total),
+          icon: Download,
+          titleAccessory: <AuthorRankAccessory rank={data.analytics.ranks.total} />,
+        },
+      ];
 
   return (
     <section
@@ -846,14 +928,6 @@ function AuthorAnalytics({ data }: { data: RegistryAuthorPageData }) {
 function AuthorOverview({ data }: { data: RegistryAuthorPageData }) {
   const allItems = Object.values(data.itemsByType).flat();
   const totalDownloads = allItems.reduce((sum, item) => sum + item.totalDownloads, 0);
-  const newestAsset =
-    [...allItems].sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0))[0] ?? null;
-  const mostRecentUpdate =
-    [...allItems].sort(
-      (a, b) =>
-        (b.latestVersionUpdatedAt || b.lastActivityAt || 0) -
-        (a.latestVersionUpdatedAt || a.lastActivityAt || 0),
-    )[0] ?? null;
 
   const metrics: DetailMetric[] = [
     {
@@ -868,12 +942,12 @@ function AuthorOverview({ data }: { data: RegistryAuthorPageData }) {
     },
     {
       title: "Newest Asset",
-      value: <AssetSummaryValue item={newestAsset} />,
+      value: <AssetSummaryValue item={data.overview.newestAsset} />,
       icon: CalendarDays,
     },
     {
       title: "Most Recent Update",
-      value: <AssetUpdateValue item={mostRecentUpdate} />,
+      value: <AssetUpdateValue item={data.overview.mostRecentUpdate} />,
       icon: Clock,
     },
   ];
@@ -897,23 +971,7 @@ function AuthorOverview({ data }: { data: RegistryAuthorPageData }) {
         </section>
       </div>
 
-      <div>
-        <SectionSeparator label="Published Assets" icon={Package} className="mb-4" />
-        <section
-          className="rounded-xl border border-border/70 p-4 sm:p-5"
-          style={{
-            backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-          }}
-        >
-          <div className="space-y-20">
-            {["maps", "mods"].map((typeId) => {
-              const items = data.itemsByType[typeId] ?? [];
-              if (items.length === 0) return null;
-              return <AuthorAssetSection key={typeId} typeId={typeId} items={items} />;
-            })}
-          </div>
-        </section>
-      </div>
+      <AuthorPublishedAssets data={data} />
     </div>
   );
 }
@@ -1019,12 +1077,6 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
                         </div>
 
                         <NeutralFadedUnderline className="mt-2" />
-                      </div>
-
-                      <div className="mt-3">
-                        <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground">
-                          {data.author.authorId}
-                        </code>
                       </div>
                     </div>
                   </div>
