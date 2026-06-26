@@ -95,7 +95,9 @@ describe("loadAuthorPageData", () => {
         "signal-pack": { "1.0.0": 30 },
         "japanese-trains": { "2.0.0": 200 },
       }),
-      "/registry-cache/mods/index.json": JSON.stringify({ mods: ["signal-pack", "japanese-trains"] }),
+      "/registry-cache/mods/index.json": JSON.stringify({
+        mods: ["signal-pack", "japanese-trains"],
+      }),
       "/registry-cache/mods/signal-pack/manifest.json": JSON.stringify({
         name: "Signal Pack",
         author: "ahkimn",
