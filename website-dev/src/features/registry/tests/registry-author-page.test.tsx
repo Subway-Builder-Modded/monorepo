@@ -8,6 +8,12 @@ vi.mock("@/features/registry/authors/lib/load-author-page-data", () => ({
   loadAuthorPageData: (...args: unknown[]) => mockLoadAuthorPageData(...args),
 }));
 
+vi.mock("@subway-builder-modded/analytics", () => ({
+  AnalyticsLineChart: ({ data }: { data: Array<Record<string, unknown>> }) => (
+    <div data-testid="author-download-history-chart">{data.length} history points</div>
+  ),
+}));
+
 vi.mock("@/lib/router", () => ({
   Link: ({
     to,
