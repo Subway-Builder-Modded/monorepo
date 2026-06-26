@@ -611,7 +611,7 @@ export function RegistryCreatorDatabasePage({
   return (
     <SuiteAccentScope accent={suite.accent} className="-mx-5 sm:-mx-7 md:-mx-9 lg:-mx-12">
       <div
-        className="relative isolate w-full px-5 pb-24 pt-[clamp(4.25rem,7.5vh,6.5rem)] sm:px-7 md:px-9 lg:px-12"
+        className="relative isolate w-full px-5 pb-24 pt-[clamp(3.75rem,6.5vh,5.75rem)] sm:px-7 md:px-9 lg:px-12"
         style={
           {
             "--registry-type-accent": "var(--suite-accent-light)",
