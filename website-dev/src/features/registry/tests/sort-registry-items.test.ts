@@ -94,10 +94,12 @@ describe("sortRegistryItems", () => {
     expect(result[2]?.id).toBe("b");
   });
 
-  it("sorts by cityCode", () => {
+  it("sorts by cityCode with inverted direction semantics", () => {
     const items = [makeItem({ id: "a", cityCode: "ZZZ" }), makeItem({ id: "b", cityCode: "AAA" })];
-    const result = sortRegistryItems(items, "cityCode", "asc", SEED);
-    expect(result[0]?.id).toBe("b");
+    const asc = sortRegistryItems(items, "cityCode", "asc", SEED);
+    const desc = sortRegistryItems(items, "cityCode", "desc", SEED);
+    expect(asc[0]?.id).toBe("a");
+    expect(desc[0]?.id).toBe("b");
   });
 
   it("random sort produces a deterministic shuffle for same seed", () => {

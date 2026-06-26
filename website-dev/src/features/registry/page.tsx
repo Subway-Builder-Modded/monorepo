@@ -6,6 +6,7 @@ import {
   RegistryAuthorPage,
   RegistryProjectPage,
 } from "@/features/registry/authors/registry-author-page";
+import { RegistryCreatorDatabasePage } from "@/features/registry/authors/registry-creator-database-page";
 
 export function RegistryRoute() {
   const location = useLocation();
@@ -13,6 +14,10 @@ export function RegistryRoute() {
 
   if (match.kind === "page") {
     return <RegistryPage />;
+  }
+
+  if (match.kind === "creatorDatabase") {
+    return <RegistryCreatorDatabasePage tabId={match.tabId} />;
   }
 
   if (match.kind === "detail") {

@@ -18,6 +18,17 @@ describe("matchRegistryRoute", () => {
     expect(matchRegistryRoute("/registry/mods")).toEqual({ kind: "page", pageId: "registry" });
   });
 
+  it("matches creator database route before author routes", () => {
+    expect(matchRegistryRoute("/registry/authors")).toEqual({
+      kind: "creatorDatabase",
+      tabId: "authors",
+    });
+    expect(matchRegistryRoute("/registry/authors/projects")).toEqual({
+      kind: "creatorDatabase",
+      tabId: "projects",
+    });
+  });
+
   it("matches detail route", () => {
     expect(matchRegistryRoute("/registry/maps/gwangju-4")).toEqual({
       kind: "detail",

@@ -713,7 +713,7 @@ function AuthorProjectCard({ project }: { project: RegistryAuthorProjectSummary 
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={project.href}
-            className="min-w-0 truncate text-base font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+            className="min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
           >
             {project.projectName}
           </Link>
@@ -721,8 +721,8 @@ function AuthorProjectCard({ project }: { project: RegistryAuthorProjectSummary 
           <ProjectTypeCountPill typeId="maps" count={project.maps} />
           <ProjectTypeCountPill typeId="mods" count={project.mods} />
         </div>
-        <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-          <Download className="size-4" aria-hidden={true} />
+        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <Download className="size-3.5" aria-hidden={true} />
           <span className="tabular-nums">{formatNumber(project.totalDownloads)}</span>
         </div>
       </div>

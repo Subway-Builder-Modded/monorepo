@@ -16,6 +16,7 @@ const REGISTRY_AUTHOR_TABS = new Set(["overview", "projects", "analytics"]);
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
+  | { kind: "creatorDatabase"; tabId?: "authors" | "projects" }
   | { kind: "author"; authorId: string; tabId?: string }
   | { kind: "project"; authorId: string; projectName: string; tabId?: string }
   | { kind: "detail"; routeSegment: string; id: string; tabId?: string; versionId?: string };
@@ -38,6 +39,10 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   const segments = normalized.split("/").filter(Boolean);
   if (segments.length === 2 && segments[0] === "registry") {
     const routeSegment = segments[1] ?? "";
+    if (routeSegment === "authors") {
+      return { kind: "creatorDatabase", tabId: "authors" };
+    }
+
     if (routeSegment === "maps" || routeSegment === "mods") {
       return {
         kind: "page",
@@ -48,6 +53,10 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
 
   if (segments.length === 3 && segments[0] === "registry") {
     if (segments[1] === "authors") {
+      if (segments[2] === "projects") {
+        return { kind: "creatorDatabase", tabId: "projects" };
+      }
+
       return {
         kind: "author",
         authorId: decodeURIComponent(segments[2] ?? ""),

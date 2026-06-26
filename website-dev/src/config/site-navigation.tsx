@@ -260,6 +260,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "exact", path: "/registry" }],
   },
   {
+    id: "registry-creator-database",
+    suiteId: "registry",
+    title: "Creator Database",
+    description: "Search the Registry author and project database.",
+    href: "/registry/authors",
+    icon: Users,
+    activeMatchRules: [{ kind: "prefix", path: "/registry/authors" }],
+  },
+  {
     id: "registry-docs",
     suiteId: "registry",
     title: "Docs",
