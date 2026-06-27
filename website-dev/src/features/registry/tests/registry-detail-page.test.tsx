@@ -290,7 +290,7 @@ describe("RegistryDetailPage", () => {
     expect(screen.queryByText("Downloads (Total)")).not.toBeInTheDocument();
     expect(screen.queryByText("Downloads (14d)")).not.toBeInTheDocument();
     expect(screen.queryByText("Downloads (7d)")).not.toBeInTheDocument();
-    expect(screen.getAllByText("Modeled Demand").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Demand").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Pops").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Demand Points").length).toBeGreaterThan(0);
   });

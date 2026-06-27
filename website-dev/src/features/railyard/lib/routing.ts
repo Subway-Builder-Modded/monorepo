@@ -20,7 +20,11 @@ const RAILYARD_ANALYTICS_PERIODS = new Set<RailyardAnalyticsPeriodId>([
   "7d",
   "14d",
 ]);
-const RAILYARD_ANALYTICS_PERIOD_TABS = new Set<RailyardAnalyticsTabId>(["timeline", "versions"]);
+const RAILYARD_ANALYTICS_PERIOD_TABS = new Set<RailyardAnalyticsTabId>([
+  "timeline",
+  "versions",
+  "operating-systems",
+]);
 
 export function matchRailyardRoute(pathname: string): RailyardRouteMatch {
   const normalized = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;

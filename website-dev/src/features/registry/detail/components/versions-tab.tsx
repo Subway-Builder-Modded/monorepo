@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import {
-  ArrowDownToLine,
-  ArrowDownWideNarrow,
-  ArrowUpNarrowWide,
-  CalendarDays,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   Download,
   Loader2,
-  Tag,
 } from "lucide-react";
 import { Link } from "@/lib/router";
 import { articleMdxComponents } from "@/features/content/mdx";
@@ -179,6 +177,37 @@ function sortVersions(
   return next;
 }
 
+function SortableTableHeader({
+  label,
+  active,
+  direction,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  direction: VersionsSortDirection;
+  onClick: () => void;
+}) {
+  const SortIcon = direction === "asc" ? ArrowUp : ArrowDown;
+  const Icon = active ? SortIcon : ArrowUpDown;
+
+  return (
+    <th className="align-middle px-4 py-2.5 text-left text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
+        className={`inline-flex items-center gap-2 font-semibold uppercase leading-4 transition-colors hover:text-[var(--registry-type-accent)] ${
+          active ? "text-[var(--registry-type-accent)]" : ""
+        }`}
+      >
+        <span>{label}</span>
+        <Icon className="size-3.5 shrink-0" aria-hidden={true} />
+      </button>
+    </th>
+  );
+}
+
 export function VersionsTab({
   versions,
   routeSegment,
@@ -240,20 +269,6 @@ export function VersionsTab({
     }
     setSortKey(nextKey);
   };
-
-  const renderSortIcon = (key: VersionsSortKey, className: string) => {
-    const iconDirection: VersionsSortDirection = sortDirectionByKey[key];
-    return iconDirection === "asc" ? (
-      <ArrowUpNarrowWide className={className} />
-    ) : (
-      <ArrowDownWideNarrow className={className} />
-    );
-  };
-
-  const getHeaderButtonClassName = (key: VersionsSortKey): string =>
-    key === sortKey
-      ? "inline-flex items-center gap-2 font-semibold text-muted-foreground"
-      : "inline-flex items-center gap-2 font-semibold text-muted-foreground transition-colors hover:text-[var(--registry-type-accent)]";
 
   // Load changelog markdown for selected version from the version source.
   // GitHub-backed items use release notes, while custom maps read from their update JSON.
@@ -418,39 +433,24 @@ export function VersionsTab({
       <table className="w-full table-fixed text-sm">
         <thead className="border-b border-border/50 bg-muted/30">
           <tr>
-            <th className="align-middle px-4 py-2.5 text-left font-semibold text-muted-foreground">
-              <button
-                type="button"
-                onClick={() => handleSort("version")}
-                className={getHeaderButtonClassName("version")}
-              >
-                <Tag className="size-4" />
-                Version
-                {renderSortIcon("version", "size-3.5")}
-              </button>
-            </th>
-            <th className="align-middle px-4 py-2.5 text-left font-semibold text-muted-foreground">
-              <button
-                type="button"
-                onClick={() => handleSort("releaseDate")}
-                className={getHeaderButtonClassName("releaseDate")}
-              >
-                <CalendarDays className="size-4" />
-                Release Date
-                {renderSortIcon("releaseDate", "size-3.5")}
-              </button>
-            </th>
-            <th className="align-middle px-4 py-2.5 text-left font-semibold text-muted-foreground">
-              <button
-                type="button"
-                onClick={() => handleSort("downloads")}
-                className={getHeaderButtonClassName("downloads")}
-              >
-                <ArrowDownToLine className="size-4" />
-                Downloads
-                {renderSortIcon("downloads", "size-3.5")}
-              </button>
-            </th>
+            <SortableTableHeader
+              label="Version"
+              active={sortKey === "version"}
+              direction={sortDirection}
+              onClick={() => handleSort("version")}
+            />
+            <SortableTableHeader
+              label="Release Date"
+              active={sortKey === "releaseDate"}
+              direction={sortDirection}
+              onClick={() => handleSort("releaseDate")}
+            />
+            <SortableTableHeader
+              label="Downloads"
+              active={sortKey === "downloads"}
+              direction={sortDirection}
+              onClick={() => handleSort("downloads")}
+            />
             <th className="w-14 align-middle px-0 py-2.5 text-center font-semibold text-muted-foreground" />
           </tr>
         </thead>

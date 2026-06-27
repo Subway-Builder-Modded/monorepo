@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownToLine,
   ArrowDown,
@@ -8,6 +8,7 @@ import {
   Box,
   ChartLine,
   Download,
+  ExternalLink,
   GalleryVerticalEnd,
   History,
   LayoutDashboard,
@@ -34,6 +35,7 @@ import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation
 import { navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
+import { railyardDownloadOptions } from "@/features/railyard/railyard-downloads";
 import {
   DetailsMetricGrid,
   type DetailMetric,
@@ -52,13 +54,28 @@ type RailyardAnalyticsTab = RailyardAnalyticsTabId;
 type RailyardTimelinePeriod = RailyardAnalyticsPeriodId;
 type SortDirection = "asc" | "desc";
 type VersionBreakdownSortKey = "version" | "downloads" | "share" | "assets";
+type OperatingSystemBreakdownSortKey =
+  | "build"
+  | "operatingSystem"
+  | "fileType"
+  | "downloads"
+  | "version"
+  | "share";
+type OperatingSystemChartKey = "Windows" | "macOS" | "Linux";
 
-const RAILYARD_ANALYTICS_ACCENT = "light-dark(var(--suite-accent-light), var(--suite-accent-dark))";
 const VERSION_BREAKDOWN_DEFAULT_DIRECTIONS: Record<VersionBreakdownSortKey, SortDirection> = {
   version: "asc",
   downloads: "desc",
   share: "desc",
   assets: "desc",
+};
+const OS_BREAKDOWN_DEFAULT_DIRECTIONS: Record<OperatingSystemBreakdownSortKey, SortDirection> = {
+  build: "asc",
+  operatingSystem: "asc",
+  fileType: "asc",
+  downloads: "desc",
+  version: "desc",
+  share: "desc",
 };
 
 type RailyardAnalyticsTabItem = {
@@ -78,9 +95,12 @@ const TAB_PATHS: Record<RailyardAnalyticsTab, string> = {
   overview: "/railyard/analytics/overview",
   timeline: "/railyard/analytics/timeline/all-time",
   versions: "/railyard/analytics/versions/all-time",
-  "operating-systems": "/railyard/analytics/operating-systems",
+  "operating-systems": "/railyard/analytics/operating-systems/all-time",
 };
-const PERIOD_TAB_PATHS: Record<"timeline" | "versions", Record<RailyardTimelinePeriod, string>> = {
+const PERIOD_TAB_PATHS: Record<
+  "timeline" | "versions" | "operating-systems",
+  Record<RailyardTimelinePeriod, string>
+> = {
   timeline: {
     "all-time": "/railyard/analytics/timeline/all-time",
     "3d": "/railyard/analytics/timeline/3d",
@@ -92,6 +112,12 @@ const PERIOD_TAB_PATHS: Record<"timeline" | "versions", Record<RailyardTimelineP
     "3d": "/railyard/analytics/versions/3d",
     "7d": "/railyard/analytics/versions/7d",
     "14d": "/railyard/analytics/versions/14d",
+  },
+  "operating-systems": {
+    "all-time": "/railyard/analytics/operating-systems/all-time",
+    "3d": "/railyard/analytics/operating-systems/3d",
+    "7d": "/railyard/analytics/operating-systems/7d",
+    "14d": "/railyard/analytics/operating-systems/14d",
   },
 };
 
@@ -173,6 +199,16 @@ const VERSION_GRAPH_PALETTE = [
   getRegistryTypeConfigOrDefault("maps").accentLight,
   getSuiteById("website").accent.light,
 ];
+const OPERATING_SYSTEM_LINES = [
+  { id: "windows" as const, key: "Windows", label: "Windows", color: "#dc2626" },
+  { id: "macos" as const, key: "macOS", label: "macOS", color: "#eab308" },
+  { id: "linux" as const, key: "Linux", label: "Linux", color: "#2563eb" },
+] satisfies Array<{
+  id: "windows" | "macos" | "linux";
+  key: OperatingSystemChartKey;
+  label: string;
+  color: string;
+}>;
 
 function parseSemver(version: string) {
   const [major = 0, minor = 0, patch = 0] = version
@@ -194,6 +230,71 @@ function compareSemverAscending(left: string, right: string) {
   }
 
   return left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
+}
+
+function getReleaseTag(version: string) {
+  return version.startsWith("v") ? version : `v${version}`;
+}
+
+function getBuildDownloadUrl(assetName: string, version: string) {
+  return `https://github.com/Subway-Builder-Modded/monorepo/releases/download/${getReleaseTag(
+    version,
+  )}/${assetName}`;
+}
+
+function stripRailyardAssetPrefix(assetName: string, version: string) {
+  return assetName.replace(new RegExp(`^railyard-${getReleaseTag(version)}-`, "i"), "");
+}
+
+function getBuildAssetFileType(assetName: string) {
+  const lower = assetName.toLowerCase();
+  if (lower.endsWith(".appimage")) return "AppImage";
+  if (lower.endsWith(".flatpak")) return "Flatpak";
+  if (lower.endsWith(".exe")) return "EXE";
+  if (lower.endsWith(".zip")) return "ZIP";
+  if (lower.endsWith(".dmg")) return "DMG";
+  return "File";
+}
+
+function getBuildAssetOperatingSystem(assetName: string) {
+  const lower = assetName.toLowerCase();
+  if (lower.includes("windows") || lower.endsWith(".exe")) return "Windows";
+  if (lower.includes("macos") || lower.endsWith(".dmg")) return "macOS";
+  if (lower.includes("linux") || lower.endsWith(".flatpak") || lower.endsWith(".appimage")) {
+    return "Linux";
+  }
+  return "Other";
+}
+
+function formatBuildAssetLabel(assetName: string, version: string) {
+  const suffix = stripRailyardAssetPrefix(assetName, version);
+  const knownOption = railyardDownloadOptions.find((option) => suffix.endsWith(option.assetName));
+  if (knownOption) return knownOption.label;
+
+  const lower = suffix.toLowerCase();
+  const platform = lower.includes("windows")
+    ? "Windows"
+    : lower.includes("macos")
+      ? "macOS"
+      : lower.includes("linux")
+        ? "Linux"
+        : "Build";
+  const arch = lower.includes("arm64")
+    ? "ARM64"
+    : lower.includes("universal")
+      ? "Universal"
+      : lower.includes("amd64") || lower.includes("x64")
+        ? "x64"
+        : null;
+  const fileType = getBuildAssetFileType(suffix);
+  const packageLabel =
+    fileType === "EXE" || fileType === "DMG"
+      ? "Installer"
+      : fileType === "ZIP"
+        ? "Portable"
+        : fileType;
+
+  return `${platform}${arch ? ` (${arch})` : ""} - ${packageLabel}`;
 }
 
 function getOperatingSystemLabel(id: string) {
@@ -349,8 +450,7 @@ function RailyardTimelineTab({
 
   return (
     <section
-      className="space-y-4"
-      style={{ "--registry-type-accent": RAILYARD_ANALYTICS_ACCENT } as CSSProperties}
+      className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]"
     >
       <SectionSeparator label="Timeline" icon={History} className="mb-4" />
       <div className="flex justify-center">
@@ -373,7 +473,7 @@ function RailyardTimelineTab({
             {
               key: "Downloads",
               name: "Downloads",
-              color: RAILYARD_ANALYTICS_ACCENT,
+              color: "var(--registry-type-accent)",
             },
           ]}
           xAxisKey="date"
@@ -562,8 +662,7 @@ function RailyardVersionsTab({
 
   return (
     <section
-      className="space-y-4"
-      style={{ "--registry-type-accent": RAILYARD_ANALYTICS_ACCENT } as CSSProperties}
+      className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]"
     >
       <SectionSeparator label="Versions" icon={GalleryVerticalEnd} className="mb-4" />
       <div className="flex justify-center">
@@ -585,6 +684,233 @@ function RailyardVersionsTab({
         />
       </article>
       <RailyardVersionsBreakdown data={data} />
+    </section>
+  );
+}
+
+type OperatingSystemBreakdownRow = {
+  assetName: string;
+  build: string;
+  operatingSystem: string;
+  fileType: string;
+  downloads: number;
+  version: string;
+  share: number;
+  href: string;
+};
+
+function buildOperatingSystemBreakdownRows(data: RailyardAnalyticsData): OperatingSystemBreakdownRow[] {
+  const totalDownloads = data.versions.reduce(
+    (sum, version) =>
+      sum +
+      Object.values(version.assets).reduce((assetSum, asset) => assetSum + asset.totalDownloads, 0),
+    0,
+  );
+
+  return data.versions.flatMap((version) =>
+    Object.entries(version.assets).map(([assetName, asset]) => ({
+      assetName,
+      build: formatBuildAssetLabel(assetName, version.version),
+      operatingSystem: getBuildAssetOperatingSystem(assetName),
+      fileType: getBuildAssetFileType(assetName),
+      downloads: asset.totalDownloads,
+      version: version.version,
+      share: totalDownloads > 0 ? (asset.totalDownloads / totalDownloads) * 100 : 0,
+      href: getBuildDownloadUrl(assetName, version.version),
+    })),
+  );
+}
+
+function RailyardOperatingSystemsBreakdown({ data }: { data: RailyardAnalyticsData }) {
+  const rows = useMemo(() => buildOperatingSystemBreakdownRows(data), [data]);
+  const [sortKey, setSortKey] = useState<OperatingSystemBreakdownSortKey>("downloads");
+  const [directions, setDirections] = useState<
+    Record<OperatingSystemBreakdownSortKey, SortDirection>
+  >(OS_BREAKDOWN_DEFAULT_DIRECTIONS);
+  const direction = directions[sortKey];
+  const sortedRows = useMemo(() => {
+    return [...rows].sort((left, right) => {
+      if (sortKey === "downloads" || sortKey === "share") {
+        return compareNumbers(left[sortKey], right[sortKey], direction);
+      }
+      if (sortKey === "version") {
+        const comparison = compareSemverAscending(left.version, right.version);
+        return direction === "asc" ? comparison : -comparison;
+      }
+      const comparison = left[sortKey].localeCompare(right[sortKey]);
+      return direction === "asc" ? comparison : -comparison;
+    });
+  }, [direction, rows, sortKey]);
+
+  const handleSort = (nextKey: OperatingSystemBreakdownSortKey) => {
+    setDirections((current) => ({
+      ...current,
+      [nextKey]: getNextDirection(sortKey, nextKey, current),
+    }));
+    setSortKey(nextKey);
+  };
+
+  if (rows.length === 0) return null;
+
+  const activeCellStyle = { color: "var(--registry-type-accent)" };
+
+  return (
+    <div>
+      <SectionSeparator label="Breakdown" icon={ListOrdered} className="mb-4 mt-7" />
+      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+        <Table>
+          <colgroup>
+            <col style={{ width: "34%" }} />
+            <col style={{ width: "16%" }} />
+            <col style={{ width: "14%" }} />
+            <col style={{ width: "16%" }} />
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "10%" }} />
+          </colgroup>
+          <TableHeader>
+            <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+              <SortableTableHead
+                label="Build"
+                active={sortKey === "build"}
+                direction={direction}
+                onClick={() => handleSort("build")}
+              />
+              <SortableTableHead
+                label="File Type"
+                active={sortKey === "fileType"}
+                direction={direction}
+                onClick={() => handleSort("fileType")}
+              />
+              <SortableTableHead
+                label="Operating System"
+                active={sortKey === "operatingSystem"}
+                direction={direction}
+                onClick={() => handleSort("operatingSystem")}
+              />
+              <SortableTableHead
+                label="Version"
+                active={sortKey === "version"}
+                direction={direction}
+                onClick={() => handleSort("version")}
+              />
+              <SortableTableHead
+                label="Downloads"
+                active={sortKey === "downloads"}
+                direction={direction}
+                onClick={() => handleSort("downloads")}
+              />
+              <SortableTableHead
+                label="Share"
+                active={sortKey === "share"}
+                direction={direction}
+                onClick={() => handleSort("share")}
+              />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedRows.map((row) => (
+              <TableRow key={row.assetName} className="border-border/60 hover:bg-transparent">
+                <TableCell
+                  className="px-4 font-medium text-foreground"
+                  style={sortKey === "build" ? activeCellStyle : undefined}
+                >
+                  <a
+                    href={row.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex max-w-full items-center gap-1.5 underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                  >
+                    <span className="truncate">{row.build}</span>
+                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                      {row.version}
+                    </span>
+                    <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+                  </a>
+                </TableCell>
+                <TableCell
+                  className="px-4 font-semibold text-foreground"
+                  style={sortKey === "fileType" ? activeCellStyle : undefined}
+                >
+                  {row.fileType}
+                </TableCell>
+                <TableCell
+                  className="px-4 font-semibold text-foreground"
+                  style={sortKey === "operatingSystem" ? activeCellStyle : undefined}
+                >
+                  {row.operatingSystem}
+                </TableCell>
+                <TableCell
+                  className="px-4 font-semibold tabular-nums text-foreground"
+                  style={sortKey === "version" ? activeCellStyle : undefined}
+                >
+                  {row.version}
+                </TableCell>
+                <TableCell
+                  className="px-4 font-semibold tabular-nums text-foreground"
+                  style={sortKey === "downloads" ? activeCellStyle : undefined}
+                >
+                  {formatNumber(row.downloads)}
+                </TableCell>
+                <TableCell
+                  className="px-4 font-semibold tabular-nums text-foreground"
+                  style={sortKey === "share" ? activeCellStyle : undefined}
+                >
+                  {formatPercent(row.share)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function RailyardOperatingSystemsTab({
+  data,
+  period,
+}: {
+  data: RailyardAnalyticsData;
+  period: RailyardTimelinePeriod;
+}) {
+  const graphRows = useMemo(() => getTimelineGraphRows(data, period), [data, period]);
+  const chartData = graphRows.map((row) => ({
+    date: row.date,
+    Windows: row.operatingSystems.windows,
+    macOS: row.operatingSystems.macos,
+    Linux: row.operatingSystems.linux,
+  }));
+  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const activeOsLines = OPERATING_SYSTEM_LINES.filter((line) =>
+    chartData.some((point) => point[line.key] > 0),
+  );
+
+  return (
+    <section className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]">
+      <SectionSeparator label="Operating Systems" icon={Monitor} className="mb-4" />
+      <div className="flex justify-center">
+        <TimelinePeriodToggle
+          value={period}
+          onChange={(nextPeriod) => navigate(PERIOD_TAB_PATHS["operating-systems"][nextPeriod])}
+        />
+      </div>
+      <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <AnalyticsLineChart
+          key={`railyard-operating-systems-${period}`}
+          data={chartData}
+          lines={activeOsLines.map((line) => ({
+            key: line.key,
+            name: line.label,
+            color: line.color,
+          }))}
+          xAxisKey="date"
+          xAxisTicks={chartTicks}
+          height={280}
+          startAtZero={true}
+          hideZeroTooltipEntries={true}
+        />
+      </article>
+      <RailyardOperatingSystemsBreakdown data={data} />
     </section>
   );
 }
@@ -631,8 +957,7 @@ function RailyardOverviewTab({ data }: { data: RailyardAnalyticsData }) {
 
   return (
     <section
-      className="space-y-3"
-      style={{ "--registry-type-accent": RAILYARD_ANALYTICS_ACCENT } as CSSProperties}
+      className="space-y-3 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]"
     >
       <div>
         <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
@@ -644,17 +969,6 @@ function RailyardOverviewTab({ data }: { data: RailyardAnalyticsData }) {
         />
       </div>
     </section>
-  );
-}
-
-function PendingTab({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
-  return (
-    <div>
-      <SectionSeparator label={label} icon={Icon} className="mb-4" />
-      <div className="flex min-h-44 items-center justify-center rounded-xl border border-dashed border-border/70 bg-card/55 px-6 text-center text-sm font-medium text-muted-foreground">
-        {label} analytics are coming next.
-      </div>
-    </div>
   );
 }
 
@@ -700,13 +1014,7 @@ export function RailyardAnalyticsPage({
   return (
     <SuiteAccentScope accent={suite.accent}>
       <section
-        className="space-y-6 py-6 lg:py-8"
-        style={
-          {
-            "--registry-type-accent": RAILYARD_ANALYTICS_ACCENT,
-            "--registry-type-accent-strong": RAILYARD_ANALYTICS_ACCENT,
-          } as CSSProperties
-        }
+        className="space-y-6 py-6 lg:py-8 [--registry-type-accent:var(--suite-accent-light)] [--registry-type-accent-strong:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)] dark:[--registry-type-accent-strong:var(--suite-accent-dark)]"
       >
         <FeatureHomepageHeading
           icon={ChartLine}
@@ -736,7 +1044,7 @@ export function RailyardAnalyticsPage({
         ) : activeTab === "versions" ? (
           <RailyardVersionsTab data={data} period={periodId} />
         ) : (
-          <PendingTab label="Operating Systems" icon={Monitor} />
+          <RailyardOperatingSystemsTab data={data} period={periodId} />
         )}
       </section>
     </SuiteAccentScope>

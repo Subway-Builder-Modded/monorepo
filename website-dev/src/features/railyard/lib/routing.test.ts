@@ -38,6 +38,12 @@ describe("matchRailyardRoute", () => {
       tabId: "versions",
       periodId: "14d",
     });
+    expect(matchRailyardRoute("/railyard/analytics/operating-systems/3d")).toEqual({
+      kind: "page",
+      pageId: "analytics",
+      tabId: "operating-systems",
+      periodId: "3d",
+    });
   });
 
   it("returns none for unrelated railyard subroutes", () => {

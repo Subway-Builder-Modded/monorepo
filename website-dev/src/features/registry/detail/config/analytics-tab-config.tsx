@@ -106,7 +106,7 @@ const ANALYTICS_TAB_SECTIONS_CONFIG: AnalyticsTabSectionConfig[] = [
         ),
       },
       {
-        title: "Modeled Demand",
+        title: "Demand",
         icon: Users,
         getValue: (detail) => formatNumber(detail.mapFields?.population ?? null),
         getTitleAccessory: (detail) => (
