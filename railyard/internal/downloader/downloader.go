@@ -905,17 +905,16 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 }
 
 // constraintsFromVersionInfo builds the Constraints slice for an asset installation.
-// It reads vi.GameVersion (not Dependencies["subway-builder"]) so all enrichment sources are
-// covered: integrity report, custom JSON game_version field, and manifest.json fallback.
-// Only maps receive a buildings_index entry (from vi.MapBuildingsConstraint).
 func constraintsFromVersionInfo(assetType types.AssetType, vi types.VersionInfo) []types.InstalledConstraint {
 	var cs []types.InstalledConstraint
+	// Read GameVersion from VersionInfo so all enrichment sources are covered: integrity report, custom JSON game_version field, and manifest.json fallback.
 	if vi.GameVersion != "" {
 		cs = append(cs, types.InstalledConstraint{
 			Type:  types.ConstraintTypeManifest,
 			Range: vi.GameVersion,
 		})
 	}
+	// Only maps receive a buildings_index entry constraint
 	if assetType == types.AssetTypeMap && vi.MapBuildingsConstraint != "" {
 		cs = append(cs, types.InstalledConstraint{
 			Type:  types.ConstraintTypeBuildingsIndex,
@@ -926,9 +925,6 @@ func constraintsFromVersionInfo(assetType types.AssetType, vi types.VersionInfo)
 }
 
 // ensureCompatibilityConstraints gates an install on all applicable constraints.
-// Returns the first violation as an install error response, or nil if all pass.
-// Mods preserve InstallErrorDependencyResolutionFailed for backward compatibility;
-// maps use InstallErrorIncompatibleGameVersion.
 func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, assetID, version string, constraints []types.InstalledConstraint) *types.AssetInstallResponse {
 	if d.GetGameVersion == nil || len(constraints) == 0 {
 		return nil
@@ -948,6 +944,7 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 			if assetType == types.AssetTypeMod {
 				errType = types.InstallErrorDependencyResolutionFailed
 			}
+			// Return the first violation as an install error response
 			resp := d.installError(
 				assetType, assetID, version, types.ConfigData{}, errType,
 				fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersionResp.Version, c.Range, c.Type),

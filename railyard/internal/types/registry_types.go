@@ -171,7 +171,7 @@ type VersionInfo struct {
 	Downloads              int               `json:"downloads"`
 	Manifest               string            `json:"manifest,omitempty"`
 	Prerelease             bool              `json:"prerelease"`
-	Dependencies           map[string]string `json:"dependencies,omitempty"`            // Map of dependency mod IDs to version constraints
+	Dependencies           map[string]string `json:"dependencies,omitempty"`             // Map of dependency mod IDs to version constraints
 	MapBuildingsConstraint string            `json:"map_buildings_constraint,omitempty"` // Derived semver range for map versions based on which buildings-index files the version ships; always empty for mods
 }
 
