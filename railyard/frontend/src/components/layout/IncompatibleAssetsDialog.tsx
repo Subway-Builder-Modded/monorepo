@@ -9,7 +9,7 @@ import {
   DialogTitle,
   getLocalAccentClasses,
 } from '@subway-builder-modded/shared-ui';
-import { CircleAlert, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CircleAlert } from 'lucide-react';
 import { useState } from 'react';
 
 import type { InstalledConstraint } from '@/lib/version-compatibility';

@@ -37,16 +37,16 @@ import { type ComponentType, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useLocation } from 'wouter';
 
+import {
+  type IncompatibleAsset,
+  IncompatibleAssetsDialog,
+} from '@/components/layout/IncompatibleAssetsDialog';
+import { useGameVersion } from '@/hooks/use-game-version';
+import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { useConfigStore } from '@/stores/config-store';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useRegistryStore } from '@/stores/registry-store';
-import { useGameVersion } from '@/hooks/use-game-version';
-import { isInstalledCompatible } from '@/lib/version-compatibility';
-import {
-  IncompatibleAssetsDialog,
-  type IncompatibleAsset,
-} from '@/components/layout/IncompatibleAssetsDialog';
 
 type NavLinkConfig = {
   href: string;

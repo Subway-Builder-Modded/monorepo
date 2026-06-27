@@ -36,10 +36,6 @@ import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import { useGameVersion } from '@/hooks/use-game-version';
-import {
-  getFailingConstraints,
-  isInstalledCompatible,
-} from '@/lib/version-compatibility';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
 import { formatStorageSize } from '@/lib/size-format';
@@ -54,6 +50,10 @@ import {
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
 } from '@/lib/subscription-updates';
+import {
+  getFailingConstraints,
+  isInstalledCompatible,
+} from '@/lib/version-compatibility';
 import { useConfigStore } from '@/stores/config-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useLibraryStore } from '@/stores/library-store';
@@ -468,7 +468,12 @@ function LibraryListRow({
           )}
         </div>
 
-        <div className={cn(COL.status, 'shrink-0 flex flex-col items-start gap-0.5')}>
+        <div
+          className={cn(
+            COL.status,
+            'shrink-0 flex flex-col items-start gap-0.5',
+          )}
+        >
           {showTest && <TestBadge />}
           {isLocal && <LocalBadge />}
           {showIncompatible && (

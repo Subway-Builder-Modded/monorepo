@@ -6,15 +6,15 @@ import {
 import { useMemo } from 'react';
 
 import { type TaggedItemFilterState } from '@/hooks/use-filtered-items';
-import { usePaginationSync } from '@/hooks/use-pagination-sync';
 import { useGameVersion } from '@/hooks/use-game-version';
+import { usePaginationSync } from '@/hooks/use-pagination-sync';
 import { compareItems } from '@/lib/tagged-items';
 import {
   buildDimensionCounts,
   createTaggedListingAccessors,
 } from '@/lib/tagged-listing-filters';
 import { isInstalledCompatible } from '@/lib/version-compatibility';
-import { useLibraryStore, type StatusFilter } from '@/stores/library-store';
+import { type StatusFilter, useLibraryStore } from '@/stores/library-store';
 import { useProfileStore } from '@/stores/profile-store';
 
 import type { types } from '../../wailsjs/go/models';
@@ -43,7 +43,10 @@ interface UseFilteredInstalledParams {
   mapDownloadTotals: Record<string, number>;
 }
 
-function itemStatusRank(item: InstalledTaggedItem, gameVersion: string): number {
+function itemStatusRank(
+  item: InstalledTaggedItem,
+  gameVersion: string,
+): number {
   if (isInstalledCompatible(gameVersion, item.constraints ?? []) === false)
     return 3;
   if (!item.isLocal && item.item.is_test === true) return 2;
@@ -137,7 +140,15 @@ export function useFilteredInstalledItems({
     }
 
     return result;
-  }, [accessors, items, filters, mapDownloadTotals, modDownloadTotals, statusFilters, gameVersion]);
+  }, [
+    accessors,
+    items,
+    filters,
+    mapDownloadTotals,
+    modDownloadTotals,
+    statusFilters,
+    gameVersion,
+  ]);
 
   const totalResults = filtered.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / filters.perPage));

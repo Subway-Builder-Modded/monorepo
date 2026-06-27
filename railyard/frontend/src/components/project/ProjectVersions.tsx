@@ -460,7 +460,10 @@ export function ProjectVersions({
           )}
         >
           <div
-            className={cn(FILES_ACCENT.dialogPanel, 'rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground')}
+            className={cn(
+              FILES_ACCENT.dialogPanel,
+              'rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground',
+            )}
           >
             <p className="font-medium text-foreground">
               Conflicting City Code: {conflictState.conflict.cityCode}

@@ -41,16 +41,16 @@ describe('selectLatestCompatibleVersion', () => {
 
     it('rejects versions whose buildings constraint fails', () => {
       // game 1.2.0 — JSON-only game, map v2.0.0 needs binary (>1.3.0)
-      expect(
-        selectLatestCompatibleVersion(mapVersions, '1.2.0')?.version,
-      ).toBe('1.0.0');
+      expect(selectLatestCompatibleVersion(mapVersions, '1.2.0')?.version).toBe(
+        '1.0.0',
+      );
     });
 
     it('accepts versions whose buildings constraint passes', () => {
       // game 1.4.0 — binary game, map v2.0.0 ships binary (>1.3.0)
-      expect(
-        selectLatestCompatibleVersion(mapVersions, '1.4.0')?.version,
-      ).toBe('2.0.0');
+      expect(selectLatestCompatibleVersion(mapVersions, '1.4.0')?.version).toBe(
+        '2.0.0',
+      );
     });
 
     it('ignores missing map_buildings_constraint', () => {
