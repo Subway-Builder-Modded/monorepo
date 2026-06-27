@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  getFailingConstraints,
   isInstalledCompatible,
   selectLatestCompatibleVersion,
 } from './version-compatibility';
@@ -59,6 +60,45 @@ describe('selectLatestCompatibleVersion', () => {
         '1.0.0',
       );
     });
+  });
+});
+
+describe('getFailingConstraints', () => {
+  it('returns empty array when game version is unknown', () => {
+    expect(
+      getFailingConstraints('', [{ type: 'manifest', range: '>=1.0.0' }]),
+    ).toEqual([]);
+  });
+
+  it('returns empty array when constraints list is empty', () => {
+    expect(getFailingConstraints('1.4.0', [])).toEqual([]);
+  });
+
+  it('returns empty array when all constraints pass', () => {
+    expect(
+      getFailingConstraints('1.4.0', [
+        { type: 'manifest', range: '>=1.0.0' },
+        { type: 'buildings_index', range: '>1.3.0' },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('returns only the failing constraint', () => {
+    const result = getFailingConstraints('1.2.0', [
+      { type: 'manifest', range: '>=1.0.0' },
+      { type: 'buildings_index', range: '>1.3.0' },
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe('buildings_index');
+  });
+
+  it('sorts buildings_index before manifest when both fail', () => {
+    const result = getFailingConstraints('0.5.0', [
+      { type: 'manifest', range: '>=1.0.0' },
+      { type: 'buildings_index', range: '>1.3.0' },
+    ]);
+    expect(result[0].type).toBe('buildings_index');
+    expect(result[1].type).toBe('manifest');
   });
 });
 

@@ -129,6 +129,51 @@ describe('useLibraryStore per-asset-type state', () => {
   });
 });
 
+describe('useLibraryStore statusFilters', () => {
+  beforeEach(() => {
+    useLibraryStore.setState({ statusFilters: [] });
+  });
+
+  it('toggleStatusFilter adds a filter when not present', () => {
+    useLibraryStore.getState().toggleStatusFilter('local');
+    expect(useLibraryStore.getState().statusFilters).toEqual(['local']);
+  });
+
+  it('toggleStatusFilter removes a filter when already present', () => {
+    useLibraryStore.setState({ statusFilters: ['local', 'incompatible'] });
+    useLibraryStore.getState().toggleStatusFilter('local');
+    expect(useLibraryStore.getState().statusFilters).toEqual(['incompatible']);
+  });
+
+  it('toggleStatusFilter supports all status types', () => {
+    useLibraryStore.getState().toggleStatusFilter('test');
+    expect(useLibraryStore.getState().statusFilters).toContain('test');
+  });
+
+  it('clearStatusFilters empties the list', () => {
+    useLibraryStore.setState({ statusFilters: ['local', 'incompatible', 'test'] });
+    useLibraryStore.getState().clearStatusFilters();
+    expect(useLibraryStore.getState().statusFilters).toEqual([]);
+  });
+});
+
+describe('useLibraryStore setPage', () => {
+  beforeEach(() => {
+    useLibraryStore.setState({ page: 1 });
+  });
+
+  it('updates page when the new value differs', () => {
+    useLibraryStore.getState().setPage(3);
+    expect(useLibraryStore.getState().page).toBe(3);
+  });
+
+  it('is a no-op when setting the same page', () => {
+    const before = useLibraryStore.getState();
+    useLibraryStore.getState().setPage(1);
+    expect(useLibraryStore.getState()).toBe(before);
+  });
+});
+
 describe('useLibraryStore selection', () => {
   beforeEach(() => {
     useLibraryStore.setState({ selectedIds: new Set<string>() });
