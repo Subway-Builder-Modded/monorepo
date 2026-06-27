@@ -33,7 +33,13 @@ interface IncompatibleAssetsDialogProps {
 
 const ACCENT = getLocalAccentClasses('uninstall');
 
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <p>
       <span className="text-muted-foreground">{label}:</span>{' '}

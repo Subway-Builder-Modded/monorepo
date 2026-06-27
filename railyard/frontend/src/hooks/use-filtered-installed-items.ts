@@ -121,21 +121,20 @@ export function useFilteredInstalledItems({
       );
     }
 
-    // Frontend-only sorts not handled by the shared compare function
-    if (filters.sort.field === 'size') {
+    // Frontend-only numeric sorts: field → value extractor. Add future fields here.
+    const frontendSort: Partial<
+      Record<string, (i: InstalledTaggedItem) => number>
+    > = {
+      size: (i) => i.installedSizeBytes ?? 0,
+      status: (i) => itemStatusRank(i, gameVersion),
+    };
+    const getSortValue = frontendSort[filters.sort.field];
+    if (getSortValue) {
       const dir = filters.sort.direction;
       return [...result].sort((a, b) => {
-        const sizeA = (a as InstalledTaggedItem).installedSizeBytes ?? 0;
-        const sizeB = (b as InstalledTaggedItem).installedSizeBytes ?? 0;
-        return dir === 'asc' ? sizeA - sizeB : sizeB - sizeA;
-      });
-    }
-    if (filters.sort.field === 'status') {
-      const dir = filters.sort.direction;
-      return [...result].sort((a, b) => {
-        const ra = itemStatusRank(a as InstalledTaggedItem, gameVersion);
-        const rb = itemStatusRank(b as InstalledTaggedItem, gameVersion);
-        return dir === 'desc' ? rb - ra : ra - rb;
+        const va = getSortValue(a as InstalledTaggedItem);
+        const vb = getSortValue(b as InstalledTaggedItem);
+        return dir === 'asc' ? va - vb : vb - va;
       });
     }
 

@@ -493,7 +493,9 @@ export function LibraryPage() {
             <>
               <Separator />
               <div>
-                <p className={cn(FILTER_SECTION_TITLE_CLASS, 'mb-1 px-1 py-1.5')}>
+                <p
+                  className={cn(FILTER_SECTION_TITLE_CLASS, 'mb-1 px-1 py-1.5')}
+                >
                   Asset Status
                 </p>
                 <nav className="space-y-0.5" aria-label="Asset status filter">
