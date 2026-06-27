@@ -54,8 +54,8 @@ func (r *Registry) applyIntegrityGameMeta(repo string, versions []types.VersionI
 	}
 }
 
-// buildingsIndexConstraintFromMatchedFiles derives the buildings-index semver constraint from an integrity version's MatchedFiles map. 
-// The Registry keys are "buildings_index_json" and "buildings_index_bin" 
+// buildingsIndexConstraintFromMatchedFiles derives the buildings-index semver constraint from an integrity version's MatchedFiles map.
+// The Registry keys are "buildings_index_json" and "buildings_index_bin"
 func buildingsIndexConstraintFromMatchedFiles(matched map[string]string) string {
 	// JSON null entries unmarshal to "" in map[string]string, so != "" is the correct presence check.
 	hasBin := matched["buildings_index_bin"] != ""
