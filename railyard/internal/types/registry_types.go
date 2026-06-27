@@ -1,5 +1,19 @@
 package types
 
+// InstalledConstraint is a  semver compatibility requirement stored at install time.
+// The current game version must satisfy Range; failing any constraint marks the asset incompatible.
+type InstalledConstraint struct {
+	Type  string `json:"type"`  // ConstraintTypeManifest | ConstraintTypeBuildingsIndex | ...
+	Range string `json:"range"` // semver constraint string, e.g. ">=1.3.0", "<=1.3.0"
+}
+
+const (
+	// ConstraintTypeManifest is a game version constraint from the manifest game_version field
+	ConstraintTypeManifest = "manifest"
+	// ConstraintTypeBuildingsIndex is a constraint derived from which buildings-index files the map zip contains (JSON-only vs. binrary vs. both)
+	ConstraintTypeBuildingsIndex = "buildings_index"
+)
+
 // UpdateConfig describes how a mod or map receives updates.
 type UpdateConfig struct {
 	Type string `json:"type"`
@@ -56,6 +70,7 @@ type InstalledModInfo struct {
 	IsLocal            bool                   `json:"isLocal"` // Unused for now
 	Manifest           *MetroMakerModManifest `json:"manifest,omitempty"`
 	InstalledSizeBytes int64                  `json:"installedSizeBytes,omitempty"` // Populated in response payloads only
+	Constraints        []InstalledConstraint  `json:"constraints,omitempty"`        // Semver compatibility requirements stored at install time
 }
 
 type InstalledModsResponse struct {
@@ -65,11 +80,12 @@ type InstalledModsResponse struct {
 
 // InstalledMapInfo represents the information stored about an installed map in the registry's installed_maps.json file.
 type InstalledMapInfo struct {
-	ID                 string     `json:"id"`
-	Version            string     `json:"version"`
-	IsLocal            bool       `json:"isLocal"` // Indicates whether or not the map was installed from a local file rather than downloaded via the registry
-	MapConfig          ConfigData `json:"config"`
-	InstalledSizeBytes int64      `json:"installedSizeBytes,omitempty"` // Populated in response payloads only
+	ID                 string                `json:"id"`
+	Version            string                `json:"version"`
+	IsLocal            bool                  `json:"isLocal"` // Indicates whether or not the map was installed from a local file rather than downloaded via the registry
+	MapConfig          ConfigData            `json:"config"`
+	InstalledSizeBytes int64                 `json:"installedSizeBytes,omitempty"` // Populated in response payloads only
+	Constraints        []InstalledConstraint `json:"constraints,omitempty"`        // Semver compatibility requirements stored at install time
 }
 
 type InstalledMapsResponse struct {
@@ -143,17 +159,18 @@ type GalleryImageResponse struct {
 
 // VersionInfo represents a single release version for a mod or map.
 type VersionInfo struct {
-	Version      string            `json:"version"`
-	Name         string            `json:"name"`
-	Changelog    string            `json:"changelog"`
-	Date         string            `json:"date"`
-	DownloadURL  string            `json:"download_url"`
-	GameVersion  string            `json:"game_version"`
-	SHA256       string            `json:"sha256"`
-	Downloads    int               `json:"downloads"`
-	Manifest     string            `json:"manifest,omitempty"`
-	Prerelease   bool              `json:"prerelease"`
-	Dependencies map[string]string `json:"dependencies,omitempty"` // Map of dependency mod IDs to version constraints
+	Version                string            `json:"version"`
+	Name                   string            `json:"name"`
+	Changelog              string            `json:"changelog"`
+	Date                   string            `json:"date"`
+	DownloadURL            string            `json:"download_url"`
+	GameVersion            string            `json:"game_version"`
+	SHA256                 string            `json:"sha256"`
+	Downloads              int               `json:"downloads"`
+	Manifest               string            `json:"manifest,omitempty"`
+	Prerelease             bool              `json:"prerelease"`
+	Dependencies           map[string]string `json:"dependencies,omitempty"`             // Map of dependency mod IDs to version constraints
+	MapBuildingsConstraint string            `json:"map_buildings_constraint,omitempty"` // Derived semver range for map versions based on which buildings-index files the version ships; always empty for mods
 }
 
 // VersionsCacheEntry is a persisted upstream-release lookup: the resolved versions plus the HTTP ETag used to revalidate them with a conditional request.

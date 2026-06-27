@@ -54,6 +54,22 @@ func (r *Registry) applyIntegrityGameMeta(repo string, versions []types.VersionI
 	}
 }
 
+// buildingsIndexConstraintFromMatchedFiles derives the buildings-index semver constraint from an integrity version's MatchedFiles map.
+// The Registry keys are "buildings_index_json" and "buildings_index_bin"
+func buildingsIndexConstraintFromMatchedFiles(matched map[string]string) string {
+	// JSON null entries unmarshal to "" in map[string]string, so != "" is the correct presence check.
+	hasBin := matched["buildings_index_bin"] != ""
+	hasJSON := matched["buildings_index_json"] != ""
+	switch {
+	case hasBin && !hasJSON:
+		return ">1.3.0"
+	case hasBin && hasJSON:
+		return "" // both present — compatible with any game version
+	default:
+		return "<=1.3.0" // JSON only, or neither (registry contract: binary absent = JSON only)
+	}
+}
+
 // enrichVersions fills GameVersion/dependencies from each version's manifest.json,
 // in parallel, as a fallback when the source/integrity did not already provide them.
 func (r *Registry) enrichVersions(versions []types.VersionInfo) {

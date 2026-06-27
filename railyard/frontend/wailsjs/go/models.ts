@@ -421,6 +421,7 @@ export namespace types {
 	    manifest?: string;
 	    prerelease: boolean;
 	    dependencies?: Record<string, string>;
+	    map_buildings_constraint?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new VersionInfo(source);
@@ -439,6 +440,7 @@ export namespace types {
 	        this.manifest = source["manifest"];
 	        this.prerelease = source["prerelease"];
 	        this.dependencies = source["dependencies"];
+	        this.map_buildings_constraint = source["map_buildings_constraint"];
 	    }
 	}
 	export class DependencyListEntry {
@@ -701,12 +703,27 @@ export namespace types {
 		    return a;
 		}
 	}
+	export class InstalledConstraint {
+	    type: string;
+	    range: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InstalledConstraint(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.type = source["type"];
+	        this.range = source["range"];
+	    }
+	}
 	export class InstalledMapInfo {
 	    id: string;
 	    version: string;
 	    isLocal: boolean;
 	    config: ConfigData;
 	    installedSizeBytes?: number;
+	    constraints?: InstalledConstraint[];
 	
 	    static createFrom(source: any = {}) {
 	        return new InstalledMapInfo(source);
@@ -719,6 +736,7 @@ export namespace types {
 	        this.isLocal = source["isLocal"];
 	        this.config = this.convertValues(source["config"], ConfigData);
 	        this.installedSizeBytes = source["installedSizeBytes"];
+	        this.constraints = this.convertValues(source["constraints"], InstalledConstraint);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -822,6 +840,7 @@ export namespace types {
 	    isLocal: boolean;
 	    manifest?: MetroMakerModManifest;
 	    installedSizeBytes?: number;
+	    constraints?: InstalledConstraint[];
 	
 	    static createFrom(source: any = {}) {
 	        return new InstalledModInfo(source);
@@ -834,6 +853,7 @@ export namespace types {
 	        this.isLocal = source["isLocal"];
 	        this.manifest = this.convertValues(source["manifest"], MetroMakerModManifest);
 	        this.installedSizeBytes = source["installedSizeBytes"];
+	        this.constraints = this.convertValues(source["constraints"], InstalledConstraint);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

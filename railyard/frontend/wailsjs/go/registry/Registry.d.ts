@@ -67,7 +67,11 @@ export function RemoveInstalledMod(arg1:string):Promise<void>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
 
+export function SetInstalledMapConstraints(arg1:string,arg2:Array<types.InstalledConstraint>):Promise<void>;
+
 export function SetInstalledMapsFromPath(arg1:string):Promise<void>;
+
+export function SetInstalledModConstraints(arg1:string,arg2:Array<types.InstalledConstraint>):Promise<void>;
 
 export function SetInstalledModsFromPath(arg1:string):Promise<void>;
 

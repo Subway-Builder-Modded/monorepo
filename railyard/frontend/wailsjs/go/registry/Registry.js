@@ -130,8 +130,16 @@ export function SetContext(arg1) {
   return window['go']['registry']['Registry']['SetContext'](arg1);
 }
 
+export function SetInstalledMapConstraints(arg1, arg2) {
+  return window['go']['registry']['Registry']['SetInstalledMapConstraints'](arg1, arg2);
+}
+
 export function SetInstalledMapsFromPath(arg1) {
   return window['go']['registry']['Registry']['SetInstalledMapsFromPath'](arg1);
+}
+
+export function SetInstalledModConstraints(arg1, arg2) {
+  return window['go']['registry']['Registry']['SetInstalledModConstraints'](arg1, arg2);
 }
 
 export function SetInstalledModsFromPath(arg1) {
