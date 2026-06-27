@@ -422,6 +422,8 @@ export function VersionsTab({
     );
   }
 
+  const activeCellStyle = { color: "var(--registry-type-accent)" };
+
   return (
     <div className="mdx-table-wrap my-1 overflow-x-auto rounded-lg border border-border/50">
       <table className="w-full table-fixed text-sm">
@@ -451,7 +453,10 @@ export function VersionsTab({
         <tbody>
           {sortedVersions.map((version) => (
             <tr key={version.version} className="hover:bg-muted/20">
-              <td className="border-t border-border/30 px-4 py-2.5 font-medium text-foreground">
+              <td
+                className="border-t border-border/30 px-4 py-2.5 font-medium text-foreground"
+                style={sortKey === "version" ? activeCellStyle : undefined}
+              >
                 <Link
                   to={getRegistryVersionUrl(routeSegment, listingId, version.version)}
                   preserveScroll={true}
@@ -460,10 +465,16 @@ export function VersionsTab({
                   {version.version}
                 </Link>
               </td>
-              <td className="border-t border-border/30 px-4 py-2.5 text-foreground/85">
+              <td
+                className="border-t border-border/30 px-4 py-2.5 text-foreground/85"
+                style={sortKey === "releaseDate" ? activeCellStyle : undefined}
+              >
                 {formatRegistryDate(version.releaseDate)}
               </td>
-              <td className="border-t border-border/30 px-4 py-2.5 text-left text-foreground/85 tabular-nums">
+              <td
+                className="border-t border-border/30 px-4 py-2.5 text-left text-foreground/85 tabular-nums"
+                style={sortKey === "downloads" ? activeCellStyle : undefined}
+              >
                 {formatDownloads(version.downloads)}
               </td>
               <td className="border-t border-border/30 px-0 py-2.5 text-center">
