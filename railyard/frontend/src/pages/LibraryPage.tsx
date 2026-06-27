@@ -3,6 +3,8 @@ import {
   AssetSidebarPanel,
   EmptyState,
   ErrorBanner,
+  FILTER_COUNT_BADGE_CLASS,
+  FILTER_SECTION_TITLE_CLASS,
   Pagination,
   ResultsSummary,
   SearchBar,
@@ -487,11 +489,11 @@ export function LibraryPage() {
           formatSourceQuality={formatSourceQuality}
           emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           minimumVisibleOptions={2}
-          afterTypeContent={
+          statusContent={
             <>
               <Separator />
               <div>
-                <p className="mb-1 px-1 py-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className={cn(FILTER_SECTION_TITLE_CLASS, 'mb-1 px-1 py-1.5')}>
                   Asset Status
                 </p>
                 <nav className="space-y-0.5" aria-label="Asset status filter">
@@ -582,7 +584,7 @@ export function LibraryPage() {
                               />
                               <span className="flex-1">{label}</span>
                               {count > 0 && (
-                                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-border/65 bg-muted/45 px-1.5 text-[0.65rem] font-semibold tabular-nums text-muted-foreground">
+                                <span className={FILTER_COUNT_BADGE_CLASS}>
                                   {count}
                                 </span>
                               )}

@@ -151,7 +151,9 @@ describe('useLibraryStore statusFilters', () => {
   });
 
   it('clearStatusFilters empties the list', () => {
-    useLibraryStore.setState({ statusFilters: ['local', 'incompatible', 'test'] });
+    useLibraryStore.setState({
+      statusFilters: ['local', 'incompatible', 'test'],
+    });
     useLibraryStore.getState().clearStatusFilters();
     expect(useLibraryStore.getState().statusFilters).toEqual([]);
   });

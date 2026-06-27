@@ -33,6 +33,15 @@ interface IncompatibleAssetsDialogProps {
 
 const ACCENT = getLocalAccentClasses('uninstall');
 
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <p>
+      <span className="text-muted-foreground">{label}:</span>{' '}
+      <span className="font-medium text-foreground">{value}</span>
+    </p>
+  );
+}
+
 function constraintTypeLabel(type: string): string {
   if (type === 'buildings_index') return 'Buildings index format';
   if (type === 'manifest') return 'Game version';
@@ -91,24 +100,17 @@ export function IncompatibleAssetsDialog({
             'rounded-md border bg-muted/30 px-3 py-2 text-xs',
           )}
         >
-          <p>
-            <span className="text-muted-foreground">Incompatible Asset:</span>{' '}
-            <span className="font-medium text-foreground">{asset.name}</span>
-          </p>
-          <p className="mt-1">
-            <span className="text-muted-foreground">Asset Type:</span>{' '}
-            <span className="font-medium text-foreground">
-              {asset.assetType === 'map' ? 'Map' : 'Mod'}
-            </span>
-          </p>
-          <p className="mt-1">
-            <span className="text-muted-foreground">
-              Incompatibility Reason:
-            </span>{' '}
-            <span className="font-medium text-foreground">
-              {primaryFailureReason(asset.constraints)}
-            </span>
-          </p>
+          <div className="space-y-1">
+            <DetailRow label="Incompatible Asset" value={asset.name} />
+            <DetailRow
+              label="Asset Type"
+              value={asset.assetType === 'map' ? 'Map' : 'Mod'}
+            />
+            <DetailRow
+              label="Incompatibility Reason"
+              value={primaryFailureReason(asset.constraints)}
+            />
+          </div>
         </div>
 
         {total > 1 && (

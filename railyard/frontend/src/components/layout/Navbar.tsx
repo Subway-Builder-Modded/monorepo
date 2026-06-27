@@ -170,6 +170,16 @@ export function Navbar() {
     }
   };
 
+  const checkAndShowIncompatibleAssets = (): boolean => {
+    const incompatible = gameVersion ? buildIncompatibleAssets() : [];
+    if (incompatible.length > 0) {
+      setIncompatibleAssets(incompatible);
+      setShowIncompatibleDialog(true);
+      return true;
+    }
+    return false;
+  };
+
   const handleLaunch = async () => {
     const hasMaps = installedMaps.length > 0;
     const alreadyAcknowledged =
@@ -180,27 +190,14 @@ export function Navbar() {
       return;
     }
 
-    const incompatible = gameVersion ? buildIncompatibleAssets() : [];
-    if (incompatible.length > 0) {
-      setIncompatibleAssets(incompatible);
-      setShowIncompatibleDialog(true);
-      return;
-    }
-
+    if (checkAndShowIncompatibleAssets()) return;
     await runWithToast(() => launch(false), 'Failed to launch game.');
   };
 
   const handleAcknowledgeAndLaunch = async () => {
     localStorage.setItem(MOD_REMINDER_KEY, 'true');
     setShowModReminder(false);
-
-    const incompatible = gameVersion ? buildIncompatibleAssets() : [];
-    if (incompatible.length > 0) {
-      setIncompatibleAssets(incompatible);
-      setShowIncompatibleDialog(true);
-      return;
-    }
-
+    if (checkAndShowIncompatibleAssets()) return;
     await runWithToast(() => launch(false), 'Failed to launch game.');
   };
 
