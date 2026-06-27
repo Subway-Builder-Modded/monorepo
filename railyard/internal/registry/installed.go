@@ -38,7 +38,6 @@ func installedFileExistsAt(p string) bool {
 }
 
 // SetInstalledModConstraints updates the Constraints field of an installed mod in memory.
-// Call WriteInstalledToDisk to persist.
 func (r *Registry) SetInstalledModConstraints(modID string, constraints []types.InstalledConstraint) {
 	for i := range r.installedMods {
 		if r.installedMods[i].ID == modID {
@@ -49,7 +48,6 @@ func (r *Registry) SetInstalledModConstraints(modID string, constraints []types.
 }
 
 // SetInstalledMapConstraints updates the Constraints field of an installed map in memory.
-// Call WriteInstalledToDisk to persist.
 func (r *Registry) SetInstalledMapConstraints(mapID string, constraints []types.InstalledConstraint) {
 	for i := range r.installedMaps {
 		if r.installedMaps[i].ID == mapID {
