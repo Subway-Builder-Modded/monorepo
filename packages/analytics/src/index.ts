@@ -8,6 +8,11 @@ export {
   type AnalyticsBarChartProps,
 } from "./charts/analytics-bar-chart";
 export {
+  AnalyticsPieChart,
+  type AnalyticsPieChartProps,
+  type PieSlice,
+} from "./charts/analytics-pie-chart";
+export {
   AnalyticsTooltip,
   type AnalyticsTooltipProps,
   type AnalyticsTooltipPayload,

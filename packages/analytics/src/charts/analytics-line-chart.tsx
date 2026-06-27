@@ -1,7 +1,8 @@
 import {
   Area,
-  AreaChart,
   CartesianGrid,
+  ComposedChart,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -31,6 +32,8 @@ export type AnalyticsLineChartProps = {
   startAtZero?: boolean;
   hideZeroTooltipEntries?: boolean;
 };
+
+type RangeBandPoint = Record<string, string | number | [number, number]>;
 
 function AnalyticsLineLegend({ lines }: { lines: LineConfig[] }) {
   if (lines.length <= 1) return null;
@@ -82,6 +85,38 @@ function AnalyticsLineLegend({ lines }: { lines: LineConfig[] }) {
   );
 }
 
+function getNumericValue(point: MultiSeriesPoint, key: string) {
+  const value = point[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function getBandKey(key: string) {
+  return `__band_${key}`;
+}
+
+function getAverageValue(data: MultiSeriesPoint[], key: string) {
+  if (data.length === 0) return 0;
+  return data.reduce((sum, point) => sum + getNumericValue(point, key), 0) / data.length;
+}
+
+function buildRangeBandData(data: MultiSeriesPoint[], lines: LineConfig[]): RangeBandPoint[] {
+  const stableLineOrder = [...lines].sort(
+    (left, right) => getAverageValue(data, left.key) - getAverageValue(data, right.key),
+  );
+
+  return data.map((point) => {
+    const nextPoint: RangeBandPoint = { ...point };
+
+    stableLineOrder.forEach((line, index) => {
+      const upper = getNumericValue(point, line.key);
+      const lower = index > 0 ? getNumericValue(point, stableLineOrder[index - 1]!.key) : 0;
+      nextPoint[getBandKey(line.key)] = upper >= lower ? [lower, upper] : [upper, upper];
+    });
+
+    return nextPoint;
+  });
+}
+
 export function AnalyticsLineChart({
   data,
   lines,
@@ -99,11 +134,19 @@ export function AnalyticsLineChart({
   );
   const { domain: yDomain, ticks: yTicks } = createLineChartTicks(yValues, { startAtZero });
   const xTicks = xAxisTicks ?? createCategoryTicks(data.map((point) => point[xAxisKey]), 8);
+  const isMultiSeries = lines.length > 1;
+  const gradientStartOpacity = isMultiSeries ? 0.16 : 0.25;
+  const gradientEndOpacity = isMultiSeries ? 0.025 : 0.025;
+  const chartData = isMultiSeries ? buildRangeBandData(data, lines) : data;
 
   return (
     <div className="w-full">
       <ResponsiveContainer width="100%" height={height}>
-        <AreaChart data={data} margin={margin} style={{ color: "hsl(var(--muted-foreground))" }}>
+        <ComposedChart
+          data={chartData}
+          margin={margin}
+          style={{ color: "hsl(var(--muted-foreground))" }}
+        >
           <defs>
             {lines.map((line, index) => {
               const color = line.color ?? `var(--chart-${index + 1}, var(--accent))`;
@@ -116,8 +159,8 @@ export function AnalyticsLineChart({
                   x2="0"
                   y2="1"
                 >
-                  <stop offset="5%" stopColor={color} stopOpacity={0.22} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0.02} />
+                  <stop offset="5%" stopColor={color} stopOpacity={gradientStartOpacity} />
+                  <stop offset="95%" stopColor={color} stopOpacity={gradientEndOpacity} />
                 </linearGradient>
               );
             })}
@@ -154,16 +197,53 @@ export function AnalyticsLineChart({
             content={({ active, payload, label }) => (
               <AnalyticsTooltip
                 active={active}
-                payload={(payload as AnalyticsTooltipPayload[]).filter(
-                  (entry) => !hideZeroTooltipEntries || entry.value !== 0,
-                )}
+                payload={(payload as AnalyticsTooltipPayload[])
+                  .filter((entry) => !String(entry.dataKey ?? "").startsWith("__band_"))
+                  .filter((entry) => !hideZeroTooltipEntries || entry.value !== 0)}
                 label={label}
               />
             )}
           />
+          {isMultiSeries
+            ? lines.map((line, index) => {
+                const color = line.color ?? `var(--chart-${index + 1}, var(--accent))`;
+                const bandKey = getBandKey(line.key);
+                return (
+                  <Area
+                    key={bandKey}
+                    type="monotone"
+                    dataKey={bandKey}
+                    name={line.name}
+                    stroke="none"
+                    fill={`url(#analytics-line-gradient-${line.key})`}
+                    dot={false}
+                    activeDot={false}
+                    isAnimationActive={true}
+                    animationDuration={700}
+                    animationEasing="ease-out"
+                    legendType="none"
+                    tooltipType="none"
+                  />
+                );
+              })
+            : null}
           {lines.map((line, index) => {
             const color = line.color ?? `var(--chart-${index + 1}, var(--accent))`;
-            return (
+            return isMultiSeries ? (
+              <Line
+                key={line.key}
+                type="monotone"
+                dataKey={line.key}
+                name={line.name}
+                stroke={color}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 0, fill: color }}
+                isAnimationActive={true}
+                animationDuration={700}
+                animationEasing="ease-out"
+              />
+            ) : (
               <Area
                 key={line.key}
                 type="monotone"
@@ -180,7 +260,7 @@ export function AnalyticsLineChart({
               />
             );
           })}
-        </AreaChart>
+        </ComposedChart>
       </ResponsiveContainer>
       <AnalyticsLineLegend lines={lines} />
     </div>

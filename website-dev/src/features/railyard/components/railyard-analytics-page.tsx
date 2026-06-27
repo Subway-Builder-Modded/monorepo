@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownToLine,
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
   BookText,
   Box,
   ChartLine,
@@ -19,11 +16,11 @@ import {
 import type { LucideIcon } from "lucide-react";
 import {
   SectionSeparator,
+  SortableTableHead,
   SuiteAccentScope,
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
   Tabs,
@@ -156,38 +153,6 @@ function getNextDirection<T extends string>(
       ? "desc"
       : "asc"
     : directions[nextKey];
-}
-
-function SortableTableHead({
-  label,
-  active,
-  direction,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  direction: SortDirection;
-  onClick: () => void;
-}) {
-  const SortIcon = direction === "asc" ? ArrowUp : ArrowDown;
-  const Icon = active ? SortIcon : ArrowUpDown;
-
-  return (
-    <TableHead className="px-4 text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground">
-      <button
-        type="button"
-        onClick={onClick}
-        className={`inline-flex w-full items-center justify-start gap-1.5 text-left text-xs font-semibold uppercase leading-4 tracking-[0.12em] transition-colors hover:text-[var(--registry-type-accent)] focus-visible:outline-none ${
-          active ? "text-[var(--registry-type-accent)]" : ""
-        }`}
-        style={active ? { color: "var(--registry-type-accent)" } : undefined}
-        aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
-      >
-        <span className="uppercase">{label}</span>
-        <Icon className="size-3.5 shrink-0" aria-hidden={true} />
-      </button>
-    </TableHead>
-  );
 }
 
 const VERSION_GRAPH_PALETTE = [

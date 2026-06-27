@@ -29,6 +29,29 @@ describe("matchRegistryRoute", () => {
     });
   });
 
+  it("matches registry analytics routes before detail routes", () => {
+    expect(matchRegistryRoute("/registry/analytics")).toEqual({
+      kind: "analytics",
+      tabId: "overview",
+      periodId: "all-time",
+    });
+    expect(matchRegistryRoute("/registry/analytics/overview")).toEqual({
+      kind: "analytics",
+      tabId: "overview",
+      periodId: "all-time",
+    });
+    expect(matchRegistryRoute("/registry/analytics/overview/7d")).toEqual({
+      kind: "analytics",
+      tabId: "overview",
+      periodId: "7d",
+    });
+    expect(matchRegistryRoute("/registry/analytics/content")).toEqual({
+      kind: "analytics",
+      tabId: "content",
+      periodId: undefined,
+    });
+  });
+
   it("matches detail route", () => {
     expect(matchRegistryRoute("/registry/maps/gwangju-4")).toEqual({
       kind: "detail",

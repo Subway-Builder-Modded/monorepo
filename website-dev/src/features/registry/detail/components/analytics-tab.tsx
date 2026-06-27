@@ -1,12 +1,13 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, History, TrendingUp } from "lucide-react";
+import { History, TrendingUp } from "lucide-react";
 import { useMemo, useState, type CSSProperties } from "react";
 import {
   RankBadge,
   SectionSeparator,
+  SortableTableHead,
+  StaticTableHead,
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@subway-builder-modded/shared-ui";
@@ -51,47 +52,6 @@ function getNextDirection<T extends string>(
       ? "desc"
       : "asc"
     : directions[nextKey];
-}
-
-function SortableTableHead({
-  label,
-  active,
-  direction,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  direction: SortDirection;
-  onClick: () => void;
-}) {
-  const SortIcon = direction === "asc" ? ArrowUp : ArrowDown;
-  const Icon = active ? SortIcon : ArrowUpDown;
-
-  return (
-    <TableHead className="px-4 text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground">
-      <button
-        type="button"
-        onClick={onClick}
-        className={`inline-flex w-full items-center justify-start gap-1.5 text-left text-xs font-semibold uppercase leading-4 tracking-[0.12em] transition-colors hover:text-[var(--registry-type-accent)] focus-visible:outline-none ${
-          active ? "text-[var(--registry-type-accent)]" : ""
-        }`}
-        aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
-      >
-        <span className="uppercase">{label}</span>
-        <Icon className="size-3.5 shrink-0" aria-hidden={true} />
-      </button>
-    </TableHead>
-  );
-}
-
-function StaticTableHead({ label }: { label: string }) {
-  return (
-    <TableHead className="px-4 text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground">
-      <span className="inline-flex w-full items-center justify-start text-left text-xs font-semibold uppercase leading-4 tracking-[0.12em]">
-        {label}
-      </span>
-    </TableHead>
-  );
 }
 
 export function AnalyticsTab({ detail }: AnalyticsTabProps) {

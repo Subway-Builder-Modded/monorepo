@@ -132,6 +132,12 @@ export {
   TableRow,
 } from './components/table';
 export {
+  SortableTableHead,
+  StaticTableHead,
+  type SortDirection,
+  type TableHeadAlign,
+} from './components/sortable-table-head';
+export {
   Tabs,
   TabsContent,
   TabsList,

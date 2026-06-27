@@ -23,7 +23,6 @@ export const registryDocsConfig: DocsSuiteConfig = {
         label: "View Registry",
         href: "/registry",
         icon: Database,
-        external: true,
       },
       {
         label: "View Analytics",

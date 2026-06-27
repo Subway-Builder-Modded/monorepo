@@ -12,10 +12,13 @@ const REGISTRY_DETAIL_TABS = new Set([
   "details",
 ]);
 const REGISTRY_AUTHOR_TABS = new Set(["overview", "projects", "analytics"]);
+const REGISTRY_ANALYTICS_TABS = new Set(["overview", "content", "authors", "map-statistics"]);
+const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "3d", "7d", "14d"]);
 
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
+  | { kind: "analytics"; tabId?: string; periodId?: string }
   | { kind: "creatorDatabase"; tabId?: "authors" | "projects" }
   | { kind: "author"; authorId: string; tabId?: string }
   | { kind: "project"; authorId: string; projectName: string; tabId?: string }
@@ -43,6 +46,10 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
       return { kind: "creatorDatabase", tabId: "authors" };
     }
 
+    if (routeSegment === "analytics") {
+      return { kind: "analytics", tabId: "overview", periodId: "all-time" };
+    }
+
     if (routeSegment === "maps" || routeSegment === "mods") {
       return {
         kind: "page",
@@ -52,6 +59,19 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   }
 
   if (segments.length === 3 && segments[0] === "registry") {
+    if (segments[1] === "analytics") {
+      const tabId = decodeURIComponent(segments[2] ?? "");
+      if (!REGISTRY_ANALYTICS_TABS.has(tabId)) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "analytics",
+        tabId,
+        periodId: tabId === "overview" ? "all-time" : undefined,
+      };
+    }
+
     if (segments[1] === "authors") {
       if (segments[2] === "projects") {
         return { kind: "creatorDatabase", tabId: "projects" };
@@ -72,6 +92,18 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
 
   if (segments.length === 4 && segments[0] === "registry") {
     const tabId = decodeURIComponent(segments[3] ?? "");
+    if (segments[1] === "analytics") {
+      if (segments[2] !== "overview" || !REGISTRY_ANALYTICS_PERIODS.has(tabId)) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "analytics",
+        tabId: "overview",
+        periodId: tabId,
+      };
+    }
+
     if (segments[1] === "authors") {
       if (!REGISTRY_AUTHOR_TABS.has(tabId)) {
         return {

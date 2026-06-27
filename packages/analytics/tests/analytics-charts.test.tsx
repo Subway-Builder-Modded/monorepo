@@ -4,6 +4,7 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AnalyticsLineChart } from "../src/charts/analytics-line-chart";
 import { AnalyticsBarChart } from "../src/charts/analytics-bar-chart";
+import { AnalyticsPieChart } from "../src/charts/analytics-pie-chart";
 import { createCategoryTicks } from "../src/charts/chart-theme";
 import { AnalyticsTooltip } from "../src/charts/chart-tooltip";
 
@@ -182,6 +183,25 @@ describe("AnalyticsBarChart", () => {
       />,
     );
     expect(container.firstChild).not.toBeNull();
+  });
+});
+
+describe("AnalyticsPieChart", () => {
+  it("renders a solid pie chart with a responsive container", () => {
+    render(
+      <AnalyticsPieChart
+        data={[
+          { key: "maps", name: "Maps", value: 12, color: "#2563eb" },
+          { key: "mods", name: "Mods", value: 4, color: "#dc2626" },
+        ]}
+      />,
+    );
+
+    expect(screen.getByTestId("responsive-container")).toBeInTheDocument();
+    expect(screen.getByText("Maps")).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByText("Mods")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
   });
 });
 

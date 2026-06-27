@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, Loader2 } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
+import { SortableTableHead } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/lib/router";
 import { articleMdxComponents } from "@/features/content/mdx";
 import { MdxRenderedHtml } from "@/features/content/mdx/rendered-html";
@@ -169,37 +170,6 @@ function sortVersions(
   });
 
   return next;
-}
-
-function SortableTableHeader({
-  label,
-  active,
-  direction,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  direction: VersionsSortDirection;
-  onClick: () => void;
-}) {
-  const SortIcon = direction === "asc" ? ArrowUp : ArrowDown;
-  const Icon = active ? SortIcon : ArrowUpDown;
-
-  return (
-    <th className="align-middle px-4 py-2.5 text-left text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground">
-      <button
-        type="button"
-        onClick={onClick}
-        aria-sort={active ? (direction === "asc" ? "ascending" : "descending") : "none"}
-        className={`inline-flex items-center gap-2 font-semibold uppercase leading-4 transition-colors hover:text-[var(--registry-type-accent)] ${
-          active ? "text-[var(--registry-type-accent)]" : ""
-        }`}
-      >
-        <span>{label}</span>
-        <Icon className="size-3.5 shrink-0" aria-hidden={true} />
-      </button>
-    </th>
-  );
 }
 
 export function VersionsTab({
@@ -429,19 +399,19 @@ export function VersionsTab({
       <table className="w-full table-fixed text-sm">
         <thead className="border-b border-border/50 bg-muted/30">
           <tr>
-            <SortableTableHeader
+            <SortableTableHead
               label="Version"
               active={sortKey === "version"}
               direction={sortDirection}
               onClick={() => handleSort("version")}
             />
-            <SortableTableHeader
+            <SortableTableHead
               label="Release Date"
               active={sortKey === "releaseDate"}
               direction={sortDirection}
               onClick={() => handleSort("releaseDate")}
             />
-            <SortableTableHeader
+            <SortableTableHead
               label="Downloads"
               active={sortKey === "downloads"}
               direction={sortDirection}

@@ -7,6 +7,11 @@ import {
   RegistryProjectPage,
 } from "@/features/registry/authors/registry-author-page";
 import { RegistryCreatorDatabasePage } from "@/features/registry/authors/registry-creator-database-page";
+import {
+  RegistryAnalyticsPage,
+  type RegistryAnalyticsTabId,
+} from "@/features/registry/analytics/registry-analytics-page";
+import type { RegistryAnalyticsPeriodId } from "@/features/registry/analytics/lib/load-registry-analytics";
 
 export function RegistryRoute() {
   const location = useLocation();
@@ -18,6 +23,15 @@ export function RegistryRoute() {
 
   if (match.kind === "creatorDatabase") {
     return <RegistryCreatorDatabasePage tabId={match.tabId} />;
+  }
+
+  if (match.kind === "analytics") {
+    return (
+      <RegistryAnalyticsPage
+        tabId={match.tabId as RegistryAnalyticsTabId}
+        periodId={match.periodId as RegistryAnalyticsPeriodId}
+      />
+    );
   }
 
   if (match.kind === "detail") {
