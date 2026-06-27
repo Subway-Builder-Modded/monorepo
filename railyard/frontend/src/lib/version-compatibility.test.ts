@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { selectLatestCompatibleVersion } from './version-compatibility';
+import {
+  isInstalledCompatible,
+  selectLatestCompatibleVersion,
+} from './version-compatibility';
 
 describe('selectLatestCompatibleVersion', () => {
   const versions = [
@@ -20,5 +23,85 @@ describe('selectLatestCompatibleVersion', () => {
 
   it('does not fall back to an incompatible latest version', () => {
     expect(selectLatestCompatibleVersion(versions, '2.5.0')).toBeUndefined();
+  });
+
+  describe('map_buildings_constraint', () => {
+    const mapVersions = [
+      {
+        version: '2.0.0',
+        game_version: '>=1.0.0',
+        map_buildings_constraint: '>1.3.0',
+      },
+      {
+        version: '1.0.0',
+        game_version: '>=1.0.0',
+        map_buildings_constraint: '<=1.3.0',
+      },
+    ];
+
+    it('rejects versions whose buildings constraint fails', () => {
+      // game 1.2.0 — JSON-only game, map v2.0.0 needs binary (>1.3.0)
+      expect(
+        selectLatestCompatibleVersion(mapVersions, '1.2.0')?.version,
+      ).toBe('1.0.0');
+    });
+
+    it('accepts versions whose buildings constraint passes', () => {
+      // game 1.4.0 — binary game, map v2.0.0 ships binary (>1.3.0)
+      expect(
+        selectLatestCompatibleVersion(mapVersions, '1.4.0')?.version,
+      ).toBe('2.0.0');
+    });
+
+    it('ignores missing map_buildings_constraint', () => {
+      const plain = [{ version: '1.0.0', game_version: '>=1.0.0' }];
+      expect(selectLatestCompatibleVersion(plain, '1.4.0')?.version).toBe(
+        '1.0.0',
+      );
+    });
+  });
+});
+
+describe('isInstalledCompatible', () => {
+  it('returns null when game version is unknown', () => {
+    expect(
+      isInstalledCompatible('', [{ type: 'manifest', range: '>=1.0.0' }]),
+    ).toBeNull();
+  });
+
+  it('returns null when constraints list is empty', () => {
+    expect(isInstalledCompatible('1.4.0', [])).toBeNull();
+  });
+
+  it('returns true when all constraints pass', () => {
+    expect(
+      isInstalledCompatible('1.4.0', [
+        { type: 'manifest', range: '>=1.0.0' },
+        { type: 'buildings_index', range: '>1.3.0' },
+      ]),
+    ).toBe(true);
+  });
+
+  it('returns false when any constraint fails', () => {
+    expect(
+      isInstalledCompatible('1.2.0', [
+        { type: 'manifest', range: '>=1.0.0' },
+        { type: 'buildings_index', range: '>1.3.0' },
+      ]),
+    ).toBe(false);
+  });
+
+  it('returns false when only the buildings_index constraint fails', () => {
+    expect(
+      isInstalledCompatible('1.2.0', [
+        { type: 'buildings_index', range: '>1.3.0' },
+      ]),
+    ).toBe(false);
+  });
+
+  it('returns false when only the manifest constraint fails', () => {
+    expect(
+      isInstalledCompatible('0.9.0', [{ type: 'manifest', range: '>=1.0.0' }]),
+    ).toBe(false);
   });
 });

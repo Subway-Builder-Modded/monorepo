@@ -42,8 +42,8 @@ export function IsStartupReady() {
   return window['go']['main']['App']['IsStartupReady']();
 }
 
-export function LaunchGame() {
-  return window['go']['main']['App']['LaunchGame']();
+export function LaunchGame(arg1) {
+  return window['go']['main']['App']['LaunchGame'](arg1);
 }
 
 export function ManuallyCheckForUpdates() {

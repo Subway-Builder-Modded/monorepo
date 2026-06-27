@@ -23,7 +23,7 @@ export function IsGameRunning():Promise<types.GameRunningResponse>;
 
 export function IsStartupReady():Promise<types.StartupReadyResponse>;
 
-export function LaunchGame():Promise<types.GenericResponse>;
+export function LaunchGame(arg1:boolean):Promise<types.GenericResponse>;
 
 export function ManuallyCheckForUpdates():Promise<types.GenericResponse>;
 

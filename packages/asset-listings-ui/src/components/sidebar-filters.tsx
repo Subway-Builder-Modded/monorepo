@@ -60,6 +60,7 @@ export interface SidebarFiltersProps {
   collapsibleSections?: boolean;
   sourceQualityTitle?: string;
   minimumVisibleOptions?: number;
+  afterTypeContent?: ReactNode;
 }
 
 const typeOptions: Array<{
@@ -88,6 +89,7 @@ export function SidebarFilters({
   collapsibleSections = true,
   sourceQualityTitle = "Source Quality",
   minimumVisibleOptions = 1,
+  afterTypeContent,
 }: SidebarFiltersProps) {
   const counts: Record<GalleryAssetType, number> = {
     mod: modCount,
@@ -166,6 +168,8 @@ export function SidebarFilters({
           })}
         </nav>
       </div>
+
+      {afterTypeContent}
 
       {filters.type !== "map" && (
         <>

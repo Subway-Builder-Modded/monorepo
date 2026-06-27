@@ -13,7 +13,7 @@ import {
 } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
-import { Badge, Button } from '@subway-builder-modded/shared-ui';
+import { Badge, Button, cn } from '@subway-builder-modded/shared-ui';
 import { AppDialog } from '@subway-builder-modded/shared-ui';
 import { getLocalAccentClasses } from '@subway-builder-modded/shared-ui';
 import {
@@ -236,7 +236,14 @@ export function ProjectVersions({
           const installingVersion = getInstallingVersion(itemId);
           const uninstalling = isUninstalling(itemId);
           const compat = isCompatible(gameVersion, v.game_version);
-          const incompatible = compat === false;
+          const buildingsCompat = v.map_buildings_constraint
+            ? isCompatible(gameVersion, v.map_buildings_constraint)
+            : null;
+          const incompatible = compat === false || buildingsCompat === false;
+          const incompatibleConstraint =
+            buildingsCompat === false
+              ? v.map_buildings_constraint
+              : v.game_version;
 
           return (
             <ProjectVersionRow
@@ -289,7 +296,7 @@ export function ProjectVersions({
                       </TooltipTrigger>
                       <TooltipContent>
                         Not compatible with your game version (you have{' '}
-                        {gameVersion}, need {v.game_version})
+                        {gameVersion}, need {incompatibleConstraint})
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -453,7 +460,7 @@ export function ProjectVersions({
           )}
         >
           <div
-            className={`rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground ${FILES_ACCENT.dialogPanel}`}
+            className={cn(FILES_ACCENT.dialogPanel, 'rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground')}
           >
             <p className="font-medium text-foreground">
               Conflicting City Code: {conflictState.conflict.cityCode}

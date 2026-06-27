@@ -9,6 +9,7 @@ export type SortField =
   | 'country'
   | 'author'
   | 'size'
+  | 'status'
   | 'population'
   | 'downloads'
   | 'last_updated'
