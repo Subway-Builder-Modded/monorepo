@@ -246,7 +246,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     suiteId: "railyard",
     title: "Analytics",
     description: "In-depth release and download analytics for the Railyard app.",
-    href: "/railyard/analytics",
+    href: "/railyard/analytics/overview",
     icon: ChartLine,
     activeMatchRules: [{ kind: "prefix", path: "/railyard/analytics" }],
   },
@@ -460,4 +460,8 @@ export function getSuiteDocsNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
 
 export function getSuiteUpdatesNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
   return SITE_NAV_ITEMS.find((item) => item.id === `${suiteId}-updates`) ?? null;
+}
+
+export function getSuiteAnalyticsNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
+  return SITE_NAV_ITEMS.find((item) => item.id === `${suiteId}-analytics`) ?? null;
 }

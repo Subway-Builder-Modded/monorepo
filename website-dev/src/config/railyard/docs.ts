@@ -52,7 +52,7 @@ export const railyardDocsConfig: DocsSuiteConfig = {
       },
       {
         label: "View Analytics",
-        href: "/railyard/analytics",
+        href: "/railyard/analytics/overview",
         icon: ChartLine,
       },
     ],

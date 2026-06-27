@@ -69,6 +69,21 @@ describe("AnalyticsLineChart", () => {
     );
     expect(container.firstChild).not.toBeNull();
   });
+
+  it("renders with zero tooltip entries hidden when requested", () => {
+    const { container } = render(
+      <AnalyticsLineChart
+        data={SAMPLE_DATA}
+        lines={[
+          { key: "users", name: "Members" },
+          { key: "public", name: "Public messages" },
+        ]}
+        xAxisKey="date"
+        hideZeroTooltipEntries={true}
+      />,
+    );
+    expect(container.firstChild).not.toBeNull();
+  });
 });
 
 describe("createCategoryTicks", () => {

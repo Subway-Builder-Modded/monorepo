@@ -40,7 +40,7 @@ const heroTooltipLinks = [
   },
   {
     label: "Analytics",
-    to: "/railyard/analytics",
+    to: "/railyard/analytics/overview",
     icon: ChartLine,
   },
   {

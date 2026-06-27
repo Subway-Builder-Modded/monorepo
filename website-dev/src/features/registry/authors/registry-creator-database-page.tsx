@@ -241,13 +241,27 @@ function sortProjects(
   });
 }
 
-function ProjectTypeCountPill({ typeId, count }: { typeId: "maps" | "mods"; count: number }) {
+function getRegistryTypeSearchUrl(typeId: "maps" | "mods", query?: string) {
+  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
+  const search = query ? `?${new URLSearchParams({ q: query }).toString()}` : "";
+  return `/registry/${typeConfig.routeSegment}${search}`;
+}
+
+function ProjectTypeCountPill({
+  typeId,
+  count,
+  href,
+}: {
+  typeId: "maps" | "mods";
+  count: number;
+  href?: string;
+}) {
   if (count <= 0) return null;
 
   const typeConfig = getRegistryTypeConfigOrDefault(typeId);
   const Icon = typeConfig.icon ?? FolderGit2;
 
-  return (
+  const content = (
     <span
       className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold"
       style={
@@ -270,6 +284,19 @@ function ProjectTypeCountPill({ typeId, count }: { typeId: "maps" | "mods"; coun
         {formatNumber(count)}
       </span>
     </span>
+  );
+
+  if (!href) {
+    return content;
+  }
+
+  return (
+    <Link
+      to={href}
+      className="relative z-20 inline-flex no-underline transition-opacity hover:opacity-90 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      {content}
+    </Link>
   );
 }
 
@@ -328,18 +355,33 @@ function AssetMetric({ assets }: { assets: number }) {
 
 function AuthorDatabaseCard({ author }: { author: RegistryCreatorDatabaseAuthor }) {
   return (
-    <article className="flex min-w-0 items-center justify-between gap-4 rounded-xl border border-border/70 bg-card/75 px-4 py-3 shadow-sm">
-      <div className="min-w-0 space-y-1.5">
+    <article className="relative flex min-w-0 items-center justify-between gap-4 rounded-xl border border-border/70 bg-card/75 px-4 py-3 shadow-sm">
+      <Link
+        to={author.href}
+        aria-label={`Open ${author.label}`}
+        className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="sr-only">Open {author.label}</span>
+      </Link>
+      <div className="relative z-20 min-w-0 space-y-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={author.href}
-            className="min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+            className="relative z-20 min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {author.label}
           </Link>
           <AuthorRoleBadge authorId={author.id} className="cursor-pointer" />
-          <ProjectTypeCountPill typeId="maps" count={author.maps} />
-          <ProjectTypeCountPill typeId="mods" count={author.mods} />
+          <ProjectTypeCountPill
+            typeId="maps"
+            count={author.maps}
+            href={getRegistryTypeSearchUrl("maps", author.id)}
+          />
+          <ProjectTypeCountPill
+            typeId="mods"
+            count={author.mods}
+            href={getRegistryTypeSearchUrl("mods", author.id)}
+          />
           <CollaborationCountPill count={author.collaborations} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -354,24 +396,39 @@ function AuthorDatabaseCard({ author }: { author: RegistryCreatorDatabaseAuthor 
 
 function ProjectDatabaseCard({ project }: { project: RegistryCreatorDatabaseProject }) {
   return (
-    <article className="flex min-w-0 items-center justify-between gap-4 rounded-xl border border-border/70 bg-card/75 px-4 py-3 shadow-sm">
-      <div className="min-w-0 space-y-1.5">
+    <article className="relative flex min-w-0 items-center justify-between gap-4 rounded-xl border border-border/70 bg-card/75 px-4 py-3 shadow-sm">
+      <Link
+        to={project.href}
+        aria-label={`Open ${project.name}`}
+        className="absolute inset-0 z-10 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="sr-only">Open {project.name}</span>
+      </Link>
+      <div className="relative z-20 min-w-0 space-y-1.5">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={project.href}
-            className="min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+            className="relative z-20 min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {project.name}
           </Link>
-          <ProjectTypeCountPill typeId="maps" count={project.maps} />
-          <ProjectTypeCountPill typeId="mods" count={project.mods} />
+          <ProjectTypeCountPill
+            typeId="maps"
+            count={project.maps}
+            href={getRegistryTypeSearchUrl("maps")}
+          />
+          <ProjectTypeCountPill
+            typeId="mods"
+            count={project.mods}
+            href={getRegistryTypeSearchUrl("mods")}
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <User className="size-3.5 shrink-0" aria-hidden={true} />
             <Link
               to={project.authorHref}
-              className="min-w-0 truncate underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="relative z-20 min-w-0 truncate underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {project.authorLabel}
             </Link>
@@ -736,7 +793,7 @@ export function RegistryCreatorDatabasePage({
               </div>
             ) : (
               <>
-                <div className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-2">
                   {activeTab === "authors"
                     ? visibleRows.map((author) => (
                         <AuthorDatabaseCard
