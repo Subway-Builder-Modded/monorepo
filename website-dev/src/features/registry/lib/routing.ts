@@ -14,11 +14,12 @@ const REGISTRY_DETAIL_TABS = new Set([
 const REGISTRY_AUTHOR_TABS = new Set(["overview", "projects", "analytics"]);
 const REGISTRY_ANALYTICS_TABS = new Set(["overview", "content", "authors", "map-statistics"]);
 const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "3d", "7d", "14d"]);
+const REGISTRY_ANALYTICS_ASSET_TYPES = new Set(["maps", "mods"]);
 
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
-  | { kind: "analytics"; tabId?: string; periodId?: string }
+  | { kind: "analytics"; tabId?: string; periodId?: string; assetTypeId?: string }
   | { kind: "creatorDatabase"; tabId?: "authors" | "projects" }
   | { kind: "author"; authorId: string; tabId?: string }
   | { kind: "project"; authorId: string; projectName: string; tabId?: string }
@@ -68,7 +69,8 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
       return {
         kind: "analytics",
         tabId,
-        periodId: tabId === "overview" ? "all-time" : undefined,
+        periodId: tabId === "overview" || tabId === "content" ? "all-time" : undefined,
+        assetTypeId: tabId === "content" ? "maps" : undefined,
       };
     }
 
@@ -93,14 +95,19 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   if (segments.length === 4 && segments[0] === "registry") {
     const tabId = decodeURIComponent(segments[3] ?? "");
     if (segments[1] === "analytics") {
-      if (segments[2] !== "overview" || !REGISTRY_ANALYTICS_PERIODS.has(tabId)) {
+      const analyticsTabId = decodeURIComponent(segments[2] ?? "");
+      if (
+        (analyticsTabId !== "overview" && analyticsTabId !== "content") ||
+        !REGISTRY_ANALYTICS_PERIODS.has(tabId)
+      ) {
         return { kind: "none" };
       }
 
       return {
         kind: "analytics",
-        tabId: "overview",
+        tabId: analyticsTabId,
         periodId: tabId,
+        assetTypeId: analyticsTabId === "content" ? "maps" : undefined,
       };
     }
 
@@ -133,6 +140,26 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   }
 
   if (segments.length === 5 && segments[0] === "registry") {
+    if (segments[1] === "analytics") {
+      const analyticsTabId = decodeURIComponent(segments[2] ?? "");
+      const periodId = decodeURIComponent(segments[3] ?? "");
+      const assetTypeId = decodeURIComponent(segments[4] ?? "");
+      if (
+        analyticsTabId !== "content" ||
+        !REGISTRY_ANALYTICS_PERIODS.has(periodId) ||
+        !REGISTRY_ANALYTICS_ASSET_TYPES.has(assetTypeId)
+      ) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "analytics",
+        tabId: analyticsTabId,
+        periodId,
+        assetTypeId,
+      };
+    }
+
     if (segments[1] === "authors") {
       const tabId = decodeURIComponent(segments[4] ?? "");
       if (!REGISTRY_AUTHOR_TABS.has(tabId)) {

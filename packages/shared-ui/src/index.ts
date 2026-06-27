@@ -267,6 +267,12 @@ export {
   getToneVarsClass,
   type LocalAccentTone,
 } from './lib/local-accent';
+export {
+  getSortedRankSlot,
+  getSortedRankSlotMap,
+  type SortedRankSlotOptions,
+  type SortedRankSlotMapOptions,
+} from './lib/sorted-rank-slots';
   export {
     HeroAccentBar,
     type HeroAccentBarProps,

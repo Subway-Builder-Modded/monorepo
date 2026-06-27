@@ -48,7 +48,14 @@ describe("matchRegistryRoute", () => {
     expect(matchRegistryRoute("/registry/analytics/content")).toEqual({
       kind: "analytics",
       tabId: "content",
-      periodId: undefined,
+      periodId: "all-time",
+      assetTypeId: "maps",
+    });
+    expect(matchRegistryRoute("/registry/analytics/content/7d/mods")).toEqual({
+      kind: "analytics",
+      tabId: "content",
+      periodId: "7d",
+      assetTypeId: "mods",
     });
   });
 

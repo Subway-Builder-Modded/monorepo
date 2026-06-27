@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { RegistryAnalyticsPage } from "./registry-analytics-page";
@@ -48,6 +48,33 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           maps: { listings: 8, downloads: 240 },
           mods: { listings: 4, downloads: 60 },
         },
+        contentRankings: {
+          "all-time": {
+            maps: [
+              {
+                id: "map-a",
+                type: "maps",
+                name: "Map Alpha",
+                authorId: "author-a",
+                authorName: "Author A",
+                downloads: 42,
+              },
+            ],
+            mods: [
+              {
+                id: "mod-a",
+                type: "mods",
+                name: "Mod Alpha",
+                authorId: "author-b",
+                authorName: "Author B",
+                downloads: 84,
+              },
+            ],
+          },
+          "3d": { maps: [], mods: [] },
+          "7d": { maps: [], mods: [] },
+          "14d": { maps: [], mods: [] },
+        },
         history: [
           {
             date: "2026-03-11",
@@ -90,5 +117,29 @@ describe("RegistryAnalyticsPage", () => {
     const pieCharts = screen.getAllByTestId("registry-pie-chart");
     expect(pieCharts[0]).toHaveTextContent("Maps: 8");
     expect(pieCharts[1]).toHaveTextContent("Maps: 240");
+  });
+
+  it("renders content analytics for the selected asset type", async () => {
+    render(<RegistryAnalyticsPage tabId="content" assetTypeId="mods" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
+      "1 points · Downloads",
+    );
+    expect(screen.getByText("Rankings")).toBeInTheDocument();
+    expect(screen.getByText("Author B")).toBeInTheDocument();
+    expect(screen.getByText("84")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Downloads/i })).toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText("Search mods...");
+    fireEvent.change(searchInput, {
+      target: { value: "missing asset" },
+    });
+
+    expect(screen.getByText("No items match your search.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear Filters" })).toBeInTheDocument();
   });
 });

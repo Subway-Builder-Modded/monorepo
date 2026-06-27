@@ -11,7 +11,10 @@ import {
   RegistryAnalyticsPage,
   type RegistryAnalyticsTabId,
 } from "@/features/registry/analytics/registry-analytics-page";
-import type { RegistryAnalyticsPeriodId } from "@/features/registry/analytics/lib/load-registry-analytics";
+import type {
+  RegistryAnalyticsAssetTypeId,
+  RegistryAnalyticsPeriodId,
+} from "@/features/registry/analytics/lib/load-registry-analytics";
 
 export function RegistryRoute() {
   const location = useLocation();
@@ -30,6 +33,7 @@ export function RegistryRoute() {
       <RegistryAnalyticsPage
         tabId={match.tabId as RegistryAnalyticsTabId}
         periodId={match.periodId as RegistryAnalyticsPeriodId}
+        assetTypeId={match.assetTypeId as RegistryAnalyticsAssetTypeId}
       />
     );
   }

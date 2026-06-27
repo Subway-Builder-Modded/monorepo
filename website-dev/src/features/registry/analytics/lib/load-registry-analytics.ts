@@ -3,6 +3,7 @@ import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
 export type RegistryAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d";
+export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
 
 export type RegistryAnalyticsHistoryPoint = {
   date: string;
@@ -33,11 +34,30 @@ export type RegistryAnalyticsData = {
     };
   };
   history: RegistryAnalyticsHistoryPoint[];
+  contentRankings: Record<
+    RegistryAnalyticsPeriodId,
+    Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]>
+  >;
 };
 
 type CsvRow = Record<string, string>;
 
+export type RegistryAnalyticsContentRanking = {
+  id: string;
+  type: RegistryAnalyticsAssetTypeId;
+  name: string;
+  authorId: string;
+  authorName: string;
+  downloads: number;
+};
+
 const ASSETS_BY_DAY_URL = "/registry-cache/analytics/assets_by_day.csv";
+const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
+const RANKING_URLS = {
+  "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
+  "3d": "/registry-cache/analytics/most_popular_last_3d.csv",
+  "7d": "/registry-cache/analytics/most_popular_last_7d.csv",
+} as const;
 
 function safeFetchText(url: string): Promise<string> {
   return fetch(url).then((response) => {
@@ -101,6 +121,12 @@ function normalizeDate(value: string | undefined): string {
   return (value ?? "").replaceAll("_", "-");
 }
 
+function getAssetType(value: string | undefined): RegistryAnalyticsAssetTypeId | null {
+  if (value === "map" || value === "maps") return "maps";
+  if (value === "mod" || value === "mods") return "mods";
+  return null;
+}
+
 function normalizeHistory(rows: CsvRow[]): RegistryAnalyticsHistoryPoint[] {
   return rows
     .map((row) => ({
@@ -118,6 +144,51 @@ function normalizeHistory(rows: CsvRow[]): RegistryAnalyticsHistoryPoint[] {
     }))
     .filter((row) => row.date)
     .sort((left, right) => left.date.localeCompare(right.date));
+}
+
+function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
+  return {
+    "all-time": { maps: [], mods: [] },
+    "3d": { maps: [], mods: [] },
+    "7d": { maps: [], mods: [] },
+    "14d": { maps: [], mods: [] },
+  };
+}
+
+function normalizeRankingRows(
+  rows: CsvRow[],
+  getDownloads: (row: CsvRow) => number,
+): Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> {
+  const grouped: Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> = {
+    maps: [],
+    mods: [],
+  };
+
+  for (const row of rows) {
+    const type = getAssetType(row.listing_type);
+    if (!type) continue;
+    grouped[type].push({
+      id: row.id ?? "",
+      type,
+      name: row.name?.trim() || row.id || "Unknown asset",
+      authorId: row.author?.trim() || "",
+      authorName: row.author_alias?.trim() || row.author?.trim() || "Unknown author",
+      downloads: getDownloads(row),
+    });
+  }
+
+  return {
+    maps: grouped.maps.sort((left, right) => right.downloads - left.downloads),
+    mods: grouped.mods.sort((left, right) => right.downloads - left.downloads),
+  };
+}
+
+function buildFourteenDayRankings(rows: CsvRow[]) {
+  const headers = Object.keys(rows[0] ?? {});
+  const dateHeaders = headers.filter((header) => /^\d{4}_\d{2}_\d{2}$/.test(header)).slice(-14);
+  return normalizeRankingRows(rows, (row) =>
+    dateHeaders.reduce((sum, dateKey) => sum + getNumber(row[dateKey]), 0),
+  );
 }
 
 export function filterRegistryAnalyticsHistory(
@@ -151,17 +222,33 @@ export function sumRegistryAnalyticsHistory(history: RegistryAnalyticsHistoryPoi
 }
 
 export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData> {
-  const [analyticsRaw, creatorData, itemEntries] = await Promise.all([
+  const [analyticsRaw, byDayRaw, creatorData, itemEntries, allTimeRaw, last3Raw, last7Raw] =
+    await Promise.all([
     safeFetchText(ASSETS_BY_DAY_URL),
+    safeFetchText(MOST_POPULAR_BY_DAY_URL),
     loadCreatorDatabaseData(),
     Promise.all(
       REGISTRY_TYPES.map((typeConfig) =>
         loadRegistryItemsForType(typeConfig.id, typeConfig.routeSegment),
       ),
     ),
+    safeFetchText(RANKING_URLS["all-time"]),
+    safeFetchText(RANKING_URLS["3d"]),
+    safeFetchText(RANKING_URLS["7d"]),
   ]);
 
   const rows = parseCsv(analyticsRaw);
+  const contentRankings = buildEmptyContentRankings();
+  contentRankings["all-time"] = normalizeRankingRows(parseCsv(allTimeRaw), (row) =>
+    getNumber(row.adjusted_total_downloads || row.total_downloads),
+  );
+  contentRankings["3d"] = normalizeRankingRows(parseCsv(last3Raw), (row) =>
+    getNumber(row.adjusted_download_change || row.download_change),
+  );
+  contentRankings["7d"] = normalizeRankingRows(parseCsv(last7Raw), (row) =>
+    getNumber(row.adjusted_download_change || row.download_change),
+  );
+  contentRankings["14d"] = buildFourteenDayRankings(parseCsv(byDayRaw));
   const history = normalizeHistory(rows);
   const allItems = itemEntries.flat();
   const maps = allItems.filter((item) => item.type === "maps");
@@ -184,5 +271,6 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       },
     },
     history,
+    contentRankings,
   };
 }
