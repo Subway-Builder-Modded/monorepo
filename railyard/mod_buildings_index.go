@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"railyard/internal/files"
@@ -19,14 +20,26 @@ func preferBinaryBuildingsIndex(gv types.GameVersionResponse) bool {
 	return ok && version.GreaterThan(binaryBuildingsIndexGameFloor)
 }
 
-// setBuildingsIndexStem picks the buildings-index filename stem the game loads for a map.
-func setBuildingsIndexStem(mapDataRoot string, code string, preferBinary bool) string {
-	// Use the binary only when the game supports it and the map actually ships it; otherwise the JSON form.
-	// TODO: Hard fail here if the binary is supported but missing, to avoid loading maps without a valid/compatible buildings index
+// setBuildingsIndexStem picks the buildings-index filename stem for a map, or returns
+// an error if the installed files are incompatible with the detected game version.
+func setBuildingsIndexStem(mapDataRoot string, code string, preferBinary bool) (string, error) {
+	hasBin := func() bool {
+		_, err := os.Stat(paths.JoinLocalPath(mapDataRoot, code, files.MapBuildingsBinFileName+".gz"))
+		return err == nil
+	}()
+	hasJSON := func() bool {
+		_, err := os.Stat(paths.JoinLocalPath(mapDataRoot, code, files.MapBuildingsFileName+".gz"))
+		return err == nil
+	}()
+
 	if preferBinary {
-		if _, err := os.Stat(paths.JoinLocalPath(mapDataRoot, code, files.MapBuildingsBinFileName+".gz")); err == nil {
-			return files.MapBuildingsBinFileName
+		if hasBin {
+			return files.MapBuildingsBinFileName, nil
 		}
+		return "", fmt.Errorf("map %q: game requires binary buildings index (>1.3.0) but only JSON is installed", code)
 	}
-	return files.MapBuildingsFileName
+	if hasJSON {
+		return files.MapBuildingsFileName, nil
+	}
+	return "", fmt.Errorf("map %q: game requires JSON buildings index (<=1.3.0) but only binary is installed", code)
 }

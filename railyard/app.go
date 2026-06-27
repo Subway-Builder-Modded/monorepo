@@ -407,7 +407,7 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	}
 }
 
-func (a *App) LaunchGame() types.GenericResponse {
+func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	a.gameMu.Lock()
 	if a.gameStarting {
 		a.gameMu.Unlock()
@@ -469,7 +469,7 @@ func (a *App) LaunchGame() types.GenericResponse {
 
 	a.generateMissingThumbnails(port)
 
-	if err := a.generateMod(port); err != nil {
+	if err := a.generateMod(port, skipIncompatibleMaps); err != nil {
 		a.Logger.Warn("Failed to generate mod", "error", err)
 		return types.ErrorResponse(err.Error())
 	}
@@ -810,7 +810,7 @@ func (a *App) generateMissingThumbnails(port int) {
 	}
 }
 
-func (a *App) generateMod(port int) error {
+func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
 	maps := a.Registry.GetInstalledMaps()
 	a.Logger.Info("Generating mod with maps", "count", len(maps))
 
@@ -821,9 +821,17 @@ func (a *App) generateMod(port int) error {
 		if _, err := os.Stat(paths.JoinLocalPath(a.Config.Cfg.GetMapsFolderPath(), m.MapConfig.Code, "ocean_depth_index.json.gz")); !errors.Is(err, fs.ErrNotExist) {
 			m.MapConfig.HasOceanDepth = true
 		}
+		stem, err := setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary)
+		if err != nil {
+			if skipIncompatibleMaps {
+				a.Logger.Warn("Skipping incompatible map from mod template", "map", m.MapConfig.Code, "error", err)
+				continue
+			}
+			stem = files.MapBuildingsFileName
+		}
 		places = append(places, types.MetroMakerPlace{
 			ConfigData:         m.MapConfig,
-			BuildingsIndexFile: setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary),
+			BuildingsIndexFile: stem,
 		})
 	}
 	config := types.MetroMakerModConfig{

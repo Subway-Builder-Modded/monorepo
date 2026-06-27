@@ -49,12 +49,12 @@ func TestLaunchGameRejectsConcurrentStartWhileStarting(t *testing.T) {
 
 	firstResult := make(chan types.GenericResponse, 1)
 	go func() {
-		firstResult <- app.LaunchGame()
+		firstResult <- app.LaunchGame(false)
 	}()
 
 	<-ready
 
-	second := app.LaunchGame()
+	second := app.LaunchGame(false)
 	require.Equal(t, types.ResponseError, second.Status)
 	require.Equal(t, "game is already starting", second.Message)
 
