@@ -1,11 +1,5 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  Download,
-  Loader2,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, Loader2 } from "lucide-react";
 import { Link } from "@/lib/router";
 import { articleMdxComponents } from "@/features/content/mdx";
 import { MdxRenderedHtml } from "@/features/content/mdx/rendered-html";

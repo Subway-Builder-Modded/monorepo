@@ -449,9 +449,7 @@ function RailyardTimelineTab({
   const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
 
   return (
-    <section
-      className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]"
-    >
+    <section className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]">
       <SectionSeparator label="Timeline" icon={History} className="mb-4" />
       <div className="flex justify-center">
         <TimelinePeriodToggle
@@ -661,9 +659,7 @@ function RailyardVersionsTab({
   const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
 
   return (
-    <section
-      className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]"
-    >
+    <section className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]">
       <SectionSeparator label="Versions" icon={GalleryVerticalEnd} className="mb-4" />
       <div className="flex justify-center">
         <TimelinePeriodToggle
@@ -699,7 +695,9 @@ type OperatingSystemBreakdownRow = {
   href: string;
 };
 
-function buildOperatingSystemBreakdownRows(data: RailyardAnalyticsData): OperatingSystemBreakdownRow[] {
+function buildOperatingSystemBreakdownRows(
+  data: RailyardAnalyticsData,
+): OperatingSystemBreakdownRow[] {
   const totalDownloads = data.versions.reduce(
     (sum, version) =>
       sum +
@@ -824,7 +822,10 @@ function RailyardOperatingSystemsBreakdown({ data }: { data: RailyardAnalyticsDa
                     <span className="shrink-0 font-mono text-xs text-muted-foreground">
                       {row.version}
                     </span>
-                    <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+                    <ExternalLink
+                      className="size-3.5 shrink-0 text-muted-foreground"
+                      aria-hidden={true}
+                    />
                   </a>
                 </TableCell>
                 <TableCell
@@ -956,9 +957,7 @@ function RailyardOverviewTab({ data }: { data: RailyardAnalyticsData }) {
   const cards = useMemo(() => buildOverviewCards(data), [data]);
 
   return (
-    <section
-      className="space-y-3 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]"
-    >
+    <section className="space-y-3 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]">
       <div>
         <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
         <DetailsMetricGrid
@@ -1013,9 +1012,7 @@ export function RailyardAnalyticsPage({
 
   return (
     <SuiteAccentScope accent={suite.accent}>
-      <section
-        className="space-y-6 py-6 lg:py-8 [--registry-type-accent:var(--suite-accent-light)] [--registry-type-accent-strong:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)] dark:[--registry-type-accent-strong:var(--suite-accent-dark)]"
-      >
+      <section className="space-y-6 py-6 lg:py-8 [--registry-type-accent:var(--suite-accent-light)] [--registry-type-accent-strong:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)] dark:[--registry-type-accent-strong:var(--suite-accent-dark)]">
         <FeatureHomepageHeading
           icon={ChartLine}
           title={navItem?.title ?? "Analytics"}
