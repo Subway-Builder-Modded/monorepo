@@ -932,12 +932,20 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 	gameVersionResp := d.GetGameVersion()
 	gameVersion, ok := gameVersionResp.DetectedVersion()
 	if !ok {
-		return nil // game not detected — do not block
+		resp := d.installError(
+			assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
+			"Cannot verify compatibility: game version could not be detected",
+			nil,
+			"asset_id", assetID,
+		)
+		return &resp
 	}
 	for _, c := range constraints {
 		constraint, err := semver.NewConstraint(strings.TrimPrefix(c.Range, "v"))
 		if err != nil {
-			continue // unparseable — do not block
+			d.Logger.Error("Unparseable compatibility constraint; skipping check", err,
+				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range)
+			continue
 		}
 		if !constraint.Check(gameVersion) {
 			resp := d.installError(
