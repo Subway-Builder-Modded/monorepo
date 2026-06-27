@@ -75,6 +75,8 @@ export {
 	SidebarFilters,
 	type SidebarFiltersProps,
 	type SidebarFilterState,
+	FILTER_SECTION_TITLE_CLASS,
+	FILTER_COUNT_BADGE_CLASS,
 } from './components/sidebar-filters';
 export {
 	SIDEBAR_CONTENT_OFFSET,

@@ -14,7 +14,15 @@ import { AppDialog } from '@subway-builder-modded/shared-ui';
 import { LOCAL_ACCENTS } from '@subway-builder-modded/shared-ui';
 import { Checkbox } from '@subway-builder-modded/shared-ui';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@subway-builder-modded/shared-ui';
+import {
+  CircleAlert,
   CircleFadingArrowUp,
+  FlaskConical,
   FolderOpen,
   HardDrive,
   OctagonX,
@@ -27,6 +35,7 @@ import { Link } from 'wouter';
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
+import { useGameVersion } from '@/hooks/use-game-version';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
 import { formatStorageSize } from '@/lib/size-format';
@@ -41,6 +50,10 @@ import {
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
 } from '@/lib/subscription-updates';
+import {
+  getFailingConstraints,
+  isInstalledCompatible,
+} from '@/lib/version-compatibility';
 import { useConfigStore } from '@/stores/config-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useLibraryStore } from '@/stores/library-store';
@@ -54,22 +67,64 @@ const UNINSTALL_ICON_ACCENT = LOCAL_ACCENTS.uninstall.iconButton;
 const ENTRIES_PREVIEW_LIMIT = 10;
 const LIBRARY_TEXT_SORT_FIELDS = new Set<SortField>(TEXT_SORT_FIELDS);
 
+const BADGE_BASE_CLASS =
+  'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest';
+
+function StatusBadge({
+  icon: Icon,
+  label,
+  colorClassName,
+  className,
+}: {
+  icon: React.ElementType;
+  label: string;
+  colorClassName: string;
+  className?: string;
+}) {
+  return (
+    <span className={cn(BADGE_BASE_CLASS, colorClassName, className)}>
+      <Icon className="h-2.5 w-2.5 shrink-0" />
+      {label}
+    </span>
+  );
+}
+
 export function LocalBadge({ className }: { className?: string }) {
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400',
-        className,
-      )}
-    >
-      <HardDrive className="h-2.5 w-2.5 shrink-0" />
-      Local
-    </span>
+    <StatusBadge
+      icon={HardDrive}
+      label="Local"
+      colorClassName="border-amber-400/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      className={className}
+    />
+  );
+}
+
+export function IncompatibleBadge({ className }: { className?: string }) {
+  return (
+    <StatusBadge
+      icon={CircleAlert}
+      label="Incompatible"
+      colorClassName="border-red-400/30 bg-red-500/10 text-red-600 dark:text-red-400"
+      className={className}
+    />
+  );
+}
+
+export function TestBadge({ className }: { className?: string }) {
+  return (
+    <StatusBadge
+      icon={FlaskConical}
+      label="Test"
+      colorClassName="border-[color-mix(in_srgb,var(--update-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--update-primary)_10%,transparent)] text-(--update-primary)"
+      className={className}
+    />
   );
 }
 
 const COL = {
   gap: 'gap-3',
+  status: 'w-32',
   city: 'w-[5.5rem]',
   country: 'w-[9rem]',
   size: 'w-[6.5rem]',
@@ -145,6 +200,15 @@ export function LibraryList({
           <SortableHeaderCell
             label="Name"
             field="name"
+            sort={sort}
+            textFields={LIBRARY_TEXT_SORT_FIELDS}
+            onSort={handleColumnSort}
+          />
+        </div>
+        <div className={cn(COL.status, 'flex shrink-0 items-center')}>
+          <SortableHeaderCell
+            label="Status"
+            field="status"
             sort={sort}
             textFields={LIBRARY_TEXT_SORT_FIELDS}
             onSort={handleColumnSort}
@@ -245,11 +309,18 @@ function LibraryListRow({
   const metroMakerDataPath = useConfigStore(
     (s) => s.config?.metroMakerDataPath,
   );
+  const gameVersion = useGameVersion();
 
   const key = composeAssetKey(entry.type, entry.item.id);
   const isSelected = selectedIds.has(key);
   const isMap = entry.type === 'map';
   const isLocal = entry.isLocal;
+  const showIncompatible =
+    isInstalledCompatible(gameVersion, entry.constraints ?? []) === false;
+  const failingConstraints = showIncompatible
+    ? getFailingConstraints(gameVersion, entry.constraints ?? [])
+    : [];
+  const showTest = !isLocal && entry.item.is_test === true;
   const map = isMap ? (entry.item as types.MapManifest) : null;
 
   const mapCityCode = map?.city_code?.trim().toUpperCase() ?? '';
@@ -389,28 +460,55 @@ function LibraryListRow({
             </p>
           </div>
 
-          <div className="shrink-0 flex items-center gap-1">
-            {isLocal ? (
-              <LocalBadge />
-            ) : (
-              <>
-                {visibleBadges.map((badge) => (
-                  <Badge
-                    key={badge}
-                    variant="secondary"
-                    className="px-1.5 py-0 text-xs"
-                  >
-                    {badge}
-                  </Badge>
-                ))}
-                {overflowCount > 0 && (
-                  <Badge variant="outline" className="px-1.5 py-0 text-xs">
-                    +{overflowCount}
-                  </Badge>
-                )}
-              </>
-            )}
-          </div>
+          {!isLocal && (
+            <div className="shrink-0 flex items-center gap-1">
+              {visibleBadges.map((badge) => (
+                <Badge
+                  key={badge}
+                  variant="secondary"
+                  className="px-1.5 py-0 text-xs"
+                >
+                  {badge}
+                </Badge>
+              ))}
+              {overflowCount > 0 && (
+                <Badge variant="outline" className="px-1.5 py-0 text-xs">
+                  +{overflowCount}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div
+          className={cn(
+            COL.status,
+            'shrink-0 flex flex-col items-start gap-0.5',
+          )}
+        >
+          {showTest && <TestBadge />}
+          {isLocal && <LocalBadge />}
+          {showIncompatible && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <IncompatibleBadge />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-56 space-y-0.5">
+                  {failingConstraints.map((c) => (
+                    <p key={c.type}>
+                      {c.type === 'buildings_index'
+                        ? 'Buildings index format'
+                        : 'Game version'}
+                      : requires {c.range}
+                    </p>
+                  ))}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
 
         {showMapColumns && (

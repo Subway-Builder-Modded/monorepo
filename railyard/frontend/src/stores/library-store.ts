@@ -37,6 +37,8 @@ const defaultLibraryFilters: LibraryFilters = {
   },
 };
 
+export type StatusFilter = 'local' | 'incompatible' | 'test';
+
 interface LibraryState extends AssetQueryFilterStoreState<
   LibraryFilters,
   LibraryFilterByAssetType
@@ -47,6 +49,9 @@ interface LibraryState extends AssetQueryFilterStoreState<
   removeSelected: (ids: string[]) => void;
   clearSelection: () => void;
   isSelected: (id: string) => boolean;
+  statusFilters: StatusFilter[];
+  toggleStatusFilter: (filter: StatusFilter) => void;
+  clearStatusFilters: () => void;
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
@@ -54,6 +59,14 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   page: 1,
   scopedByType: createFilterByAssetType(ASSET_TYPES, defaultLibraryFilters, 1),
   selectedIds: new Set<string>(),
+  statusFilters: [],
+  toggleStatusFilter: (filter) =>
+    set((state) => ({
+      statusFilters: state.statusFilters.includes(filter)
+        ? state.statusFilters.filter((f) => f !== filter)
+        : [...state.statusFilters, filter],
+    })),
+  clearStatusFilters: () => set({ statusFilters: [] }),
   setFilters: (updater) =>
     set((state) => {
       const nextFilters =

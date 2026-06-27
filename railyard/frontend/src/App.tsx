@@ -139,7 +139,7 @@ function App() {
     consumePendingDeepLink: () => ConsumePendingDeepLink(),
     getProjectRoute: (type, id) => `/project/${type}/${encodeURIComponent(id)}`,
     launchGame: async () => {
-      await LaunchGame();
+      await LaunchGame(false);
     },
     canNavigatePendingRoute: appReadyForNavigation,
     navigate: (route) => setLocation(route),

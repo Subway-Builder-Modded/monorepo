@@ -56,7 +56,7 @@ interface GameState {
   serverPort: number | null;
 
   initialize: () => void;
-  launch: () => Promise<void>;
+  launch: (skipIncompatibleMaps?: boolean) => Promise<void>;
   stop: () => Promise<void>;
   selectSession: (id: string) => void;
   clearLogs: () => void;
@@ -219,7 +219,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  launch: async () => {
+  launch: async (skipIncompatibleMaps = false) => {
     if (get().running || get().starting) {
       return;
     }
@@ -227,7 +227,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ starting: true });
 
     try {
-      const response = await LaunchGame();
+      const response = await LaunchGame(skipIncompatibleMaps);
       if (response.status === 'error') {
         throw new Error(response.message || 'Failed to launch game');
       }

@@ -37,6 +37,12 @@ import { type ComponentType, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useLocation } from 'wouter';
 
+import {
+  type IncompatibleAsset,
+  IncompatibleAssetsDialog,
+} from '@/components/layout/IncompatibleAssetsDialog';
+import { useGameVersion } from '@/hooks/use-game-version';
+import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { useConfigStore } from '@/stores/config-store';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -107,7 +113,14 @@ export function Navbar() {
   const launch = useGameStore((s) => s.launch);
   const stop = useGameStore((s) => s.stop);
   const installedMaps = useInstalledStore((s) => s.installedMaps);
+  const installedMods = useInstalledStore((s) => s.installedMods);
+  const gameVersion = useGameVersion();
   const [showModReminder, setShowModReminder] = useState(false);
+  const [incompatibleAssets, setIncompatibleAssets] = useState<
+    IncompatibleAsset[]
+  >([]);
+  const [showIncompatibleDialog, setShowIncompatibleDialog] = useState(false);
+  const [launchLoading, setLaunchLoading] = useState(false);
 
   const runWithToast = async (
     action: () => Promise<void>,
@@ -120,6 +133,53 @@ export function Navbar() {
     }
   };
 
+  const buildIncompatibleAssets = (): IncompatibleAsset[] => {
+    const result: IncompatibleAsset[] = [];
+    for (const m of installedMaps) {
+      if (isInstalledCompatible(gameVersion, m.constraints ?? []) === false) {
+        result.push({
+          name: m.config?.name ?? m.id,
+          version: m.version,
+          assetType: 'map' as const,
+          constraints: m.constraints ?? [],
+        });
+      }
+    }
+    for (const m of installedMods) {
+      if (isInstalledCompatible(gameVersion, m.constraints ?? []) === false) {
+        result.push({
+          name: m.manifest?.name ?? m.id,
+          version: m.version,
+          assetType: 'mod' as const,
+          constraints: m.constraints ?? [],
+        });
+      }
+    }
+    return result;
+  };
+
+  const proceedToLaunch = async (skipIncompatibleMaps: boolean) => {
+    setLaunchLoading(true);
+    try {
+      await launch(skipIncompatibleMaps);
+    } catch (err) {
+      toast.error(String(err) || 'Failed to launch game.');
+    } finally {
+      setLaunchLoading(false);
+      setShowIncompatibleDialog(false);
+    }
+  };
+
+  const checkAndShowIncompatibleAssets = (): boolean => {
+    const incompatible = gameVersion ? buildIncompatibleAssets() : [];
+    if (incompatible.length > 0) {
+      setIncompatibleAssets(incompatible);
+      setShowIncompatibleDialog(true);
+      return true;
+    }
+    return false;
+  };
+
   const handleLaunch = async () => {
     const hasMaps = installedMaps.length > 0;
     const alreadyAcknowledged =
@@ -130,13 +190,15 @@ export function Navbar() {
       return;
     }
 
-    await runWithToast(launch, 'Failed to launch game.');
+    if (checkAndShowIncompatibleAssets()) return;
+    await runWithToast(() => launch(false), 'Failed to launch game.');
   };
 
   const handleAcknowledgeAndLaunch = async () => {
     localStorage.setItem(MOD_REMINDER_KEY, 'true');
     setShowModReminder(false);
-    await runWithToast(launch, 'Failed to launch game.');
+    if (checkAndShowIncompatibleAssets()) return;
+    await runWithToast(() => launch(false), 'Failed to launch game.');
   };
 
   const handleStop = async () => runWithToast(stop, 'Failed to stop game.');
@@ -321,6 +383,16 @@ export function Navbar() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <IncompatibleAssetsDialog
+        open={showIncompatibleDialog}
+        onOpenChange={setShowIncompatibleDialog}
+        gameVersion={gameVersion}
+        assets={incompatibleAssets}
+        onSkip={() => void proceedToLaunch(true)}
+        onContinue={() => void proceedToLaunch(false)}
+        loading={launchLoading}
+      />
     </header>
   );
 }
