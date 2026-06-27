@@ -14,14 +14,7 @@ import (
 	"railyard/internal/types"
 )
 
-// BuildingsIndexConstraintFromInstalled infers the buildings-index semver constraint for a map
-// by checking which index files are present on disk.
-//   - Binary only  → ">1.3.0"
-//   - JSON only    → "<=1.3.0"
-//   - Both present → "" (no format-driven restriction)
-//   - Neither      → "<0.0.0" (impossible constraint — broken install; integrity validation
-//     rejects archives missing both files, so this state should never arise via normal install)
-//
+// BuildingsIndexConstraintFromInstalled infers the buildings-index semver constraint for a map by checking which index files are present on disk.
 // Used for the existing-install disk fallback and for local map imports.
 func BuildingsIndexConstraintFromInstalled(mapDataRoot, code string) string {
 	hasBin := installedFileExistsAt(paths.JoinLocalPath(mapDataRoot, code, files.MapBuildingsBinFileName+".gz"))
@@ -34,7 +27,8 @@ func BuildingsIndexConstraintFromInstalled(mapDataRoot, code string) string {
 	case hasBin && hasJSON:
 		return "" // both present — compatible with any game version
 	default:
-		return "<0.0.0" // neither present — broken install; marks asset incompatible
+		// Integrity validation rejects archives missing both files, so this state should never arise via normal install; therefore, this is a fallback path for broken installs or local imports.
+		return "<0.0.0" // Return unfulfillable constraint to block install
 	}
 }
 

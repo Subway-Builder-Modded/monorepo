@@ -1,6 +1,6 @@
 package types
 
-// InstalledConstraint is a single semver compatibility requirement stored at install time.
+// InstalledConstraint is a  semver compatibility requirement stored at install time.
 // The current game version must satisfy Range; failing any constraint marks the asset incompatible.
 type InstalledConstraint struct {
 	Type  string `json:"type"`  // ConstraintTypeManifest | ConstraintTypeBuildingsIndex | ...
@@ -9,10 +9,8 @@ type InstalledConstraint struct {
 
 const (
 	// ConstraintTypeManifest is a game version constraint from the manifest game_version field
-	// (integrity report, custom JSON, or manifest.json fallback).
 	ConstraintTypeManifest = "manifest"
-	// ConstraintTypeBuildingsIndex is a constraint derived from which buildings-index files the
-	// map version ships (binary-only → >1.3.0; JSON-only → <=1.3.0).
+	// ConstraintTypeBuildingsIndex is a constraint derived from which buildings-index files the map zip contains (JSON-only vs. binrary vs. both)
 	ConstraintTypeBuildingsIndex = "buildings_index"
 )
 

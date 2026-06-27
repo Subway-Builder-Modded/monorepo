@@ -940,13 +940,8 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 			continue // unparseable — do not block
 		}
 		if !constraint.Check(gameVersion) {
-			errType := types.InstallErrorIncompatibleGameVersion
-			if assetType == types.AssetTypeMod {
-				errType = types.InstallErrorDependencyResolutionFailed
-			}
-			// Return the first violation as an install error response
 			resp := d.installError(
-				assetType, assetID, version, types.ConfigData{}, errType,
+				assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
 				fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersionResp.Version, c.Range, c.Type),
 				nil,
 				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range, "game_version", gameVersionResp.Version,
