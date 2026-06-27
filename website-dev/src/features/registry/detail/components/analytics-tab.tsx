@@ -2,6 +2,7 @@ import { History, TrendingUp } from "lucide-react";
 import { useMemo, useState, type CSSProperties } from "react";
 import {
   RankBadge,
+  ScrollArea,
   SectionSeparator,
   SortableTableHead,
   StaticTableHead,
@@ -114,40 +115,47 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
         <div>
           <SectionSeparator label="Recent Trends" icon={TrendingUp} className="mb-4 mt-7" />
           <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
-                  <SortableTableHead
-                    label="Period"
-                    active={trendSortKey === "label"}
-                    direction={trendDirection}
-                    onClick={() => handleTrendSort("label")}
-                  />
-                  <SortableTableHead
-                    label="Downloads"
-                    active={trendSortKey === "downloads"}
-                    direction={trendDirection}
-                    onClick={() => handleTrendSort("downloads")}
-                  />
-                  <StaticTableHead label="Rank" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedDownloadTrends.map((trend) => (
-                  <TableRow key={trend.period} className="border-border/60 hover:bg-transparent">
-                    <TableCell className="px-4 font-medium text-foreground">
-                      {trend.label}
-                    </TableCell>
-                    <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
-                      {formatNumber(trend.downloads)}
-                    </TableCell>
-                    <TableCell className="px-4">
-                      <RankBadge rank={trend.rank} className="size-7 text-xs" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+              <div className="min-w-[40rem] lg:min-w-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                      <SortableTableHead
+                        label="Period"
+                        active={trendSortKey === "label"}
+                        direction={trendDirection}
+                        onClick={() => handleTrendSort("label")}
+                      />
+                      <SortableTableHead
+                        label="Downloads"
+                        active={trendSortKey === "downloads"}
+                        direction={trendDirection}
+                        onClick={() => handleTrendSort("downloads")}
+                      />
+                      <StaticTableHead label="Rank" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedDownloadTrends.map((trend) => (
+                      <TableRow
+                        key={trend.period}
+                        className="border-border/60 hover:bg-transparent"
+                      >
+                        <TableCell className="px-4 font-medium text-foreground">
+                          {trend.label}
+                        </TableCell>
+                        <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
+                          {formatNumber(trend.downloads)}
+                        </TableCell>
+                        <TableCell className="px-4">
+                          <RankBadge rank={trend.rank} className="size-7 text-xs" />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </ScrollArea>
           </div>
         </div>
       ) : null}

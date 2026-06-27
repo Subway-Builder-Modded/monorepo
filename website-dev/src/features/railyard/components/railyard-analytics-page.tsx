@@ -17,6 +17,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   SectionSeparator,
   SortableTableHead,
+  ScrollArea,
   SuiteAccentScope,
   Table,
   TableBody,
@@ -500,78 +501,90 @@ function RailyardVersionsBreakdown({ data }: { data: RailyardAnalyticsData }) {
     <div>
       <SectionSeparator label="Breakdown" icon={ListOrdered} className="mb-4 mt-7" />
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-        <Table>
-          <colgroup>
-            <col style={{ width: "34%" }} />
-            <col style={{ width: "24%" }} />
-            <col style={{ width: "22%" }} />
-            <col style={{ width: "20%" }} />
-          </colgroup>
-          <TableHeader>
-            <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
-              <SortableTableHead
-                label="Version"
-                active={sortKey === "version"}
-                direction={direction}
-                onClick={() => handleSort("version")}
-              />
-              <SortableTableHead
-                label="Downloads"
-                active={sortKey === "downloads"}
-                direction={direction}
-                onClick={() => handleSort("downloads")}
-              />
-              <SortableTableHead
-                label="Share"
-                active={sortKey === "share"}
-                direction={direction}
-                onClick={() => handleSort("share")}
-              />
-              <SortableTableHead
-                label="Assets"
-                active={sortKey === "assets"}
-                direction={direction}
-                onClick={() => handleSort("assets")}
-              />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedRows.map((row) => (
-              <TableRow key={row.version} className="border-border/60 hover:bg-transparent">
-                <TableCell
-                  className="px-4 font-medium text-foreground"
-                  style={
-                    sortKey === "version" ? { color: "var(--registry-type-accent)" } : undefined
-                  }
-                >
-                  {row.version}
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold tabular-nums text-foreground"
-                  style={
-                    sortKey === "downloads" ? { color: "var(--registry-type-accent)" } : undefined
-                  }
-                >
-                  {formatNumber(row.downloads)}
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold tabular-nums text-foreground"
-                  style={sortKey === "share" ? { color: "var(--registry-type-accent)" } : undefined}
-                >
-                  {formatPercent(row.share)}
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold tabular-nums text-foreground"
-                  style={
-                    sortKey === "assets" ? { color: "var(--registry-type-accent)" } : undefined
-                  }
-                >
-                  {formatNumber(row.assets)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+          <div className="min-w-[52rem] lg:min-w-0">
+            <Table>
+              <colgroup>
+                <col style={{ width: "34%" }} />
+                <col style={{ width: "24%" }} />
+                <col style={{ width: "22%" }} />
+                <col style={{ width: "20%" }} />
+              </colgroup>
+              <TableHeader>
+                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                  <SortableTableHead
+                    label="Version"
+                    active={sortKey === "version"}
+                    direction={direction}
+                    onClick={() => handleSort("version")}
+                  />
+                  <SortableTableHead
+                    label="Downloads"
+                    active={sortKey === "downloads"}
+                    direction={direction}
+                    onClick={() => handleSort("downloads")}
+                  />
+                  <SortableTableHead
+                    label="Share"
+                    active={sortKey === "share"}
+                    direction={direction}
+                    onClick={() => handleSort("share")}
+                  />
+                  <SortableTableHead
+                    label="Assets"
+                    active={sortKey === "assets"}
+                    direction={direction}
+                    onClick={() => handleSort("assets")}
+                  />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedRows.map((row) => (
+                  <TableRow key={row.version} className="border-border/60 hover:bg-transparent">
+                    <TableCell
+                      className="px-4 font-medium text-foreground"
+                      style={
+                        sortKey === "version"
+                          ? { color: "var(--registry-type-accent)" }
+                          : undefined
+                      }
+                    >
+                      {row.version}
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold tabular-nums text-foreground"
+                      style={
+                        sortKey === "downloads"
+                          ? { color: "var(--registry-type-accent)" }
+                          : undefined
+                      }
+                    >
+                      {formatNumber(row.downloads)}
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold tabular-nums text-foreground"
+                      style={
+                        sortKey === "share" ? { color: "var(--registry-type-accent)" } : undefined
+                      }
+                    >
+                      {formatPercent(row.share)}
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold tabular-nums text-foreground"
+                      style={
+                        sortKey === "assets"
+                          ? { color: "var(--registry-type-accent)" }
+                          : undefined
+                      }
+                    >
+                      {formatNumber(row.assets)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );
@@ -721,112 +734,116 @@ function RailyardOperatingSystemsBreakdown({ data }: { data: RailyardAnalyticsDa
     <div>
       <SectionSeparator label="Breakdown" icon={ListOrdered} className="mb-4 mt-7" />
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-        <Table>
-          <colgroup>
-            <col style={{ width: "34%" }} />
-            <col style={{ width: "16%" }} />
-            <col style={{ width: "14%" }} />
-            <col style={{ width: "16%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "10%" }} />
-          </colgroup>
-          <TableHeader>
-            <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
-              <SortableTableHead
-                label="Build"
-                active={sortKey === "build"}
-                direction={direction}
-                onClick={() => handleSort("build")}
-              />
-              <SortableTableHead
-                label="File Type"
-                active={sortKey === "fileType"}
-                direction={direction}
-                onClick={() => handleSort("fileType")}
-              />
-              <SortableTableHead
-                label="Operating System"
-                active={sortKey === "operatingSystem"}
-                direction={direction}
-                onClick={() => handleSort("operatingSystem")}
-              />
-              <SortableTableHead
-                label="Version"
-                active={sortKey === "version"}
-                direction={direction}
-                onClick={() => handleSort("version")}
-              />
-              <SortableTableHead
-                label="Downloads"
-                active={sortKey === "downloads"}
-                direction={direction}
-                onClick={() => handleSort("downloads")}
-              />
-              <SortableTableHead
-                label="Share"
-                active={sortKey === "share"}
-                direction={direction}
-                onClick={() => handleSort("share")}
-              />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedRows.map((row) => (
-              <TableRow key={row.assetName} className="border-border/60 hover:bg-transparent">
-                <TableCell
-                  className="px-4 font-medium text-foreground"
-                  style={sortKey === "build" ? activeCellStyle : undefined}
-                >
-                  <a
-                    href={row.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex max-w-full items-center gap-1.5 underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
-                  >
-                    <span className="truncate">{row.build}</span>
-                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
+        <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+          <div className="min-w-[76rem] xl:min-w-0">
+            <Table>
+              <colgroup>
+                <col style={{ width: "34%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "10%" }} />
+                <col style={{ width: "10%" }} />
+              </colgroup>
+              <TableHeader>
+                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                  <SortableTableHead
+                    label="Build"
+                    active={sortKey === "build"}
+                    direction={direction}
+                    onClick={() => handleSort("build")}
+                  />
+                  <SortableTableHead
+                    label="File Type"
+                    active={sortKey === "fileType"}
+                    direction={direction}
+                    onClick={() => handleSort("fileType")}
+                  />
+                  <SortableTableHead
+                    label="Operating System"
+                    active={sortKey === "operatingSystem"}
+                    direction={direction}
+                    onClick={() => handleSort("operatingSystem")}
+                  />
+                  <SortableTableHead
+                    label="Version"
+                    active={sortKey === "version"}
+                    direction={direction}
+                    onClick={() => handleSort("version")}
+                  />
+                  <SortableTableHead
+                    label="Downloads"
+                    active={sortKey === "downloads"}
+                    direction={direction}
+                    onClick={() => handleSort("downloads")}
+                  />
+                  <SortableTableHead
+                    label="Share"
+                    active={sortKey === "share"}
+                    direction={direction}
+                    onClick={() => handleSort("share")}
+                  />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedRows.map((row) => (
+                  <TableRow key={row.assetName} className="border-border/60 hover:bg-transparent">
+                    <TableCell
+                      className="px-4 font-medium text-foreground"
+                      style={sortKey === "build" ? activeCellStyle : undefined}
+                    >
+                      <a
+                        href={row.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex max-w-full items-center gap-1.5 underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                      >
+                        <span className="truncate">{row.build}</span>
+                        <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                          {row.version}
+                        </span>
+                        <ExternalLink
+                          className="size-3.5 shrink-0 text-muted-foreground"
+                          aria-hidden={true}
+                        />
+                      </a>
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold text-foreground"
+                      style={sortKey === "fileType" ? activeCellStyle : undefined}
+                    >
+                      {row.fileType}
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold text-foreground"
+                      style={sortKey === "operatingSystem" ? activeCellStyle : undefined}
+                    >
+                      {row.operatingSystem}
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold tabular-nums text-foreground"
+                      style={sortKey === "version" ? activeCellStyle : undefined}
+                    >
                       {row.version}
-                    </span>
-                    <ExternalLink
-                      className="size-3.5 shrink-0 text-muted-foreground"
-                      aria-hidden={true}
-                    />
-                  </a>
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold text-foreground"
-                  style={sortKey === "fileType" ? activeCellStyle : undefined}
-                >
-                  {row.fileType}
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold text-foreground"
-                  style={sortKey === "operatingSystem" ? activeCellStyle : undefined}
-                >
-                  {row.operatingSystem}
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold tabular-nums text-foreground"
-                  style={sortKey === "version" ? activeCellStyle : undefined}
-                >
-                  {row.version}
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold tabular-nums text-foreground"
-                  style={sortKey === "downloads" ? activeCellStyle : undefined}
-                >
-                  {formatNumber(row.downloads)}
-                </TableCell>
-                <TableCell
-                  className="px-4 font-semibold tabular-nums text-foreground"
-                  style={sortKey === "share" ? activeCellStyle : undefined}
-                >
-                  {formatPercent(row.share)}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold tabular-nums text-foreground"
+                      style={sortKey === "downloads" ? activeCellStyle : undefined}
+                    >
+                      {formatNumber(row.downloads)}
+                    </TableCell>
+                    <TableCell
+                      className="px-4 font-semibold tabular-nums text-foreground"
+                      style={sortKey === "share" ? activeCellStyle : undefined}
+                    >
+                      {formatPercent(row.share)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );

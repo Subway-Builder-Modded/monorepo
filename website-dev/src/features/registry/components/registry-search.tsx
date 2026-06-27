@@ -46,7 +46,7 @@ export function RegistrySearch({
   return (
     <div className={cn("relative flex items-center", className)}>
       <Search
-        className="pointer-events-none absolute left-4 z-10 size-5 text-foreground/60"
+        className="pointer-events-none absolute left-4 z-10 size-5 text-muted-foreground"
         aria-hidden={true}
       />
       <input
@@ -66,7 +66,7 @@ export function RegistrySearch({
         onFocus={() => onActivate?.()}
         onClick={() => onActivate?.()}
         className={cn(
-          "h-14 w-full appearance-none rounded-2xl border border-border/60 bg-background/80 pl-12 pr-12 text-base text-foreground shadow-lg backdrop-blur-md placeholder:text-muted-foreground/70 focus-visible:border-ring/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none",
+          "h-14 w-full appearance-none rounded-2xl border border-border/60 bg-background/80 pl-12 pr-12 text-base text-muted-foreground shadow-lg backdrop-blur-md placeholder:text-muted-foreground focus-visible:border-ring/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none",
           inputClassName,
         )}
       />

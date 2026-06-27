@@ -19,6 +19,44 @@ export type RegistryAnalyticsHistoryPoint = {
   };
 };
 
+export type RegistryAnalyticsAuthorHistoryPoint = {
+  date: string;
+  authors: number;
+};
+
+export type RegistryAnalyticsAuthorRanking = {
+  id: string;
+  name: string;
+  href: string;
+  downloads: number;
+  maps: number;
+  mods: number;
+  assets: number;
+};
+
+export type RegistryAnalyticsProjectRanking = {
+  id: string;
+  name: string;
+  href: string;
+  downloads: number;
+  maps: number;
+  mods: number;
+  assets: number;
+};
+
+export type RegistryAnalyticsMapStatisticRanking = {
+  id: string;
+  name: string;
+  authorId: string;
+  authorName: string;
+  countryCode: string;
+  cityCode: string;
+  demand: number;
+  pops: number;
+  demandPoints: number;
+  playableAreaKm2: number;
+};
+
 export type RegistryAnalyticsData = {
   overview: {
     downloads: number;
@@ -38,6 +76,16 @@ export type RegistryAnalyticsData = {
     RegistryAnalyticsPeriodId,
     Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]>
   >;
+  authors: {
+    history: RegistryAnalyticsAuthorHistoryPoint[];
+    rankings: RegistryAnalyticsAuthorRanking[];
+  };
+  projects: {
+    rankings: RegistryAnalyticsProjectRanking[];
+  };
+  mapStatistics: {
+    rankings: RegistryAnalyticsMapStatisticRanking[];
+  };
 };
 
 type CsvRow = Record<string, string>;
@@ -52,6 +100,8 @@ export type RegistryAnalyticsContentRanking = {
 };
 
 const ASSETS_BY_DAY_URL = "/registry-cache/analytics/assets_by_day.csv";
+const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
+const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
 const RANKING_URLS = {
   "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
@@ -146,6 +196,106 @@ function normalizeHistory(rows: CsvRow[]): RegistryAnalyticsHistoryPoint[] {
     .sort((left, right) => left.date.localeCompare(right.date));
 }
 
+function buildAuthorHistory(
+  rows: CsvRow[],
+  validAuthorIds: Set<string>,
+): RegistryAnalyticsAuthorHistoryPoint[] {
+  const headers = Object.keys(rows[0] ?? {});
+  const dateHeaders = headers.filter((header) => /^\d{4}_\d{2}_\d{2}$/.test(header));
+  const cumulativeDownloadsByAuthor = new Map<string, number>();
+
+  return dateHeaders.map((dateKey) => {
+    let authors = 0;
+
+    for (const row of rows) {
+      const authorId = row.author?.trim().toLowerCase();
+      if (!authorId || !validAuthorIds.has(authorId)) continue;
+      const nextTotal = (cumulativeDownloadsByAuthor.get(authorId) ?? 0) + getNumber(row[dateKey]);
+      cumulativeDownloadsByAuthor.set(authorId, nextTotal);
+      if (nextTotal > 0) authors += 1;
+    }
+
+    return {
+      date: normalizeDate(dateKey),
+      authors,
+    };
+  });
+}
+
+function buildAuthorRankings(
+  authors: Awaited<ReturnType<typeof loadCreatorDatabaseData>>["authors"],
+): RegistryAnalyticsAuthorRanking[] {
+  return authors
+    .map((author) => ({
+      id: author.id,
+      name: author.label,
+      href: author.href,
+      downloads: author.downloads,
+      maps: author.maps,
+      mods: author.mods,
+      assets: author.assets,
+    }))
+    .sort((left, right) => right.downloads - left.downloads);
+}
+
+function buildProjectRankings(
+  projects: Awaited<ReturnType<typeof loadCreatorDatabaseData>>["projects"],
+): RegistryAnalyticsProjectRanking[] {
+  return projects
+    .map((project) => ({
+      id: project.id,
+      name: project.name,
+      href: project.href,
+      downloads: project.downloads,
+      maps: project.maps,
+      mods: project.mods,
+      assets: project.assets,
+    }))
+    .sort((left, right) => right.downloads - left.downloads);
+}
+
+function getManifestPlayableAreaKm2(manifest: unknown): number | null {
+  const value = (manifest as { grid_statistics?: { detail?: { playableAreaKm2?: unknown } } })
+    .grid_statistics?.detail?.playableAreaKm2;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function buildMapPlayableAreaLookup(
+  items: Awaited<ReturnType<typeof loadRegistryItemsForType>>,
+): Map<string, number> {
+  const result = new Map<string, number>();
+
+  for (const item of items) {
+    const playableAreaKm2 = getManifestPlayableAreaKm2(item.manifest);
+    if (playableAreaKm2 !== null) {
+      result.set(item.id, playableAreaKm2);
+    }
+  }
+
+  return result;
+}
+
+function buildMapStatisticRankings(
+  rows: CsvRow[],
+  playableAreaByMapId: Map<string, number>,
+): RegistryAnalyticsMapStatisticRanking[] {
+  return rows
+    .map((row) => ({
+      id: row.id ?? "",
+      name: row.name?.trim() || row.id || "Unknown map",
+      authorId: row.author?.trim() || "",
+      authorName: row.author_alias?.trim() || row.author?.trim() || "Unknown author",
+      countryCode: row.country?.trim().toUpperCase() || "",
+      cityCode: row.city_code?.trim().toUpperCase() || "",
+      demand: getNumber(row.population),
+      pops: getNumber(row.population_count),
+      demandPoints: getNumber(row.points_count),
+      playableAreaKm2: playableAreaByMapId.get(row.id ?? "") ?? 0,
+    }))
+    .filter((row) => row.id)
+    .sort((left, right) => right.demand - left.demand);
+}
+
 function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
   return {
     "all-time": { maps: [], mods: [] },
@@ -222,9 +372,21 @@ export function sumRegistryAnalyticsHistory(history: RegistryAnalyticsHistoryPoi
 }
 
 export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData> {
-  const [analyticsRaw, byDayRaw, creatorData, itemEntries, allTimeRaw, last3Raw, last7Raw] =
+  const [
+    analyticsRaw,
+    authorDayRaw,
+    mapStatisticsRaw,
+    byDayRaw,
+    creatorData,
+    itemEntries,
+    allTimeRaw,
+    last3Raw,
+    last7Raw,
+  ] =
     await Promise.all([
     safeFetchText(ASSETS_BY_DAY_URL),
+    safeFetchText(AUTHORS_BY_DAY_URL),
+    safeFetchText(MAP_STATISTICS_URL),
     safeFetchText(MOST_POPULAR_BY_DAY_URL),
     loadCreatorDatabaseData(),
     Promise.all(
@@ -238,6 +400,8 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   ]);
 
   const rows = parseCsv(analyticsRaw);
+  const authorRows = parseCsv(authorDayRaw);
+  const mapStatisticRows = parseCsv(mapStatisticsRaw);
   const contentRankings = buildEmptyContentRankings();
   contentRankings["all-time"] = normalizeRankingRows(parseCsv(allTimeRaw), (row) =>
     getNumber(row.adjusted_total_downloads || row.total_downloads),
@@ -253,8 +417,10 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   const allItems = itemEntries.flat();
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
+  const playableAreaByMapId = buildMapPlayableAreaLookup(maps);
   const mapDownloads = maps.reduce((sum, item) => sum + item.totalDownloads, 0);
   const modDownloads = mods.reduce((sum, item) => sum + item.totalDownloads, 0);
+  const validAuthorIds = new Set(creatorData.authors.map((author) => author.id.toLowerCase()));
 
   return {
     overview: {
@@ -272,5 +438,15 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     },
     history,
     contentRankings,
+    authors: {
+      history: buildAuthorHistory(authorRows, validAuthorIds),
+      rankings: buildAuthorRankings(creatorData.authors),
+    },
+    projects: {
+      rankings: buildProjectRankings(creatorData.projects),
+    },
+    mapStatistics: {
+      rankings: buildMapStatisticRankings(mapStatisticRows, playableAreaByMapId),
+    },
   };
 }

@@ -18,7 +18,6 @@ import {
   Map as MapIcon,
   Package,
   Plus,
-  Search,
   StickyNoteX,
   TrendingUp,
   Download,
@@ -26,11 +25,11 @@ import {
   Trophy,
   User,
   Users,
-  X,
 } from "lucide-react";
 import {
   NeutralFadedUnderline,
   RankBadge,
+  ScrollArea,
   SectionSeparator,
   SortableTableHead,
   StaticTableHead,
@@ -40,9 +39,6 @@ import {
   TableCell,
   TableHeader,
   TableRow,
-  Tabs,
-  TabsList,
-  TabsTrigger,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -56,6 +52,9 @@ import { AuthorRoleBadge } from "@/features/registry/components/author-role-badg
 import { RegistryGrid } from "@/features/registry/components/browse/registry-grid";
 import { RegistryEmptyState } from "@/features/registry/components/browse/registry-empty-state";
 import { RegistrySortBar } from "@/features/registry/components/registry-sort-bar";
+import { RegistryTabs } from "@/features/registry/components/registry-tabs";
+import { RegistryToolbarSearch } from "@/features/registry/components/registry-toolbar-search";
+import { RegistryTypeToggle } from "@/features/registry/components/registry-type-toggle";
 import { RegistryViewToggle } from "@/features/registry/components/registry-view-toggle";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import {
@@ -239,6 +238,17 @@ function getRegistryItemKey(item: RegistrySearchItem) {
   return `${item.type}:${item.id}`;
 }
 
+function getToggleOptions<T extends string>(options: AuthorToggleOption<T>[]) {
+  return options.map((option) => ({
+    id: option.id,
+    label: option.label,
+    pluralLabel: option.label,
+    icon: option.icon,
+    accentLight: option.accentLight,
+    accentDark: option.accentDark,
+  }));
+}
+
 function AssetMetricLink({
   item,
   tooltip,
@@ -311,33 +321,12 @@ function AuthorTabs({
   ];
 
   return (
-    <Tabs value={value} onValueChange={(next) => onValueChange(next as AuthorTabId)}>
-      <TabsList
-        variant="default"
-        aria-label="Registry author tabs"
-        className="grid w-full gap-1 rounded-xl border border-border/70 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:gap-2 sm:p-2"
-        style={
-          {
-            gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))`,
-            backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-          } as CSSProperties
-        }
-      >
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="h-10 min-w-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-transparent px-2 text-sm leading-none tracking-normal text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--registry-type-accent-strong)_45%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-type-accent-strong)_12%,var(--card))] hover:!text-[var(--registry-type-accent-strong)] dark:hover:!text-[var(--registry-type-accent-strong)] sm:px-3 data-[state=active]:!border-[color-mix(in_srgb,var(--registry-type-accent-strong)_60%,var(--border))] data-[state=active]:!bg-[color-mix(in_srgb,var(--registry-type-accent-strong)_18%,var(--card))] data-[state=active]:font-semibold data-[state=active]:!text-[var(--registry-type-accent-strong)]"
-            >
-              <Icon className="size-4 shrink-0" aria-hidden={true} />
-              <span className="whitespace-nowrap leading-none">{tab.label}</span>
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
-    </Tabs>
+    <RegistryTabs
+      value={value}
+      tabs={tabs}
+      ariaLabel="Registry author tabs"
+      onValueChange={onValueChange}
+    />
   );
 }
 
@@ -430,33 +419,12 @@ function AuthorAssetSection({
 
       <div className="rounded-xl border border-border/30 bg-card px-3 py-3 shadow-sm">
         <div className="space-y-3">
-          <div className="group relative flex">
-            <Search
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden={true}
-            />
-            <input
-              type="search"
-              role="searchbox"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={`Search ${typeConfig.pluralLabel.toLowerCase()}...`}
-              autoComplete="off"
-              autoCorrect="off"
-              spellCheck={false}
-              className="h-11 w-full appearance-none rounded-lg border border-border/30 bg-background pl-9 pr-10 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--registry-type-accent-light)_34%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-type-accent-light)_5%,var(--background))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--registry-type-accent-light)_44%,transparent)] dark:hover:border-[color-mix(in_srgb,var(--registry-type-accent-dark)_34%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--registry-type-accent-dark)_5%,var(--background))] dark:focus-visible:ring-[color-mix(in_srgb,var(--registry-type-accent-dark)_44%,transparent)] [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-[color,opacity] group-hover:opacity-100 hover:text-[var(--registry-type-accent-light)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--registry-type-accent-light)_44%,transparent)] dark:hover:text-[var(--registry-type-accent-dark)]"
-                aria-label={`Clear ${typeConfig.pluralLabel} search`}
-              >
-                <X className="size-3.5" aria-hidden={true} />
-              </button>
-            ) : null}
-          </div>
+          <RegistryToolbarSearch
+            query={query}
+            onChange={setQuery}
+            placeholder={`Search ${typeConfig.pluralLabel.toLowerCase()}...`}
+            clearLabel={`Clear ${typeConfig.pluralLabel} search`}
+          />
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:justify-between lg:overflow-visible lg:pb-0">
             <div className="flex min-w-max items-center gap-2">
@@ -593,10 +561,19 @@ function AuthorPublishedAssets({
       >
         {typeOptions.length > 1 ? (
           <div className="flex justify-center">
-            <AuthorAnalyticsModeToggle
-              value={typeId}
-              options={typeOptions}
-              onChange={setTypeId}
+            <RegistryTypeToggle
+              activeTypeId={typeId}
+              options={getToggleOptions(typeOptions)}
+              counts={Object.fromEntries(
+                typeOptions.map((option) => [
+                  option.id,
+                  option.id === "collaborations"
+                    ? collaborationItems.length
+                    : (data.itemsByType[option.id] ?? []).length,
+                ]),
+              )}
+              onChange={(nextTypeId) => setTypeId(nextTypeId as AuthorAssetBrowserMode)}
+              className="border-border/50 bg-background/70 shadow-sm"
               ariaLabel="Published asset type"
             />
           </div>
@@ -714,33 +691,12 @@ function AuthorProjects({ projects }: { projects: RegistryAuthorProjectSummary[]
           backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
         }}
       >
-        <div className="group relative flex">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden={true}
-          />
-          <input
-            type="search"
-            role="searchbox"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search projects..."
-            autoComplete="off"
-            autoCorrect="off"
-            spellCheck={false}
-            className="h-11 w-full appearance-none rounded-lg border border-border/30 bg-background pl-9 pr-10 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--suite-accent-light)_34%,var(--border))] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_5%,var(--background))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--suite-accent-light)_44%,transparent)] [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
-          />
-          {query ? (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-[color,opacity] group-hover:opacity-100 hover:text-[var(--suite-accent-light)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--suite-accent-light)_44%,transparent)]"
-              aria-label="Clear project search"
-            >
-              <X className="size-3.5" aria-hidden={true} />
-            </button>
-          ) : null}
-        </div>
+        <RegistryToolbarSearch
+          query={query}
+          onChange={setQuery}
+          placeholder="Search projects..."
+          clearLabel="Clear project search"
+        />
         <div className="space-y-3">
           {filteredProjects.map((project) => (
             <AuthorProjectCard key={project.projectId} project={project} />
@@ -781,43 +737,49 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
     <div>
       <SectionSeparator label="Recent Trends" icon={TrendingUp} className="mb-4 mt-7" />
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-        <Table>
-          <colgroup>
-            <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
-            <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.secondary }} />
-            <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
-          </colgroup>
-          <TableHeader>
-            <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
-              <SortableTableHead
-                label="Period"
-                active={sortKey === "label"}
-                direction={direction}
-                onClick={() => handleSort("label")}
-              />
-              <SortableTableHead
-                label="Downloads"
-                active={sortKey === "downloads"}
-                direction={direction}
-                onClick={() => handleSort("downloads")}
-              />
-              <StaticTableHead label="Rank" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((trend) => (
-              <TableRow key={trend.period} className="border-border/60 hover:bg-transparent">
-                <TableCell className="px-4 font-medium text-foreground">{trend.label}</TableCell>
-                <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
-                  {formatNullableNumber(trend.downloads)}
-                </TableCell>
-                <TableCell className="px-4">
-                  <RankBadge rank={trend.rank} className="size-7 text-xs" />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+          <div className="min-w-[40rem] lg:min-w-0">
+            <Table>
+              <colgroup>
+                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
+                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.secondary }} />
+                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
+              </colgroup>
+              <TableHeader>
+                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                  <SortableTableHead
+                    label="Period"
+                    active={sortKey === "label"}
+                    direction={direction}
+                    onClick={() => handleSort("label")}
+                  />
+                  <SortableTableHead
+                    label="Downloads"
+                    active={sortKey === "downloads"}
+                    direction={direction}
+                    onClick={() => handleSort("downloads")}
+                  />
+                  <StaticTableHead label="Rank" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((trend) => (
+                  <TableRow key={trend.period} className="border-border/60 hover:bg-transparent">
+                    <TableCell className="px-4 font-medium text-foreground">
+                      {trend.label}
+                    </TableCell>
+                    <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
+                      {formatNullableNumber(trend.downloads)}
+                    </TableCell>
+                    <TableCell className="px-4">
+                      <RankBadge rank={trend.rank} className="size-7 text-xs" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );
@@ -984,64 +946,70 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
         {hasMultipleAssetTypes ? (
           <div className="flex justify-center border-b border-border/70 bg-muted/20 p-3">
-            <AuthorAnalyticsModeToggle
-              value={typeId}
-              options={typeOptions}
-              onChange={setTypeId}
+            <RegistryTypeToggle
+              activeTypeId={typeId}
+              options={getToggleOptions(typeOptions)}
+              showCounts={false}
+              onChange={(nextTypeId) => setTypeId(nextTypeId as AuthorAssetRankingMode)}
+              className="border-border/50 bg-background/70 shadow-sm"
               ariaLabel="Asset ranking type"
             />
           </div>
         ) : null}
-        <Table>
-          <colgroup>
-            <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
-            <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.secondary }} />
-            <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
-          </colgroup>
-          <TableHeader>
-            <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
-              <SortableTableHead
-                label={`${activeTypeConfig.label} Name`}
-                active={sortKey === "name"}
-                direction={direction}
-                onClick={() => handleSort("name")}
-              />
-              <SortableTableHead
-                label="Downloads"
-                active={sortKey === "downloads"}
-                direction={direction}
-                onClick={() => handleSort("downloads")}
-              />
-              <StaticTableHead label="Rank" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedRows.map((row) => (
-              <TableRow key={row.id} className="border-border/60 hover:bg-transparent">
-                <TableCell className="px-4 font-medium">
-                  <span className="inline-flex max-w-full items-center gap-1.5">
-                    <Link
-                      to={row.href}
-                      className="truncate text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
-                    >
-                      {row.name}
-                    </Link>
-                    <ExternalLink
-                      className="size-3.5 shrink-0 text-muted-foreground"
-                      aria-hidden={true}
-                    />
-                  </span>
-                </TableCell>
-                <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
-                  {formatNumber(row.downloads)}
-                </TableCell>
-                <TableCell className="px-4">
-                  <RankBadge rank={row.rank} className="size-7 text-xs" />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+          <div className="min-w-[44rem] lg:min-w-0">
+            <Table>
+              <colgroup>
+                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
+                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.secondary }} />
+                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
+              </colgroup>
+              <TableHeader>
+                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                  <SortableTableHead
+                    label={`${activeTypeConfig.label} Name`}
+                    active={sortKey === "name"}
+                    direction={direction}
+                    onClick={() => handleSort("name")}
+                  />
+                  <SortableTableHead
+                    label="Downloads"
+                    active={sortKey === "downloads"}
+                    direction={direction}
+                    onClick={() => handleSort("downloads")}
+                  />
+                  <StaticTableHead label="Rank" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sortedRows.map((row) => (
+                  <TableRow key={row.id} className="border-border/60 hover:bg-transparent">
+                    <TableCell className="px-4 font-medium">
+                      <span className="inline-flex max-w-full items-center gap-1.5">
+                        <Link
+                          to={row.href}
+                          className="truncate text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                        >
+                          {row.name}
+                        </Link>
+                        <ExternalLink
+                          className="size-3.5 shrink-0 text-muted-foreground"
+                          aria-hidden={true}
+                        />
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
+                      {formatNumber(row.downloads)}
+                    </TableCell>
+                    <TableCell className="px-4">
+                      <RankBadge rank={row.rank} className="size-7 text-xs" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );

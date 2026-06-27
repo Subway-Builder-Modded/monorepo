@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { Download, Loader2 } from "lucide-react";
-import { SortableTableHead } from "@subway-builder-modded/shared-ui";
+import { ScrollArea, SortableTableHead } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/lib/router";
 import { articleMdxComponents } from "@/features/content/mdx";
 import { MdxRenderedHtml } from "@/features/content/mdx/rendered-html";
@@ -395,80 +395,84 @@ export function VersionsTab({
   const activeCellStyle = { color: "var(--registry-type-accent)" };
 
   return (
-    <div className="mdx-table-wrap my-1 overflow-x-auto rounded-lg border border-border/50">
-      <table className="w-full table-fixed text-sm">
-        <thead className="border-b border-border/50 bg-muted/30">
-          <tr>
-            <SortableTableHead
-              label="Version"
-              active={sortKey === "version"}
-              direction={sortDirection}
-              onClick={() => handleSort("version")}
-            />
-            <SortableTableHead
-              label="Release Date"
-              active={sortKey === "releaseDate"}
-              direction={sortDirection}
-              onClick={() => handleSort("releaseDate")}
-            />
-            <SortableTableHead
-              label="Downloads"
-              active={sortKey === "downloads"}
-              direction={sortDirection}
-              onClick={() => handleSort("downloads")}
-            />
-            <th className="w-14 align-middle px-0 py-2.5 text-center font-semibold text-muted-foreground" />
-          </tr>
-        </thead>
-        <tbody>
-          {sortedVersions.map((version) => (
-            <tr key={version.version} className="hover:bg-muted/20">
-              <td
-                className="border-t border-border/30 px-4 py-2.5 font-medium text-foreground"
-                style={sortKey === "version" ? activeCellStyle : undefined}
-              >
-                <Link
-                  to={getRegistryVersionUrl(routeSegment, listingId, version.version)}
-                  preserveScroll={true}
-                  className="transition-colors hover:text-[var(--registry-type-accent)]"
-                >
-                  {version.version}
-                </Link>
-              </td>
-              <td
-                className="border-t border-border/30 px-4 py-2.5 text-foreground/85"
-                style={sortKey === "releaseDate" ? activeCellStyle : undefined}
-              >
-                {formatRegistryDate(version.releaseDate)}
-              </td>
-              <td
-                className="border-t border-border/30 px-4 py-2.5 text-left text-foreground/85 tabular-nums"
-                style={sortKey === "downloads" ? activeCellStyle : undefined}
-              >
-                {formatDownloads(version.downloads)}
-              </td>
-              <td className="border-t border-border/30 px-0 py-2.5 text-center">
-                <div className="flex h-full min-h-9 w-full items-center justify-center border-l-2 border-border/70">
-                  {version.downloadUrl ? (
-                    <a
-                      href={version.downloadUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors hover:text-[var(--registry-type-accent)]"
+    <div className="mdx-table-wrap my-1 overflow-hidden rounded-lg border border-border/50">
+      <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+        <div className="min-w-[44rem] lg:min-w-0">
+          <table className="w-full table-fixed text-sm">
+            <thead className="border-b border-border/50 bg-muted/30">
+              <tr>
+                <SortableTableHead
+                  label="Version"
+                  active={sortKey === "version"}
+                  direction={sortDirection}
+                  onClick={() => handleSort("version")}
+                />
+                <SortableTableHead
+                  label="Release Date"
+                  active={sortKey === "releaseDate"}
+                  direction={sortDirection}
+                  onClick={() => handleSort("releaseDate")}
+                />
+                <SortableTableHead
+                  label="Downloads"
+                  active={sortKey === "downloads"}
+                  direction={sortDirection}
+                  onClick={() => handleSort("downloads")}
+                />
+                <th className="w-14 align-middle px-0 py-2.5 text-center font-semibold text-muted-foreground" />
+              </tr>
+            </thead>
+            <tbody>
+              {sortedVersions.map((version) => (
+                <tr key={version.version} className="hover:bg-muted/20">
+                  <td
+                    className="border-t border-border/30 px-4 py-2.5 font-medium text-foreground"
+                    style={sortKey === "version" ? activeCellStyle : undefined}
+                  >
+                    <Link
+                      to={getRegistryVersionUrl(routeSegment, listingId, version.version)}
+                      preserveScroll={true}
+                      className="transition-colors hover:text-[var(--registry-type-accent)]"
                     >
-                      <Download className="size-4" />
-                    </a>
-                  ) : (
-                    <span className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground/45">
-                      <Download className="size-4" />
-                    </span>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                      {version.version}
+                    </Link>
+                  </td>
+                  <td
+                    className="border-t border-border/30 px-4 py-2.5 text-foreground/85"
+                    style={sortKey === "releaseDate" ? activeCellStyle : undefined}
+                  >
+                    {formatRegistryDate(version.releaseDate)}
+                  </td>
+                  <td
+                    className="border-t border-border/30 px-4 py-2.5 text-left text-foreground/85 tabular-nums"
+                    style={sortKey === "downloads" ? activeCellStyle : undefined}
+                  >
+                    {formatDownloads(version.downloads)}
+                  </td>
+                  <td className="border-t border-border/30 px-0 py-2.5 text-center">
+                    <div className="flex h-full min-h-9 w-full items-center justify-center border-l-2 border-border/70">
+                      {version.downloadUrl ? (
+                        <a
+                          href={version.downloadUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground transition-colors hover:text-[var(--registry-type-accent)]"
+                        >
+                          <Download className="size-4" />
+                        </a>
+                      ) : (
+                        <span className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground/45">
+                          <Download className="size-4" />
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ScrollArea>
     </div>
   );
 }

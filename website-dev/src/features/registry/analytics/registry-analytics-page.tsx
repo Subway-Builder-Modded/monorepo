@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   BookText,
   ChartLine,
@@ -6,11 +6,12 @@ import {
   Download,
   ExternalLink,
   FileStack,
+  FolderGit2,
   LayoutDashboard,
   Map,
-  Package,
   Plus,
   Search,
+  Trophy,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -28,15 +29,19 @@ import {
   TabsList,
   TabsTrigger,
   RankBadge,
+  ScrollArea,
   getSortedRankSlotMap,
 } from "@subway-builder-modded/shared-ui";
 import { AnalyticsLineChart, AnalyticsPieChart } from "@subway-builder-modded/analytics";
 import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
+import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { RegistryEmptyState } from "@/features/registry/components/browse/registry-empty-state";
-import { RegistrySearch } from "@/features/registry/components/registry-search";
+import { RegistryTabs } from "@/features/registry/components/registry-tabs";
+import { RegistryToolbarSearch } from "@/features/registry/components/registry-toolbar-search";
+import { RegistryTypeToggle } from "@/features/registry/components/registry-type-toggle";
 import {
   DetailsMetricGrid,
   type DetailMetric,
@@ -48,12 +53,20 @@ import {
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
   type RegistryAnalyticsAssetTypeId,
+  type RegistryAnalyticsAuthorRanking,
   type RegistryAnalyticsContentRanking,
   type RegistryAnalyticsData,
+  type RegistryAnalyticsMapStatisticRanking,
   type RegistryAnalyticsPeriodId,
+  type RegistryAnalyticsProjectRanking,
 } from "@/features/registry/analytics/lib/load-registry-analytics";
 
-export type RegistryAnalyticsTabId = "overview" | "content" | "authors" | "map-statistics";
+export type RegistryAnalyticsTabId =
+  | "overview"
+  | "content"
+  | "authors"
+  | "projects"
+  | "map-statistics";
 
 type RegistryAnalyticsPageProps = {
   tabId?: RegistryAnalyticsTabId;
@@ -71,6 +84,7 @@ const TABS: RegistryAnalyticsTabItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "content", label: "Content", icon: FileStack },
   { id: "authors", label: "Authors", icon: Users },
+  { id: "projects", label: "Projects", icon: FolderGit2 },
   { id: "map-statistics", label: "Map Statistics", icon: Map },
 ];
 
@@ -78,6 +92,7 @@ const TAB_PATHS: Record<RegistryAnalyticsTabId, string> = {
   overview: "/registry/analytics/overview/all-time",
   content: "/registry/analytics/content/all-time/maps",
   authors: "/registry/analytics/authors",
+  projects: "/registry/analytics/projects",
   "map-statistics": "/registry/analytics/map-statistics",
 };
 
@@ -89,6 +104,7 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
 };
 
 const CONTENT_ASSET_INCREMENT = 20;
+const AUTHOR_RANKING_INCREMENT = 20;
 
 const PERIODS = [
   { id: "all-time" as const, label: "All Time" },
@@ -146,26 +162,12 @@ function RegistryAnalyticsTabs({
   onChange: (tabId: RegistryAnalyticsTabId) => void;
 }) {
   return (
-    <Tabs value={activeTab} onValueChange={(value) => onChange(value as RegistryAnalyticsTabId)}>
-      <TabsList
-        aria-label="Registry analytics tabs"
-        className="grid !h-auto w-full grid-cols-2 gap-1 rounded-xl border border-border/60 bg-card/65 p-1.5 sm:grid-cols-4"
-      >
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="!h-11 min-w-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-transparent px-2 py-2 text-sm leading-tight tracking-normal text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--registry-type-accent-strong)_45%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-type-accent-strong)_12%,var(--card))] hover:!text-[var(--registry-type-accent-strong)] dark:hover:!text-[var(--registry-type-accent-strong)] sm:px-3 data-[state=active]:!border-[color-mix(in_srgb,var(--registry-type-accent-strong)_60%,var(--border))] data-[state=active]:!bg-[color-mix(in_srgb,var(--registry-type-accent-strong)_18%,var(--card))] data-[state=active]:font-semibold data-[state=active]:!text-[var(--registry-type-accent-strong)]"
-            >
-              <Icon className="size-4 shrink-0" aria-hidden={true} />
-              <span className="truncate">{tab.label}</span>
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
-    </Tabs>
+    <RegistryTabs
+      value={activeTab}
+      tabs={TABS}
+      ariaLabel="Registry analytics tabs"
+      onValueChange={onChange}
+    />
   );
 }
 
@@ -198,61 +200,6 @@ function PeriodToggle({
             {period.label}
           </TabsTrigger>
         ))}
-      </TabsList>
-    </Tabs>
-  );
-}
-
-function ContentAssetTypeToggle({
-  value,
-  data,
-  onChange,
-}: {
-  value: RegistryAnalyticsAssetTypeId;
-  data: RegistryAnalyticsData;
-  onChange: (assetTypeId: RegistryAnalyticsAssetTypeId) => void;
-}) {
-  const mapsConfig = getRegistryTypeConfigOrDefault("maps");
-  const modsConfig = getRegistryTypeConfigOrDefault("mods");
-  const options = [
-    {
-      id: "maps" as const,
-      label: "Maps",
-      count: data.overview.maps.listings,
-      icon: Map,
-      color: mapsConfig.accentLight,
-    },
-    {
-      id: "mods" as const,
-      label: "Mods",
-      count: data.overview.mods.listings,
-      icon: Package,
-      color: modsConfig.accentLight,
-    },
-  ];
-
-  return (
-    <Tabs value={value} onValueChange={(nextValue) => onChange(nextValue as RegistryAnalyticsAssetTypeId)}>
-      <TabsList className="grid !h-auto grid-cols-2 gap-1 rounded-xl border border-border/60 bg-card/70 p-1">
-        {options.map((option) => {
-          const Icon = option.icon;
-          return (
-            <TabsTrigger
-              key={option.id}
-              value={option.id}
-              className="!h-10 min-w-0 justify-center rounded-lg border border-transparent px-3 text-sm font-semibold transition-colors hover:border-[color-mix(in_srgb,var(--registry-type-accent)_45%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-type-accent)_12%,var(--card))] hover:!text-[var(--registry-type-accent)] data-[state=active]:!border-[color-mix(in_srgb,var(--registry-type-accent)_62%,var(--border))] data-[state=active]:!bg-[color-mix(in_srgb,var(--registry-type-accent)_18%,var(--card))] data-[state=active]:!text-[var(--registry-type-accent)]"
-              style={{ "--registry-type-accent": option.color, color: option.color } as CSSProperties}
-            >
-              <span className="inline-flex min-w-0 items-center justify-center gap-1.5">
-                <Icon className="size-4 shrink-0" aria-hidden={true} />
-                <span>{option.label}</span>
-                <span className="rounded-md border border-current/25 px-1.5 py-0.5 text-xs tabular-nums">
-                  {formatNumber(option.count)}
-                </span>
-              </span>
-            </TabsTrigger>
-          );
-        })}
       </TabsList>
     </Tabs>
   );
@@ -433,34 +380,49 @@ function getContentRankingKey(row: RegistryAnalyticsContentRanking) {
   return `${row.type}:${row.id}`;
 }
 
-function ContentRankingsTable({
+type RegistryRankingColumn<TRow> = {
+  id: string;
+  label: string;
+  width: string;
+  sortable?: boolean;
+  active?: boolean;
+  direction?: "asc" | "desc";
+  align?: "left" | "right";
+  accentColor?: string;
+  cellClassName?: string;
+  onSort?: () => void;
+  render: (row: TRow) => ReactNode;
+};
+
+function RegistryRankingsTable<TRow>({
   rows,
   rankByRowKey,
-  direction,
   visibleCount,
-  assetTypeId,
+  emptyTypeId,
   query,
   onClearSearch,
-  onSortToggle,
   onLoadMore,
+  getRowKey,
+  columns,
 }: {
-  rows: RegistryAnalyticsContentRanking[];
+  rows: TRow[];
   rankByRowKey: Map<string, number | null>;
-  direction: "asc" | "desc";
   visibleCount: number;
-  assetTypeId: RegistryAnalyticsAssetTypeId;
+  emptyTypeId: string;
   query: string;
   onClearSearch: () => void;
-  onSortToggle: () => void;
   onLoadMore: () => void;
+  getRowKey: (row: TRow) => string;
+  columns: RegistryRankingColumn<TRow>[];
 }) {
   const visibleRows = rows.slice(0, visibleCount);
   const hasMoreRows = visibleCount < rows.length;
+  const minTableWidth = `${Math.max(52, columns.length * 11)}rem`;
 
   if (rows.length === 0) {
     return (
       <RegistryEmptyState
-        typeId={assetTypeId}
+        typeId={emptyTypeId}
         query={query}
         selectedTags={[]}
         onClear={onClearSearch}
@@ -474,70 +436,70 @@ function ContentRankingsTable({
         <div className="flex flex-col pt-11" aria-hidden={true}>
           {visibleRows.map((row) => (
             <div
-              key={`${row.type}-${row.id}-rank`}
+              key={`${getRowKey(row)}-rank`}
               className="flex h-14 items-center justify-center"
             >
               <RankBadge
-                rank={rankByRowKey.get(getContentRankingKey(row)) ?? null}
+                rank={rankByRowKey.get(getRowKey(row)) ?? null}
                 className="size-7 text-xs"
               />
             </div>
           ))}
         </div>
         <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-          <Table>
-            <colgroup>
-              <col className="w-[45%]" />
-              <col className="w-[35%]" />
-              <col className="w-[20%]" />
-            </colgroup>
-            <TableHeader>
-              <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
-                <StaticTableHead label="Name" />
-                <StaticTableHead label="Author" />
-                <SortableTableHead
-                  label="Downloads"
-                  active={true}
-                  direction={direction}
-                  onClick={onSortToggle}
-                  align="right"
-                />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleRows.map((row) => (
-                <TableRow key={`${row.type}-${row.id}`} className="h-14 border-border/60">
-                  <TableCell className="px-4 font-medium text-foreground">
-                    <Link
-                      to={getRegistryDetailUrl(row.type, row.id)}
-                      className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
-                    >
-                      <span className="truncate">{row.name}</span>
-                      <ExternalLink
-                        className="size-3.5 shrink-0 text-muted-foreground"
-                        aria-hidden={true}
-                      />
-                    </Link>
-                  </TableCell>
-                  <TableCell className="px-4 text-foreground">
-                    <Link
-                      to={getRegistryAuthorUrl(row.authorId)}
-                      className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
-                    >
-                      <span className="truncate">{row.authorName}</span>
-                      <ExternalLink
-                        className="size-3.5 shrink-0 text-muted-foreground"
-                        aria-hidden={true}
-                      />
-                    </Link>
-                  </TableCell>
-                  <TableCell className="px-4 text-right font-semibold tabular-nums text-[var(--registry-type-accent)]">
-                    {formatNumber(row.downloads)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+            <div
+              className="min-w-[var(--registry-rankings-table-min-width)] lg:min-w-0"
+              style={{ "--registry-rankings-table-min-width": minTableWidth } as CSSProperties}
+            >
+              <Table className="table-fixed">
+                <colgroup>
+                  {columns.map((column) => (
+                    <col key={column.id} style={{ width: column.width }} />
+                  ))}
+                </colgroup>
+                <TableHeader>
+                  <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                    {columns.map((column) =>
+                      column.sortable ? (
+                        <SortableTableHead
+                          key={column.id}
+                          label={column.label}
+                          active={Boolean(column.active)}
+                          direction={column.direction ?? "desc"}
+                          onClick={column.onSort ?? (() => undefined)}
+                          align={column.align}
+                          accentColor={column.accentColor}
+                        />
+                      ) : (
+                        <StaticTableHead
+                          key={column.id}
+                          label={column.label}
+                          align={column.align}
+                        />
+                      ),
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {visibleRows.map((row) => (
+                    <TableRow key={getRowKey(row)} className="h-14 border-border/60">
+                      {columns.map((column) => (
+                        <TableCell
+                          key={column.id}
+                          className={`px-4 ${column.align === "right" ? "text-right" : ""} ${
+                            column.cellClassName ?? ""
+                          }`}
+                        >
+                          {column.render(row)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </ScrollArea>
         </div>
       </div>
 
@@ -593,6 +555,7 @@ function RegistryContentTab({
         rows: sortedRows,
         direction: sortDirection,
         getKey: getContentRankingKey,
+        getTieValue: (row) => row.downloads,
       }),
     [sortedRows, sortDirection],
   );
@@ -606,6 +569,53 @@ function RegistryContentTab({
       `${row.name} ${row.authorName}`.toLowerCase().includes(normalizedQuery),
     );
   }, [rankingQuery, sortedRows]);
+  const contentColumns = useMemo<RegistryRankingColumn<RegistryAnalyticsContentRanking>[]>(
+    () => [
+      {
+        id: "name",
+        label: "Name",
+        width: "45%",
+        cellClassName: "font-medium text-foreground",
+        render: (row) => (
+          <Link
+            to={getRegistryDetailUrl(row.type, row.id, "analytics")}
+            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+          >
+            <span className="truncate">{row.name}</span>
+            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          </Link>
+        ),
+      },
+      {
+        id: "author",
+        label: "Author",
+        width: "35%",
+        cellClassName: "text-foreground",
+        render: (row) => (
+          <Link
+            to={getRegistryAuthorUrl(row.authorId, "analytics")}
+            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+          >
+            <span className="truncate">{row.authorName}</span>
+            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          </Link>
+        ),
+      },
+      {
+        id: "downloads",
+        label: "Downloads",
+        width: "20%",
+        sortable: true,
+        active: true,
+        direction: sortDirection,
+        align: "right",
+        onSort: () => setSortDirection((current) => (current === "asc" ? "desc" : "asc")),
+        cellClassName: "font-semibold tabular-nums text-[var(--registry-type-accent)]",
+        render: (row) => formatNumber(row.downloads),
+      },
+    ],
+    [sortDirection],
+  );
 
   useEffect(() => {
     setVisibleCount(CONTENT_ASSET_INCREMENT);
@@ -621,8 +631,10 @@ function RegistryContentTab({
       className="space-y-6"
       style={
         {
-          "--registry-type-accent": typeConfig.accentLight,
+          "--registry-type-accent": `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
+          "--registry-toolbar-accent-light": typeConfig.accentLight,
           "--registry-type-accent-light": typeConfig.accentLight,
+          "--registry-toolbar-accent-dark": typeConfig.accentDark,
           "--registry-type-accent-dark": typeConfig.accentDark,
         } as CSSProperties
       }
@@ -638,10 +650,17 @@ function RegistryContentTab({
             } as CSSProperties
           }
         />
-        <ContentAssetTypeToggle
-          value={assetTypeId}
-          data={data}
-          onChange={(nextType) => navigate(getContentPath(period, nextType))}
+        <RegistryTypeToggle
+          activeTypeId={assetTypeId}
+          counts={{
+            maps: data.overview.maps.listings,
+            mods: data.overview.mods.listings,
+          }}
+          onChange={(nextType) =>
+            navigate(getContentPath(period, nextType as RegistryAnalyticsAssetTypeId))
+          }
+          className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
+          ariaLabel="Content asset type"
         />
       </div>
 
@@ -668,23 +687,23 @@ function RegistryContentTab({
 
       <section>
         <SectionSeparator label="Rankings" icon={FileStack} className="mb-4" />
-        <RegistrySearch
+        <RegistryToolbarSearch
           query={rankingQuery}
           onChange={setRankingQuery}
           placeholder={`Search ${typeConfig.pluralLabel.toLowerCase()}...`}
           className="mb-4"
-          inputClassName="h-12 rounded-xl bg-card/75 shadow-none focus-visible:border-border/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
           id={`registry-content-rankings-search-${assetTypeId}`}
         />
-        <ContentRankingsTable
+        <RegistryRankingsTable
           rows={filteredRows}
           rankByRowKey={rankByRowKey}
-          direction={sortDirection}
           visibleCount={visibleCount}
-          assetTypeId={assetTypeId}
+          emptyTypeId={assetTypeId}
           query={rankingQuery}
           onClearSearch={() => setRankingQuery("")}
-          onSortToggle={() => setSortDirection((current) => (current === "asc" ? "desc" : "asc"))}
+          getRowKey={getContentRankingKey}
+          columns={contentColumns}
           onLoadMore={() =>
             setVisibleCount((current) =>
               Math.min(current + CONTENT_ASSET_INCREMENT, sortedRows.length),
@@ -696,14 +715,666 @@ function RegistryContentTab({
   );
 }
 
-function PendingTab({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
+type AuthorRankingSortKey = "downloads" | "maps" | "mods" | "assets";
+type ProjectRankingSortKey = "downloads" | "maps" | "mods" | "assets";
+type MapStatisticSortKey = "demand" | "pops" | "demandPoints" | "playableAreaKm2";
+
+const AUTHOR_SORT_DEFAULTS: Record<AuthorRankingSortKey, "asc" | "desc"> = {
+  downloads: "desc",
+  maps: "desc",
+  mods: "desc",
+  assets: "desc",
+};
+
+const MAP_STATISTIC_SORT_DEFAULTS: Record<MapStatisticSortKey, "asc" | "desc"> = {
+  demand: "desc",
+  pops: "desc",
+  demandPoints: "desc",
+  playableAreaKm2: "desc",
+};
+
+function getAuthorRankingKey(row: RegistryAnalyticsAuthorRanking) {
+  return row.id;
+}
+
+function compareAuthorRankings(
+  left: RegistryAnalyticsAuthorRanking,
+  right: RegistryAnalyticsAuthorRanking,
+  sortKey: AuthorRankingSortKey,
+  direction: "asc" | "desc",
+) {
+  const difference = left[sortKey] - right[sortKey];
+  return direction === "asc" ? difference : -difference;
+}
+
+function getProjectRankingKey(row: RegistryAnalyticsProjectRanking) {
+  return row.id;
+}
+
+function compareProjectRankings(
+  left: RegistryAnalyticsProjectRanking,
+  right: RegistryAnalyticsProjectRanking,
+  sortKey: ProjectRankingSortKey,
+  direction: "asc" | "desc",
+) {
+  const difference = left[sortKey] - right[sortKey];
+  return direction === "asc" ? difference : -difference;
+}
+
+function getMapStatisticRankingKey(row: RegistryAnalyticsMapStatisticRanking) {
+  return row.id;
+}
+
+function compareMapStatisticRankings(
+  left: RegistryAnalyticsMapStatisticRanking,
+  right: RegistryAnalyticsMapStatisticRanking,
+  sortKey: MapStatisticSortKey,
+  direction: "asc" | "desc",
+) {
+  const difference = left[sortKey] - right[sortKey];
+  return direction === "asc" ? difference : -difference;
+}
+
+function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
+  const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
+  const [directions, setDirections] =
+    useState<Record<AuthorRankingSortKey, "asc" | "desc">>(AUTHOR_SORT_DEFAULTS);
+  const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
+  const [query, setQuery] = useState("");
+  const direction = directions[sortKey];
+  const chartData = data.authors.history.map((point) => ({
+    date: point.date,
+    Authors: point.authors,
+  }));
+  const sortedRows = useMemo(
+    () =>
+      [...data.authors.rankings].sort((left, right) =>
+        compareAuthorRankings(left, right, sortKey, direction),
+      ),
+    [data.authors.rankings, direction, sortKey],
+  );
+  const rankByRowKey = useMemo(
+    () =>
+      getSortedRankSlotMap({
+        rows: sortedRows,
+        direction,
+        getKey: getAuthorRankingKey,
+        getTieValue: (row) => row[sortKey],
+      }),
+    [direction, sortKey, sortedRows],
+  );
+  const filteredRows = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return sortedRows;
+    return sortedRows.filter((row) =>
+      `${row.name} ${row.id}`.toLowerCase().includes(normalizedQuery),
+    );
+  }, [query, sortedRows]);
+
+  const handleSort = (nextSortKey: AuthorRankingSortKey) => {
+    setDirections((current) => ({
+      ...current,
+      [nextSortKey]:
+        sortKey === nextSortKey
+          ? current[nextSortKey] === "asc"
+            ? "desc"
+            : "asc"
+          : current[nextSortKey],
+    }));
+    setSortKey(nextSortKey);
+  };
+
+  const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsAuthorRanking>[]>(
+    () => [
+      {
+        id: "author",
+        label: "Author",
+        width: "36%",
+        cellClassName: "font-medium text-foreground",
+        render: (row) => (
+          <Link
+            to={getRegistryAuthorUrl(row.id, "analytics")}
+            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+          >
+            <span className="truncate">{row.name}</span>
+            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          </Link>
+        ),
+      },
+      {
+        id: "downloads",
+        label: "Downloads",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "downloads",
+        direction: directions.downloads,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("downloads"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "downloads" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.downloads),
+      },
+      {
+        id: "maps",
+        label: "Maps Published",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "maps",
+        direction: directions.maps,
+        align: "right",
+        accentColor: "var(--map-accent)",
+        onSort: () => handleSort("maps"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "maps" ? "text-[var(--map-accent)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.maps),
+      },
+      {
+        id: "mods",
+        label: "Mods Published",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "mods",
+        direction: directions.mods,
+        align: "right",
+        accentColor: "var(--mod-accent)",
+        onSort: () => handleSort("mods"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "mods" ? "text-[var(--mod-accent)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.mods),
+      },
+      {
+        id: "assets",
+        label: "Assets Published",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "assets",
+        direction: directions.assets,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("assets"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "assets" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.assets),
+      },
+    ],
+    [directions, sortKey],
+  );
+
+  useEffect(() => {
+    setVisibleCount(AUTHOR_RANKING_INCREMENT);
+  }, [query, sortKey, direction]);
+
+  const mapsConfig = getRegistryTypeConfigOrDefault("maps");
+  const modsConfig = getRegistryTypeConfigOrDefault("mods");
+
   return (
-    <div>
-      <SectionSeparator label={label} icon={Icon} className="mb-4" />
-      <div className="flex min-h-44 items-center justify-center rounded-xl border border-dashed border-border/70 bg-card/55 px-6 text-center text-sm font-medium text-muted-foreground">
-        {label} analytics are coming next.
-      </div>
-    </div>
+    <section
+      className="space-y-7"
+      style={
+        {
+          "--registry-type-accent": "var(--suite-accent-light)",
+          "--registry-toolbar-accent-light": "var(--suite-accent-light)",
+          "--map-accent": `light-dark(${mapsConfig.accentLight}, ${mapsConfig.accentDark})`,
+          "--mod-accent": `light-dark(${modsConfig.accentLight}, ${modsConfig.accentDark})`,
+        } as CSSProperties
+      }
+    >
+      <section>
+        <SectionSeparator label="Timeline" icon={ChartLine} className="mb-4" />
+        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+          <AnalyticsLineChart
+            key="registry-authors-timeline"
+            data={chartData}
+            lines={[
+              {
+                key: "Authors",
+                name: "Authors",
+                color: "var(--suite-accent-light)",
+              },
+            ]}
+            xAxisKey="date"
+            height={280}
+            startAtZero={true}
+          />
+        </article>
+      </section>
+
+      <section>
+        <SectionSeparator label="Rankings" icon={Trophy} className="mb-4" />
+        <RegistryToolbarSearch
+          query={query}
+          onChange={setQuery}
+          placeholder="Search authors..."
+          className="mb-4"
+          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+          id="registry-author-rankings-search"
+        />
+        <RegistryRankingsTable
+          rows={filteredRows}
+          rankByRowKey={rankByRowKey}
+          visibleCount={visibleCount}
+          emptyTypeId="authors"
+          query={query}
+          onClearSearch={() => setQuery("")}
+          getRowKey={getAuthorRankingKey}
+          columns={columns}
+          onLoadMore={() =>
+            setVisibleCount((current) =>
+              Math.min(current + AUTHOR_RANKING_INCREMENT, filteredRows.length),
+            )
+          }
+        />
+      </section>
+    </section>
+  );
+}
+
+function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
+  const [sortKey, setSortKey] = useState<ProjectRankingSortKey>("downloads");
+  const [directions, setDirections] =
+    useState<Record<ProjectRankingSortKey, "asc" | "desc">>(AUTHOR_SORT_DEFAULTS);
+  const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
+  const [query, setQuery] = useState("");
+  const direction = directions[sortKey];
+  const sortedRows = useMemo(
+    () =>
+      [...data.projects.rankings].sort((left, right) =>
+        compareProjectRankings(left, right, sortKey, direction),
+      ),
+    [data.projects.rankings, direction, sortKey],
+  );
+  const rankByRowKey = useMemo(
+    () =>
+      getSortedRankSlotMap({
+        rows: sortedRows,
+        direction,
+        getKey: getProjectRankingKey,
+        getTieValue: (row) => row[sortKey],
+      }),
+    [direction, sortKey, sortedRows],
+  );
+  const filteredRows = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return sortedRows;
+    return sortedRows.filter((row) =>
+      `${row.name} ${row.id}`.toLowerCase().includes(normalizedQuery),
+    );
+  }, [query, sortedRows]);
+
+  const handleSort = (nextSortKey: ProjectRankingSortKey) => {
+    setDirections((current) => ({
+      ...current,
+      [nextSortKey]:
+        sortKey === nextSortKey
+          ? current[nextSortKey] === "asc"
+            ? "desc"
+            : "asc"
+          : current[nextSortKey],
+    }));
+    setSortKey(nextSortKey);
+  };
+
+  const hasMaps = data.projects.rankings.some((row) => row.maps > 0);
+  const hasMods = data.projects.rankings.some((row) => row.mods > 0);
+  const hasAssets = data.projects.rankings.some((row) => row.assets > 0);
+  const mapsConfig = getRegistryTypeConfigOrDefault("maps");
+  const modsConfig = getRegistryTypeConfigOrDefault("mods");
+  const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsProjectRanking>[]>(() => {
+    const nextColumns: RegistryRankingColumn<RegistryAnalyticsProjectRanking>[] = [
+      {
+        id: "project",
+        label: "Project",
+        width: hasMaps && hasMods && hasAssets ? "36%" : "52%",
+        cellClassName: "font-medium text-foreground",
+        render: (row) => (
+          <Link
+            to={`${row.href}/analytics`}
+            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+          >
+            <span className="truncate">{row.name}</span>
+            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          </Link>
+        ),
+      },
+      {
+        id: "downloads",
+        label: "Downloads",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "downloads",
+        direction: directions.downloads,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("downloads"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "downloads" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.downloads),
+      },
+    ];
+
+    if (hasMaps) {
+      nextColumns.push({
+        id: "maps",
+        label: "Maps",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "maps",
+        direction: directions.maps,
+        align: "right",
+        accentColor: "var(--map-accent)",
+        onSort: () => handleSort("maps"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "maps" ? "text-[var(--map-accent)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.maps),
+      });
+    }
+
+    if (hasMods) {
+      nextColumns.push({
+        id: "mods",
+        label: "Mods",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "mods",
+        direction: directions.mods,
+        align: "right",
+        accentColor: "var(--mod-accent)",
+        onSort: () => handleSort("mods"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "mods" ? "text-[var(--mod-accent)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.mods),
+      });
+    }
+
+    if (hasAssets) {
+      nextColumns.push({
+        id: "assets",
+        label: "Assets",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "assets",
+        direction: directions.assets,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("assets"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "assets" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.assets),
+      });
+    }
+
+    return nextColumns;
+  }, [directions, hasAssets, hasMaps, hasMods, sortKey]);
+
+  useEffect(() => {
+    setVisibleCount(AUTHOR_RANKING_INCREMENT);
+  }, [query, sortKey, direction]);
+
+  return (
+    <section
+      className="space-y-7"
+      style={
+        {
+          "--registry-type-accent": "var(--suite-accent-light)",
+          "--registry-toolbar-accent-light": "var(--suite-accent-light)",
+          "--map-accent": `light-dark(${mapsConfig.accentLight}, ${mapsConfig.accentDark})`,
+          "--mod-accent": `light-dark(${modsConfig.accentLight}, ${modsConfig.accentDark})`,
+        } as CSSProperties
+      }
+    >
+      <section>
+        <SectionSeparator label="Rankings" icon={Trophy} className="mb-4" />
+        <RegistryToolbarSearch
+          query={query}
+          onChange={setQuery}
+          placeholder="Search projects..."
+          className="mb-4"
+          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+          id="registry-project-rankings-search"
+        />
+        <RegistryRankingsTable
+          rows={filteredRows}
+          rankByRowKey={rankByRowKey}
+          visibleCount={visibleCount}
+          emptyTypeId="projects"
+          query={query}
+          onClearSearch={() => setQuery("")}
+          getRowKey={getProjectRankingKey}
+          columns={columns}
+          onLoadMore={() =>
+            setVisibleCount((current) =>
+              Math.min(current + AUTHOR_RANKING_INCREMENT, filteredRows.length),
+            )
+          }
+        />
+      </section>
+    </section>
+  );
+}
+
+function CountryCell({ countryCode }: { countryCode: string }) {
+  const FlagIcon = getCountryFlagIcon(countryCode);
+  return (
+    <span className="inline-flex items-center gap-2 font-mono text-sm uppercase text-muted-foreground">
+      {FlagIcon ? <FlagIcon className="h-3.5 w-5 rounded-[2px]" aria-hidden={true} /> : null}
+      <span>{countryCode || "--"}</span>
+    </span>
+  );
+}
+
+function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
+  const [sortKey, setSortKey] = useState<MapStatisticSortKey>("demand");
+  const [directions, setDirections] =
+    useState<Record<MapStatisticSortKey, "asc" | "desc">>(MAP_STATISTIC_SORT_DEFAULTS);
+  const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
+  const [query, setQuery] = useState("");
+  const direction = directions[sortKey];
+  const sortedRows = useMemo(
+    () =>
+      [...data.mapStatistics.rankings].sort((left, right) =>
+        compareMapStatisticRankings(left, right, sortKey, direction),
+      ),
+    [data.mapStatistics.rankings, direction, sortKey],
+  );
+  const rankByRowKey = useMemo(
+    () =>
+      getSortedRankSlotMap({
+        rows: sortedRows,
+        direction,
+        getKey: getMapStatisticRankingKey,
+        getTieValue: (row) => row[sortKey],
+      }),
+    [direction, sortKey, sortedRows],
+  );
+  const filteredRows = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return sortedRows;
+    return sortedRows.filter((row) =>
+      `${row.name} ${row.authorName} ${row.cityCode} ${row.countryCode}`
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  }, [query, sortedRows]);
+
+  const handleSort = (nextSortKey: MapStatisticSortKey) => {
+    setDirections((current) => ({
+      ...current,
+      [nextSortKey]:
+        sortKey === nextSortKey
+          ? current[nextSortKey] === "asc"
+            ? "desc"
+            : "asc"
+          : current[nextSortKey],
+    }));
+    setSortKey(nextSortKey);
+  };
+
+  const mapConfig = getRegistryTypeConfigOrDefault("maps");
+  const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsMapStatisticRanking>[]>(
+    () => [
+      {
+        id: "map",
+        label: "Map",
+        width: "24%",
+        cellClassName: "font-medium text-foreground",
+        render: (row) => (
+          <Link
+            to={getRegistryDetailUrl("maps", row.id, "analytics")}
+            className="inline-flex w-full min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+          >
+            <span className="truncate">{row.name}</span>
+            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          </Link>
+        ),
+      },
+      {
+        id: "author",
+        label: "Author",
+        width: "13%",
+        cellClassName: "min-w-0 text-foreground",
+        render: (row) => (
+          <Link
+            to={getRegistryAuthorUrl(row.authorId, "analytics")}
+            className="inline-flex w-full min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+            title={row.authorName}
+          >
+            <span className="truncate">{row.authorName}</span>
+            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+          </Link>
+        ),
+      },
+      {
+        id: "country",
+        label: "Country",
+        width: "7%",
+        render: (row) => <CountryCell countryCode={row.countryCode} />,
+      },
+      {
+        id: "cityCode",
+        label: "City Code",
+        width: "7%",
+        cellClassName: "font-mono text-sm uppercase text-muted-foreground",
+        render: (row) => row.cityCode || "--",
+      },
+      {
+        id: "demand",
+        label: "Demand",
+        width: "12%",
+        sortable: true,
+        active: sortKey === "demand",
+        direction: directions.demand,
+        align: "right",
+        accentColor: "var(--registry-type-accent)",
+        onSort: () => handleSort("demand"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "demand" ? "text-[var(--registry-type-accent)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.demand),
+      },
+      {
+        id: "pops",
+        label: "Pops",
+        width: "10%",
+        sortable: true,
+        active: sortKey === "pops",
+        direction: directions.pops,
+        align: "right",
+        accentColor: "var(--registry-type-accent)",
+        onSort: () => handleSort("pops"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "pops" ? "text-[var(--registry-type-accent)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.pops),
+      },
+      {
+        id: "demandPoints",
+        label: "Demand Points",
+        width: "14%",
+        sortable: true,
+        active: sortKey === "demandPoints",
+        direction: directions.demandPoints,
+        align: "right",
+        accentColor: "var(--registry-type-accent)",
+        onSort: () => handleSort("demandPoints"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "demandPoints"
+            ? "text-[var(--registry-type-accent)]"
+            : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.demandPoints),
+      },
+      {
+        id: "playableAreaKm2",
+        label: "Playable Area",
+        width: "13%",
+        sortable: true,
+        active: sortKey === "playableAreaKm2",
+        direction: directions.playableAreaKm2,
+        align: "right",
+        accentColor: "var(--registry-type-accent)",
+        onSort: () => handleSort("playableAreaKm2"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "playableAreaKm2"
+            ? "text-[var(--registry-type-accent)]"
+            : "text-muted-foreground"
+        }`,
+        render: (row) => `${formatNumber(row.playableAreaKm2)} km²`,
+      },
+    ],
+    [directions, sortKey],
+  );
+
+  useEffect(() => {
+    setVisibleCount(AUTHOR_RANKING_INCREMENT);
+  }, [query, sortKey, direction]);
+
+  return (
+    <section
+      className="space-y-7"
+      style={
+        {
+          "--registry-type-accent": `light-dark(${mapConfig.accentLight}, ${mapConfig.accentDark})`,
+          "--registry-toolbar-accent-light": mapConfig.accentLight,
+          "--registry-toolbar-accent-dark": mapConfig.accentDark,
+        } as CSSProperties
+      }
+    >
+      <section>
+        <SectionSeparator label="Rankings" icon={Trophy} className="mb-4" />
+        <RegistryToolbarSearch
+          query={query}
+          onChange={setQuery}
+          placeholder="Search maps..."
+          className="mb-4"
+          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+          id="registry-map-statistics-rankings-search"
+        />
+        <RegistryRankingsTable
+          rows={filteredRows}
+          rankByRowKey={rankByRowKey}
+          visibleCount={visibleCount}
+          emptyTypeId="maps"
+          query={query}
+          onClearSearch={() => setQuery("")}
+          getRowKey={getMapStatisticRankingKey}
+          columns={columns}
+          onLoadMore={() =>
+            setVisibleCount((current) =>
+              Math.min(current + AUTHOR_RANKING_INCREMENT, filteredRows.length),
+            )
+          }
+        />
+      </section>
+    </section>
   );
 }
 
@@ -767,9 +1438,11 @@ export function RegistryAnalyticsPage({
         ) : activeTab === "content" ? (
           <RegistryContentTab data={data} period={periodId} assetTypeId={assetTypeId} />
         ) : activeTab === "authors" ? (
-          <PendingTab label="Authors" icon={Users} />
+          <RegistryAuthorsTab data={data} />
+        ) : activeTab === "projects" ? (
+          <RegistryProjectsTab data={data} />
         ) : (
-          <PendingTab label="Map Statistics" icon={Map} />
+          <RegistryMapStatisticsTab data={data} />
         )}
       </section>
     </SuiteAccentScope>

@@ -12,7 +12,13 @@ const REGISTRY_DETAIL_TABS = new Set([
   "details",
 ]);
 const REGISTRY_AUTHOR_TABS = new Set(["overview", "projects", "analytics"]);
-const REGISTRY_ANALYTICS_TABS = new Set(["overview", "content", "authors", "map-statistics"]);
+const REGISTRY_ANALYTICS_TABS = new Set([
+  "overview",
+  "content",
+  "authors",
+  "projects",
+  "map-statistics",
+]);
 const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "3d", "7d", "14d"]);
 const REGISTRY_ANALYTICS_ASSET_TYPES = new Set(["maps", "mods"]);
 

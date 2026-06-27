@@ -75,6 +75,70 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           "7d": { maps: [], mods: [] },
           "14d": { maps: [], mods: [] },
         },
+        authors: {
+          history: [
+            { date: "2026-03-11", authors: 1 },
+            { date: "2026-03-12", authors: 2 },
+          ],
+          rankings: [
+            {
+              id: "author-a",
+              name: "Author A",
+              href: "/registry/authors/author-a",
+              downloads: 120,
+              maps: 3,
+              mods: 1,
+              assets: 4,
+            },
+            {
+              id: "author-b",
+              name: "Author B",
+              href: "/registry/authors/author-b",
+              downloads: 84,
+              maps: 0,
+              mods: 2,
+              assets: 2,
+            },
+          ],
+        },
+        projects: {
+          rankings: [
+            {
+              id: "author-a/project-a",
+              name: "Project A",
+              href: "/registry/authors/author-a/project-a",
+              downloads: 220,
+              maps: 2,
+              mods: 0,
+              assets: 2,
+            },
+            {
+              id: "author-b/project-b",
+              name: "Project B",
+              href: "/registry/authors/author-b/project-b",
+              downloads: 84,
+              maps: 1,
+              mods: 0,
+              assets: 1,
+            },
+          ],
+        },
+        mapStatistics: {
+          rankings: [
+            {
+              id: "map-a",
+              name: "Map Alpha",
+              authorId: "author-a",
+              authorName: "Author A",
+              countryCode: "JP",
+              cityCode: "TYO",
+              demand: 1_000_000,
+              pops: 2_000,
+              demandPoints: 300,
+              playableAreaKm2: 42,
+            },
+          ],
+        },
         history: [
           {
             date: "2026-03-11",
@@ -111,6 +175,7 @@ describe("RegistryAnalyticsPage", () => {
 
     expect(screen.getByRole("tab", { name: /Overview/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Content/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Projects/i })).toBeInTheDocument();
     expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
       "1 points · Maps, Mods, Total",
     );
@@ -131,6 +196,14 @@ describe("RegistryAnalyticsPage", () => {
     );
     expect(screen.getByText("Rankings")).toBeInTheDocument();
     expect(screen.getByText("Author B")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Mod Alpha/i })).toHaveAttribute(
+      "href",
+      "/registry/mods/mod-a/analytics",
+    );
+    expect(screen.getByRole("link", { name: /Author B/i })).toHaveAttribute(
+      "href",
+      "/registry/authors/author-b/analytics",
+    );
     expect(screen.getByText("84")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Downloads/i })).toBeInTheDocument();
 
@@ -141,5 +214,68 @@ describe("RegistryAnalyticsPage", () => {
 
     expect(screen.getByText("No items match your search.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Clear Filters" })).toBeInTheDocument();
+  });
+
+  it("renders author analytics timeline and rankings", async () => {
+    render(<RegistryAnalyticsPage tabId="authors" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Author A")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Timeline")).toBeInTheDocument();
+    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
+      "2 points · Authors",
+    );
+    expect(screen.getByText("Maps Published")).toBeInTheDocument();
+    expect(screen.getByText("Mods Published")).toBeInTheDocument();
+    expect(screen.getByText("Assets Published")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search authors...")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Author A/i })).toHaveAttribute(
+      "href",
+      "/registry/authors/author-a/analytics",
+    );
+  });
+
+  it("renders project analytics rankings and omits all-zero columns", async () => {
+    render(<RegistryAnalyticsPage tabId="projects" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Project A")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Rankings")).toBeInTheDocument();
+    expect(screen.getByText("Maps")).toBeInTheDocument();
+    expect(screen.queryByText("Mods")).not.toBeInTheDocument();
+    expect(screen.getByText("Assets")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search projects...")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Project A/i })).toHaveAttribute(
+      "href",
+      "/registry/authors/author-a/project-a/analytics",
+    );
+  });
+
+  it("renders map statistics rankings", async () => {
+    render(<RegistryAnalyticsPage tabId="map-statistics" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Map Alpha")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Country")).toBeInTheDocument();
+    expect(screen.getByText("City Code")).toBeInTheDocument();
+    expect(screen.getByText("Demand")).toBeInTheDocument();
+    expect(screen.getByText("Pops")).toBeInTheDocument();
+    expect(screen.getByText("Demand Points")).toBeInTheDocument();
+    expect(screen.getByText("Playable Area")).toBeInTheDocument();
+    expect(screen.getByText("42 km²")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Map Alpha/i })).toHaveAttribute(
+      "href",
+      "/registry/maps/map-a/analytics",
+    );
+    expect(screen.getByRole("link", { name: /Author A/i })).toHaveAttribute(
+      "href",
+      "/registry/authors/author-a/analytics",
+    );
   });
 });

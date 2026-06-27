@@ -10,26 +10,23 @@ import {
   FolderGit2,
   LayoutDashboard,
   Loader2,
-  Search,
   Shuffle,
   Trash2,
   User,
   Users,
-  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
   StyledPagination,
   SuiteAccentScope,
-  Tabs,
-  TabsList,
-  TabsTrigger,
 } from "@subway-builder-modded/shared-ui";
 import { getSuiteById } from "@/config/site-navigation";
 import { Link, navigate, useLocation } from "@/lib/router";
 import { cn } from "@/lib/utils";
 import { AuthorRoleBadge } from "@/features/registry/components/author-role-badge";
+import { RegistryTabs } from "@/features/registry/components/registry-tabs";
 import { RegistryToolbarDropdown } from "@/features/registry/components/registry-toolbar-dropdown";
+import { RegistryToolbarSearch } from "@/features/registry/components/registry-toolbar-search";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import {
   loadCreatorDatabaseData,
@@ -457,30 +454,12 @@ function CreatorTabs({
   ];
 
   return (
-    <Tabs value={value} onValueChange={(next) => onChange(next as CreatorDatabaseTab)}>
-      <TabsList
-        variant="default"
-        aria-label="Creator database tabs"
-        className="grid w-full grid-cols-2 gap-1 rounded-xl border border-border/70 p-1 group-data-[orientation=horizontal]/tabs:h-auto sm:gap-2 sm:p-2"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-        }}
-      >
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="h-10 min-w-0 flex-row items-center justify-center gap-1.5 rounded-lg border border-transparent px-2 text-sm leading-none tracking-normal text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--registry-type-accent-strong)_45%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-type-accent-strong)_12%,var(--card))] hover:!text-[var(--registry-type-accent-strong)] dark:hover:!text-[var(--registry-type-accent-strong)] sm:px-3 data-[state=active]:!border-[color-mix(in_srgb,var(--registry-type-accent-strong)_60%,var(--border))] data-[state=active]:!bg-[color-mix(in_srgb,var(--registry-type-accent-strong)_18%,var(--card))] data-[state=active]:font-semibold data-[state=active]:!text-[var(--registry-type-accent-strong)]"
-            >
-              <Icon className="size-4 shrink-0" aria-hidden={true} />
-              <span>{tab.label}</span>
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
-    </Tabs>
+    <RegistryTabs
+      value={value}
+      tabs={tabs}
+      ariaLabel="Creator database tabs"
+      onValueChange={onChange}
+    />
   );
 }
 
@@ -711,35 +690,12 @@ export function RegistryCreatorDatabasePage({
           <section className="space-y-5">
             <div className="rounded-xl border border-border/30 bg-card px-3 py-3 shadow-sm">
               <div className="space-y-3">
-                <div className="group relative flex">
-                  <Search
-                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                    aria-hidden={true}
-                  />
-                  <input
-                    type="search"
-                    role="searchbox"
-                    value={params.query}
-                    onChange={(event) =>
-                      navigateWithParams(activeTab, { query: event.target.value, page: 1 })
-                    }
-                    placeholder={`Search ${activeTab}...`}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    className="h-11 w-full appearance-none rounded-lg border border-border/30 bg-background pl-9 pr-10 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:border-border/35 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
-                  />
-                  {params.query ? (
-                    <button
-                      type="button"
-                      onClick={handleClearSearch}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      aria-label="Clear creator search"
-                    >
-                      <X className="size-3.5" aria-hidden={true} />
-                    </button>
-                  ) : null}
-                </div>
+                <RegistryToolbarSearch
+                  query={params.query}
+                  onChange={(query) => navigateWithParams(activeTab, { query, page: 1 })}
+                  placeholder={`Search ${activeTab}...`}
+                  clearLabel="Clear creator search"
+                />
 
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:justify-between lg:overflow-visible lg:pb-0">
                   <div className="flex min-w-max items-center gap-2">

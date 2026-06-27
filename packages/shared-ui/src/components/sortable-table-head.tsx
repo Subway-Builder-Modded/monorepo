@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { TableHead } from './table';
 
 export type SortDirection = 'asc' | 'desc';
@@ -14,25 +15,33 @@ export function SortableTableHead({
   direction,
   onClick,
   align = 'left',
+  accentColor,
 }: {
   label: string;
   active: boolean;
   direction: SortDirection;
   onClick: () => void;
   align?: TableHeadAlign;
+  accentColor?: string;
 }) {
   const SortIcon = direction === 'asc' ? ArrowUp : ArrowDown;
   const Icon = active ? SortIcon : ArrowUpDown;
+  const activeColor = accentColor ?? 'var(--registry-type-accent)';
 
   return (
     <TableHead className="px-4 text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground">
       <button
         type="button"
         onClick={onClick}
-        className={`inline-flex w-full items-center gap-1.5 text-xs font-semibold uppercase leading-4 tracking-[0.12em] transition-colors hover:text-[var(--registry-type-accent)] focus-visible:outline-none ${
+        className={`inline-flex w-full items-center gap-1.5 text-xs font-semibold uppercase leading-4 tracking-[0.12em] transition-colors hover:text-[var(--sortable-head-accent)] focus-visible:outline-none ${
           active ? 'text-[var(--registry-type-accent)]' : ''
         } ${getAlignClassName(align)}`}
-        style={active ? { color: 'var(--registry-type-accent)' } : undefined}
+        style={
+          {
+            '--sortable-head-accent': activeColor,
+            ...(active ? { color: activeColor } : {}),
+          } as CSSProperties
+        }
         aria-sort={active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}
       >
         <span className="uppercase">{label}</span>
