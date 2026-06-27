@@ -24,11 +24,7 @@ vi.mock("@subway-builder-modded/analytics", () => ({
       {data.length} points · {lines.map((line) => line.name).join(", ")}
     </div>
   ),
-  AnalyticsPieChart: ({
-    data,
-  }: {
-    data: Array<{ name: string; value: number }>;
-  }) => (
+  AnalyticsPieChart: ({ data }: { data: Array<{ name: string; value: number }> }) => (
     <div data-testid="registry-pie-chart">
       {data.map((slice) => `${slice.name}: ${slice.value}`).join(", ")}
     </div>
@@ -191,9 +187,7 @@ describe("RegistryAnalyticsPage", () => {
       expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
     });
 
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
-      "1 points · Downloads",
-    );
+    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent("1 points · Downloads");
     expect(screen.getByText("Rankings")).toBeInTheDocument();
     expect(screen.getByText("Author B")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Mod Alpha/i })).toHaveAttribute(
@@ -224,9 +218,7 @@ describe("RegistryAnalyticsPage", () => {
     });
 
     expect(screen.getByText("Timeline")).toBeInTheDocument();
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
-      "2 points · Authors",
-    );
+    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent("2 points · Authors");
     expect(screen.getByText("Maps Published")).toBeInTheDocument();
     expect(screen.getByText("Mods Published")).toBeInTheDocument();
     expect(screen.getByText("Assets Published")).toBeInTheDocument();

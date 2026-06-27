@@ -544,9 +544,7 @@ function RailyardVersionsBreakdown({ data }: { data: RailyardAnalyticsData }) {
                     <TableCell
                       className="px-4 font-medium text-foreground"
                       style={
-                        sortKey === "version"
-                          ? { color: "var(--registry-type-accent)" }
-                          : undefined
+                        sortKey === "version" ? { color: "var(--registry-type-accent)" } : undefined
                       }
                     >
                       {row.version}
@@ -572,9 +570,7 @@ function RailyardVersionsBreakdown({ data }: { data: RailyardAnalyticsData }) {
                     <TableCell
                       className="px-4 font-semibold tabular-nums text-foreground"
                       style={
-                        sortKey === "assets"
-                          ? { color: "var(--registry-type-accent)" }
-                          : undefined
+                        sortKey === "assets" ? { color: "var(--registry-type-accent)" } : undefined
                       }
                     >
                       {formatNumber(row.assets)}

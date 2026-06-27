@@ -382,8 +382,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     allTimeRaw,
     last3Raw,
     last7Raw,
-  ] =
-    await Promise.all([
+  ] = await Promise.all([
     safeFetchText(ASSETS_BY_DAY_URL),
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),

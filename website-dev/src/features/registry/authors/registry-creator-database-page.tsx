@@ -16,10 +16,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import {
-  StyledPagination,
-  SuiteAccentScope,
-} from "@subway-builder-modded/shared-ui";
+import { StyledPagination, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { getSuiteById } from "@/config/site-navigation";
 import { Link, navigate, useLocation } from "@/lib/router";
 import { cn } from "@/lib/utils";

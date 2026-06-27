@@ -119,7 +119,10 @@ function formatNumber(value: number) {
   return numberFormatter.format(value);
 }
 
-function getContentPath(period: RegistryAnalyticsPeriodId, assetTypeId: RegistryAnalyticsAssetTypeId) {
+function getContentPath(
+  period: RegistryAnalyticsPeriodId,
+  assetTypeId: RegistryAnalyticsAssetTypeId,
+) {
   return `/registry/analytics/content/${period}/${assetTypeId}`;
 }
 
@@ -435,10 +438,7 @@ function RegistryRankingsTable<TRow>({
       <div className="grid grid-cols-[3rem_minmax(0,1fr)] gap-x-3">
         <div className="flex flex-col pt-11" aria-hidden={true}>
           {visibleRows.map((row) => (
-            <div
-              key={`${getRowKey(row)}-rank`}
-              className="flex h-14 items-center justify-center"
-            >
+            <div key={`${getRowKey(row)}-rank`} className="flex h-14 items-center justify-center">
               <RankBadge
                 rank={rankByRowKey.get(getRowKey(row)) ?? null}
                 className="size-7 text-xs"
@@ -533,10 +533,7 @@ function RegistryContentTab({
   const [visibleCount, setVisibleCount] = useState(CONTENT_ASSET_INCREMENT);
   const [rankingQuery, setRankingQuery] = useState("");
   const graphRows = useMemo(
-    () =>
-      getGraphHistory(data.history, period).filter(
-        (row) => row.date !== "2026-03-11",
-      ),
+    () => getGraphHistory(data.history, period).filter((row) => row.date !== "2026-03-11"),
     [data.history, period],
   );
   const chartData = graphRows.map((row) => ({
@@ -1173,8 +1170,9 @@ function CountryCell({ countryCode }: { countryCode: string }) {
 
 function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
   const [sortKey, setSortKey] = useState<MapStatisticSortKey>("demand");
-  const [directions, setDirections] =
-    useState<Record<MapStatisticSortKey, "asc" | "desc">>(MAP_STATISTIC_SORT_DEFAULTS);
+  const [directions, setDirections] = useState<Record<MapStatisticSortKey, "asc" | "desc">>(
+    MAP_STATISTIC_SORT_DEFAULTS,
+  );
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];
