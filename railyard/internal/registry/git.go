@@ -135,7 +135,6 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 		},
 		Force: true,
 		Depth: 1,
-		// Never pull tags on refresh; see forceClone for why.
 		Tags:     git.NoTags,
 		Progress: progress,
 	})
