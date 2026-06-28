@@ -379,7 +379,7 @@ func findAsar(exePath string) (bool, string) {
 		dir = filepath.Dir(exePath)
 	}
 	for {
-		candidate := filepath.Join(dir, "Contents", "Resources", "app.asar")
+		candidate := filepath.Join(dir, constants.GameAsarMacRelPath)
 		if _, err := os.Stat(candidate); err == nil {
 			return true, candidate
 		}
@@ -420,7 +420,7 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	case isAppImagePath(exePath):
 		if a.appImageMount != nil {
 			mountPath := a.appImageMount.AppImageMountPath
-			asarPath = filepath.Join(mountPath, "resources", "app.asar")
+			asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
 		} else {
 			if appImageMount, err := newAppImageMount(exePath); err != nil {
 				a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
@@ -428,11 +428,11 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 			} else {
 				a.appImageMount = appImageMount
 				mountPath := a.appImageMount.AppImageMountPath
-				asarPath = filepath.Join(mountPath, "resources", "app.asar")
+				asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
 			}
 		}
 	default:
-		asarPath = filepath.Join(filepath.Dir(exePath), "resources", "app.asar")
+		asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 	}
 
 	archiveFile, err := os.Open(asarPath)
