@@ -235,7 +235,7 @@ func backfillConstraint(cs []types.InstalledConstraint, constraintType string, r
 }
 
 // inferManifestConstraint looks up the game-version constraint for an installed asset from the
-// integrity report.  
+// integrity report.
 func inferManifestConstraint(listings map[string]types.IntegrityListing, id, version string) *types.InstalledConstraint {
 	listing, ok := listings[id]
 	// Return no constraint if no data is available.
