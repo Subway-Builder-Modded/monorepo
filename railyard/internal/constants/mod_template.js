@@ -188,7 +188,7 @@ function generateTabs(places) {
   window.SubwayBuilderAPI.hooks.onMapReady((map) => {
     const resolvedMap = map ?? api.utils.getMap();
 
-    if(semverCompare(config.gameVersion, "1.3.0") && config.places.some(place => place.demandDotScaling)) {
+    if(semverCompare(config.gameVersion, "1.3.7") && config.places.some(place => place.demandDotScaling)) {
       const scaling = config.places.find(place => place.demandDotScaling)?.demandDotScaling;
       SubwayBuilderAPI.actions.setDemandBubbleScale(scaling);
     }
