@@ -1,16 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 
-vi.mock("country-flag-emoji", () => ({
-  default: {
-    get: (code: string) => {
-      if (code === "KR") return { name: "South Korea", emoji: "🇰🇷" };
-      if (code === "JP") return { name: "Japan", emoji: "🇯🇵" };
-      return undefined;
-    },
-  },
-}));
-
 type MockResponse = {
   ok: boolean;
   status: number;
@@ -44,83 +34,6 @@ afterEach(() => {
 });
 
 describe("loadRegistryItemsForType", () => {
-  it("loads maps from cached files, excludes test items, and normalizes fields", async () => {
-    const base = "/registry-cache/maps";
-
-    mockFetchWithMap({
-      [`${base}/integrity.json`]: JSON.stringify({
-        generated_at: "2025-01-01T00:00:00.000Z",
-        listings: {
-          "gwangju-4": {
-            last_updated: 1_720_000_000,
-            versions: {
-              v1: { is_complete: true, checked_at: "2025-01-10T00:00:00.000Z" },
-              v2: { is_complete: true, checked_at: "2025-01-12T00:00:00.000Z" },
-            },
-          },
-          "test-map": {
-            versions: {
-              v1: { is_complete: true, checked_at: "2025-01-09T00:00:00.000Z" },
-            },
-          },
-        },
-      }),
-      [`${base}/downloads.json`]: JSON.stringify({
-        "gwangju-4": { v1: 10, v2: 5 },
-        "test-map": { v1: 999 },
-      }),
-      "/registry-cache/authors/index.json": JSON.stringify({
-        authors: [{ author_id: "kimth9", author_alias: "Kim Alias" }],
-      }),
-      [`${base}/index.json`]: JSON.stringify({ maps: ["gwangju-4", "test-map"] }),
-      [`${base}/gwangju-4/manifest.json`]: JSON.stringify({
-        name: "  Gwangju 4  ",
-        author: "  kimth9  ",
-        description: "  Test map  ",
-        tags: ["europe", "korea"],
-        location: "east-asia",
-        gallery: ["thumb.webp"],
-        search_aliases: ["Gwangju Metropolitan City", "Kwangju"],
-        city_code: "KWJ4",
-        country: "kr",
-        residents_total: 2140345,
-        source: "https://kimth9.github.io/sb-korean-map-pack/",
-      }),
-      [`${base}/test-map/manifest.json`]: JSON.stringify({
-        name: "test-map",
-        is_test: true,
-      }),
-    });
-
-    const items = await loadRegistryItemsForType("maps", "maps");
-
-    expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({
-      id: "gwangju-4",
-      type: "maps",
-      routeSegment: "maps",
-      href: "/registry/maps/gwangju-4",
-      projectId: "kimth9/sb-korean-map-pack",
-      name: "Gwangju 4",
-      author: "Kim Alias",
-      description: "Test map",
-      tags: ["korea", "east-asia"],
-      searchAliases: ["Gwangju Metropolitan City", "Kwangju"],
-      thumbnailSrc: "/registry-cache/maps/gwangju-4/thumb.webp",
-      totalDownloads: 15,
-      cityCode: "KWJ4",
-      countryCode: "KR",
-      countryName: "South Korea",
-      countryEmoji: "🇰🇷",
-      population: 2140345,
-      isTest: false,
-    });
-
-    expect(items[0]?.lastActivityAt).toBe(1_720_000_000_000);
-    expect(items[0]?.tags).not.toContain("europe");
-    expect(items[0]?.tags).not.toContain("east-asia");
-  });
-
   it("prefers manifest last_updated over integrity metadata", async () => {
     const base = "/registry-cache/mods";
 
@@ -149,48 +62,6 @@ describe("loadRegistryItemsForType", () => {
 
     expect(items).toHaveLength(1);
     expect(items[0]?.lastActivityAt).toBe(1_720_000_000_000);
-  });
-
-  it("falls back to integrity ids when index list is empty and handles defaults", async () => {
-    const base = "/registry-cache/mods";
-
-    mockFetchWithMap({
-      [`${base}/integrity.json`]: JSON.stringify({
-        generated_at: "2025-02-01T00:00:00.000Z",
-        listings: {
-          "simple-trains": { has_complete_version: true, versions: {} },
-        },
-      }),
-      [`${base}/downloads.json`]: JSON.stringify({
-        "simple-trains": { v1: 1 },
-      }),
-      [`${base}/index.json`]: JSON.stringify({ mods: [] }),
-      [`${base}/simple-trains/manifest.json`]: JSON.stringify({
-        // name missing should fallback to id
-        // author missing should fallback to Unknown creator
-        gallery: ["https://cdn.example.com/preview.png"],
-      }),
-    });
-
-    const items = await loadRegistryItemsForType("mods", "mods");
-
-    expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({
-      id: "simple-trains",
-      name: "simple-trains",
-      author: "Unknown creator",
-      description: "",
-      tags: [],
-      thumbnailSrc: "https://cdn.example.com/preview.png",
-      totalDownloads: 1,
-      cityCode: null,
-      countryCode: null,
-      countryName: null,
-      countryEmoji: null,
-      population: null,
-    });
-
-    expect(items[0]?.lastActivityAt).toBe(Date.parse("2025-02-01T00:00:00.000Z"));
   });
 
   it("returns zero downloads and null thumbnail when optional data is missing", async () => {

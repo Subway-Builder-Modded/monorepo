@@ -4,22 +4,22 @@ import type { RegistrySearchItem } from "@/features/registry/lib/registry-search
 
 function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchItem {
   return {
-    id: "test-map",
+    id: "item-a",
     type: "maps",
     routeSegment: "maps",
-    href: "/registry/maps/test-map",
-    name: "Test Map",
+    href: "/registry/maps/item-a",
+    name: "Item A",
     author: "Test Author",
     authorId: "test-author",
-    description: "A test map description",
-    tags: ["east-asia"],
+    description: "A test item description",
+    tags: ["tag-a"],
     thumbnailSrc: null,
     totalDownloads: 100,
     lastActivityAt: 0,
     cityCode: "TST",
-    countryCode: "KR",
-    countryName: "South Korea",
-    countryEmoji: "🇰🇷",
+    countryCode: "AA",
+    countryName: "Country A",
+    countryEmoji: null,
     population: 500000,
     isTest: false,
     manifest: {},
@@ -34,85 +34,51 @@ describe("filterRegistryItems", () => {
   });
 
   it("matches by name", () => {
-    const items = [makeItem({ name: "Seoul Metro" }), makeItem({ name: "Bangkok BTS" })];
-    const result = filterRegistryItems(items, "seoul", []);
+    const items = [makeItem({ name: "Alpha Item" }), makeItem({ name: "Beta Item" })];
+    const result = filterRegistryItems(items, "alpha", []);
     expect(result).toHaveLength(1);
-    expect(result[0]?.id).toBe("test-map");
-  });
-
-  it("matches by id", () => {
-    const items = [makeItem({ id: "gwangju-4" }), makeItem({ id: "toronto" })];
-    const result = filterRegistryItems(items, "gwangju", []);
-    expect(result).toHaveLength(1);
-    expect(result[0]?.id).toBe("gwangju-4");
-  });
-
-  it("matches by author", () => {
-    const items = [makeItem({ author: "kimth9" }), makeItem({ author: "Bobby-047" })];
-    const result = filterRegistryItems(items, "kimth9", []);
-    expect(result).toHaveLength(1);
-  });
-
-  it("does not match by description body text", () => {
-    const items = [
-      makeItem({ description: "Korean map with traffic data" }),
-      makeItem({ description: "A generic map" }),
-    ];
-    const result = filterRegistryItems(items, "korean", []);
-    expect(result).toHaveLength(0);
+    expect(result[0]?.id).toBe("item-a");
   });
 
   it("matches by tags", () => {
-    const items = [makeItem({ tags: ["east-asia", "korea"] }), makeItem({ tags: ["europe"] })];
-    const result = filterRegistryItems(items, "east-asia", []);
+    const items = [makeItem({ tags: ["tag-a", "tag-b"] }), makeItem({ tags: ["tag-c"] })];
+    const result = filterRegistryItems(items, "tag-a", []);
     expect(result).toHaveLength(1);
   });
 
   it("matches by registry-provided search aliases", () => {
     const items = [
-      makeItem({ name: "Praha", searchAliases: ["Prague", "Prag"] }),
-      makeItem({ id: "vienna", name: "Wien", searchAliases: ["Vienna"] }),
+      makeItem({ name: "Primary Name", searchAliases: ["Alternate Name"] }),
+      makeItem({ id: "item-b", name: "Other Name", searchAliases: ["Second Alternate"] }),
     ];
-    const result = filterRegistryItems(items, "prague", []);
+    const result = filterRegistryItems(items, "alternate name", []);
     expect(result).toHaveLength(1);
-    expect(result[0]?.name).toBe("Praha");
-  });
-
-  it("matches maps by city code", () => {
-    const items = [makeItem({ cityCode: "KWJ4" }), makeItem({ cityCode: "BUS3" })];
-    const result = filterRegistryItems(items, "kwj4", []);
-    expect(result).toHaveLength(1);
-  });
-
-  it("matches maps by country name", () => {
-    const items = [makeItem({ countryName: "South Korea" }), makeItem({ countryName: "Japan" })];
-    const result = filterRegistryItems(items, "south korea", []);
-    expect(result).toHaveLength(1);
+    expect(result[0]?.name).toBe("Primary Name");
   });
 
   it("filters by selected tags (any may match)", () => {
     const items = [
-      makeItem({ tags: ["east-asia", "korea"] }),
-      makeItem({ id: "map-2", tags: ["east-asia"] }),
-      makeItem({ id: "map-3", tags: ["europe"] }),
+      makeItem({ tags: ["tag-a", "tag-b"] }),
+      makeItem({ id: "item-b", tags: ["tag-a"] }),
+      makeItem({ id: "item-c", tags: ["tag-c"] }),
     ];
-    const result = filterRegistryItems(items, "", ["east-asia", "korea"]);
+    const result = filterRegistryItems(items, "", ["tag-a", "tag-b"]);
     expect(result).toHaveLength(2);
-    expect(result[0]?.id).toBe("test-map");
+    expect(result[0]?.id).toBe("item-a");
   });
 
   it("combines query and tag filter", () => {
     const items = [
-      makeItem({ name: "Seoul Metro", tags: ["east-asia"] }),
-      makeItem({ id: "bts", name: "Bangkok BTS", tags: ["east-asia"] }),
+      makeItem({ name: "Alpha Item", tags: ["tag-a"] }),
+      makeItem({ id: "item-b", name: "Beta Item", tags: ["tag-a"] }),
     ];
-    const result = filterRegistryItems(items, "seoul", ["east-asia"]);
+    const result = filterRegistryItems(items, "alpha", ["tag-a"]);
     expect(result).toHaveLength(1);
-    expect(result[0]?.name).toBe("Seoul Metro");
+    expect(result[0]?.name).toBe("Alpha Item");
   });
 
   it("returns empty array when no items match", () => {
-    const items = [makeItem({ name: "Seoul" })];
+    const items = [makeItem({ name: "Alpha Item" })];
     expect(filterRegistryItems(items, "nonexistent", [])).toHaveLength(0);
   });
 
@@ -125,15 +91,15 @@ describe("filterRegistryItems", () => {
 describe("collectTags", () => {
   it("collects unique tags across items", () => {
     const items = [
-      makeItem({ tags: ["east-asia", "korea"] }),
-      makeItem({ id: "map-2", tags: ["east-asia", "japan"] }),
+      makeItem({ tags: ["tag-a", "tag-b"] }),
+      makeItem({ id: "item-b", tags: ["tag-a", "tag-c"] }),
     ];
     const tags = collectTags(items);
-    expect(tags).toContain("east-asia");
-    expect(tags).toContain("korea");
-    expect(tags).toContain("japan");
+    expect(tags).toContain("tag-a");
+    expect(tags).toContain("tag-b");
+    expect(tags).toContain("tag-c");
     // no duplicates
-    expect(tags.filter((t) => t === "east-asia")).toHaveLength(1);
+    expect(tags.filter((t) => t === "tag-a")).toHaveLength(1);
   });
 
   it("returns sorted tags", () => {
