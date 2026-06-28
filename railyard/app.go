@@ -56,7 +56,8 @@ type App struct {
 	startupMu     sync.RWMutex
 	startupReady  bool
 
-	deepLinks deepLinkQueue
+	deepLinks     deepLinkQueue
+	appImageMount appImageMount
 
 	// Test-only hooks for controlling the launch-starting window and event sink.
 	launchGameTestReady chan<- struct{}
@@ -156,19 +157,7 @@ func (a *App) startup(ctx context.Context) {
 	activeProfile := resolveStartupProfile(a)
 	a.Logger.Info("Active user profile loaded on startup", "profile_id", activeProfile.ID)
 
-	if err := a.Registry.Initialize(); err != nil {
-		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
-	} else {
-		a.bootstrapInstalledState(activeProfile)
-	}
-	if err := a.addSaltsOnFirstRun(); err != nil {
-		a.Logger.Warn("Failed to add salts to existing assets on first run", "error", err)
-	}
-	if a.Config.Cfg.CheckForUpdatesOnLaunch {
-		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
-	}
-
-	// Registry must be initialized + startup profile ready so that initial Frontend state is viable.
+	// Config and profile are ready; registry initializes in the background
 	a.setStartupReady(true)
 	// Keep startup deep links queued until the frontend consumes them.
 	// Emitting here can race listener registration during cold launches.
@@ -229,6 +218,7 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 
 	a.cleanupTmpStaging("shutdown")
+	a.appImageMount.teardown()
 }
 
 func resolveStartupProfile(a *App) types.UserProfile {
@@ -261,7 +251,24 @@ func (a *App) recoverProfiles(cause types.UserProfileResult) types.UserProfile {
 
 func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 	wailsruntime.WindowMaximise(a.ctx)
-	if activeProfile.SystemPreferences.RefreshRegistryOnStartup {
+
+	if a.Config.Cfg.CheckForUpdatesOnLaunch {
+		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
+	}
+
+	registryReady := false
+	if err := a.Registry.Initialize(); err != nil {
+		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
+	} else {
+		a.bootstrapInstalledState(activeProfile)
+		if err := a.addSaltsOnFirstRun(); err != nil {
+			a.Logger.Warn("Failed to add salts to existing assets on first run", "error", err)
+		}
+		registryReady = true
+	}
+	a.emitEvent("registry:ready")
+
+	if registryReady && activeProfile.SystemPreferences.RefreshRegistryOnStartup {
 		if err := a.Registry.Refresh(); err != nil {
 			a.Logger.Warn("Failed to refresh registry on startup", "error", err)
 		}
@@ -367,9 +374,17 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	exePath := cfg.Config.ExecutablePath
 
 	var asarPath string
-	if runtime.GOOS == "darwin" {
+	switch {
+	case runtime.GOOS == "darwin":
 		asarPath = filepath.Join(exePath, "Contents", "Resources", "app.asar")
-	} else {
+	case isAppImagePath(exePath):
+		mountPath, err := a.appImageMount.ensureMounted(exePath)
+		if err != nil {
+			a.Logger.Warn("Failed to mount AppImage for game version detection", "error", err, "exePath", exePath)
+			return notDetected
+		}
+		asarPath = filepath.Join(mountPath, "resources", "app.asar")
+	default:
 		asarPath = filepath.Join(filepath.Dir(exePath), "resources", "app.asar")
 	}
 
@@ -839,6 +854,7 @@ func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
 		TileZoomLevel: 15,
 		Places:        places,
 		Colors:        constants.MAP_COLORS,
+		GameVersion:   a.GetGameVersion().Version,
 	}
 	manifest := types.MetroMakerModManifest{
 		Id:          "com.railyard.maploader",

@@ -157,6 +157,7 @@ func (r *Registry) convertMapManifests(
 			CityCode:         raw.CityCode,
 			Country:          normalizeMapCountry(raw.Country),
 			Location:         raw.Location,
+			SubLocation:      raw.SubLocation,
 			Population:       raw.Population,
 			DataSource:       raw.DataSource,
 			SourceQuality:    raw.SourceQuality,

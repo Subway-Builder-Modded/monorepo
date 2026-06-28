@@ -224,7 +224,7 @@ export function HomePage() {
       <PageHeading
         icon={TrainTrack}
         title="Railyard"
-        className="mb-6 sm:mb-8 [&_h1]:gap-3.5 [&_h1]:text-6xl sm:[&_h1]:text-7xl [&_h1_svg]:size-[1.05em]"
+        className="mb-6 sm:mb-8 [&>div:last-child>div]:items-center [&_h1]:gap-3.5 [&_h1]:text-6xl sm:[&_h1]:text-7xl [&_h1_svg]:size-[1.05em]"
       />
 
       <div className="relative z-10 grid grid-cols-1 gap-4 md:grid-cols-2">
