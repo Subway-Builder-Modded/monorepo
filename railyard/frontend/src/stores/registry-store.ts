@@ -61,7 +61,7 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
   modDownloadTotals: {},
   mapDownloadTotals: {},
   downloadTotalsLoaded: false,
-  loading: false,
+  loading: true,
   refreshing: false,
   startupRefreshing: false,
   error: null,

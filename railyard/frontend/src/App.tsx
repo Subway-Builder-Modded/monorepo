@@ -88,6 +88,13 @@ function App() {
         },
       },
       {
+        eventName: 'registry:ready',
+        handler: () => {
+          void useRegistryStore.getState().initialize();
+          void useInstalledStore.getState().initialize();
+        },
+      },
+      {
         eventName: 'download:cancelled',
         handler: (payload: DownloadCancelledEvent) => {
           if (payload?.itemId) {
@@ -122,19 +129,6 @@ function App() {
           initializeGame();
         },
       },
-      {
-        name: 'bootstrap-registry-state',
-        enabled: isBackendReady && configInitialized && isConfigured,
-        run: async () => {
-          const { initialize: initializeRegistry } =
-            useRegistryStore.getState();
-          const { initialize: initializeInstalled } =
-            useInstalledStore.getState();
-
-          await initializeRegistry();
-          await initializeInstalled();
-        },
-      },
     ],
     consumePendingDeepLink: () => ConsumePendingDeepLink(),
     getProjectRoute: (type, id) => `/project/${type}/${encodeURIComponent(id)}`,
@@ -147,8 +141,6 @@ function App() {
 
   const baseLoading =
     !startupReady || !configInitialized || !profileInitialized;
-  const registryLoading =
-    showRegistrySteps && (!registryInitialized || !installedInitialized);
 
   // Build loading states based on current initialization progress
   const loadingStates = [
@@ -156,28 +148,15 @@ function App() {
     { text: 'Loading configuration' },
     { text: 'Applying theme preferences' },
     { text: 'Loading user profile' },
-    ...(showRegistrySteps
-      ? [
-          { text: 'Connecting to registry' },
-          { text: 'Loading installed content' },
-        ]
-      : []),
   ];
 
   let currentStep = 0;
   if (startupReady) currentStep = 1;
   if (startupReady && configInitialized) currentStep = 2;
   if (startupReady && configInitialized) currentStep = 3;
-  if (startupReady && configInitialized && profileInitialized) {
-    currentStep = 3;
-    if (showRegistrySteps) {
-      currentStep = 4;
-      if (registryInitialized) currentStep = 5;
-      if (registryInitialized && installedInitialized) currentStep = 6;
-    }
-  }
+  if (startupReady && configInitialized && profileInitialized) currentStep = 4;
 
-  if (baseLoading || registryLoading) {
+  if (baseLoading) {
     return (
       <div className="railyard-accent">
         <SuiteLoader
