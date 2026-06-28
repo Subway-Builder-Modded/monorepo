@@ -111,16 +111,8 @@ function generateTabs(places) {
     let colorsData = JSON.parse(window.localStorage.getItem("map_custom_colors"));
     let currentTheme = window.SubwayBuilderAPI.ui.getResolvedTheme().toUpperCase();
     let themeObject = `custom${capitalizeString(currentTheme)}Colors`;
-    let colorToUsePark;
-    let colorToUseAirport;
-
-    if (colorsData.useCustomColors) {
-      colorToUsePark = colorsData[themeObject]?.parks ? colorsData[themeObject].parks : config.colors[currentTheme].PARK;
-      colorToUseAirport = colorsData[themeObject]?.airports ? colorsData[themeObject].airports : config.colors[currentTheme].AIRPORT;
-    } else {
-      colorToUsePark = config.colors[currentTheme].PARK;
-      colorToUseAirport = config.colors[currentTheme].AIRPORT;
-    }
+    let colorToUsePark = colorsData[themeObject].parks;
+    let colorToUseAirport = colorsData[themeObject].airports;
 
     function isFoundationsVisible(map) {
       const layers = map.getStyle().layers;
