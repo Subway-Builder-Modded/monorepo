@@ -90,8 +90,8 @@ function App() {
       {
         eventName: 'registry:ready',
         handler: () => {
-          void useRegistryStore.getState().initialize();
-          void useInstalledStore.getState().initialize();
+          void useRegistryStore.getState().reload();
+          void useInstalledStore.getState().updateInstalledLists();
         },
       },
       {
@@ -127,6 +127,19 @@ function App() {
           await initializeConfig();
           await initializeProfile();
           initializeGame();
+        },
+      },
+      {
+        name: 'bootstrap-registry-state',
+        enabled: isBackendReady && configInitialized && isConfigured,
+        run: async () => {
+          const { initialize: initializeRegistry } =
+            useRegistryStore.getState();
+          const { initialize: initializeInstalled } =
+            useInstalledStore.getState();
+
+          await initializeRegistry();
+          await initializeInstalled();
         },
       },
     ],

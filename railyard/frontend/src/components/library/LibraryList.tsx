@@ -6,7 +6,7 @@ import type {
   SortState,
 } from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
-import { formatSourceQuality } from '@subway-builder-modded/config';
+import { formatSourceQuality, resolveMapLocation } from '@subway-builder-modded/config';
 import { TEXT_SORT_FIELDS } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
@@ -329,7 +329,7 @@ function LibraryListRow({
 
   const badges = isMap
     ? [
-        map?.location,
+        resolveMapLocation(map ?? {}),
         formatSourceQuality(map?.source_quality ?? ''),
         map?.level_of_detail,
         ...(map?.special_demand ?? []),

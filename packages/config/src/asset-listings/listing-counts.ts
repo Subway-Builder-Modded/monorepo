@@ -2,6 +2,8 @@ interface ModListingMatches {
 	tags?: string[] | null;
 }
 
+import { resolveMapLocation } from './map-filter-values';
+
 interface MapListingMatches {
 	location?: string | null;
 	sub_location?: string | null;
@@ -54,7 +56,7 @@ export function buildAssetListingCounts(
 		valuesByItem: mods.map((item) => item.tags ?? []),
 	});
 	const mapLocationCounts = buildListingCounts({
-		valuesByItem: maps.map((item) => [item.sub_location ?? item.location]),
+		valuesByItem: maps.map((item) => [resolveMapLocation(item)]),
 		dedupePerItem: false,
 	});
 	const mapSourceQualityCounts = buildListingCounts({

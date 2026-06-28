@@ -52,6 +52,21 @@ export const LEVEL_OF_DETAIL_VALUES = [
 	'high-detail',
 ] as const;
 
+/**
+ * Returns the most specific location tag available for a map manifest.
+ * Prefers `sub_location` (e.g. "central-europe") over the legacy `location`
+ * field ("europe") so that display and filtering automatically use sub-regions
+ * once manifests are migrated. When Phase 2 is complete and `location` is
+ * updated directly to the sub-region, this function can be simplified to just
+ * return `location`.
+ */
+export function resolveMapLocation(map: {
+	location?: string | null;
+	sub_location?: string | null;
+}): string | undefined {
+	return map.sub_location ?? map.location ?? undefined;
+}
+
 export function buildSpecialDemandValues(
 	maps: ReadonlyArray<{ special_demand?: string[] | null }>,
 ): string[] {

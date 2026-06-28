@@ -3,7 +3,7 @@ import {
   ItemCard as SharedItemCard,
 } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
-import { assetTypeToListingPath } from '@subway-builder-modded/config';
+import { assetTypeToListingPath, resolveMapLocation } from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 
@@ -63,7 +63,7 @@ export function ItemCard({
       countryFlag={
         CountryFlag && <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
       }
-      location={mapItem?.location}
+      location={mapItem ? resolveMapLocation(mapItem) : undefined}
       source_quality={mapItem?.source_quality}
       level_of_detail={mapItem?.level_of_detail}
       special_demand={mapItem?.special_demand}

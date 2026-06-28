@@ -2,7 +2,7 @@ import {
   type AssetType,
   assetTypeToListingPath,
 } from '@subway-builder-modded/config';
-import { formatSourceQuality } from '@subway-builder-modded/config';
+import { formatSourceQuality, resolveMapLocation } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { AppDialog } from '@subway-builder-modded/shared-ui';
@@ -437,7 +437,7 @@ export function ProjectHeader({
 
   const badges = mapItem
     ? [
-        mapItem.location,
+        resolveMapLocation(mapItem),
         formatSourceQuality(mapItem.source_quality),
         mapItem.level_of_detail,
         ...(mapItem.special_demand ?? []),
