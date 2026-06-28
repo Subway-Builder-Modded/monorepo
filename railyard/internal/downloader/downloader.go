@@ -933,7 +933,7 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 	gameVersion, ok := gameVersionResp.DetectedVersion()
 	if !ok {
 		resp := d.installError(
-			assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
+			assetType, assetID, version, types.ConfigData{}, types.InstallErrorGameVersionUndetectable,
 			"Cannot verify compatibility: game version could not be detected",
 			nil,
 			"asset_id", assetID,

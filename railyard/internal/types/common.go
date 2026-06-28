@@ -63,6 +63,7 @@ const (
 	InstallErrorPersistStateFailed         DownloaderErrorType = "install_persist_state_failed"
 	InstallErrorDependencyResolutionFailed DownloaderErrorType = "install_dependency_resolution_failed"
 	InstallErrorIncompatibleGameVersion    DownloaderErrorType = "install_incompatible_game_version"
+	InstallErrorGameVersionUndetectable   DownloaderErrorType = "install_game_version_undetectable"
 	UninstallErrorNotInstalled             DownloaderErrorType = "uninstall_not_installed"
 	UninstallErrorFilesystem               DownloaderErrorType = "uninstall_filesystem_error"
 	UninstallErrorPersistState             DownloaderErrorType = "uninstall_persist_state_failed"
@@ -96,6 +97,10 @@ var autoPurgeDownloadErrorTypes = map[DownloaderErrorType]struct{}{
 	InstallErrorChecksumFailed:  {},
 	// Error for a version removed from the installable set while the app is running; ReconcileSubscriptionVersions repairs the same condition before sync at startup.
 	InstallErrorVersionNotFound: {},
+	// Game version incompatibility errors: subscription is purged so the user is not saddled with an asset that silently never installs.
+	// The initial failure is still surfaced to the user before purge.
+	InstallErrorIncompatibleGameVersion:  {},
+	InstallErrorGameVersionUndetectable: {},
 	// TODO: Add another error if the map/mod salt is not present in the installed folder
 }
 
