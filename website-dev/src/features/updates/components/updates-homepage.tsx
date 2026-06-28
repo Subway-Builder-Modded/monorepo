@@ -12,11 +12,12 @@ import { resolveHeadingActions } from "@/config/shared/heading-actions";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { UpdateEntryCard } from "./update-entry-card";
 import { getUpdatesHomepageIdentity } from "@/features/updates/lib/identity";
+import { findLatestBadgeEntry } from "@/features/updates/lib/latest";
 
 export function UpdatesHomepage({ suiteId }: { suiteId: UpdatesSuiteId }) {
   const suite = getSuiteById(suiteId);
   const entries = useMemo(() => getUpdatesEntries(suiteId), [suiteId]);
-  const latestEntry = entries[0] ?? null;
+  const latestEntry = findLatestBadgeEntry(entries);
   const suiteConfig = getUpdatesSuiteConfig(suiteId);
   const identity = getUpdatesHomepageIdentity(suiteId);
   const headingActions = resolveHeadingActions(suiteConfig?.homepage.actions, { suiteId });

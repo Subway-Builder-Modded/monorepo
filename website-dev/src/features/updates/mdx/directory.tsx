@@ -5,6 +5,7 @@ import { UpdateEntryCard } from "@/features/updates/components/update-entry-card
 import { useUpdatesRoute } from "./updates-route-context";
 import { DirectoryShell } from "@/features/content/components/directory-shell";
 import { resolveIcon } from "@subway-builder-modded/icons";
+import { findLatestBadgeEntry } from "@/features/updates/lib/latest";
 
 type DirectoryProps = {
   path?: string;
@@ -26,7 +27,7 @@ export function Directory({ path, suiteId, icon, label, emptyLabel }: DirectoryP
     return getUpdateDirectoryEntries(resolvedSuiteId, folder);
   }, [resolvedPath, resolvedSuiteId]);
 
-  const latestId = entries[0]?.id ?? null;
+  const latestId = findLatestBadgeEntry(entries)?.id ?? null;
   const SeparatorIcon = icon ? resolveIcon(icon) : undefined;
 
   return (
