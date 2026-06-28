@@ -18,7 +18,8 @@ describe("resolvePageMetadata", () => {
     expect(metadata.pageTitle).toBe("Analytics | Railyard");
     expect(metadata.description).toMatch(/download analytics/i);
     expect(metadata.suite.id).toBe("railyard");
-    expect(metadata.imagePath).toBe("/images/embeds/railyard.svg");
+    expect(metadata.imagePath).toBe("/images/railyard/icon.png");
+    expect(metadata.themeColor).toBe("#19d89c");
   });
 
   it("resolves /railyard homepage metadata from the site navigation config", () => {
@@ -60,7 +61,7 @@ describe("resolvePageMetadata", () => {
     expect(metadata.title).toBe("Home");
     expect(metadata.pageTitle).toBe("Home | Registry");
     expect(metadata.suite.id).toBe("registry");
-    expect(metadata.imagePath).toBe("/images/embeds/registry.svg");
+    expect(metadata.imagePath).toBe("/images/registry/icon.png");
   });
 
   it("resolves updates homepage metadata from shared updates identity", () => {
@@ -190,7 +191,7 @@ describe("resolvePageMetadata", () => {
     );
     expect(metadata.pageTitle).toBe("Playground | Registry");
     expect(metadata.suite.id).toBe("registry");
-    expect(metadata.imagePath).toBe("/images/embeds/registry.svg");
+    expect(metadata.imagePath).toBe("/images/registry/icon.png");
   });
 
   it("resolves /railyard/analytics metadata from navigation config", () => {

@@ -33,6 +33,7 @@ export type ResolvedPageMetadata = {
   suite: SiteSuite;
   pageTitle: string;
   imagePath: string;
+  themeColor: string;
 };
 
 const PAGE_METADATA_OVERRIDES: Record<string, PageMetadataDefinition> = {
@@ -69,7 +70,11 @@ function getSuiteImagePath(suiteId: SiteSuiteId): string {
     return DEFAULT_SITE_LOGO_PATH;
   }
 
-  return `/images/embeds/${suiteId}.svg`;
+  return `/images/${suiteId}/icon.png`;
+}
+
+function getSuiteThemeColor(suiteId: SiteSuiteId): string {
+  return getSuiteById(suiteId).accent.dark;
 }
 
 function resolveRegistryThumbnail(routeSegment: string, id: string, gallery: string[] | undefined) {
@@ -178,6 +183,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
         suite,
         pageTitle: `${title} | ${suite.title}`,
         imagePath: getSuiteImagePath(docsMatch.suiteId),
+        themeColor: getSuiteThemeColor(docsMatch.suiteId),
       };
     }
 
@@ -194,6 +200,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
       suite,
       pageTitle: formatPageTitle(title, suite),
       imagePath: getSuiteImagePath(docsMatch.suiteId),
+      themeColor: getSuiteThemeColor(docsMatch.suiteId),
     };
   }
 
@@ -210,6 +217,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
         suite,
         pageTitle: `${UPDATES_HOMEPAGE_TITLE} | ${suite.title}`,
         imagePath: getSuiteImagePath(updatesMatch.suiteId),
+        themeColor: getSuiteThemeColor(updatesMatch.suiteId),
       };
     }
 
@@ -223,6 +231,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
       suite,
       pageTitle: formatPageTitle(updateIdentity.title, suite),
       imagePath: getSuiteImagePath(updatesMatch.suiteId),
+      themeColor: getSuiteThemeColor(updatesMatch.suiteId),
     };
   }
 
@@ -248,6 +257,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
     suite,
     pageTitle: formatPageTitle(title, suite),
     imagePath: getSuiteImagePath(suite.id),
+    themeColor: getSuiteThemeColor(suite.id),
   };
 }
 
