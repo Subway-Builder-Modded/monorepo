@@ -1,0 +1,53 @@
+---
+title: v0.2.4
+icon: TrainTrack
+date: June 28, 2026
+tag: beta
+url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.4
+previousVersion: v0.2.3
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.3...v0.2.4
+---
+
+<ChangelogSection type="features">
+
+- Added `.railyard_{asset_type}` shared directory support for maps
+  - Assets can now include this folder in their `.zip` and Railyard will preserve the files there and place them in the asset's installed directory
+- Added support for `buildings_index.bin` (post 1.3.0 map building index format)
+  - Railyard now loads the `.bin` or `.json` index conditionally depending on the user's installed game version
+- Added country-name search (including endonyms such as 日本, Eesti, etc.) for maps
+- Added game version incompatibility checks for both asset types
+  - Assets marked incompatible with the installed game version now have an `INCOMPATIBLE` status in the library page
+  - Launching the game with any incompatibilities now shows a popup asking the user for confirmation before continuing
+  - Map incompatibility is determined automatically from the presence of the new `.bin.gz` buildings index format
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+- Persist cache of asset versions to disk and use conditional fetches via ETags to reduce Github API request churn
+- Replaced large PNG/JPG with WebP on `registry` and moved app-unused `grid/base_map` files to a separate branch to reduce refresh/clone size
+  - Total clone size should now be around ~200 MB rather than ~1.4 GB
+- Registry clone no longer blocks app startup
+- Map thumbnails now generate based on the zoom level of the map config's InitialViewState 
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Fixed download button enabled even if an asset was not compatible with the current game version (and added help text)
+- Fixed country flags not rendering on **Browse**/**Home**
+- Fixed a bug where the game could be launched twice (if the initial launch was delayed)
+- Fixed laggy search caused by eager rendering and excessive use of Fuse
+- Fixed an issue where a map was downloadable despite not having an integrity check
+- Fixed an issue where new assets were not shown on the frontend due to localization inconsistencies in date mapping
+- Fixed issue where newly released assets without passing integrity could be installed via update
+- Fixed game version dependency parsing to honor Custom JSON version expressions over `manifest.json` when provided
+- Fixed Railyard logo not being correctly centered on Home Page
+
+</ChangelogSection>
+
+<ChangelogSection type="other-notes">
+
+- Split `europe` map tag into multiple regions
+
+</ChangelogSection>

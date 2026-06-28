@@ -1,0 +1,24 @@
+---
+title: Release Candidate 3
+icon: TrainTrack
+date: June 27, 2026
+tag: release-candidate
+url: /contribute
+previousVersion: v0.2.4+rc.2
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.4+rc.2...v0.2.4+rc.3
+---
+
+<ChangelogSection type="features">
+
+- Added game version incompatibility checks for both asset types
+  - Assets marked incompatible with the installed game version now have an `INCOMPATIBLE` status in the library page
+  - Launching the game with any incompatibilities now shows a popup asking the user for confirmation before continuing
+  - Map incompatibility is determined automatically from the presence of the new `.bin.gz` buildings index format
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Fixed Railyard logo not being correctly centered on Home Page
+
+</ChangelogSection>
