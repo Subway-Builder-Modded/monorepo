@@ -76,6 +76,16 @@ func repoHasTags(repo *git.Repository) bool {
 	return err == nil
 }
 
+// localCloneHasTags reports whether the on-disk registry clone carries tag refs (a legacy full-tag
+// clone). Returns false when the repo cannot be opened, leaving the normal open/clone paths to handle it.
+func (r *Registry) localCloneHasTags() bool {
+	repo, err := git.PlainOpen(r.repoPath)
+	if err != nil {
+		return false
+	}
+	return repoHasTags(repo)
+}
+
 // forceClone removes any existing directory and performs a fresh clone,
 // checking out only registrySparseCheckoutDirs.
 func (r *Registry) forceClone() error {
