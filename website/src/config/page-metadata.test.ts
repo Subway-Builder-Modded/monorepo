@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { resolvePageMetadata, resolvePageMetadataAsync } from "@/config/page-metadata";
+import {
+  resolvePageMetadata,
+  resolvePageMetadataAsync,
+} from "@/config/page-metadata";
 
 describe("resolvePageMetadata", () => {
   it("returns unsuited homepage metadata with default logo", () => {
@@ -18,7 +21,8 @@ describe("resolvePageMetadata", () => {
     expect(metadata.pageTitle).toBe("Analytics | Railyard");
     expect(metadata.description).toMatch(/download analytics/i);
     expect(metadata.suite.id).toBe("railyard");
-    expect(metadata.imagePath).toBe("/images/embeds/railyard.svg");
+    expect(metadata.imagePath).toBe("/images/railyard/icon.png");
+    expect(metadata.themeColor).toBe("#19d89c");
   });
 
   it("resolves /railyard homepage metadata from the site navigation config", () => {
@@ -60,7 +64,7 @@ describe("resolvePageMetadata", () => {
     expect(metadata.title).toBe("Home");
     expect(metadata.pageTitle).toBe("Home | Registry");
     expect(metadata.suite.id).toBe("registry");
-    expect(metadata.imagePath).toBe("/images/embeds/registry.svg");
+    expect(metadata.imagePath).toBe("/images/registry/icon.png");
   });
 
   it("resolves updates homepage metadata from shared updates identity", () => {
@@ -79,7 +83,9 @@ describe("resolvePageMetadata", () => {
 
     expect(metadata.title).toBe("v1.0.0");
     expect(metadata.pageTitle).toBe("v1.0.0 | Template Mod");
-    expect(metadata.description).toBe("v1.0.0 changelog and release notes for Template Mod.");
+    expect(metadata.description).toBe(
+      "v1.0.0 changelog and release notes for Template Mod.",
+    );
     expect(metadata.suite.id).toBe("template-mod");
   });
 
@@ -96,21 +102,26 @@ describe("resolvePageMetadata", () => {
       new Response(
         JSON.stringify({
           name: "South Florida",
-          description: "# South Florida\n\nA detailed map of South Florida for Subway Builder.",
+          description:
+            "# South Florida\n\nA detailed map of South Florida for Subway Builder.",
           gallery: ["gallery/preview.webp"],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
 
     try {
-      const metadata = await resolvePageMetadataAsync("/registry/maps/south-florida/analytics");
+      const metadata = await resolvePageMetadataAsync(
+        "/registry/maps/south-florida/analytics",
+      );
 
       expect(metadata.title).toBe("South Florida");
       expect(metadata.pageTitle).toBe("South Florida | Registry");
       expect(metadata.description).toBe(
         "South Florida A detailed map of South Florida for Subway Builder.",
       );
-      expect(metadata.imagePath).toBe("/registry-cache/maps/south-florida/gallery/preview.webp");
+      expect(metadata.imagePath).toBe(
+        "/registry-cache/maps/south-florida/gallery/preview.webp",
+      );
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -127,7 +138,9 @@ describe("resolvePageMetadata", () => {
       );
 
     try {
-      const authorMetadata = await resolvePageMetadataAsync("/registry/authors/ahkimn");
+      const authorMetadata = await resolvePageMetadataAsync(
+        "/registry/authors/ahkimn",
+      );
       const projectMetadata = await resolvePageMetadataAsync(
         "/registry/authors/ahkimn/subwaybuilder-jp-maps/analytics",
       );
@@ -136,7 +149,9 @@ describe("resolvePageMetadata", () => {
       expect(authorMetadata.description).toBe(
         "View the Registry statistics, analytics, and listings for Yukina-.",
       );
-      expect(projectMetadata.pageTitle).toBe("subwaybuilder-jp-maps | Registry");
+      expect(projectMetadata.pageTitle).toBe(
+        "subwaybuilder-jp-maps | Registry",
+      );
       expect(projectMetadata.description).toBe(
         "View the Registry statistics, analytics, and listings for subwaybuilder-jp-maps.",
       );
@@ -190,7 +205,7 @@ describe("resolvePageMetadata", () => {
     );
     expect(metadata.pageTitle).toBe("Playground | Registry");
     expect(metadata.suite.id).toBe("registry");
-    expect(metadata.imagePath).toBe("/images/embeds/registry.svg");
+    expect(metadata.imagePath).toBe("/images/registry/icon.png");
   });
 
   it("resolves /railyard/analytics metadata from navigation config", () => {
