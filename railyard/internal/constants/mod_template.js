@@ -12,7 +12,6 @@ function capitalizeString(str) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-/** Why the FUCK do i need this */
 function semverCompare(v1, v2) {
   const v1Parts = v1.split('.').map(Number);
   const v2Parts = v2.split('.').map(Number);
