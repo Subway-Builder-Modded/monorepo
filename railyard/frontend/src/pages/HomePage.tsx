@@ -224,7 +224,7 @@ export function HomePage() {
       <PageHeading
         icon={TrainTrack}
         title="Railyard"
-        className="mb-6 sm:mb-8 [&>div:last-child]:flex [&>div:last-child]:items-center [&>div:last-child]:justify-center [&>div:last-child>div]:items-center [&>div:last-child>div]:justify-center [&>div:last-child>div>div]:!flex-none [&>div:last-child>div>span]:size-[3.75rem] sm:[&>div:last-child>div>span]:size-[4.5rem] [&>div:last-child>div>span_svg]:size-10 sm:[&>div:last-child>div>span_svg]:size-12 [&_h1]:gap-3.5 [&_h1]:text-6xl [&_h1]:leading-none sm:[&_h1]:text-7xl"
+        className="mb-6 sm:mb-8 [&>div:last-child]:flex [&>div:last-child]:items-center [&>div:last-child]:justify-center [&>div:last-child>div]:items-center [&>div:last-child>div]:justify-center [&>div:last-child>div>div]:!flex-none [&>div:last-child>div>span]:size-[3.25rem] sm:[&>div:last-child>div>span]:size-16 [&>div:last-child>div>span_svg]:size-8 sm:[&>div:last-child>div>span_svg]:size-10 [&_h1]:gap-3.5 [&_h1]:text-6xl [&_h1]:leading-none sm:[&_h1]:text-7xl"
       />
 
       <div className="relative z-10 grid grid-cols-1 gap-4 md:grid-cols-2">
