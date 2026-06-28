@@ -154,7 +154,9 @@ describe("getRegistryAuthorUrl", () => {
     expect(getRegistryAuthorUrl("author-a", "analytics")).toBe(
       "/registry/authors/author-a/analytics",
     );
-    expect(getRegistryAuthorUrl("author-a", "projects")).toBe("/registry/authors/author-a/projects");
+    expect(getRegistryAuthorUrl("author-a", "projects")).toBe(
+      "/registry/authors/author-a/projects",
+    );
   });
 });
 
