@@ -1071,6 +1071,7 @@ export namespace types {
 	    city_code: string;
 	    country: string;
 	    location: string;
+	    sub_location?: string;
 	    population: number;
 	    data_source: string;
 	    source_quality: string;
@@ -1100,6 +1101,7 @@ export namespace types {
 	        this.city_code = source["city_code"];
 	        this.country = source["country"];
 	        this.location = source["location"];
+        this.sub_location = source["sub_location"];
 	        this.population = source["population"];
 	        this.data_source = source["data_source"];
 	        this.source_quality = source["source_quality"];

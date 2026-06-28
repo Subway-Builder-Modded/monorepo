@@ -89,6 +89,15 @@ describe('buildAssetListingCounts', () => {
     expect(result.modTagCounts).toEqual({});
     expect(result.mapLocationCounts).toEqual({});
   });
+
+  it('uses sub_location over location when present', () => {
+    const { mapLocationCounts } = buildAssetListingCounts([], [
+      { location: 'europe', sub_location: 'central-europe' },
+      { location: 'europe', sub_location: 'south-europe' },
+      { location: 'europe' },
+    ]);
+    expect(mapLocationCounts).toEqual({ 'central-europe': 1, 'south-europe': 1, europe: 1 });
+  });
 });
 
 describe('filterVisibleListingValues', () => {

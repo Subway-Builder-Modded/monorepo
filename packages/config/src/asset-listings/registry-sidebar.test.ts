@@ -27,6 +27,14 @@ describe('buildRegistryTagCategories', () => {
       'other',
     ]);
     expect(categories[0]?.tags).toEqual(['europe']);
+
+    // Verify europe sub-region tags also land in regions
+    const regions = buildRegistryTagCategories({
+      typeId: 'maps',
+      availableTags: ['north-europe', 'central-europe', 'south-europe', 'west-europe', 'east-europe'],
+    });
+    expect(regions[0]?.id).toBe('regions');
+    expect(regions[0]?.tags).toEqual(['central-europe', 'east-europe', 'north-europe', 'south-europe', 'west-europe']);
     expect(categories[1]?.tags).toEqual(['high-quality']);
     expect(categories[2]?.tags).toEqual(['medium-detail']);
     expect(categories[3]?.tags).toEqual(['schools']);

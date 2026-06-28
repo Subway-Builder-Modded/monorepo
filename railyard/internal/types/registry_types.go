@@ -105,6 +105,7 @@ type MapManifest struct {
 	CityCode         string           `json:"city_code"`
 	Country          string           `json:"country"`
 	Location         string           `json:"location"`
+	SubLocation      string           `json:"sub_location,omitempty"`
 	Population       int              `json:"population"`
 	DataSource       string           `json:"data_source"`
 	SourceQuality    string           `json:"source_quality"`
