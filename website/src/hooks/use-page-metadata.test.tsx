@@ -18,6 +18,7 @@ describe("usePageMetadata", () => {
     expect(document.title).toBe("Community");
     expect(findMeta("property", "og:title")?.content).toBe("Community");
     expect(findMeta("property", "og:image")?.content).toContain("/logo.svg");
+    expect(findMeta("name", "theme-color")?.content).toBe("#ffffff");
   });
 
   it("updates browser and social metadata for cache-backed registry pages", async () => {
@@ -45,6 +46,7 @@ describe("usePageMetadata", () => {
       expect(findMeta("property", "og:image")?.content).toContain(
         "/registry-cache/maps/south-florida/gallery/preview.webp",
       );
+      expect(findMeta("name", "theme-color")?.content).toBe("#c77dff");
     } finally {
       globalThis.fetch = originalFetch;
     }

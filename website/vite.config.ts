@@ -34,37 +34,51 @@ const STATIC_SUITE_METADATA = {
   general: {
     title: "General",
     imagePath: "/logo.svg",
+    themeColor: "#ffffff",
     homeDescription: DEFAULT_SITE_DESCRIPTION,
   },
   railyard: {
     title: "Railyard",
-    imagePath: "/images/embeds/railyard.svg",
+    imagePath: "/images/railyard/icon.png",
+    themeColor: "#19d89c",
     homeDescription: "Discover the all-in-one manager for Subway Builder community-made content.",
   },
   registry: {
     title: "Registry",
-    imagePath: "/images/embeds/registry.svg",
+    imagePath: "/images/registry/icon.png",
+    themeColor: "#c77dff",
     homeDescription: "Discover the GitHub-hosted registry powering Railyard and its services.",
   },
   "template-mod": {
     title: "Template Mod",
-    imagePath: "/images/embeds/template-mod.svg",
+    imagePath: "/images/template-mod/icon.png",
+    themeColor: "#93c5fd",
     homeDescription:
       "Discover the all-inclusive TypeScript template for creating Subway Builder mods with ease.",
   },
   website: {
     title: "Website",
-    imagePath: "/images/embeds/website.svg",
+    imagePath: "/images/website/icon.png",
+    themeColor: "#ffbe73",
     homeDescription:
       "Explore the Subway Builder Modded website, its changelog, and public analytics.",
   },
   depot: {
     title: "Depot",
-    imagePath: "/images/embeds/depot.svg",
+    imagePath: "/images/depot/icon.png",
+    themeColor: "#cfa22e",
     homeDescription:
       "Discover the core Python library powering the Subway Builder Modded map creation ecosystem.",
   },
-} satisfies Record<string, { homeDescription: string; imagePath: string; title: string }>;
+} satisfies Record<
+  string,
+  {
+    homeDescription: string;
+    imagePath: string;
+    themeColor: string;
+    title: string;
+  }
+>;
 const STATIC_NAV_METADATA: Record<string, { description: string; title: string }> = {
   "/": { title: DEFAULT_SITE_TITLE, description: DEFAULT_SITE_DESCRIPTION },
   "/community": {
@@ -170,13 +184,22 @@ const STATIC_NAV_METADATA: Record<string, { description: string; title: string }
 type StaticRegistryManifest = {
   description?: string;
   gallery?: string[];
+  is_test?: boolean;
   name?: string;
   source?: string;
 };
 
 type StaticRegistryIntegrity = {
-  listings?: Record<string, { versions?: Record<string, unknown> }>;
+  listings?: Record<
+    string,
+    {
+      has_complete_version?: boolean;
+      latest_semver_complete?: boolean;
+      versions?: Record<string, { is_complete?: boolean }>;
+    }
+  >;
 };
+type StaticRegistryIntegrityListing = NonNullable<StaticRegistryIntegrity["listings"]>[string];
 
 type StaticPageMetadata = {
   description: string;
@@ -184,6 +207,7 @@ type StaticPageMetadata = {
   pageTitle: string;
   pathname: string;
   suiteId: keyof typeof STATIC_SUITE_METADATA;
+  themeColor: string;
   title: string;
 };
 
@@ -234,7 +258,13 @@ function upsertCanonicalLink(html: string, href: string): string {
 
 function applyStaticMetadata(
   html: string,
-  metadata: { description: string; imagePath: string; pageTitle: string; pathname: string },
+  metadata: {
+    description: string;
+    imagePath: string;
+    pageTitle: string;
+    pathname: string;
+    themeColor: string;
+  },
 ): string {
   const pageUrl = toAbsoluteUrl(metadata.pathname);
   const imageUrl = toAbsoluteUrl(metadata.imagePath);
@@ -244,6 +274,7 @@ function applyStaticMetadata(
   );
 
   nextHtml = upsertMetaTag(nextHtml, "name", "description", metadata.description);
+  nextHtml = upsertMetaTag(nextHtml, "name", "theme-color", metadata.themeColor);
   nextHtml = upsertMetaTag(nextHtml, "property", "og:type", "website");
   nextHtml = upsertMetaTag(nextHtml, "property", "og:site_name", "Subway Builder Modded");
   nextHtml = upsertMetaTag(nextHtml, "property", "og:title", metadata.pageTitle);
@@ -334,6 +365,17 @@ function resolveRegistryThumbnail(
   return `/registry-cache/${routeSegment}/${encodeURIComponent(id)}/${first.replace(/^\/+/, "")}`;
 }
 
+function isStaticRegistryListingEmbeddable(
+  manifest: StaticRegistryManifest,
+  integrityListing: StaticRegistryIntegrityListing | undefined,
+): boolean {
+  return (
+    manifest.is_test !== true &&
+    integrityListing?.has_complete_version === true &&
+    integrityListing.latest_semver_complete === true
+  );
+}
+
 function resolveStaticDocsMetadata(
   route: string,
   contentDir: string,
@@ -391,7 +433,21 @@ function resolveStaticRegistryMetadata(
       path.join(publicDir, "registry-cache", routeSegment, id, "manifest.json"),
       {},
     );
-    if (!manifest.name) return null;
+    const integrity = readJsonFile<StaticRegistryIntegrity>(
+      path.join(publicDir, "registry-cache", routeSegment, "integrity.json"),
+      {},
+    );
+    const integrityListing = integrity.listings?.[id];
+    if (!manifest.name || !isStaticRegistryListingEmbeddable(manifest, integrityListing)) {
+      return null;
+    }
+    if (
+      parts[3] === "versions" &&
+      parts[4] &&
+      integrityListing?.versions?.[decodeURIComponent(parts[4])]?.is_complete !== true
+    ) {
+      return null;
+    }
     const title =
       parts[3] === "versions" && parts[4] ? decodeURIComponent(parts[4]) : manifest.name;
 
@@ -457,6 +513,7 @@ function resolveStaticMetadata(
     title,
     description,
     suiteId,
+    themeColor: suite.themeColor,
     pageTitle: formatStaticPageTitle(title, suiteId),
     imagePath: baseMetadata?.imagePath ?? suite.imagePath,
   };
@@ -555,19 +612,25 @@ function collectRegistryRoutes(publicDir: string): string[] {
     const ids = indexData[routeSegment] ?? Object.keys(integrity.listings ?? {});
 
     for (const id of ids) {
+      const manifest = readJsonFile<StaticRegistryManifest>(
+        path.join(collectionDir, id, "manifest.json"),
+        {},
+      );
+      const integrityListing = integrity.listings?.[id];
+      if (!isStaticRegistryListingEmbeddable(manifest, integrityListing)) {
+        continue;
+      }
+
       routes.add(`/registry/${routeSegment}/${id}`);
       for (const tab of STATIC_REGISTRY_DETAIL_TABS) {
         routes.add(`/registry/${routeSegment}/${id}/${tab}`);
       }
 
-      for (const version of Object.keys(integrity.listings?.[id]?.versions ?? {})) {
+      for (const [version, versionIntegrity] of Object.entries(integrityListing?.versions ?? {})) {
+        if (versionIntegrity.is_complete !== true) continue;
         routes.add(`/registry/${routeSegment}/${id}/versions/${version}`);
       }
 
-      const manifest = readJsonFile<StaticRegistryManifest>(
-        path.join(collectionDir, id, "manifest.json"),
-        {},
-      );
       const projectId = extractGithubRepoSlugFromUrl(manifest.source);
       if (projectId) {
         projectCounts.set(projectId, (projectCounts.get(projectId) ?? 0) + 1);
@@ -575,10 +638,9 @@ function collectRegistryRoutes(publicDir: string): string[] {
     }
   }
 
-  const authorsIndex = readJsonFile<{ authors?: Array<{ author_id?: string }> }>(
-    path.join(publicDir, "registry-cache", "authors", "index.json"),
-    {},
-  );
+  const authorsIndex = readJsonFile<{
+    authors?: Array<{ author_id?: string }>;
+  }>(path.join(publicDir, "registry-cache", "authors", "index.json"), {});
   for (const author of authorsIndex.authors ?? []) {
     if (!author.author_id) continue;
     routes.add(`/registry/authors/${author.author_id}`);
@@ -635,6 +697,7 @@ function staticEmbedHtmlPlugin(): Plugin {
           imagePath: STATIC_SUITE_METADATA.general.imagePath,
           pageTitle: DEFAULT_SITE_TITLE,
           pathname: "/404",
+          themeColor: STATIC_SUITE_METADATA.general.themeColor,
         }),
       );
       fs.writeFileSync(path.join(outDir, ".nojekyll"), "");

@@ -75,6 +75,7 @@ export function usePageMetadata({ pathname }: UsePageMetadataOptions) {
     document.title = metadata.pageTitle;
 
     upsertMeta("name", "description", metadata.description);
+    upsertMeta("name", "theme-color", metadata.themeColor);
     upsertMeta("property", "og:type", "website");
     upsertMeta("property", "og:site_name", "Subway Builder Modded");
     upsertMeta("property", "og:title", metadata.pageTitle);
