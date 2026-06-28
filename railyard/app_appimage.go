@@ -11,15 +11,16 @@ import (
 	"time"
 )
 
-// appImageMount holds a live --appimage-mount subprocess and its squashfs
-// mount path. It is reused across GetGameVersion calls and only re-mounted
-// when the AppImage file's mtime changes (i.e. the game was updated on disk).
+// appImageMount holds a live --appimage-mount subprocess and its mount path. It is reused across GetGameVersion calls and only re-mounted when the AppImage file's mtime changes.
 type appImageMount struct {
 	mu         sync.Mutex
 	cmd        *exec.Cmd
 	mountPath  string
 	sourcePath string
 	mtime      time.Time
+	// commandFor builds the mount command. nil uses the real AppImage --appimage-mount flag.
+	// Override in tests to avoid requiring a real AppImage binary.
+	commandFor func(exePath string) *exec.Cmd
 }
 
 // isAppImagePath reports whether path points to a Linux AppImage executable.
@@ -27,9 +28,7 @@ func isAppImagePath(path string) bool {
 	return runtime.GOOS == "linux" && strings.HasSuffix(strings.ToLower(path), ".appimage")
 }
 
-// ensureMounted returns the squashfs mount path for exePath, starting or
-// reusing a --appimage-mount subprocess as needed. The subprocess stays alive
-// so subsequent calls return instantly (just a mutex + stat).
+// ensureMounted returns the mount path for exePath.
 func (m *appImageMount) ensureMounted(exePath string) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -48,7 +47,11 @@ func (m *appImageMount) ensureMounted(exePath string) (string, error) {
 	// Tear down any stale mount before starting a new one.
 	m.teardownLocked()
 
-	cmd := exec.Command(exePath, "--appimage-mount")
+	buildCmd := m.commandFor
+	if buildCmd == nil {
+		buildCmd = func(p string) *exec.Cmd { return exec.Command(p, "--appimage-mount") }
+	}
+	cmd := buildCmd(exePath)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return "", fmt.Errorf("pipe AppImage stdout: %w", err)
@@ -57,8 +60,7 @@ func (m *appImageMount) ensureMounted(exePath string) (string, error) {
 		return "", fmt.Errorf("start AppImage mount: %w", err)
 	}
 
-	// --appimage-mount prints the mount path as its first (and only) stdout
-	// line, then blocks until killed.
+	// --appimage-mount prints the mount path as its first (and only) stdout line, then blocks until killed.
 	scanner := bufio.NewScanner(stdout)
 	if !scanner.Scan() {
 		_ = cmd.Process.Kill()
@@ -77,14 +79,14 @@ func (m *appImageMount) ensureMounted(exePath string) (string, error) {
 	return mountPath, nil
 }
 
-// teardown kills the mount subprocess, which also triggers the squashfs
-// unmount via the AppImage runtime's cleanup handler.
+// teardown tears down the mount, if any, and resets the state of the appImageMount.
 func (m *appImageMount) teardown() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.teardownLocked()
 }
 
+// teardownLocked tears down the mount without acquiring the mutex.
 func (m *appImageMount) teardownLocked() {
 	if m.cmd == nil {
 		return
