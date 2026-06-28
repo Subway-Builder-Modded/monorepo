@@ -79,6 +79,7 @@ describe("loadRegistryItemsForType", () => {
         description: "  Test map  ",
         tags: ["europe", "korea"],
         location: "east-asia",
+        sub_location: "central-europe",
         gallery: ["thumb.webp"],
         search_aliases: ["Gwangju Metropolitan City", "Kwangju"],
         city_code: "KWJ4",
@@ -104,7 +105,7 @@ describe("loadRegistryItemsForType", () => {
       name: "Gwangju 4",
       author: "Kim Alias",
       description: "Test map",
-      tags: ["korea", "east-asia"],
+      tags: ["korea", "central-europe"],
       searchAliases: ["Gwangju Metropolitan City", "Kwangju"],
       thumbnailSrc: "/registry-cache/maps/gwangju-4/thumb.webp",
       totalDownloads: 15,
@@ -118,6 +119,7 @@ describe("loadRegistryItemsForType", () => {
 
     expect(items[0]?.lastActivityAt).toBe(1_720_000_000_000);
     expect(items[0]?.tags).not.toContain("europe");
+    expect(items[0]?.tags).not.toContain("east-asia");
   });
 
   it("prefers manifest last_updated over integrity metadata", async () => {

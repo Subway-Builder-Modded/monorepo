@@ -12,7 +12,7 @@ describe('buildRegistryTagCategories', () => {
       typeId: 'maps',
       availableTags: [
         'schools',
-        'europe',
+        'west-europe',
         'medium-detail',
         'high-quality',
         'custom-tag',
@@ -26,7 +26,7 @@ describe('buildRegistryTagCategories', () => {
       'special-demand',
       'other',
     ]);
-    expect(categories[0]?.tags).toEqual(['europe']);
+    expect(categories[0]?.tags).toEqual(['west-europe']);
     expect(categories[1]?.tags).toEqual(['high-quality']);
     expect(categories[2]?.tags).toEqual(['medium-detail']);
     expect(categories[3]?.tags).toEqual(['schools']);

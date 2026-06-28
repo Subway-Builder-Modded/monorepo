@@ -44,6 +44,7 @@ export type RawRegistryManifest = {
   tags?: string[];
   search_aliases?: string[];
   location?: string;
+  sub_location?: string;
   source_quality?: string;
   level_of_detail?: string;
   special_demand?: string[];
