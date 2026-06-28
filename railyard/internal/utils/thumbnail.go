@@ -105,10 +105,15 @@ func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (
 		bboxToUse = &derived
 	}
 
-	minXTile := lon2tile(bboxToUse[0], 12)
-	maxXTile := lon2tile(bboxToUse[2], 12)
-	maxYTile := lat2tile(bboxToUse[1], 12)
-	minYTile := lat2tile(bboxToUse[3], 12)
+	zoom := int(cityConfig.InitialViewState.Zoom)
+	if zoom == 0 {
+		zoom = 12
+	}
+
+	minXTile := lon2tile(bboxToUse[0], zoom)
+	maxXTile := lon2tile(bboxToUse[2], zoom)
+	maxYTile := lat2tile(bboxToUse[1], zoom)
+	minYTile := lat2tile(bboxToUse[3], zoom)
 
 	proj := newProjection(minXTile, minYTile, maxXTile, maxYTile)
 
@@ -120,7 +125,7 @@ func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (
 
 	for x := minXTile; x <= maxXTile; x++ {
 		for y := minYTile; y <= maxYTile; y++ {
-			tileURL := fmt.Sprintf("http://127.0.0.1:%d/%s/12/%d/%d.mvt", port, cityCode, x, y)
+			tileURL := fmt.Sprintf("http://127.0.0.1:%d/%s/%d/%d/%d.mvt", port, cityCode, zoom, x, y)
 			buffer, err := fetchWithRetry(tileURL, 5, 200*time.Millisecond)
 			if err != nil {
 				log.Printf("Error fetching tile: %v\n", err)

@@ -23,6 +23,7 @@ interface RegistryState {
   initialized: boolean;
   ensureDownloadTotals: (options?: { force?: boolean }) => Promise<void>;
   initialize: () => Promise<void>;
+  reload: () => Promise<void>;
   refresh: () => Promise<void>;
   setStartupRefreshing: (value: boolean) => void;
 }
@@ -141,12 +142,21 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { mods, maps } = await loadRegistryData();
+      set({ mods, maps, initialized: true, loading: false });
+    } catch (err) {
       set({
-        mods,
-        maps,
+        error: err instanceof Error ? err.message : String(err),
         initialized: true,
         loading: false,
       });
+    }
+  },
+
+  reload: async () => {
+    set({ loading: true, error: null });
+    try {
+      const { mods, maps } = await loadRegistryData();
+      set({ mods, maps, initialized: true, loading: false });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : String(err),
