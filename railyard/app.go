@@ -370,6 +370,27 @@ func (a *App) cleanupTmpStaging(stage string) {
 	}
 }
 
+// findAsar walks up from exePath until it finds a directory that contains
+// Contents/Resources/app.asar, returning the full asar path. This handles both
+// the case where executablePath is the .app bundle and where it is the binary inside it.
+func findAsar(exePath string) (bool, string) {
+	dir := exePath
+	if info, err := os.Stat(exePath); err == nil && !info.IsDir() {
+		dir = filepath.Dir(exePath)
+	}
+	for {
+		candidate := filepath.Join(dir, "Contents", "Resources", "app.asar")
+		if _, err := os.Stat(candidate); err == nil {
+			return true, candidate
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return false, ""
+		}
+		dir = parent
+	}
+}
+
 // GetGameVersion detects the installed Subway Builder version from app.asar's
 // package.json, returning an empty version with a warning status if detection fails.
 // It is intentionally uncached; the game can update while Railyard runs, so every call re-detects to keep compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
@@ -389,7 +410,13 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	var asarPath string
 	switch {
 	case runtime.GOOS == "darwin":
-		asarPath = filepath.Join(exePath, "Contents", "Resources", "app.asar")
+		// executablePath may point to the .app bundle or a binary nested inside it.
+		found, foundPath := findAsar(exePath)
+		if !found {
+			a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
+			return notDetected
+		}
+		asarPath = foundPath
 	case isAppImagePath(exePath):
 		if a.appImageMount != nil {
 			mountPath := a.appImageMount.AppImageMountPath
