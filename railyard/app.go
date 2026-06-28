@@ -839,6 +839,7 @@ func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
 		TileZoomLevel: 15,
 		Places:        places,
 		Colors:        constants.MAP_COLORS,
+		GameVersion:   a.GetGameVersion().Version,
 	}
 	manifest := types.MetroMakerModManifest{
 		Id:          "com.railyard.maploader",

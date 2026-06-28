@@ -62,6 +62,7 @@ type MetroMakerModConfig struct {
 	Places        []MetroMakerPlace            `json:"places"`
 	Port          int                          `json:"port"`
 	Colors        map[string]map[string]string `json:"colors"`
+	GameVersion   string                       `json:"gameVersion"`
 }
 
 // MetroMakerPlace is a mod-config place entry: a map's ConfigData plus the buildings-index stem the game should load.
