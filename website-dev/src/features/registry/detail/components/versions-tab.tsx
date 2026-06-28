@@ -397,7 +397,7 @@ export function VersionsTab({
   return (
     <div className="mdx-table-wrap my-1 overflow-hidden rounded-lg border border-border/50">
       <ScrollArea scrollbars="horizontal" className="w-full pb-2">
-        <div className="min-w-[44rem] lg:min-w-0">
+        <div className="min-w-[44rem] xl:min-w-0">
           <table className="w-full table-fixed text-sm">
             <thead className="border-b border-border/50 bg-muted/30">
               <tr>

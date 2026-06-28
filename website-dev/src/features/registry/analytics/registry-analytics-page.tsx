@@ -3,6 +3,7 @@ import {
   BookText,
   ChartLine,
   ChartPie,
+  Clock,
   Download,
   ExternalLink,
   FileStack,
@@ -32,7 +33,11 @@ import {
   ScrollArea,
   getSortedRankSlotMap,
 } from "@subway-builder-modded/shared-ui";
-import { AnalyticsLineChart, AnalyticsPieChart } from "@subway-builder-modded/analytics";
+import {
+  AnalyticsLineChart,
+  AnalyticsPieChart,
+  AnalyticsStackedBarChart,
+} from "@subway-builder-modded/analytics";
 import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
@@ -279,6 +284,11 @@ function RegistryOverviewTab({
     Maps: row.downloads.maps,
     Mods: row.downloads.mods,
   }));
+  const cumulativeChartData = data.history.map((row) => ({
+    date: row.date,
+    Maps: row.cumulativeDownloads.maps,
+    Mods: row.cumulativeDownloads.mods,
+  }));
   const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
   const breakdown = buildPeriodBreakdown(data, period);
   const listingSlices: PieSlice[] = [
@@ -330,15 +340,33 @@ function RegistryOverviewTab({
         />
       </section>
 
+      <section className="space-y-3">
+        <SectionSeparator label="Cumulative Downloads" icon={ChartLine} className="mb-4" />
+        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+          <AnalyticsStackedBarChart
+            key="registry-cumulative-downloads-all-time"
+            data={cumulativeChartData}
+            bars={[
+              { key: "Maps", name: "Maps", color: "var(--registry-maps-accent)" },
+              { key: "Mods", name: "Mods", color: "var(--registry-mods-accent)" },
+            ]}
+            xAxisKey="date"
+            height={280}
+          />
+        </article>
+      </section>
+
       <div className="flex justify-center">
         <PeriodToggle
           value={period}
-          onChange={(nextPeriod) => navigate(OVERVIEW_PERIOD_PATHS[nextPeriod])}
+          onChange={(nextPeriod) =>
+            navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], { preserveScroll: true })
+          }
         />
       </div>
 
       <section className="space-y-3">
-        <SectionSeparator label="Downloads" icon={ChartLine} className="mb-4" />
+        <SectionSeparator label="Downloads Timeline" icon={Clock} className="mb-4" />
         <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
           <AnalyticsLineChart
             key={`registry-downloads-${period}`}
@@ -449,7 +477,7 @@ function RegistryRankingsTable<TRow>({
         <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
           <ScrollArea scrollbars="horizontal" className="w-full pb-2">
             <div
-              className="min-w-[var(--registry-rankings-table-min-width)] lg:min-w-0"
+              className="min-w-[var(--registry-rankings-table-min-width)] xl:min-w-0"
               style={{ "--registry-rankings-table-min-width": minTableWidth } as CSSProperties}
             >
               <Table className="table-fixed">
@@ -639,7 +667,9 @@ function RegistryContentTab({
       <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
         <PeriodToggle
           value={period}
-          onChange={(nextPeriod) => navigate(getContentPath(nextPeriod, assetTypeId))}
+          onChange={(nextPeriod) =>
+            navigate(getContentPath(nextPeriod, assetTypeId), { preserveScroll: true })
+          }
           className="grid-cols-2 sm:grid-cols-4"
           style={
             {
@@ -654,7 +684,9 @@ function RegistryContentTab({
             mods: data.overview.mods.listings,
           }}
           onChange={(nextType) =>
-            navigate(getContentPath(period, nextType as RegistryAnalyticsAssetTypeId))
+            navigate(getContentPath(period, nextType as RegistryAnalyticsAssetTypeId), {
+              preserveScroll: true,
+            })
           }
           className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
           ariaLabel="Content asset type"
@@ -1420,7 +1452,7 @@ export function RegistryAnalyticsPage({
 
         <RegistryAnalyticsTabs
           activeTab={activeTab}
-          onChange={(nextTab) => navigate(TAB_PATHS[nextTab])}
+          onChange={(nextTab) => navigate(TAB_PATHS[nextTab], { preserveScroll: true })}
         />
 
         {error ? (

@@ -24,6 +24,17 @@ vi.mock("@subway-builder-modded/analytics", () => ({
       {data.length} points · {lines.map((line) => line.name).join(", ")}
     </div>
   ),
+  AnalyticsStackedBarChart: ({
+    data,
+    bars,
+  }: {
+    data: Array<Record<string, unknown>>;
+    bars: Array<{ name: string }>;
+  }) => (
+    <div data-testid="registry-stacked-chart">
+      {data.length} points · {bars.map((bar) => bar.name).join(", ")}
+    </div>
+  ),
   AnalyticsPieChart: ({ data }: { data: Array<{ name: string; value: number }> }) => (
     <div data-testid="registry-pie-chart">
       {data.map((slice) => `${slice.name}: ${slice.value}`).join(", ")}
@@ -139,11 +150,13 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           {
             date: "2026-03-11",
             downloads: { total: 100, maps: 80, mods: 20 },
+            cumulativeDownloads: { total: 100, maps: 80, mods: 20 },
             listings: { total: 8, maps: 6, mods: 2 },
           },
           {
             date: "2026-03-12",
             downloads: { total: 200, maps: 160, mods: 40 },
+            cumulativeDownloads: { total: 300, maps: 240, mods: 60 },
             listings: { total: 4, maps: 2, mods: 2 },
           },
         ],
@@ -175,6 +188,7 @@ describe("RegistryAnalyticsPage", () => {
     expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
       "1 points · Maps, Mods, Total",
     );
+    expect(screen.getByTestId("registry-stacked-chart")).toHaveTextContent("2 points · Maps, Mods");
     const pieCharts = screen.getAllByTestId("registry-pie-chart");
     expect(pieCharts[0]).toHaveTextContent("Maps: 8");
     expect(pieCharts[1]).toHaveTextContent("Maps: 240");

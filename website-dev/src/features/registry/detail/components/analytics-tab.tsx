@@ -116,7 +116,7 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
           <SectionSeparator label="Recent Trends" icon={TrendingUp} className="mb-4 mt-7" />
           <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
             <ScrollArea scrollbars="horizontal" className="w-full pb-2">
-              <div className="min-w-[40rem] lg:min-w-0">
+              <div className="min-w-[40rem] xl:min-w-0">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">

@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 
@@ -17,10 +17,12 @@ describe("usePageMetadata", () => {
 
     expect(document.title).toBe("Trending | Registry");
     expect(findMeta("name", "description")?.content).toMatch(/trending content/i);
+    expect(findMeta("property", "og:site_name")?.content).toBe("Subway Builder Modded");
     expect(findMeta("property", "og:title")?.content).toBe("Trending | Registry");
     expect(findMeta("property", "og:description")?.content).toMatch(/trending content/i);
     expect(findMeta("name", "twitter:title")?.content).toBe("Trending | Registry");
     expect(findMeta("name", "twitter:card")?.content).toBe("summary_large_image");
+    expect(findMeta("name", "twitter:url")?.content).toContain("/registry/trending");
     expect(findMeta("property", "og:image")?.content).toContain("/images/registry/logo.png");
     expect(findMeta("name", "twitter:image")?.content).toContain("/images/registry/logo.png");
     expect(document.head.querySelector("link[rel=canonical]")?.getAttribute("href")).toContain(
@@ -34,5 +36,31 @@ describe("usePageMetadata", () => {
     expect(document.title).toBe("Community");
     expect(findMeta("property", "og:title")?.content).toBe("Community");
     expect(findMeta("property", "og:image")?.content).toContain("/logo.svg");
+  });
+
+  it("updates browser and social metadata for cache-backed registry pages", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          name: "South Florida",
+          description: "# South Florida\n\nA detailed map of South Florida.",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+
+    try {
+      render(<PageMetadataProbe pathname="/registry/maps/south-florida/analytics" />);
+
+      await waitFor(() => {
+        expect(document.title).toBe("South Florida | Registry");
+      });
+      expect(findMeta("property", "og:title")?.content).toBe("South Florida | Registry");
+      expect(findMeta("name", "description")?.content).toBe(
+        "South Florida A detailed map of South Florida.",
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

@@ -140,6 +140,7 @@ describe("getSidebarOrder", () => {
       "tagging",
       "data-quality",
       "markdown-playground",
+      "analytics-overview",
     ]);
   });
 

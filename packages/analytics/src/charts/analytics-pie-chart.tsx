@@ -1,4 +1,5 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import type { PieLabelRenderProps } from 'recharts';
 import { CHART_FONT_SIZE } from './chart-theme';
 
 export type PieSlice = {
@@ -106,6 +107,48 @@ function AnalyticsPieTooltip({
   );
 }
 
+function getPieLabelPosition(props: PieLabelRenderProps) {
+  const cx = Number(props.cx ?? 0);
+  const cy = Number(props.cy ?? 0);
+  const midAngle = Number(props.midAngle ?? 0);
+  const innerRadius = Number(props.innerRadius ?? 0);
+  const outerRadius = Number(props.outerRadius ?? 0);
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.58;
+  const radians = (-midAngle * Math.PI) / 180;
+
+  return {
+    x: cx + radius * Math.cos(radians),
+    y: cy + radius * Math.sin(radians),
+  };
+}
+
+function renderPieLabel(props: PieLabelRenderProps) {
+  const value = Number(props.value ?? 0);
+  const percent = Number(props.percent ?? 0);
+  if (!Number.isFinite(value) || value <= 0 || !Number.isFinite(percent) || percent < 0.04) {
+    return null;
+  }
+
+  const position = getPieLabelPosition(props);
+
+  return (
+    <text
+      className="fill-white stroke-foreground dark:fill-foreground dark:stroke-background"
+      x={position.x}
+      y={position.y}
+      fontSize={CHART_FONT_SIZE}
+      fontWeight={800}
+      paintOrder="stroke"
+      strokeOpacity={0.38}
+      strokeWidth={2.75}
+      textAnchor="middle"
+      dominantBaseline="central"
+    >
+      {formatPercent(percent * 100)}
+    </text>
+  );
+}
+
 export function AnalyticsPieChart({
   data,
   height = 240,
@@ -124,6 +167,8 @@ export function AnalyticsPieChart({
             nameKey="name"
             innerRadius={innerRadius}
             outerRadius={outerRadius}
+            label={renderPieLabel}
+            labelLine={false}
             isAnimationActive={true}
             animationDuration={700}
             animationEasing="ease-out"

@@ -116,6 +116,7 @@ describe("loadRegistryAnalyticsData", () => {
     expect(data.history[0]).toMatchObject({
       date: "2026-03-11",
       downloads: { total: 10, maps: 8, mods: 2 },
+      cumulativeDownloads: { total: 10, maps: 8, mods: 2 },
       listings: { total: 3, maps: 2, mods: 1 },
     });
     expect(data.authors.history).toEqual([

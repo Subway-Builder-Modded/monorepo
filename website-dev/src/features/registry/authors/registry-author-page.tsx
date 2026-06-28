@@ -738,7 +738,7 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
       <SectionSeparator label="Recent Trends" icon={TrendingUp} className="mb-4 mt-7" />
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
         <ScrollArea scrollbars="horizontal" className="w-full pb-2">
-          <div className="min-w-[40rem] lg:min-w-0">
+          <div className="min-w-[40rem] xl:min-w-0">
             <Table>
               <colgroup>
                 <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
@@ -957,7 +957,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
           </div>
         ) : null}
         <ScrollArea scrollbars="horizontal" className="w-full pb-2">
-          <div className="min-w-[44rem] lg:min-w-0">
+          <div className="min-w-[44rem] xl:min-w-0">
             <Table>
               <colgroup>
                 <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />

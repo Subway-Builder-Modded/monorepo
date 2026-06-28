@@ -16,6 +16,7 @@ export const registryDocsConfig: DocsSuiteConfig = {
     "tagging",
     "data-quality",
     "markdown-playground",
+    "analytics-overview",
   ],
   homepage: {
     actions: [

@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from "react";
-import { resolvePageMetadata } from "@/config/page-metadata";
+import { useEffect, useMemo, useState } from "react";
+import { resolvePageMetadata, resolvePageMetadataAsync } from "@/config/page-metadata";
 import { normalizeBasePath } from "@/lib/router";
 
 type UsePageMetadataOptions = {
@@ -46,7 +46,23 @@ function upsertLink(rel: string, href: string) {
 }
 
 export function usePageMetadata({ pathname }: UsePageMetadataOptions) {
-  const metadata = useMemo(() => resolvePageMetadata(pathname), [pathname]);
+  const fallbackMetadata = useMemo(() => resolvePageMetadata(pathname), [pathname]);
+  const [metadata, setMetadata] = useState(fallbackMetadata);
+
+  useEffect(() => {
+    let isCurrent = true;
+    setMetadata(fallbackMetadata);
+
+    void resolvePageMetadataAsync(pathname).then((nextMetadata) => {
+      if (isCurrent) {
+        setMetadata(nextMetadata);
+      }
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [fallbackMetadata, pathname]);
 
   useEffect(() => {
     const basePathname = withBasePath(metadata.pathname);
@@ -60,6 +76,7 @@ export function usePageMetadata({ pathname }: UsePageMetadataOptions) {
 
     upsertMeta("name", "description", metadata.description);
     upsertMeta("property", "og:type", "website");
+    upsertMeta("property", "og:site_name", "Subway Builder Modded");
     upsertMeta("property", "og:title", metadata.pageTitle);
     upsertMeta("property", "og:description", metadata.description);
     upsertMeta("property", "og:image", absoluteImageUrl);
@@ -68,6 +85,7 @@ export function usePageMetadata({ pathname }: UsePageMetadataOptions) {
     upsertMeta("name", "twitter:title", metadata.pageTitle);
     upsertMeta("name", "twitter:description", metadata.description);
     upsertMeta("name", "twitter:image", absoluteImageUrl);
+    upsertMeta("name", "twitter:url", absoluteUrl);
     upsertLink("canonical", absoluteUrl);
   }, [metadata]);
 

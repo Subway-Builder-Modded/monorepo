@@ -12,6 +12,11 @@ export type RegistryAnalyticsHistoryPoint = {
     maps: number;
     mods: number;
   };
+  cumulativeDownloads: {
+    total: number;
+    maps: number;
+    mods: number;
+  };
   listings: {
     total: number;
     maps: number;
@@ -185,6 +190,11 @@ function normalizeHistory(rows: CsvRow[]): RegistryAnalyticsHistoryPoint[] {
         total: getNumber(row.total_downloads_clamped || row.total_downloads),
         maps: getNumber(row.maps_clamped || row.maps),
         mods: getNumber(row.mods_clamped || row.mods),
+      },
+      cumulativeDownloads: {
+        total: getNumber(row.cumulative_total),
+        maps: getNumber(row.cumulative_maps),
+        mods: getNumber(row.cumulative_mods),
       },
       listings: {
         total: getNumber(row.total_new_assets),

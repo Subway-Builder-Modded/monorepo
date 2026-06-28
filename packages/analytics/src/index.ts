@@ -4,6 +4,10 @@ export {
   type AnalyticsLineChartProps,
 } from "./charts/analytics-line-chart";
 export {
+  AnalyticsStackedBarChart,
+  type AnalyticsStackedBarChartProps,
+} from "./charts/analytics-stacked-bar-chart";
+export {
   AnalyticsBarChart,
   type AnalyticsBarChartProps,
 } from "./charts/analytics-bar-chart";
