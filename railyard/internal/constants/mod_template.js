@@ -185,6 +185,16 @@ function generateTabs(places) {
     }
   }
 
+  window.SubwayBuilderAPI.hooks.onCityLoad((cityCode) => {
+    if(semverCompare(config.gameVersion, "1.3.6")) {
+      window.SubwayBuilderAPI.actions.setDemandBubbleScale(1.0);
+      if(config.places.find(place => place.code === cityCode)?.demandDotScaling) {
+        const scaling = config.places.find(place => place.code === cityCode)?.demandDotScaling;
+        window.SubwayBuilderAPI.actions.setDemandBubbleScale(scaling);
+      }
+    }
+  })
+
   window.SubwayBuilderAPI.hooks.onMapReady((map) => {
     const resolvedMap = map ?? api.utils.getMap();
 

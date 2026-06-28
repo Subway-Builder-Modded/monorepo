@@ -1,5 +1,5 @@
 packages:
-  - website-dev
+  - website
   - railyard/frontend
   - foundry/schemas
   - foundry/scripts
