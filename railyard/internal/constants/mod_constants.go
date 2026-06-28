@@ -11,6 +11,12 @@ var MOD_VERSION string
 // GameDependencyKey is the manifest dependency key used to declare the required Subway Builder version.
 const GameDependencyKey = "subway-builder"
 
+// GameAsarMacRelPath is the path to app.asar relative to the macOS .app bundle root.
+const GameAsarMacRelPath = "Contents/Resources/app.asar"
+
+// GameAsarRelPath is the path to app.asar relative to the game executable on Windows and Linux.
+const GameAsarRelPath = "resources/app.asar"
+
 //go:embed mod_template.js
 var modTemplate string
 

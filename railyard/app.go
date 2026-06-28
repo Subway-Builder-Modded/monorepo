@@ -57,7 +57,7 @@ type App struct {
 	startupReady  bool
 
 	deepLinks     deepLinkQueue
-	appImageMount appImageMount
+	appImageMount *appImageMount
 
 	// Test-only hooks for controlling the launch-starting window and event sink.
 	launchGameTestReady chan<- struct{}
@@ -157,6 +157,17 @@ func (a *App) startup(ctx context.Context) {
 	activeProfile := resolveStartupProfile(a)
 	a.Logger.Info("Active user profile loaded on startup", "profile_id", activeProfile.ID)
 
+	if runtime.GOOS == "linux" && isAppImagePath(a.Config.Cfg.ExecutablePath) {
+		// Initialize AppImage mount
+		appImageMount, err := newAppImageMount(a.Config.Cfg.ExecutablePath)
+		if err != nil {
+			a.Logger.Error("Failed to initialize AppImage mount", err)
+			a.appImageMount = nil
+		} else {
+			a.appImageMount = appImageMount
+		}
+	}
+
 	// Config and profile are ready; registry initializes in the background
 	a.setStartupReady(true)
 	// Keep startup deep links queued until the frontend consumes them.
@@ -217,8 +228,10 @@ func (a *App) shutdown(ctx context.Context) {
 		log.Printf("Warning: failed to stop game on shutdown: %s", res.Message)
 	}
 
+	if a.appImageMount != nil {
+		a.appImageMount.Close()
+	}
 	a.cleanupTmpStaging("shutdown")
-	a.appImageMount.teardown()
 }
 
 func resolveStartupProfile(a *App) types.UserProfile {
@@ -357,6 +370,27 @@ func (a *App) cleanupTmpStaging(stage string) {
 	}
 }
 
+// findAsar walks up from exePath until it finds a directory that contains
+// Contents/Resources/app.asar, returning the full asar path. This handles both
+// the case where executablePath is the .app bundle and where it is the binary inside it.
+func findAsar(exePath string) (bool, string) {
+	dir := exePath
+	if info, err := os.Stat(exePath); err == nil && !info.IsDir() {
+		dir = filepath.Dir(exePath)
+	}
+	for {
+		candidate := filepath.Join(dir, constants.GameAsarMacRelPath)
+		if _, err := os.Stat(candidate); err == nil {
+			return true, candidate
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return false, ""
+		}
+		dir = parent
+	}
+}
+
 // GetGameVersion detects the installed Subway Builder version from app.asar's
 // package.json, returning an empty version with a warning status if detection fails.
 // It is intentionally uncached; the game can update while Railyard runs, so every call re-detects to keep compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
@@ -376,16 +410,29 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	var asarPath string
 	switch {
 	case runtime.GOOS == "darwin":
-		asarPath = filepath.Join(exePath, "Contents", "Resources", "app.asar")
-	case isAppImagePath(exePath):
-		mountPath, err := a.appImageMount.ensureMounted(exePath)
-		if err != nil {
-			a.Logger.Warn("Failed to mount AppImage for game version detection", "error", err, "exePath", exePath)
+		// executablePath may point to the .app bundle or a binary nested inside it.
+		found, foundPath := findAsar(exePath)
+		if !found {
+			a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
 			return notDetected
 		}
-		asarPath = filepath.Join(mountPath, "resources", "app.asar")
+		asarPath = foundPath
+	case isAppImagePath(exePath):
+		if a.appImageMount != nil {
+			mountPath := a.appImageMount.AppImageMountPath
+			asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
+		} else {
+			if appImageMount, err := newAppImageMount(exePath); err != nil {
+				a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
+				return notDetected
+			} else {
+				a.appImageMount = appImageMount
+				mountPath := a.appImageMount.AppImageMountPath
+				asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
+			}
+		}
 	default:
-		asarPath = filepath.Join(filepath.Dir(exePath), "resources", "app.asar")
+		asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 	}
 
 	archiveFile, err := os.Open(asarPath)
