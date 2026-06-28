@@ -56,7 +56,8 @@ type App struct {
 	startupMu     sync.RWMutex
 	startupReady  bool
 
-	deepLinks deepLinkQueue
+	deepLinks     deepLinkQueue
+	appImageMount appImageMount
 
 	// Test-only hooks for controlling the launch-starting window and event sink.
 	launchGameTestReady chan<- struct{}
@@ -217,6 +218,7 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 
 	a.cleanupTmpStaging("shutdown")
+	a.appImageMount.teardown()
 }
 
 func resolveStartupProfile(a *App) types.UserProfile {
@@ -372,9 +374,17 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	exePath := cfg.Config.ExecutablePath
 
 	var asarPath string
-	if runtime.GOOS == "darwin" {
+	switch {
+	case runtime.GOOS == "darwin":
 		asarPath = filepath.Join(exePath, "Contents", "Resources", "app.asar")
-	} else {
+	case isAppImagePath(exePath):
+		mountPath, err := a.appImageMount.ensureMounted(exePath)
+		if err != nil {
+			a.Logger.Warn("Failed to mount AppImage for game version detection", "error", err, "exePath", exePath)
+			return notDetected
+		}
+		asarPath = filepath.Join(mountPath, "resources", "app.asar")
+	default:
 		asarPath = filepath.Join(filepath.Dir(exePath), "resources", "app.asar")
 	}
 
