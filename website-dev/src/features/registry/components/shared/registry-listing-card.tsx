@@ -34,7 +34,7 @@ const MOD_TYPE_CONFIG: RegistryTypeConfig = {
   accentDark: "#f87171",
 };
 
-const registryTitleHoverAccent = getSuiteById("registry").accent;
+const registryAuthorHoverAccent = getSuiteById("registry").accent;
 
 function getTypeConfig(kind: "map" | "mod"): RegistryTypeConfig {
   return kind === "map" ? MAP_TYPE_CONFIG : MOD_TYPE_CONFIG;
@@ -73,7 +73,7 @@ export function RegistryListingCard({
       data={cardData}
       typeConfig={typeConfig}
       variant="grid"
-      titleHoverAccent={registryTitleHoverAccent}
+      authorHoverAccent={registryAuthorHoverAccent}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={cn("w-[min(22rem,80vw)] shrink-0 lg:w-[min(24rem,44vw)]", className)}
