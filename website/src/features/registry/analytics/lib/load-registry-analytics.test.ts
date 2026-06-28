@@ -52,6 +52,8 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
             {
               id: "map-a",
               type: "maps",
+              authorId: "author-a",
+              publishedAt: Date.UTC(2026, 2, 11),
               totalDownloads: 10,
               manifest: {
                 grid_statistics: {
@@ -61,17 +63,50 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
                 },
               },
             },
-            { id: "map-b", type: "maps", totalDownloads: 20, manifest: {} },
+            {
+              id: "map-b",
+              type: "maps",
+              authorId: "author-a",
+              publishedAt: Date.UTC(2026, 2, 12),
+              totalDownloads: 20,
+              manifest: {},
+            },
           ]
-        : [{ id: "mod-a", type: "mods", totalDownloads: 5, manifest: {} }],
+        : [
+            {
+              id: "mod-a",
+              type: "mods",
+              authorId: "author-b",
+              publishedAt: Date.UTC(2026, 2, 13),
+              totalDownloads: 5,
+              manifest: {},
+            },
+          ],
     ),
 }));
 
-const analyticsCsv = [
-  "snapshot_date,total_downloads,maps,mods,total_downloads_clamped,maps_clamped,mods_clamped,cumulative_total,cumulative_maps,cumulative_mods,total_new_assets,new_maps,new_mods",
-  "2026_03_11,10,8,2,10,8,2,10,8,2,3,2,1",
-  "2026_03_12,12,7,5,12,7,5,22,15,7,1,1,0",
-  "2026_03_13,9,4,5,9,4,5,31,19,12,2,1,1",
+const byDayCsv = [
+  "listing_type,id,name,author,author_alias,attribution_link,total_downloads,2026_03_11,2026_03_12,2026_03_13",
+  "map,map-a,Map Alpha,author-a,Author A,/registry/authors/author-a,10,4,3,3",
+  "map,map-b,Map Beta,author-a,Author A,/registry/authors/author-a,20,0,8,12",
+  "mod,mod-a,Mod Alpha,author-b,Author B,/registry/authors/author-b,5,0,0,5",
+  "map,map-test,Test Map,author-a,Author A,/registry/authors/author-a,999,999,999,999",
+].join("\n");
+
+const allTimeRankingCsv = [
+  "rank,listing_type,id,name,author,author_alias,attribution_link,total_downloads,adjusted_total_downloads",
+  "1,map,map-test,Test Map,author-a,Author A,/registry/authors/author-a,999,999",
+  "2,map,map-b,Map Beta,author-a,Author A,/registry/authors/author-a,20,20",
+  "3,map,map-a,Map Alpha,author-a,Author A,/registry/authors/author-a,10,10",
+  "4,mod,mod-a,Mod Alpha,author-b,Author B,/registry/authors/author-b,5,5",
+].join("\n");
+
+const changeRankingCsv = [
+  "rank,listing_type,id,name,author,author_alias,attribution_link,download_change,adjusted_download_change",
+  "1,map,map-test,Test Map,author-a,Author A,/registry/authors/author-a,999,999",
+  "2,map,map-b,Map Beta,author-a,Author A,/registry/authors/author-a,20,20",
+  "3,map,map-a,Map Alpha,author-a,Author A,/registry/authors/author-a,10,10",
+  "4,mod,mod-a,Mod Alpha,author-b,Author B,/registry/authors/author-b,5,5",
 ].join("\n");
 
 const authorsByDayCsv = [
@@ -83,6 +118,7 @@ const authorsByDayCsv = [
 const mapStatisticsCsv = [
   "rank,id,name,author,author_alias,attribution_link,city_code,country,population,population_count,points_count,playable_area_cells",
   "1,map-a,Map Alpha,author-a,Author A,/registry/authors/author-a,TYO,JP,1000000,2000,300,0",
+  "2,map-test,Test Map,author-a,Author A,/registry/authors/author-a,TST,JP,9999999,9999,999,0",
 ].join("\n");
 
 describe("loadRegistryAnalyticsData", () => {
@@ -95,7 +131,9 @@ describe("loadRegistryAnalyticsData", () => {
           text: () => {
             if (url.includes("authors_by_day")) return Promise.resolve(authorsByDayCsv);
             if (url.includes("maps_statistics")) return Promise.resolve(mapStatisticsCsv);
-            return Promise.resolve(analyticsCsv);
+            if (url.includes("most_popular_by_day")) return Promise.resolve(byDayCsv);
+            if (url.includes("most_popular_all_time")) return Promise.resolve(allTimeRankingCsv);
+            return Promise.resolve(changeRankingCsv);
           },
         }),
       ),
@@ -115,12 +153,12 @@ describe("loadRegistryAnalyticsData", () => {
     expect(data.history).toHaveLength(3);
     expect(data.history[0]).toMatchObject({
       date: "2026-03-11",
-      downloads: { total: 10, maps: 8, mods: 2 },
-      cumulativeDownloads: { total: 10, maps: 8, mods: 2 },
-      listings: { total: 3, maps: 2, mods: 1 },
+      downloads: { total: 4, maps: 4, mods: 0 },
+      cumulativeDownloads: { total: 4, maps: 4, mods: 0 },
+      listings: { total: 1, maps: 1, mods: 0 },
     });
     expect(data.authors.history).toEqual([
-      { date: "2026-03-11", authors: 0 },
+      { date: "2026-03-11", authors: 1 },
       { date: "2026-03-12", authors: 1 },
       { date: "2026-03-13", authors: 2 },
     ]);
@@ -152,6 +190,8 @@ describe("loadRegistryAnalyticsData", () => {
       demandPoints: 300,
       playableAreaKm2: 42,
     });
+    expect(data.contentRankings["all-time"].maps.map((row) => row.id)).toEqual(["map-b", "map-a"]);
+    expect(data.mapStatistics.rankings.map((row) => row.id)).toEqual(["map-a"]);
   });
 
   it("filters and sums analytics history by selected period", async () => {
@@ -160,7 +200,7 @@ describe("loadRegistryAnalyticsData", () => {
     const totals = sumRegistryAnalyticsHistory(history);
 
     expect(history.map((row) => row.date)).toEqual(["2026-03-11", "2026-03-12", "2026-03-13"]);
-    expect(totals.downloads).toEqual({ total: 31, maps: 19, mods: 12 });
-    expect(totals.listings).toEqual({ total: 6, maps: 4, mods: 2 });
+    expect(totals.downloads).toEqual({ total: 35, maps: 30, mods: 5 });
+    expect(totals.listings).toEqual({ total: 3, maps: 2, mods: 1 });
   });
 });

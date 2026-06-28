@@ -1,4 +1,4 @@
-# website-dev src architecture
+# website src architecture
 
 This folder is the application source root.
 

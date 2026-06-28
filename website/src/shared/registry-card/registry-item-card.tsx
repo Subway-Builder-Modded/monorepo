@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Badge } from "@subway-builder-modded/shared-ui";
-import { ArrowDownToLine, Users } from "lucide-react";
+import { ArrowDownToLine, ExternalLink, Users } from "lucide-react";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,10 @@ type RegistryItemCardProps = {
   typeConfig: RegistryTypeConfig;
   variant?: RegistryCardVariant;
   titleHoverAccent?: {
+    light: string;
+    dark: string;
+  };
+  authorHoverAccent?: {
     light: string;
     dark: string;
   };
@@ -167,10 +171,14 @@ function AuthorLink({ author, authorId }: { author: string; authorId: string | n
       <Link
         to={`/registry/authors/${encodeURIComponent(authorId)}`}
         onClick={(event) => event.stopPropagation()}
-        className="inline-block max-w-full cursor-pointer truncate text-left underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_60%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--suite-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--suite-accent-dark)_60%,transparent)]"
+        className="inline-block max-w-full cursor-pointer truncate text-left underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-author-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-author-accent-light)_60%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-author-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-author-accent-dark)_60%,transparent)]"
       >
         {author}
       </Link>
+      <ExternalLink
+        className="pointer-events-none size-3 shrink-0 text-muted-foreground"
+        aria-hidden={true}
+      />
       <AuthorRoleBadge authorId={authorId} className="cursor-pointer" />
     </div>
   );
@@ -221,13 +229,19 @@ function AuthorOrContributors({
 
 function TitleLink({ title, href, className }: { title: string; href: string; className: string }) {
   return (
-    <Link
-      to={href}
-      onClick={(event) => event.stopPropagation()}
-      className={cn("pointer-events-auto inline-block w-fit max-w-full min-w-0", className)}
-    >
-      {title}
-    </Link>
+    <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
+      <Link
+        to={href}
+        onClick={(event) => event.stopPropagation()}
+        className={cn("pointer-events-auto inline-block w-fit max-w-full min-w-0", className)}
+      >
+        {title}
+      </Link>
+      <ExternalLink
+        className="pointer-events-none size-3.5 shrink-0 text-muted-foreground"
+        aria-hidden={true}
+      />
+    </span>
   );
 }
 
@@ -354,6 +368,7 @@ function RegistryCardGrid({
   data,
   typeConfig,
   titleHoverAccent,
+  authorHoverAccent,
   onMouseEnter,
   onMouseLeave,
   hideAuthor = false,
@@ -369,6 +384,8 @@ function RegistryCardGrid({
     "--card-type-accent-dark": typeConfig.accentDark,
     "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
     "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
+    "--card-author-accent-light": authorHoverAccent?.light ?? "var(--suite-accent-light)",
+    "--card-author-accent-dark": authorHoverAccent?.dark ?? "var(--suite-accent-dark)",
   } as React.CSSProperties;
 
   return (
@@ -490,6 +507,7 @@ function RegistryCardFull({
   data,
   typeConfig,
   titleHoverAccent,
+  authorHoverAccent,
   onMouseEnter,
   onMouseLeave,
   hideAuthor = false,
@@ -502,6 +520,8 @@ function RegistryCardFull({
     "--card-type-accent-dark": typeConfig.accentDark,
     "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
     "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
+    "--card-author-accent-light": authorHoverAccent?.light ?? "var(--suite-accent-light)",
+    "--card-author-accent-dark": authorHoverAccent?.dark ?? "var(--suite-accent-dark)",
   } as React.CSSProperties;
 
   return (
@@ -589,6 +609,7 @@ function RegistryCardList({
   data,
   typeConfig,
   titleHoverAccent,
+  authorHoverAccent,
   hideAuthor = false,
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
@@ -603,6 +624,8 @@ function RegistryCardList({
     "--card-type-accent-dark": typeConfig.accentDark,
     "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
     "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
+    "--card-author-accent-light": authorHoverAccent?.light ?? "var(--suite-accent-light)",
+    "--card-author-accent-dark": authorHoverAccent?.dark ?? "var(--suite-accent-dark)",
   } as React.CSSProperties;
 
   return (
@@ -722,6 +745,7 @@ export function RegistryItemCard({
   typeConfig,
   variant = "grid",
   titleHoverAccent,
+  authorHoverAccent,
   onMouseEnter,
   onMouseLeave,
   hideAuthor,
@@ -734,6 +758,7 @@ export function RegistryItemCard({
           data={data}
           typeConfig={typeConfig}
           titleHoverAccent={titleHoverAccent}
+          authorHoverAccent={authorHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           hideAuthor={hideAuthor}
@@ -746,6 +771,7 @@ export function RegistryItemCard({
           data={data}
           typeConfig={typeConfig}
           titleHoverAccent={titleHoverAccent}
+          authorHoverAccent={authorHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           hideAuthor={hideAuthor}
@@ -759,6 +785,7 @@ export function RegistryItemCard({
           data={data}
           typeConfig={typeConfig}
           titleHoverAccent={titleHoverAccent}
+          authorHoverAccent={authorHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
           hideAuthor={hideAuthor}
