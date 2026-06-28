@@ -212,54 +212,83 @@ func (r *Registry) GetInstalledMapCodes() []string {
 	return codes
 }
 
-// enrichModInfoWithFileSizes enriches installed mod info with on-disk size metadata.
+// enrichInstalled returns a new slice of items with the transform applied to each.
+func enrichInstalled[T any](items []T, transform func(*T)) []T {
+	updated := make([]T, 0, len(items))
+	for _, item := range items {
+		transform(&item)
+		updated = append(updated, item)
+	}
+	return updated
+}
+
+// backfillConstraint appends a constraint of constraintType to cs if one is not already present.
+func backfillConstraint(cs []types.InstalledConstraint, constraintType string, resolve func() *types.InstalledConstraint) []types.InstalledConstraint {
+	if slices.ContainsFunc(cs, func(c types.InstalledConstraint) bool { return c.Type == constraintType }) {
+		return cs
+	}
+	// Invoke resolve when the type is absent
+	if c := resolve(); c != nil {
+		return append(cs, *c)
+	}
+	return cs
+}
+
+// inferManifestConstraint looks up the game-version constraint for an installed asset from the
+// integrity report.
+func inferManifestConstraint(listings map[string]types.IntegrityListing, id, version string) *types.InstalledConstraint {
+	listing, ok := listings[id]
+	// Return no constraint if no data is available.
+	if !ok {
+		return nil
+	}
+	// Return no constraint if the version is not listed in the integrity report.
+	status, ok := listing.Versions[version]
+	if !ok || status.GameVersion == "" {
+		return nil
+	}
+	return &types.InstalledConstraint{Type: types.ConstraintTypeManifest, Range: status.GameVersion}
+}
+
+// enrichModInfoWithFileSizes enriches installed mod info with on-disk size metadata and
+// backfills any missing constraints from the integrity report.
 func (r *Registry) enrichModInfoWithFileSizes(mods []types.InstalledModInfo) []types.InstalledModInfo {
-	updated := make([]types.InstalledModInfo, 0, len(mods))
 	modsRoot := r.config.Cfg.GetModsFolderPath()
-	for _, item := range mods {
-		copyItem := item
+	return enrichInstalled(mods, func(item *types.InstalledModInfo) {
 		size, err := files.InstalledModSize(modsRoot, item.ID, constants.RailyardAssetMarker)
 		if err != nil {
 			r.logger.Warn("Failed to resolve installed mod size", "mod_id", item.ID, "error", err)
 			size = 0
 		}
-		copyItem.InstalledSizeBytes = size
-		updated = append(updated, copyItem)
-	}
-	return updated
+		item.InstalledSizeBytes = size
+		item.Constraints = backfillConstraint(item.Constraints, types.ConstraintTypeManifest, func() *types.InstalledConstraint {
+			return inferManifestConstraint(r.integrityMods.Listings, item.ID, item.Version)
+		})
+	})
 }
 
 // enrichMapInfoWithFileSizes enriches installed map info with on-disk size metadata and
-// infers a buildings_index constraint from disk for existing installs that predate constraint storage.
+// backfills any missing constraints from installed files and the integrity report.
 func (r *Registry) enrichMapInfoWithFileSizes(maps []types.InstalledMapInfo) []types.InstalledMapInfo {
-	updated := make([]types.InstalledMapInfo, 0, len(maps))
 	mapsRoot := r.config.Cfg.GetMapsFolderPath()
 	mapDataRoot := paths.MetroMakerMapsDataPath(r.config.Cfg.MetroMakerDataPath)
 	tilesRoot := paths.TilesPath()
-	for _, item := range maps {
-		copyItem := item
+	return enrichInstalled(maps, func(item *types.InstalledMapInfo) {
 		size, err := files.InstalledMapSize(mapsRoot, tilesRoot, item.MapConfig.Code, constants.RailyardAssetMarker)
 		if err != nil {
 			r.logger.Warn("Failed to resolve installed map size", "map_id", item.ID, "map_code", item.MapConfig.Code, "error", err)
 			size = 0
 		}
-		copyItem.InstalledSizeBytes = size
-
-		// Disk fallback: for pre-existing installs with no buildings_index constraint stored,
-		// infer it from installed files. Same migration-bridge pattern as InstalledSizeBytes.
-		hasBuildingsConstraint := slices.ContainsFunc(item.Constraints, func(c types.InstalledConstraint) bool {
-			return c.Type == types.ConstraintTypeBuildingsIndex
-		})
-		if !hasBuildingsConstraint {
-			if bc := BuildingsIndexConstraintFromInstalled(mapDataRoot, item.MapConfig.Code); bc != "" {
-				copyItem.Constraints = append(copyItem.Constraints, types.InstalledConstraint{
-					Type:  types.ConstraintTypeBuildingsIndex,
-					Range: bc,
-				})
+		item.InstalledSizeBytes = size
+		item.Constraints = backfillConstraint(item.Constraints, types.ConstraintTypeBuildingsIndex, func() *types.InstalledConstraint {
+			bc := BuildingsIndexConstraintFromInstalled(mapDataRoot, item.MapConfig.Code)
+			if bc == "" {
+				return nil
 			}
-		}
-
-		updated = append(updated, copyItem)
-	}
-	return updated
+			return &types.InstalledConstraint{Type: types.ConstraintTypeBuildingsIndex, Range: bc}
+		})
+		item.Constraints = backfillConstraint(item.Constraints, types.ConstraintTypeManifest, func() *types.InstalledConstraint {
+			return inferManifestConstraint(r.integrityMaps.Listings, item.ID, item.Version)
+		})
+	})
 }
