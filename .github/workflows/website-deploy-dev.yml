@@ -5,14 +5,14 @@ on:
     branches:
       - website-dev
     paths:
-      - "website/**"
+      - "website-dev/**"
       - "packages/**"
       - ".github/workflows/website-deploy-dev.yml"
   pull_request:
     branches:
       - main
     paths:
-      - "website/**"
+      - "website-dev/**"
       - "packages/**"
       - ".github/workflows/website-deploy-dev.yml"
   # schedule:
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: website
+        working-directory: website-dev
     steps:
       - name: Checkout source repo
         uses: actions/checkout@v4
@@ -49,8 +49,8 @@ jobs:
         with:
           path: |
             ~/.npm
-            ${{ github.workspace }}/website/build
-          key: ${{ runner.os }}-website-vite-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('website/**/*.js', 'website/**/*.jsx', 'website/**/*.ts', 'website/**/*.tsx') }}
+            ${{ github.workspace }}/website-dev/build
+          key: ${{ runner.os }}-website-vite-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('website-dev/**/*.js', 'website-dev/**/*.jsx', 'website-dev/**/*.ts', 'website-dev/**/*.tsx') }}
           restore-keys: |
             ${{ runner.os }}-website-vite-${{ hashFiles('pnpm-lock.yaml') }}-
 

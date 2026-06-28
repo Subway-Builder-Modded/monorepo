@@ -8,15 +8,15 @@
     "typecheck:packages": "pnpm -r --filter \"./packages/*\" run typecheck",
     "test:packages": "pnpm -r --filter \"./packages/*\" run test",
     "test:coverage:packages": "pnpm -r --filter \"./packages/*\" run test:coverage",
-    "test:website": "pnpm --dir website run test",
+    "test:website": "pnpm --dir website-dev run test",
     "test:railyard": "pnpm --dir railyard/frontend run test",
     "test": "pnpm run test:packages && pnpm run test:website && pnpm run test:railyard",
     "check:packages": "pnpm run typecheck:packages && pnpm run test:packages && pnpm run test:coverage:packages",
-    "check:website": "pnpm --dir website run check",
+    "check:website": "pnpm --dir website-dev run check",
     "check:railyard": "pnpm --dir railyard/frontend run check",
     "check": "pnpm run check:packages && pnpm run check:website && pnpm run check:railyard",
-    "lint": "pnpm run --dir website lint:fix && pnpm run --dir railyard/frontend lint:fix",
-    "format": "pnpm run --dir website format && pnpm run --dir railyard/frontend format"
+    "lint": "pnpm run --dir website-dev lint:fix && pnpm run --dir railyard/frontend lint:fix",
+    "format": "pnpm run --dir website-dev format && pnpm run --dir railyard/frontend format"
   },
   "devDependencies": {
     "vite-plus": "catalog:"

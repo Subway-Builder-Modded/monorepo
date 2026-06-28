@@ -470,7 +470,7 @@ importers:
         specifier: 4.0.18
         version: 4.0.18(@types/node@25.9.1)(jiti@2.7.0)(jsdom@26.1.0)(lightningcss@1.32.0)(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.9.0)
 
-  website:
+  website-dev:
     dependencies:
       '@mdx-js/mdx':
         specifier: ^3.1.1
