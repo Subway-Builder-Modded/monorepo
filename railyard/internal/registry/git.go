@@ -50,8 +50,7 @@ func (r *Registry) refreshRepo() error {
 		return r.forceClone()
 	}
 
-	// Legacy clones (made before tags were excluded) carry the registry's tags and the full old
-	// snapshots they pin, which can ~triple the on-disk .git. A clean tag-free re-clone sheds them.
+	// Old clones carry the registry's tags and full snapshots, which can bloat the on-disk .git. A clean tag-free re-clone sheds them.
 	if repoHasTags(repo) {
 		r.logger.Info("Registry clone carries tags from a legacy full-tag clone; re-cloning without tags to shrink .git")
 		return r.forceClone()
@@ -64,8 +63,7 @@ func (r *Registry) refreshRepo() error {
 	return nil
 }
 
-// repoHasTags reports whether the local clone has any tag refs. Tag-free clones (the current default)
-// never do, so a tag indicates a legacy clone that should be re-cloned to reclaim space.
+// repoHasTags reports whether the local clone has any tag refs. 
 func repoHasTags(repo *git.Repository) bool {
 	iter, err := repo.Tags()
 	if err != nil {
@@ -76,8 +74,6 @@ func repoHasTags(repo *git.Repository) bool {
 	return err == nil
 }
 
-// localCloneHasTags reports whether the on-disk registry clone carries tag refs (a legacy full-tag
-// clone). Returns false when the repo cannot be opened, leaving the normal open/clone paths to handle it.
 func (r *Registry) localCloneHasTags() bool {
 	repo, err := git.PlainOpen(r.repoPath)
 	if err != nil {
@@ -102,9 +98,7 @@ func (r *Registry) forceClone() error {
 					SingleBranch:  true,
 					Depth:         1,
 					NoCheckout:    true,
-					// Exclude tags. go-git defaults to AllTags, which drags every tagged commit's full
-					// snapshot into the shallow pack (e.g. v0.1.0 ~tripled .git: 140MB -> 400MB). The
-					// client only ever needs main@HEAD.
+					// Exclude tags. go-git defaults to AllTags; client only ever needs main@HEAD.
 					Tags:     git.NoTags,
 					Progress: progress,
 				})

@@ -156,9 +156,7 @@ func (a *App) startup(ctx context.Context) {
 	activeProfile := resolveStartupProfile(a)
 	a.Logger.Info("Active user profile loaded on startup", "profile_id", activeProfile.ID)
 
-	// Config and profile are ready; registry initializes in the background so the
-	// frontend is immediately usable (e.g. the user can set a GitHub token while a
-	// first-run clone is in progress).
+	// Config and profile are ready; registry initializes in the background
 	a.setStartupReady(true)
 	// Keep startup deep links queued until the frontend consumes them.
 	// Emitting here can race listener registration during cold launches.
