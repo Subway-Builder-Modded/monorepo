@@ -11,7 +11,6 @@ on:
   pull_request:
     branches:
       - main
-      - website-dev
     paths:
       - "website-dev/**"
       - "packages/**"
@@ -51,9 +50,9 @@ jobs:
           path: |
             ~/.npm
             ${{ github.workspace }}/website-dev/build
-          key: ${{ runner.os }}-website-dev-vite-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('website-dev/**/*.js', 'website-dev/**/*.jsx', 'website-dev/**/*.ts', 'website-dev/**/*.tsx') }}
+          key: ${{ runner.os }}-website-vite-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('website-dev/**/*.js', 'website-dev/**/*.jsx', 'website-dev/**/*.ts', 'website-dev/**/*.tsx') }}
           restore-keys: |
-            ${{ runner.os }}-website-dev-vite-${{ hashFiles('pnpm-lock.yaml') }}-
+            ${{ runner.os }}-website-vite-${{ hashFiles('pnpm-lock.yaml') }}-
 
       - name: Install dependencies
         working-directory: .

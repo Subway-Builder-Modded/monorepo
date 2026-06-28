@@ -7,7 +7,6 @@ on:
       - website-dev
     paths:
       - "packages/**"
-      - "website/**"
       - "website-dev/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
@@ -20,7 +19,6 @@ on:
       - website-dev
     paths:
       - "packages/**"
-      - "website/**"
       - "website-dev/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
@@ -39,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: website
+        working-directory: website-dev
     steps:
       - name: Checkout
         uses: actions/checkout@v4
