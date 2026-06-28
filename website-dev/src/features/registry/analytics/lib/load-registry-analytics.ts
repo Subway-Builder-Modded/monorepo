@@ -104,7 +104,6 @@ export type RegistryAnalyticsContentRanking = {
   downloads: number;
 };
 
-const ASSETS_BY_DAY_URL = "/registry-cache/analytics/assets_by_day.csv";
 const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
@@ -176,58 +175,122 @@ function normalizeDate(value: string | undefined): string {
   return (value ?? "").replaceAll("_", "-");
 }
 
+function getDateHeaders(rows: CsvRow[]): string[] {
+  return Object.keys(rows[0] ?? {}).filter((header) => /^\d{4}_\d{2}_\d{2}$/.test(header));
+}
+
 function getAssetType(value: string | undefined): RegistryAnalyticsAssetTypeId | null {
   if (value === "map" || value === "maps") return "maps";
   if (value === "mod" || value === "mods") return "mods";
   return null;
 }
 
-function normalizeHistory(rows: CsvRow[]): RegistryAnalyticsHistoryPoint[] {
-  return rows
-    .map((row) => ({
-      date: normalizeDate(row.snapshot_date),
-      downloads: {
-        total: getNumber(row.total_downloads_clamped || row.total_downloads),
-        maps: getNumber(row.maps_clamped || row.maps),
-        mods: getNumber(row.mods_clamped || row.mods),
-      },
-      cumulativeDownloads: {
-        total: getNumber(row.cumulative_total),
-        maps: getNumber(row.cumulative_maps),
-        mods: getNumber(row.cumulative_mods),
-      },
-      listings: {
-        total: getNumber(row.total_new_assets),
-        maps: getNumber(row.new_maps),
-        mods: getNumber(row.new_mods),
-      },
-    }))
-    .filter((row) => row.date)
+type RegistryAnalyticsItem = Awaited<ReturnType<typeof loadRegistryItemsForType>>[number];
+
+function buildValidItemsById(items: RegistryAnalyticsItem[]): Map<string, RegistryAnalyticsItem> {
+  return new Map(items.map((item) => [item.id, item]));
+}
+
+function getPublishedDate(item: RegistryAnalyticsItem): string | null {
+  const timestamp = item.publishedAt ?? 0;
+  if (timestamp <= 0) return null;
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function normalizeHistory(
+  rows: CsvRow[],
+  items: RegistryAnalyticsItem[],
+): RegistryAnalyticsHistoryPoint[] {
+  const dateHeaders = getDateHeaders(rows);
+  const validItemsById = buildValidItemsById(items);
+  const downloadsByDate = new Map<
+    string,
+    Pick<RegistryAnalyticsHistoryPoint, "downloads" | "listings">
+  >();
+
+  for (const dateHeader of dateHeaders) {
+    downloadsByDate.set(normalizeDate(dateHeader), {
+      downloads: { total: 0, maps: 0, mods: 0 },
+      listings: { total: 0, maps: 0, mods: 0 },
+    });
+  }
+
+  for (const item of items) {
+    const publishedDate = getPublishedDate(item);
+    const day = publishedDate ? downloadsByDate.get(publishedDate) : undefined;
+    if (!day) continue;
+
+    const typeKey = item.type === "maps" ? "maps" : "mods";
+    day.listings.total += 1;
+    day.listings[typeKey] += 1;
+  }
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+
+    const typeKey = item.type === "maps" ? "maps" : "mods";
+    for (const dateHeader of dateHeaders) {
+      const date = normalizeDate(dateHeader);
+      const day = downloadsByDate.get(date);
+      if (!day) continue;
+
+      const downloads = getNumber(row[dateHeader]);
+      day.downloads.total += downloads;
+      day.downloads[typeKey] += downloads;
+    }
+  }
+
+  let cumulativeTotal = 0;
+  let cumulativeMaps = 0;
+  let cumulativeMods = 0;
+
+  return [...downloadsByDate.entries()]
+    .map(([date, day]) => {
+      cumulativeTotal += day.downloads.total;
+      cumulativeMaps += day.downloads.maps;
+      cumulativeMods += day.downloads.mods;
+
+      return {
+        date,
+        downloads: day.downloads,
+        cumulativeDownloads: {
+          total: cumulativeTotal,
+          maps: cumulativeMaps,
+          mods: cumulativeMods,
+        },
+        listings: day.listings,
+      };
+    })
     .sort((left, right) => left.date.localeCompare(right.date));
 }
 
 function buildAuthorHistory(
   rows: CsvRow[],
-  validAuthorIds: Set<string>,
+  items: RegistryAnalyticsItem[],
 ): RegistryAnalyticsAuthorHistoryPoint[] {
-  const headers = Object.keys(rows[0] ?? {});
-  const dateHeaders = headers.filter((header) => /^\d{4}_\d{2}_\d{2}$/.test(header));
-  const cumulativeDownloadsByAuthor = new Map<string, number>();
+  const dateHeaders = getDateHeaders(rows);
+  const firstPublishedDateByAuthor = new Map<string, string>();
+
+  for (const item of items) {
+    const authorId = item.authorId?.trim().toLowerCase();
+    const publishedDate = getPublishedDate(item);
+    if (!authorId || !publishedDate) continue;
+
+    const currentDate = firstPublishedDateByAuthor.get(authorId);
+    if (!currentDate || publishedDate < currentDate) {
+      firstPublishedDateByAuthor.set(authorId, publishedDate);
+    }
+  }
 
   return dateHeaders.map((dateKey) => {
-    let authors = 0;
-
-    for (const row of rows) {
-      const authorId = row.author?.trim().toLowerCase();
-      if (!authorId || !validAuthorIds.has(authorId)) continue;
-      const nextTotal = (cumulativeDownloadsByAuthor.get(authorId) ?? 0) + getNumber(row[dateKey]);
-      cumulativeDownloadsByAuthor.set(authorId, nextTotal);
-      if (nextTotal > 0) authors += 1;
-    }
+    const date = normalizeDate(dateKey);
 
     return {
-      date: normalizeDate(dateKey),
-      authors,
+      date,
+      authors: [...firstPublishedDateByAuthor.values()].filter(
+        (publishedDate) => publishedDate <= date,
+      ).length,
     };
   });
 }
@@ -288,8 +351,10 @@ function buildMapPlayableAreaLookup(
 function buildMapStatisticRankings(
   rows: CsvRow[],
   playableAreaByMapId: Map<string, number>,
+  validItemIds: Set<string>,
 ): RegistryAnalyticsMapStatisticRanking[] {
   return rows
+    .filter((row) => validItemIds.has(row.id ?? ""))
     .map((row) => ({
       id: row.id ?? "",
       name: row.name?.trim() || row.id || "Unknown map",
@@ -318,6 +383,7 @@ function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
 function normalizeRankingRows(
   rows: CsvRow[],
   getDownloads: (row: CsvRow) => number,
+  validItemIds: Set<string>,
 ): Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> {
   const grouped: Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> = {
     maps: [],
@@ -325,6 +391,7 @@ function normalizeRankingRows(
   };
 
   for (const row of rows) {
+    if (!validItemIds.has(row.id ?? "")) continue;
     const type = getAssetType(row.listing_type);
     if (!type) continue;
     grouped[type].push({
@@ -343,11 +410,12 @@ function normalizeRankingRows(
   };
 }
 
-function buildFourteenDayRankings(rows: CsvRow[]) {
-  const headers = Object.keys(rows[0] ?? {});
-  const dateHeaders = headers.filter((header) => /^\d{4}_\d{2}_\d{2}$/.test(header)).slice(-14);
-  return normalizeRankingRows(rows, (row) =>
-    dateHeaders.reduce((sum, dateKey) => sum + getNumber(row[dateKey]), 0),
+function buildFourteenDayRankings(rows: CsvRow[], validItemIds: Set<string>) {
+  const dateHeaders = getDateHeaders(rows).slice(-14);
+  return normalizeRankingRows(
+    rows,
+    (row) => dateHeaders.reduce((sum, dateKey) => sum + getNumber(row[dateKey]), 0),
+    validItemIds,
   );
 }
 
@@ -383,7 +451,6 @@ export function sumRegistryAnalyticsHistory(history: RegistryAnalyticsHistoryPoi
 
 export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData> {
   const [
-    analyticsRaw,
     authorDayRaw,
     mapStatisticsRaw,
     byDayRaw,
@@ -393,7 +460,6 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     last3Raw,
     last7Raw,
   ] = await Promise.all([
-    safeFetchText(ASSETS_BY_DAY_URL),
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
     safeFetchText(MOST_POPULAR_BY_DAY_URL),
@@ -408,28 +474,35 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(RANKING_URLS["7d"]),
   ]);
 
-  const rows = parseCsv(analyticsRaw);
   const authorRows = parseCsv(authorDayRaw);
   const mapStatisticRows = parseCsv(mapStatisticsRaw);
-  const contentRankings = buildEmptyContentRankings();
-  contentRankings["all-time"] = normalizeRankingRows(parseCsv(allTimeRaw), (row) =>
-    getNumber(row.adjusted_total_downloads || row.total_downloads),
-  );
-  contentRankings["3d"] = normalizeRankingRows(parseCsv(last3Raw), (row) =>
-    getNumber(row.adjusted_download_change || row.download_change),
-  );
-  contentRankings["7d"] = normalizeRankingRows(parseCsv(last7Raw), (row) =>
-    getNumber(row.adjusted_download_change || row.download_change),
-  );
-  contentRankings["14d"] = buildFourteenDayRankings(parseCsv(byDayRaw));
-  const history = normalizeHistory(rows);
+  const byDayRows = parseCsv(byDayRaw);
   const allItems = itemEntries.flat();
+  const validItemIds = new Set(allItems.map((item) => item.id));
+  const contentRankings = buildEmptyContentRankings();
+  contentRankings["all-time"] = normalizeRankingRows(
+    parseCsv(allTimeRaw),
+    (row) => getNumber(row.adjusted_total_downloads || row.total_downloads),
+    validItemIds,
+  );
+  contentRankings["3d"] = normalizeRankingRows(
+    parseCsv(last3Raw),
+    (row) => getNumber(row.adjusted_download_change || row.download_change),
+    validItemIds,
+  );
+  contentRankings["7d"] = normalizeRankingRows(
+    parseCsv(last7Raw),
+    (row) => getNumber(row.adjusted_download_change || row.download_change),
+    validItemIds,
+  );
+  contentRankings["14d"] = buildFourteenDayRankings(byDayRows, validItemIds);
+  const history = normalizeHistory(byDayRows, allItems);
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
+  const validMapIds = new Set(maps.map((item) => item.id));
   const playableAreaByMapId = buildMapPlayableAreaLookup(maps);
   const mapDownloads = maps.reduce((sum, item) => sum + item.totalDownloads, 0);
   const modDownloads = mods.reduce((sum, item) => sum + item.totalDownloads, 0);
-  const validAuthorIds = new Set(creatorData.authors.map((author) => author.id.toLowerCase()));
 
   return {
     overview: {
@@ -448,14 +521,14 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     history,
     contentRankings,
     authors: {
-      history: buildAuthorHistory(authorRows, validAuthorIds),
+      history: buildAuthorHistory(authorRows, allItems),
       rankings: buildAuthorRankings(creatorData.authors),
     },
     projects: {
       rankings: buildProjectRankings(creatorData.projects),
     },
     mapStatistics: {
-      rankings: buildMapStatisticRankings(mapStatisticRows, playableAreaByMapId),
+      rankings: buildMapStatisticRankings(mapStatisticRows, playableAreaByMapId, validMapIds),
     },
   };
 }
