@@ -11,7 +11,12 @@ import {
 describe('LOCATION_TAGS', () => {
   it('is a non-empty list of region strings', () => {
     expect(LOCATION_TAGS.length).toBeGreaterThan(0);
-    expect(LOCATION_TAGS).toContain('europe');
+    expect(LOCATION_TAGS).not.toContain('europe');
+    expect(LOCATION_TAGS).toContain('central-europe');
+    expect(LOCATION_TAGS).toContain('east-europe');
+    expect(LOCATION_TAGS).toContain('north-europe');
+    expect(LOCATION_TAGS).toContain('south-europe');
+    expect(LOCATION_TAGS).toContain('west-europe');
     expect(LOCATION_TAGS).toContain('north-america');
   });
 

@@ -7,7 +7,7 @@ on:
       - website-dev
     paths:
       - "packages/**"
-      - "website-dev/**"
+      - "website/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
@@ -19,7 +19,7 @@ on:
       - website-dev
     paths:
       - "packages/**"
-      - "website-dev/**"
+      - "website/**"
       - "railyard/frontend/**"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
@@ -123,8 +123,8 @@ jobs:
       - name: Typecheck package tsconfigs
         shell: bash
         run: |
-          pnpm --dir website-dev exec tsc --noEmit -p ../packages/shared-ui/tsconfig.json
-          pnpm --dir website-dev exec tsc --noEmit -p ../packages/asset-listings-ui/tsconfig.json
+          pnpm --dir website exec tsc --noEmit -p ../packages/shared-ui/tsconfig.json
+          pnpm --dir website exec tsc --noEmit -p ../packages/asset-listings-ui/tsconfig.json
 
   package-tests:
     name: Test Shared Packages

@@ -6,8 +6,6 @@ export const LOCATION_TAGS = [
 	'east-africa',
 	'east-asia',
 	'east-europe',
-	// 'europe' kept so filters still match manifests that do not have sub-regions
-	'europe',
 	'middle-east',
 	'north-africa',
 	'north-america',
