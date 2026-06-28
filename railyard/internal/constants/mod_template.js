@@ -12,6 +12,16 @@ function capitalizeString(str) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+/** Why the FUCK do i need this */
+function semverCompare(v1, v2) {
+  const v1Parts = v1.split('.').map(Number);
+  const v2Parts = v2.split('.').map(Number);
+  if (v1Parts[0] > v2Parts[0]) return true;
+  if(v1Parts[0] == v2Parts[0] && v1Parts[1] > v2Parts[1]) return true;
+  if(v1Parts[0] == v2Parts[0] && v1Parts[1] == v2Parts[1] && v1Parts[2] > v2Parts[2]) return true;
+  return false;
+}
+
 function getCountryName(countryCode) {
   const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
   return regionNames.of(countryCode.toUpperCase());
@@ -122,9 +132,7 @@ function generateTabs(places) {
       colorToUseAirport = config.colors[currentTheme].AIRPORT;
     }
 
-    let gameVersionParts = config.gameVersion.split(".");
-
-    if(config.gameVersion && ((parseInt(config.gameVersion[0]) >= 1 && parseInt(config.gameVersion[1]) > 3)) || (parseInt(gameVersionParts[0]) >= 1 && parseInt(gameVersionParts[1]) === 3 && parseInt(gameVersionParts[2]) >= 7)) {
+    if(config.gameVersion && semverCompare(config.gameVersion, "1.3.0")) {
       colorToUsePark = colorsData[themeObject].parks;
       colorToUseAirport = colorsData[themeObject].airports;
     }
@@ -180,6 +188,12 @@ function generateTabs(places) {
 
   window.SubwayBuilderAPI.hooks.onMapReady((map) => {
     const resolvedMap = map ?? api.utils.getMap();
+
+    if(semverCompare(config.gameVersion, "1.3.0") && config.places.some(place => place.demandDotScaling)) {
+      const scaling = config.places.find(place => place.demandDotScaling)?.demandDotScaling;
+      SubwayBuilderAPI.actions.setDemandBubbleScale(scaling);
+    }
+
     resolvedMap.on("styledata", () => addCustomLayers(resolvedMap));
     resolvedMap.on("data", () => addCustomLayers(resolvedMap));
     resolvedMap.on("load", () => addCustomLayers(resolvedMap));
