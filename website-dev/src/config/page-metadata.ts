@@ -51,6 +51,7 @@ type RegistryAuthorIndex = {
 };
 
 type RegistryManifestMetadata = {
+  gallery?: string[];
   name?: string;
   description?: string;
 };
@@ -68,7 +69,16 @@ function getSuiteImagePath(suiteId: SiteSuiteId): string {
     return DEFAULT_SITE_LOGO_PATH;
   }
 
-  return `/images/${suiteId}/logo.png`;
+  return `/images/embeds/${suiteId}.svg`;
+}
+
+function resolveRegistryThumbnail(routeSegment: string, id: string, gallery: string[] | undefined) {
+  const first = gallery?.[0]?.trim();
+  if (!first) return getSuiteImagePath("registry");
+  if (first.startsWith("http://") || first.startsWith("https://") || first.startsWith("/")) {
+    return first;
+  }
+  return `${REGISTRY_CACHE_PUBLIC_BASE}/${routeSegment}/${encodeURIComponent(id)}/${first.replace(/^\/+/, "")}`;
 }
 
 function toPlainTextExcerpt(markdown: string, maxLength = 180): string {
@@ -112,14 +122,15 @@ async function resolveRegistryMetadata(
       `${REGISTRY_CACHE_PUBLIC_BASE}/${route.routeSegment}/${encodeURIComponent(route.id)}/manifest.json`,
     );
     if (!manifest?.name) return fallback;
+    const title = route.versionId || manifest.name;
 
     return {
       ...fallback,
-      title: manifest.name,
+      title,
       description: toPlainTextExcerpt(manifest.description ?? fallback.description),
       suite: registrySuite,
-      pageTitle: formatPageTitle(manifest.name, registrySuite),
-      imagePath: getSuiteImagePath("registry"),
+      pageTitle: formatPageTitle(title, registrySuite),
+      imagePath: resolveRegistryThumbnail(route.routeSegment, route.id, manifest.gallery),
     };
   }
 

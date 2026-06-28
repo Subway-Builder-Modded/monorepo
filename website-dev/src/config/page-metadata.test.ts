@@ -18,7 +18,7 @@ describe("resolvePageMetadata", () => {
     expect(metadata.pageTitle).toBe("Analytics | Railyard");
     expect(metadata.description).toMatch(/download analytics/i);
     expect(metadata.suite.id).toBe("railyard");
-    expect(metadata.imagePath).toBe("/images/railyard/logo.png");
+    expect(metadata.imagePath).toBe("/images/embeds/railyard.svg");
   });
 
   it("resolves /railyard homepage metadata from the site navigation config", () => {
@@ -60,7 +60,7 @@ describe("resolvePageMetadata", () => {
     expect(metadata.title).toBe("Home");
     expect(metadata.pageTitle).toBe("Home | Registry");
     expect(metadata.suite.id).toBe("registry");
-    expect(metadata.imagePath).toBe("/images/registry/logo.png");
+    expect(metadata.imagePath).toBe("/images/embeds/registry.svg");
   });
 
   it("resolves updates homepage metadata from shared updates identity", () => {
@@ -97,6 +97,7 @@ describe("resolvePageMetadata", () => {
         JSON.stringify({
           name: "South Florida",
           description: "# South Florida\n\nA detailed map of South Florida for Subway Builder.",
+          gallery: ["gallery/preview.webp"],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
@@ -109,6 +110,7 @@ describe("resolvePageMetadata", () => {
       expect(metadata.description).toBe(
         "South Florida A detailed map of South Florida for Subway Builder.",
       );
+      expect(metadata.imagePath).toBe("/registry-cache/maps/south-florida/gallery/preview.webp");
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -188,7 +190,7 @@ describe("resolvePageMetadata", () => {
     );
     expect(metadata.pageTitle).toBe("Playground | Registry");
     expect(metadata.suite.id).toBe("registry");
-    expect(metadata.imagePath).toBe("/images/registry/logo.png");
+    expect(metadata.imagePath).toBe("/images/embeds/registry.svg");
   });
 
   it("resolves /railyard/analytics metadata from navigation config", () => {
@@ -204,14 +206,6 @@ describe("resolvePageMetadata", () => {
 
     expect(metadata.title).toBe("Analytics");
     expect(metadata.pageTitle).toBe("Analytics | Registry");
-    expect(metadata.suite.id).toBe("registry");
-  });
-
-  it("resolves /registry/trending metadata from navigation config", () => {
-    const metadata = resolvePageMetadata("/registry/trending");
-
-    expect(metadata.title).toBe("Trending");
-    expect(metadata.pageTitle).toBe("Trending | Registry");
     expect(metadata.suite.id).toBe("registry");
   });
 

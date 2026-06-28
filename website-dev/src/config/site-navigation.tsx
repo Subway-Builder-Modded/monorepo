@@ -15,7 +15,6 @@ import {
   Compass,
   BookText,
   Megaphone,
-  TrendingUp,
   Warehouse,
 } from "lucide-react";
 import { GithubIcon, DiscordIcon, MarkdownIcon } from "@subway-builder-modded/icons";
@@ -287,24 +286,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "prefix", path: "/registry/analytics" }],
   },
   {
-    id: "registry-trending",
-    suiteId: "registry",
-    title: "Trending",
-    description: "View the most trending content in the Registry based on recent activity.",
-    href: "/registry/trending",
-    icon: TrendingUp,
-    activeMatchRules: [{ kind: "exact", path: "/registry/trending" }],
-  },
-  {
-    id: "registry-world-map",
-    suiteId: "registry",
-    title: "World Map",
-    description: "Interactively explore all of the user-submitted maps available in the Registry.",
-    href: "/registry/world-map",
-    icon: Globe,
-    activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
-  },
-  {
     id: "registry-markdown-playground",
     suiteId: "registry",
     title: "Playground",
@@ -349,15 +330,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/website/updates",
     icon: Megaphone,
     activeMatchRules: [{ kind: "prefix", path: "/website/updates" }],
-  },
-  {
-    id: "website-analytics",
-    suiteId: "website",
-    title: "Analytics",
-    description: "In-depth release and download analytics for the Website.",
-    href: "/website/analytics",
-    icon: ChartLine,
-    activeMatchRules: [{ kind: "prefix", path: "/website/analytics" }],
   },
   {
     id: "depot-home",

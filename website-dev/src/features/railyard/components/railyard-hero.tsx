@@ -6,16 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import {
-  BookText,
-  ChartLine,
-  Download,
-  Globe,
-  Map,
-  Megaphone,
-  Package,
-  TrainTrack,
-} from "lucide-react";
+import { BookText, ChartLine, Download, Map, Megaphone, Package, TrainTrack } from "lucide-react";
 import { Link } from "@/lib/router";
 import { RAILYARD_HERO_BODY } from "@/features/railyard/railyard-content";
 import { RegistryLatestCarousel } from "@/features/registry/components/shared/registry-latest-carousel";
@@ -42,11 +33,6 @@ const heroTooltipLinks = [
     label: "Analytics",
     to: "/railyard/analytics/overview",
     icon: ChartLine,
-  },
-  {
-    label: "World Map",
-    to: "/registry/world-map",
-    icon: Globe,
   },
 ];
 

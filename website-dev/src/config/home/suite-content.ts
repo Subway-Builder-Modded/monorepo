@@ -71,8 +71,8 @@ export const SUITE_STEPS: SuiteStep[] = [
       imageDark: "/images/registry/hero-dark.png",
       imageAlt: "Registry analytics dashboard",
     },
-    primaryAction: { label: "Analytics", href: "/registry/analytics", icon: "chartLine" },
-    secondaryAction: { label: "World Map", href: "/registry/world-map", icon: "globe" },
+    primaryAction: { label: "Discover", href: "/registry/", icon: "database" },
+    secondaryAction: { label: "Analytics", href: "/registry/analytics", icon: "chartLine" },
   },
   {
     id: "template-mod",
@@ -115,7 +115,7 @@ export const SUITE_STEPS: SuiteStep[] = [
       imageDark: "/images/website/hero-dark.png",
       imageAlt: "Website homepage",
     },
-    primaryAction: { label: "Analytics", href: "/website/analytics", icon: "chartLine" },
+    primaryAction: { label: "Updates", href: "/website/updates", icon: "megaphone" },
     secondaryAction: {
       label: "Contribute",
       href: "https://github.com/Subway-Builder-Modded/website",
