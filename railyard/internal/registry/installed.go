@@ -212,6 +212,21 @@ func (r *Registry) GetInstalledMapCodes() []string {
 	return codes
 }
 
+// inferManifestConstraint returns the manifest game-version constraint for an installed asset
+// by looking it up in the integrity report, or nil if no data is available.
+// Used as a migration bridge for installs that predate constraint storage.
+func inferManifestConstraint(listings map[string]types.IntegrityListing, id, version string) *types.InstalledConstraint {
+	listing, ok := listings[id]
+	if !ok {
+		return nil
+	}
+	status, ok := listing.Versions[version]
+	if !ok || status.GameVersion == "" {
+		return nil
+	}
+	return &types.InstalledConstraint{Type: types.ConstraintTypeManifest, Range: status.GameVersion}
+}
+
 // enrichModInfoWithFileSizes enriches installed mod info with on-disk size metadata.
 func (r *Registry) enrichModInfoWithFileSizes(mods []types.InstalledModInfo) []types.InstalledModInfo {
 	updated := make([]types.InstalledModInfo, 0, len(mods))
@@ -224,6 +239,14 @@ func (r *Registry) enrichModInfoWithFileSizes(mods []types.InstalledModInfo) []t
 			size = 0
 		}
 		copyItem.InstalledSizeBytes = size
+
+		// Manifest constraint migration bridge: for pre-existing installs with no manifest constraint stored, infer it from the integrity report.
+		if !slices.ContainsFunc(item.Constraints, func(c types.InstalledConstraint) bool { return c.Type == types.ConstraintTypeManifest }) {
+			if c := inferManifestConstraint(r.integrityMods.Listings, item.ID, item.Version); c != nil {
+				copyItem.Constraints = append(copyItem.Constraints, *c)
+			}
+		}
+
 		updated = append(updated, copyItem)
 	}
 	return updated
@@ -256,6 +279,13 @@ func (r *Registry) enrichMapInfoWithFileSizes(maps []types.InstalledMapInfo) []t
 					Type:  types.ConstraintTypeBuildingsIndex,
 					Range: bc,
 				})
+			}
+		}
+
+		// Manifest constraint migration bridge: same pattern as mods.
+		if !slices.ContainsFunc(item.Constraints, func(c types.InstalledConstraint) bool { return c.Type == types.ConstraintTypeManifest }) {
+			if c := inferManifestConstraint(r.integrityMaps.Listings, item.ID, item.Version); c != nil {
+				copyItem.Constraints = append(copyItem.Constraints, *c)
 			}
 		}
 
