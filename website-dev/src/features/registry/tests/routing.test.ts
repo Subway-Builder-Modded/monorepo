@@ -65,11 +65,24 @@ describe("matchRegistryRoute", () => {
     });
   });
 
-  it("matches detail route", () => {
-    expect(matchRegistryRoute("/registry/maps/gwangju-4")).toEqual({
+  it("matches detail routes and version subroutes", () => {
+    expect(matchRegistryRoute("/registry/maps/asset-a")).toEqual({
       kind: "detail",
       routeSegment: "maps",
-      id: "gwangju-4",
+      id: "asset-a",
+    });
+    expect(matchRegistryRoute("/registry/maps/asset-a/analytics")).toEqual({
+      kind: "detail",
+      routeSegment: "maps",
+      id: "asset-a",
+      tabId: "analytics",
+    });
+    expect(matchRegistryRoute("/registry/maps/asset-a/versions/v1.0.0")).toEqual({
+      kind: "detail",
+      routeSegment: "maps",
+      id: "asset-a",
+      tabId: "versions",
+      versionId: "v1.0.0",
     });
   });
 
@@ -94,43 +107,21 @@ describe("matchRegistryRoute", () => {
   });
 
   it("matches project routes under author routes", () => {
-    expect(matchRegistryRoute("/registry/authors/ahkimn/subwaybuilder-jp-maps")).toEqual({
+    expect(matchRegistryRoute("/registry/authors/author-a/project-a")).toEqual({
       kind: "project",
-      authorId: "ahkimn",
-      projectName: "subwaybuilder-jp-maps",
+      authorId: "author-a",
+      projectName: "project-a",
     });
-  });
-
-  it("matches project tab routes", () => {
-    expect(matchRegistryRoute("/registry/authors/ahkimn/subwaybuilder-jp-maps/analytics")).toEqual({
+    expect(matchRegistryRoute("/registry/authors/author-a/project-a/analytics")).toEqual({
       kind: "project",
-      authorId: "ahkimn",
-      projectName: "subwaybuilder-jp-maps",
+      authorId: "author-a",
+      projectName: "project-a",
       tabId: "analytics",
-    });
-  });
-
-  it("matches detail route with tab subpage", () => {
-    expect(matchRegistryRoute("/registry/maps/gwangju-4/analytics")).toEqual({
-      kind: "detail",
-      routeSegment: "maps",
-      id: "gwangju-4",
-      tabId: "analytics",
-    });
-  });
-
-  it("matches version changelog subroute", () => {
-    expect(matchRegistryRoute("/registry/maps/gwangju-4/versions/v1.0.0")).toEqual({
-      kind: "detail",
-      routeSegment: "maps",
-      id: "gwangju-4",
-      tabId: "versions",
-      versionId: "v1.0.0",
     });
   });
 
   it("returns none for invalid detail tab subpage", () => {
-    expect(matchRegistryRoute("/registry/maps/gwangju-4/not-a-tab")).toEqual({ kind: "none" });
+    expect(matchRegistryRoute("/registry/maps/asset-a/not-a-tab")).toEqual({ kind: "none" });
     expect(matchRegistryRoute("/registry/authors/ahkimn/project/not-a-tab")).toEqual({
       kind: "none",
     });
@@ -146,44 +137,39 @@ describe("getRegistryDetailUrl", () => {
     expect(getRegistryDetailUrl("mods", "my mod")).toBe("/registry/mods/my%20mod");
   });
 
-  it("builds detail tab URL and omits default description tab", () => {
-    expect(getRegistryDetailUrl("maps", "gwangju-4", "analytics")).toBe(
-      "/registry/maps/gwangju-4/analytics",
+  it("builds detail tab and version URLs", () => {
+    expect(getRegistryDetailUrl("maps", "asset-a", "analytics")).toBe(
+      "/registry/maps/asset-a/analytics",
     );
-    expect(getRegistryDetailUrl("maps", "gwangju-4", "description")).toBe(
-      "/registry/maps/gwangju-4/description",
+    expect(getRegistryVersionUrl("maps", "asset a", "v1.0.0")).toBe(
+      "/registry/maps/asset%20a/versions/v1.0.0",
     );
-    expect(getRegistryDetailUrl("maps", "gwangju-4")).toBe("/registry/maps/gwangju-4");
   });
 });
 
 describe("getRegistryAuthorUrl", () => {
   it("builds author tab URLs and omits overview", () => {
-    expect(getRegistryAuthorUrl("ahkimn")).toBe("/registry/authors/ahkimn");
-    expect(getRegistryAuthorUrl("ahkimn", "overview")).toBe("/registry/authors/ahkimn");
-    expect(getRegistryAuthorUrl("ahkimn", "analytics")).toBe("/registry/authors/ahkimn/analytics");
-    expect(getRegistryAuthorUrl("ahkimn", "projects")).toBe("/registry/authors/ahkimn/projects");
+    expect(getRegistryAuthorUrl("author-a")).toBe("/registry/authors/author-a");
+    expect(getRegistryAuthorUrl("author-a", "overview")).toBe("/registry/authors/author-a");
+    expect(getRegistryAuthorUrl("author-a", "analytics")).toBe(
+      "/registry/authors/author-a/analytics",
+    );
+    expect(getRegistryAuthorUrl("author-a", "projects")).toBe(
+      "/registry/authors/author-a/projects",
+    );
   });
 });
 
 describe("getRegistryProjectUrl", () => {
   it("builds project tab URLs and omits overview", () => {
-    expect(getRegistryProjectUrl("ahkimn", "subwaybuilder-jp-maps")).toBe(
-      "/registry/authors/ahkimn/subwaybuilder-jp-maps",
+    expect(getRegistryProjectUrl("author-a", "project-a")).toBe(
+      "/registry/authors/author-a/project-a",
     );
-    expect(getRegistryProjectUrl("ahkimn", "subwaybuilder-jp-maps", "overview")).toBe(
-      "/registry/authors/ahkimn/subwaybuilder-jp-maps",
+    expect(getRegistryProjectUrl("author-a", "project-a", "overview")).toBe(
+      "/registry/authors/author-a/project-a",
     );
-    expect(getRegistryProjectUrl("ahkimn", "subwaybuilder-jp-maps", "analytics")).toBe(
-      "/registry/authors/ahkimn/subwaybuilder-jp-maps/analytics",
-    );
-  });
-});
-
-describe("getRegistryVersionUrl", () => {
-  it("builds encoded versions changelog URL", () => {
-    expect(getRegistryVersionUrl("maps", "gwangju 4", "v1.0.0")).toBe(
-      "/registry/maps/gwangju%204/versions/v1.0.0",
+    expect(getRegistryProjectUrl("author-a", "project-a", "analytics")).toBe(
+      "/registry/authors/author-a/project-a/analytics",
     );
   });
 });

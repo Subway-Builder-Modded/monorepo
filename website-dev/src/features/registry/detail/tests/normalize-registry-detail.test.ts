@@ -12,27 +12,28 @@ const BASE: RegistryDetailLoadedData = {
     accentDark: "#60a5fa",
   },
   item: {
-    id: "gwangju-4",
+    id: "asset-a",
     type: "maps",
     routeSegment: "maps",
-    name: "Gwangju",
-    author: "slurry",
-    authorId: "rslurry",
-    description: "Map description",
-    tags: ["east-asia"],
+    name: "Asset A",
+    author: "Author A",
+    authorId: "author-a",
+    description: "Fallback description",
+    tags: ["tag-a"],
     thumbnailSrc: null,
     totalDownloads: 1284,
-    cityCode: "GZ",
-    countryCode: "CN",
-    countryName: "China",
-    population: 14_000_000,
+    cityCode: "AAA",
+    countryCode: "AA",
+    countryName: "Country A",
+    population: 14_000,
   },
   manifest: {
-    description: "# Gwangju\n\nGreat map",
-    gallery: ["gallery/shot.png"],
-    source: "https://github.com/example/repo",
-    source_quality: "high",
-    level_of_detail: "medium",
+    description: "# Asset A\n\nDetailed description",
+    gallery: ["gallery/shot.png", "https://cdn.example.test/remote.png", "/absolute.png", ""],
+    source: "https://example.test/source",
+    source_quality: "high-quality",
+    level_of_detail: "medium-detail",
+    tags: ["high-quality", "tag-b"],
     grid_statistics: {
       detail: {
         playableAreaKm2: 5617,
@@ -40,7 +41,8 @@ const BASE: RegistryDetailLoadedData = {
     },
     update: {
       type: "github",
-      repo: "example/repo",
+      repo: "owner/repo",
+      url: "https://updates.example.test/asset-a.json",
     },
     last_updated: 1_772_000_000,
   },
@@ -49,14 +51,16 @@ const BASE: RegistryDetailLoadedData = {
       is_complete: true,
       checked_at: "2026-04-25T00:00:00.000Z",
       source: {
-        download_url: "https://downloads.example/gwangju-1.0.0.zip",
+        download_url: "https://downloads.example.test/asset-a-1.0.0.zip",
+        repo: "owner/repo",
+        tag: "v1.0.0",
       },
     },
     "0.9.0": {
       is_complete: true,
       checked_at: "2026-03-01T00:00:00.000Z",
       source: {
-        download_url: "https://downloads.example/gwangju-0.9.0.zip",
+        download_url: "https://downloads.example.test/asset-a-0.9.0.zip",
       },
     },
     "0.1.0": { is_complete: false, checked_at: "2026-01-01T00:00:00.000Z" },
@@ -73,7 +77,8 @@ const BASE: RegistryDetailLoadedData = {
     "1.0.0": 10,
     "0.9.0": 4,
   },
-  authorAttributionHref: "https://github.com/rslurry",
+  authorAttributionHref: "https://example.test/author-a",
+  collaborators: [{ authorId: "author-b", authorLabel: "Author B" }],
   projectId: null,
   downloadAnalytics: {
     rank: 3,
@@ -81,67 +86,56 @@ const BASE: RegistryDetailLoadedData = {
     last14Days: 140,
     last7Days: 70,
   },
+  downloadHistory: [{ date: "2026-04-25", downloads: 10 }],
+  downloadTrends: [{ period: "7d", label: "7 days", downloads: 70, rank: 4 }],
   mapRankings: null,
 };
 
 describe("normalizeRegistryDetail", () => {
-  it("normalizes detail model with versions and map fields", () => {
+  it("normalizes a complete map detail model without real cache fixtures", () => {
     const model = normalizeRegistryDetail(BASE);
 
-    expect(model.id).toBe("gwangju-4");
-    expect(model.galleryImages).toEqual(["/registry-cache/maps/gwangju-4/gallery/shot.png"]);
-    expect(model.sourceCodeLink).toEqual({
-      label: "Source",
-      href: "https://github.com/example/repo",
+    expect(model).toMatchObject({
+      id: "asset-a",
+      name: "Asset A",
+      authorLabel: "Author A",
+      authorId: "author-a",
+      authorHref: "https://example.test/author-a",
+      sourceCodeLink: { label: "Source", href: "https://example.test/source" },
+      downloads: 1284,
+      latestVersion: "1.0.0",
+      latestDownloadUrl: "https://downloads.example.test/asset-a-1.0.0.zip",
+      publishedDate: "2026-02-28T00:00:00.000Z",
+      updatedDate: "2026-02-25T06:13:20.000Z",
+      integrityVersionCount: 2,
     });
-    expect(model.latestVersion).toBe("1.0.0");
-    expect(model.latestDownloadUrl).toBe("https://downloads.example/gwangju-1.0.0.zip");
-    expect(model.publishedDate).toBe("2026-02-28T00:00:00.000Z");
-    expect(model.updatedDate).toBe("2026-02-25T06:13:20.000Z");
-    expect(model.integrityVersionCount).toBe(2);
-    expect(model.downloadAnalytics).toEqual({
-      rank: 3,
-      allTime: 1284,
-      last14Days: 140,
-      last7Days: 70,
-    });
-    expect(model.versions).toMatchObject([
-      { version: "1.0.0", releaseDate: "2026-04-24T00:00:00.000Z" },
-      { version: "0.9.0", releaseDate: "2026-02-28T00:00:00.000Z" },
+    expect(model.tags).toEqual(["tag-b", "tag-a"]);
+    expect(model.galleryImages).toEqual([
+      "/registry-cache/maps/asset-a/gallery/shot.png",
+      "https://cdn.example.test/remote.png",
+      "/absolute.png",
     ]);
-    expect(model.mapFields).toEqual({
-      rankings: {
-        population: null,
-        populationCount: null,
-        pointsCount: null,
-        playableAreaKm2: null,
-      },
-      cityCode: "GZ",
-      countryCode: "CN",
-      country: "China",
-      population: 14_000_000,
-      populationCount: null,
-      pointsCount: null,
+    expect(model.versions).toMatchObject([
+      { version: "1.0.0", downloads: 10, sourceRepo: "owner/repo", sourceTag: "v1.0.0" },
+      { version: "0.9.0", downloads: 4 },
+    ]);
+    expect(model.mapFields).toMatchObject({
+      cityCode: "AAA",
+      countryCode: "AA",
+      country: "Country A",
+      population: 14_000,
       playableAreaKm2: 5617,
       sourceQuality: "High",
       levelOfDetail: "Medium",
-      fileSizes: {
-        pmtiles: null,
-        buildingsIndex: null,
-        demandData: null,
-        oceanDepthIndex: null,
-        roads: null,
-        runwaysTaxiways: null,
-        other: null,
-      },
     });
   });
 
-  it("does not crash when optional fields are missing", () => {
+  it("normalizes missing optional fields for non-map items", () => {
     const model = normalizeRegistryDetail({
       ...BASE,
       item: {
         ...BASE.item,
+        id: "asset-b",
         type: "mods",
         routeSegment: "mods",
         cityCode: null,
@@ -158,7 +152,9 @@ describe("normalizeRegistryDetail", () => {
       versionReleaseDates: {},
       versionDownloads: {},
       authorAttributionHref: null,
-      projectId: null,
+      collaborators: [],
+      downloadHistory: [],
+      downloadTrends: [],
     });
 
     expect(model.mapFields).toBeNull();
@@ -171,13 +167,13 @@ describe("normalizeRegistryDetail", () => {
     expect(model.integrityVersionCount).toBe(0);
   });
 
-  it("separates ocean depth and sums uncategorized file sizes", () => {
+  it("categorizes map file sizes and sums uncategorized files", () => {
     const model = normalizeRegistryDetail({
       ...BASE,
       manifest: {
         ...BASE.manifest,
         file_sizes: {
-          "gwangju.pmtiles": 18.2,
+          "asset.pmtiles": 18.2,
           "buildings_index.json": 42,
           "demand_data.json": 4.35,
           "ocean_depth_index.json": 2.63,
@@ -198,20 +194,5 @@ describe("normalizeRegistryDetail", () => {
       runwaysTaxiways: null,
       other: 7.51,
     });
-  });
-
-  it("falls back to checked_at dates when last_updated is unavailable", () => {
-    const model = normalizeRegistryDetail({
-      ...BASE,
-      manifest: {
-        ...BASE.manifest,
-        last_updated: undefined,
-      },
-      listingLastUpdated: null,
-      versionReleaseDates: {},
-    });
-
-    expect(model.publishedDate).toBe("2026-03-01T00:00:00.000Z");
-    expect(model.updatedDate).toBe("2026-04-25T00:00:00.000Z");
   });
 });

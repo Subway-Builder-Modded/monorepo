@@ -2,18 +2,22 @@ export const LOCATION_TAGS = [
 	'caribbean',
 	'central-america',
 	'central-asia',
+	'central-europe',
 	'east-africa',
 	'east-asia',
-	'europe',
+	'east-europe',
 	'middle-east',
 	'north-africa',
 	'north-america',
+	'north-europe',
 	'oceania',
 	'south-america',
 	'south-asia',
+	'south-europe',
 	'southeast-asia',
 	'southern-africa',
 	'west-africa',
+	'west-europe',
 ] as const;
 
 export const DATA_QUALITY_VALUES = [

@@ -12,7 +12,7 @@ import {
   getRegistryItemCachePath,
 } from "@/features/registry/lib/registry-asset-paths";
 
-const MAP_LOCATION_TAG_SET = new Set<string>(LOCATION_TAGS);
+const MAP_LOCATION_TAG_SET = new Set<string>([...LOCATION_TAGS, "europe"]);
 
 function safeJson<T>(raw: string, fallback: T): T {
   try {
@@ -183,7 +183,7 @@ function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): s
   const tagSet = new Set<string>(normalizedManifestTags);
 
   if (typeUiRules.hasMapMetadata) {
-    const locationTag = manifest.location?.trim().toLowerCase();
+    const locationTag = (manifest.sub_location ?? manifest.location)?.trim().toLowerCase();
     if (locationTag) {
       tagSet.add(locationTag);
     }

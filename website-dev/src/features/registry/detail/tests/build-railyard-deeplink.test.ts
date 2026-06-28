@@ -3,9 +3,7 @@ import { buildRailyardDeeplink } from "@/features/registry/detail/lib/build-rail
 
 describe("buildRailyardDeeplink", () => {
   it("builds deeplink from type and id", () => {
-    expect(buildRailyardDeeplink("maps", "gwangju-4")).toBe(
-      "railyard://open?type=maps&id=gwangju-4",
-    );
+    expect(buildRailyardDeeplink("maps", "asset-a")).toBe("railyard://open?type=maps&id=asset-a");
   });
 
   it("encodes route segment and id", () => {
