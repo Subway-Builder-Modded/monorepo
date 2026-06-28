@@ -1,0 +1,86 @@
+---
+title: Game Version Incompatibility
+description: Learn how to manage content on incompatible game versions.
+icon: OctagonX
+---
+
+With the release of Subway Builder version `1.3.3` and the `buildings_index.json` to `buildings_index.bin` migration, the Registry has introduced strict version checks to make sure users are not using content that is incompatible with their current game version. However, users who want to play outdated content can still do so via some intended workarounds.
+
+:::danger
+
+This means that any maps that were made for game version `1.3.0` or **before** will **NOT** be compatible with versions later than `1.3.0` unless a the map is updated and a `buildings_index.bin` is provided.
+
+:::
+
+## Incompatible Content {#incompatible-content}
+
+Content is incompatible if any of the following conditions are met:
+
+- If the asset was created for a game version that is older than the user's current game version. (e.g. if a map does not have a `buildings_index.bin`, it will not be compatible with `>1.3.0`.)
+- If the asset was created for a game version that is newer than the user's current game version. (e.g. if a map has a `buildings_index.bin` but not a `buildings_index.json`, it will not be compatible with `<=1.3.0`.)
+
+:::tip
+
+A map can contain both a `buildings_index.json` and a `buildings_index.bin` file, which will make it compatible with all game versions.
+
+:::
+
+An asset will clearly appear as incompatible in **Library** when it is not compatible with your current game version. You can see the required game version and the reason for incompatibility by hovering on the **Incompatible** badge.
+
+<p align="center">
+  <Image
+    width="1800"
+    alt="image"
+    src="/images/railyard/docs/v0.2/game-version-incompatibility/library.png"
+  />
+</p>
+
+## Workarounds {#workarounds}
+
+If a listing is incompatible with your current game version, you will not be able to download it from the Registry.
+
+<p align="center">
+  <Image
+    width="1800"
+    alt="image"
+    src="/images/railyard/docs/v0.2/game-version-incompatibility/blocked-install.png"
+  />
+</p>
+
+There are, however, ways to get around this. The best way, of course, to do this is to wait for the content creator to update their content to be compatible with your current game version. If that is not possible, you can try one of the following workarounds.
+
+:::caution
+
+These assets are incompatible for a reason. You may experience bugs or unintended behavior when using incompatible content. Please use these workarounds at your own risk.
+
+:::
+
+### Downgrading Subway Builder {#downgrading-subway-builder}
+
+You can [download an older version of Subway Builder](https://subwaybuilder.com/download) from their website. This will allow you to install content that is compatible with that version of the game. Once you have installed all of the content that you want, you can then [upgrade to the newer, beta version of Subway Builder](https://subwaybuilder.com/download?beta=true) and continue playing.
+
+### Importing the Asset {#importing-asset}
+
+You can also download the asset directly from the website from the [Registry database](/registry) and import it into Railyard. Go to the listing page of the asset you want to download, and click **Download**. You will then see the option to download the asset directly. Then, you can import the asset as described in the [Importing Local Assets guide](/railyard/docs/v0.2/importing-local-assets).
+
+<p align="center">
+  <Image
+    width="1800"
+    alt="image"
+    src="/images/railyard/docs/v0.2/game-version-incompatibility/website-download.png"
+  />
+</p>
+
+## Launching With Incompatible Content {#launching}
+
+When you attempt to launch Subway Builder with incompatible content, you will be presented with a warning dialog.
+
+<p align="center">
+  <Image
+    width="1800"
+    alt="image"
+    src="/images/railyard/docs/v0.2/game-version-incompatibility/launch-dialog.png"
+  />
+</p>
+
+You will have the option to either cancel the launch, launch the game with incompatible assets disabled, or launch the game with incompatible assets enabled. If you choose to launch with incompatible assets enabled, you will be able to play the game with the incompatible content, but you may experience bugs or unintended behavior.

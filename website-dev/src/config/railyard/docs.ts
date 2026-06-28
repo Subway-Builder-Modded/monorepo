@@ -35,6 +35,7 @@ export const railyardDocsConfig: DocsSuiteConfig = {
       "importing-local-assets",
       "profile-management",
       "country-flag-emojis",
+      "game-version-incompatibility",
     ],
     "v0.1": ["install-guide-windows", "install-guide-macos", "install-guide-linux"],
   },

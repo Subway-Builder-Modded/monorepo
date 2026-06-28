@@ -55,7 +55,7 @@ function RankAccessory({ detail, rank }: { detail: RegistryDetailModel; rank: nu
           <span className="inline-flex items-center gap-1.5">
             <span>Ranking among</span>
             <Link
-              to="http://localhost:5173/registry/analytics/map-statistics"
+              to="/registry/analytics/map-statistics"
               className="inline-flex items-center gap-1 font-bold underline-offset-2 transition hover:underline"
               style={{
                 color: `light-dark(${detail.typeConfig.accentLight}, ${detail.typeConfig.accentDark})`,
