@@ -63,7 +63,7 @@ func (r *Registry) refreshRepo() error {
 	return nil
 }
 
-// repoHasTags reports whether the local clone has any tag refs. 
+// repoHasTags reports whether the local clone has any tag refs.
 func repoHasTags(repo *git.Repository) bool {
 	iter, err := repo.Tags()
 	if err != nil {
@@ -133,8 +133,8 @@ func (r *Registry) fetchAndReset(repo *git.Repository) error {
 		RefSpecs: []config.RefSpec{
 			"+refs/heads/main:refs/remotes/origin/main",
 		},
-		Force: true,
-		Depth: 1,
+		Force:    true,
+		Depth:    1,
 		Tags:     git.NoTags,
 		Progress: progress,
 	})
