@@ -21,6 +21,7 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.4+rc.
 - Persist cache of asset versions to disk and use conditional fetches via ETags to reduce Github API request churn
 - Replaced large PNG/JPG with WebP on `registry` and moved app-unused `grid/base_map` files to a separate branch to reduce refresh/clone size
   - Total clone size should now be around ~200 MB rather than ~1.4 GB
+- Maps can now set `minZoom`, `maxZoom`, and `demandDotScaling` in their `config.json`
 
 </ChangelogSection>
 
@@ -28,5 +29,6 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.4+rc.
 
 - Fixed issue where newly released assets without passing integrity could be installed via update
 - Fixed game version dependency parsing to honor Custom JSON version expressions over `manifest.json` when provided
+- Fixed the custom colors map layer not working properly
 
 </ChangelogSection>
