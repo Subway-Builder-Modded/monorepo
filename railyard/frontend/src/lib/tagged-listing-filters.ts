@@ -6,7 +6,10 @@ import {
   type TaggedListingFilterState,
   type TaggedListingItem,
 } from '@subway-builder-modded/asset-listings-state';
-import { ASSET_LISTING_FUSE_SEARCH_OPTIONS } from '@subway-builder-modded/config';
+import {
+  ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  resolveMapLocation,
+} from '@subway-builder-modded/config';
 
 import type { types } from '../../wailsjs/go/models';
 
@@ -43,7 +46,7 @@ export function createTaggedListingAccessors<
         cardinality: 'single',
         getValue: (item) =>
           item.type === 'map'
-            ? ((item.item as types.MapManifest).location ?? '')
+            ? (resolveMapLocation(item.item as types.MapManifest) ?? '')
             : undefined,
         getSelected: (filters) => filters.map.locations ?? [],
         filterParent: 'map',

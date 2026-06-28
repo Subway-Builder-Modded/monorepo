@@ -156,19 +156,7 @@ func (a *App) startup(ctx context.Context) {
 	activeProfile := resolveStartupProfile(a)
 	a.Logger.Info("Active user profile loaded on startup", "profile_id", activeProfile.ID)
 
-	if err := a.Registry.Initialize(); err != nil {
-		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
-	} else {
-		a.bootstrapInstalledState(activeProfile)
-	}
-	if err := a.addSaltsOnFirstRun(); err != nil {
-		a.Logger.Warn("Failed to add salts to existing assets on first run", "error", err)
-	}
-	if a.Config.Cfg.CheckForUpdatesOnLaunch {
-		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
-	}
-
-	// Registry must be initialized + startup profile ready so that initial Frontend state is viable.
+	// Config and profile are ready; registry initializes in the background
 	a.setStartupReady(true)
 	// Keep startup deep links queued until the frontend consumes them.
 	// Emitting here can race listener registration during cold launches.
@@ -261,7 +249,24 @@ func (a *App) recoverProfiles(cause types.UserProfileResult) types.UserProfile {
 
 func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 	wailsruntime.WindowMaximise(a.ctx)
-	if activeProfile.SystemPreferences.RefreshRegistryOnStartup {
+
+	if a.Config.Cfg.CheckForUpdatesOnLaunch {
+		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
+	}
+
+	registryReady := false
+	if err := a.Registry.Initialize(); err != nil {
+		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
+	} else {
+		a.bootstrapInstalledState(activeProfile)
+		if err := a.addSaltsOnFirstRun(); err != nil {
+			a.Logger.Warn("Failed to add salts to existing assets on first run", "error", err)
+		}
+		registryReady = true
+	}
+	a.emitEvent("registry:ready")
+
+	if registryReady && activeProfile.SystemPreferences.RefreshRegistryOnStartup {
 		if err := a.Registry.Refresh(); err != nil {
 			a.Logger.Warn("Failed to refresh registry on startup", "error", err)
 		}

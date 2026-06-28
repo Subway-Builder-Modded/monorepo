@@ -32,6 +32,7 @@ export {
 	buildSpecialDemandValues,
 	formatDataQuality,
 	formatSourceQuality,
+	resolveMapLocation,
 } from './asset-listings/map-filter-values';
 export {
 	buildAssetListingCounts,

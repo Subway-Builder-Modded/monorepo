@@ -121,14 +121,13 @@ export function useFilteredInstalledItems({
       );
     }
 
-    // Frontend-only numeric sorts: field → value extractor. Add future fields here.
-    const frontendSort: Partial<
+    const numericalSort: Partial<
       Record<string, (i: InstalledTaggedItem) => number>
     > = {
       size: (i) => i.installedSizeBytes ?? 0,
       status: (i) => itemStatusRank(i, gameVersion),
     };
-    const getSortValue = frontendSort[filters.sort.field];
+    const getSortValue = numericalSort[filters.sort.field];
     if (getSortValue) {
       const dir = filters.sort.direction;
       return [...result].sort((a, b) => {

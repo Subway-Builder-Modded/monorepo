@@ -111,13 +111,16 @@ func (r *Registry) Refresh() error {
 	r.versions.resetRevalidated()
 
 	// Fast exit path: Skip the full fetch when the local repo already matches latest commit SHA.
-	// Failures here intentionally fall through to the normal, slow path
-	if upToDate, err := r.isUpToDateWithRemote(); err != nil {
-		r.logger.Info("Registry precheck failed; falling back to full fetch", "error", err)
-	} else if upToDate {
-		r.logger.Info("Registry precheck matched local HEAD; skipping fetch")
-		r.emitProgress(RegistryProgress{Stage: progressStageComplete, Percent: 100})
-		return nil
+	// Failures here intentionally fall through to the normal, slow path.
+	if !r.localCloneHasTags() {
+		// Old clones still carrying tags are exempt from the fast exit so refreshRepo runs and clones without tags
+		if upToDate, err := r.isUpToDateWithRemote(); err != nil {
+			r.logger.Info("Registry precheck failed; falling back to full fetch", "error", err)
+		} else if upToDate {
+			r.logger.Info("Registry precheck matched local HEAD; skipping fetch")
+			r.emitProgress(RegistryProgress{Stage: progressStageComplete, Percent: 100})
+			return nil
+		}
 	}
 
 	if err := r.refreshRepo(); err != nil {

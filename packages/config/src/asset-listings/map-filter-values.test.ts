@@ -14,6 +14,14 @@ describe('LOCATION_TAGS', () => {
     expect(LOCATION_TAGS).toContain('europe');
     expect(LOCATION_TAGS).toContain('north-america');
   });
+
+  it('includes all europe sub-region tags', () => {
+    expect(LOCATION_TAGS).toContain('north-europe');
+    expect(LOCATION_TAGS).toContain('west-europe');
+    expect(LOCATION_TAGS).toContain('south-europe');
+    expect(LOCATION_TAGS).toContain('central-europe');
+    expect(LOCATION_TAGS).toContain('east-europe');
+  });
 });
 
 describe('SOURCE_QUALITY_VALUES', () => {
