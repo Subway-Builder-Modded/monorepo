@@ -6,7 +6,10 @@ import type {
   SortState,
 } from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
-import { formatSourceQuality, resolveMapLocation } from '@subway-builder-modded/config';
+import {
+  formatSourceQuality,
+  resolveMapLocation,
+} from '@subway-builder-modded/config';
 import { TEXT_SORT_FIELDS } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';

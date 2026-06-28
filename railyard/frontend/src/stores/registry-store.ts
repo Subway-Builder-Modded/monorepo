@@ -144,7 +144,11 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
       const { mods, maps } = await loadRegistryData();
       set({ mods, maps, initialized: true, loading: false });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), initialized: true, loading: false });
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        initialized: true,
+        loading: false,
+      });
     }
   },
 
@@ -154,7 +158,11 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
       const { mods, maps } = await loadRegistryData();
       set({ mods, maps, initialized: true, loading: false });
     } catch (err) {
-      set({ error: err instanceof Error ? err.message : String(err), initialized: true, loading: false });
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        initialized: true,
+        loading: false,
+      });
     }
   },
 

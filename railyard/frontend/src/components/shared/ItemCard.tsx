@@ -3,7 +3,10 @@ import {
   ItemCard as SharedItemCard,
 } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
-import { assetTypeToListingPath, resolveMapLocation } from '@subway-builder-modded/config';
+import {
+  assetTypeToListingPath,
+  resolveMapLocation,
+} from '@subway-builder-modded/config';
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 

@@ -2,7 +2,10 @@ import {
   type AssetType,
   assetTypeToListingPath,
 } from '@subway-builder-modded/config';
-import { formatSourceQuality, resolveMapLocation } from '@subway-builder-modded/config';
+import {
+  formatSourceQuality,
+  resolveMapLocation,
+} from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { AppDialog } from '@subway-builder-modded/shared-ui';
