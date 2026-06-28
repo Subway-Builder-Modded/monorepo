@@ -4,6 +4,7 @@ import {
   getVisibleNodes,
   getAllNodes,
   getDocSourcePath,
+  getEditUrl,
 } from "@/features/docs/lib/content";
 import type { DocsTree, DocsTreeNode } from "@/features/docs/lib/types";
 
@@ -66,7 +67,12 @@ describe("getVisibleNodes", () => {
     const visible = makeNode({ slug: "players" });
     const hidden = makeNode({
       slug: "hidden-page",
-      frontmatter: { title: "Hidden", description: "", icon: "FileText", hidden: true },
+      frontmatter: {
+        title: "Hidden",
+        description: "",
+        icon: "FileText",
+        hidden: true,
+      },
     });
     const result = getVisibleNodes([visible, hidden]);
     expect(result).toHaveLength(1);
@@ -81,7 +87,12 @@ describe("getVisibleNodes", () => {
   it("returns empty array when all hidden", () => {
     const hidden = makeNode({
       slug: "x",
-      frontmatter: { title: "X", description: "", icon: "FileText", hidden: true },
+      frontmatter: {
+        title: "X",
+        description: "",
+        icon: "FileText",
+        hidden: true,
+      },
     });
     expect(getVisibleNodes([hidden])).toHaveLength(0);
   });
@@ -89,7 +100,10 @@ describe("getVisibleNodes", () => {
 
 describe("getAllNodes", () => {
   it("flattens nested tree into array", () => {
-    const grandchild = makeNode({ slug: "players/installing/windows", depth: 2 });
+    const grandchild = makeNode({
+      slug: "players/installing/windows",
+      depth: 2,
+    });
     const child = makeNode({
       slug: "players/installing",
       kind: "landing",
@@ -127,6 +141,14 @@ describe("getDocSourcePath", () => {
   it("builds path for root-level doc", () => {
     expect(getDocSourcePath("template-mod", "v1.0", "getting-started")).toBe(
       "/content/template-mod/docs/v1.0/getting-started.mdx",
+    );
+  });
+});
+
+describe("getEditUrl", () => {
+  it("builds GitHub edit links against the website-dev branch", () => {
+    expect(getEditUrl("railyard", "v0.2", "players/github-token")).toBe(
+      "https://github.com/Subway-Builder-Modded/monorepo/edit/website-dev/website/content/railyard/docs/v0.2/players/github-token.mdx",
     );
   });
 });

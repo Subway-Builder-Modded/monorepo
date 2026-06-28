@@ -5,6 +5,6 @@
  */
 
 export const CONTENT_GITHUB_EDIT_BASE_URL =
-  "https://github.com/Subway-Builder-Modded/monorepo/edit/website";
+  "https://github.com/Subway-Builder-Modded/monorepo/edit/website-dev/website";
 
 export const CONTENT_ROOT = "content";

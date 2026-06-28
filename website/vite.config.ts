@@ -24,6 +24,23 @@ const STATIC_REGISTRY_DETAIL_TABS = [
   "details",
 ];
 const STATIC_REGISTRY_AUTHOR_TABS = ["projects", "analytics"];
+const SOCIAL_META_KEYS = new Set([
+  "og:type",
+  "og:site_name",
+  "og:title",
+  "og:description",
+  "og:image",
+  "og:image:secure_url",
+  "og:image:type",
+  "og:image:width",
+  "og:image:height",
+  "og:url",
+  "twitter:card",
+  "twitter:title",
+  "twitter:description",
+  "twitter:image",
+  "twitter:url",
+]);
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
 const STATIC_DOCS_LATEST_VERSIONS: Record<string, string> = {
@@ -34,37 +51,79 @@ const STATIC_SUITE_METADATA = {
   general: {
     title: "General",
     imagePath: "/logo.svg",
+    imageHeight: 512,
+    imageType: "image/svg+xml",
+    imageWidth: 512,
+    themeColor: "#ffffff",
+    twitterCard: "summary",
     homeDescription: DEFAULT_SITE_DESCRIPTION,
   },
   railyard: {
     title: "Railyard",
-    imagePath: "/images/embeds/railyard.svg",
+    imagePath: "/images/railyard/icon.png",
+    imageHeight: 256,
+    imageType: "image/png",
+    imageWidth: 256,
+    themeColor: "#19d89c",
+    twitterCard: "summary",
     homeDescription: "Discover the all-in-one manager for Subway Builder community-made content.",
   },
   registry: {
     title: "Registry",
-    imagePath: "/images/embeds/registry.svg",
+    imagePath: "/images/registry/icon.png",
+    imageHeight: 256,
+    imageType: "image/png",
+    imageWidth: 256,
+    themeColor: "#c77dff",
+    twitterCard: "summary",
     homeDescription: "Discover the GitHub-hosted registry powering Railyard and its services.",
   },
   "template-mod": {
     title: "Template Mod",
-    imagePath: "/images/embeds/template-mod.svg",
+    imagePath: "/images/template-mod/icon.png",
+    imageHeight: 256,
+    imageType: "image/png",
+    imageWidth: 256,
+    themeColor: "#93c5fd",
+    twitterCard: "summary",
     homeDescription:
       "Discover the all-inclusive TypeScript template for creating Subway Builder mods with ease.",
   },
   website: {
     title: "Website",
-    imagePath: "/images/embeds/website.svg",
+    imagePath: "/images/website/icon.png",
+    imageHeight: 256,
+    imageType: "image/png",
+    imageWidth: 256,
+    themeColor: "#ffbe73",
+    twitterCard: "summary",
     homeDescription:
       "Explore the Subway Builder Modded website, its changelog, and public analytics.",
   },
   depot: {
     title: "Depot",
-    imagePath: "/images/embeds/depot.svg",
+    imagePath: "/images/depot/icon.png",
+    imageHeight: 256,
+    imageType: "image/png",
+    imageWidth: 256,
+    themeColor: "#cfa22e",
+    twitterCard: "summary",
     homeDescription:
       "Discover the core Python library powering the Subway Builder Modded map creation ecosystem.",
   },
-} satisfies Record<string, { homeDescription: string; imagePath: string; title: string }>;
+} satisfies Record<
+  string,
+  {
+    homeDescription: string;
+    imageHeight: number;
+    imagePath: string;
+    imageType: string;
+    imageWidth: number;
+    themeColor: string;
+    title: string;
+    twitterCard: "summary" | "summary_large_image";
+  }
+>;
 const STATIC_NAV_METADATA: Record<string, { description: string; title: string }> = {
   "/": { title: DEFAULT_SITE_TITLE, description: DEFAULT_SITE_DESCRIPTION },
   "/community": {
@@ -170,21 +229,36 @@ const STATIC_NAV_METADATA: Record<string, { description: string; title: string }
 type StaticRegistryManifest = {
   description?: string;
   gallery?: string[];
+  is_test?: boolean;
   name?: string;
   source?: string;
 };
 
 type StaticRegistryIntegrity = {
-  listings?: Record<string, { versions?: Record<string, unknown> }>;
+  listings?: Record<
+    string,
+    {
+      has_complete_version?: boolean;
+      latest_semver_complete?: boolean;
+      versions?: Record<string, { is_complete?: boolean }>;
+    }
+  >;
 };
+type StaticRegistryIntegrityListing = NonNullable<StaticRegistryIntegrity["listings"]>[string];
 
 type StaticPageMetadata = {
   description: string;
+  imageHeight: number;
   imagePath: string;
+  imageType: string;
+  imageWidth: number;
+  noSocialEmbed?: boolean;
   pageTitle: string;
   pathname: string;
   suiteId: keyof typeof STATIC_SUITE_METADATA;
+  themeColor: string;
   title: string;
+  twitterCard: "summary" | "summary_large_image";
 };
 
 function escapeHtmlAttribute(value: string): string {
@@ -221,6 +295,20 @@ function upsertMetaTag(
   return html.replace("</head>", `    ${tag}\n  </head>`);
 }
 
+function removeMetaTag(html: string, attr: "name" | "property", key: string): string {
+  const pattern = new RegExp(`\\s*<meta\\s+${attr}=["']${key}["'][^>]*>`, "gi");
+  return html.replace(pattern, "");
+}
+
+function removeSocialMetaTags(html: string): string {
+  let nextHtml = html;
+  for (const key of SOCIAL_META_KEYS) {
+    nextHtml = removeMetaTag(nextHtml, "name", key);
+    nextHtml = removeMetaTag(nextHtml, "property", key);
+  }
+  return removeMetaTag(nextHtml, "name", "theme-color");
+}
+
 function upsertCanonicalLink(html: string, href: string): string {
   const tag = `<link rel="canonical" href="${escapeHtmlAttribute(href)}" />`;
   const pattern = /<link\s+rel=["']canonical["'][^>]*>/i;
@@ -234,7 +322,18 @@ function upsertCanonicalLink(html: string, href: string): string {
 
 function applyStaticMetadata(
   html: string,
-  metadata: { description: string; imagePath: string; pageTitle: string; pathname: string },
+  metadata: {
+    description: string;
+    imageHeight: number;
+    imagePath: string;
+    imageType: string;
+    imageWidth: number;
+    noSocialEmbed?: boolean;
+    pageTitle: string;
+    pathname: string;
+    themeColor: string;
+    twitterCard: "summary" | "summary_large_image";
+  },
 ): string {
   const pageUrl = toAbsoluteUrl(metadata.pathname);
   const imageUrl = toAbsoluteUrl(metadata.imagePath);
@@ -244,13 +343,22 @@ function applyStaticMetadata(
   );
 
   nextHtml = upsertMetaTag(nextHtml, "name", "description", metadata.description);
+  if (metadata.noSocialEmbed === true) {
+    return upsertCanonicalLink(removeSocialMetaTags(nextHtml), pageUrl);
+  }
+
+  nextHtml = upsertMetaTag(nextHtml, "name", "theme-color", metadata.themeColor);
   nextHtml = upsertMetaTag(nextHtml, "property", "og:type", "website");
   nextHtml = upsertMetaTag(nextHtml, "property", "og:site_name", "Subway Builder Modded");
   nextHtml = upsertMetaTag(nextHtml, "property", "og:title", metadata.pageTitle);
   nextHtml = upsertMetaTag(nextHtml, "property", "og:description", metadata.description);
   nextHtml = upsertMetaTag(nextHtml, "property", "og:image", imageUrl);
+  nextHtml = upsertMetaTag(nextHtml, "property", "og:image:secure_url", imageUrl);
+  nextHtml = upsertMetaTag(nextHtml, "property", "og:image:type", metadata.imageType);
+  nextHtml = upsertMetaTag(nextHtml, "property", "og:image:width", String(metadata.imageWidth));
+  nextHtml = upsertMetaTag(nextHtml, "property", "og:image:height", String(metadata.imageHeight));
   nextHtml = upsertMetaTag(nextHtml, "property", "og:url", pageUrl);
-  nextHtml = upsertMetaTag(nextHtml, "name", "twitter:card", "summary_large_image");
+  nextHtml = upsertMetaTag(nextHtml, "name", "twitter:card", metadata.twitterCard);
   nextHtml = upsertMetaTag(nextHtml, "name", "twitter:title", metadata.pageTitle);
   nextHtml = upsertMetaTag(nextHtml, "name", "twitter:description", metadata.description);
   nextHtml = upsertMetaTag(nextHtml, "name", "twitter:image", imageUrl);
@@ -334,6 +442,26 @@ function resolveRegistryThumbnail(
   return `/registry-cache/${routeSegment}/${encodeURIComponent(id)}/${first.replace(/^\/+/, "")}`;
 }
 
+function getImageType(imagePath: string): string {
+  const pathOnly = imagePath.split(/[?#]/)[0]?.toLowerCase() ?? "";
+  if (pathOnly.endsWith(".png")) return "image/png";
+  if (pathOnly.endsWith(".jpg") || pathOnly.endsWith(".jpeg")) return "image/jpeg";
+  if (pathOnly.endsWith(".webp")) return "image/webp";
+  if (pathOnly.endsWith(".svg")) return "image/svg+xml";
+  return "image/png";
+}
+
+function isStaticRegistryListingEmbeddable(
+  manifest: StaticRegistryManifest,
+  integrityListing: StaticRegistryIntegrityListing | undefined,
+): boolean {
+  return (
+    manifest.is_test !== true &&
+    integrityListing?.has_complete_version === true &&
+    integrityListing.latest_semver_complete === true
+  );
+}
+
 function resolveStaticDocsMetadata(
   route: string,
   contentDir: string,
@@ -391,16 +519,39 @@ function resolveStaticRegistryMetadata(
       path.join(publicDir, "registry-cache", routeSegment, id, "manifest.json"),
       {},
     );
-    if (!manifest.name) return null;
+    const integrity = readJsonFile<StaticRegistryIntegrity>(
+      path.join(publicDir, "registry-cache", routeSegment, "integrity.json"),
+      {},
+    );
+    const integrityListing = integrity.listings?.[id];
+    if (!manifest.name || !isStaticRegistryListingEmbeddable(manifest, integrityListing)) {
+      return {
+        noSocialEmbed: true,
+      };
+    }
+    if (
+      parts[3] === "versions" &&
+      parts[4] &&
+      integrityListing?.versions?.[decodeURIComponent(parts[4])]?.is_complete !== true
+    ) {
+      return {
+        noSocialEmbed: true,
+      };
+    }
     const title =
       parts[3] === "versions" && parts[4] ? decodeURIComponent(parts[4]) : manifest.name;
+    const imagePath =
+      resolveRegistryThumbnail(routeSegment, id, manifest.gallery) ??
+      STATIC_SUITE_METADATA.registry.imagePath;
 
     return {
       title,
       description: toPlainTextExcerpt(manifest.description ?? DEFAULT_SITE_DESCRIPTION),
-      imagePath:
-        resolveRegistryThumbnail(routeSegment, id, manifest.gallery) ??
-        STATIC_SUITE_METADATA.registry.imagePath,
+      imageHeight: 630,
+      imagePath,
+      imageType: getImageType(imagePath),
+      imageWidth: 1200,
+      twitterCard: "summary_large_image",
     };
   }
 
@@ -457,8 +608,14 @@ function resolveStaticMetadata(
     title,
     description,
     suiteId,
-    pageTitle: formatStaticPageTitle(title, suiteId),
+    imageHeight: baseMetadata?.imageHeight ?? suite.imageHeight,
     imagePath: baseMetadata?.imagePath ?? suite.imagePath,
+    imageType: baseMetadata?.imageType ?? suite.imageType,
+    imageWidth: baseMetadata?.imageWidth ?? suite.imageWidth,
+    noSocialEmbed: baseMetadata?.noSocialEmbed,
+    themeColor: suite.themeColor,
+    pageTitle: formatStaticPageTitle(title, suiteId),
+    twitterCard: baseMetadata?.twitterCard ?? suite.twitterCard,
   };
 }
 
@@ -555,19 +712,23 @@ function collectRegistryRoutes(publicDir: string): string[] {
     const ids = indexData[routeSegment] ?? Object.keys(integrity.listings ?? {});
 
     for (const id of ids) {
+      const manifest = readJsonFile<StaticRegistryManifest>(
+        path.join(collectionDir, id, "manifest.json"),
+        {},
+      );
+      const integrityListing = integrity.listings?.[id];
+      const listingEmbeddable = isStaticRegistryListingEmbeddable(manifest, integrityListing);
+
       routes.add(`/registry/${routeSegment}/${id}`);
       for (const tab of STATIC_REGISTRY_DETAIL_TABS) {
         routes.add(`/registry/${routeSegment}/${id}/${tab}`);
       }
 
-      for (const version of Object.keys(integrity.listings?.[id]?.versions ?? {})) {
+      for (const version of Object.keys(integrityListing?.versions ?? {})) {
         routes.add(`/registry/${routeSegment}/${id}/versions/${version}`);
       }
 
-      const manifest = readJsonFile<StaticRegistryManifest>(
-        path.join(collectionDir, id, "manifest.json"),
-        {},
-      );
+      if (!listingEmbeddable) continue;
       const projectId = extractGithubRepoSlugFromUrl(manifest.source);
       if (projectId) {
         projectCounts.set(projectId, (projectCounts.get(projectId) ?? 0) + 1);
@@ -575,10 +736,9 @@ function collectRegistryRoutes(publicDir: string): string[] {
     }
   }
 
-  const authorsIndex = readJsonFile<{ authors?: Array<{ author_id?: string }> }>(
-    path.join(publicDir, "registry-cache", "authors", "index.json"),
-    {},
-  );
+  const authorsIndex = readJsonFile<{
+    authors?: Array<{ author_id?: string }>;
+  }>(path.join(publicDir, "registry-cache", "authors", "index.json"), {});
   for (const author of authorsIndex.authors ?? []) {
     if (!author.author_id) continue;
     routes.add(`/registry/authors/${author.author_id}`);
@@ -632,9 +792,14 @@ function staticEmbedHtmlPlugin(): Plugin {
         path.join(outDir, "404.html"),
         applyStaticMetadata(template, {
           description: DEFAULT_SITE_DESCRIPTION,
+          imageHeight: STATIC_SUITE_METADATA.general.imageHeight,
           imagePath: STATIC_SUITE_METADATA.general.imagePath,
+          imageType: STATIC_SUITE_METADATA.general.imageType,
+          imageWidth: STATIC_SUITE_METADATA.general.imageWidth,
           pageTitle: DEFAULT_SITE_TITLE,
           pathname: "/404",
+          themeColor: STATIC_SUITE_METADATA.general.themeColor,
+          twitterCard: STATIC_SUITE_METADATA.general.twitterCard,
         }),
       );
       fs.writeFileSync(path.join(outDir, ".nojekyll"), "");
