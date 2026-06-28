@@ -26,6 +26,10 @@ const STATIC_REGISTRY_DETAIL_TABS = [
 const STATIC_REGISTRY_AUTHOR_TABS = ["projects", "analytics"];
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
 const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
+const STATIC_DOCS_LATEST_VERSIONS: Record<string, string> = {
+  railyard: "v0.2",
+  "template-mod": "v1.0",
+};
 const STATIC_SUITE_METADATA = {
   general: {
     title: "General",
@@ -337,7 +341,15 @@ function resolveStaticDocsMetadata(
   const parts = normalizeStaticRoute(route).split("/").filter(Boolean);
   if (parts[1] !== "docs" || parts.length < 3) return null;
 
-  const sourcePath = path.join(contentDir, parts[0], "docs", ...parts.slice(2)) + ".mdx";
+  const latestVersion = STATIC_DOCS_LATEST_VERSIONS[parts[0] ?? ""];
+  const docParts =
+    parts[2] === "latest" && latestVersion ? [latestVersion, ...parts.slice(3)] : parts.slice(2);
+
+  if (parts[2] === "latest" && docParts.length === 1) {
+    return STATIC_NAV_METADATA[`/${parts[0]}/docs`] ?? null;
+  }
+
+  const sourcePath = path.join(contentDir, parts[0], "docs", ...docParts) + ".mdx";
   const frontmatter = parseFrontmatter(sourcePath);
   if (!frontmatter?.title) return null;
 
@@ -509,10 +521,21 @@ function collectContentRoutes(contentDir: string): string[] {
       if (!suiteId || !section || slugParts.length === 0) return [];
 
       const slug = slugParts.join("/").replace(/\.mdx$/, "");
-      if (section === "docs") return [`/${suiteId}/docs/${slug}`];
+      if (section === "docs") {
+        const routes = [`/${suiteId}/docs/${slug}`];
+        const latestVersion = STATIC_DOCS_LATEST_VERSIONS[suiteId];
+        if (latestVersion && slug.startsWith(`${latestVersion}/`)) {
+          routes.push(`/${suiteId}/docs/latest/${slug.slice(latestVersion.length + 1)}`);
+        }
+        return routes;
+      }
       if (section === "updates") return [`/${suiteId}/updates/${slug}`];
       return [];
     });
+}
+
+function collectLatestDocsHomepageRoutes(): string[] {
+  return Object.keys(STATIC_DOCS_LATEST_VERSIONS).map((suiteId) => `/${suiteId}/docs/latest`);
 }
 
 function collectRegistryRoutes(publicDir: string): string[] {
@@ -592,6 +615,7 @@ function staticEmbedHtmlPlugin(): Plugin {
         "/",
         ...Object.keys(STATIC_NAV_METADATA),
         ...collectContentRoutes(contentDir),
+        ...collectLatestDocsHomepageRoutes(),
         ...collectRegistryRoutes(publicDir),
       ]);
       const template = fs.readFileSync(indexPath, "utf-8");
@@ -603,6 +627,17 @@ function staticEmbedHtmlPlugin(): Plugin {
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
         fs.writeFileSync(outputPath, applyStaticMetadata(template, metadata));
       }
+
+      fs.writeFileSync(
+        path.join(outDir, "404.html"),
+        applyStaticMetadata(template, {
+          description: DEFAULT_SITE_DESCRIPTION,
+          imagePath: STATIC_SUITE_METADATA.general.imagePath,
+          pageTitle: DEFAULT_SITE_TITLE,
+          pathname: "/404",
+        }),
+      );
+      fs.writeFileSync(path.join(outDir, ".nojekyll"), "");
     },
   };
 }

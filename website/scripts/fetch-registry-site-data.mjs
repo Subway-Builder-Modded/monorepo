@@ -708,7 +708,7 @@ function main() {
     fail("missing GitHub token: set SBM_GITHUB_TOKEN");
   }
 
-  const tempRoot = mkdtempSync(path.join(tmpdir(), "website-dev-registry-"));
+  const tempRoot = mkdtempSync(path.join(tmpdir(), "website-registry-"));
   const cloneDir = path.join(tempRoot, "registry");
   const mapDataCloneDir = path.join(tempRoot, "registry-map-data");
   const basicAuthHeader = Buffer.from(`x-access-token:${token}`, "utf8").toString("base64");

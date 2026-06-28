@@ -6,7 +6,7 @@ on:
       - main
       - website-dev
     paths:
-      - "website-dev/**"
+      - "website/**"
       - "packages/**"
       - "package.json"
       - "pnpm-lock.yaml"
@@ -17,7 +17,7 @@ on:
       - main
       - website-dev
     paths:
-      - "website-dev/**"
+      - "website/**"
       - "packages/**"
       - "package.json"
       - "pnpm-lock.yaml"
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: website-dev
+        working-directory: website
     steps:
       - name: Checkout
         uses: actions/checkout@v4
