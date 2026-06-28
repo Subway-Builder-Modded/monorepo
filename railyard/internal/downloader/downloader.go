@@ -415,6 +415,52 @@ func (d *Downloader) uninstallError(assetType types.AssetType, assetID string, e
 	return d.uninstallResponse(assetType, assetID, d.throwError(message, err, attrs...), errorCode)
 }
 
+// installAlreadyInstalledGuard checks whether assetDir contains the Railyard marker for an asset
+// already registered at the requested version. Returns a no-op warn response if the marker is intact,
+// or nil to fall through to (re-)installation when the marker is missing.
+func (d *Downloader) installAlreadyInstalledGuard(assetType types.AssetType, assetID, version, assetDir string, cfg types.ConfigData) *types.AssetInstallResponse {
+	hasMarker, _ := files.HasAssetMarker(assetDir, constants.RailyardAssetMarker)
+	if hasMarker {
+		resp := d.installWarn(
+			assetType, assetID, version, cfg, nil,
+			fmt.Sprintf("%s already installed at requested version. No action taken.", assetTypeLabels[assetType]),
+			"asset_type", assetType, "asset_id", assetID, "version", version,
+		)
+		return &resp
+	}
+	d.Logger.Warn("Marker file missing for registered asset; re-installing", "asset_type", assetType, "asset_id", assetID, "version", version)
+	return nil
+}
+
+// uninstallNotInstalledGuard returns the asset's installed state and nil when registered,
+// or zero state and a warn response if the asset is not registered as installed.
+func (d *Downloader) uninstallNotInstalledGuard(assetType types.AssetType, assetID string) (installedState, *types.AssetUninstallResponse) {
+	state, ok := d.getInstalledState(assetType, assetID)
+	if !ok {
+		resp := d.uninstallWarn(
+			assetType, assetID, types.UninstallErrorNotInstalled,
+			fmt.Sprintf("%s with ID %s is not currently installed. No action taken.", assetTypeLabels[assetType], assetID),
+			"asset_type", assetType, "asset_id", assetID,
+		)
+		return installedState{}, &resp
+	}
+	return state, nil
+}
+
+// uninstallMissingMarkerGuard returns a warn response when the Railyard marker is absent from assetDir,
+// indicating the asset is not properly installed and should not be removed. Returns nil if the marker exists.
+func (d *Downloader) uninstallMissingMarkerGuard(assetType types.AssetType, assetID, assetDir string) *types.AssetUninstallResponse {
+	if _, err := os.Stat(paths.JoinLocalPath(assetDir, constants.RailyardAssetMarker)); errors.Is(err, fs.ErrNotExist) {
+		resp := d.uninstallWarn(
+			assetType, assetID, types.UninstallErrorNotInstalled,
+			fmt.Sprintf("%s with ID %s does not appear to be installed (missing marker file). No action taken.", assetTypeLabels[assetType], assetID),
+			"asset_type", assetType, "asset_id", assetID,
+		)
+		return &resp
+	}
+	return nil
+}
+
 // getMapDataPath returns the filesystem path for installed map data.
 func (d *Downloader) getMapDataPath() string {
 	return paths.MetroMakerMapsDataPath(d.Config.Cfg.MetroMakerDataPath)
@@ -722,26 +768,12 @@ func (d *Downloader) importMapNow(zipPath string, replaceOnConflict bool) types.
 }
 
 func (d *Downloader) uninstallModNow(modId string) types.AssetUninstallResponse {
-	if _, ok := d.getInstalledState(types.AssetTypeMod, modId); !ok {
-		return d.uninstallWarn(
-			types.AssetTypeMod,
-			modId,
-			types.UninstallErrorNotInstalled,
-			fmt.Sprintf("%s with ID %s is not currently installed. No action taken.", assetTypeLabels[types.AssetTypeMod], modId),
-			"asset_type", types.AssetTypeMod,
-			"asset_id", modId,
-		)
+	if _, resp := d.uninstallNotInstalledGuard(types.AssetTypeMod, modId); resp != nil {
+		return *resp
 	}
 	modPath := paths.JoinLocalPath(d.getModPath(), modId)
-	if _, err := os.Stat(paths.JoinLocalPath(modPath, constants.RailyardAssetMarker)); errors.Is(err, fs.ErrNotExist) {
-		return d.uninstallWarn(
-			types.AssetTypeMod,
-			modId,
-			types.UninstallErrorNotInstalled,
-			fmt.Sprintf("%s with ID %s does not appear to be installed (missing marker file). No action taken.", assetTypeLabels[types.AssetTypeMod], modId),
-			"asset_type", types.AssetTypeMod,
-			"asset_id", modId,
-		)
+	if resp := d.uninstallMissingMarkerGuard(types.AssetTypeMod, modId, modPath); resp != nil {
+		return *resp
 	}
 	if err := os.RemoveAll(modPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return d.uninstallError(types.AssetTypeMod, modId, types.UninstallErrorFilesystem, "Failed to remove mod files", err, "mod_id", modId)
@@ -754,31 +786,15 @@ func (d *Downloader) uninstallModNow(modId string) types.AssetUninstallResponse 
 }
 
 func (d *Downloader) uninstallMapNow(mapId string) types.AssetUninstallResponse {
-	installedMap, ok := d.getInstalledState(types.AssetTypeMap, mapId)
-	if !ok {
-		return d.uninstallWarn(
-			types.AssetTypeMap,
-			mapId,
-			types.UninstallErrorNotInstalled,
-			fmt.Sprintf("%s with ID %s is not currently installed. No action taken.", assetTypeLabels[types.AssetTypeMap], mapId),
-			"asset_type", types.AssetTypeMap,
-			"asset_id", mapId,
-		)
+	installedMap, notInstalledResp := d.uninstallNotInstalledGuard(types.AssetTypeMap, mapId)
+	if notInstalledResp != nil {
+		return *notInstalledResp
 	}
 	mapConfig := installedMap.mapConfig
-
-	if _, err := os.Stat(paths.JoinLocalPath(d.getMapDataPath(), mapConfig.Code, constants.RailyardAssetMarker)); errors.Is(err, fs.ErrNotExist) {
-		return d.uninstallWarn(
-			types.AssetTypeMap,
-			mapId,
-			types.UninstallErrorNotInstalled,
-			fmt.Sprintf("%s with ID %s does not appear to be installed (missing marker file). No action taken.", assetTypeLabels[types.AssetTypeMap], mapId),
-			"asset_type", types.AssetTypeMap,
-			"asset_id", mapId,
-		)
-	}
-
 	mapDataPath := paths.JoinLocalPath(d.getMapDataPath(), mapConfig.Code)
+	if resp := d.uninstallMissingMarkerGuard(types.AssetTypeMap, mapId, mapDataPath); resp != nil {
+		return *resp
+	}
 	if err := os.RemoveAll(mapDataPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map data files", err, "map_id", mapId)
 	}
@@ -820,21 +836,9 @@ func (d *Downloader) InstallAsset(req types.InstallAssetRequest) types.AssetInst
 func (d *Downloader) installModNow(ctx context.Context, modId string, version string, modOptions *types.ModInstallOptions) types.AssetInstallResponse {
 	d.Logger.Info("InstallMod started", "mod_id", modId, "version", version)
 	if state, installed := d.getInstalledState(types.AssetTypeMod, modId); installed && state.version == version {
-		hasMarker, _ := files.HasAssetMarker(paths.JoinLocalPath(d.getModPath(), modId), constants.RailyardAssetMarker)
-		if hasMarker {
-			return d.installWarn(
-				types.AssetTypeMod,
-				modId,
-				version,
-				types.ConfigData{},
-				nil,
-				fmt.Sprintf("%s already installed at requested version. No action taken.", assetTypeLabels[types.AssetTypeMod]),
-				"asset_type", types.AssetTypeMod,
-				"asset_id", modId,
-				"version", version,
-			)
+		if resp := d.installAlreadyInstalledGuard(types.AssetTypeMod, modId, version, paths.JoinLocalPath(d.getModPath(), modId), types.ConfigData{}); resp != nil {
+			return *resp
 		}
-		d.Logger.Warn("Marker file missing for registered mod; re-installing", "mod_id", modId, "version", version)
 	}
 	skipDependencies := modOptions != nil && modOptions.SkipDependencies
 	if !d.Config.GetConfig().Validation.IsValid() {
@@ -1007,21 +1011,9 @@ func (d *Downloader) installModDependencies(ctx context.Context, modID string, v
 func (d *Downloader) installMapNow(ctx context.Context, mapId string, version string, replaceOnConflict bool) types.AssetInstallResponse {
 	d.Logger.Info("InstallMap started", "map_id", mapId, "version", version)
 	if state, installed := d.getInstalledState(types.AssetTypeMap, mapId); installed && state.version == version {
-		hasMarker, _ := files.HasAssetMarker(paths.JoinLocalPath(d.getMapDataPath(), state.mapConfig.Code), constants.RailyardAssetMarker)
-		if hasMarker {
-			return d.installWarn(
-				types.AssetTypeMap,
-				mapId,
-				version,
-				state.mapConfig,
-				nil,
-				fmt.Sprintf("%s already installed at requested version. No action taken.", assetTypeLabels[types.AssetTypeMap]),
-				"asset_type", types.AssetTypeMap,
-				"asset_id", mapId,
-				"version", version,
-			)
+		if resp := d.installAlreadyInstalledGuard(types.AssetTypeMap, mapId, version, paths.JoinLocalPath(d.getMapDataPath(), state.mapConfig.Code), state.mapConfig); resp != nil {
+			return *resp
 		}
-		d.Logger.Warn("Marker file missing for registered map; re-installing", "map_id", mapId, "version", version)
 	}
 	if !d.Config.GetConfig().Validation.IsValid() {
 		return d.installConfigError(types.AssetTypeMap, mapId, version)
