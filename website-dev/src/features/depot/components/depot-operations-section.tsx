@@ -23,9 +23,9 @@ export function DepotOperationsSection() {
               key={card.id}
               className="h-full rounded-2xl border-border/60 bg-card/70 shadow-sm backdrop-blur-sm"
             >
-              <CardContent className="flex h-full flex-col p-5 lg:p-6">
-                <div className="mb-3 flex min-h-12 items-center gap-2.5">
-                  <span className="rounded-lg border border-border/50 bg-background/70 p-2 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]">
+              <CardContent className="flex h-full flex-col px-4 py-3">
+                <div className="mb-2 flex min-h-9 items-center gap-2.5">
+                  <span className="rounded-lg border border-border/50 bg-background/70 p-1 text-[var(--suite-accent-light)] dark:text-[var(--suite-accent-dark)]">
                     <CardIcon className="size-4.5" aria-hidden={true} />
                   </span>
                   <h3 className="text-[1.05rem] font-bold tracking-[-0.02em] text-foreground">
@@ -34,12 +34,12 @@ export function DepotOperationsSection() {
                 </div>
 
                 <div className="flex-1">
-                  <LightMarkdown className="text-sm leading-relaxed text-muted-foreground [&_p:not(:first-child)]:mt-2">
+                  <LightMarkdown className="text-sm leading-snug text-muted-foreground [&_p:not(:first-child)]:mt-1.5">
                     {card.description}
                   </LightMarkdown>
                 </div>
 
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-2.5 space-y-1.5">
                   {card.bullets.map((bullet) => (
                     <li
                       key={bullet}

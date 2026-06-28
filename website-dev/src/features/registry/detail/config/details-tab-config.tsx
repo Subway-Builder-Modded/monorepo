@@ -183,7 +183,7 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
         getValue: (detail) => detail.mapFields?.levelOfDetail ?? "\u2014",
       },
       {
-        title: "Modeled Demand",
+        title: "Demand",
         icon: Users,
         getValue: (detail) => formatNumber(detail.mapFields?.population ?? null),
       },

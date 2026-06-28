@@ -52,7 +52,7 @@ export function RegistrySpotlightSearch({
           )}
         >
           <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
-            <Search className="size-5 shrink-0 text-foreground/70" aria-hidden={true} />
+            <Search className="size-5 shrink-0 text-muted-foreground" aria-hidden={true} />
             <input
               ref={inputRef}
               id="registry-spotlight-search"
@@ -64,7 +64,7 @@ export function RegistrySpotlightSearch({
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
-              className="min-w-0 flex-1 appearance-none bg-transparent text-lg text-foreground placeholder:text-muted-foreground/80 focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
+              className="min-w-0 flex-1 appearance-none bg-transparent text-lg text-muted-foreground placeholder:text-muted-foreground focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
             />
             <div className="hidden items-center gap-1 text-[11px] text-muted-foreground sm:flex">
               <kbd className="rounded border border-border/70 bg-background/90 px-1.5 py-0.5 font-mono font-medium leading-none">

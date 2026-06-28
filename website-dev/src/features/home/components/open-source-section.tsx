@@ -35,12 +35,12 @@ export function OpenSourceSection() {
         reverseOnDesktop
         className="lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] min-[1920px]:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"
         left={
-          <div className="w-full max-w-3xl min-w-0">
+          <div className="w-full min-w-0">
             <CodeSurface />
           </div>
         }
         right={
-          <div className="w-full max-w-md min-w-0 text-center lg:text-right">
+          <div className="w-full max-w-md min-w-0 text-center">
             <p className="text-[15px] leading-relaxed text-muted-foreground lg:text-[16px] min-[1920px]:text-[17px]">
               {OPEN_SOURCE_SECTION.body}
             </p>

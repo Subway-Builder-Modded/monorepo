@@ -8,6 +8,8 @@ export type RegistrySearchItem = {
   routeSegment: string;
   /** Resolved canonical href, e.g. /registry/maps/gwangju-4 */
   href: string;
+  /** GitHub owner/repo slug when the asset belongs to a GitHub-backed project. */
+  projectId?: string | null;
   name: string;
   author: string;
   authorId: string | null;
@@ -18,6 +20,10 @@ export type RegistrySearchItem = {
   totalDownloads: number;
   /** Unix timestamp in milliseconds, 0 if unknown. */
   lastActivityAt: number;
+  /** Earliest known complete version timestamp in milliseconds, 0 if unknown. */
+  publishedAt?: number;
+  latestVersion?: string | null;
+  latestVersionUpdatedAt?: number;
   cityCode: string | null;
   countryCode: string | null;
   countryName: string | null;
@@ -47,6 +53,7 @@ export type RawRegistryManifest = {
   residents_total?: number;
   is_test?: boolean;
   last_updated?: number;
+  source?: string;
 };
 
 /** Shape of the index.json file in each type folder. */
@@ -66,6 +73,9 @@ export type RawRegistryIntegrity = {
     string,
     {
       has_complete_version?: boolean;
+      latest_semver_version?: string;
+      latest_semver_complete?: boolean;
+      complete_versions?: string[];
       last_updated?: number;
       versions?: Record<
         string,

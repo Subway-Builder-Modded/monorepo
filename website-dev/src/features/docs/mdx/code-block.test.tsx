@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { createMdxRuntime } from "@subway-builder-modded/mdx";
 import { CodeBlock } from "@/features/docs/mdx/code-block";
+import { mdxComponents } from "@/features/docs/mdx/components";
 
 describe("CodeBlock component", () => {
   beforeEach(() => {
@@ -53,5 +55,34 @@ describe("CodeBlock component", () => {
     expect(pre?.className).toContain("overflow-x-hidden");
     expect(pre?.className).toContain("whitespace-pre-wrap");
     expect(pre?.className).toContain("break-words");
+  });
+
+  it("highlights requested code lines", () => {
+    const { container } = render(
+      <CodeBlock>
+        <code className="language-ts" data-highlight-lines="2,4-5">
+          {"const a = 1;\nconst b = 2;\nconst c = 3;\nconst d = 4;\nconst e = 5;"}
+        </code>
+      </CodeBlock>,
+    );
+
+    const highlightedLines = Array.from(container.querySelectorAll("[data-highlighted-line]"));
+    expect(highlightedLines).toHaveLength(3);
+    expect(highlightedLines.map((line) => line.textContent)).toEqual([
+      "const b = 2;",
+      "const d = 4;",
+      "const e = 5;",
+    ]);
+  });
+
+  it("preserves fenced code metadata from MDX", async () => {
+    const runtime = createMdxRuntime({ components: mdxComponents });
+    const { html } = await runtime.renderHtml(
+      '```ts {2} title="example.ts"\nconst a = 1;\nconst b = 2;\n```',
+    );
+
+    expect(html).toContain("example.ts");
+    expect(html).toContain("data-highlighted-line");
+    expect(html).toContain("const b = 2;");
   });
 });

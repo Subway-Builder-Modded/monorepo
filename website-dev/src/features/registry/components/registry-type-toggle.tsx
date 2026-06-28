@@ -4,10 +4,20 @@ import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import type { RegistryTypeConfig } from "@/shared/registry-card/registry-item-types";
 import { RegistryTypeCountBadge } from "./registry-type-count-badge";
 
+export type RegistryTypeToggleOption = Pick<
+  RegistryTypeConfig,
+  "id" | "label" | "pluralLabel" | "accentLight" | "accentDark"
+> & {
+  icon?: RegistryTypeConfig["icon"];
+};
+
 type RegistryTypeToggleProps = {
   activeTypeId: string;
   onChange: (typeId: string) => void;
   counts?: Record<string, number>;
+  options?: RegistryTypeToggleOption[];
+  showCounts?: boolean;
+  ariaLabel?: string;
   className?: string;
 };
 
@@ -15,22 +25,27 @@ export function RegistryTypeToggle({
   activeTypeId,
   onChange,
   counts,
+  options = REGISTRY_TYPES,
+  showCounts = true,
+  ariaLabel = "Registry type",
   className,
 }: RegistryTypeToggleProps) {
   return (
     <div
       role="group"
+      aria-label={ariaLabel}
       className={cn(
         "isolate flex items-center gap-1 rounded-xl border border-white/18 bg-white/8 p-1 backdrop-blur-sm dark:border-white/12 dark:bg-white/6",
         className,
       )}
     >
-      {REGISTRY_TYPES.map((type) => (
+      {options.map((type) => (
         <TypeButton
           key={type.id}
           type={type}
           isActive={activeTypeId === type.id}
           count={counts?.[type.id]}
+          showCount={showCounts}
           onClick={() => onChange(type.id)}
         />
       ))}
@@ -39,14 +54,15 @@ export function RegistryTypeToggle({
 }
 
 type TypeButtonProps = {
-  type: RegistryTypeConfig;
+  type: RegistryTypeToggleOption;
   isActive: boolean;
   count?: number;
+  showCount: boolean;
   onClick: () => void;
 };
 
-function TypeButton({ type, isActive, count, onClick }: TypeButtonProps) {
-  const Icon = getRegistryTypeIcon(type.id);
+function TypeButton({ type, isActive, count, showCount, onClick }: TypeButtonProps) {
+  const Icon = type.icon ?? getRegistryTypeIcon(type.id);
   const isCountLoading = count === undefined;
 
   const accentStyle = {
@@ -58,6 +74,7 @@ function TypeButton({ type, isActive, count, onClick }: TypeButtonProps) {
     <button
       type="button"
       role="radio"
+      aria-label={type.pluralLabel}
       aria-checked={isActive}
       onClick={onClick}
       style={accentStyle}
@@ -70,18 +87,18 @@ function TypeButton({ type, isActive, count, onClick }: TypeButtonProps) {
     >
       <Icon className="size-4 shrink-0" aria-hidden={true} />
       <span className="flex-1 text-center">{type.pluralLabel}</span>
-      {isCountLoading ? (
+      {showCount && isCountLoading ? (
         <span
           className="h-5 min-w-[1.75rem] animate-pulse rounded-md bg-white/15"
           aria-hidden={true}
         />
-      ) : (
+      ) : showCount ? (
         <RegistryTypeCountBadge
-          count={count}
+          count={count ?? 0}
           isActive={isActive}
           className="min-w-[1.75rem] text-center"
         />
-      )}
+      ) : null}
     </button>
   );
 }

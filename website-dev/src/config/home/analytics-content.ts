@@ -27,7 +27,7 @@ export const ANALYTICS_PREVIEW = {
 export const ANALYTICS_LINKS: AnalyticsLink[] = [
   {
     label: "Railyard App Analytics",
-    href: "/railyard/analytics",
+    href: "/railyard/analytics/overview",
     icon: "trainTrack",
     accentSuiteId: "railyard",
   },

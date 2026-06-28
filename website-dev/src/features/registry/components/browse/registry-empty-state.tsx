@@ -1,6 +1,7 @@
 import { SearchX } from "lucide-react";
 import type { CSSProperties } from "react";
-import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
+import { getSuiteById } from "@/config/site-navigation";
+import { getRegistryTypeConfig } from "@/features/registry/registry-type-config";
 import { REGISTRY_EMPTY_STATE_MESSAGE } from "@/features/registry/registry-content";
 
 type RegistryEmptyStateProps = {
@@ -16,10 +17,11 @@ export function RegistryEmptyState({
   selectedTags,
   onClear,
 }: RegistryEmptyStateProps) {
-  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
+  const typeConfig = getRegistryTypeConfig(typeId);
+  const registrySuite = getSuiteById("registry");
   const accentStyle = {
-    "--registry-empty-accent-light": typeConfig.accentLight,
-    "--registry-empty-accent-dark": typeConfig.accentDark,
+    "--registry-empty-accent-light": typeConfig?.accentLight ?? registrySuite.accent.light,
+    "--registry-empty-accent-dark": typeConfig?.accentDark ?? registrySuite.accent.dark,
   } as CSSProperties;
 
   return (
@@ -28,7 +30,7 @@ export function RegistryEmptyState({
       role="status"
       style={accentStyle}
     >
-      <SearchX className="size-10 text-muted-foreground/40" aria-hidden={true} />
+      <SearchX className="size-10 text-muted-foreground" aria-hidden={true} />
       <p className="text-sm font-medium text-muted-foreground">{REGISTRY_EMPTY_STATE_MESSAGE}</p>
       {(query.length > 0 || selectedTags.length > 0) && (
         <button

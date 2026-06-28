@@ -70,6 +70,68 @@ function getLastActivityAt(
   return Number.isFinite(generated) ? generated : 0;
 }
 
+function getCompleteVersionEntries(listing: IntegrityListing | undefined) {
+  return Object.entries(listing?.versions ?? {}).filter(
+    ([, version]) => version.is_complete === true,
+  );
+}
+
+function getPublishedAt(listing: IntegrityListing | undefined, fallback: number): number {
+  let earliest = Number.POSITIVE_INFINITY;
+
+  for (const [, version] of getCompleteVersionEntries(listing)) {
+    const timestamp = Date.parse(version.checked_at ?? "");
+    if (Number.isFinite(timestamp) && timestamp < earliest) {
+      earliest = timestamp;
+    }
+  }
+
+  return Number.isFinite(earliest) ? earliest : fallback;
+}
+
+function getLatestVersionInfo(listing: IntegrityListing | undefined, fallbackTimestamp: number) {
+  const latestSemverVersion =
+    listing?.latest_semver_complete === true ? (listing.latest_semver_version ?? null) : null;
+  const completeVersionEntries = getCompleteVersionEntries(listing);
+  const latestVersionEntry =
+    (latestSemverVersion
+      ? completeVersionEntries.find(([version]) => version === latestSemverVersion)
+      : null) ??
+    completeVersionEntries.reduce<{
+      version: string;
+      timestamp: number;
+    } | null>((latest, [version, versionInfo]) => {
+      const timestamp = Date.parse(versionInfo.checked_at ?? "");
+      if (!Number.isFinite(timestamp)) {
+        return latest;
+      }
+      if (!latest || timestamp > latest.timestamp) {
+        return { version, timestamp };
+      }
+      return latest;
+    }, null);
+
+  if (Array.isArray(latestVersionEntry)) {
+    const timestamp = Date.parse(latestVersionEntry[1].checked_at ?? "");
+    return {
+      latestVersion: latestVersionEntry[0],
+      latestVersionUpdatedAt: Number.isFinite(timestamp) ? timestamp : fallbackTimestamp,
+    };
+  }
+
+  if (latestVersionEntry) {
+    return {
+      latestVersion: latestVersionEntry.version,
+      latestVersionUpdatedAt: latestVersionEntry.timestamp,
+    };
+  }
+
+  return {
+    latestVersion: latestSemverVersion,
+    latestVersionUpdatedAt: fallbackTimestamp,
+  };
+}
+
 function getTotalDownloads(id: string, downloads: RawRegistryDownloads): number {
   const versions = downloads[id];
   if (!versions) return 0;
@@ -227,6 +289,53 @@ function resolveAuthorDisplay(
   return authorAliasMap.get(authorId.toLowerCase()) ?? authorId;
 }
 
+function extractGithubRepoSlugFromPathParts(parts: string[]): string | null {
+  const owner = parts[0]?.trim();
+  const repo = parts[1]?.replace(/\.git$/i, "").trim();
+  if (!owner || !repo) {
+    return null;
+  }
+  return `${owner}/${repo}`;
+}
+
+function extractGithubRepoSlugFromUrl(value: string | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const hostname = parsed.hostname.toLowerCase();
+    if (hostname.endsWith(".github.io")) {
+      const owner = hostname.slice(0, -".github.io".length);
+      const repo = parsed.pathname
+        .split("/")
+        .filter(Boolean)[0]
+        ?.replace(/\.git$/i, "")
+        .trim();
+      return owner && repo ? `${owner}/${repo}` : null;
+    }
+
+    if (
+      hostname !== "github.com" &&
+      hostname !== "www.github.com" &&
+      hostname !== "raw.githubusercontent.com"
+    ) {
+      return null;
+    }
+    return extractGithubRepoSlugFromPathParts(parsed.pathname.split("/").filter(Boolean));
+  } catch {
+    const matched = trimmed.match(
+      /(?:github\.com|raw\.githubusercontent\.com)\/([^/?#]+)\/([^/?#]+)/i,
+    );
+    if (!matched) {
+      return null;
+    }
+    return extractGithubRepoSlugFromPathParts([matched[1] ?? "", matched[2] ?? ""]);
+  }
+}
+
 export async function loadRegistryItemsForType(
   typeId: string,
   typeRouteSegment: string,
@@ -296,12 +405,15 @@ export async function loadRegistryItemsForType(
     }
 
     const lastActivityAt = getLastActivityAt(id, manifest, integrity);
+    const listing = integrity.listings?.[id];
+    const { latestVersion, latestVersionUpdatedAt } = getLatestVersionInfo(listing, lastActivityAt);
 
     items.push({
       id,
       type: typeId,
       routeSegment: typeRouteSegment,
       href: `/registry/${typeRouteSegment}/${id}`,
+      projectId: extractGithubRepoSlugFromUrl(manifest.source),
       name: manifest.name?.trim() || id,
       author: resolveAuthorDisplay(manifest.author, authorAliasMap),
       authorId,
@@ -311,6 +423,9 @@ export async function loadRegistryItemsForType(
       thumbnailSrc: resolveThumbnailSrc(typeRouteSegment, id, manifest.gallery),
       totalDownloads: getTotalDownloads(id, downloads),
       lastActivityAt,
+      publishedAt: getPublishedAt(listing, lastActivityAt),
+      latestVersion,
+      latestVersionUpdatedAt,
       cityCode: typeUiRules.hasMapMetadata ? (manifest.city_code ?? null) : null,
       countryCode: typeUiRules.hasMapMetadata ? countryCode : null,
       countryName: typeUiRules.hasMapMetadata ? countryName : null,

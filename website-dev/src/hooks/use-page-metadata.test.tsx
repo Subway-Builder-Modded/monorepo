@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { usePageMetadata } from "@/hooks/use-page-metadata";
 
@@ -12,27 +12,41 @@ function findMeta(attr: "name" | "property", key: string): HTMLMetaElement | nul
 }
 
 describe("usePageMetadata", () => {
-  it("writes title, description, Open Graph and Twitter tags from unified metadata", () => {
-    render(<PageMetadataProbe pathname="/registry/trending" />);
-
-    expect(document.title).toBe("Trending | Registry");
-    expect(findMeta("name", "description")?.content).toMatch(/trending content/i);
-    expect(findMeta("property", "og:title")?.content).toBe("Trending | Registry");
-    expect(findMeta("property", "og:description")?.content).toMatch(/trending content/i);
-    expect(findMeta("name", "twitter:title")?.content).toBe("Trending | Registry");
-    expect(findMeta("name", "twitter:card")?.content).toBe("summary_large_image");
-    expect(findMeta("property", "og:image")?.content).toContain("/images/registry/logo.png");
-    expect(findMeta("name", "twitter:image")?.content).toContain("/images/registry/logo.png");
-    expect(document.head.querySelector("link[rel=canonical]")?.getAttribute("href")).toContain(
-      "/registry/trending",
-    );
-  });
-
   it("uses unsuited title format and default logo for general pages", () => {
     render(<PageMetadataProbe pathname="/community" />);
 
     expect(document.title).toBe("Community");
     expect(findMeta("property", "og:title")?.content).toBe("Community");
     expect(findMeta("property", "og:image")?.content).toContain("/logo.svg");
+  });
+
+  it("updates browser and social metadata for cache-backed registry pages", async () => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          name: "South Florida",
+          description: "# South Florida\n\nA detailed map of South Florida.",
+          gallery: ["gallery/preview.webp"],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+
+    try {
+      render(<PageMetadataProbe pathname="/registry/maps/south-florida/analytics" />);
+
+      await waitFor(() => {
+        expect(document.title).toBe("South Florida | Registry");
+      });
+      expect(findMeta("property", "og:title")?.content).toBe("South Florida | Registry");
+      expect(findMeta("name", "description")?.content).toBe(
+        "South Florida A detailed map of South Florida.",
+      );
+      expect(findMeta("property", "og:image")?.content).toContain(
+        "/registry-cache/maps/south-florida/gallery/preview.webp",
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

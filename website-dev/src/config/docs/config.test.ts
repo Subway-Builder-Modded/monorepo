@@ -134,6 +134,7 @@ describe("getSidebarOrder", () => {
       "publishing-content",
       "updating-content",
       "using-custom-url",
+      "collaborators",
       "dependencies",
       "author-attribution",
       "tagging",

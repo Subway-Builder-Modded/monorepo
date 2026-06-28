@@ -4,6 +4,7 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AnalyticsLineChart } from "../src/charts/analytics-line-chart";
 import { AnalyticsBarChart } from "../src/charts/analytics-bar-chart";
+import { AnalyticsPieChart } from "../src/charts/analytics-pie-chart";
 import { createCategoryTicks } from "../src/charts/chart-theme";
 import { AnalyticsTooltip } from "../src/charts/chart-tooltip";
 
@@ -69,6 +70,21 @@ describe("AnalyticsLineChart", () => {
     );
     expect(container.firstChild).not.toBeNull();
   });
+
+  it("renders with zero tooltip entries hidden when requested", () => {
+    const { container } = render(
+      <AnalyticsLineChart
+        data={SAMPLE_DATA}
+        lines={[
+          { key: "users", name: "Members" },
+          { key: "public", name: "Public messages" },
+        ]}
+        xAxisKey="date"
+        hideZeroTooltipEntries={true}
+      />,
+    );
+    expect(container.firstChild).not.toBeNull();
+  });
 });
 
 describe("createCategoryTicks", () => {
@@ -106,6 +122,23 @@ describe("createCategoryTicks", () => {
       "2026-04-10",
       "2026-04-12",
       "2026-04-14",
+    ]);
+  });
+
+  it("combines a short initial interval with the next category interval", () => {
+    const values = Array.from(
+      { length: 33 },
+      (_, index) => `2026-05-${String(index + 1).padStart(2, "0")}`,
+    );
+
+    expect(createCategoryTicks(values, 8)).toEqual([
+      "2026-05-01",
+      "2026-05-08",
+      "2026-05-13",
+      "2026-05-18",
+      "2026-05-23",
+      "2026-05-28",
+      "2026-05-33",
     ]);
   });
 });
@@ -150,6 +183,25 @@ describe("AnalyticsBarChart", () => {
       />,
     );
     expect(container.firstChild).not.toBeNull();
+  });
+});
+
+describe("AnalyticsPieChart", () => {
+  it("renders a solid pie chart with a responsive container", () => {
+    render(
+      <AnalyticsPieChart
+        data={[
+          { key: "maps", name: "Maps", value: 12, color: "#2563eb" },
+          { key: "mods", name: "Mods", value: 4, color: "#dc2626" },
+        ]}
+      />,
+    );
+
+    expect(screen.getByTestId("responsive-container")).toBeInTheDocument();
+    expect(screen.getByText("Maps")).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByText("Mods")).toBeInTheDocument();
+    expect(screen.getByText("4")).toBeInTheDocument();
   });
 });
 

@@ -15,7 +15,6 @@ import {
   Compass,
   BookText,
   Megaphone,
-  TrendingUp,
   Warehouse,
 } from "lucide-react";
 import { GithubIcon, DiscordIcon, MarkdownIcon } from "@subway-builder-modded/icons";
@@ -246,7 +245,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     suiteId: "railyard",
     title: "Analytics",
     description: "In-depth release and download analytics for the Railyard app.",
-    href: "/railyard/analytics",
+    href: "/railyard/analytics/overview",
     icon: ChartLine,
     activeMatchRules: [{ kind: "prefix", path: "/railyard/analytics" }],
   },
@@ -258,6 +257,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/registry",
     icon: House,
     activeMatchRules: [{ kind: "exact", path: "/registry" }],
+  },
+  {
+    id: "registry-creator-database",
+    suiteId: "registry",
+    title: "Creator Database",
+    description: "Search the Registry author and project database.",
+    href: "/registry/authors",
+    icon: Users,
+    activeMatchRules: [{ kind: "prefix", path: "/registry/authors" }],
   },
   {
     id: "registry-docs",
@@ -276,24 +284,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/registry/analytics",
     icon: ChartLine,
     activeMatchRules: [{ kind: "prefix", path: "/registry/analytics" }],
-  },
-  {
-    id: "registry-trending",
-    suiteId: "registry",
-    title: "Trending",
-    description: "View the most trending content in the Registry based on recent activity.",
-    href: "/registry/trending",
-    icon: TrendingUp,
-    activeMatchRules: [{ kind: "exact", path: "/registry/trending" }],
-  },
-  {
-    id: "registry-world-map",
-    suiteId: "registry",
-    title: "World Map",
-    description: "Interactively explore all of the user-submitted maps available in the Registry.",
-    href: "/registry/world-map",
-    icon: Globe,
-    activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
   },
   {
     id: "registry-markdown-playground",
@@ -340,15 +330,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/website/updates",
     icon: Megaphone,
     activeMatchRules: [{ kind: "prefix", path: "/website/updates" }],
-  },
-  {
-    id: "website-analytics",
-    suiteId: "website",
-    title: "Analytics",
-    description: "In-depth release and download analytics for the Website.",
-    href: "/website/analytics",
-    icon: ChartLine,
-    activeMatchRules: [{ kind: "prefix", path: "/website/analytics" }],
   },
   {
     id: "depot-home",
@@ -451,4 +432,8 @@ export function getSuiteDocsNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
 
 export function getSuiteUpdatesNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
   return SITE_NAV_ITEMS.find((item) => item.id === `${suiteId}-updates`) ?? null;
+}
+
+export function getSuiteAnalyticsNavItem(suiteId: SiteSuiteId): SiteNavItem | null {
+  return SITE_NAV_ITEMS.find((item) => item.id === `${suiteId}-analytics`) ?? null;
 }

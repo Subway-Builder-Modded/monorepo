@@ -132,6 +132,12 @@ export {
   TableRow,
 } from './components/table';
 export {
+  SortableTableHead,
+  StaticTableHead,
+  type SortDirection,
+  type TableHeadAlign,
+} from './components/sortable-table-head';
+export {
   Tabs,
   TabsContent,
   TabsList,
@@ -261,6 +267,12 @@ export {
   getToneVarsClass,
   type LocalAccentTone,
 } from './lib/local-accent';
+export {
+  getSortedRankSlot,
+  getSortedRankSlotMap,
+  type SortedRankSlotOptions,
+  type SortedRankSlotMapOptions,
+} from './lib/sorted-rank-slots';
   export {
     HeroAccentBar,
     type HeroAccentBarProps,

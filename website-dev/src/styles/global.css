@@ -14,6 +14,7 @@
 
 @source "../../../packages/shared-ui/src";
 @source "../../../packages/asset-listings-ui/src";
+@source "../../../packages/analytics/src";
 @source "../../../packages/mdx/src";
 
 @custom-variant dark (&:is(.dark *));
@@ -230,14 +231,5 @@ body::-webkit-scrollbar {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-}
-
-@keyframes registry-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(calc(-50% - 0.5rem));
   }
 }

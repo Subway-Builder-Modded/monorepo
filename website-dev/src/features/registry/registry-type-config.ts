@@ -1,3 +1,4 @@
+import { Map as MapIcon, Package } from "lucide-react";
 import type { RegistryTypeConfig } from "@/shared/registry-card/registry-item-types";
 
 /** Registry asset type configurations.
@@ -8,6 +9,7 @@ export const REGISTRY_TYPES: RegistryTypeConfig[] = [
     id: "maps",
     label: "Map",
     pluralLabel: "Maps",
+    icon: MapIcon,
     routeSegment: "maps",
     accentLight: "#2563eb",
     accentDark: "#60a5fa",
@@ -16,6 +18,7 @@ export const REGISTRY_TYPES: RegistryTypeConfig[] = [
     id: "mods",
     label: "Mod",
     pluralLabel: "Mods",
+    icon: Package,
     routeSegment: "mods",
     accentLight: "#dc2626",
     accentDark: "#f87171",
@@ -37,6 +40,7 @@ export function getRegistryTypeConfigOrDefault(typeId: string): RegistryTypeConf
       id: typeId,
       label: typeId,
       pluralLabel: `${typeId}s`,
+      icon: Package,
       routeSegment: typeId,
       accentLight: "#6b7280",
       accentDark: "#9ca3af",

@@ -20,7 +20,7 @@ export const railyardUpdatesConfig: UpdatesSuiteConfig = {
       },
       {
         label: "View Analytics",
-        href: "/railyard/analytics",
+        href: "/railyard/analytics/overview",
         icon: ChartLine,
       },
     ],

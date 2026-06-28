@@ -1,10 +1,10 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, type CSSProperties } from "react";
 import { getInitialRegistrySidebarCollapsed } from "./registry-filter-sidebar";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { RegistryFilterSidebar } from "./registry-filter-sidebar";
 import { RegistryViewToggle } from "./registry-view-toggle";
 import { RegistrySortBar } from "./registry-sort-bar";
-import { Search, Trash2, X } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
   StyledPagination,
   Tooltip,
@@ -19,6 +19,7 @@ import { RegistryGrid } from "./browse/registry-grid";
 import { RegistryLoadingState } from "./browse/registry-loading-state";
 import { RegistryEmptyState } from "./browse/registry-empty-state";
 import { useRegistryBrowseData } from "./browse/use-registry-browse-data";
+import { RegistryToolbarSearch } from "./registry-toolbar-search";
 
 import type { RegistryCardVariant } from "@/shared/registry-card/registry-item-types";
 
@@ -195,51 +196,25 @@ export function RegistryBrowseSection({
               <span>{typeConfig.label} Database</span>
             </div>
 
-            <div className="rounded-xl border border-border/30 bg-card px-3 py-3 shadow-sm">
+            <div
+              className="rounded-xl border border-border/30 bg-card px-3 py-3 shadow-sm"
+              style={
+                {
+                  "--suite-accent-light": typeConfig.accentLight,
+                  "--suite-accent-dark": typeConfig.accentDark,
+                  "--registry-toolbar-accent-light": typeConfig.accentLight,
+                  "--registry-toolbar-accent-dark": typeConfig.accentDark,
+                } as CSSProperties
+              }
+            >
               <div className="space-y-3">
-                <div className="group relative flex">
-                  <Search
-                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                    aria-hidden={true}
-                  />
-                  <input
-                    type="search"
-                    role="searchbox"
-                    value={query}
-                    onChange={(event) => onQueryChange(event.target.value)}
-                    placeholder="Search…"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    className="h-11 w-full appearance-none rounded-lg border border-border/30 bg-background pl-9 pr-24 text-sm text-foreground placeholder:text-muted-foreground transition-colors hover:border-border/35 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:appearance-none [&::-webkit-search-decoration]:appearance-none"
-                  />
-                  {!query ? (
-                    <span
-                      className="pointer-events-none absolute right-3 top-1/2 ml-auto flex -translate-y-1/2 shrink-0 items-center gap-1 text-[11px] text-muted-foreground"
-                      aria-hidden={true}
-                    >
-                      <kbd className="rounded-md border border-border/45 bg-muted/20 px-1.5 py-0.5 font-mono font-medium leading-none">
-                        {isMac ? "Cmd" : "Ctrl"}
-                      </kbd>
-                      <span className="text-muted-foreground/70">+</span>
-                      <kbd className="rounded-md border border-border/45 bg-muted/20 px-1.5 py-0.5 font-mono font-medium leading-none">
-                        M
-                      </kbd>
-                    </span>
-                  ) : null}
-                  {query ? (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onQueryChange("");
-                      }}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <X className="size-3.5" aria-hidden={true} />
-                    </button>
-                  ) : null}
-                </div>
+                <RegistryToolbarSearch
+                  query={query}
+                  onChange={onQueryChange}
+                  placeholder="Search..."
+                  clearLabel="Clear registry search"
+                  shortcutHint={{ modifier: isMac ? "Cmd" : "Ctrl", key: "M" }}
+                />
 
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:justify-between lg:overflow-visible lg:pb-0">
                   <div className="flex min-w-max items-center gap-2">

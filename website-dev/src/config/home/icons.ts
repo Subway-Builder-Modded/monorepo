@@ -8,6 +8,7 @@ import {
   Globe,
   Heart,
   Home,
+  Megaphone,
   Package,
   TrainTrack,
   Users,
@@ -31,6 +32,7 @@ export const HOME_ICONS = {
   trainTrack: TrainTrack,
   users: Users,
   warehouse: Warehouse,
+  megaphone: Megaphone,
 } as const;
 
 export type HomeIconName = keyof typeof HOME_ICONS;

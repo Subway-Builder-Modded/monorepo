@@ -11,10 +11,24 @@ const REGISTRY_DETAIL_TABS = new Set([
   "map",
   "details",
 ]);
+const REGISTRY_AUTHOR_TABS = new Set(["overview", "projects", "analytics"]);
+const REGISTRY_ANALYTICS_TABS = new Set([
+  "overview",
+  "content",
+  "authors",
+  "projects",
+  "map-statistics",
+]);
+const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "3d", "7d", "14d"]);
+const REGISTRY_ANALYTICS_ASSET_TYPES = new Set(["maps", "mods"]);
 
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
+  | { kind: "analytics"; tabId?: string; periodId?: string; assetTypeId?: string }
+  | { kind: "creatorDatabase"; tabId?: "authors" | "projects" }
+  | { kind: "author"; authorId: string; tabId?: string }
+  | { kind: "project"; authorId: string; projectName: string; tabId?: string }
   | { kind: "detail"; routeSegment: string; id: string; tabId?: string; versionId?: string };
 
 function normalizePathname(pathname: string): string {
@@ -35,6 +49,14 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   const segments = normalized.split("/").filter(Boolean);
   if (segments.length === 2 && segments[0] === "registry") {
     const routeSegment = segments[1] ?? "";
+    if (routeSegment === "authors") {
+      return { kind: "creatorDatabase", tabId: "authors" };
+    }
+
+    if (routeSegment === "analytics") {
+      return { kind: "analytics", tabId: "overview", periodId: "all-time" };
+    }
+
     if (routeSegment === "maps" || routeSegment === "mods") {
       return {
         kind: "page",
@@ -44,6 +66,31 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   }
 
   if (segments.length === 3 && segments[0] === "registry") {
+    if (segments[1] === "analytics") {
+      const tabId = decodeURIComponent(segments[2] ?? "");
+      if (!REGISTRY_ANALYTICS_TABS.has(tabId)) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "analytics",
+        tabId,
+        periodId: tabId === "overview" || tabId === "content" ? "all-time" : undefined,
+        assetTypeId: tabId === "content" ? "maps" : undefined,
+      };
+    }
+
+    if (segments[1] === "authors") {
+      if (segments[2] === "projects") {
+        return { kind: "creatorDatabase", tabId: "projects" };
+      }
+
+      return {
+        kind: "author",
+        authorId: decodeURIComponent(segments[2] ?? ""),
+      };
+    }
+
     return {
       kind: "detail",
       routeSegment: decodeURIComponent(segments[1] ?? ""),
@@ -53,6 +100,39 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
 
   if (segments.length === 4 && segments[0] === "registry") {
     const tabId = decodeURIComponent(segments[3] ?? "");
+    if (segments[1] === "analytics") {
+      const analyticsTabId = decodeURIComponent(segments[2] ?? "");
+      if (
+        (analyticsTabId !== "overview" && analyticsTabId !== "content") ||
+        !REGISTRY_ANALYTICS_PERIODS.has(tabId)
+      ) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "analytics",
+        tabId: analyticsTabId,
+        periodId: tabId,
+        assetTypeId: analyticsTabId === "content" ? "maps" : undefined,
+      };
+    }
+
+    if (segments[1] === "authors") {
+      if (!REGISTRY_AUTHOR_TABS.has(tabId)) {
+        return {
+          kind: "project",
+          authorId: decodeURIComponent(segments[2] ?? ""),
+          projectName: tabId,
+        };
+      }
+
+      return {
+        kind: "author",
+        authorId: decodeURIComponent(segments[2] ?? ""),
+        tabId,
+      };
+    }
+
     if (!REGISTRY_DETAIL_TABS.has(tabId)) {
       return { kind: "none" };
     }
@@ -66,6 +146,40 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
   }
 
   if (segments.length === 5 && segments[0] === "registry") {
+    if (segments[1] === "analytics") {
+      const analyticsTabId = decodeURIComponent(segments[2] ?? "");
+      const periodId = decodeURIComponent(segments[3] ?? "");
+      const assetTypeId = decodeURIComponent(segments[4] ?? "");
+      if (
+        analyticsTabId !== "content" ||
+        !REGISTRY_ANALYTICS_PERIODS.has(periodId) ||
+        !REGISTRY_ANALYTICS_ASSET_TYPES.has(assetTypeId)
+      ) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "analytics",
+        tabId: analyticsTabId,
+        periodId,
+        assetTypeId,
+      };
+    }
+
+    if (segments[1] === "authors") {
+      const tabId = decodeURIComponent(segments[4] ?? "");
+      if (!REGISTRY_AUTHOR_TABS.has(tabId)) {
+        return { kind: "none" };
+      }
+
+      return {
+        kind: "project",
+        authorId: decodeURIComponent(segments[2] ?? ""),
+        projectName: decodeURIComponent(segments[3] ?? ""),
+        tabId,
+      };
+    }
+
     const tabId = decodeURIComponent(segments[3] ?? "");
     if (tabId !== "versions") {
       return { kind: "none" };
@@ -98,6 +212,26 @@ export function getRegistryDetailUrl(routeSegment: string, id: string, tabId?: s
     return base;
   }
 
+  return `${base}/${encodeURIComponent(tabId)}`;
+}
+
+export function getRegistryAuthorUrl(authorId: string, tabId?: string): string {
+  const base = `${REGISTRY_ROUTE}/authors/${encodeURIComponent(authorId)}`;
+  if (!tabId || tabId === "overview") {
+    return base;
+  }
+  return `${base}/${encodeURIComponent(tabId)}`;
+}
+
+export function getRegistryProjectUrl(
+  authorId: string,
+  projectName: string,
+  tabId?: string,
+): string {
+  const base = `${REGISTRY_ROUTE}/authors/${encodeURIComponent(authorId)}/${encodeURIComponent(projectName)}`;
+  if (!tabId || tabId === "overview") {
+    return base;
+  }
   return `${base}/${encodeURIComponent(tabId)}`;
 }
 

@@ -75,7 +75,7 @@ export function sortRegistryItems(
         cmp = compareStrings(a.author, b.author);
         break;
       case "cityCode":
-        cmp = compareStrings(a.cityCode, b.cityCode);
+        cmp = compareStrings(b.cityCode, a.cityCode);
         break;
       default:
         cmp = 0;

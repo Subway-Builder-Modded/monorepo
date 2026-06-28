@@ -7,15 +7,23 @@ type RegistryGridProps = {
   items: RegistrySearchItem[];
   typeId: string;
   cardVariant: RegistryCardVariant;
+  hideAuthor?: boolean;
+  getContributors?: (
+    item: RegistrySearchItem,
+  ) => Array<{ authorId: string; authorLabel: string }> | undefined;
 };
 
-function toCardData(item: RegistrySearchItem) {
+function toCardData(
+  item: RegistrySearchItem,
+  contributors?: Array<{ authorId: string; authorLabel: string }>,
+) {
   return {
     id: item.id,
     href: item.href,
     title: item.name,
     author: item.author,
     authorId: item.authorId,
+    contributors,
     description: item.description,
     thumbnailSrc: item.thumbnailSrc,
     totalDownloads: item.totalDownloads,
@@ -28,17 +36,29 @@ function toCardData(item: RegistrySearchItem) {
   };
 }
 
-export function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) {
-  const typeConfig = getRegistryTypeConfigOrDefault(typeId);
-
+export function RegistryGrid({
+  items,
+  typeId,
+  cardVariant,
+  hideAuthor = false,
+  getContributors,
+}: RegistryGridProps) {
   if (cardVariant === "list") {
     return (
       <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={`${cardVariant}-${item.id}`}>
-            <RegistryItemCard data={toCardData(item)} typeConfig={typeConfig} variant="list" />
-          </li>
-        ))}
+        {items.map((item) => {
+          const typeConfig = getRegistryTypeConfigOrDefault(item.type || typeId);
+          return (
+            <li key={`${cardVariant}-${item.id}`}>
+              <RegistryItemCard
+                data={toCardData(item, getContributors?.(item))}
+                typeConfig={typeConfig}
+                variant="list"
+                hideAuthor={hideAuthor}
+              />
+            </li>
+          );
+        })}
       </ul>
     );
   }
@@ -46,32 +66,40 @@ export function RegistryGrid({ items, typeId, cardVariant }: RegistryGridProps) 
   if (cardVariant === "full") {
     return (
       <ul className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {items.map((item) => (
-          <li key={`${cardVariant}-${item.id}`} className="h-full">
-            <RegistryItemCard
-              data={toCardData(item)}
-              typeConfig={typeConfig}
-              variant="full"
-              className="h-full"
-            />
-          </li>
-        ))}
+        {items.map((item) => {
+          const typeConfig = getRegistryTypeConfigOrDefault(item.type || typeId);
+          return (
+            <li key={`${cardVariant}-${item.id}`} className="h-full">
+              <RegistryItemCard
+                data={toCardData(item, getContributors?.(item))}
+                typeConfig={typeConfig}
+                variant="full"
+                hideAuthor={hideAuthor}
+                className="h-full"
+              />
+            </li>
+          );
+        })}
       </ul>
     );
   }
 
   return (
     <ul className="grid grid-cols-1 gap-3 lg:grid-cols-3 xl:grid-cols-4">
-      {items.map((item) => (
-        <li key={`${cardVariant}-${item.id}`} className="h-full">
-          <RegistryItemCard
-            data={toCardData(item)}
-            typeConfig={typeConfig}
-            variant="grid"
-            className="h-full"
-          />
-        </li>
-      ))}
+      {items.map((item) => {
+        const typeConfig = getRegistryTypeConfigOrDefault(item.type || typeId);
+        return (
+          <li key={`${cardVariant}-${item.id}`} className="h-full">
+            <RegistryItemCard
+              data={toCardData(item, getContributors?.(item))}
+              typeConfig={typeConfig}
+              variant="grid"
+              hideAuthor={hideAuthor}
+              className="h-full"
+            />
+          </li>
+        );
+      })}
     </ul>
   );
 }

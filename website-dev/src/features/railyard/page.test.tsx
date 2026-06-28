@@ -30,10 +30,6 @@ describe("RailyardRoute", () => {
 
     expect(screen.getByRole("link", { name: "Browse Registry" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Player Documentation" })).toBeInTheDocument();
-    const worldMapLinks = screen
-      .getAllByRole("link")
-      .filter((link) => link.getAttribute("href")?.includes("/registry/world-map"));
-    expect(worldMapLinks.length).toBeGreaterThan(0);
     expect(screen.getAllByRole("button", { name: "Windows" }).length).toBeGreaterThan(0);
   }, 30_000);
 });

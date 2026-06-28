@@ -84,6 +84,7 @@ describe("loadRegistryItemsForType", () => {
         city_code: "KWJ4",
         country: "kr",
         residents_total: 2140345,
+        source: "https://kimth9.github.io/sb-korean-map-pack/",
       }),
       [`${base}/test-map/manifest.json`]: JSON.stringify({
         name: "test-map",
@@ -99,6 +100,7 @@ describe("loadRegistryItemsForType", () => {
       type: "maps",
       routeSegment: "maps",
       href: "/registry/maps/gwangju-4",
+      projectId: "kimth9/sb-korean-map-pack",
       name: "Gwangju 4",
       author: "Kim Alias",
       description: "Test map",

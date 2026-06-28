@@ -50,7 +50,7 @@ function DepotPipelineRail({
                 type="button"
                 onClick={() => onSelect(i)}
                 className={cn(
-                  "group relative z-10 flex w-full items-center gap-3 rounded-xl border border-transparent px-2.5 py-2 text-left transition-all duration-300",
+                  "group relative z-10 flex w-full items-center gap-3 rounded-xl border border-transparent px-2.5 py-2 text-left transition-[background-color,border-color,box-shadow] duration-200 ease-out",
                   isActive ? "bg-card shadow-sm" : "hover:border-border/60 hover:bg-muted/25",
                 )}
                 style={{
@@ -59,7 +59,7 @@ function DepotPipelineRail({
                 aria-current={isActive ? "step" : undefined}
               >
                 <span
-                  className="relative flex size-11 shrink-0 items-center justify-center rounded-full border-[3px]"
+                  className="relative flex size-11 shrink-0 items-center justify-center rounded-full border-[3px] transition-[background-color,border-color,color] duration-200 ease-out"
                   style={{
                     borderColor: isActive ? tone : "var(--border)",
                     backgroundColor: isActive ? `${tone}20` : "var(--card)",
@@ -67,12 +67,12 @@ function DepotPipelineRail({
                   }}
                 >
                   <StepIcon
-                    className={cn("size-5", isActive && "drop-shadow-sm")}
+                    className="size-5 transition-colors duration-200 ease-out"
                     aria-hidden={true}
                   />
                 </span>
 
-                <LightMarkdown className="min-w-0 text-sm font-medium text-foreground [&_p]:m-0 [&_p]:line-clamp-2 [&_p]:leading-snug [&_code]:text-[0.92em]">
+                <LightMarkdown className="min-w-0 text-sm font-medium text-foreground transition-colors duration-200 ease-out [&_p]:m-0 [&_p]:line-clamp-2 [&_p]:leading-snug [&_code]:text-[0.92em]">
                   {step.title}
                 </LightMarkdown>
               </button>
@@ -188,12 +188,18 @@ function DesktopSwitcher({ steps }: { steps: DepotScrollytellingStep[] }) {
   const prefersReducedMotion = useReducedMotion();
   const [activeIdx, setActiveIdx] = useState(0);
   const panelRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const programmaticScrollTimeoutRef = useRef<number | null>(null);
+  const isProgrammaticScrollRef = useRef(false);
 
   useEffect(() => {
     let frame = 0;
 
     const updateActiveFromViewportCenter = () => {
       frame = 0;
+      if (isProgrammaticScrollRef.current) {
+        return;
+      }
+
       const panels = panelRefs.current;
       const viewportCenter = window.innerHeight / 2;
 
@@ -230,11 +236,25 @@ function DesktopSwitcher({ steps }: { steps: DepotScrollytellingStep[] }) {
       if (frame) {
         window.cancelAnimationFrame(frame);
       }
+      if (programmaticScrollTimeoutRef.current !== null) {
+        window.clearTimeout(programmaticScrollTimeoutRef.current);
+      }
     };
   }, []);
 
   function scrollToPanel(i: number) {
+    if (programmaticScrollTimeoutRef.current !== null) {
+      window.clearTimeout(programmaticScrollTimeoutRef.current);
+    }
+
+    isProgrammaticScrollRef.current = true;
+    setActiveIdx(i);
     panelRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    programmaticScrollTimeoutRef.current = window.setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+      programmaticScrollTimeoutRef.current = null;
+    }, 900);
   }
 
   return (

@@ -4,7 +4,7 @@ import {
   Circle,
   Earth,
   ExternalLink,
-  Trophy,
+  Download,
   User,
   Users,
   type LucideIcon,
@@ -55,7 +55,7 @@ function RankAccessory({ detail, rank }: { detail: RegistryDetailModel; rank: nu
           <span className="inline-flex items-center gap-1.5">
             <span>Ranking among</span>
             <Link
-              to="/registry/analytics/"
+              to="/registry/analytics/map-statistics"
               className="inline-flex items-center gap-1 font-bold underline-offset-2 transition hover:underline"
               style={{
                 color: `light-dark(${detail.typeConfig.accentLight}, ${detail.typeConfig.accentDark})`,
@@ -99,14 +99,14 @@ const ANALYTICS_TAB_SECTIONS_CONFIG: AnalyticsTabSectionConfig[] = [
     cards: [
       {
         title: "Downloads",
-        icon: Trophy,
+        icon: Download,
         getValue: (detail) => formatNumber(detail.downloadAnalytics.allTime),
         getTitleAccessory: (detail) => (
           <RankAccessory detail={detail} rank={detail.downloadAnalytics.rank} />
         ),
       },
       {
-        title: "Modeled Demand",
+        title: "Demand",
         icon: Users,
         getValue: (detail) => formatNumber(detail.mapFields?.population ?? null),
         getTitleAccessory: (detail) => (

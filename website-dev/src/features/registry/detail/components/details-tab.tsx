@@ -64,14 +64,14 @@ function DetailMetricCard({
         showChevron={false}
         accentLight={accentLight}
         accentDark={accentDark}
-        icon={<Icon className="size-3.5 translate-y-[0.08rem]" aria-hidden={true} />}
-        iconClassName={`!mt-[0.28rem] flex h-4 items-center opacity-100 ${
+        icon={<Icon className="size-3.5" aria-hidden={true} />}
+        iconClassName={`!mt-0 flex h-4 items-center justify-center opacity-100 ${
           isLinked
             ? "text-muted-foreground dark:text-muted-foreground transition-colors group-hover:!text-[var(--registry-type-accent)]"
             : "text-muted-foreground dark:text-muted-foreground"
         }`}
         heading={
-          <div className="flex h-full flex-col py-0.5">
+          <div className="flex h-full flex-col">
             <p
               className={`min-h-4 text-xs font-semibold uppercase leading-4 tracking-[0.12em] text-muted-foreground ${
                 isLinked

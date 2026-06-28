@@ -19,8 +19,13 @@ type RegistryItemCardProps = {
   data: RegistryCardData;
   typeConfig: RegistryTypeConfig;
   variant?: RegistryCardVariant;
+  titleHoverAccent?: {
+    light: string;
+    dark: string;
+  };
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  hideAuthor?: boolean;
   className?: string;
 };
 
@@ -103,6 +108,8 @@ type TypeBadgeProps = {
 };
 
 function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
+  const TypeIcon = typeConfig.icon;
+
   return (
     <Link
       to={`/registry/${typeConfig.routeSegment}`}
@@ -114,13 +121,14 @@ function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
       <Badge
         variant="secondary"
         size={size}
-        className="rounded-md px-2.5 font-semibold"
+        className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold"
         style={{
-          color: `var(--registry-type-accent-light, ${typeConfig.accentLight})`,
-          background: `color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
-          border: `1px solid color-mix(in srgb, var(--registry-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
+          color: `var(--card-type-accent-light, ${typeConfig.accentLight})`,
+          background: `color-mix(in srgb, var(--card-type-accent-light, ${typeConfig.accentLight}) 8%, transparent)`,
+          border: `1px solid color-mix(in srgb, var(--card-type-accent-light, ${typeConfig.accentLight}) 16%, transparent)`,
         }}
       >
+        {TypeIcon ? <TypeIcon className="size-3.5" aria-hidden={true} /> : null}
         {typeConfig.label}
       </Badge>
     </Link>
@@ -166,6 +174,49 @@ function AuthorLink({ author, authorId }: { author: string; authorId: string | n
       <AuthorRoleBadge authorId={authorId} className="cursor-pointer" />
     </div>
   );
+}
+
+function ContributorLinks({
+  contributors,
+}: {
+  contributors: NonNullable<RegistryCardData["contributors"]>;
+}) {
+  if (contributors.length === 0) return null;
+
+  return (
+    <div className="pointer-events-auto mt-2 flex max-w-full flex-col items-start gap-0.5 text-xs leading-snug text-muted-foreground">
+      {contributors.map((contributor) => (
+        <Link
+          key={contributor.authorId}
+          to={`/registry/authors/${encodeURIComponent(contributor.authorId)}`}
+          onClick={(event) => event.stopPropagation()}
+          className="group/contributor inline-flex max-w-full items-center gap-1.5 truncate text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Users
+            className="size-3.5 shrink-0 self-center text-muted-foreground"
+            aria-hidden={true}
+          />
+          <span className="truncate underline underline-offset-2 decoration-transparent transition-colors group-hover/contributor:text-[var(--registry-contributor-accent-light,var(--suite-accent-light))] group-hover/contributor:decoration-[color-mix(in_srgb,var(--registry-contributor-accent-light,var(--suite-accent-light))_60%,transparent)] dark:group-hover/contributor:text-[var(--registry-contributor-accent-dark,var(--suite-accent-dark))] dark:group-hover/contributor:decoration-[color-mix(in_srgb,var(--registry-contributor-accent-dark,var(--suite-accent-dark))_60%,transparent)]">
+            {contributor.authorLabel}
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function AuthorOrContributors({
+  data,
+  hideAuthor,
+}: {
+  data: RegistryCardData;
+  hideAuthor: boolean;
+}) {
+  if (hideAuthor) {
+    return data.contributors?.length ? <ContributorLinks contributors={data.contributors} /> : null;
+  }
+
+  return <AuthorLink author={data.author} authorId={data.authorId} />;
 }
 
 function TitleLink({ title, href, className }: { title: string; href: string; className: string }) {
@@ -280,9 +331,8 @@ function ThumbnailImage({
           src={src}
           alt=""
           className={cn(
-            "size-full object-cover [backface-visibility:hidden] [transform:translateZ(0)]",
-            hoverScale &&
-              "transform-gpu will-change-transform transition-transform duration-500 ease-out group-hover:scale-[1.06]",
+            "absolute inset-y-0 left-1/2 h-full w-auto max-w-none -translate-x-1/2 [backface-visibility:hidden]",
+            hoverScale && "transition-[filter] duration-200 ease-out group-hover:brightness-[1.03]",
             loaded ? "opacity-100" : "opacity-0",
             className,
           )}
@@ -303,17 +353,22 @@ function ThumbnailImage({
 function RegistryCardGrid({
   data,
   typeConfig,
+  titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
+  hideAuthor = false,
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
   const visibleTags = getVisibleCardTags(data.tags);
   const gridTagStripRef = useRef<HTMLDivElement>(null);
   const showTagOverflowHint = useTagOverflowHint(gridTagStripRef, [visibleTags.join("|")]);
+  const compactTagGapClass = hideAuthor ? "mt-2" : "mt-2.5";
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
+    "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
+    "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
   } as React.CSSProperties;
 
   return (
@@ -337,7 +392,12 @@ function RegistryCardGrid({
           />
         </div>
 
-        <div className="flex h-full flex-col gap-2 px-3 py-3 min-[1800px]:gap-2.5 min-[1800px]:px-4 min-[1800px]:py-4">
+        <div
+          className={cn(
+            "flex h-full flex-col px-3 py-3 min-[1800px]:px-4 min-[1800px]:py-4",
+            hideAuthor ? "gap-1.5 min-[1800px]:gap-2" : "gap-2 min-[1800px]:gap-2.5",
+          )}
+        >
           <div className="flex items-center justify-between gap-2">
             <TypeBadge typeConfig={typeConfig} />
             <div className="flex items-center gap-3">
@@ -346,13 +406,13 @@ function RegistryCardGrid({
             </div>
           </div>
 
-          <div className="space-y-0">
+          <div className={hideAuthor ? "space-y-0" : "space-y-0.5"}>
             <div className="flex items-center justify-between gap-2">
               <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-sm font-semibold leading-snug min-[1800px]:text-base">
                 <TitleLink
                   title={data.title}
                   href={data.href}
-                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
+                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
                 />
               </h3>
               <MapBadges
@@ -362,7 +422,7 @@ function RegistryCardGrid({
                 population={null}
               />
             </div>
-            <AuthorLink author={data.author} authorId={data.authorId} />
+            <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
           </div>
 
           <DescriptionPreview
@@ -374,6 +434,7 @@ function RegistryCardGrid({
             <div
               className={cn(
                 "relative isolate h-5 overflow-hidden bg-[var(--card-surface)]",
+                compactTagGapClass,
                 TAG_SURFACE_TRANSITION_CLASS,
               )}
             >
@@ -417,7 +478,7 @@ function RegistryCardGrid({
               ) : null}
             </div>
           ) : (
-            <div className="h-5" aria-hidden={true} />
+            <div className={cn("h-5", compactTagGapClass)} aria-hidden={true} />
           )}
         </div>
       </div>
@@ -428,8 +489,10 @@ function RegistryCardGrid({
 function RegistryCardFull({
   data,
   typeConfig,
+  titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
+  hideAuthor = false,
   className,
 }: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, FULL_DESC_MAX);
@@ -437,6 +500,8 @@ function RegistryCardFull({
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
+    "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
+    "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
   } as React.CSSProperties;
 
   return (
@@ -460,7 +525,12 @@ function RegistryCardFull({
           />
         </div>
 
-        <div className="flex h-full flex-col gap-3 px-4 py-4 min-[1800px]:gap-4 min-[1800px]:px-5 min-[1800px]:py-5">
+        <div
+          className={cn(
+            "flex h-full flex-col px-4 py-4 min-[1800px]:px-5 min-[1800px]:py-5",
+            hideAuthor ? "gap-2 min-[1800px]:gap-3" : "gap-3 min-[1800px]:gap-4",
+          )}
+        >
           <div className="flex items-center justify-between gap-2">
             <TypeBadge typeConfig={typeConfig} size="md" />
             <div className="flex items-center gap-3">
@@ -469,13 +539,13 @@ function RegistryCardFull({
             </div>
           </div>
 
-          <div className="space-y-0.5">
+          <div className={hideAuthor ? "space-y-0" : "space-y-0.5"}>
             <div className="flex items-center justify-between gap-2">
               <h3 className="flex min-w-0 flex-1 items-center line-clamp-1 text-base font-semibold leading-snug min-[1800px]:text-[1.12rem]">
                 <TitleLink
                   title={data.title}
                   href={data.href}
-                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
+                  className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
                 />
               </h3>
               <MapBadges
@@ -485,7 +555,7 @@ function RegistryCardFull({
                 population={null}
               />
             </div>
-            <AuthorLink author={data.author} authorId={data.authorId} />
+            <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
           </div>
 
           <DescriptionPreview
@@ -515,14 +585,24 @@ function RegistryCardFull({
 }
 
 // ─── Full variant (kept for potential explicit use) ───────────────────────────
-function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCardProps, "variant">) {
+function RegistryCardList({
+  data,
+  typeConfig,
+  titleHoverAccent,
+  hideAuthor = false,
+  className,
+}: Omit<RegistryItemCardProps, "variant">) {
   const previewText = useDescriptionPreview(data.description, 240);
   const visibleTags = getVisibleCardTags(data.tags);
   const listTagStripRef = useRef<HTMLDivElement>(null);
   const showTagOverflowHint = useTagOverflowHint(listTagStripRef, [visibleTags.join("|")]);
+  const listDescriptionGapClass = hideAuthor ? "mt-2" : "mt-2.5";
+  const listTagGapClass = hideAuthor ? "mt-2.5" : "mt-3";
   const typeAccentStyle = {
     "--card-type-accent-light": typeConfig.accentLight,
     "--card-type-accent-dark": typeConfig.accentDark,
+    "--card-title-accent-light": titleHoverAccent?.light ?? typeConfig.accentLight,
+    "--card-title-accent-dark": titleHoverAccent?.dark ?? typeConfig.accentDark,
   } as React.CSSProperties;
 
   return (
@@ -543,7 +623,7 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
           noImageLabel="N/A"
         />
 
-        <div className="min-w-0 flex-1 overflow-hidden space-y-1.5">
+        <div className="min-w-0 flex-1 overflow-hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <TypeBadge typeConfig={typeConfig} size="sm" />
@@ -560,26 +640,32 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
             />
           </div>
 
-          <div className="space-y-0.5">
-            <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold min-[1800px]:text-[1.12rem]">
+          <div className="mt-1 space-y-0">
+            <h3 className="flex min-w-0 items-center line-clamp-1 text-base font-semibold leading-tight min-[1800px]:text-[1.12rem]">
               <TitleLink
                 title={data.title}
                 href={data.href}
-                className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-type-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-type-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-type-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-type-accent-dark)_62%,transparent)]"
+                className="truncate text-foreground underline underline-offset-2 decoration-transparent transition-colors hover:text-[var(--card-title-accent-light)] hover:decoration-[color-mix(in_srgb,var(--card-title-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-[var(--card-title-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--card-title-accent-dark)_62%,transparent)]"
               />
             </h3>
-            <AuthorLink author={data.author} authorId={data.authorId} />
+            <div className={hideAuthor ? undefined : "-mt-px"}>
+              <AuthorOrContributors data={data} hideAuthor={hideAuthor} />
+            </div>
           </div>
 
           <DescriptionPreview
             segments={previewText}
-            className="h-10 overflow-hidden text-sm leading-5 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] min-[1800px]:h-11 min-[1800px]:text-base"
+            className={cn(
+              "overflow-hidden text-sm leading-5 text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] min-[1800px]:text-base",
+              listDescriptionGapClass,
+            )}
           />
 
           {visibleTags.length > 0 ? (
             <div
               className={cn(
                 "relative isolate h-5 overflow-hidden bg-[var(--card-surface)]",
+                listTagGapClass,
                 TAG_SURFACE_TRANSITION_CLASS,
               )}
             >
@@ -623,7 +709,7 @@ function RegistryCardList({ data, typeConfig, className }: Omit<RegistryItemCard
               ) : null}
             </div>
           ) : (
-            <div className="h-5" aria-hidden={true} />
+            <div className={cn("h-5", listTagGapClass)} aria-hidden={true} />
           )}
         </div>
       </div>
@@ -635,8 +721,10 @@ export function RegistryItemCard({
   data,
   typeConfig,
   variant = "grid",
+  titleHoverAccent,
   onMouseEnter,
   onMouseLeave,
+  hideAuthor,
   className,
 }: RegistryItemCardProps) {
   switch (variant) {
@@ -645,8 +733,10 @@ export function RegistryItemCard({
         <RegistryCardList
           data={data}
           typeConfig={typeConfig}
+          titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          hideAuthor={hideAuthor}
           className={className}
         />
       );
@@ -655,8 +745,10 @@ export function RegistryItemCard({
         <RegistryCardFull
           data={data}
           typeConfig={typeConfig}
+          titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          hideAuthor={hideAuthor}
           className={className}
         />
       );
@@ -666,8 +758,10 @@ export function RegistryItemCard({
         <RegistryCardGrid
           data={data}
           typeConfig={typeConfig}
+          titleHoverAccent={titleHoverAccent}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
+          hideAuthor={hideAuthor}
           className={className}
         />
       );
