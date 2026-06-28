@@ -7,10 +7,7 @@ function PageMetadataProbe({ pathname }: { pathname: string }) {
   return null;
 }
 
-function findMeta(
-  attr: "name" | "property",
-  key: string,
-): HTMLMetaElement | null {
+function findMeta(attr: "name" | "property", key: string): HTMLMetaElement | null {
   return document.head.querySelector(`meta[${attr}="${key}"]`);
 }
 
@@ -37,16 +34,12 @@ describe("usePageMetadata", () => {
       );
 
     try {
-      render(
-        <PageMetadataProbe pathname="/registry/maps/south-florida/analytics" />,
-      );
+      render(<PageMetadataProbe pathname="/registry/maps/south-florida/analytics" />);
 
       await waitFor(() => {
         expect(document.title).toBe("South Florida | Registry");
       });
-      expect(findMeta("property", "og:title")?.content).toBe(
-        "South Florida | Registry",
-      );
+      expect(findMeta("property", "og:title")?.content).toBe("South Florida | Registry");
       expect(findMeta("name", "description")?.content).toBe(
         "South Florida A detailed map of South Florida.",
       );

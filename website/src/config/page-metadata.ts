@@ -11,17 +11,12 @@ import {
 import { normalizePathname } from "@/lib/path-utils";
 import { matchDocsRoute, getDocsTree, findTreeNode } from "@/features/docs";
 import { DOCS_HOMEPAGE_TITLE } from "@/config/docs/shared";
-import {
-  matchUpdatesRoute,
-  findUpdateEntry,
-  getUpdateArticleIdentity,
-} from "@/features/updates";
+import { matchUpdatesRoute, findUpdateEntry, getUpdateArticleIdentity } from "@/features/updates";
 import { UPDATES_HOMEPAGE_TITLE } from "@/config/updates/shared";
 import { matchRegistryRoute } from "@/features/registry/lib/routing";
 
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
-const DEFAULT_SITE_DESCRIPTION =
-  "The complete hub for everything modded in Subway Builder.";
+const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
 const DEFAULT_SITE_LOGO_PATH = "/logo.svg";
 const REGISTRY_CACHE_PUBLIC_BASE = "/registry-cache";
 
@@ -63,16 +58,11 @@ type RegistryManifestMetadata = {
 };
 
 function formatPageTitle(title: string, suite: SiteSuite): string {
-  return suite.id === "general" || title === suite.title
-    ? title
-    : `${title} | ${suite.title}`;
+  return suite.id === "general" || title === suite.title ? title : `${title} | ${suite.title}`;
 }
 
 function getSuiteHomeNavItem(suiteId: SiteSuiteId) {
-  return (
-    getItemsForSuite(suiteId).find((item) => item.id === `${suiteId}-home`) ??
-    null
-  );
+  return getItemsForSuite(suiteId).find((item) => item.id === `${suiteId}-home`) ?? null;
 }
 
 function getSuiteImagePath(suiteId: SiteSuiteId): string {
@@ -87,18 +77,10 @@ function getSuiteThemeColor(suiteId: SiteSuiteId): string {
   return getSuiteById(suiteId).accent.dark;
 }
 
-function resolveRegistryThumbnail(
-  routeSegment: string,
-  id: string,
-  gallery: string[] | undefined,
-) {
+function resolveRegistryThumbnail(routeSegment: string, id: string, gallery: string[] | undefined) {
   const first = gallery?.[0]?.trim();
   if (!first) return getSuiteImagePath("registry");
-  if (
-    first.startsWith("http://") ||
-    first.startsWith("https://") ||
-    first.startsWith("/")
-  ) {
+  if (first.startsWith("http://") || first.startsWith("https://") || first.startsWith("/")) {
     return first;
   }
   return `${REGISTRY_CACHE_PUBLIC_BASE}/${routeSegment}/${encodeURIComponent(id)}/${first.replace(/^\/+/, "")}`;
@@ -150,16 +132,10 @@ async function resolveRegistryMetadata(
     return {
       ...fallback,
       title,
-      description: toPlainTextExcerpt(
-        manifest.description ?? fallback.description,
-      ),
+      description: toPlainTextExcerpt(manifest.description ?? fallback.description),
       suite: registrySuite,
       pageTitle: formatPageTitle(title, registrySuite),
-      imagePath: resolveRegistryThumbnail(
-        route.routeSegment,
-        route.id,
-        manifest.gallery,
-      ),
+      imagePath: resolveRegistryThumbnail(route.routeSegment, route.id, manifest.gallery),
     };
   }
 
@@ -203,8 +179,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
         pathname: normalizedPathname,
         title,
         description:
-          getSuiteDocsNavItem(docsMatch.suiteId)?.description ??
-          DEFAULT_SITE_DESCRIPTION,
+          getSuiteDocsNavItem(docsMatch.suiteId)?.description ?? DEFAULT_SITE_DESCRIPTION,
         suite,
         pageTitle: `${title} | ${suite.title}`,
         imagePath: getSuiteImagePath(docsMatch.suiteId),
@@ -216,8 +191,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
     const tree = getDocsTree(docsMatch.suiteId, docsMatch.version);
     const node = findTreeNode(tree, docsMatch.slug);
     const title = node?.frontmatter.title ?? "Documentation";
-    const description =
-      node?.frontmatter.description ?? DEFAULT_SITE_DESCRIPTION;
+    const description = node?.frontmatter.description ?? DEFAULT_SITE_DESCRIPTION;
 
     return {
       pathname: normalizedPathname,
@@ -239,8 +213,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
         pathname: normalizedPathname,
         title: UPDATES_HOMEPAGE_TITLE,
         description:
-          getSuiteUpdatesNavItem(updatesMatch.suiteId)?.description ??
-          DEFAULT_SITE_DESCRIPTION,
+          getSuiteUpdatesNavItem(updatesMatch.suiteId)?.description ?? DEFAULT_SITE_DESCRIPTION,
         suite,
         pageTitle: `${UPDATES_HOMEPAGE_TITLE} | ${suite.title}`,
         imagePath: getSuiteImagePath(updatesMatch.suiteId),
@@ -262,16 +235,13 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
     };
   }
 
-  const resolvedSuiteId =
-    override?.suiteId ?? matchedItem?.suiteId ?? activeSuite.id;
+  const resolvedSuiteId = override?.suiteId ?? matchedItem?.suiteId ?? activeSuite.id;
   const suite = getSuiteById(resolvedSuiteId);
   const suiteHomeItem = getSuiteHomeNavItem(suite.id);
 
   const title =
     override?.title ??
-    (matchedItem?.id === `${suite.id}-home`
-      ? suite.title
-      : matchedItem?.title) ??
+    (matchedItem?.id === `${suite.id}-home` ? suite.title : matchedItem?.title) ??
     suiteHomeItem?.title ??
     (suite.id === "general" ? DEFAULT_SITE_TITLE : "Home");
   const description =
@@ -291,9 +261,7 @@ export function resolvePageMetadata(pathname: string): ResolvedPageMetadata {
   };
 }
 
-export async function resolvePageMetadataAsync(
-  pathname: string,
-): Promise<ResolvedPageMetadata> {
+export async function resolvePageMetadataAsync(pathname: string): Promise<ResolvedPageMetadata> {
   const fallback = resolvePageMetadata(pathname);
 
   if (fallback.suite.id !== "registry") {

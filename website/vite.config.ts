@@ -14,8 +14,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const VIRTUAL_RAW_MDX_ID = "virtual:mdx-raw-content";
 const RESOLVED_VIRTUAL_RAW_MDX_ID = "\0" + VIRTUAL_RAW_MDX_ID;
-const SITE_ORIGIN =
-  process.env.VITE_SITE_ORIGIN ?? "https://subwaybuildermodded.com";
+const SITE_ORIGIN = process.env.VITE_SITE_ORIGIN ?? "https://subwaybuildermodded.com";
 const STATIC_REGISTRY_DETAIL_TABS = [
   "description",
   "analytics",
@@ -26,8 +25,7 @@ const STATIC_REGISTRY_DETAIL_TABS = [
 ];
 const STATIC_REGISTRY_AUTHOR_TABS = ["projects", "analytics"];
 const DEFAULT_SITE_TITLE = "Subway Builder Modded";
-const DEFAULT_SITE_DESCRIPTION =
-  "The complete hub for everything modded in Subway Builder.";
+const DEFAULT_SITE_DESCRIPTION = "The complete hub for everything modded in Subway Builder.";
 const STATIC_DOCS_LATEST_VERSIONS: Record<string, string> = {
   railyard: "v0.2",
   "template-mod": "v1.0",
@@ -43,15 +41,13 @@ const STATIC_SUITE_METADATA = {
     title: "Railyard",
     imagePath: "/images/railyard/icon.png",
     themeColor: "#19d89c",
-    homeDescription:
-      "Discover the all-in-one manager for Subway Builder community-made content.",
+    homeDescription: "Discover the all-in-one manager for Subway Builder community-made content.",
   },
   registry: {
     title: "Registry",
     imagePath: "/images/registry/icon.png",
     themeColor: "#c77dff",
-    homeDescription:
-      "Discover the GitHub-hosted registry powering Railyard and its services.",
+    homeDescription: "Discover the GitHub-hosted registry powering Railyard and its services.",
   },
   "template-mod": {
     title: "Template Mod",
@@ -83,10 +79,7 @@ const STATIC_SUITE_METADATA = {
     title: string;
   }
 >;
-const STATIC_NAV_METADATA: Record<
-  string,
-  { description: string; title: string }
-> = {
+const STATIC_NAV_METADATA: Record<string, { description: string; title: string }> = {
   "/": { title: DEFAULT_SITE_TITLE, description: DEFAULT_SITE_DESCRIPTION },
   "/community": {
     title: "Community",
@@ -95,8 +88,7 @@ const STATIC_NAV_METADATA: Record<
   },
   "/credits": {
     title: "Credits",
-    description:
-      "The maintainers and contributors helping Subway Builder Modded move forward.",
+    description: "The maintainers and contributors helping Subway Builder Modded move forward.",
   },
   "/contribute": {
     title: "Contribute",
@@ -105,8 +97,7 @@ const STATIC_NAV_METADATA: Record<
   },
   "/license": {
     title: "License",
-    description:
-      "Terms and licensing information for Subway Builder Modded projects.",
+    description: "Terms and licensing information for Subway Builder Modded projects.",
   },
   "/railyard": {
     title: "Railyard",
@@ -122,8 +113,7 @@ const STATIC_NAV_METADATA: Record<
   },
   "/railyard/analytics": {
     title: "Analytics",
-    description:
-      "In-depth release and download analytics for the Railyard app.",
+    description: "In-depth release and download analytics for the Railyard app.",
   },
   "/registry": {
     title: "Registry",
@@ -139,28 +129,23 @@ const STATIC_NAV_METADATA: Record<
   },
   "/registry/docs": {
     title: "Docs",
-    description:
-      "The official documentation for the Registry powering Subway Builder Modded.",
+    description: "The official documentation for the Registry powering Subway Builder Modded.",
   },
   "/registry/analytics": {
     title: "Analytics",
-    description:
-      "View in-depth analytics and insights for Registry-hosted content.",
+    description: "View in-depth analytics and insights for Registry-hosted content.",
   },
   "/registry/trending": {
     title: "Trending",
-    description:
-      "View the most trending content in the Registry based on recent activity.",
+    description: "View the most trending content in the Registry based on recent activity.",
   },
   "/registry/world-map": {
     title: "World Map",
-    description:
-      "Interactively explore all of the user-submitted maps available in the Registry.",
+    description: "Interactively explore all of the user-submitted maps available in the Registry.",
   },
   "/registry/markdown-playground": {
     title: "Playground",
-    description:
-      "Experiment with Markdown content in a live preview environment.",
+    description: "Experiment with Markdown content in a live preview environment.",
   },
   "/template-mod": {
     title: "Template Mod",
@@ -214,9 +199,7 @@ type StaticRegistryIntegrity = {
     }
   >;
 };
-type StaticRegistryIntegrityListing = NonNullable<
-  StaticRegistryIntegrity["listings"]
->[string];
+type StaticRegistryIntegrityListing = NonNullable<StaticRegistryIntegrity["listings"]>[string];
 
 type StaticPageMetadata = {
   description: string;
@@ -237,10 +220,7 @@ function escapeHtmlAttribute(value: string): string {
 }
 
 function escapeHtmlText(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function toAbsoluteUrl(value: string): string {
@@ -293,57 +273,17 @@ function applyStaticMetadata(
     `<title>${escapeHtmlText(metadata.pageTitle)}</title>`,
   );
 
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "name",
-    "description",
-    metadata.description,
-  );
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "name",
-    "theme-color",
-    metadata.themeColor,
-  );
+  nextHtml = upsertMetaTag(nextHtml, "name", "description", metadata.description);
+  nextHtml = upsertMetaTag(nextHtml, "name", "theme-color", metadata.themeColor);
   nextHtml = upsertMetaTag(nextHtml, "property", "og:type", "website");
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "property",
-    "og:site_name",
-    "Subway Builder Modded",
-  );
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "property",
-    "og:title",
-    metadata.pageTitle,
-  );
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "property",
-    "og:description",
-    metadata.description,
-  );
+  nextHtml = upsertMetaTag(nextHtml, "property", "og:site_name", "Subway Builder Modded");
+  nextHtml = upsertMetaTag(nextHtml, "property", "og:title", metadata.pageTitle);
+  nextHtml = upsertMetaTag(nextHtml, "property", "og:description", metadata.description);
   nextHtml = upsertMetaTag(nextHtml, "property", "og:image", imageUrl);
   nextHtml = upsertMetaTag(nextHtml, "property", "og:url", pageUrl);
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "name",
-    "twitter:card",
-    "summary_large_image",
-  );
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "name",
-    "twitter:title",
-    metadata.pageTitle,
-  );
-  nextHtml = upsertMetaTag(
-    nextHtml,
-    "name",
-    "twitter:description",
-    metadata.description,
-  );
+  nextHtml = upsertMetaTag(nextHtml, "name", "twitter:card", "summary_large_image");
+  nextHtml = upsertMetaTag(nextHtml, "name", "twitter:title", metadata.pageTitle);
+  nextHtml = upsertMetaTag(nextHtml, "name", "twitter:description", metadata.description);
   nextHtml = upsertMetaTag(nextHtml, "name", "twitter:image", imageUrl);
   nextHtml = upsertMetaTag(nextHtml, "name", "twitter:url", pageUrl);
 
@@ -361,11 +301,7 @@ function normalizeStaticRoute(route: string): string {
 function getStaticRouteOutputPath(outDir: string, route: string): string {
   const normalized = normalizeStaticRoute(route);
   if (normalized === "/") return path.join(outDir, "index.html");
-  return path.join(
-    outDir,
-    ...normalized.split("/").filter(Boolean),
-    "index.html",
-  );
+  return path.join(outDir, ...normalized.split("/").filter(Boolean), "index.html");
 }
 
 function readJsonFile<T>(filePath: string, fallback: T): T {
@@ -377,22 +313,15 @@ function readJsonFile<T>(filePath: string, fallback: T): T {
 }
 
 function getStaticSuiteId(route: string): keyof typeof STATIC_SUITE_METADATA {
-  const firstSegment = normalizeStaticRoute(route)
-    .split("/")
-    .filter(Boolean)[0];
+  const firstSegment = normalizeStaticRoute(route).split("/").filter(Boolean)[0];
   return firstSegment && firstSegment in STATIC_SUITE_METADATA
     ? (firstSegment as keyof typeof STATIC_SUITE_METADATA)
     : "general";
 }
 
-function formatStaticPageTitle(
-  title: string,
-  suiteId: keyof typeof STATIC_SUITE_METADATA,
-): string {
+function formatStaticPageTitle(title: string, suiteId: keyof typeof STATIC_SUITE_METADATA): string {
   const suite = STATIC_SUITE_METADATA[suiteId];
-  return suiteId === "general" || title === suite.title
-    ? title
-    : `${title} | ${suite.title}`;
+  return suiteId === "general" || title === suite.title ? title : `${title} | ${suite.title}`;
 }
 
 function parseFrontmatter(filePath: string): Record<string, string> | null {
@@ -406,10 +335,7 @@ function parseFrontmatter(filePath: string): Record<string, string> | null {
       .split(/\r?\n/)
       .map((line) => line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/))
       .filter((entry): entry is RegExpMatchArray => Boolean(entry))
-      .map((entry) => [
-        entry[1],
-        entry[2]?.trim().replace(/^["']|["']$/g, "") ?? "",
-      ]),
+      .map((entry) => [entry[1], entry[2]?.trim().replace(/^["']|["']$/g, "") ?? ""]),
   );
 }
 
@@ -459,16 +385,13 @@ function resolveStaticDocsMetadata(
 
   const latestVersion = STATIC_DOCS_LATEST_VERSIONS[parts[0] ?? ""];
   const docParts =
-    parts[2] === "latest" && latestVersion
-      ? [latestVersion, ...parts.slice(3)]
-      : parts.slice(2);
+    parts[2] === "latest" && latestVersion ? [latestVersion, ...parts.slice(3)] : parts.slice(2);
 
   if (parts[2] === "latest" && docParts.length === 1) {
     return STATIC_NAV_METADATA[`/${parts[0]}/docs`] ?? null;
   }
 
-  const sourcePath =
-    path.join(contentDir, parts[0], "docs", ...docParts) + ".mdx";
+  const sourcePath = path.join(contentDir, parts[0], "docs", ...docParts) + ".mdx";
   const frontmatter = parseFrontmatter(sourcePath);
   if (!frontmatter?.title) return null;
 
@@ -485,8 +408,7 @@ function resolveStaticUpdateMetadata(
   const parts = normalizeStaticRoute(route).split("/").filter(Boolean);
   if (parts[1] !== "updates" || parts.length < 3) return null;
 
-  const sourcePath =
-    path.join(contentDir, parts[0], "updates", ...parts.slice(2)) + ".mdx";
+  const sourcePath = path.join(contentDir, parts[0], "updates", ...parts.slice(2)) + ".mdx";
   const frontmatter = parseFrontmatter(sourcePath);
   if (!frontmatter?.title) return null;
   const suite = STATIC_SUITE_METADATA[getStaticSuiteId(route)];
@@ -516,30 +438,22 @@ function resolveStaticRegistryMetadata(
       {},
     );
     const integrityListing = integrity.listings?.[id];
-    if (
-      !manifest.name ||
-      !isStaticRegistryListingEmbeddable(manifest, integrityListing)
-    ) {
+    if (!manifest.name || !isStaticRegistryListingEmbeddable(manifest, integrityListing)) {
       return null;
     }
     if (
       parts[3] === "versions" &&
       parts[4] &&
-      integrityListing?.versions?.[decodeURIComponent(parts[4])]
-        ?.is_complete !== true
+      integrityListing?.versions?.[decodeURIComponent(parts[4])]?.is_complete !== true
     ) {
       return null;
     }
     const title =
-      parts[3] === "versions" && parts[4]
-        ? decodeURIComponent(parts[4])
-        : manifest.name;
+      parts[3] === "versions" && parts[4] ? decodeURIComponent(parts[4]) : manifest.name;
 
     return {
       title,
-      description: toPlainTextExcerpt(
-        manifest.description ?? DEFAULT_SITE_DESCRIPTION,
-      ),
+      description: toPlainTextExcerpt(manifest.description ?? DEFAULT_SITE_DESCRIPTION),
       imagePath:
         resolveRegistryThumbnail(routeSegment, id, manifest.gallery) ??
         STATIC_SUITE_METADATA.registry.imagePath,
@@ -579,19 +493,12 @@ function resolveStaticMetadata(
   const pathname = normalizeStaticRoute(route);
   const suiteId = getStaticSuiteId(pathname);
   const suite = STATIC_SUITE_METADATA[suiteId];
-  const staticRegistryMetadata = resolveStaticRegistryMetadata(
-    pathname,
-    publicDir,
-  );
+  const staticRegistryMetadata = resolveStaticRegistryMetadata(pathname, publicDir);
   const docsMetadata = resolveStaticDocsMetadata(pathname, contentDir);
   const updateMetadata = resolveStaticUpdateMetadata(pathname, contentDir);
   const navMetadata = STATIC_NAV_METADATA[pathname];
   const baseMetadata: Partial<StaticPageMetadata> | null =
-    staticRegistryMetadata ??
-    docsMetadata ??
-    updateMetadata ??
-    navMetadata ??
-    null;
+    staticRegistryMetadata ?? docsMetadata ?? updateMetadata ?? navMetadata ?? null;
   const title =
     baseMetadata?.title ??
     (pathname === "/"
@@ -627,9 +534,7 @@ function extractGithubRepoSlugFromPathParts(parts: string[]): string | null {
   return `${owner}/${repo.replace(/\.git$/i, "")}`;
 }
 
-function extractGithubRepoSlugFromUrl(
-  value: string | undefined,
-): string | null {
+function extractGithubRepoSlugFromUrl(value: string | undefined): string | null {
   const trimmed = value?.trim();
   if (!trimmed) return null;
 
@@ -653,9 +558,7 @@ function extractGithubRepoSlugFromUrl(
       return null;
     }
 
-    return extractGithubRepoSlugFromPathParts(
-      parsed.pathname.split("/").filter(Boolean),
-    );
+    return extractGithubRepoSlugFromPathParts(parsed.pathname.split("/").filter(Boolean));
   } catch {
     const matched = trimmed.match(
       /(?:github\.com|raw\.githubusercontent\.com)\/([^/?#]+)\/([^/?#]+)/i,
@@ -679,9 +582,7 @@ function collectContentRoutes(contentDir: string): string[] {
         const routes = [`/${suiteId}/docs/${slug}`];
         const latestVersion = STATIC_DOCS_LATEST_VERSIONS[suiteId];
         if (latestVersion && slug.startsWith(`${latestVersion}/`)) {
-          routes.push(
-            `/${suiteId}/docs/latest/${slug.slice(latestVersion.length + 1)}`,
-          );
+          routes.push(`/${suiteId}/docs/latest/${slug.slice(latestVersion.length + 1)}`);
         }
         return routes;
       }
@@ -691,9 +592,7 @@ function collectContentRoutes(contentDir: string): string[] {
 }
 
 function collectLatestDocsHomepageRoutes(): string[] {
-  return Object.keys(STATIC_DOCS_LATEST_VERSIONS).map(
-    (suiteId) => `/${suiteId}/docs/latest`,
-  );
+  return Object.keys(STATIC_DOCS_LATEST_VERSIONS).map((suiteId) => `/${suiteId}/docs/latest`);
 }
 
 function collectRegistryRoutes(publicDir: string): string[] {
@@ -710,8 +609,7 @@ function collectRegistryRoutes(publicDir: string): string[] {
       path.join(collectionDir, "integrity.json"),
       {},
     );
-    const ids =
-      indexData[routeSegment] ?? Object.keys(integrity.listings ?? {});
+    const ids = indexData[routeSegment] ?? Object.keys(integrity.listings ?? {});
 
     for (const id of ids) {
       const manifest = readJsonFile<StaticRegistryManifest>(
@@ -728,9 +626,7 @@ function collectRegistryRoutes(publicDir: string): string[] {
         routes.add(`/registry/${routeSegment}/${id}/${tab}`);
       }
 
-      for (const [version, versionIntegrity] of Object.entries(
-        integrityListing?.versions ?? {},
-      )) {
+      for (const [version, versionIntegrity] of Object.entries(integrityListing?.versions ?? {})) {
         if (versionIntegrity.is_complete !== true) continue;
         routes.add(`/registry/${routeSegment}/${id}/versions/${version}`);
       }
@@ -788,11 +684,7 @@ function staticEmbedHtmlPlugin(): Plugin {
 
       for (const route of routes) {
         const normalizedRoute = normalizeStaticRoute(route);
-        const metadata = resolveStaticMetadata(
-          normalizedRoute,
-          contentDir,
-          publicDir,
-        );
+        const metadata = resolveStaticMetadata(normalizedRoute, contentDir, publicDir);
         const outputPath = getStaticRouteOutputPath(outDir, normalizedRoute);
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
         fs.writeFileSync(outputPath, applyStaticMetadata(template, metadata));
@@ -822,8 +714,7 @@ function mdxRawContentPlugin(): Plugin {
   return {
     name: "mdx-raw-content",
     async buildStart() {
-      const { assertDocsContentValid } =
-        await import("./src/config/docs/content-validation.ts");
+      const { assertDocsContentValid } = await import("./src/config/docs/content-validation.ts");
       const { assertUpdatesContentValid } =
         await import("./src/config/updates/content-validation.ts");
       const { assertRegistryTemplatesContentValid } =
@@ -838,9 +729,7 @@ function mdxRawContentPlugin(): Plugin {
       const watcher = server.watcher;
       watcher.add(contentDir);
       const invalidate = () => {
-        const mod = server.moduleGraph.getModuleById(
-          RESOLVED_VIRTUAL_RAW_MDX_ID,
-        );
+        const mod = server.moduleGraph.getModuleById(RESOLVED_VIRTUAL_RAW_MDX_ID);
         if (mod) {
           server.moduleGraph.invalidateModule(mod);
         }
@@ -864,21 +753,15 @@ function mdxRawContentPlugin(): Plugin {
     async load(id) {
       if (id !== RESOLVED_VIRTUAL_RAW_MDX_ID) return;
 
-      const { collectDocsContent } =
-        await import("./src/config/docs/content-validation.ts");
-      const { collectUpdatesContent } =
-        await import("./src/config/updates/content-validation.ts");
+      const { collectDocsContent } = await import("./src/config/docs/content-validation.ts");
+      const { collectUpdatesContent } = await import("./src/config/updates/content-validation.ts");
       const { collectRegistryTemplatesContent } =
         await import("./src/config/registry/template-content-validation.ts");
 
       const docsResult = collectDocsContent(contentDir);
       const updatesResult = collectUpdatesContent(contentDir);
       const templatesResult = collectRegistryTemplatesContent(contentDir);
-      const errors = [
-        ...docsResult.errors,
-        ...updatesResult.errors,
-        ...templatesResult.errors,
-      ];
+      const errors = [...docsResult.errors, ...updatesResult.errors, ...templatesResult.errors];
       if (errors.length > 0) {
         const details = errors.map((e) => ` - ${e}`).join("\n");
         throw new Error(`[docs-content] Validation failed:\n${details}`);
@@ -945,11 +828,8 @@ function toPluginList(plugin: unknown): Plugin[] {
 export default defineConfig(async () => {
   // Keep dynamic imports for TypeScript resolution stability when vp lint
   // loads this config through Node's synchronous ESM linker.
-  const {
-    remarkHeadingIds,
-    remarkStripFrontmatter,
-    remarkAdmonitionDirectives,
-  } = await import("@subway-builder-modded/mdx/remark");
+  const { remarkHeadingIds, remarkStripFrontmatter, remarkAdmonitionDirectives } =
+    await import("@subway-builder-modded/mdx/remark");
 
   return {
     build: {

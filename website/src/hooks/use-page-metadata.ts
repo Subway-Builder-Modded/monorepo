@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  resolvePageMetadata,
-  resolvePageMetadataAsync,
-} from "@/config/page-metadata";
+import { resolvePageMetadata, resolvePageMetadataAsync } from "@/config/page-metadata";
 import { normalizeBasePath } from "@/lib/router";
 
 type UsePageMetadataOptions = {
@@ -49,10 +46,7 @@ function upsertLink(rel: string, href: string) {
 }
 
 export function usePageMetadata({ pathname }: UsePageMetadataOptions) {
-  const fallbackMetadata = useMemo(
-    () => resolvePageMetadata(pathname),
-    [pathname],
-  );
+  const fallbackMetadata = useMemo(() => resolvePageMetadata(pathname), [pathname]);
   const [metadata, setMetadata] = useState(fallbackMetadata);
 
   useEffect(() => {
@@ -72,10 +66,7 @@ export function usePageMetadata({ pathname }: UsePageMetadataOptions) {
 
   useEffect(() => {
     const basePathname = withBasePath(metadata.pathname);
-    const absoluteUrl = new URL(
-      basePathname,
-      window.location.origin,
-    ).toString();
+    const absoluteUrl = new URL(basePathname, window.location.origin).toString();
     const absoluteImageUrl = new URL(
       withBasePath(metadata.imagePath),
       window.location.origin,
