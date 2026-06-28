@@ -65,6 +65,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-          publish_dir: ./website/out
+          publish_dir: ./website/build/client
           force_orphan: true
           cname: subwaybuildermodded.com
