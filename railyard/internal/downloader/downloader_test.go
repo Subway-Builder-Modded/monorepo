@@ -805,6 +805,8 @@ func TestEnqueueOperationRunsSequentially(t *testing.T) {
 func TestInstallMapForExistingIsNoOp(t *testing.T) {
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	configureDownloaderConfig(t, cfg)
+
 	expectedConfig := types.ConfigData{
 		Code:        "ABC",
 		Name:        "Map A",
@@ -812,6 +814,11 @@ func TestInstallMapForExistingIsNoOp(t *testing.T) {
 		Creator:     "tester",
 		Version:     "1.0.0",
 	}
+
+	markerDir := filepath.Join(cfg.Cfg.MetroMakerDataPath, "cities", "data", expectedConfig.Code)
+	require.NoError(t, os.MkdirAll(markerDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(markerDir, constants.RailyardAssetMarker), nil, 0o644))
+
 	reg.AddInstalledMap("map-a", "1.0.0", false, expectedConfig)
 
 	d := &Downloader{
@@ -834,6 +841,12 @@ func TestInstallMapForExistingIsNoOp(t *testing.T) {
 func TestInstallModPreservesNoOpThroughStateMutation(t *testing.T) {
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	reg := registry.NewRegistry(testutil.TestLogSink{}, cfg)
+	configureDownloaderConfig(t, cfg)
+
+	markerDir := filepath.Join(cfg.Cfg.MetroMakerDataPath, "mods", "mod-a")
+	require.NoError(t, os.MkdirAll(markerDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(markerDir, constants.RailyardAssetMarker), nil, 0o644))
+
 	d := &Downloader{
 		Registry: reg,
 		Config:   cfg,
