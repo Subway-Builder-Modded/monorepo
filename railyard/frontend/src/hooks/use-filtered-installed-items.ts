@@ -54,16 +54,27 @@ function itemStatusRank(
   return 0;
 }
 
-function matchesStatusFilter(
+function getItemStatusFilters(
   item: InstalledTaggedItem,
-  sf: StatusFilter,
+  gameVersion: string,
+): StatusFilter[] {
+  const statuses: StatusFilter[] = [];
+  if (item.isLocal) statuses.push('local');
+  if (!item.isLocal && item.item.is_test === true) statuses.push('test');
+  if (isInstalledCompatible(gameVersion, item.constraints ?? []) === false) {
+    statuses.push('incompatible');
+  }
+  return statuses;
+}
+
+export function isInstalledItemVisibleByStatus(
+  item: InstalledTaggedItem,
+  visibleStatuses: readonly StatusFilter[],
   gameVersion: string,
 ): boolean {
-  if (sf === 'local') return item.isLocal;
-  if (sf === 'incompatible')
-    return isInstalledCompatible(gameVersion, item.constraints ?? []) === false;
-  if (sf === 'test') return !item.isLocal && item.item.is_test === true;
-  return false;
+  const itemStatusFilters = getItemStatusFilters(item, gameVersion);
+  if (itemStatusFilters.length === 0) return true;
+  return itemStatusFilters.some((sf) => visibleStatuses.includes(sf));
 }
 
 export function useFilteredInstalledItems({
@@ -112,11 +123,14 @@ export function useFilteredInstalledItems({
       accessors,
     });
 
-    // Status filter — applied post-process since it depends on runtime game version
-    if (statusFilters.length > 0) {
+    // Status visibility toggles are subtractive: normal assets always show,
+    // status-tagged assets show when at least one matching status is enabled.
+    if (statusFilters.length < 3) {
       result = result.filter((item) =>
-        statusFilters.some((sf) =>
-          matchesStatusFilter(item as InstalledTaggedItem, sf, gameVersion),
+        isInstalledItemVisibleByStatus(
+          item as InstalledTaggedItem,
+          statusFilters,
+          gameVersion,
         ),
       );
     }

@@ -26,6 +26,8 @@ export type BrowseFilterStoreState = AssetQueryFilterStoreState<
 >;
 
 const defaultSearchFilters = createDefaultSourceFilters();
+const DEFAULT_STATUS_FILTERS: BrowseStatusFilter[] = ['test', 'incompatible'];
+const createDefaultStatusFilters = () => [...DEFAULT_STATUS_FILTERS];
 
 interface BrowseViewModeStoreState {
   viewMode: SearchViewMode;
@@ -45,7 +47,7 @@ export const useBrowseStore = create<
   scopedByType: createSourceFilterByAssetType(defaultSearchFilters, 1),
   viewMode: 'full',
   viewModeInitialized: false,
-  statusFilters: [],
+  statusFilters: createDefaultStatusFilters(),
   setFilters: (updater) =>
     set((state) => {
       const nextFilters =
@@ -56,9 +58,10 @@ export const useBrowseStore = create<
       };
     }),
   setType: (type) =>
-    set((state) =>
-      switchFilter(state.filters, state.page, state.scopedByType, type),
-    ),
+    set((state) => ({
+      ...switchFilter(state.filters, state.page, state.scopedByType, type),
+      statusFilters: createDefaultStatusFilters(),
+    })),
   setPage: (page) =>
     set((state) => {
       if (state.page === page) return state;

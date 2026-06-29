@@ -48,7 +48,7 @@ describe('useBrowseStore per-asset-type state', () => {
       },
       viewMode: 'full',
       viewModeInitialized: false,
-      statusFilters: [],
+      statusFilters: ['test', 'incompatible'],
     });
   });
 
@@ -101,6 +101,17 @@ describe('useBrowseStore per-asset-type state', () => {
     expect(state.filters.randomSeed).toBe(22);
     expect(state.filters.mod.tags).toEqual(['ui']);
     expect(state.page).toBe(2);
+  });
+
+  it('resets status filters to defaults when switching type', () => {
+    useBrowseStore.setState({ statusFilters: ['test'] });
+
+    useBrowseStore.getState().setType('mod');
+
+    expect(useBrowseStore.getState().statusFilters).toEqual([
+      'test',
+      'incompatible',
+    ]);
   });
 
   it('keeps query and perPage shared across type switches', () => {

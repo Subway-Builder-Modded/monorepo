@@ -119,6 +119,18 @@ describe('useLibraryStore per-asset-type state', () => {
     expect(state.filters.perPage).toBe(48);
   });
 
+  it('resets status filters to defaults when switching type', () => {
+    useLibraryStore.setState({ statusFilters: ['test'] });
+
+    useLibraryStore.getState().setType('map');
+
+    expect(useLibraryStore.getState().statusFilters).toEqual([
+      'test',
+      'local',
+      'incompatible',
+    ]);
+  });
+
   it('removes only specified selected ids', () => {
     useLibraryStore.getState().selectAll(['mod-a', 'map-b', 'mod-c']);
 
@@ -131,21 +143,35 @@ describe('useLibraryStore per-asset-type state', () => {
 
 describe('useLibraryStore statusFilters', () => {
   beforeEach(() => {
-    useLibraryStore.setState({ statusFilters: [] });
+    useLibraryStore.setState({
+      statusFilters: ['test', 'local', 'incompatible'],
+    });
   });
 
-  it('toggleStatusFilter adds a filter when not present', () => {
+  it('defaults to showing all status-tagged assets', () => {
+    expect(useLibraryStore.getState().statusFilters).toEqual([
+      'test',
+      'local',
+      'incompatible',
+    ]);
+  });
+
+  it('toggleStatusFilter adds a status when not present', () => {
+    useLibraryStore.setState({ statusFilters: [] });
     useLibraryStore.getState().toggleStatusFilter('local');
     expect(useLibraryStore.getState().statusFilters).toEqual(['local']);
   });
 
-  it('toggleStatusFilter removes a filter when already present', () => {
-    useLibraryStore.setState({ statusFilters: ['local', 'incompatible'] });
+  it('toggleStatusFilter removes a status when already present', () => {
     useLibraryStore.getState().toggleStatusFilter('local');
-    expect(useLibraryStore.getState().statusFilters).toEqual(['incompatible']);
+    expect(useLibraryStore.getState().statusFilters).toEqual([
+      'test',
+      'incompatible',
+    ]);
   });
 
   it('toggleStatusFilter supports all status types', () => {
+    useLibraryStore.setState({ statusFilters: [] });
     useLibraryStore.getState().toggleStatusFilter('test');
     expect(useLibraryStore.getState().statusFilters).toContain('test');
   });
