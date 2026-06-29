@@ -19,6 +19,7 @@ export { createRandomSeed };
 
 export type BrowseFilterState = SourceAssetQueryFilterState;
 export type BrowseFilterUpdater = AssetQueryFilterUpdater<BrowseFilterState>;
+export type BrowseStatusFilter = 'incompatible';
 export type BrowseFilterStoreState = AssetQueryFilterStoreState<
   BrowseFilterState,
   SourceFilterByAssetType
@@ -29,8 +30,11 @@ const defaultSearchFilters = createDefaultSourceFilters();
 interface BrowseViewModeStoreState {
   viewMode: SearchViewMode;
   viewModeInitialized: boolean;
+  statusFilters: BrowseStatusFilter[];
   setViewMode: (viewMode: SearchViewMode) => void;
   initializeViewMode: (viewMode: SearchViewMode) => void;
+  toggleStatusFilter: (filter: BrowseStatusFilter) => void;
+  clearStatusFilters: () => void;
 }
 
 export const useBrowseStore = create<
@@ -41,6 +45,7 @@ export const useBrowseStore = create<
   scopedByType: createSourceFilterByAssetType(defaultSearchFilters, 1),
   viewMode: 'full',
   viewModeInitialized: false,
+  statusFilters: [],
   setFilters: (updater) =>
     set((state) => {
       const nextFilters =
@@ -67,4 +72,11 @@ export const useBrowseStore = create<
     if (get().viewModeInitialized) return;
     set({ viewMode, viewModeInitialized: true });
   },
+  toggleStatusFilter: (filter) =>
+    set((state) => ({
+      statusFilters: state.statusFilters.includes(filter)
+        ? state.statusFilters.filter((f) => f !== filter)
+        : [...state.statusFilters, filter],
+    })),
+  clearStatusFilters: () => set({ statusFilters: [] }),
 }));

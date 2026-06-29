@@ -48,6 +48,7 @@ describe('useBrowseStore per-asset-type state', () => {
       },
       viewMode: 'full',
       viewModeInitialized: false,
+      statusFilters: [],
     });
   });
 
@@ -151,5 +152,25 @@ describe('useBrowseStore view mode', () => {
     useBrowseStore.setState({ viewMode: 'compact', viewModeInitialized: true });
     useBrowseStore.getState().setViewMode('list');
     expect(useBrowseStore.getState().viewMode).toBe('list');
+  });
+});
+
+describe('useBrowseStore status filters', () => {
+  beforeEach(() => {
+    useBrowseStore.setState({ statusFilters: [] });
+  });
+
+  it('toggles incompatible status filtering', () => {
+    useBrowseStore.getState().toggleStatusFilter('incompatible');
+    expect(useBrowseStore.getState().statusFilters).toEqual(['incompatible']);
+
+    useBrowseStore.getState().toggleStatusFilter('incompatible');
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
+  });
+
+  it('clears status filters', () => {
+    useBrowseStore.setState({ statusFilters: ['incompatible'] });
+    useBrowseStore.getState().clearStatusFilters();
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
   });
 });
