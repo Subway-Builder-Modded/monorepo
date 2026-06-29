@@ -128,6 +128,10 @@ function generateTabs(places) {
     });
   });
 
+  // Store current loaded game state (map + city code) for use in custom layer management
+  let currentCityCode = null;
+  let mapRef = null;
+
   function removeVanillaParkLayers(map) {
     if (map.getLayer("parks-large")) {
       map.removeLayer("parks-large");
@@ -143,6 +147,11 @@ function generateTabs(places) {
   }
 
   function addCustomLayers(map) {
+    // Do not add custom layers if the current city is not managed by Railyard
+    if (!config.places.some((p) => p.code === currentCityCode)) {
+      return;
+    }
+
     let colorsData = JSON.parse(
       window.localStorage.getItem("map_custom_colors"),
     );
@@ -238,6 +247,11 @@ function generateTabs(places) {
   }
 
   window.SubwayBuilderAPI.hooks.onCityLoad((cityCode) => {
+    currentCityCode = cityCode;
+    // If map is already ready, add custom layers now that we know the city code
+    if (mapRef) {
+      addCustomLayers(mapRef);
+    }
     if (semverCompare(config.gameVersion, "1.3.6")) {
       window.SubwayBuilderAPI.actions.setDemandBubbleScale(1.0);
       if (
@@ -252,7 +266,8 @@ function generateTabs(places) {
   });
 
   window.SubwayBuilderAPI.hooks.onMapReady((map) => {
-    const resolvedMap = map ?? api.utils.getMap();
+    mapRef = map ?? api.utils.getMap();
+    const resolvedMap = mapRef;
 
     if (
       semverCompare(config.gameVersion, "1.3.6") &&
