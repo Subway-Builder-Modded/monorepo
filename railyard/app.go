@@ -229,7 +229,9 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 
 	if a.appImageMount != nil {
-		a.appImageMount.Close()
+		if err := a.appImageMount.Close(); err != nil {
+			log.Printf("Warning: failed to unmount AppImage on shutdown: %v", err)
+		}
 	}
 	a.cleanupTmpStaging("shutdown")
 }

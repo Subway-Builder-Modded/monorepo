@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -89,6 +90,12 @@ func (s *Config) ResolveConfig() (types.ResolveConfigResult, error) {
 	if isConfigBootstrapped {
 		if err := WriteAppConfig(s.Cfg); err != nil {
 			return types.ResolveConfigResult{}, err
+		}
+	}
+	if _, err := os.Stat(s.Cfg.ExecutablePath); errors.Is(err, os.ErrNotExist) && runtime.GOOS == "windows" {
+		// Windows-only saving throw due to recent structural changes (executable now at game/game.exe)
+		if _, exeErr := os.Stat(paths.JoinLocalPath(filepath.Dir(s.Cfg.ExecutablePath), "game", "game.exe")); exeErr == nil {
+			s.Cfg.ExecutablePath = paths.JoinLocalPath(filepath.Dir(s.Cfg.ExecutablePath), "game", "game.exe")
 		}
 	}
 	return resolveConfigResultFromAppConfig(s.Cfg), nil
@@ -525,6 +532,9 @@ func DefaultExecutableCandidates() []string {
 			filepath.Join(localAppData, "Programs", "Subway Builder", "Subway Builder.exe"),
 			filepath.Join(programFiles, "Subway Builder", "Subway Builder.exe"),
 			filepath.Join(programFilesX86, "Subway Builder", "Subway Builder.exe"),
+			filepath.Join(localAppData, "Programs", "Subway Builder", "game", "game.exe"),
+			filepath.Join(programFiles, "Subway Builder", "game", "game.exe"),
+			filepath.Join(programFilesX86, "Subway Builder", "game", "game.exe"),
 		}
 	case "linux":
 		homeDir, _ := os.UserHomeDir()
@@ -532,6 +542,10 @@ func DefaultExecutableCandidates() []string {
 			filepath.Join(homeDir, "Applications", "Subway Builder.AppImage"),
 			filepath.Join(homeDir, ".local", "bin", "Subway Builder.AppImage"),
 			filepath.Join("/usr", "local", "bin", "Subway Builder.AppImage"),
+			filepath.Join(homeDir, "games", "Subway-Builder.AppImage"),
+			filepath.Join("/usr", "local", "bin", "Subway-Builder.AppImage"),
+			filepath.Join(homeDir, ".local", "bin", "Subway-Builder.AppImage"),
+			filepath.Join(homeDir, "Applications", "Subway-Builder.AppImage"),
 		}
 	default:
 		return nil
