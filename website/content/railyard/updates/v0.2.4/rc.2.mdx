@@ -13,15 +13,13 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.4+rc.
 - Added support for `buildings_index.bin` (post 1.3.0 map building index format)
   - Railyard now loads the `.bin` or `.json` index conditionally depending on the user's installed game version
 - Added country-name search (including endonyms such as 日本, Eesti, etc.) for maps
-- Added building foundation support
+- Added support for rendering building foundations for modded maps
 
 </ChangelogSection>
 
 <ChangelogSection type="improvements">
 
 - Persist cache of asset versions to disk and use conditional fetches via ETags to reduce Github API request churn
-- Replaced large PNG/JPG with WebP on `registry` and moved app-unused `grid/base_map` files to a separate branch to reduce refresh/clone size
-  - Total clone size should now be around ~200 MB rather than ~1.4 GB
 - Maps can now set `minZoom`, `maxZoom`, and `demandDotScaling` in their `config.json`
 
 </ChangelogSection>
@@ -31,5 +29,14 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.4+rc.
 - Fixed issue where newly released assets without passing integrity could be installed via update
 - Fixed game version dependency parsing to honor Custom JSON version expressions over `manifest.json` when provided
 - Fixed the custom colors map layer not working properly
+
+</ChangelogSection>
+
+<ChangelogSection type="notes">
+
+- Reduced local clone size of registry repository from ~1.4 GB to around ~300MB
+  - Large PNG/JPG are now automatically replaced with WebP
+  - App-unused files are now sequestered to a separate branch
+  - Local registry no longer clones tags, reducing .git size
 
 </ChangelogSection>
