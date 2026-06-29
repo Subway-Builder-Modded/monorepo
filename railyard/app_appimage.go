@@ -1,6 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"errors"
+	"fmt"
+	"io"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -20,22 +24,35 @@ func newAppImageMount(appImagePath string) (*appImageMount, error) {
 		return nil, nil
 	}
 	cmd := exec.Command(appImagePath, "--appimage-mount")
-	pipe, err := cmd.StdoutPipe()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
-	err = cmd.Start()
+	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return nil, err
 	}
-	pathBuffer := make([]byte, 128) // Assuming the mount path won't exceed 128 bytes, its only around like 24 bytes in practice
-	n, err := pipe.Read(pathBuffer)
-	if err != nil {
+	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
+
+	reader := bufio.NewReader(stdout)
+	line, err := reader.ReadString('\n')
+	if err != nil && !errors.Is(err, io.EOF) {
+		bs, _ := io.ReadAll(stderr)
+		return nil, fmt.Errorf("reading mount path: %w; stderr=%s", err, strings.TrimSpace(string(bs)))
+	}
+	mountPath := strings.TrimSpace(line)
+	if mountPath == "" {
+		bs, _ := io.ReadAll(stderr)
+		// Ensure we don't leave a stray process running if mount failed
+		_ = cmd.Process.Kill()
+		return nil, fmt.Errorf("empty mount path; stderr=%s", strings.TrimSpace(string(bs)))
+	}
+
 	return &appImageMount{
 		ProcessHandle:     cmd,
-		AppImageMountPath: string(pathBuffer[:n]),
+		AppImageMountPath: mountPath,
 	}, nil
 }
 
