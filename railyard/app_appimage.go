@@ -11,7 +11,7 @@ import (
 )
 
 func isAppImagePath(path string) bool {
-	return strings.HasSuffix(path, ".AppImage") && runtime.GOOS == "linux"
+	return strings.HasSuffix(strings.ToLower(path), ".appimage") && runtime.GOOS == "linux" // avoids capitalization problems
 }
 
 type appImageMount struct {
