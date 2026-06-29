@@ -23,7 +23,7 @@ func newAppImageMount(appImagePath string) (*appImageMount, error) {
 	if !isAppImagePath(appImagePath) {
 		return nil, nil
 	}
-	cmd := exec.Command(appImagePath, "--appimage-mount")
+	cmd := exec.Command("flatpak-spawn", "--host", appImagePath, "--appimage-mount")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err

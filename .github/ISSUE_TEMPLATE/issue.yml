@@ -1,0 +1,74 @@
+name: Issue (Maintainers)
+description: The standard issue template for maintainers to use when creating issues.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please provide as much detail as possible. Include steps to reproduce, expected vs. actual behavior, any relevant logs or screenshots, etc.
+
+  - type: checkboxes
+    id: projects
+    attributes:
+      label: Projects
+      description: Select the project(s) that the bug or issue pertains to.
+      options:
+        - label: General
+        - label: Internal
+        - label: Depot
+        - label: Locomotive
+        - label: Railyard
+        - label: Registry
+        - label: Template Mod
+        - label: Website
+
+  - type: checkboxes
+    id: type
+    attributes:
+      label: Type
+      description: Select the type of issue.
+      options:
+        - label: Bug
+        - label: Task
+        - label: Feature
+
+  - type: checkboxes
+    id: area
+    attributes:
+      label: Area
+      description: Select the relevant area(s) of the issue.
+      options:
+        - label: Frontend
+        - label: Backend
+        - label: Documentation
+      
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Select the priority of the issue.
+      multiple: false
+      options:
+        - Urgent
+        - High
+        - Medium
+        - Low
+
+  - type: checkboxes
+    id: other
+    attributes:
+      label: Other
+      description: Select any other relevant options for the issue.
+      options:
+        - label: Big Change
+        - label: Blocked
+        - label: Long Term
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide a detailed description of the bug or issue.
+      placeholder: |
+        Provide a detailed description of the bug or issue, including any relevant context, steps to reproduce, and observed behavior.
+    validations:
+      required: true

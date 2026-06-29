@@ -1,0 +1,171 @@
+name: Apply Issue Labels and Priority
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+
+permissions:
+  issues: write
+
+jobs:
+  apply-issue-labels-and-priority:
+    name: Apply Issue Labels and Priority
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Apply labels and priority from issue form
+        uses: actions/github-script@v7
+        env:
+          PRIORITY_ISSUE_FIELD_ID: ${{ vars.PRIORITY_ISSUE_FIELD_ID }}
+        with:
+          script: |
+            const issue = context.payload.issue;
+
+            if (!issue?.body) {
+              core.info("No issue body found. Skipping.");
+              return;
+            }
+
+            const labelSections = new Map([
+              ["Projects", new Map([
+                ["General", "general"],
+                ["Internal", "internal"],
+                ["Depot", "depot"],
+                ["Locomotive", "locomotive"],
+                ["Railyard", "railyard"],
+                ["Registry", "registry"],
+                ["Template Mod", "template-mod"],
+                ["Website", "website"],
+              ])],
+              ["Type", new Map([
+                ["Bug", "bug"],
+                ["Task", "task"],
+                ["Feature", "feature"],
+              ])],
+              ["Area", new Map([
+                ["Frontend", "frontend"],
+                ["Backend", "backend"],
+                ["Documentation", "documentation"],
+              ])],
+              ["Other", new Map([
+                ["Big Change", "big-change"],
+                ["Blocked", "blocked"],
+                ["Long Term", "long-term"],
+              ])],
+            ]);
+
+            const priorityOptions = new Set(["Urgent", "High", "Medium", "Low"]);
+
+            const escapeRegex = (value) =>
+              value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+            const getSection = (sectionName) => {
+              const escapedName = escapeRegex(sectionName);
+              const match = issue.body.match(
+                new RegExp(`###\\s+${escapedName}\\s*\\r?\\n([\\s\\S]*?)(?=\\r?\\n###\\s+|$)`, "i")
+              );
+
+              return match?.[1]?.trim() ?? "";
+            };
+
+            const getCheckedOptions = (sectionName) => {
+              const section = getSection(sectionName);
+
+              return [...section.matchAll(/^\s*-\s*\[[xX]\]\s*(.+?)\s*$/gm)]
+                .map((match) => match[1].trim())
+                .filter(Boolean);
+            };
+
+            const getSelectedOption = (sectionName, allowedOptions) => {
+              const section = getSection(sectionName);
+
+              return section
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .find((line) => allowedOptions.has(line));
+            };
+
+            const managedLabels = new Set(
+              [...labelSections.values()].flatMap((labels) => [...labels.values()])
+            );
+
+            const selectedLabels = new Set(
+              [...labelSections.entries()].flatMap(([sectionName, labels]) =>
+                getCheckedOptions(sectionName)
+                  .map((option) => labels.get(option))
+                  .filter(Boolean)
+              )
+            );
+
+            const { data: currentLabels } =
+              await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+              });
+
+            const currentManagedLabels = currentLabels
+              .map((label) => label.name)
+              .filter((name) => managedLabels.has(name.toLowerCase()));
+
+            const labelsToAdd = [...selectedLabels].filter(
+              (name) =>
+                !currentManagedLabels.some(
+                  (current) => current.toLowerCase() === name.toLowerCase()
+                )
+            );
+
+            const labelsToRemove = currentManagedLabels.filter(
+              (name) => !selectedLabels.has(name.toLowerCase())
+            );
+
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labelsToAdd,
+              });
+            }
+
+            for (const labelName of labelsToRemove) {
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: labelName,
+              });
+            }
+
+            const selectedPriority = getSelectedOption("Priority", priorityOptions);
+            const priorityFieldId = process.env.PRIORITY_ISSUE_FIELD_ID?.trim();
+
+            if (selectedPriority && priorityFieldId) {
+              await github.request(
+                "POST /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values",
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  issue_field_values: [
+                    {
+                      field_id: Number(priorityFieldId),
+                      value: selectedPriority,
+                    },
+                  ],
+                  headers: {
+                    "Accept": "application/vnd.github+json",
+                    "X-GitHub-Api-Version": "2026-03-10",
+                  },
+                }
+              );
+            }
+
+            core.info(
+              `Added labels: ${labelsToAdd.join(", ") || "none"}; ` +
+              `removed labels: ${labelsToRemove.join(", ") || "none"}; ` +
+              `priority: ${selectedPriority || "none"}`
+            );
+            
