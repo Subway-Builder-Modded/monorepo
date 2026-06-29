@@ -6,44 +6,47 @@ body:
       value: |
         Please provide as much detail as possible. Include steps to reproduce, expected vs. actual behavior, any relevant logs or screenshots, etc.
 
-  - type: checkboxes
+  - type: dropdown
     id: projects
     attributes:
       label: Projects
       description: Select the project(s) that the bug or issue pertains to.
+      multiple: true
       options:
-        - label: General
-        - label: Internal
-        - label: Depot
-        - label: Locomotive
-        - label: Railyard
-        - label: Registry
-        - label: Template Mod
-        - label: Website
+        - General
+        - Internal
+        - Depot
+        - Locomotive
+        - Railyard
+        - Registry
+        - Template Mod
+        - Website
     validations:
       required: true
 
-  - type: checkboxes
+  - type: dropdown
     id: type
     attributes:
       label: Type
       description: Select the type of issue.
+      multiple: false
       options:
-        - label: Bug
-        - label: Task
-        - label: Feature
+        - Bug
+        - Task
+        - Feature
     validations:
       required: true
 
-  - type: checkboxes
+  - type: dropdown
     id: area
     attributes:
       label: Area
       description: Select the relevant area(s) of the issue.
+      multiple: true
       options:
-        - label: Frontend
-        - label: Backend
-        - label: Documentation
+        - Frontend
+        - Backend
+        - Documentation
     validations:
       required: true
       
@@ -61,15 +64,16 @@ body:
     validations:
       required: true
 
-  - type: checkboxes
+  - type: dropdown
     id: other
     attributes:
       label: Other
       description: Select any other relevant options for the issue.
+      multiple: true
       options:
-        - label: Big Change
-        - label: Blocked
-        - label: Long Term
+        - Big Change
+        - Blocked
+        - Long Term
     validations:
       required: false
 
