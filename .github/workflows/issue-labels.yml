@@ -23,7 +23,7 @@ jobs:
           script: |
             const issue = context.payload.issue;
 
-            if (!issue || !issue.body) {
+            if (!issue?.body) {
               core.info("No issue body found. Skipping.");
               return;
             }
@@ -87,57 +87,30 @@ jobs:
                 .find((line) => allowedOptions.has(line));
             };
 
-            const requiredCheckboxSections = ["Projects", "Type", "Area"];
-            const missingRequiredSections = requiredCheckboxSections.filter(
-              (sectionName) => getCheckedOptions(sectionName).length === 0
-            );
-
-            const selectedPriority = getSelectedOption("Priority", priorityOptions);
-
-            if (!selectedPriority) {
-              missingRequiredSections.push("Priority");
-            }
-
-            if (missingRequiredSections.length > 0) {
-              core.warning(
-                `Missing required issue form sections: ${missingRequiredSections.join(", ")}`
-              );
-            }
-
-            const hasAnyManagedSection = [
-              ...labelSections.keys(),
-              "Priority",
-            ].some((sectionName) => getSection(sectionName).length > 0);
-
-            if (!hasAnyManagedSection) {
-              core.info("No managed issue form sections found. Skipping.");
-              return;
-            }
-
             const managedLabels = new Set(
               [...labelSections.values()].flatMap((labels) => [...labels.values()])
             );
 
-            const selectedLabels = [...new Set(
+            const selectedLabels = new Set(
               [...labelSections.entries()].flatMap(([sectionName, labels]) =>
                 getCheckedOptions(sectionName)
                   .map((option) => labels.get(option))
                   .filter(Boolean)
               )
-            )];
+            );
 
-            const { data: currentIssueLabels } =
+            const { data: currentLabels } =
               await github.rest.issues.listLabelsOnIssue({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
               });
 
-            const currentManagedLabels = currentIssueLabels
+            const currentManagedLabels = currentLabels
               .map((label) => label.name)
               .filter((name) => managedLabels.has(name.toLowerCase()));
 
-            const labelsToAdd = selectedLabels.filter(
+            const labelsToAdd = [...selectedLabels].filter(
               (name) =>
                 !currentManagedLabels.some(
                   (current) => current.toLowerCase() === name.toLowerCase()
@@ -145,7 +118,7 @@ jobs:
             );
 
             const labelsToRemove = currentManagedLabels.filter(
-              (name) => !selectedLabels.includes(name.toLowerCase())
+              (name) => !selectedLabels.has(name.toLowerCase())
             );
 
             if (labelsToAdd.length > 0) {
@@ -166,27 +139,10 @@ jobs:
               });
             }
 
-            const updateIssuePriority = async (priorityName) => {
-              if (!priorityName) {
-                core.info("No Priority option selected. Skipping issue priority update.");
-                return;
-              }
+            const selectedPriority = getSelectedOption("Priority", priorityOptions);
+            const priorityFieldId = process.env.PRIORITY_ISSUE_FIELD_ID?.trim();
 
-              const rawFieldId = process.env.PRIORITY_ISSUE_FIELD_ID?.trim();
-
-              if (!rawFieldId) {
-                core.warning(
-                  "PRIORITY_ISSUE_FIELD_ID is not configured. Skipping issue priority update."
-                );
-                return;
-              }
-
-              if (!/^\d+$/.test(rawFieldId)) {
-                throw new Error(
-                  `PRIORITY_ISSUE_FIELD_ID must be the numeric issue field id, not node_id. Got: ${rawFieldId}`
-                );
-              }
-
+            if (selectedPriority && priorityFieldId) {
               await github.request(
                 "POST /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values",
                 {
@@ -195,8 +151,8 @@ jobs:
                   issue_number: issue.number,
                   issue_field_values: [
                     {
-                      field_id: Number(rawFieldId),
-                      value: priorityName,
+                      field_id: Number(priorityFieldId),
+                      value: selectedPriority,
                     },
                   ],
                   headers: {
@@ -205,11 +161,7 @@ jobs:
                   },
                 }
               );
-
-              core.info(`Updated issue Priority field to "${priorityName}".`);
-            };
-
-            await updateIssuePriority(selectedPriority);
+            }
 
             core.info(
               `Added labels: ${labelsToAdd.join(", ") || "none"}; ` +
