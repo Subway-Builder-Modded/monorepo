@@ -1,4 +1,4 @@
-name: Apply Project Labels
+name: Apply Issue Labels and Priority
 
 on:
   issues:
@@ -10,11 +10,11 @@ permissions:
   issues: write
 
 jobs:
-  apply-project-labels:
-    name: Apply Project Labels
+  apply-issue-labels-and-priority:
+    name: Apply Issue Labels and Priority
     runs-on: ubuntu-latest
     steps:
-      - name: Apply labels from issue form
+      - name: Apply labels and priority from issue form
         uses: actions/github-script@v7
         with:
           script: |
@@ -24,29 +24,60 @@ jobs:
               return;
             }
 
-            const allowedProjectLabels = new Set([
-              "general",
-              "railyard",
-              "website",
-              "foundry",
-              "locomotive",
+            const labelSections = new Map([
+              ["Projects", new Map([
+                ["General", "general"],
+                ["Internal", "internal"],
+                ["Depot", "depot"],
+                ["Locomotive", "locomotive"],
+                ["Railyard", "railyard"],
+                ["Registry", "registry"],
+                ["Template Mod", "template-mod"],
+                ["Website", "website"],
+              ])],
+              ["Type", new Map([
+                ["Bug", "bug"],
+                ["Task", "task"],
+                ["Feature", "feature"],
+              ])],
+              ["Area", new Map([
+                ["Frontend", "frontend"],
+                ["Backend", "backend"],
+                ["Documentation", "documentation"],
+              ])],
+              ["Other", new Map([
+                ["Big Change", "big-change"],
+                ["Blocked", "blocked"],
+                ["Long Term", "long-term"],
+              ])],
             ]);
 
-            const projectsSectionMatch = issue.body.match(/###\s+Projects\s*([\s\S]*?)(?:\n###\s+|$)/i);
-            if (!projectsSectionMatch) {
-              core.info("No Projects section found. Skipping.");
-              return;
-            }
+            const priorityOptions = new Set(["Urgent", "High", "Medium", "Low"]);
 
-            const projectsSection = projectsSectionMatch[1];
-            const checkedMatches = [...projectsSection.matchAll(/^\s*-\s*\[[xX]\]\s*(.+?)\s*$/gm)];
-            const selectedProjectLabels = [...new Set(
-              checkedMatches
+            const getSection = (sectionName) => {
+              const escapedName = sectionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const sectionMatch = issue.body.match(new RegExp(`###\\s+${escapedName}\\s*([\\s\\S]*?)(?:\\n###\\s+|$)`, "i"));
+              return sectionMatch?.[1] ?? "";
+            };
+
+            const getCheckedOptions = (sectionName) => {
+              const section = getSection(sectionName);
+              return [...section.matchAll(/^\s*-\s*\[[xX]\]\s*(.+?)\s*$/gm)]
                 .map((match) => match[1].trim())
-                .map((name) => name.toLowerCase())
-                .filter((name) => allowedProjectLabels.has(name))
-                .filter(Boolean)
+                .filter(Boolean);
+            };
+
+            const managedLabels = new Set([...labelSections.values()].flatMap((labels) => [...labels.values()]));
+            const selectedLabels = [...new Set(
+              [...labelSections.entries()].flatMap(([sectionName, labels]) =>
+                getCheckedOptions(sectionName)
+                  .map((option) => labels.get(option))
+                  .filter(Boolean)
+              )
             )];
+
+            const selectedPriority = getCheckedOptions("Priority")
+              .find((option) => priorityOptions.has(option));
 
             const { data: currentIssueLabels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
@@ -54,15 +85,15 @@ jobs:
               issue_number: issue.number,
             });
 
-            const currentProjectLabels = currentIssueLabels
+            const currentManagedLabels = currentIssueLabels
               .map((label) => label.name)
-              .filter((name) => allowedProjectLabels.has(name.toLowerCase()));
+              .filter((name) => managedLabels.has(name.toLowerCase()));
 
-            const labelsToAdd = selectedProjectLabels
-              .filter((name) => !currentProjectLabels.some((current) => current.toLowerCase() === name));
+            const labelsToAdd = selectedLabels
+              .filter((name) => !currentManagedLabels.some((current) => current.toLowerCase() === name));
 
-            const labelsToRemove = currentProjectLabels
-              .filter((name) => !selectedProjectLabels.includes(name.toLowerCase()));
+            const labelsToRemove = currentManagedLabels
+              .filter((name) => !selectedLabels.includes(name.toLowerCase()));
 
             if (labelsToAdd.length > 0) {
               await github.rest.issues.addLabels({
@@ -82,6 +113,57 @@ jobs:
               });
             }
 
+            const updateIssuePriority = async (priorityName) => {
+              if (!priorityName) {
+                core.info("No Priority option selected. Skipping issue priority update.");
+                return;
+              }
+
+              const { data: issueFields } = await github.request("GET /orgs/{org}/issue-fields", {
+                org: context.repo.owner,
+                headers: {
+                  "X-GitHub-Api-Version": "2026-03-10",
+                },
+              });
+
+              const priorityField = issueFields.find((field) => field.name === "Priority");
+              if (!priorityField) {
+                core.info(`No Priority issue field found for organization "${context.repo.owner}".`);
+                return;
+              }
+
+              if (priorityField.data_type !== "single_select") {
+                core.warning(`Priority issue field is "${priorityField.data_type}", expected "single_select".`);
+                return;
+              }
+
+              const priorityOption = priorityField.options
+                ?.find((option) => option.name === priorityName);
+              if (!priorityOption) {
+                core.info(`Priority issue field has no "${priorityName}" option.`);
+                return;
+              }
+
+              await github.request("POST /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values", {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                issue_field_values: [
+                  {
+                    field_id: priorityField.id,
+                    value: priorityName,
+                  },
+                ],
+                headers: {
+                  "X-GitHub-Api-Version": "2026-03-10",
+                },
+              });
+
+              core.info(`Updated issue Priority field to "${priorityName}".`);
+            };
+
+            await updateIssuePriority(selectedPriority);
+
             core.info(
-              `Added labels: ${labelsToAdd.join(", ") || "none"}; removed labels: ${labelsToRemove.join(", ") || "none"}`
+              `Added labels: ${labelsToAdd.join(", ") || "none"}; removed labels: ${labelsToRemove.join(", ") || "none"}; priority: ${selectedPriority || "none"}`
             );
