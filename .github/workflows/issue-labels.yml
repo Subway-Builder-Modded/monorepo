@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Apply labels and priority from issue form
         uses: actions/github-script@v7
+        env:
+          PRIORITY_ISSUE_FIELD_ID: ${{ vars.PRIORITY_ISSUE_FIELD_ID }}
         with:
           script: |
             const issue = context.payload.issue;
@@ -67,6 +69,13 @@ jobs:
                 .filter(Boolean);
             };
 
+            const getSelectedOption = (sectionName, allowedOptions) => {
+              return getSection(sectionName)
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .find((line) => allowedOptions.has(line));
+            };
+
             const managedLabels = new Set([...labelSections.values()].flatMap((labels) => [...labels.values()]));
             const selectedLabels = [...new Set(
               [...labelSections.entries()].flatMap(([sectionName, labels]) =>
@@ -76,8 +85,7 @@ jobs:
               )
             )];
 
-            const selectedPriority = getCheckedOptions("Priority")
-              .find((option) => priorityOptions.has(option));
+            const selectedPriority = getSelectedOption("Priority", priorityOptions);
 
             const { data: currentIssueLabels } = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
@@ -119,28 +127,9 @@ jobs:
                 return;
               }
 
-              const { data: issueFields } = await github.request("GET /orgs/{org}/issue-fields", {
-                org: context.repo.owner,
-                headers: {
-                  "X-GitHub-Api-Version": "2026-03-10",
-                },
-              });
-
-              const priorityField = issueFields.find((field) => field.name === "Priority");
-              if (!priorityField) {
-                core.info(`No Priority issue field found for organization "${context.repo.owner}".`);
-                return;
-              }
-
-              if (priorityField.data_type !== "single_select") {
-                core.warning(`Priority issue field is "${priorityField.data_type}", expected "single_select".`);
-                return;
-              }
-
-              const priorityOption = priorityField.options
-                ?.find((option) => option.name === priorityName);
-              if (!priorityOption) {
-                core.info(`Priority issue field has no "${priorityName}" option.`);
+              const priorityFieldId = process.env.PRIORITY_ISSUE_FIELD_ID?.trim();
+              if (!priorityFieldId) {
+                core.info("PRIORITY_ISSUE_FIELD_ID is not configured. Skipping issue priority update.");
                 return;
               }
 
@@ -150,12 +139,12 @@ jobs:
                 issue_number: issue.number,
                 issue_field_values: [
                   {
-                    field_id: priorityField.id,
+                    field_id: priorityFieldId,
                     value: priorityName,
                   },
                 ],
                 headers: {
-                  "X-GitHub-Api-Version": "2026-03-10",
+                  "X-GitHub-Api-Version": "2022-11-28",
                 },
               });
 

@@ -47,16 +47,17 @@ body:
     validations:
       required: true
       
-  - type: checkboxes
+  - type: dropdown
     id: priority
     attributes:
       label: Priority
       description: Select the priority of the issue.
+      multiple: false
       options:
-        - label: Urgent
-        - label: High
-        - label: Medium
-        - label: Low
+        - Urgent
+        - High
+        - Medium
+        - Low
     validations:
       required: true
 
