@@ -1,5 +1,14 @@
 const config = $CONFIG;
 const baseURL = "http://127.0.0.1:" + config.port;
+
+// Nuisance layers that bleed through the rendered background tile layers (e.g. parks, airports, water) and should be removed for visual clarity
+const nuisanceLayersToRemove = [
+  "world-land",
+  "world-borders",
+  "city-markers-dot",
+  "city-markers-label",
+];
+
 function getFlagEmoji(countryCode) {
   let codePoints = countryCode
     .toUpperCase()
@@ -13,11 +22,16 @@ function capitalizeString(str) {
 }
 
 function semverCompare(v1, v2) {
-  const v1Parts = v1.split('.').map(Number);
-  const v2Parts = v2.split('.').map(Number);
+  const v1Parts = v1.split(".").map(Number);
+  const v2Parts = v2.split(".").map(Number);
   if (v1Parts[0] > v2Parts[0]) return true;
-  if(v1Parts[0] == v2Parts[0] && v1Parts[1] > v2Parts[1]) return true;
-  if(v1Parts[0] == v2Parts[0] && v1Parts[1] == v2Parts[1] && v1Parts[2] > v2Parts[2]) return true;
+  if (v1Parts[0] == v2Parts[0] && v1Parts[1] > v2Parts[1]) return true;
+  if (
+    v1Parts[0] == v2Parts[0] &&
+    v1Parts[1] == v2Parts[1] &&
+    v1Parts[2] > v2Parts[2]
+  )
+    return true;
   return false;
 }
 
@@ -29,10 +43,7 @@ function getCountryName(countryCode) {
 function generateTabs(places) {
   let tabs = {};
   places.forEach((place) => {
-    if (
-      place.country === undefined
-      || place.country.toUpperCase() === "US"
-    ) {
+    if (place.country === undefined || place.country.toUpperCase() === "US") {
       // don't make tabs for these, we will have to do these on an upcoming update
       return;
     }
@@ -88,10 +99,11 @@ function generateTabs(places) {
         demandData: "/data/" + place.code + "/demand_data.json",
         roads: "/data/" + place.code + "/roads.geojson",
         runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
-      }
+      };
 
       if (place.hasOceanDepth) {
-        dataFiles.oceanDepthIndex = "/data/" + place.code + "/ocean_depth_index.json";
+        dataFiles.oceanDepthIndex =
+          "/data/" + place.code + "/ocean_depth_index.json";
       }
 
       window.SubwayBuilderAPI.map.setTileURLOverride({
@@ -116,22 +128,53 @@ function generateTabs(places) {
     });
   });
 
+  // Store current loaded game state (map + city code) for use in custom layer management
+  let currentCityCode = null;
+  let mapRef = null;
+
+  function removeVanillaParkLayers(map) {
+    if (map.getLayer("parks-large")) {
+      map.removeLayer("parks-large");
+    }
+    if (map.getLayer("parks-small")) {
+      map.removeLayer("parks-small");
+    }
+  }
+  function removeVanillaAirportLayers(map) {
+    if (map.getLayer("airports")) {
+      map.removeLayer("airports");
+    }
+  }
+
   function addCustomLayers(map) {
-    let colorsData = JSON.parse(window.localStorage.getItem("map_custom_colors"));
-    let currentTheme = window.SubwayBuilderAPI.ui.getResolvedTheme().toUpperCase();
+    // Do not add custom layers if the current city is not managed by Railyard
+    if (!config.places.some((p) => p.code === currentCityCode)) {
+      return;
+    }
+
+    let colorsData = JSON.parse(
+      window.localStorage.getItem("map_custom_colors"),
+    );
+    let currentTheme = window.SubwayBuilderAPI.ui
+      .getResolvedTheme()
+      .toUpperCase();
     let themeObject = `custom${capitalizeString(currentTheme)}Colors`;
     let colorToUsePark;
     let colorToUseAirport;
 
     if (colorsData.useCustomColors) {
-      colorToUsePark = colorsData[themeObject]?.parks ? colorsData[themeObject].parks : config.colors[currentTheme].PARK;
-      colorToUseAirport = colorsData[themeObject]?.airports ? colorsData[themeObject].airports : config.colors[currentTheme].AIRPORT;
+      colorToUsePark = colorsData[themeObject]?.parks
+        ? colorsData[themeObject].parks
+        : config.colors[currentTheme].PARK;
+      colorToUseAirport = colorsData[themeObject]?.airports
+        ? colorsData[themeObject].airports
+        : config.colors[currentTheme].AIRPORT;
     } else {
       colorToUsePark = config.colors[currentTheme].PARK;
       colorToUseAirport = config.colors[currentTheme].AIRPORT;
     }
 
-    if(config.gameVersion && semverCompare(config.gameVersion, "1.3.0")) {
+    if (config.gameVersion && semverCompare(config.gameVersion, "1.3.0")) {
       colorToUsePark = colorsData[themeObject].parks;
       colorToUseAirport = colorsData[themeObject].airports;
     }
@@ -139,7 +182,10 @@ function generateTabs(places) {
     function isFoundationsVisible(map) {
       const layers = map.getStyle().layers;
       for (let layer of layers) {
-        if (layer.id === "building-foundations" && map.getLayoutProperty(layer.id, "visibility") === "visible") {
+        if (
+          layer.id === "building-foundations" &&
+          map.getLayoutProperty(layer.id, "visibility") === "visible"
+        ) {
           return true;
         }
       }
@@ -147,64 +193,94 @@ function generateTabs(places) {
     }
 
     if (!map.getLayer("parks-modded")) {
-      map.addLayer({
-        id: "parks-modded",
-        type: "fill-extrusion",
-        source: "general-tiles",
-        "source-layer": "landuse",
-        filter: ["==", ["get", "kind"], "park"],
-        paint: {
-          "fill-extrusion-color": colorToUsePark,
-          "fill-extrusion-height": 0,
-          "fill-extrusion-base": 0,
-          "fill-extrusion-opacity": 0.8,
+      map.addLayer(
+        {
+          id: "parks-modded",
+          type: "fill-extrusion",
+          source: "general-tiles",
+          "source-layer": "landuse",
+          filter: ["==", ["get", "kind"], "park"],
+          paint: {
+            "fill-extrusion-color": colorToUsePark,
+            "fill-extrusion-height": 0,
+            "fill-extrusion-base": 0,
+            "fill-extrusion-opacity": 0.8,
+          },
+          layout: {
+            visibility: isFoundationsVisible(map) ? "none" : "visible",
+          },
         },
-        layout: {
-          visibility: isFoundationsVisible(map) ? "none" : "visible",
-        }
-      });
+        "general-tiles",
+      );
+      removeVanillaParkLayers(map);
     }
 
     if (!map.getLayer("airports-modded")) {
-      map.addLayer({
-        id: "airports-modded",
-        type: "fill-extrusion",
-        source: "general-tiles",
-        "source-layer": "landuse",
-        filter: ["==", ["get", "kind"], "aerodrome"],
-        paint: {
-          "fill-extrusion-color": colorToUseAirport,
-          "fill-extrusion-height": 0,
-          "fill-extrusion-base": 0,
-          "fill-extrusion-opacity": 1,
+      map.addLayer(
+        {
+          id: "airports-modded",
+          type: "fill-extrusion",
+          source: "general-tiles",
+          "source-layer": "landuse",
+          filter: ["==", ["get", "kind"], "aerodrome"],
+          paint: {
+            "fill-extrusion-color": colorToUseAirport,
+            "fill-extrusion-height": 0,
+            "fill-extrusion-base": 0,
+            "fill-extrusion-opacity": 1,
+          },
+          layout: {
+            visibility: isFoundationsVisible(map) ? "none" : "visible",
+          },
         },
-        layout: {
-          visibility: isFoundationsVisible(map) ? "none" : "visible",
-        }
-      })
+        "general-tiles",
+      );
+      removeVanillaAirportLayers(map);
+    }
+
+    // Remove nuisance vanilla layers
+    for (const layerId of nuisanceLayersToRemove) {
+      if (map.getLayer(layerId)) {
+        map.removeLayer(layerId);
+      }
     }
   }
 
   window.SubwayBuilderAPI.hooks.onCityLoad((cityCode) => {
-    if(semverCompare(config.gameVersion, "1.3.6")) {
+    currentCityCode = cityCode;
+    // If map is already ready, add custom layers now that we know the city code
+    if (mapRef) {
+      addCustomLayers(mapRef);
+    }
+    if (semverCompare(config.gameVersion, "1.3.6")) {
       window.SubwayBuilderAPI.actions.setDemandBubbleScale(1.0);
-      if(config.places.find(place => place.code === cityCode)?.demandDotScaling) {
-        const scaling = config.places.find(place => place.code === cityCode)?.demandDotScaling;
+      if (
+        config.places.find((place) => place.code === cityCode)?.demandDotScaling
+      ) {
+        const scaling = config.places.find(
+          (place) => place.code === cityCode,
+        )?.demandDotScaling;
         window.SubwayBuilderAPI.actions.setDemandBubbleScale(scaling);
       }
     }
-  })
+  });
 
   window.SubwayBuilderAPI.hooks.onMapReady((map) => {
-    const resolvedMap = map ?? api.utils.getMap();
+    mapRef = map ?? api.utils.getMap();
+    const resolvedMap = mapRef;
 
-    if(semverCompare(config.gameVersion, "1.3.6") && config.places.some(place => place.demandDotScaling)) {
-      const scaling = config.places.find(place => place.demandDotScaling)?.demandDotScaling;
+    if (
+      semverCompare(config.gameVersion, "1.3.6") &&
+      config.places.some((place) => place.demandDotScaling)
+    ) {
+      const scaling = config.places.find(
+        (place) => place.demandDotScaling,
+      )?.demandDotScaling;
       SubwayBuilderAPI.actions.setDemandBubbleScale(scaling);
     }
 
+    // Call immediately so layers are inserted on first load
+    addCustomLayers(resolvedMap);
     resolvedMap.on("styledata", () => addCustomLayers(resolvedMap));
-    resolvedMap.on("data", () => addCustomLayers(resolvedMap));
-    resolvedMap.on("load", () => addCustomLayers(resolvedMap));
   });
-})()
+})();
