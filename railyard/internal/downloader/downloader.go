@@ -433,7 +433,7 @@ func (d *Downloader) checkInstallAssetMarkerPresent(assetType types.AssetType, a
 	return nil
 }
 
-// checkUninstallMissingMarker checks if the Railyard marker is absent from assetDir, indicating the asset is not properly installed and should not be removed. 
+// checkUninstallMissingMarker checks if the Railyard marker is absent from assetDir, indicating the asset is not properly installed and should not be removed.
 func (d *Downloader) checkUninstallMissingMarker(assetType types.AssetType, assetID, assetDir string) *types.AssetUninstallResponse {
 	if _, err := os.Stat(paths.JoinLocalPath(assetDir, constants.RailyardAssetMarker)); errors.Is(err, fs.ErrNotExist) {
 		// Return a no-op warn response if the marker is missing
