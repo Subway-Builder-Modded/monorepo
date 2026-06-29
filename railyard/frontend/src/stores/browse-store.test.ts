@@ -160,16 +160,22 @@ describe('useBrowseStore status filters', () => {
     useBrowseStore.setState({ statusFilters: [] });
   });
 
-  it('toggles incompatible status filtering', () => {
+  it('toggles status filtering', () => {
     useBrowseStore.getState().toggleStatusFilter('incompatible');
     expect(useBrowseStore.getState().statusFilters).toEqual(['incompatible']);
 
+    useBrowseStore.getState().toggleStatusFilter('test');
+    expect(useBrowseStore.getState().statusFilters).toEqual([
+      'incompatible',
+      'test',
+    ]);
+
     useBrowseStore.getState().toggleStatusFilter('incompatible');
-    expect(useBrowseStore.getState().statusFilters).toEqual([]);
+    expect(useBrowseStore.getState().statusFilters).toEqual(['test']);
   });
 
   it('clears status filters', () => {
-    useBrowseStore.setState({ statusFilters: ['incompatible'] });
+    useBrowseStore.setState({ statusFilters: ['incompatible', 'test'] });
     useBrowseStore.getState().clearStatusFilters();
     expect(useBrowseStore.getState().statusFilters).toEqual([]);
   });

@@ -19,7 +19,7 @@ export { createRandomSeed };
 
 export type BrowseFilterState = SourceAssetQueryFilterState;
 export type BrowseFilterUpdater = AssetQueryFilterUpdater<BrowseFilterState>;
-export type BrowseStatusFilter = 'incompatible';
+export type BrowseStatusFilter = 'incompatible' | 'test';
 export type BrowseFilterStoreState = AssetQueryFilterStoreState<
   BrowseFilterState,
   SourceFilterByAssetType

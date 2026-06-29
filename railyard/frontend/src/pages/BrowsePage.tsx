@@ -101,8 +101,7 @@ function isGameVersionIncompatible(
   if (!gameVersion) return false;
 
   const downloadableVersions = getDownloadableVersions(assetType, versions);
-  const latestVersion = downloadableVersions[0];
-  if (!latestVersion) return false;
+  if (downloadableVersions.length === 0) return false;
 
   return !selectLatestCompatibleVersion(downloadableVersions, gameVersion);
 }
@@ -288,14 +287,15 @@ function BrowsePageContent({
     incompatibleItemKeys,
   });
 
-  const statusCounts = useMemo(
-    () => ({
-      incompatible: (filters.type === 'mod' ? mods : maps).filter((item) =>
+  const statusCounts = useMemo(() => {
+    const typedItems = filters.type === 'mod' ? mods : maps;
+    return {
+      test: typedItems.filter((item) => item.is_test === true).length,
+      incompatible: typedItems.filter((item) =>
         incompatibleItemKeys.has(`${filters.type}:${item.id}`),
       ).length,
-    }),
-    [filters.type, incompatibleItemKeys, maps, mods],
-  );
+    };
+  }, [filters.type, incompatibleItemKeys, maps, mods]);
 
   const sortFieldOptions = useMemo(
     () => getSortFieldOptions(filters.type),
@@ -448,7 +448,7 @@ function BrowsePageContent({
               <AssetStatusFilterSection
                 activeFilters={statusFilters}
                 counts={statusCounts}
-                options={['incompatible']}
+                options={['test', 'incompatible']}
                 onToggle={toggleStatusFilter}
               />
             }
@@ -528,6 +528,7 @@ function BrowsePageContent({
                 incompatible={incompatibleItemKeys.has(
                   `${itemType}:${item.id}`,
                 )}
+                test={item.is_test === true}
               />
             )}
             pagination={

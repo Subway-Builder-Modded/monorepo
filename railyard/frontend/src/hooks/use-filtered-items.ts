@@ -62,15 +62,18 @@ export function useFilteredItems({
     [mods, maps],
   );
   const showIncompatible = statusFilters.includes('incompatible');
+  const showTest = statusFilters.includes('test');
   const allItems = useMemo(
     () =>
       registryItems.filter((entry) => {
         const incompatible = incompatibleItemKeys?.has(
           `${entry.type}:${entry.item.id}`,
         );
-        return showIncompatible || !incompatible;
+        const test = entry.item.is_test === true;
+        if (!incompatible && !test) return true;
+        return (incompatible && showIncompatible) || (test && showTest);
       }),
-    [incompatibleItemKeys, registryItems, showIncompatible],
+    [incompatibleItemKeys, registryItems, showIncompatible, showTest],
   );
   const accessors = useMemo(
     () => createTaggedListingAccessors<TaggedItem>(),
