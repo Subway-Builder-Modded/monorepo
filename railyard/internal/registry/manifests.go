@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"railyard/internal/constants"
 	"railyard/internal/files"
@@ -12,23 +13,34 @@ import (
 
 // fetchFromDisk loads all registry data (mods, maps, installed mods, installed maps) from disk into memory.
 func (r *Registry) fetchFromDisk() error {
+	start := time.Now()
+	stepStart := start
+
 	rawMods, err := r.getModsFromDisk()
 	if err != nil {
 		return fmt.Errorf("failed to load mods from disk: %w", err)
 	}
+	r.logger.Info("Registry load: mod manifests", "count", len(rawMods), "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	rawMaps, err := r.getMapsFromDisk()
 	if err != nil {
 		return fmt.Errorf("failed to load maps from disk: %w", err)
 	}
+	r.logger.Info("Registry load: map manifests", "count", len(rawMaps), "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	authorsByID, err := r.getAuthorsFromIndex()
 	if err != nil {
 		return fmt.Errorf("failed to load authors from index: %w", err)
 	}
+	r.logger.Info("Registry load: authors index", "count", len(authorsByID), "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	mods := r.convertModManifests(rawMods, authorsByID)
 	maps := r.convertMapManifests(rawMaps, authorsByID)
+	r.logger.Info("Registry load: manifests converted", "mods", len(mods), "maps", len(maps), "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	downloadCounts, err := r.loadDownloadCounts([]types.AssetType{
 		types.AssetTypeMap,
@@ -37,23 +49,31 @@ func (r *Registry) fetchFromDisk() error {
 	if err != nil {
 		return err
 	}
+	r.logger.Info("Registry load: download counts", "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	installedMods, err := r.getInstalledModsFromDisk()
 	if err != nil {
 		r.logger.Warn("Failed to load installed mods from disk, continuing with empty installed mods", "error", err)
 		installedMods = []types.InstalledModInfo{}
 	}
+	r.logger.Info("Registry load: installed mods", "count", len(installedMods), "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	installedMaps, err := r.getInstalledMapsFromDisk()
 	if err != nil {
 		r.logger.Warn("Failed to load installed maps from disk, continuing with empty installed maps", "error", err)
 		installedMaps = []types.InstalledMapInfo{}
 	}
+	r.logger.Info("Registry load: installed maps", "count", len(installedMaps), "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	modIntegrity, mapIntegrity, err := r.loadStatusReport()
 	if err != nil {
 		return fmt.Errorf("failed to load registry integrity reports from disk: %w", err)
 	}
+	r.logger.Info("Registry load: integrity reports", "mod_listings", len(modIntegrity.Listings), "map_listings", len(mapIntegrity.Listings), "duration", time.Since(stepStart))
+	stepStart = time.Now()
 
 	mods = filterManifestsByIntegrity(
 		mods,
@@ -82,6 +102,7 @@ func (r *Registry) fetchFromDisk() error {
 	// not shown rather than surfaced with a misleading epoch date.
 	mods = enrichLastUpdated(mods, types.AssetTypeMod, modManifestBase, r.resolveAssetLastUpdated, r.logger)
 	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, r.resolveAssetLastUpdated, r.logger)
+	r.logger.Info("Registry load: integrity filter + enrichment", "mods", len(mods), "maps", len(maps), "duration", time.Since(stepStart))
 
 	// Make updates only when all reads are successful to avoid partial registry updates
 	r.mods = mods
@@ -92,6 +113,7 @@ func (r *Registry) fetchFromDisk() error {
 	r.integrityMaps = mapIntegrity
 	r.integrityMods = modIntegrity
 
+	r.logger.Info("Registry load: complete", "total_duration", time.Since(start))
 	return nil
 }
 

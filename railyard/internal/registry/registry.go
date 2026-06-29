@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"railyard/internal/config"
 	"railyard/internal/paths"
@@ -82,15 +83,24 @@ func (r *Registry) SetContext(ctx context.Context) {
 // Initialize ensures a valid local registry repo exists.
 // It does not force a remote refresh.
 func (r *Registry) Initialize() error {
+	start := time.Now()
+
 	r.versions.load()
+	r.logger.Info("Registry initialize: versions cache loaded", "duration", time.Since(start))
+
+	stepStart := time.Now()
 	if err := r.openOrClone(); err != nil {
 		return err
 	}
+	r.logger.Info("Registry initialize: git repo ready", "duration", time.Since(stepStart))
 
+	stepStart = time.Now()
 	if err := r.fetchFromDisk(); err != nil {
 		return fmt.Errorf("failed to load registry data from disk: %w", err)
 	}
+	r.logger.Info("Registry initialize: fetch from disk complete", "duration", time.Since(stepStart))
 
+	r.logger.Info("Registry initialize: complete", "total_duration", time.Since(start))
 	return nil
 }
 
