@@ -10,6 +10,7 @@ finish-args:
   - --share=network
   - --filesystem=host
   - --filesystem=/tmp
+  - --filesystem=home
   - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
