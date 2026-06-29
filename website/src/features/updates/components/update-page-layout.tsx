@@ -26,6 +26,7 @@ import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
 import { Directory } from "@/features/updates/mdx/directory";
 import { UpdatesRouteProvider } from "@/features/updates/mdx/updates-route-context";
 import { getUpdateArticleIdentity } from "@/features/updates/lib/identity";
+import { findLatestBadgeEntry } from "@/features/updates/lib/latest";
 import { UpdatesBreadcrumbs } from "./updates-breadcrumbs";
 import { LatestReleaseChip, TagChip } from "./tag-badges";
 
@@ -36,7 +37,7 @@ export function UpdatePageLayout({ suiteId, id }: { suiteId: UpdatesSuiteId; id:
   const sourcePath = entry?.sourcePath ?? getUpdateSourcePath(suiteId, id);
   const rawContent = getUpdateRawContent(sourcePath);
   const entries = getUpdatesEntries(suiteId);
-  const latestEntry = entries[0] ?? null;
+  const latestEntry = findLatestBadgeEntry(entries);
   const releaseCandidates = useMemo(() => getUpdateDirectoryEntries(suiteId, id), [suiteId, id]);
 
   if (!entry) {

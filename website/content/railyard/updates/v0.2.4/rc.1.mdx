@@ -10,12 +10,18 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.3...v
 
 <ChangelogSection type="features">
 
-- Added progress notification for each Registry refresh stage
+- Added `.railyard_{asset_type}` shared directory support for maps
+  - Assets can now include this folder in their `.zip` and Railyard will preserve the files there and place them in the asset's installed directory
 
 </ChangelogSection>
 
-<ChangelogSection type="improvements">
+<ChangelogSection type="bugfixes">
 
-- Git clone will no longer continue if no content has been updated in the Registry
+- Fixed download button enabled even if an asset was not compatible with the current game version (and added help text)
+- Fixed country flags not rendering on **Browse**/**Home**
+- Fixed a bug where the game could be launched twice (if the initial launch was delayed)
+- Fixed laggy search caused by eager rendering and excessive use of Fuse
+- Fixed an issue where a map was downloadable despite not having an integrity check
+- Fixed an issue where new assets were not shown on the frontend due to localization inconsistencies in date mapping
 
 </ChangelogSection>
