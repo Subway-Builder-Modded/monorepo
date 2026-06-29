@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"io"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -30,7 +32,7 @@ func newAppImageMount(appImagePath string) (*appImageMount, error) {
 	}
 	pathBuffer := make([]byte, 128) // Assuming the mount path won't exceed 128 bytes, its only around like 24 bytes in practice
 	n, err := pipe.Read(pathBuffer)
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		return nil, err
 	}
 	return &appImageMount{
