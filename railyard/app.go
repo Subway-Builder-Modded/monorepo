@@ -410,11 +410,17 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	var asarPath string
 	switch {
 	case runtime.GOOS == "darwin":
-		asarPath = filepath.Join(exePath, "Contents", "Resources", "app.asar")
+		// executablePath may point to the .app bundle or a binary nested inside it.
+		found, foundPath := findAsar(exePath)
+		if !found {
+			a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
+			return notDetected
+		}
+		asarPath = foundPath
 	case isAppImagePath(exePath):
 		if a.appImageMount != nil {
 			mountPath := a.appImageMount.AppImageMountPath
-			asarPath = filepath.Join(mountPath, "resources", "app.asar")
+			asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
 		} else {
 			if appImageMount, err := newAppImageMount(exePath); err != nil {
 				a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
@@ -422,7 +428,7 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 			} else {
 				a.appImageMount = appImageMount
 				mountPath := a.appImageMount.AppImageMountPath
-				asarPath = filepath.Join(mountPath, "resources", "app.asar")
+				asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
 			}
 		}
 	default:
