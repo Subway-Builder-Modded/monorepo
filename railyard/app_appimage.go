@@ -1,3 +1,5 @@
+//go:build linux
+
 package main
 
 import (
@@ -5,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+	"syscall"
 )
 
 func isAppImagePath(path string) bool {
@@ -24,6 +28,7 @@ func newAppImageMount(appImagePath string) (*appImageMount, error) {
 		return nil, nil
 	}
 	cmd := exec.Command("flatpak-spawn", "--host", "--watch-bus", strings.TrimPrefix(appImagePath, "/run/host"), "--appimage-mount")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // ensure we can kill the process group if needed
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
@@ -50,6 +55,12 @@ func newAppImageMount(appImagePath string) (*appImageMount, error) {
 		return nil, fmt.Errorf("empty mount path; stderr=%s", strings.TrimSpace(string(bs)))
 	}
 
+	groupTracker, _ := os.FindProcess(-cmd.Process.Pid) // find the process group
+	if groupTracker != nil {
+		// Ensure we kill the entire process group when closing
+		cmd.Process = groupTracker
+	}
+
 	return &appImageMount{
 		ProcessHandle:     cmd,
 		AppImageMountPath: mountPath,
@@ -58,7 +69,7 @@ func newAppImageMount(appImagePath string) (*appImageMount, error) {
 
 func (m *appImageMount) Close() error {
 	if m.ProcessHandle != nil {
-		return m.ProcessHandle.Process.Kill()
+		return m.ProcessHandle.Process.Signal(os.Kill)
 	}
 	return nil
 }
