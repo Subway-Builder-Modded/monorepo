@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { getCountryFlagIcon } from '@/lib/flags';
+import { isUpgrade } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -182,10 +183,13 @@ export function ProjectHeader({
   }, [installedVersion, item.id, type, installing, uninstalling]);
 
   const updateTargetVersion = pendingLatestVersion ?? effectiveVersion?.version;
+  // Strictly newer only: the effectiveVersion fallback can resolve to a version older
+  // than what is installed (e.g. newer releases are game-incompatible), which must not
+  // be surfaced as an update.
   const hasUpdate =
     installedVersion &&
     updateTargetVersion &&
-    installedVersion !== updateTargetVersion;
+    isUpgrade(updateTargetVersion, installedVersion);
   const authorAlias = item.author.author_alias;
   const authorAttributionLink = item.author.attribution_link;
 
