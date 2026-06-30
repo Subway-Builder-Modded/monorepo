@@ -53,30 +53,28 @@ type ImportAssetDialogResponse struct {
 	Paths []string `json:"paths"`
 }
 
-type ImportInspectStatus string
+type ImportValidationStatus string
 
 const (
-	ImportInspectNew      ImportInspectStatus = "new"
-	ImportInspectConflict ImportInspectStatus = "conflict"
-	ImportInspectInvalid  ImportInspectStatus = "invalid"
+	ImportValidationNew      ImportValidationStatus = "new"
+	ImportValidationConflict ImportValidationStatus = "conflict"
+	ImportValidationInvalid  ImportValidationStatus = "invalid"
 )
 
-// ImportArchiveInspection is the read-only result of checking a single archive
-// before import: whether its map code is new, collides with an existing map, or
-// the archive itself is invalid. It never mutates state or touches disk.
-type ImportArchiveInspection struct {
-	Path     string              `json:"path"`
-	Name     string              `json:"name"`
-	Code     string              `json:"code"`
-	Version  string              `json:"version"`
-	Status   ImportInspectStatus `json:"status"`
-	Conflict *MapCodeConflict    `json:"conflict,omitempty"`
-	Error    string              `json:"error,omitempty"`
+// ImportArchiveValidation is the pre-flight classification of one archive.
+type ImportArchiveValidation struct {
+	Path     string                 `json:"path"`
+	Name     string                 `json:"name"`
+	Code     string                 `json:"code"`
+	Version  string                 `json:"version"`
+	Status   ImportValidationStatus `json:"status"`
+	Conflict *MapCodeConflict       `json:"conflict,omitempty"`
+	Error    string                 `json:"error,omitempty"`
 }
 
-type ImportInspectResponse struct {
+type ImportValidationResponse struct {
 	GenericResponse
-	Inspections []ImportArchiveInspection `json:"inspections"`
+	Validations []ImportArchiveValidation `json:"validations"`
 }
 
 type GameRunningResponse struct {

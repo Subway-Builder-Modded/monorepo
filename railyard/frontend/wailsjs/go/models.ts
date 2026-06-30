@@ -608,7 +608,7 @@ export namespace types {
 	        this.valid = source["valid"];
 	    }
 	}
-	export class ImportArchiveInspection {
+	export class ImportArchiveValidation {
 	    path: string;
 	    name: string;
 	    code: string;
@@ -616,11 +616,11 @@ export namespace types {
 	    status: string;
 	    conflict?: MapCodeConflict;
 	    error?: string;
-	
+
 	    static createFrom(source: any = {}) {
-	        return new ImportArchiveInspection(source);
+	        return new ImportArchiveValidation(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
@@ -684,20 +684,20 @@ export namespace types {
 	        this.replaceOnConflict = source["replaceOnConflict"];
 	    }
 	}
-	export class ImportInspectResponse {
+	export class ImportValidationResponse {
 	    status: string;
 	    message: string;
-	    inspections: ImportArchiveInspection[];
-	
+	    validations: ImportArchiveValidation[];
+
 	    static createFrom(source: any = {}) {
-	        return new ImportInspectResponse(source);
+	        return new ImportValidationResponse(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.status = source["status"];
 	        this.message = source["message"];
-	        this.inspections = this.convertValues(source["inspections"], ImportArchiveInspection);
+	        this.validations = this.convertValues(source["validations"], ImportArchiveValidation);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

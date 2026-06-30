@@ -30,8 +30,8 @@ export function HandleDeepLinkURL(arg1) {
   return window['go']['main']['App']['HandleDeepLinkURL'](arg1);
 }
 
-export function InspectImportArchives(arg1) {
-  return window['go']['main']['App']['InspectImportArchives'](arg1);
+export function ValidateImportedMapArchives(arg1) {
+  return window['go']['main']['App']['ValidateImportedMapArchives'](arg1);
 }
 
 export function InstallLinuxSandbox() {

@@ -77,13 +77,21 @@ export function IncompatibleAssetsDialog({
         );
       }}
       actions={[
-        { label: 'Cancel', variant: 'outline', onClick: () => onOpenChange(false) },
+        {
+          label: 'Cancel',
+          variant: 'outline',
+          onClick: () => onOpenChange(false),
+        },
         {
           label: 'Launch Without Incompatible Assets',
           variant: 'outline',
           onClick: onSkip,
         },
-        { label: 'Understood, Continue', variant: 'solid', onClick: onContinue },
+        {
+          label: 'Understood, Continue',
+          variant: 'solid',
+          onClick: onContinue,
+        },
       ]}
       loading={loading}
     />

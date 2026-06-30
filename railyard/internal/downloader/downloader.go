@@ -710,33 +710,33 @@ func (d *Downloader) ImportAsset(assetType types.AssetType, zipPath string, repl
 	return result.assetInstallResponse
 }
 
-// InspectMapImport performs a read-only check of a single map archive: it
-// validates the archive and reports whether its city code is new, conflicts
-// with an existing (installed or vanilla) map, or the archive is invalid. It
-// never writes to disk or mutates state, so it is safe to run before importing.
-func (d *Downloader) InspectMapImport(zipPath string) types.ImportArchiveInspection {
-	inspection := types.ImportArchiveInspection{Path: zipPath}
+// ValidateImportedMapArchive classifies an archive as new, conflicting, or
+// invalid for import without touching disk or mutating state.
+func (d *Downloader) ValidateImportedMapArchive(zipPath string) types.ImportArchiveValidation {
+	validation := types.ImportArchiveValidation{Path: zipPath}
 
+	// A malformed archive has no usable city code; fall back to the filename.
 	configData, _, err := files.ValidateMapArchive(zipPath)
 	if err != nil {
-		inspection.Status = types.ImportInspectInvalid
-		inspection.Name = filepath.Base(zipPath)
-		inspection.Error = err.Error()
-		return inspection
+		validation.Status = types.ImportValidationInvalid
+		validation.Name = filepath.Base(zipPath)
+		validation.Error = err.Error()
+		return validation
 	}
 
-	inspection.Name = configData.Name
-	inspection.Code = configData.Code
-	inspection.Version = strings.TrimSpace(configData.Version)
+	validation.Name = configData.Name
+	validation.Code = configData.Code
+	validation.Version = strings.TrimSpace(configData.Version)
 
+	// A code collision means importing would replace an installed or vanilla map.
 	if conflict, hasConflict := d.FindMapCodeConflict(configData.Code, configData.Code, false); hasConflict {
-		inspection.Status = types.ImportInspectConflict
-		inspection.Conflict = conflict
-		return inspection
+		validation.Status = types.ImportValidationConflict
+		validation.Conflict = conflict
+		return validation
 	}
 
-	inspection.Status = types.ImportInspectNew
-	return inspection
+	validation.Status = types.ImportValidationNew
+	return validation
 }
 
 func (d *Downloader) importMapNow(zipPath string, replaceOnConflict bool) types.AssetInstallResponse {

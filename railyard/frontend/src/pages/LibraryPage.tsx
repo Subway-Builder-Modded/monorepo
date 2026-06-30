@@ -38,7 +38,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 
-import { ImportPlanDialog } from '@/components/library/ImportPlanDialog';
+import { ImportReviewDialog } from '@/components/library/ImportReviewDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
 import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterSection';
@@ -64,8 +64,8 @@ import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
 import {
-  InspectImportArchives,
   OpenImportAssetDialog,
+  ValidateImportedMapArchives,
 } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 
@@ -155,10 +155,10 @@ export function LibraryPage() {
   const setSidebarOpen = useUIStore((s) => s.setLibrarySidebarOpen);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
-  // Pre-flight import plan: every inspected archive (new / conflict / invalid)
+  // Pre-flight import review: every validated archive (new / conflict / invalid)
   // the user reviews before choosing a single policy for the whole set.
-  const [importPlan, setImportPlan] = useState<
-    types.ImportArchiveInspection[] | null
+  const [importReview, setImportReview] = useState<
+    types.ImportArchiveValidation[] | null
   >(null);
   const [pendingUpdatesByKey, setPendingUpdatesByKey] =
     useState<PendingUpdatesByKey>({});
@@ -409,7 +409,7 @@ export function LibraryPage() {
   const executeImport = async (
     jobs: Array<{ path: string; replace: boolean }>,
   ) => {
-    setImportPlan(null);
+    setImportReview(null);
     if (jobs.length === 0) return;
     setImportLoading(true);
     try {
@@ -422,7 +422,7 @@ export function LibraryPage() {
   const handlePickArchive = async () => {
     if (importLoading) return;
     setImportLoading(true);
-    let inspections: types.ImportArchiveInspection[] | null = null;
+    let validations: types.ImportArchiveValidation[] | null = null;
     try {
       const selection = await OpenImportAssetDialog('map');
       if (selection.status === 'error') {
@@ -433,20 +433,20 @@ export function LibraryPage() {
       if (selection.status === 'warn' || paths.length === 0) return;
       setImportDialogOpen(false);
 
-      const inspectResp = await InspectImportArchives(paths);
-      if (inspectResp.status !== 'success') {
-        toast.error('Failed to inspect map archives.');
+      const validationResp = await ValidateImportedMapArchives(paths);
+      if (validationResp.status !== 'success') {
+        toast.error('Failed to validate map archives.');
         return;
       }
-      inspections = inspectResp.inspections ?? [];
+      validations = validationResp.validations ?? [];
     } finally {
       setImportLoading(false);
     }
-    if (!inspections || inspections.length === 0) return;
+    if (!validations || validations.length === 0) return;
 
-    // Always review the plan before importing — even an all-new set so the user
-    // can confirm the count and policy.
-    setImportPlan(inspections);
+    // Always review before importing — even an all-new set so the user can
+    // confirm the count and policy.
+    setImportReview(validations);
   };
 
   const handleSidebarFiltersChange = useCallback(
@@ -708,28 +708,27 @@ export function LibraryPage() {
         </div>
       </AppDialog>
 
-      {importPlan && (
-        <ImportPlanDialog
-          open={!!importPlan}
+      {importReview && (
+        <ImportReviewDialog
+          open={!!importReview}
           onOpenChange={(value) => {
-            if (!value) setImportPlan(null);
+            if (!value) setImportReview(null);
           }}
-          items={importPlan}
+          items={importReview}
           loading={importLoading}
-          onCancel={() => setImportPlan(null)}
+          onCancel={() => setImportReview(null)}
           onImportNewOnly={() =>
             executeImport(
-              importPlan
+              importReview
                 .filter((item) => item.status === 'new')
                 .map((item) => ({ path: item.path, replace: false })),
             )
           }
           onReplaceAll={() =>
             executeImport(
-              importPlan
+              importReview
                 .filter(
-                  (item) =>
-                    item.status === 'new' || item.status === 'conflict',
+                  (item) => item.status === 'new' || item.status === 'conflict',
                 )
                 .map((item) => ({
                   path: item.path,

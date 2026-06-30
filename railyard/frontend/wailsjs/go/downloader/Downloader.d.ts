@@ -10,7 +10,7 @@ export function FindMapCodeConflict(arg1:string,arg2:string,arg3:boolean):Promis
 
 export function ImportAsset(arg1:types.AssetType,arg2:string,arg3:boolean):Promise<types.AssetInstallResponse>;
 
-export function InspectMapImport(arg1:string):Promise<types.ImportArchiveInspection>;
+export function ValidateImportedMapArchive(arg1:string):Promise<types.ImportArchiveValidation>;
 
 export function InstallAsset(arg1:types.InstallAssetRequest):Promise<types.AssetInstallResponse>;
 

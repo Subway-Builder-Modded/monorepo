@@ -106,6 +106,8 @@ func ValidateMapArchive(filePath string) (types.ConfigData, types.DownloaderErro
 
 	filesFound := BuildMapArchiveFileIndex(reader.File)
 
+	// Report every gap at once (the buildings index counts as one requirement
+	// satisfied by either form) so a bad archive surfaces in a single pass.
 	missing := missingRequiredFiles(filesFound)
 	if !buildingsIndexPresent(filesFound) {
 		missing = append(missing,
@@ -191,8 +193,8 @@ func ValidateInstalledMapData(mapInstallRoot string, mapTilesRoot string, cityCo
 	return readInstalledMapConfig(mapInstallRoot, cityCode)
 }
 
-// requiredMapArchiveFiles lists the always-required archive entries in a stable
-// display order, paired with the name shown when one is missing.
+// requiredMapArchiveFiles pairs each always-required archive key with the name
+// shown when it is missing; ordered so the error message reads consistently.
 var requiredMapArchiveFiles = []struct {
 	key   string
 	label string
@@ -204,8 +206,7 @@ var requiredMapArchiveFiles = []struct {
 	{MapArchiveKeyTiles, "map tiles (*" + MapTileFileExt + ")"},
 }
 
-// missingRequiredFiles returns the display names of every required archive file
-// that is absent, in a stable order (empty when all are present).
+// missingRequiredFiles returns the display names of the absent required files.
 func missingRequiredFiles(filesFound map[string]types.FileFoundStruct) []string {
 	missing := make([]string, 0, len(requiredMapArchiveFiles))
 	for _, req := range requiredMapArchiveFiles {

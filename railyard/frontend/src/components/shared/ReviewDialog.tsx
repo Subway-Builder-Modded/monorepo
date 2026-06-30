@@ -53,7 +53,7 @@ export function ReviewDetailRow({
 
 // ReviewDialog is a paginated, multi-action confirmation dialog: a single
 // detail card the user can flip through, plus a flexible footer of 1–3 actions.
-// Used for both the launch incompatibility prompt and the import plan summary.
+// Shared by the launch incompatibility prompt and the import review.
 export function ReviewDialog({
   open,
   onOpenChange,

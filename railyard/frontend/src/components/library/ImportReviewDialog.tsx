@@ -2,9 +2,9 @@ import { ImageChip } from '@subway-builder-modded/asset-listings-ui';
 import { Check, CircleAlert, FileArchive, TriangleAlert } from 'lucide-react';
 
 import {
-  type ReviewDialogAction,
   ReviewDetailRow,
   ReviewDialog,
+  type ReviewDialogAction,
 } from '@/components/shared/ReviewDialog';
 
 import type { types } from '../../../wailsjs/go/models';
@@ -40,18 +40,18 @@ function ImportStatusBadge({ status }: { status: string }) {
   );
 }
 
-interface ImportPlanDialogProps {
+interface ImportReviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   // Every selected archive, in display order — new, conflict and invalid alike.
-  items: types.ImportArchiveInspection[];
+  items: types.ImportArchiveValidation[];
   onCancel: () => void;
   onImportNewOnly: () => void;
   onReplaceAll: () => void;
   loading?: boolean;
 }
 
-export function ImportPlanDialog({
+export function ImportReviewDialog({
   open,
   onOpenChange,
   items,
@@ -59,7 +59,7 @@ export function ImportPlanDialog({
   onImportNewOnly,
   onReplaceAll,
   loading,
-}: ImportPlanDialogProps) {
+}: ImportReviewDialogProps) {
   const newCount = items.filter((item) => item.status === 'new').length;
   const conflictCount = items.filter(
     (item) => item.status === 'conflict',
