@@ -524,7 +524,7 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 			getManifests:  s.Registry.GetMaps,
 			idFn:          func(m types.MapManifest) string { return m.ID },
 		},
-		profileID, targetSet, s.Registry.GetInstallableVersions, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, s.resolveLatestCompatibleInstallableVersion, updates, &pendingUpdates, &warnings,
 	)
 
 	latestAssetUpdates(
@@ -534,7 +534,7 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 			getManifests:  s.Registry.GetMods,
 			idFn:          func(m types.ModManifest) string { return m.ID },
 		},
-		profileID, targetSet, s.Registry.GetInstallableVersions, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, s.resolveLatestCompatibleInstallableVersion, updates, &pendingUpdates, &warnings,
 	)
 
 	return updates, pendingUpdates, warnings
@@ -551,7 +551,7 @@ func latestAssetUpdates[T any](
 	args latestSubscriptionArgs[T],
 	profileID string,
 	targetSet map[assetVersionKey]struct{},
-	getInstallableVersionsFn func(types.AssetType, string) ([]types.VersionInfo, error),
+	resolveLatestFn func(types.AssetType, string) (string, bool, error),
 	updates map[string]types.SubscriptionUpdateItem,
 	pendingUpdates *[]types.PendingSubscriptionUpdate,
 	errors *[]types.UserProfilesError,
@@ -575,7 +575,7 @@ func latestAssetUpdates[T any](
 			continue
 		}
 
-		latestVersion, resolveErr := resolveLatestInstallableVersion(args.assetType, assetID, getInstallableVersionsFn)
+		latestVersion, ok, resolveErr := resolveLatestFn(args.assetType, assetID)
 		if resolveErr != nil {
 			*errors = append(*errors, updateSubscriptionError(
 				profileID, assetID, args.assetType, types.ErrorLookupFailed,
@@ -583,8 +583,21 @@ func latestAssetUpdates[T any](
 			))
 			continue
 		}
+		// No compatible upgrade is available (game version undetected, or every
+		// installable version is incompatible).
+		if !ok {
+			continue
+		}
 
-		if strings.TrimSpace(currentVersion) != latestVersion {
+		isUpgrade, cmpErr := isSemverUpgrade(latestVersion, currentVersion)
+		if cmpErr != nil {
+			*errors = append(*errors, updateSubscriptionError(
+				profileID, assetID, args.assetType, types.ErrorLookupFailed,
+				fmt.Errorf("Failed to compare versions for %s %q: %w", args.assetType, assetID, cmpErr),
+			))
+			continue
+		}
+		if isUpgrade {
 			updates[assetID] = types.SubscriptionUpdateItem{
 				Type:    args.assetType,
 				Version: types.Version(latestVersion),
@@ -626,18 +639,84 @@ func shouldUpdate(targetSet map[assetVersionKey]struct{}, assetType types.AssetT
 	return ok
 }
 
-// resolveLatestInstallableVersion returns the latest integrity-complete version for the asset.
-// Resolving against the installable set rather than the raw upstream release list ensures auto-update (and other consumers of this function) never advance a subscription to a version the downloader would reject.
-func resolveLatestInstallableVersion(
+// resolveLatestCompatibleInstallableVersion returns the latest integrity-complete
+// version the current game version can install. ok is false — meaning "no update"
+// — when the game version is undetected or every installable version is
+// incompatible, so a subscription is never advanced to a version the downloader
+// would reject.
+func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 	assetType types.AssetType,
 	assetID string,
-	getInstallableVersionsFn func(types.AssetType, string) ([]types.VersionInfo, error),
-) (string, error) {
-	versions, err := getInstallableVersionsFn(assetType, assetID)
+) (string, bool, error) {
+	versions, err := s.Registry.GetInstallableVersions(assetType, assetID)
 	if err != nil {
-		return "", fmt.Errorf("Failed to resolve installable versions: %w", err)
+		return "", false, fmt.Errorf("Failed to resolve installable versions: %w", err)
 	}
-	return latestSemverVersion(versions)
+
+	// Hard rule: without a detected game version we cannot verify compatibility,
+	// so never advertise an update.
+	gameVersion, ok := s.detectedGameVersion()
+	if !ok {
+		return "", false, nil
+	}
+
+	compatible := filterGameCompatibleVersions(assetType, versions, gameVersion)
+	if len(compatible) == 0 {
+		return "", false, nil
+	}
+
+	latest, err := latestSemverVersion(compatible)
+	if err != nil {
+		return "", false, err
+	}
+	return latest, true, nil
+}
+
+// detectedGameVersion returns the parsed detected game version, or ok=false when
+// it cannot be determined.
+func (s *UserProfiles) detectedGameVersion() (*semver.Version, bool) {
+	if s.Downloader == nil || s.Downloader.GetGameVersion == nil {
+		return nil, false
+	}
+	return s.Downloader.GetGameVersion().DetectedVersion()
+}
+
+// filterGameCompatibleVersions keeps the versions the detected game version can
+// install: the game-version range, and for maps the buildings-index range, must
+// both be satisfied.
+func filterGameCompatibleVersions(assetType types.AssetType, versions []types.VersionInfo, gameVersion *semver.Version) []types.VersionInfo {
+	compatible := make([]types.VersionInfo, 0, len(versions))
+	for _, version := range versions {
+		if !gameVersionSatisfiesRange(gameVersion, version.GameVersion) {
+			continue
+		}
+		if assetType == types.AssetTypeMap && !gameVersionSatisfiesRange(gameVersion, version.MapBuildingsConstraint) {
+			continue
+		}
+		compatible = append(compatible, version)
+	}
+	return compatible
+}
+
+// gameVersionSatisfiesRange reports whether the game version satisfies a semver
+// range. An empty range imposes no requirement; an unparseable range is treated as
+// satisfied so a malformed constraint never hides an otherwise-valid update
+// (mirrors the frontend selectLatestCompatibleVersion).
+func gameVersionSatisfiesRange(gameVersion *semver.Version, rangeExpr string) bool {
+	rangeExpr = strings.TrimSpace(rangeExpr)
+	if rangeExpr == "" {
+		return true
+	}
+	constraint, err := semver.NewConstraint(strings.TrimPrefix(rangeExpr, "v"))
+	if err != nil {
+		return true
+	}
+	return constraint.Check(gameVersion)
+}
+
+// parseAssetSemver parses an asset version, tolerating an optional "v" prefix.
+func parseAssetSemver(version string) (*semver.Version, error) {
+	return semver.NewVersion(strings.TrimPrefix(strings.TrimSpace(version), "v"))
 }
 
 // latestSemverVersion returns the highest semver version from the provided list.
@@ -646,21 +725,13 @@ func latestSemverVersion(versions []types.VersionInfo) (string, error) {
 		return "", errors.New("No versions found")
 	}
 
-	// Assume Registry only contains valid semver versions and normalize with potential "v" prefix.
-	normalize := func(v string) string {
-		if strings.HasPrefix(v, "v") {
-			return v
-		}
-		return "v" + v
-	}
-
 	best := versions[0].Version
-	current, err := semver.NewVersion(strings.TrimPrefix(normalize(best), "v"))
+	current, err := parseAssetSemver(best)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse initial semver version %q: %w", best, err)
 	}
 	for _, version := range versions[1:] {
-		other, parseErr := semver.NewVersion(strings.TrimPrefix(normalize(version.Version), "v"))
+		other, parseErr := parseAssetSemver(version.Version)
 		if parseErr != nil {
 			return "", fmt.Errorf("failed to parse semver version %q: %w", version.Version, parseErr)
 		}
@@ -670,6 +741,19 @@ func latestSemverVersion(versions []types.VersionInfo) (string, error) {
 		}
 	}
 	return best, nil
+}
+
+// isSemverUpgrade reports whether candidate is a strictly newer semver than current.
+func isSemverUpgrade(candidate, current string) (bool, error) {
+	candidateVer, err := parseAssetSemver(candidate)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse candidate version %q: %w", candidate, err)
+	}
+	currentVer, err := parseAssetSemver(current)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse current version %q: %w", current, err)
+	}
+	return candidateVer.GreaterThan(currentVer), nil
 }
 
 // ===== Runtime Mutation Helpers ===== //
