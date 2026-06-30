@@ -608,10 +608,52 @@ export namespace types {
 	        this.valid = source["valid"];
 	    }
 	}
+	export class ImportArchiveValidation {
+	    path: string;
+	    name: string;
+	    code: string;
+	    version: string;
+	    status: string;
+	    conflict?: MapCodeConflict;
+	    error?: string;
+
+	    static createFrom(source: any = {}) {
+	        return new ImportArchiveValidation(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.path = source["path"];
+	        this.name = source["name"];
+	        this.code = source["code"];
+	        this.version = source["version"];
+	        this.status = source["status"];
+	        this.conflict = this.convertValues(source["conflict"], MapCodeConflict);
+	        this.error = source["error"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	export class ImportAssetDialogResponse {
 	    status: string;
 	    message: string;
-	    path: string;
+	    paths: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new ImportAssetDialogResponse(source);
@@ -621,7 +663,7 @@ export namespace types {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.status = source["status"];
 	        this.message = source["message"];
-	        this.path = source["path"];
+	        this.paths = source["paths"];
 	    }
 	}
 	export class ImportAssetRequest {
@@ -641,6 +683,40 @@ export namespace types {
 	        this.zipPath = source["zipPath"];
 	        this.replaceOnConflict = source["replaceOnConflict"];
 	    }
+	}
+	export class ImportValidationResponse {
+	    status: string;
+	    message: string;
+	    validations: ImportArchiveValidation[];
+
+	    static createFrom(source: any = {}) {
+	        return new ImportValidationResponse(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.message = source["message"];
+	        this.validations = this.convertValues(source["validations"], ImportArchiveValidation);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	
 	export class ModInstallOptions {

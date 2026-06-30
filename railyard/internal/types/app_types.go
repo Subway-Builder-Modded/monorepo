@@ -49,7 +49,32 @@ type SandboxStatusResponse struct {
 
 type ImportAssetDialogResponse struct {
 	GenericResponse
-	Path string `json:"path"`
+	// Paths holds every selected archive; a single import is just a one-element list.
+	Paths []string `json:"paths"`
+}
+
+type ImportValidationStatus string
+
+const (
+	ImportValidationNew      ImportValidationStatus = "new"
+	ImportValidationConflict ImportValidationStatus = "conflict"
+	ImportValidationInvalid  ImportValidationStatus = "invalid"
+)
+
+// ImportArchiveValidation is the pre-flight validation record for a single map archive.
+type ImportArchiveValidation struct {
+	Path     string                 `json:"path"`
+	Name     string                 `json:"name"`
+	Code     string                 `json:"code"`
+	Version  string                 `json:"version"`
+	Status   ImportValidationStatus `json:"status"`
+	Conflict *MapCodeConflict       `json:"conflict,omitempty"`
+	Error    string                 `json:"error,omitempty"`
+}
+
+type ImportValidationResponse struct {
+	GenericResponse
+	Validations []ImportArchiveValidation `json:"validations"`
 }
 
 type GameRunningResponse struct {

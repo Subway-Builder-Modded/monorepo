@@ -33,11 +33,12 @@ import {
 } from '@subway-builder-modded/shared-ui';
 import { PageHeading } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
-import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
+import { FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 
+import { ImportReviewDialog } from '@/components/library/ImportReviewDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
 import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterSection';
@@ -56,16 +57,16 @@ import {
 } from '@/lib/subscription-updates';
 import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { useBrowseStore } from '@/stores/browse-store';
-import {
-  AssetConflictError,
-  InvalidMapCodeError,
-  useInstalledStore,
-} from '@/stores/installed-store';
+import { useDownloadQueueStore } from '@/stores/download-queue-store';
+import { useInstalledStore } from '@/stores/installed-store';
 import { useLibraryStore } from '@/stores/library-store';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
-import { OpenImportAssetDialog } from '../../wailsjs/go/main/App';
+import {
+  OpenImportAssetDialog,
+  ValidateImportedMapArchives,
+} from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 
 function localManifestBase(
@@ -143,14 +144,8 @@ function localModManifestFromInstalled(
   } as unknown as types.ModManifest;
 }
 
-function conflictSourceLabel(conflict: types.MapCodeConflict): string {
-  if (conflict.existingAssetId?.startsWith('vanilla:')) return 'Vanilla';
-  return conflict.existingIsLocal ? 'Local' : 'Registry';
-}
-
 const INSTALL_ACCENT = getLocalAccentClasses('install');
 const IMPORT_ACCENT = getLocalAccentClasses('import');
-const FILES_ACCENT = getLocalAccentClasses('files');
 
 export function LibraryPage() {
   const [, navigate] = useLocation();
@@ -160,12 +155,11 @@ export function LibraryPage() {
   const setSidebarOpen = useUIStore((s) => s.setLibrarySidebarOpen);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
-  const [importSelectedPath, setImportSelectedPath] = useState('');
-  const [importConflict, setImportConflict] =
-    useState<types.MapCodeConflict | null>(null);
-  const [importInvalidCode, setImportInvalidCode] = useState<string | null>(
-    null,
-  );
+  // Pre-flight import review: every validated archive (new / conflict / invalid)
+  // the user reviews before choosing a single policy for the whole set.
+  const [importReview, setImportReview] = useState<
+    types.ImportArchiveValidation[] | null
+  >(null);
   const [pendingUpdatesByKey, setPendingUpdatesByKey] =
     useState<PendingUpdatesByKey>({});
 
@@ -352,34 +346,74 @@ export function LibraryPage() {
     [installedMapItems, installedModItems],
   );
 
-  const runImport = async (zipPath: string, replaceOnConflict: boolean) => {
+  const summarizeImport = (s: {
+    imported: number;
+    failed: number;
+    total: number;
+    lockAborted: boolean;
+  }) => {
+    if (s.lockAborted) return; // lock-error toast already shown
+    if (s.total === 1) {
+      if (s.imported) toast.success('Map imported successfully.');
+      else if (s.failed) toast.error('Failed to import map.');
+      return;
+    }
+    const parts: string[] = [];
+    if (s.imported) parts.push(`${s.imported} imported`);
+    if (s.failed) parts.push(`${s.failed} failed`);
+    const summary = parts.join(', ');
+    if (s.failed) toast.error(`Import finished: ${summary}.`);
+    else toast.success(`${s.imported} maps imported.`);
+  };
+
+  // Imports each archive with its pre-resolved replace flag. Conflicts and
+  // invalid archives are decided up front, so the loop just runs jobs in order;
+  // the backend serializes the work and the queue counter drives the same "n/N"
+  // progress indicator installs use.
+  const runImportBatch = async (
+    jobs: Array<{ path: string; replace: boolean }>,
+  ) => {
+    if (jobs.length === 0) return;
+    const queue = useDownloadQueueStore.getState();
+    jobs.forEach(() => queue.enqueue());
+
+    let imported = 0;
+    let failed = 0;
+    let processed = 0;
+    let lockAborted = false;
+
+    for (const job of jobs) {
+      try {
+        await importMapFromZip(job.path, job.replace);
+        imported++;
+      } catch (err) {
+        if (handleSubscriptionMutationError(err, () => {})) {
+          lockAborted = true; // game running — the rest will fail too
+        } else {
+          failed++;
+        }
+      }
+      queue.complete();
+      processed++;
+      if (lockAborted) break;
+    }
+
+    // Clear the counter for any jobs the lock-abort skipped.
+    for (let k = processed; k < jobs.length; k++) queue.complete();
+
+    void updateInstalledLists();
+    void refreshPendingSubscriptionUpdates();
+    summarizeImport({ imported, failed, total: jobs.length, lockAborted });
+  };
+
+  const executeImport = async (
+    jobs: Array<{ path: string; replace: boolean }>,
+  ) => {
+    setImportReview(null);
+    if (jobs.length === 0) return;
     setImportLoading(true);
     try {
-      const result = await importMapFromZip(zipPath, replaceOnConflict);
-      if (result.status === 'warn') {
-        toast.warning(result.message || 'Map imported with warnings.');
-      } else {
-        toast.success(result.message || 'Map imported successfully.');
-      }
-      void updateInstalledLists();
-      void refreshPendingSubscriptionUpdates();
-      setImportConflict(null);
-      setImportSelectedPath('');
-      setImportDialogOpen(false);
-    } catch (err) {
-      if (err instanceof AssetConflictError && err.conflicts.length > 0) {
-        setImportConflict(err.conflicts[0]);
-        return;
-      }
-      if (err instanceof InvalidMapCodeError) {
-        setImportInvalidCode(err.message);
-        return;
-      }
-      if (handleSubscriptionMutationError(err, () => {})) {
-        return;
-      }
-      setImportSelectedPath('');
-      toast.error('Failed to import map.');
+      await runImportBatch(jobs);
     } finally {
       setImportLoading(false);
     }
@@ -388,20 +422,31 @@ export function LibraryPage() {
   const handlePickArchive = async () => {
     if (importLoading) return;
     setImportLoading(true);
+    let validations: types.ImportArchiveValidation[] | null = null;
     try {
       const selection = await OpenImportAssetDialog('map');
       if (selection.status === 'error') {
-        toast.error('Failed to import map.');
+        toast.error('Failed to open import dialog.');
         return;
       }
-      if (selection.status === 'warn' || !selection.path?.trim()) {
+      const paths = selection.paths ?? [];
+      if (selection.status === 'warn' || paths.length === 0) return;
+      setImportDialogOpen(false);
+
+      const validationResp = await ValidateImportedMapArchives(paths);
+      if (validationResp.status !== 'success') {
+        toast.error('Failed to validate map archives.');
         return;
       }
-      setImportSelectedPath(selection.path);
-      await runImport(selection.path, false);
+      validations = validationResp.validations ?? [];
     } finally {
       setImportLoading(false);
     }
+    if (!validations || validations.length === 0) return;
+
+    // Always review before importing — even an all-new set so the user can
+    // confirm the count and policy.
+    setImportReview(validations);
   };
 
   const handleSidebarFiltersChange = useCallback(
@@ -540,7 +585,7 @@ export function LibraryPage() {
             disabled={mutationLocked}
           >
             <Inbox className="h-4 w-4" />
-            Import Asset
+            Import Assets
           </Button>
         </div>
 
@@ -640,11 +685,11 @@ export function LibraryPage() {
         onOpenChange={setImportDialogOpen}
         title="Import"
         icon={FileArchive}
-        description="Import a local map ZIP into your Library. Local assets are tracked separately from registry assets."
+        description="Import one or more local map ZIPs into your Library. Select multiple archives to queue them together. Local assets are tracked separately from registry assets."
         tone="import"
         confirm={withLockAwareConfirm(
           {
-            label: 'Choose ZIP',
+            label: 'Choose ZIPs',
             cancelLabel: 'Close',
             onConfirm: handlePickArchive,
             loading: importLoading,
@@ -663,62 +708,34 @@ export function LibraryPage() {
         </div>
       </AppDialog>
 
-      {importConflict && (
-        <AppDialog
-          open={!!importConflict}
+      {importReview && (
+        <ImportReviewDialog
+          open={!!importReview}
           onOpenChange={(value) => {
-            if (!value) setImportConflict(null);
+            if (!value) setImportReview(null);
           }}
-          title="Replace Conflicting Map"
-          icon={AlertTriangle}
-          description="This local import conflicts with an existing map. Replace the existing map to continue."
-          tone="files"
-          confirm={withLockAwareConfirm(
-            {
-              label: 'Replace',
-              onConfirm: () => {
-                if (!importSelectedPath) return;
-                void runImport(importSelectedPath, true);
-              },
-              loading: importLoading,
-            },
-            mutationLocked,
-            mutationLockedReason,
-          )}
-        >
-          <div
-            className={cn(
-              FILES_ACCENT.dialogPanel,
-              'rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground',
-            )}
-          >
-            <p className="font-medium text-foreground">
-              Conflicting City Code: {importConflict.cityCode}
-            </p>
-            <p className="mt-1">
-              Existing Asset: {importConflict.existingAssetId} (
-              {conflictSourceLabel(importConflict)})
-            </p>
-            {importConflict.existingVersion ? (
-              <p className="mt-1">
-                Existing Version: {importConflict.existingVersion}
-              </p>
-            ) : null}
-          </div>
-        </AppDialog>
-      )}
-
-      {importInvalidCode && (
-        <AppDialog
-          open={!!importInvalidCode}
-          onOpenChange={(value) => {
-            if (!value) setImportInvalidCode(null);
-          }}
-          title="Invalid Local Map Code"
-          icon={AlertTriangle}
-          description={`${importInvalidCode} Local map codes must be 2-4 uppercase letters (e.g. "AAA").`}
-          tone="files"
-          confirm={{ label: 'OK', onConfirm: () => setImportInvalidCode(null) }}
+          items={importReview}
+          loading={importLoading}
+          onCancel={() => setImportReview(null)}
+          onImportNewOnly={() =>
+            executeImport(
+              importReview
+                .filter((item) => item.status === 'new')
+                .map((item) => ({ path: item.path, replace: false })),
+            )
+          }
+          onReplaceAll={() =>
+            executeImport(
+              importReview
+                .filter(
+                  (item) => item.status === 'new' || item.status === 'conflict',
+                )
+                .map((item) => ({
+                  path: item.path,
+                  replace: item.status === 'conflict',
+                })),
+            )
+          }
         />
       )}
     </>

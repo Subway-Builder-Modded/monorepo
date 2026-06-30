@@ -49,9 +49,9 @@ func OpenInFileExplorer(targetPath string) types.GenericResponse {
 	return types.SuccessResponse("opened in file explorer")
 }
 
-func OpenImportAssetArchive(ctx context.Context) (string, error) {
-	return wruntime.OpenFileDialog(ctx, wruntime.OpenDialogOptions{
-		Title: "Import Map Archive",
+func OpenImportAssetArchives(ctx context.Context) ([]string, error) {
+	return wruntime.OpenMultipleFilesDialog(ctx, wruntime.OpenDialogOptions{
+		Title: "Import Map Archives",
 		Filters: []wruntime.FileFilter{
 			{
 				DisplayName: "ZIP Archives",
@@ -62,21 +62,19 @@ func OpenImportAssetArchive(ctx context.Context) (string, error) {
 }
 
 func OpenImportAssetDialog(ctx context.Context, assetType types.AssetType) types.ImportAssetDialogResponse {
-	selectedPath, err := OpenImportAssetArchive(ctx)
+	selectedPaths, err := OpenImportAssetArchives(ctx)
 	if err != nil {
 		return types.ImportAssetDialogResponse{
 			GenericResponse: types.ErrorResponse(fmt.Sprintf("Failed to open import dialog: %v", err)),
-			Path:            "",
 		}
 	}
-	if selectedPath == "" {
+	if len(selectedPaths) == 0 {
 		return types.ImportAssetDialogResponse{
 			GenericResponse: types.WarnResponse("Import cancelled"),
-			Path:            "",
 		}
 	}
 	return types.ImportAssetDialogResponse{
 		GenericResponse: types.SuccessResponse("Asset archive selected"),
-		Path:            selectedPath,
+		Paths:           selectedPaths,
 	}
 }

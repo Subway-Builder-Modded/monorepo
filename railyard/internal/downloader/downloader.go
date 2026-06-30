@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -707,6 +708,36 @@ func (d *Downloader) ImportAsset(assetType types.AssetType, zipPath string, repl
 		return operationResult{assetInstallResponse: d.importMapNow(zipPath, replaceOnConflict)}
 	}, d.supersededOperationResult(operationActionInstall, assetType, zipPath, "import"), nil)
 	return result.assetInstallResponse
+}
+
+// ValidateImportedMapArchive classifies an archive as new, conflicting, or
+// invalid for import without touching disk or mutating state.
+func (d *Downloader) ValidateImportedMapArchive(zipPath string) types.ImportArchiveValidation {
+	validation := types.ImportArchiveValidation{Path: zipPath}
+
+	// Any validation failure leaves no trustworthy config to read a name from,
+	// so identify the entry by its filename.
+	configData, _, err := files.ValidateMapArchive(zipPath)
+	if err != nil {
+		validation.Status = types.ImportValidationInvalid
+		validation.Name = filepath.Base(zipPath)
+		validation.Error = err.Error()
+		return validation
+	}
+
+	validation.Name = configData.Name
+	validation.Code = configData.Code
+	validation.Version = strings.TrimSpace(configData.Version)
+
+	// A code collision means importing would replace an installed or vanilla map.
+	if conflict, hasConflict := d.FindMapCodeConflict(configData.Code, configData.Code, false); hasConflict {
+		validation.Status = types.ImportValidationConflict
+		validation.Conflict = conflict
+		return validation
+	}
+
+	validation.Status = types.ImportValidationNew
+	return validation
 }
 
 func (d *Downloader) importMapNow(zipPath string, replaceOnConflict bool) types.AssetInstallResponse {
