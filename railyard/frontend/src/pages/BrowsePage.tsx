@@ -55,8 +55,8 @@ import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterS
 import { ItemCard } from '@/components/shared/ItemCard';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
-import { useGameVersion } from '@/hooks/use-game-version';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
+import { useGameVersion } from '@/hooks/use-game-version';
 import { selectLatestCompatibleVersion } from '@/lib/version-compatibility';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -207,7 +207,9 @@ function BrowsePageContent({
     let cancelled = false;
     if (!gameVersion) {
       setIncompatibleItemKeys(new Set());
-      return () => { cancelled = true; };
+      return () => {
+        cancelled = true;
+      };
     }
     const assetRefs = [
       ...mods.map((item) => ({ type: 'mod' as const, id: item.id })),
@@ -218,7 +220,11 @@ function BrowsePageContent({
         try {
           const response = await GetInstallableVersionsResponse(type, id);
           if (response.status !== 'success') return null;
-          return isGameVersionIncompatible(type, response.versions ?? [], gameVersion)
+          return isGameVersionIncompatible(
+            type,
+            response.versions ?? [],
+            gameVersion,
+          )
             ? `${type}:${id}`
             : null;
         } catch {
@@ -232,8 +238,12 @@ function BrowsePageContent({
             new Set(keys.filter((k): k is string => k !== null)),
           );
       })
-      .catch(() => { if (!cancelled) setIncompatibleItemKeys(new Set()); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setIncompatibleItemKeys(new Set());
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [gameVersion, maps, mods]);
 
   const {
@@ -246,7 +256,13 @@ function BrowsePageContent({
     setType,
     setPage,
     dimCounts: filteredDimCounts,
-  } = useFilteredItems({ mods, maps, modDownloadTotals, mapDownloadTotals, incompatibleItemKeys });
+  } = useFilteredItems({
+    mods,
+    maps,
+    modDownloadTotals,
+    mapDownloadTotals,
+    incompatibleItemKeys,
+  });
 
   const statusCounts = useMemo(() => {
     const typedItems = filters.type === 'mod' ? mods : maps;
@@ -484,7 +500,9 @@ function BrowsePageContent({
                 installedVersion={installedVersionByItemKey.get(
                   `${itemType}-${item.id}`,
                 )}
-                incompatible={incompatibleItemKeys.has(`${itemType}:${item.id}`)}
+                incompatible={incompatibleItemKeys.has(
+                  `${itemType}:${item.id}`,
+                )}
                 test={item.is_test === true}
                 totalDownloads={
                   itemType === 'mod'

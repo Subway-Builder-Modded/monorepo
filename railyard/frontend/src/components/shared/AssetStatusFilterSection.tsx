@@ -41,7 +41,8 @@ const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
     activeText: 'text-[var(--action-success)]',
     activeBg: 'bg-[color-mix(in_oklab,var(--action-success)_12%,transparent)]',
     activePill: 'bg-[var(--action-success)]',
-    hoverBg: 'group-hover:bg-[color-mix(in_oklab,var(--action-success)_10%,transparent)]',
+    hoverBg:
+      'group-hover:bg-[color-mix(in_oklab,var(--action-success)_10%,transparent)]',
     hoverText: 'group-hover:text-[var(--action-success)]',
   },
   test: {
