@@ -25,6 +25,7 @@ interface UseFilteredItemsParams {
   maps: types.MapManifest[];
   modDownloadTotals: Record<string, number>;
   mapDownloadTotals: Record<string, number>;
+  incompatibleItemKeys?: ReadonlySet<string>;
 }
 
 export interface TaggedItemFilterState {
@@ -44,6 +45,7 @@ export function useFilteredItems({
   maps,
   modDownloadTotals,
   mapDownloadTotals,
+  incompatibleItemKeys,
 }: UseFilteredItemsParams) {
   const defaultPerPage = useProfileStore((s) => s.defaultPerPage)() as PerPage;
   const filters = useBrowseStore((s) => s.filters);
@@ -51,13 +53,28 @@ export function useFilteredItems({
   const setType = useBrowseStore((s) => s.setType);
   const page = useBrowseStore((s) => s.page);
   const setPage = useBrowseStore((s) => s.setPage);
+  const statusFilters = useBrowseStore((s) => s.statusFilters);
 
   usePaginationSync({ defaultPerPage, filters, setFilters, setPage });
 
-  const allItems = useMemo<TaggedItem[]>(
+  const registryItems = useMemo<TaggedItem[]>(
     () => buildTaggedItems(mods, maps),
     [mods, maps],
   );
+
+  const allItems = useMemo(() => {
+    if (statusFilters.length === 0) return registryItems;
+    return registryItems.filter((entry) => {
+      const key = `${entry.type}:${entry.item.id}`;
+      const isIncompatible = incompatibleItemKeys?.has(key) ?? false;
+      for (const sf of statusFilters) {
+        if (sf === 'compatible' && !isIncompatible) return true;
+        if (sf === 'incompatible' && isIncompatible) return true;
+        if (sf === 'test' && entry.item.is_test === true) return true;
+      }
+      return false;
+    });
+  }, [incompatibleItemKeys, registryItems, statusFilters]);
   const accessors = useMemo(
     () => createTaggedListingAccessors<TaggedItem>(),
     [],

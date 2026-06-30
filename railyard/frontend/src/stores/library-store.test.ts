@@ -157,6 +157,17 @@ describe('useLibraryStore statusFilters', () => {
     useLibraryStore.getState().clearStatusFilters();
     expect(useLibraryStore.getState().statusFilters).toEqual([]);
   });
+
+  it('compatible is a valid filter value', () => {
+    useLibraryStore.getState().toggleStatusFilter('compatible');
+    expect(useLibraryStore.getState().statusFilters).toEqual(['compatible']);
+  });
+
+  it('resets to empty when switching type', () => {
+    useLibraryStore.setState({ statusFilters: ['incompatible', 'local'] });
+    useLibraryStore.getState().setType('map');
+    expect(useLibraryStore.getState().statusFilters).toEqual([]);
+  });
 });
 
 describe('useLibraryStore setPage', () => {

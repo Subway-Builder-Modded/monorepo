@@ -13,6 +13,7 @@ import { Link } from 'wouter';
 import { getCountryFlagIcon } from '@/lib/flags';
 
 import type { types } from '../../../wailsjs/go/models';
+import { IncompatibleBadge, TestBadge } from './AssetStatusBadges';
 import { AuthorName } from './AuthorName';
 import { GalleryImage } from './GalleryImage';
 
@@ -21,6 +22,8 @@ interface ItemCardWrapperProps {
   item: types.ModManifest | types.MapManifest;
   installedVersion?: string;
   totalDownloads?: number;
+  incompatible?: boolean;
+  test?: boolean;
   viewMode?: 'full' | 'compact' | 'list';
   descriptionMode?: 'raw' | 'preview';
 }
@@ -36,6 +39,8 @@ export function ItemCard({
   item,
   installedVersion,
   totalDownloads,
+  incompatible = false,
+  test = false,
   viewMode = 'full',
   descriptionMode = 'raw',
 }: ItemCardWrapperProps) {
@@ -74,6 +79,14 @@ export function ItemCard({
       population={mapItem?.population}
       installedVersion={installedVersion}
       totalDownloads={totalDownloads}
+      topLeftBadge={
+        incompatible || test ? (
+          <span className="inline-flex items-center gap-1">
+            {test && <TestBadge />}
+            {incompatible && <IncompatibleBadge />}
+          </span>
+        ) : undefined
+      }
       viewMode={viewMode}
       href={`/project/${assetTypeToListingPath(type)}/${item.id}`}
       imagePath={item.gallery?.[0]}

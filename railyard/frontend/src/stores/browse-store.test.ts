@@ -121,6 +121,39 @@ describe('useBrowseStore per-asset-type state', () => {
   });
 });
 
+describe('useBrowseStore status filters', () => {
+  beforeEach(() => {
+    useBrowseStore.setState({ statusFilters: [] });
+  });
+
+  it('defaults to empty (no filter active = show all)', () => {
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
+  });
+
+  it('toggleStatusFilter adds a filter when not present', () => {
+    useBrowseStore.getState().toggleStatusFilter('incompatible');
+    expect(useBrowseStore.getState().statusFilters).toEqual(['incompatible']);
+  });
+
+  it('toggleStatusFilter removes a filter when already present', () => {
+    useBrowseStore.setState({ statusFilters: ['incompatible', 'test'] });
+    useBrowseStore.getState().toggleStatusFilter('incompatible');
+    expect(useBrowseStore.getState().statusFilters).toEqual(['test']);
+  });
+
+  it('clearStatusFilters empties the list', () => {
+    useBrowseStore.setState({ statusFilters: ['compatible', 'test'] });
+    useBrowseStore.getState().clearStatusFilters();
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
+  });
+
+  it('resets to empty when switching type', () => {
+    useBrowseStore.setState({ statusFilters: ['incompatible'] });
+    useBrowseStore.getState().setType('mod');
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
+  });
+});
+
 describe('useBrowseStore view mode', () => {
   beforeEach(() => {
     useBrowseStore.setState({

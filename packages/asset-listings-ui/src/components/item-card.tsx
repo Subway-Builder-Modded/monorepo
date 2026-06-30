@@ -5,8 +5,25 @@ import { memo, type ReactNode, useLayoutEffect, useMemo, useRef, useState } from
 import { cn } from '@subway-builder-modded/shared-ui';
 import type { GalleryAssetType, SearchViewMode } from '../types';
 
-const TYPE_PILL_CLASS =
-  'inline-flex items-center gap-1 bg-background/80 backdrop-blur-sm border border-border/50 text-foreground text-xs font-medium px-2 py-0.5 rounded-full';
+export function ImageChip({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        'inline-flex h-5 shrink-0 items-center gap-1 rounded-full border px-2 text-xs font-medium',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 const CARD_IMAGE_CLASS =
   'h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]';
 const CARD_TITLE_CLASS =
@@ -34,6 +51,7 @@ export interface ItemCardProps<T = { author_alias: string; contributor_tier?: st
   population?: number;
   installedVersion?: string;
   totalDownloads?: number;
+  topLeftBadge?: ReactNode;
   viewMode?: SearchViewMode;
   imagePath?: string;
   href?: string;
@@ -363,6 +381,7 @@ export const ItemCard = memo(function ItemCard({
   population,
   installedVersion,
   totalDownloads,
+  topLeftBadge,
   viewMode = 'full',
   imagePath,
   href,
@@ -426,17 +445,19 @@ export const ItemCard = memo(function ItemCard({
             <div className="relative h-44 sm:h-36 sm:w-48 md:w-52 overflow-hidden bg-muted shrink-0">
               {installedVersion && (
                 <div className="absolute top-2 right-2 z-10">
-                  <Badge variant="success" className="gap-1 text-xs shadow-sm">
+                  <Badge variant="success" className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm">
                     <CheckCircle className="h-2.5 w-2.5" />
                     {installedVersion}
                   </Badge>
                 </div>
               )}
               <div className="absolute top-2 left-2 z-10">
-                <span className={TYPE_PILL_CLASS}>
-                  <TypeIcon type={type} />
-                  <TypeLabel type={type} />
-                </span>
+                {topLeftBadge ?? (
+                  <ImageChip className="border-border/50 bg-background/80 text-foreground backdrop-blur-sm">
+                    <TypeIcon type={type} />
+                    <TypeLabel type={type} />
+                  </ImageChip>
+                )}
               </div>
               {imageNode}
             </div>
@@ -500,17 +521,19 @@ export const ItemCard = memo(function ItemCard({
           <div className="relative aspect-[16/10] overflow-hidden bg-muted shrink-0">
             {installedVersion && (
               <div className="absolute top-2 right-2 z-10">
-                <Badge variant="success" className="gap-1 text-[11px] h-5 px-1.5 shadow-sm">
+                <Badge variant="success" className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm">
                   <CheckCircle className="h-2.5 w-2.5" />
                   {installedVersion}
                 </Badge>
               </div>
             )}
             <div className="absolute top-2 left-2 z-10">
-              <span className={TYPE_PILL_CLASS}>
-                <TypeIcon type={type} />
-                <TypeLabel type={type} />
-              </span>
+              {topLeftBadge ?? (
+                <ImageChip className="border-border/50 bg-background/80 text-foreground backdrop-blur-sm">
+                  <TypeIcon type={type} />
+                  <TypeLabel type={type} />
+                </ImageChip>
+              )}
             </div>
             {imageNode}
           </div>
@@ -577,17 +600,19 @@ export const ItemCard = memo(function ItemCard({
         <div className="relative aspect-video overflow-hidden bg-muted shrink-0">
           {installedVersion && (
             <div className="absolute top-2 right-2 z-10">
-              <Badge variant="success" className="gap-1 text-xs shadow-sm">
+              <Badge variant="success" className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm">
                 <CheckCircle className="h-2.5 w-2.5" />
                 {installedVersion}
               </Badge>
             </div>
           )}
           <div className="absolute top-2 left-2 z-10">
-            <span className={TYPE_PILL_CLASS}>
-              <TypeIcon type={type} />
-              <TypeLabel type={type} />
-            </span>
+            {topLeftBadge ?? (
+              <ImageChip className="border-border/50 bg-background/80 text-foreground backdrop-blur-sm">
+                <TypeIcon type={type} />
+                <TypeLabel type={type} />
+              </ImageChip>
+            )}
           </div>
           {imageNode}
         </div>

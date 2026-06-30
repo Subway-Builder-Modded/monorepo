@@ -62,8 +62,19 @@ function matchesStatusFilter(
   if (sf === 'local') return item.isLocal;
   if (sf === 'incompatible')
     return isInstalledCompatible(gameVersion, item.constraints ?? []) === false;
+  if (sf === 'compatible')
+    return isInstalledCompatible(gameVersion, item.constraints ?? []) !== false;
   if (sf === 'test') return !item.isLocal && item.item.is_test === true;
   return false;
+}
+
+export function isInstalledItemVisibleByStatus(
+  item: InstalledTaggedItem,
+  statusFilters: readonly StatusFilter[],
+  gameVersion: string,
+): boolean {
+  if (statusFilters.length === 0) return true;
+  return statusFilters.some((sf) => matchesStatusFilter(item, sf, gameVersion));
 }
 
 export function useFilteredInstalledItems({
@@ -115,8 +126,10 @@ export function useFilteredInstalledItems({
     // Status filter — applied post-process since it depends on runtime game version
     if (statusFilters.length > 0) {
       result = result.filter((item) =>
-        statusFilters.some((sf) =>
-          matchesStatusFilter(item as InstalledTaggedItem, sf, gameVersion),
+        isInstalledItemVisibleByStatus(
+          item as InstalledTaggedItem,
+          statusFilters,
+          gameVersion,
         ),
       );
     }

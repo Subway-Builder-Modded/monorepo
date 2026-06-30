@@ -3,8 +3,6 @@ import {
   AssetSidebarPanel,
   EmptyState,
   ErrorBanner,
-  FILTER_COUNT_BADGE_CLASS,
-  FILTER_SECTION_TITLE_CLASS,
   Pagination,
   ResultsSummary,
   SearchBar,
@@ -34,24 +32,15 @@ import {
   SelectValue,
 } from '@subway-builder-modded/shared-ui';
 import { PageHeading } from '@subway-builder-modded/shared-ui';
-import { Separator } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
-import {
-  AlertTriangle,
-  CircleAlert,
-  FileArchive,
-  FlaskConical,
-  HardDrive,
-  Inbox,
-  Plus,
-  SearchX,
-} from 'lucide-react';
+import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
+import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterSection';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
 import { useGameVersion } from '@/hooks/use-game-version';
@@ -315,15 +304,17 @@ export function LibraryPage() {
   const statusCounts = useMemo(() => {
     let local = 0,
       incompatible = 0,
-      test = 0;
+      test = 0,
+      compatible = 0;
     for (const item of installedItems) {
       if (item.type !== filters.type) continue;
       if (item.isLocal) local++;
       if (!item.isLocal && item.item.is_test === true) test++;
       if (isInstalledCompatible(gameVersion, item.constraints ?? []) === false)
         incompatible++;
+      else compatible++;
     }
-    return { local, incompatible, test };
+    return { local, incompatible, test, compatible };
   }, [installedItems, filters.type, gameVersion]);
 
   const handleInstallBrowse = useCallback(() => {
@@ -490,123 +481,11 @@ export function LibraryPage() {
           emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           minimumVisibleOptions={2}
           statusContent={
-            <>
-              <Separator />
-              <div>
-                <p
-                  className={cn(FILTER_SECTION_TITLE_CLASS, 'mb-1 px-1 py-1.5')}
-                >
-                  Asset Status
-                </p>
-                <nav className="space-y-0.5" aria-label="Asset status filter">
-                  {[
-                    {
-                      key: 'test' as const,
-                      label: 'Test',
-                      Icon: FlaskConical,
-                      iconColor: 'text-(--update-primary)',
-                      activeText: 'text-(--update-primary)',
-                      activeBg:
-                        'bg-[color-mix(in_srgb,var(--update-primary)_12%,transparent)]',
-                      activePill: 'bg-[var(--update-primary)]',
-                      hoverBg:
-                        'group-hover:bg-[color-mix(in_srgb,var(--update-primary)_10%,transparent)]',
-                      hoverText: 'group-hover:text-(--update-primary)',
-                      count: statusCounts.test,
-                    },
-                    {
-                      key: 'local' as const,
-                      label: 'Local',
-                      Icon: HardDrive,
-                      iconColor: 'text-amber-500',
-                      activeText: 'text-amber-600 dark:text-amber-400',
-                      activeBg: 'bg-amber-500/10',
-                      activePill: 'bg-amber-500',
-                      hoverBg: 'group-hover:bg-amber-500/10',
-                      hoverText:
-                        'group-hover:text-amber-600 dark:group-hover:text-amber-400',
-                      count: statusCounts.local,
-                    },
-                    {
-                      key: 'incompatible' as const,
-                      label: 'Incompatible',
-                      Icon: CircleAlert,
-                      iconColor: 'text-red-500',
-                      activeText: 'text-red-600 dark:text-red-400',
-                      activeBg: 'bg-red-500/10',
-                      activePill: 'bg-red-500',
-                      hoverBg: 'group-hover:bg-red-500/10',
-                      hoverText:
-                        'group-hover:text-red-600 dark:group-hover:text-red-400',
-                      count: statusCounts.incompatible,
-                    },
-                  ]
-                    .filter(
-                      ({ key, count }) =>
-                        count > 0 || statusFilters.includes(key),
-                    )
-                    .map(
-                      ({
-                        key,
-                        label,
-                        Icon,
-                        iconColor,
-                        activeText,
-                        activeBg,
-                        activePill,
-                        hoverBg,
-                        hoverText,
-                        count,
-                      }) => {
-                        const active = statusFilters.includes(key);
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => toggleStatusFilter(key)}
-                            aria-pressed={active}
-                            className="group relative w-full text-left"
-                          >
-                            <span
-                              className={cn(
-                                'mr-0.5 flex items-center gap-2 rounded-lg px-2',
-                                'py-[clamp(0.38rem,0.8vw,0.52rem)]',
-                                'text-[clamp(0.78rem,0.9vw,0.86rem)] font-semibold',
-                                'transition-all duration-150',
-                                active
-                                  ? `${activeBg} ${activeText}`
-                                  : `text-muted-foreground ${hoverBg} ${hoverText}`,
-                              )}
-                            >
-                              <Icon
-                                className={cn(
-                                  'h-3.5 w-3.5 shrink-0 transition-colors',
-                                  iconColor,
-                                )}
-                              />
-                              <span className="flex-1">{label}</span>
-                              {count > 0 && (
-                                <span className={FILTER_COUNT_BADGE_CLASS}>
-                                  {count}
-                                </span>
-                              )}
-                            </span>
-                            {active && (
-                              <span
-                                aria-hidden
-                                className={cn(
-                                  'absolute right-0 top-0 h-full w-1.25 rounded-full',
-                                  activePill,
-                                )}
-                              />
-                            )}
-                          </button>
-                        );
-                      },
-                    )}
-                </nav>
-              </div>
-            </>
+            <AssetStatusFilterSection
+              activeFilters={statusFilters}
+              counts={statusCounts}
+              onToggle={toggleStatusFilter}
+            />
           }
         />
       </AssetSidebarPanel>
