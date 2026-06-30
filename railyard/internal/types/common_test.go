@@ -79,6 +79,21 @@ func TestDescribeConstraint(t *testing.T) {
 		DescribeConstraint(InstalledConstraint{Type: ConstraintTypeManifest, Range: ">=1.0.0 <2.0.0"}, "0.9.0"))
 }
 
+func TestDescribeIncompatibility(t *testing.T) {
+	gameVersion := semver.MustParse("1.2.0")
+	constraints := []InstalledConstraint{
+		{Type: ConstraintTypeManifest, Range: ">=1.3.0"},
+		{Type: ConstraintTypeBuildingsIndex, Range: ">1.3.0"},
+	}
+	// Buildings-index first, joined under the shared base sentence.
+	require.Equal(t,
+		IncompatibleGameVersionMessage+". Buildings format: needs newer than 1.3.0 (you have 1.2.0); Game version: needs 1.3.0 or newer (you have 1.2.0)",
+		DescribeIncompatibility(gameVersion, constraints))
+
+	// Empty when fully compatible.
+	require.Equal(t, "", DescribeIncompatibility(semver.MustParse("2.0.0"), constraints))
+}
+
 func TestUnsatisfiedConstraints(t *testing.T) {
 	gameVersion := semver.MustParse("1.2.0")
 

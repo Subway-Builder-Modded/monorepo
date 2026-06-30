@@ -50,6 +50,10 @@ import {
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
 import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
+import {
+  constraintsFromVersion,
+  describeIncompatibility,
+} from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -316,11 +320,17 @@ export function ProjectHeader({
       case uninstalling:
         installUpdateTooltip = 'Uninstalling...';
         break;
-      case !!noCompatibleVersion:
-        installUpdateTooltip = latestVersion?.game_version
-          ? `Not compatible with your game version (you have ${gameVersion}, need ${latestVersion.game_version})`
-          : `No compatible version for game ${gameVersion}`;
+      case !!noCompatibleVersion: {
+        const incompatibility = latestVersion
+          ? describeIncompatibility(
+              gameVersion,
+              constraintsFromVersion(latestVersion),
+            )
+          : '';
+        installUpdateTooltip =
+          incompatibility || `No compatible version for game ${gameVersion}`;
         break;
+      }
       case !!effectiveVersion:
         installUpdateTooltip = `Install ${effectiveVersion!.version}`;
         break;

@@ -82,13 +82,62 @@ export function describeConstraintRange(range: string): string {
   return range;
 }
 
-// describeConstraint phrases a failing constraint for the user, e.g.
+// Shared base sentence for every game-version incompatibility surface.
+export const INCOMPATIBLE_GAME_VERSION_MESSAGE =
+  'Not compatible with your game version';
+
+function constraintLabel(type: string): string {
+  return type === 'buildings_index' ? 'Buildings format' : 'Game version';
+}
+
+// constraintsFromVersion builds the compatibility constraints a registry version
+// imposes: its game-version range, plus (for maps) its buildings-index range.
+// Mirrors the Go ConstraintsFromVersionInfo.
+export function constraintsFromVersion(
+  version: GameCompatibleVersion,
+): InstalledConstraint[] {
+  const constraints: InstalledConstraint[] = [];
+  if (version.game_version) {
+    constraints.push({ type: 'manifest', range: version.game_version });
+  }
+  if (version.map_buildings_constraint) {
+    constraints.push({
+      type: 'buildings_index',
+      range: version.map_buildings_constraint,
+    });
+  }
+  return constraints;
+}
+
+// describeConstraintRequirement phrases what a constraint needs, without the
+// user's current version, e.g. "Game version: needs 1.3.0 or newer". Use where
+// the game version is already shown elsewhere (e.g. a dialog header).
+export function describeConstraintRequirement(
+  constraint: InstalledConstraint,
+): string {
+  return `${constraintLabel(constraint.type)}: needs ${describeConstraintRange(constraint.range)}`;
+}
+
+// describeConstraint adds the user's current version, e.g.
 // "Game version: needs 1.3.0 or newer (you have 1.2.0)". Mirrors Go DescribeConstraint.
 export function describeConstraint(
   constraint: InstalledConstraint,
   gameVersion: string,
 ): string {
-  const label =
-    constraint.type === 'buildings_index' ? 'Buildings format' : 'Game version';
-  return `${label}: needs ${describeConstraintRange(constraint.range)} (you have ${gameVersion})`;
+  return `${describeConstraintRequirement(constraint)} (you have ${gameVersion})`;
+}
+
+// describeIncompatibility builds the full unified message for a version's failing
+// constraints, e.g. "Not compatible with your game version. Game version: needs
+// 1.3.0 or newer (you have 1.2.0)". Empty when fully compatible.
+export function describeIncompatibility(
+  gameVersion: string,
+  constraints: InstalledConstraint[],
+): string {
+  const failing = getFailingConstraints(gameVersion, constraints);
+  if (failing.length === 0) return '';
+  const reasons = failing
+    .map((c) => describeConstraint(c, gameVersion))
+    .join('; ');
+  return `${INCOMPATIBLE_GAME_VERSION_MESSAGE}. ${reasons}`;
 }

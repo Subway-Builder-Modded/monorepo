@@ -285,6 +285,10 @@ func UnsatisfiedConstraints(gameVersion *semver.Version, constraints []Installed
 	return failing
 }
 
+// IncompatibleGameVersionMessage is the shared base sentence for every
+// game-version incompatibility surface (kept in sync with the frontend).
+const IncompatibleGameVersionMessage = "Not compatible with your game version"
+
 // DescribeConstraint phrases a failing constraint for the user, e.g.
 // "Game version: needs 1.3.0 or newer (you have 1.2.0)".
 func DescribeConstraint(c InstalledConstraint, gameVersion string) string {
@@ -293,6 +297,20 @@ func DescribeConstraint(c InstalledConstraint, gameVersion string) string {
 		label = "Buildings format"
 	}
 	return label + ": needs " + humanizeSemverRange(c.Range) + " (you have " + gameVersion + ")"
+}
+
+// DescribeIncompatibility builds the full unified message for a version's failing
+// constraints. Empty when the game version is fully compatible.
+func DescribeIncompatibility(gameVersion *semver.Version, constraints []InstalledConstraint) string {
+	failing := UnsatisfiedConstraints(gameVersion, constraints)
+	if len(failing) == 0 {
+		return ""
+	}
+	reasons := make([]string, len(failing))
+	for i, c := range failing {
+		reasons[i] = DescribeConstraint(c, gameVersion.String())
+	}
+	return IncompatibleGameVersionMessage + ". " + strings.Join(reasons, "; ")
 }
 
 // humanizeSemverRange turns a single-operator semver range into plain language,

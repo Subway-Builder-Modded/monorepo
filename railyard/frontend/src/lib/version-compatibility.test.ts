@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  constraintsFromVersion,
   describeConstraint,
   describeConstraintRange,
+  describeConstraintRequirement,
+  describeIncompatibility,
   getFailingConstraints,
+  INCOMPATIBLE_GAME_VERSION_MESSAGE,
   type InstalledConstraint,
   isInstalledCompatible,
   selectLatestCompatibleVersion,
@@ -115,6 +119,52 @@ describe('describeConstraint', () => {
         '1.4.0',
       ),
     ).toBe('Buildings format: needs 1.3.0 or older (you have 1.4.0)');
+  });
+});
+
+describe('constraintsFromVersion', () => {
+  it('builds manifest + buildings constraints from a version', () => {
+    expect(
+      constraintsFromVersion({
+        game_version: '>=1.3.0',
+        map_buildings_constraint: '>1.3.0',
+      }),
+    ).toEqual([
+      { type: 'manifest', range: '>=1.3.0' },
+      { type: 'buildings_index', range: '>1.3.0' },
+    ]);
+  });
+
+  it('omits absent fields', () => {
+    expect(constraintsFromVersion({ game_version: '>=1.3.0' })).toEqual([
+      { type: 'manifest', range: '>=1.3.0' },
+    ]);
+  });
+});
+
+describe('describeConstraintRequirement', () => {
+  it('omits the current game version', () => {
+    expect(
+      describeConstraintRequirement({ type: 'manifest', range: '>=1.3.0' }),
+    ).toBe('Game version: needs 1.3.0 or newer');
+  });
+});
+
+describe('describeIncompatibility', () => {
+  it('joins all failing constraints under the shared base sentence', () => {
+    const constraints: InstalledConstraint[] = [
+      { type: 'manifest', range: '>=1.3.0' },
+      { type: 'buildings_index', range: '>1.3.0' },
+    ];
+    expect(describeIncompatibility('1.2.0', constraints)).toBe(
+      `${INCOMPATIBLE_GAME_VERSION_MESSAGE}. Buildings format: needs newer than 1.3.0 (you have 1.2.0); Game version: needs 1.3.0 or newer (you have 1.2.0)`,
+    );
+  });
+
+  it('is empty when fully compatible', () => {
+    expect(
+      describeIncompatibility('2.0.0', [{ type: 'manifest', range: '>=1.3.0' }]),
+    ).toBe('');
   });
 });
 

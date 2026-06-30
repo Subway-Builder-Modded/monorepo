@@ -4,7 +4,10 @@ import {
   ReviewDetailRow,
   ReviewDialog,
 } from '@/components/shared/ReviewDialog';
-import type { InstalledConstraint } from '@/lib/version-compatibility';
+import {
+  describeConstraintRequirement,
+  type InstalledConstraint,
+} from '@/lib/version-compatibility';
 
 export interface IncompatibleAsset {
   name: string;
@@ -23,23 +26,10 @@ interface IncompatibleAssetsDialogProps {
   loading?: boolean;
 }
 
-function constraintTypeLabel(type: string): string {
-  if (type === 'buildings_index') return 'Buildings index format';
-  if (type === 'manifest') return 'Game version';
-  return type;
-}
-
-function primaryFailureReason(constraints: InstalledConstraint[]): string {
-  // buildings_index is sorted first by getFailingConstraints; show the top one
-  const c = constraints[0];
-  if (!c) return 'Unknown';
-  return `${constraintTypeLabel(c.type)} (requires ${c.range})`;
-}
-
 export function IncompatibleAssetsDialog({
   open,
   onOpenChange,
-  gameVersion: _gameVersion,
+  gameVersion,
   assets,
   onSkip,
   onContinue,
@@ -58,10 +48,11 @@ export function IncompatibleAssetsDialog({
       tone="uninstall"
       description={`${
         total === 1 ? '1 installed asset is' : `${total} installed assets are`
-      } incompatible with the current game version and may not function as intended.`}
+      } incompatible with game ${gameVersion} and may not function as intended.`}
       itemCount={total}
       renderItem={(index) => {
         const asset = assets[index];
+        // asset.constraints are the failing constraints (buildings-index first).
         return (
           <>
             <ReviewDetailRow label="Incompatible Asset" value={asset.name} />
@@ -69,10 +60,11 @@ export function IncompatibleAssetsDialog({
               label="Asset Type"
               value={asset.assetType === 'map' ? 'Map' : 'Mod'}
             />
-            <ReviewDetailRow
-              label="Incompatibility Reason"
-              value={primaryFailureReason(asset.constraints)}
-            />
+            {asset.constraints.map((c) => (
+              <p key={c.type} className="text-foreground">
+                {describeConstraintRequirement(c)}
+              </p>
+            ))}
           </>
         );
       }}
