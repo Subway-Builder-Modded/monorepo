@@ -164,6 +164,7 @@ func (a *App) startup(ctx context.Context) {
 			a.Logger.Error("Failed to initialize AppImage mount", err)
 			a.appImageMount = nil
 		} else {
+			a.Logger.Info("AppImage mount initialized", "mountPath", appImageMount.AppImageMountPath)
 			a.appImageMount = appImageMount
 		}
 	}
@@ -421,9 +422,11 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 		asarPath = foundPath
 	case isAppImagePath(exePath):
 		if a.appImageMount != nil {
+			a.Logger.Info("Using existing AppImage mount for game version detection", "exePath", exePath, "mountPath", a.appImageMount.AppImageMountPath)
 			mountPath := a.appImageMount.AppImageMountPath
 			asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
 		} else {
+			a.Logger.Info("Mounting AppImage for game version detection", "exePath", exePath)
 			if appImageMount, err := newAppImageMount(exePath); err != nil {
 				a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
 				return notDetected
