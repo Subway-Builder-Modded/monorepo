@@ -193,8 +193,8 @@ func ValidateInstalledMapData(mapInstallRoot string, mapTilesRoot string, cityCo
 	return readInstalledMapConfig(mapInstallRoot, cityCode)
 }
 
-// requiredMapArchiveFiles pairs each always-required archive key with the name
-// shown when it is missing; ordered so the error message reads consistently.
+// requiredMapArchiveFiles maps each required archive key with the name
+// shown when it is missing
 var requiredMapArchiveFiles = []struct {
 	key   string
 	label string

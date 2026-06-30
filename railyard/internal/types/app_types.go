@@ -61,7 +61,7 @@ const (
 	ImportValidationInvalid  ImportValidationStatus = "invalid"
 )
 
-// ImportArchiveValidation is the pre-flight classification of one archive.
+// ImportArchiveValidation is the pre-flight validation record for a single map archive.
 type ImportArchiveValidation struct {
 	Path     string                 `json:"path"`
 	Name     string                 `json:"name"`

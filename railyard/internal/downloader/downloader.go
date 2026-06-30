@@ -715,7 +715,8 @@ func (d *Downloader) ImportAsset(assetType types.AssetType, zipPath string, repl
 func (d *Downloader) ValidateImportedMapArchive(zipPath string) types.ImportArchiveValidation {
 	validation := types.ImportArchiveValidation{Path: zipPath}
 
-	// A malformed archive has no usable city code; fall back to the filename.
+	// Any validation failure leaves no trustworthy config to read a name from,
+	// so identify the entry by its filename.
 	configData, _, err := files.ValidateMapArchive(zipPath)
 	if err != nil {
 		validation.Status = types.ImportValidationInvalid
