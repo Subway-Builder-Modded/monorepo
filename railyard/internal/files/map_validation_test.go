@@ -203,6 +203,27 @@ func TestValidateMapArchive(t *testing.T) {
 	}
 }
 
+func TestValidateMapArchiveEnumeratesMissingFiles(t *testing.T) {
+	// Only config + demand present; roads, runways, tiles and any buildings
+	// index are omitted so a single validation pass should report them all.
+	zipPath := writeZipArchive(t, map[string][]byte{
+		MapConfigFileName: mustMapConfigJSON(t, "AAA"),
+		MapDemandFileName: []byte("{}"),
+	})
+
+	_, errType, err := ValidateMapArchive(zipPath)
+	require.Equal(t, types.InstallErrorInvalidArchive, errType)
+
+	var missingErr *types.MissingFilesError
+	require.ErrorAs(t, err, &missingErr)
+	require.ElementsMatch(t, []string{
+		MapRoadsFileName,
+		MapRunwaysFileName,
+		"map tiles (*" + MapTileFileExt + ")",
+		"a buildings index (" + MapBuildingsFileName + " or " + MapBuildingsBinFileName + ")",
+	}, missingErr.Files)
+}
+
 func TestValidateInstalledMapDataLocal(t *testing.T) {
 	tests := []struct {
 		name        string

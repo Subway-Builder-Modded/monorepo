@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
@@ -707,6 +708,35 @@ func (d *Downloader) ImportAsset(assetType types.AssetType, zipPath string, repl
 		return operationResult{assetInstallResponse: d.importMapNow(zipPath, replaceOnConflict)}
 	}, d.supersededOperationResult(operationActionInstall, assetType, zipPath, "import"), nil)
 	return result.assetInstallResponse
+}
+
+// InspectMapImport performs a read-only check of a single map archive: it
+// validates the archive and reports whether its city code is new, conflicts
+// with an existing (installed or vanilla) map, or the archive is invalid. It
+// never writes to disk or mutates state, so it is safe to run before importing.
+func (d *Downloader) InspectMapImport(zipPath string) types.ImportArchiveInspection {
+	inspection := types.ImportArchiveInspection{Path: zipPath}
+
+	configData, _, err := files.ValidateMapArchive(zipPath)
+	if err != nil {
+		inspection.Status = types.ImportInspectInvalid
+		inspection.Name = filepath.Base(zipPath)
+		inspection.Error = err.Error()
+		return inspection
+	}
+
+	inspection.Name = configData.Name
+	inspection.Code = configData.Code
+	inspection.Version = strings.TrimSpace(configData.Version)
+
+	if conflict, hasConflict := d.FindMapCodeConflict(configData.Code, configData.Code, false); hasConflict {
+		inspection.Status = types.ImportInspectConflict
+		inspection.Conflict = conflict
+		return inspection
+	}
+
+	inspection.Status = types.ImportInspectNew
+	return inspection
 }
 
 func (d *Downloader) importMapNow(zipPath string, replaceOnConflict bool) types.AssetInstallResponse {

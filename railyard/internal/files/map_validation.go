@@ -106,12 +106,13 @@ func ValidateMapArchive(filePath string) (types.ConfigData, types.DownloaderErro
 
 	filesFound := BuildMapArchiveFileIndex(reader.File)
 
-	if !requiredFilesPresent(filesFound) {
-		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{"The map archive is missing one or more required files."}}
-	}
-
+	missing := missingRequiredFiles(filesFound)
 	if !buildingsIndexPresent(filesFound) {
-		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: []string{"The map archive is missing a buildings index (need buildings_index.json/.json.gz or buildings_index.bin/.bin.gz)."}}
+		missing = append(missing,
+			fmt.Sprintf("a buildings index (%s or %s)", MapBuildingsFileName, MapBuildingsBinFileName))
+	}
+	if len(missing) > 0 {
+		return configData, types.InstallErrorInvalidArchive, &types.MissingFilesError{Files: missing}
 	}
 
 	for _, file := range reader.File {
@@ -190,13 +191,29 @@ func ValidateInstalledMapData(mapInstallRoot string, mapTilesRoot string, cityCo
 	return readInstalledMapConfig(mapInstallRoot, cityCode)
 }
 
-func requiredFilesPresent(filesFound map[string]types.FileFoundStruct) bool {
-	for _, fileStruct := range filesFound {
-		if fileStruct.Required && !fileStruct.Found {
-			return false
+// requiredMapArchiveFiles lists the always-required archive entries in a stable
+// display order, paired with the name shown when one is missing.
+var requiredMapArchiveFiles = []struct {
+	key   string
+	label string
+}{
+	{MapArchiveKeyConfig, MapConfigFileName},
+	{MapArchiveKeyDemandData, MapDemandFileName},
+	{MapArchiveKeyRoads, MapRoadsFileName},
+	{MapArchiveKeyRunways, MapRunwaysFileName},
+	{MapArchiveKeyTiles, "map tiles (*" + MapTileFileExt + ")"},
+}
+
+// missingRequiredFiles returns the display names of every required archive file
+// that is absent, in a stable order (empty when all are present).
+func missingRequiredFiles(filesFound map[string]types.FileFoundStruct) []string {
+	missing := make([]string, 0, len(requiredMapArchiveFiles))
+	for _, req := range requiredMapArchiveFiles {
+		if !filesFound[req.key].Found {
+			missing = append(missing, req.label)
 		}
 	}
-	return true
+	return missing
 }
 
 // buildingsIndexPresent reports whether the archive carries a buildings index in either form.

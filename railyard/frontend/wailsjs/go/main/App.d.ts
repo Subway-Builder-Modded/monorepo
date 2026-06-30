@@ -17,6 +17,8 @@ export function HandleDeepLinkTarget(arg1:deeplink.Target):Promise<void>;
 
 export function HandleDeepLinkURL(arg1:string):Promise<void>;
 
+export function InspectImportArchives(arg1:Array<string>):Promise<types.ImportInspectResponse>;
+
 export function InstallLinuxSandbox():Promise<types.GenericResponse>;
 
 export function IsGameRunning():Promise<types.GameRunningResponse>;

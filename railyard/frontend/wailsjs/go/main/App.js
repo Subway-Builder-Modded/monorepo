@@ -30,6 +30,10 @@ export function HandleDeepLinkURL(arg1) {
   return window['go']['main']['App']['HandleDeepLinkURL'](arg1);
 }
 
+export function InspectImportArchives(arg1) {
+  return window['go']['main']['App']['InspectImportArchives'](arg1);
+}
+
 export function InstallLinuxSandbox() {
   return window['go']['main']['App']['InstallLinuxSandbox']();
 }

@@ -18,6 +18,10 @@ export function ImportAsset(arg1, arg2, arg3) {
   return window['go']['downloader']['Downloader']['ImportAsset'](arg1, arg2, arg3);
 }
 
+export function InspectMapImport(arg1) {
+  return window['go']['downloader']['Downloader']['InspectMapImport'](arg1);
+}
+
 export function InstallAsset(arg1) {
   return window['go']['downloader']['Downloader']['InstallAsset'](arg1);
 }
