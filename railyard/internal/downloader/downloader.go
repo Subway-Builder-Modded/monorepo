@@ -965,10 +965,8 @@ func constraintsFromVersionInfo(assetType types.AssetType, vi types.VersionInfo)
 	return cs
 }
 
-// ensureCompatibilityConstraints gates an install on all applicable constraints.
-// DetectedGameVersion returns the parsed detected game version, or ok=false when
-// detection is unavailable (not wired) or the version could not be determined.
-// Single source of truth for game-version detection across the backend.
+// DetectedGameVersion is the single source of truth for game-version detection.
+// ok is false when detection is unwired or the version cannot be determined.
 func (d *Downloader) DetectedGameVersion() (*semver.Version, bool) {
 	if d.GetGameVersion == nil {
 		return nil, false
@@ -976,6 +974,7 @@ func (d *Downloader) DetectedGameVersion() (*semver.Version, bool) {
 	return d.GetGameVersion().DetectedVersion()
 }
 
+// ensureCompatibilityConstraints gates an install on all applicable constraints.
 func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, assetID, version string, constraints []types.InstalledConstraint) *types.AssetInstallResponse {
 	// No detection capability wired (e.g. early startup) → cannot verify; allow.
 	if d.GetGameVersion == nil || len(constraints) == 0 {

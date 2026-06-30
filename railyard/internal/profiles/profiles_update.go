@@ -639,8 +639,8 @@ func shouldUpdate(targetSet map[assetVersionKey]struct{}, assetType types.AssetT
 	return ok
 }
 
-// resolveLatestCompatibleInstallableVersion returns the latest integrity-complete
-// version the current game version can install.
+// resolveLatestCompatibleInstallableVersion returns the latest installable version
+// the current game version can install, or ok=false when there is none.
 func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 	assetType types.AssetType,
 	assetID string,
@@ -668,15 +668,14 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 	return latest, true, nil
 }
 
-// filterGameCompatibleVersions keeps the versions the detected game version can
-// install: the game-version range, and for maps the buildings-index range, must
-// both be satisfied.
+// filterGameCompatibleVersions keeps the versions the detected game version can install.
 func filterGameCompatibleVersions(assetType types.AssetType, versions []types.VersionInfo, gameVersion *semver.Version) []types.VersionInfo {
 	compatible := make([]types.VersionInfo, 0, len(versions))
 	for _, version := range versions {
 		if !gameVersionSatisfiesRange(gameVersion, version.GameVersion) {
 			continue
 		}
+		// Maps additionally pin a buildings-index range; mods never set one.
 		if assetType == types.AssetTypeMap && !gameVersionSatisfiesRange(gameVersion, version.MapBuildingsConstraint) {
 			continue
 		}
@@ -685,17 +684,17 @@ func filterGameCompatibleVersions(assetType types.AssetType, versions []types.Ve
 	return compatible
 }
 
-// gameVersionSatisfiesRange reports whether the game version satisfies a semver
-// range. An empty range imposes no requirement; an unparseable range is treated as
-// satisfied so a malformed constraint never hides an otherwise-valid update
-// (mirrors the frontend selectLatestCompatibleVersion).
+// gameVersionSatisfiesRange reports whether the game version satisfies a semver range.
 func gameVersionSatisfiesRange(gameVersion *semver.Version, rangeExpr string) bool {
 	rangeExpr = strings.TrimSpace(rangeExpr)
+	// An empty range imposes no requirement.
 	if rangeExpr == "" {
 		return true
 	}
 	constraint, err := semver.NewConstraint(strings.TrimPrefix(rangeExpr, "v"))
 	if err != nil {
+		// Treat a malformed constraint as satisfied so it never hides an update,
+		// mirroring the frontend selectLatestCompatibleVersion.
 		return true
 	}
 	return constraint.Check(gameVersion)
