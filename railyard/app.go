@@ -567,11 +567,12 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
 			if a.Config.Cfg.ChromeSandboxPath != "" {
 				// Ensure sandbox is used if available to avoid permission issues in Flatpak environments
-				args := []string{"--env=CHROME_DEVEL_SANDBOX=" + a.Config.Cfg.ChromeSandboxPath, "--host", exePath}
+				args := []string{"--env=CHROME_DEVEL_SANDBOX=" + a.Config.Cfg.ChromeSandboxPath}
 				// Pass it through --env because thats how flatpak-spawn works
 				if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
 					args = append(args, "--env=DEBUG_PROD=TRUE")
 				}
+				args = append(args, "--host", exePath)
 				args = append(args, extraSplitArgs...)
 				cmd = exec.Command("flatpak-spawn", args...)
 			} else {
