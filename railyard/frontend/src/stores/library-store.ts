@@ -13,10 +13,16 @@ import {
   cloneFilterState,
   createFilterByAssetType,
   type FilterByAssetType,
-  switchFilter,
-  syncFilter,
 } from '@subway-builder-modded/stores-core';
 import { create } from 'zustand';
+
+import { createQueryFilterSlice } from '@/stores/query-filter-slice';
+import {
+  createStatusFilterSlice,
+  type StatusFilterSlice,
+} from '@/stores/status-filter-slice';
+
+export type { StatusFilter } from '@/stores/status-filter-slice';
 
 type LibraryFilters = Omit<SourceAssetQueryFilterState, 'sort'> & {
   sort: InstalledSortState;
@@ -37,58 +43,29 @@ const defaultLibraryFilters: LibraryFilters = {
   },
 };
 
-export type StatusFilter = 'compatible' | 'local' | 'incompatible' | 'test';
-
-interface LibraryState extends AssetQueryFilterStoreState<
-  LibraryFilters,
-  LibraryFilterByAssetType
-> {
+interface LibraryState
+  extends
+    AssetQueryFilterStoreState<LibraryFilters, LibraryFilterByAssetType>,
+    StatusFilterSlice {
   selectedIds: Set<string>;
   toggleSelected: (id: string) => void;
   selectAll: (ids: string[]) => void;
   removeSelected: (ids: string[]) => void;
   clearSelection: () => void;
   isSelected: (id: string) => boolean;
-  statusFilters: StatusFilter[];
-  toggleStatusFilter: (filter: StatusFilter) => void;
-  clearStatusFilters: () => void;
 }
 
 export const useLibraryStore = create<LibraryState>((set, get) => ({
-  filters: cloneFilterState(defaultLibraryFilters),
-  page: 1,
-  scopedByType: createFilterByAssetType(ASSET_TYPES, defaultLibraryFilters, 1),
+  ...createQueryFilterSlice(set, {
+    filters: cloneFilterState(defaultLibraryFilters),
+    scopedByType: createFilterByAssetType(
+      ASSET_TYPES,
+      defaultLibraryFilters,
+      1,
+    ),
+  }),
   selectedIds: new Set<string>(),
-  statusFilters: [],
-  toggleStatusFilter: (filter) =>
-    set((state) => ({
-      statusFilters: state.statusFilters.includes(filter)
-        ? state.statusFilters.filter((f) => f !== filter)
-        : [...state.statusFilters, filter],
-    })),
-  clearStatusFilters: () => set({ statusFilters: [] }),
-  setFilters: (updater) =>
-    set((state) => {
-      const nextFilters =
-        typeof updater === 'function' ? updater(state.filters) : updater;
-      return {
-        filters: nextFilters,
-        scopedByType: syncFilter(state.scopedByType, nextFilters, state.page),
-      };
-    }),
-  setType: (type) =>
-    set((state) => ({
-      ...switchFilter(state.filters, state.page, state.scopedByType, type),
-      statusFilters: [],
-    })),
-  setPage: (page) =>
-    set((state) => {
-      if (state.page === page) return state;
-      return {
-        page,
-        scopedByType: syncFilter(state.scopedByType, state.filters, page),
-      };
-    }),
+  ...createStatusFilterSlice(set),
   toggleSelected: (id) =>
     set((state) => {
       const next = new Set(state.selectedIds);

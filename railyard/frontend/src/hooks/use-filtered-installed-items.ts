@@ -126,8 +126,10 @@ export function useFilteredInstalledItems({
     // Status filter — applied post-process since it depends on runtime game version
     if (statusFilters.length > 0) {
       result = result.filter((item) =>
-        statusFilters.some((sf) =>
-          matchesStatusFilter(item as InstalledTaggedItem, sf, gameVersion),
+        isInstalledItemVisibleByStatus(
+          item as InstalledTaggedItem,
+          statusFilters,
+          gameVersion,
         ),
       );
     }
