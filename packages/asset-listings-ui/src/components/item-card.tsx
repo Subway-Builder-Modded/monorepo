@@ -1,16 +1,9 @@
-import { Badge } from "@subway-builder-modded/shared-ui";
-import { CheckCircle, Download, MapPin, Package, Users } from "lucide-react";
-import {
-  memo,
-  type ReactNode,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Badge } from '@subway-builder-modded/shared-ui';
+import { CheckCircle, Download, MapPin, Package, Users } from 'lucide-react';
+import { memo, type ReactNode, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
-import { cn } from "@subway-builder-modded/shared-ui";
-import type { GalleryAssetType, SearchViewMode } from "../types";
+import { cn } from '@subway-builder-modded/shared-ui';
+import type { GalleryAssetType, SearchViewMode } from '../types';
 
 export function ImageChip({
   className,
@@ -22,7 +15,7 @@ export function ImageChip({
   return (
     <span
       className={cn(
-        "inline-flex h-5 shrink-0 items-center gap-1 rounded-full border px-2 text-xs font-medium",
+        'inline-flex h-5 shrink-0 items-center gap-1 rounded-full border px-2 text-xs font-medium',
         className,
       )}
     >
@@ -32,17 +25,15 @@ export function ImageChip({
 }
 
 const CARD_IMAGE_CLASS =
-  "h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]";
+  'h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]';
 const CARD_TITLE_CLASS =
-  "font-semibold text-sm leading-snug text-foreground truncate";
+  'font-semibold text-sm leading-snug text-foreground truncate';
 const CARD_AUTHOR_CLASS =
-  "flex items-center gap-1 text-xs text-muted-foreground mt-0.5 min-w-0";
+  'flex items-center gap-1 text-xs text-muted-foreground mt-0.5 min-w-0';
 const CARD_ARTICLE_BASE =
-  "group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer text-foreground transition-all duration-150 hover:border-foreground/20 hover:shadow-sm";
+  'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer text-foreground transition-all duration-150 hover:border-foreground/20 hover:shadow-sm';
 
-export interface ItemCardProps<
-  T = { author_alias: string; contributor_tier?: string },
-> {
+export interface ItemCardProps<T = { author_alias: string; contributor_tier?: string }> {
   type: GalleryAssetType;
   id: string;
   name: string;
@@ -66,16 +57,8 @@ export interface ItemCardProps<
   href?: string;
   formatDescription?: (desc: string) => string;
   renderLink: (props: { href: string; children: ReactNode }) => ReactNode;
-  renderAuthorName: (props: {
-    name: string;
-    contributorTier?: string;
-    size?: "sm";
-  }) => ReactNode;
-  resolveImageUrl?: (
-    type: GalleryAssetType,
-    id: string,
-    imagePath?: string,
-  ) => string | null;
+  renderAuthorName: (props: { name: string; contributorTier?: string; size?: 'sm' }) => ReactNode;
+  resolveImageUrl?: (type: GalleryAssetType, id: string, imagePath?: string) => string | null;
   renderImage?: (props: {
     type: GalleryAssetType;
     id: string;
@@ -106,23 +89,20 @@ function buildItemCardPresentation(
   population?: number,
   totalDownloads?: number,
 ): ItemCardPresentation {
-  const isMap = type === "map";
+  const isMap = type === 'map';
   const mapBadges = isMap
-    ? [
-        location,
-        source_quality,
-        level_of_detail,
-        ...(special_demand ?? []),
-      ].filter((value): value is string => Boolean(value))
-    : (tags ?? []);
+    ? [location, source_quality, level_of_detail, ...(special_demand ?? [])].filter(
+        (value): value is string => Boolean(value),
+      )
+    : tags ?? [];
 
   return {
     isMap,
     badges: mapBadges,
-    mapCityCode: isMap ? (city_code ?? "").trim() : "",
-    mapCountry: isMap ? (country ?? "") : "",
+    mapCityCode: isMap ? (city_code ?? '').trim() : '',
+    mapCountry: isMap ? (country ?? '') : '',
     mapPopulation: isMap ? population : undefined,
-    showDownloads: typeof totalDownloads === "number",
+    showDownloads: typeof totalDownloads === 'number',
   };
 }
 
@@ -172,13 +152,11 @@ function ItemStats({
   return (
     <div
       className={cn(
-        "flex flex-col gap-1 text-xs text-muted-foreground shrink-0",
+        'flex flex-col gap-1 text-xs text-muted-foreground shrink-0',
         className,
       )}
     >
-      {isMap && (population ?? 0) > 0 && (
-        <StatMetric icon={Users} value={population!} />
-      )}
+      {isMap && (population ?? 0) > 0 && <StatMetric icon={Users} value={population!} />}
       {showDownloads && <StatMetric icon={Download} value={totalDownloads!} />}
     </div>
   );
@@ -196,7 +174,7 @@ function StatMetric({
   return (
     <div
       className={cn(
-        "flex items-center gap-1 text-xs text-muted-foreground",
+        'flex items-center gap-1 text-xs text-muted-foreground',
         className,
       )}
     >
@@ -208,7 +186,7 @@ function StatMetric({
 
 interface ItemBadgesProps {
   badges: string[];
-  align?: "left" | "right";
+  align?: 'left' | 'right';
   compact?: boolean;
   wrap?: boolean;
   fixedVisibleCount?: number;
@@ -217,7 +195,7 @@ interface ItemBadgesProps {
 
 export function ItemBadges({
   badges,
-  align = "right",
+  align = 'right',
   compact = false,
   wrap = false,
   fixedVisibleCount,
@@ -226,27 +204,21 @@ export function ItemBadges({
   if (badges.length === 0) return null;
 
   const maxBadgeCount =
-    fixedVisibleCount === undefined
-      ? badges.length
-      : Math.max(1, fixedVisibleCount);
+    fixedVisibleCount === undefined ? badges.length : Math.max(1, fixedVisibleCount);
   const visibleBadges = badges.slice(0, maxBadgeCount);
 
-  const justifyClass = align === "left" ? "justify-start" : "justify-end";
-  const badgeClassName = compact
-    ? "text-[11px] px-1.5 py-0 h-5"
-    : "text-xs px-1.5 py-0";
+  const justifyClass = align === 'left' ? 'justify-start' : 'justify-end';
+  const badgeClassName = compact ? 'text-[11px] px-1.5 py-0 h-5' : 'text-xs px-1.5 py-0';
   const clampedMaxWidthPercent =
     Math.min(1, Math.max(0, maxWidthPercentage)) * 100;
   const maxWidthStyle =
-    clampedMaxWidthPercent < 100
-      ? { maxWidth: `${clampedMaxWidthPercent}%` }
-      : undefined;
+    clampedMaxWidthPercent < 100 ? { maxWidth: `${clampedMaxWidthPercent}%` } : undefined;
 
   if (wrap) {
     const overflowCount = Math.max(0, badges.length - visibleBadges.length);
     return (
       <div
-        className={cn("flex flex-wrap gap-1", justifyClass)}
+        className={cn('flex flex-wrap gap-1', justifyClass)}
         style={maxWidthStyle}
       >
         {visibleBadges.map((badge) => (
@@ -338,7 +310,7 @@ export function ItemBadges({
     <>
       <div
         ref={containerRef}
-        className={cn("flex flex-nowrap gap-1 overflow-hidden", justifyClass)}
+        className={cn('flex flex-nowrap gap-1 overflow-hidden', justifyClass)}
         style={maxWidthStyle}
       >
         {visibleBadges.slice(0, visibleCount).map((badge) => (
@@ -381,14 +353,14 @@ export function ItemBadges({
 }
 
 const TypeIcon = ({ type }: { type: GalleryAssetType }) => {
-  if (type === "map") {
+  if (type === 'map') {
     return <MapPin className="h-2.5 w-2.5" />;
   }
   return <Package className="h-2.5 w-2.5" />;
 };
 
 const TypeLabel = ({ type }: { type: GalleryAssetType }) => {
-  return type === "map" ? "Map" : "Mod";
+  return type === 'map' ? 'Map' : 'Mod';
 };
 
 export const ItemCard = memo(function ItemCard({
@@ -410,7 +382,7 @@ export const ItemCard = memo(function ItemCard({
   installedVersion,
   totalDownloads,
   topLeftBadge,
-  viewMode = "full",
+  viewMode = 'full',
   imagePath,
   href,
   formatDescription,
@@ -433,48 +405,47 @@ export const ItemCard = memo(function ItemCard({
   );
 
   const normalizedDescription = useMemo(() => {
-    const rawDesc = description ?? "";
+    const rawDesc = description ?? '';
     const trimmed = rawDesc.trim();
-    return formatDescription
-      ? formatDescription(trimmed)
-      : trimmed || "No description provided.";
+    return formatDescription ? formatDescription(trimmed) : trimmed || 'No description provided.';
   }, [description, formatDescription]);
 
-  const imageUrl = resolveImageUrl
-    ? resolveImageUrl(type, id, imagePath ?? gallery?.[0])
-    : (imagePath ?? gallery?.[0]);
-  const imageNode = renderImage ? (
-    renderImage({
-      type,
-      id,
-      imagePath: imagePath ?? gallery?.[0],
-      className: CARD_IMAGE_CLASS,
-      alt: name,
-    })
-  ) : imageUrl ? (
-    <img src={imageUrl} alt={name} className={CARD_IMAGE_CLASS} />
-  ) : null;
+  const imageUrl = resolveImageUrl ? resolveImageUrl(type, id, imagePath ?? gallery?.[0]) : (imagePath ?? gallery?.[0]);
+  const imageNode = renderImage
+    ? renderImage({
+        type,
+        id,
+        imagePath: imagePath ?? gallery?.[0],
+        className: CARD_IMAGE_CLASS,
+        alt: name,
+      })
+    : imageUrl
+      ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            className={CARD_IMAGE_CLASS}
+          />
+        )
+      : null;
   const targetHref =
-    href ?? `/project/${type === "map" ? "maps" : "mods"}/${id}`;
+    href ?? `/project/${type === 'map' ? 'maps' : 'mods'}/${id}`;
 
-  if (viewMode === "list") {
+  if (viewMode === 'list') {
     return renderLink({
       href: targetHref,
       children: (
         <article
           className={cn(
             CARD_ARTICLE_BASE,
-            installedVersion && "ring-1 ring-primary/40",
+            installedVersion && 'ring-1 ring-primary/40',
           )}
         >
           <div className="flex flex-col sm:flex-row">
             <div className="relative h-44 sm:h-36 sm:w-48 md:w-52 overflow-hidden bg-muted shrink-0">
               {installedVersion && (
                 <div className="absolute top-2 right-2 z-10">
-                  <Badge
-                    variant="success"
-                    className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm"
-                  >
+                  <Badge variant="success" className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm">
                     <CheckCircle className="h-2.5 w-2.5" />
                     {installedVersion}
                   </Badge>
@@ -500,7 +471,7 @@ export const ItemCard = memo(function ItemCard({
                     {renderAuthorName({
                       name: author.author_alias,
                       contributorTier: author.contributor_tier,
-                      size: "sm",
+                      size: 'sm',
                     })}
                   </p>
                 </div>
@@ -524,12 +495,7 @@ export const ItemCard = memo(function ItemCard({
                   showDownloads={presentation.showDownloads}
                   totalDownloads={totalDownloads}
                 />
-                <ItemBadges
-                  badges={presentation.badges}
-                  align="left"
-                  wrap={false}
-                  fixedVisibleCount={3}
-                />
+                <ItemBadges badges={presentation.badges} align="left" wrap={false} fixedVisibleCount={3} />
               </div>
             </div>
           </div>
@@ -538,9 +504,8 @@ export const ItemCard = memo(function ItemCard({
     });
   }
 
-  if (viewMode === "compact") {
-    const hasMapPopulation =
-      presentation.isMap && (presentation.mapPopulation ?? 0) > 0;
+  if (viewMode === 'compact') {
+    const hasMapPopulation = presentation.isMap && (presentation.mapPopulation ?? 0) > 0;
     const hasDownloads = presentation.showDownloads;
 
     return renderLink({
@@ -549,17 +514,14 @@ export const ItemCard = memo(function ItemCard({
         <article
           className={cn(
             CARD_ARTICLE_BASE,
-            "h-full flex flex-col",
-            installedVersion && "ring-1 ring-primary/40",
+            'h-full flex flex-col',
+            installedVersion && 'ring-1 ring-primary/40',
           )}
         >
           <div className="relative aspect-[16/10] overflow-hidden bg-muted shrink-0">
             {installedVersion && (
               <div className="absolute top-2 right-2 z-10">
-                <Badge
-                  variant="success"
-                  className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm"
-                >
+                <Badge variant="success" className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm">
                   <CheckCircle className="h-2.5 w-2.5" />
                   {installedVersion}
                 </Badge>
@@ -631,17 +593,14 @@ export const ItemCard = memo(function ItemCard({
     children: (
       <article
         className={cn(
-          "group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer text-foreground transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col",
-          installedVersion && "ring-1 ring-primary/40",
+          'group relative bg-card border border-border rounded-lg overflow-hidden cursor-pointer text-foreground transition-all duration-150 hover:border-foreground/20 hover:shadow-sm h-full flex flex-col',
+          installedVersion && 'ring-1 ring-primary/40',
         )}
       >
         <div className="relative aspect-video overflow-hidden bg-muted shrink-0">
           {installedVersion && (
             <div className="absolute top-2 right-2 z-10">
-              <Badge
-                variant="success"
-                className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm"
-              >
+              <Badge variant="success" className="h-5 px-2 py-0 text-xs font-medium leading-none shadow-sm">
                 <CheckCircle className="h-2.5 w-2.5" />
                 {installedVersion}
               </Badge>
@@ -667,7 +626,7 @@ export const ItemCard = memo(function ItemCard({
                 {renderAuthorName({
                   name: author.author_alias,
                   contributorTier: author.contributor_tier,
-                  size: "sm",
+                  size: 'sm',
                 })}
               </p>
             </div>
@@ -702,4 +661,4 @@ export const ItemCard = memo(function ItemCard({
     ),
   });
 });
-ItemCard.displayName = "ItemCard";
+ItemCard.displayName = 'ItemCard';
