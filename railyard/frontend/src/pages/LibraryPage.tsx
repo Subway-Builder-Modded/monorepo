@@ -689,7 +689,7 @@ export function LibraryPage() {
         tone="import"
         confirm={withLockAwareConfirm(
           {
-            label: 'Choose ZIPs',
+            label: 'Choose ZIP(s)',
             cancelLabel: 'Close',
             onConfirm: handlePickArchive,
             loading: importLoading,
