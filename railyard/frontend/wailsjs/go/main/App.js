@@ -30,10 +30,6 @@ export function HandleDeepLinkURL(arg1) {
   return window['go']['main']['App']['HandleDeepLinkURL'](arg1);
 }
 
-export function ValidateImportedMapArchives(arg1) {
-  return window['go']['main']['App']['ValidateImportedMapArchives'](arg1);
-}
-
 export function InstallLinuxSandbox() {
   return window['go']['main']['App']['InstallLinuxSandbox']();
 }
@@ -68,4 +64,8 @@ export function SandboxIsInstalled() {
 
 export function StopGame() {
   return window['go']['main']['App']['StopGame']();
+}
+
+export function ValidateImportedMapArchives(arg1) {
+  return window['go']['main']['App']['ValidateImportedMapArchives'](arg1);
 }
