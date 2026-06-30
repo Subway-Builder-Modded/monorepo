@@ -611,17 +611,17 @@ export namespace types {
 	export class ImportAssetDialogResponse {
 	    status: string;
 	    message: string;
-	    path: string;
-	
+	    paths: string[];
+
 	    static createFrom(source: any = {}) {
 	        return new ImportAssetDialogResponse(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.status = source["status"];
 	        this.message = source["message"];
-	        this.path = source["path"];
+	        this.paths = source["paths"];
 	    }
 	}
 	export class ImportAssetRequest {

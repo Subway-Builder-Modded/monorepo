@@ -49,7 +49,8 @@ type SandboxStatusResponse struct {
 
 type ImportAssetDialogResponse struct {
 	GenericResponse
-	Path string `json:"path"`
+	// Paths holds every selected archive; a single import is just a one-element list.
+	Paths []string `json:"paths"`
 }
 
 type GameRunningResponse struct {

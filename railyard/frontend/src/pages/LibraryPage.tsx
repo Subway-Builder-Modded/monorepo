@@ -33,8 +33,9 @@ import {
 } from '@subway-builder-modded/shared-ui';
 import { PageHeading } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
+import { Checkbox } from '@subway-builder-modded/shared-ui';
 import { AlertTriangle, FileArchive, Inbox, Plus, SearchX } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
 
@@ -56,6 +57,7 @@ import {
 } from '@/lib/subscription-updates';
 import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { useBrowseStore } from '@/stores/browse-store';
+import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
   InvalidMapCodeError,
@@ -160,12 +162,21 @@ export function LibraryPage() {
   const setSidebarOpen = useUIStore((s) => s.setLibrarySidebarOpen);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
-  const [importSelectedPath, setImportSelectedPath] = useState('');
-  const [importConflict, setImportConflict] =
-    useState<types.MapCodeConflict | null>(null);
+  // Conflict/invalid-code prompts pause the batch; the resolver refs let the
+  // async import loop await the user's decision before continuing the queue.
+  const [importConflict, setImportConflict] = useState<{
+    conflict: types.MapCodeConflict;
+    hasMore: boolean;
+  } | null>(null);
   const [importInvalidCode, setImportInvalidCode] = useState<string | null>(
     null,
   );
+  const [applyToAll, setApplyToAll] = useState(false);
+  const conflictResolverRef = useRef<
+    ((decision: { action: 'replace' | 'skip'; applyToAll: boolean }) => void)
+    | null
+  >(null);
+  const invalidResolverRef = useRef<(() => void) | null>(null);
   const [pendingUpdatesByKey, setPendingUpdatesByKey] =
     useState<PendingUpdatesByKey>({});
 
@@ -352,37 +363,136 @@ export function LibraryPage() {
     [installedMapItems, installedModItems],
   );
 
-  const runImport = async (zipPath: string, replaceOnConflict: boolean) => {
-    setImportLoading(true);
-    try {
-      const result = await importMapFromZip(zipPath, replaceOnConflict);
-      if (result.status === 'warn') {
-        toast.warning(result.message || 'Map imported with warnings.');
-      } else {
-        toast.success(result.message || 'Map imported successfully.');
-      }
-      void updateInstalledLists();
-      void refreshPendingSubscriptionUpdates();
-      setImportConflict(null);
-      setImportSelectedPath('');
-      setImportDialogOpen(false);
-    } catch (err) {
-      if (err instanceof AssetConflictError && err.conflicts.length > 0) {
-        setImportConflict(err.conflicts[0]);
-        return;
-      }
-      if (err instanceof InvalidMapCodeError) {
-        setImportInvalidCode(err.message);
-        return;
-      }
-      if (handleSubscriptionMutationError(err, () => {})) {
-        return;
-      }
-      setImportSelectedPath('');
-      toast.error('Failed to import map.');
-    } finally {
-      setImportLoading(false);
+  // Pause the batch on a conflict and resolve once the user picks an action.
+  const awaitConflictDecision = (
+    conflict: types.MapCodeConflict,
+    hasMore: boolean,
+  ) =>
+    new Promise<{ action: 'replace' | 'skip'; applyToAll: boolean }>(
+      (resolve) => {
+        conflictResolverRef.current = resolve;
+        setApplyToAll(false);
+        setImportConflict({ conflict, hasMore });
+      },
+    );
+
+  // Pause the batch on an invalid map code until the user acknowledges it.
+  const awaitInvalidAck = (message: string) =>
+    new Promise<void>((resolve) => {
+      invalidResolverRef.current = resolve;
+      setImportInvalidCode(message);
+    });
+
+  const resolveConflict = (action: 'replace' | 'skip') => {
+    const resolver = conflictResolverRef.current;
+    conflictResolverRef.current = null;
+    setImportConflict(null);
+    resolver?.({ action, applyToAll });
+  };
+
+  const resolveInvalid = () => {
+    const resolver = invalidResolverRef.current;
+    invalidResolverRef.current = null;
+    setImportInvalidCode(null);
+    resolver?.();
+  };
+
+  const summarizeImport = (s: {
+    imported: number;
+    skipped: number;
+    failed: number;
+    total: number;
+    aborted: boolean;
+  }) => {
+    if (s.aborted) return; // lock-error toast already shown
+    if (s.total === 1) {
+      if (s.imported) toast.success('Map imported successfully.');
+      else if (s.failed) toast.error('Failed to import map.');
+      return;
     }
+    const parts: string[] = [];
+    if (s.imported) parts.push(`${s.imported} imported`);
+    if (s.skipped) parts.push(`${s.skipped} skipped`);
+    if (s.failed) parts.push(`${s.failed} failed`);
+    const summary = parts.join(', ');
+    if (s.failed) toast.error(`Import finished: ${summary}.`);
+    else if (s.skipped) toast.warning(`Import finished: ${summary}.`);
+    else toast.success(`${s.imported} maps imported.`);
+  };
+
+  // Imports each archive in turn. The backend serializes the work; the queue
+  // counter drives the same "n/N" progress indicator that installs use, and
+  // conflicts/invalid codes pause the loop for a per-item decision.
+  const runImportBatch = async (paths: string[]) => {
+    if (paths.length === 0) return;
+    const queue = useDownloadQueueStore.getState();
+    paths.forEach(() => queue.enqueue());
+
+    let imported = 0;
+    let skipped = 0;
+    let failed = 0;
+    let processed = 0;
+    let bulkMode: 'replace' | 'skip' | null = null;
+    let aborted = false;
+
+    for (let i = 0; i < paths.length && !aborted; i++) {
+      const path = paths[i];
+      const hasMore = i < paths.length - 1;
+
+      if (bulkMode === 'skip') {
+        skipped++;
+        queue.complete();
+        processed++;
+        continue;
+      }
+
+      let replace = bulkMode === 'replace';
+      let settled = false;
+      while (!settled) {
+        try {
+          await importMapFromZip(path, replace);
+          imported++;
+          settled = true;
+        } catch (err) {
+          if (
+            err instanceof AssetConflictError &&
+            err.conflicts.length > 0 &&
+            !replace
+          ) {
+            const decision = await awaitConflictDecision(
+              err.conflicts[0],
+              hasMore,
+            );
+            if (decision.applyToAll) bulkMode = decision.action;
+            if (decision.action === 'skip') {
+              skipped++;
+              settled = true;
+            } else {
+              replace = true; // retry this archive with replacement
+            }
+          } else if (err instanceof InvalidMapCodeError) {
+            await awaitInvalidAck(err.message);
+            skipped++;
+            settled = true;
+          } else if (handleSubscriptionMutationError(err, () => {})) {
+            aborted = true; // game running etc. — the rest will fail too
+            settled = true;
+          } else {
+            failed++;
+            settled = true;
+          }
+        }
+      }
+      queue.complete();
+      processed++;
+    }
+
+    // Clear the counter for any archives the abort skipped.
+    for (let k = processed; k < paths.length; k++) queue.complete();
+
+    void updateInstalledLists();
+    void refreshPendingSubscriptionUpdates();
+    summarizeImport({ imported, skipped, failed, total: paths.length, aborted });
   };
 
   const handlePickArchive = async () => {
@@ -391,14 +501,13 @@ export function LibraryPage() {
     try {
       const selection = await OpenImportAssetDialog('map');
       if (selection.status === 'error') {
-        toast.error('Failed to import map.');
+        toast.error('Failed to open import dialog.');
         return;
       }
-      if (selection.status === 'warn' || !selection.path?.trim()) {
-        return;
-      }
-      setImportSelectedPath(selection.path);
-      await runImport(selection.path, false);
+      const paths = selection.paths ?? [];
+      if (selection.status === 'warn' || paths.length === 0) return;
+      setImportDialogOpen(false);
+      await runImportBatch(paths);
     } finally {
       setImportLoading(false);
     }
@@ -640,11 +749,11 @@ export function LibraryPage() {
         onOpenChange={setImportDialogOpen}
         title="Import"
         icon={FileArchive}
-        description="Import a local map ZIP into your Library. Local assets are tracked separately from registry assets."
+        description="Import one or more local map ZIPs into your Library. Select multiple archives to queue them together. Local assets are tracked separately from registry assets."
         tone="import"
         confirm={withLockAwareConfirm(
           {
-            label: 'Choose ZIP',
+            label: 'Choose ZIPs',
             cancelLabel: 'Close',
             onConfirm: handlePickArchive,
             loading: importLoading,
@@ -667,24 +776,19 @@ export function LibraryPage() {
         <AppDialog
           open={!!importConflict}
           onOpenChange={(value) => {
-            if (!value) setImportConflict(null);
+            if (!value) resolveConflict('skip');
           }}
           title="Replace Conflicting Map"
           icon={AlertTriangle}
-          description="This local import conflicts with an existing map. Replace the existing map to continue."
+          description="This local import conflicts with an existing map. Replace it, or skip this archive and continue."
           tone="files"
-          confirm={withLockAwareConfirm(
-            {
-              label: 'Replace',
-              onConfirm: () => {
-                if (!importSelectedPath) return;
-                void runImport(importSelectedPath, true);
-              },
-              loading: importLoading,
-            },
-            mutationLocked,
-            mutationLockedReason,
-          )}
+          confirm={{
+            label:
+              applyToAll && importConflict.hasMore ? 'Replace all' : 'Replace',
+            cancelLabel:
+              applyToAll && importConflict.hasMore ? 'Skip all' : 'Skip',
+            onConfirm: () => resolveConflict('replace'),
+          }}
         >
           <div
             className={cn(
@@ -693,18 +797,28 @@ export function LibraryPage() {
             )}
           >
             <p className="font-medium text-foreground">
-              Conflicting City Code: {importConflict.cityCode}
+              Conflicting City Code: {importConflict.conflict.cityCode}
             </p>
             <p className="mt-1">
-              Existing Asset: {importConflict.existingAssetId} (
-              {conflictSourceLabel(importConflict)})
+              Existing Asset: {importConflict.conflict.existingAssetId} (
+              {conflictSourceLabel(importConflict.conflict)})
             </p>
-            {importConflict.existingVersion ? (
+            {importConflict.conflict.existingVersion ? (
               <p className="mt-1">
-                Existing Version: {importConflict.existingVersion}
+                Existing Version: {importConflict.conflict.existingVersion}
               </p>
             ) : null}
           </div>
+          {importConflict.hasMore && (
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+              <Checkbox
+                checked={applyToAll}
+                onCheckedChange={(value) => setApplyToAll(value === true)}
+                className="h-4 w-4"
+              />
+              Apply to all remaining conflicts
+            </label>
+          )}
         </AppDialog>
       )}
 
@@ -712,13 +826,13 @@ export function LibraryPage() {
         <AppDialog
           open={!!importInvalidCode}
           onOpenChange={(value) => {
-            if (!value) setImportInvalidCode(null);
+            if (!value) resolveInvalid();
           }}
           title="Invalid Local Map Code"
           icon={AlertTriangle}
           description={`${importInvalidCode} Local map codes must be 2-4 uppercase letters (e.g. "AAA").`}
           tone="files"
-          confirm={{ label: 'OK', onConfirm: () => setImportInvalidCode(null) }}
+          confirm={{ label: 'Skip', onConfirm: resolveInvalid }}
         />
       )}
     </>
