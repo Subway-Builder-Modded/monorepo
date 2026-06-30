@@ -81,7 +81,7 @@ export function ItemCard({
       totalDownloads={totalDownloads}
       topLeftBadge={
         incompatible || test ? (
-          <span className="flex items-center gap-1">
+          <span className="inline-flex items-center gap-1">
             {test && <TestBadge />}
             {incompatible && <IncompatibleBadge />}
           </span>

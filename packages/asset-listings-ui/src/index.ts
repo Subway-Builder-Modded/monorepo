@@ -18,6 +18,7 @@ export {
 	type ErrorBannerProps,
 } from './components/error-banner';
 export {
+	ImageChip,
 	ItemBadges,
 	ItemCard,
 	type ItemCardProps,
