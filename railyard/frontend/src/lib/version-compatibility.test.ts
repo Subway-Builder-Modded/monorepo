@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  describeConstraint,
+  describeConstraintRange,
   getFailingConstraints,
   type InstalledConstraint,
   isInstalledCompatible,
@@ -80,6 +82,39 @@ describe('getFailingConstraints', () => {
     const result = getFailingConstraints('0.5.0', [MANIFEST, BUILDINGS]);
     expect(result[0].type).toBe('buildings_index');
     expect(result[1].type).toBe('manifest');
+  });
+});
+
+describe('describeConstraintRange', () => {
+  it.each([
+    ['>=1.3.0', '1.3.0 or newer'], // includes boundary
+    ['>1.3.0', 'newer than 1.3.0'], // excludes boundary
+    ['<=1.3.0', '1.3.0 or older'], // includes boundary
+    ['<1.3.0', 'older than 1.3.0'], // excludes boundary
+    ['=1.3.0', 'exactly 1.3.0'],
+    ['v>=1.3.0'.replace('v', ''), '1.3.0 or newer'],
+    ['>=v1.3.0', '1.3.0 or newer'], // tolerates v prefix
+    ['>=1.0.0 <2.0.0', '>=1.0.0 <2.0.0'], // compound → raw
+    ['garbage', 'garbage'],
+  ])('%s → %s', (range, expected) => {
+    expect(describeConstraintRange(range)).toBe(expected);
+  });
+});
+
+describe('describeConstraint', () => {
+  it('phrases a game-version requirement', () => {
+    expect(
+      describeConstraint({ type: 'manifest', range: '>=1.3.0' }, '1.2.0'),
+    ).toBe('Game version: needs 1.3.0 or newer (you have 1.2.0)');
+  });
+
+  it('phrases a legacy buildings requirement (inclusive)', () => {
+    expect(
+      describeConstraint(
+        { type: 'buildings_index', range: '<=1.3.0' },
+        '1.4.0',
+      ),
+    ).toBe('Buildings format: needs 1.3.0 or older (you have 1.4.0)');
   });
 });
 

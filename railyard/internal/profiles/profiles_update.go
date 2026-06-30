@@ -674,7 +674,7 @@ func filterGameCompatibleVersions(assetType types.AssetType, versions []types.Ve
 	compatible := make([]types.VersionInfo, 0, len(versions))
 	for _, version := range versions {
 		constraints := types.ConstraintsFromVersionInfo(assetType, version)
-		if types.FirstUnsatisfiedConstraint(gameVersion, constraints) == nil {
+		if len(types.UnsatisfiedConstraints(gameVersion, constraints)) == 0 {
 			compatible = append(compatible, version)
 		}
 	}

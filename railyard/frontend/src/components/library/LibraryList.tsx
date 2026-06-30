@@ -56,6 +56,7 @@ import {
   type PendingUpdateTarget,
 } from '@/lib/subscription-updates';
 import {
+  describeConstraint,
   getFailingConstraints,
   isInstalledCompatible,
 } from '@/lib/version-compatibility';
@@ -446,14 +447,9 @@ function LibraryListRow({
                     <IncompatibleBadge />
                   </span>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-56 space-y-0.5">
+                <TooltipContent className="max-w-64 space-y-0.5">
                   {failingConstraints.map((c) => (
-                    <p key={c.type}>
-                      {c.type === 'buildings_index'
-                        ? 'Buildings index format'
-                        : 'Game version'}
-                      : requires {c.range}
-                    </p>
+                    <p key={c.type}>{describeConstraint(c, gameVersion)}</p>
                   ))}
                 </TooltipContent>
               </Tooltip>

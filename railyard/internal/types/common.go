@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -266,17 +267,56 @@ func SemverSatisfiesConstraint(version *semver.Version, rangeExpr string) (bool,
 	return constraint.Check(version), nil
 }
 
-// FirstUnsatisfiedConstraint returns the first constraint the game version fails,
-// or nil when all are satisfied. Shared by install gating and update filtering so
-// both judge a version's compatibility the same way.
-func FirstUnsatisfiedConstraint(gameVersion *semver.Version, constraints []InstalledConstraint) *InstalledConstraint {
-	for i := range constraints {
+// UnsatisfiedConstraints returns every constraint the game version fails, ordered
+// with buildings_index (the more specific format requirement) first. Empty when the
+// version is fully compatible. Shared by install gating, update filtering, and
+// incompatibility messaging so all three judge compatibility the same way.
+func UnsatisfiedConstraints(gameVersion *semver.Version, constraints []InstalledConstraint) []InstalledConstraint {
+	failing := make([]InstalledConstraint, 0, len(constraints))
+	for _, c := range constraints {
 		// Malformed ranges are treated as satisfied (lenient); err is ignored here.
-		if satisfied, _ := SemverSatisfiesConstraint(gameVersion, constraints[i].Range); !satisfied {
-			return &constraints[i]
+		if satisfied, _ := SemverSatisfiesConstraint(gameVersion, c.Range); !satisfied {
+			failing = append(failing, c)
 		}
 	}
-	return nil
+	sort.SliceStable(failing, func(i, _ int) bool {
+		return failing[i].Type == ConstraintTypeBuildingsIndex
+	})
+	return failing
+}
+
+// DescribeConstraint phrases a failing constraint for the user, e.g.
+// "Game version: needs 1.3.0 or newer (you have 1.2.0)".
+func DescribeConstraint(c InstalledConstraint, gameVersion string) string {
+	label := "Game version"
+	if c.Type == ConstraintTypeBuildingsIndex {
+		label = "Buildings format"
+	}
+	return label + ": needs " + humanizeSemverRange(c.Range) + " (you have " + gameVersion + ")"
+}
+
+// humanizeSemverRange turns a single-operator semver range into plain language,
+// preserving boundary inclusivity (>= includes, > excludes). Compound or
+// unrecognized ranges are returned unchanged.
+func humanizeSemverRange(rangeExpr string) string {
+	r := strings.TrimSpace(rangeExpr)
+	// Two-char operators first so ">=" is not matched as ">".
+	for _, o := range []struct{ op, prefix, suffix string }{
+		{">=", "", " or newer"},
+		{"<=", "", " or older"},
+		{">", "newer than ", ""},
+		{"<", "older than ", ""},
+		{"=", "exactly ", ""},
+	} {
+		if strings.HasPrefix(r, o.op) {
+			version := strings.TrimPrefix(strings.TrimSpace(strings.TrimPrefix(r, o.op)), "v")
+			if version == "" || strings.ContainsAny(version, " ,|") {
+				return rangeExpr // compound / empty → leave raw
+			}
+			return o.prefix + version + o.suffix
+		}
+	}
+	return rangeExpr
 }
 
 // DetectedVersion returns the detected game version as parsed semver.

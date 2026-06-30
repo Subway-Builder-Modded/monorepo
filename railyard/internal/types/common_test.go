@@ -60,6 +60,48 @@ func TestSemverSatisfiesConstraint(t *testing.T) {
 	require.True(t, ok)
 }
 
+func TestDescribeConstraint(t *testing.T) {
+	// >= includes the boundary
+	require.Equal(t,
+		"Game version: needs 1.3.0 or newer (you have 1.2.0)",
+		DescribeConstraint(InstalledConstraint{Type: ConstraintTypeManifest, Range: ">=1.3.0"}, "1.2.0"))
+	// > excludes the boundary (binary buildings index)
+	require.Equal(t,
+		"Buildings format: needs newer than 1.3.0 (you have 1.2.0)",
+		DescribeConstraint(InstalledConstraint{Type: ConstraintTypeBuildingsIndex, Range: ">1.3.0"}, "1.2.0"))
+	// <= includes the boundary (legacy buildings index)
+	require.Equal(t,
+		"Buildings format: needs 1.3.0 or older (you have 1.4.0)",
+		DescribeConstraint(InstalledConstraint{Type: ConstraintTypeBuildingsIndex, Range: "<=1.3.0"}, "1.4.0"))
+	// compound range → left raw
+	require.Equal(t,
+		"Game version: needs >=1.0.0 <2.0.0 (you have 0.9.0)",
+		DescribeConstraint(InstalledConstraint{Type: ConstraintTypeManifest, Range: ">=1.0.0 <2.0.0"}, "0.9.0"))
+}
+
+func TestUnsatisfiedConstraints(t *testing.T) {
+	gameVersion := semver.MustParse("1.2.0")
+
+	failing := UnsatisfiedConstraints(gameVersion, []InstalledConstraint{
+		{Type: ConstraintTypeManifest, Range: ">=1.3.0"},      // fails
+		{Type: ConstraintTypeBuildingsIndex, Range: ">1.0.0"}, // satisfied
+	})
+	require.Len(t, failing, 1)
+	require.Equal(t, ConstraintTypeManifest, failing[0].Type)
+
+	// When both fail, buildings_index is ordered first.
+	both := []InstalledConstraint{
+		{Type: ConstraintTypeManifest, Range: ">=1.3.0"},
+		{Type: ConstraintTypeBuildingsIndex, Range: ">1.3.0"},
+	}
+	failingBoth := UnsatisfiedConstraints(gameVersion, both)
+	require.Len(t, failingBoth, 2)
+	require.Equal(t, ConstraintTypeBuildingsIndex, failingBoth[0].Type)
+
+	// Fully compatible game version yields nothing.
+	require.Empty(t, UnsatisfiedConstraints(semver.MustParse("2.0.0"), both))
+}
+
 func TestIsValidAssetType(t *testing.T) {
 	require.True(t, IsValidAssetType(AssetTypeMap))
 	require.True(t, IsValidAssetType(AssetTypeMod))

@@ -58,3 +58,37 @@ export function getFailingConstraints(
   );
   return failing.sort((a) => (a.type === 'buildings_index' ? -1 : 1));
 }
+
+// describeConstraintRange turns a single-operator semver range into plain
+// language, preserving boundary inclusivity (>= includes, > excludes). Compound
+// or unrecognized ranges are returned unchanged. Mirrors the Go humanizeSemverRange.
+export function describeConstraintRange(range: string): string {
+  const r = range.trim();
+  // Two-char operators first so ">=" is not matched as ">".
+  const phrasings: Array<[string, (version: string) => string]> = [
+    ['>=', (v) => `${v} or newer`],
+    ['<=', (v) => `${v} or older`],
+    ['>', (v) => `newer than ${v}`],
+    ['<', (v) => `older than ${v}`],
+    ['=', (v) => `exactly ${v}`],
+  ];
+  for (const [op, phrase] of phrasings) {
+    if (r.startsWith(op)) {
+      const version = r.slice(op.length).trim().replace(/^v/, '');
+      if (!version || /[\s,|]/.test(version)) return range; // compound → raw
+      return phrase(version);
+    }
+  }
+  return range;
+}
+
+// describeConstraint phrases a failing constraint for the user, e.g.
+// "Game version: needs 1.3.0 or newer (you have 1.2.0)". Mirrors Go DescribeConstraint.
+export function describeConstraint(
+  constraint: InstalledConstraint,
+  gameVersion: string,
+): string {
+  const label =
+    constraint.type === 'buildings_index' ? 'Buildings format' : 'Game version';
+  return `${label}: needs ${describeConstraintRange(constraint.range)} (you have ${gameVersion})`;
+}
