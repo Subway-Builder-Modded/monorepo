@@ -17,6 +17,23 @@ export namespace deeplink {
 
 }
 
+export namespace semver {
+	
+	export class Version {
+	
+	
+	    static createFrom(source: any = {}) {
+	        return new Version(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	
+	    }
+	}
+
+}
+
 export namespace types {
 	
 	export class AppConfig {
@@ -616,11 +633,11 @@ export namespace types {
 	    status: string;
 	    conflict?: MapCodeConflict;
 	    error?: string;
-
+	
 	    static createFrom(source: any = {}) {
 	        return new ImportArchiveValidation(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
@@ -688,11 +705,11 @@ export namespace types {
 	    status: string;
 	    message: string;
 	    validations: ImportArchiveValidation[];
-
+	
 	    static createFrom(source: any = {}) {
 	        return new ImportValidationResponse(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.status = source["status"];

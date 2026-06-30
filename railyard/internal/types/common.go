@@ -97,10 +97,10 @@ var autoPurgeDownloadErrorTypes = map[DownloaderErrorType]struct{}{
 	InstallErrorChecksumFailed:  {},
 	// Error for a version removed from the installable set while the app is running; ReconcileSubscriptionVersions repairs the same condition before sync at startup.
 	InstallErrorVersionNotFound: {},
-	// Game version incompatibility errors: subscription is purged so the user is not saddled with an asset that silently never installs.
-	// The initial failure is still surfaced to the user before purge.
+	// Confirmed incompatibility (game detected, constraint violated): purge so the user is not saddled with an asset that silently never installs.
 	InstallErrorIncompatibleGameVersion: {},
-	InstallErrorGameVersionUndetectable: {},
+	// IMPORTANT: InstallErrorGameVersionUndetectable is deliberately NOT purged — an undetectable version (misconfigured exe, early startup) is an unknown, not an incompatibility verdict
+	// In this case the install is blocked but the subscription is preserved for retry.
 }
 
 func AutoPurgeDownloadErrors(err DownloaderErrorType) bool {
@@ -230,6 +230,53 @@ func NormalizeSemver(version string) string {
 		return trimmed
 	}
 	return "v" + trimmed
+}
+
+// ParseSemver parses a version string, tolerating an optional "v" prefix.
+func ParseSemver(version string) (*semver.Version, error) {
+	return semver.NewVersion(strings.TrimPrefix(strings.TrimSpace(version), "v"))
+}
+
+// IsSemverNewer reports whether candidate is a strictly newer semver than current.
+func IsSemverNewer(candidate, current string) (bool, error) {
+	candidateVer, err := ParseSemver(candidate)
+	if err != nil {
+		return false, err
+	}
+	currentVer, err := ParseSemver(current)
+	if err != nil {
+		return false, err
+	}
+	return candidateVer.GreaterThan(currentVer), nil
+}
+
+// SemverSatisfiesConstraint reports whether version satisfies a semver range.
+// An empty range imposes no requirement; a malformed range is treated as
+// satisfied (the err is returned so callers may log it) so a bad constraint
+// never hides an otherwise-valid result.
+func SemverSatisfiesConstraint(version *semver.Version, rangeExpr string) (bool, error) {
+	rangeExpr = strings.TrimSpace(rangeExpr)
+	if rangeExpr == "" {
+		return true, nil
+	}
+	constraint, err := semver.NewConstraint(strings.TrimPrefix(rangeExpr, "v"))
+	if err != nil {
+		return true, err
+	}
+	return constraint.Check(version), nil
+}
+
+// FirstUnsatisfiedConstraint returns the first constraint the game version fails,
+// or nil when all are satisfied. Shared by install gating and update filtering so
+// both judge a version's compatibility the same way.
+func FirstUnsatisfiedConstraint(gameVersion *semver.Version, constraints []InstalledConstraint) *InstalledConstraint {
+	for i := range constraints {
+		// Malformed ranges are treated as satisfied (lenient); err is ignored here.
+		if satisfied, _ := SemverSatisfiesConstraint(gameVersion, constraints[i].Range); !satisfied {
+			return &constraints[i]
+		}
+	}
+	return nil
 }
 
 // DetectedVersion returns the detected game version as parsed semver.

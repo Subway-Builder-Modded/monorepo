@@ -193,9 +193,9 @@ func ValidateInstalledMapData(mapInstallRoot string, mapTilesRoot string, cityCo
 	return readInstalledMapConfig(mapInstallRoot, cityCode)
 }
 
-// requiredMapArchiveFiles maps each required archive key with the name
-// shown when it is missing
-var requiredMapArchiveFiles = []struct {
+// mapArchiveFileLabels pairs each archive key with the name shown when missing,
+// in a stable display order. Required-ness comes from the index, not this list.
+var mapArchiveFileLabels = []struct {
 	key   string
 	label string
 }{
@@ -206,12 +206,14 @@ var requiredMapArchiveFiles = []struct {
 	{MapArchiveKeyTiles, "map tiles (*" + MapTileFileExt + ")"},
 }
 
-// missingRequiredFiles returns the display names of the absent required files.
+// missingRequiredFiles returns the display names of the absent required files,
+// reading required-ness from the index built by BuildMapArchiveFileIndex.
 func missingRequiredFiles(filesFound map[string]types.FileFoundStruct) []string {
-	missing := make([]string, 0, len(requiredMapArchiveFiles))
-	for _, req := range requiredMapArchiveFiles {
-		if !filesFound[req.key].Found {
-			missing = append(missing, req.label)
+	missing := make([]string, 0, len(mapArchiveFileLabels))
+	for _, f := range mapArchiveFileLabels {
+		entry := filesFound[f.key]
+		if entry.Required && !entry.Found {
+			missing = append(missing, f.label)
 		}
 	}
 	return missing

@@ -14,6 +14,22 @@ const (
 	ConstraintTypeBuildingsIndex = "buildings_index"
 )
 
+// ConstraintsFromVersionInfo builds the compatibility constraints a version imposes:
+// its game-version range, plus (for maps) its buildings-index range. Single source
+// of truth for what defines a version's compatibility, shared by install and update.
+func ConstraintsFromVersionInfo(assetType AssetType, vi VersionInfo) []InstalledConstraint {
+	var cs []InstalledConstraint
+	// GameVersion covers every enrichment source: integrity report, custom JSON game_version, manifest.json fallback.
+	if vi.GameVersion != "" {
+		cs = append(cs, InstalledConstraint{Type: ConstraintTypeManifest, Range: vi.GameVersion})
+	}
+	// Only maps carry a buildings-index constraint.
+	if assetType == AssetTypeMap && vi.MapBuildingsConstraint != "" {
+		cs = append(cs, InstalledConstraint{Type: ConstraintTypeBuildingsIndex, Range: vi.MapBuildingsConstraint})
+	}
+	return cs
+}
+
 // UpdateConfig describes how a mod or map receives updates.
 type UpdateConfig struct {
 	Type string `json:"type"`

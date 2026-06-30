@@ -46,12 +46,24 @@ func loadedUserProfilesService(t *testing.T, state types.UserProfilesState) *Use
 	return svc
 }
 
+// testGameVersion is the detected game version wired into the test harness so
+// update resolution behaves as it does in production (where a version is
+// detected). Individual tests can override svc.Downloader.GetGameVersion to
+// exercise the undetected / incompatible paths.
+const testGameVersion = "1.3.0"
+
 func userProfilesServiceWithDependencies(t *testing.T) (*UserProfiles, *config.Config, *registry.Registry) {
 	t.Helper()
 	cfg := config.NewConfig(testutil.TestLogSink{})
 	l := testUserProfilesLogger(t)
 	reg := registry.NewRegistry(l, cfg)
 	dl := downloader.NewDownloader(cfg, reg, l)
+	dl.GetGameVersion = func() types.GameVersionResponse {
+		return types.GameVersionResponse{
+			GenericResponse: types.SuccessResponse("detected"),
+			Version:         testGameVersion,
+		}
+	}
 	return NewUserProfiles(reg, dl, l, cfg), cfg, reg
 }
 

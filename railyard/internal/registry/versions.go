@@ -14,7 +14,6 @@ import (
 	"railyard/internal/requests"
 	"railyard/internal/types"
 
-	semver "github.com/Masterminds/semver/v3"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -225,10 +224,8 @@ func cloneVersionInfos(input []types.VersionInfo) []types.VersionInfo {
 // sortSemverVersions sorts versions in-place by descending semantic version, with non-semver versions at the end sorted by descending string order.
 func sortSemverVersions(versions []types.VersionInfo) {
 	sort.SliceStable(versions, func(i, j int) bool {
-		leftVersion := strings.TrimPrefix(types.NormalizeSemver(versions[i].Version), "v")
-		rightVersion := strings.TrimPrefix(types.NormalizeSemver(versions[j].Version), "v")
-		left, _ := semver.NewVersion(leftVersion)
-		right, _ := semver.NewVersion(rightVersion)
+		left, _ := types.ParseSemver(versions[i].Version)
+		right, _ := types.ParseSemver(versions[j].Version)
 		return left.GreaterThan(right)
 	})
 }

@@ -17,8 +17,6 @@ export function HandleDeepLinkTarget(arg1:deeplink.Target):Promise<void>;
 
 export function HandleDeepLinkURL(arg1:string):Promise<void>;
 
-export function ValidateImportedMapArchives(arg1:Array<string>):Promise<types.ImportValidationResponse>;
-
 export function InstallLinuxSandbox():Promise<types.GenericResponse>;
 
 export function IsGameRunning():Promise<types.GameRunningResponse>;
@@ -36,3 +34,5 @@ export function OpenInFileExplorer(arg1:string):Promise<types.GenericResponse>;
 export function SandboxIsInstalled():Promise<types.SandboxStatusResponse>;
 
 export function StopGame():Promise<types.GenericResponse>;
+
+export function ValidateImportedMapArchives(arg1:Array<string>):Promise<types.ImportValidationResponse>;
