@@ -266,6 +266,19 @@ func SemverSatisfiesConstraint(version *semver.Version, rangeExpr string) (bool,
 	return constraint.Check(version), nil
 }
 
+// FirstUnsatisfiedConstraint returns the first constraint the game version fails,
+// or nil when all are satisfied. Shared by install gating and update filtering so
+// both judge a version's compatibility the same way.
+func FirstUnsatisfiedConstraint(gameVersion *semver.Version, constraints []InstalledConstraint) *InstalledConstraint {
+	for i := range constraints {
+		// Malformed ranges are treated as satisfied (lenient); err is ignored here.
+		if satisfied, _ := SemverSatisfiesConstraint(gameVersion, constraints[i].Range); !satisfied {
+			return &constraints[i]
+		}
+	}
+	return nil
+}
+
 // DetectedVersion returns the detected game version as parsed semver.
 func (r GameVersionResponse) DetectedVersion() (*semver.Version, bool) {
 	// No version detecteed

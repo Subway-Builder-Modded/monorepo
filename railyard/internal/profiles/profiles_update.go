@@ -668,23 +668,15 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 	return latest, true, nil
 }
 
-// filterGameCompatibleVersions keeps the versions the detected game version can install.
+// filterGameCompatibleVersions keeps the versions the detected game version can
+// install, judging compatibility the same way the installer does.
 func filterGameCompatibleVersions(assetType types.AssetType, versions []types.VersionInfo, gameVersion *semver.Version) []types.VersionInfo {
-	// A malformed constraint is treated as satisfied (lenient), so the err is ignored.
-	satisfies := func(rangeExpr string) bool {
-		ok, _ := types.SemverSatisfiesConstraint(gameVersion, rangeExpr)
-		return ok
-	}
 	compatible := make([]types.VersionInfo, 0, len(versions))
 	for _, version := range versions {
-		if !satisfies(version.GameVersion) {
-			continue
+		constraints := types.ConstraintsFromVersionInfo(assetType, version)
+		if types.FirstUnsatisfiedConstraint(gameVersion, constraints) == nil {
+			compatible = append(compatible, version)
 		}
-		// Maps additionally pin a buildings-index range; mods never set one.
-		if assetType == types.AssetTypeMap && !satisfies(version.MapBuildingsConstraint) {
-			continue
-		}
-		compatible = append(compatible, version)
 	}
 	return compatible
 }

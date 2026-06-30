@@ -908,7 +908,7 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 	if versionInfo == nil {
 		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, types.InstallErrorVersionNotFound, "Specified version not found for mod", nil, "mod_id", modId, "version", version, "available_versions", availableVersions)
 	}
-	modConstraints := constraintsFromVersionInfo(types.AssetTypeMod, *versionInfo)
+	modConstraints := types.ConstraintsFromVersionInfo(types.AssetTypeMod, *versionInfo)
 	if depErr := d.ensureModDependencies(ctx, modId, version, *versionInfo, modConstraints, skipDependencies); depErr != nil {
 		return *depErr
 	}
@@ -945,26 +945,6 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 	return d.installSuccess(types.AssetTypeMod, modId, version, types.ConfigData{}, "Mod installed successfully", "mod_id", modId, "version", version)
 }
 
-// constraintsFromVersionInfo builds the Constraints slice for an asset installation.
-func constraintsFromVersionInfo(assetType types.AssetType, vi types.VersionInfo) []types.InstalledConstraint {
-	var cs []types.InstalledConstraint
-	// Read GameVersion from VersionInfo so all enrichment sources are covered: integrity report, custom JSON game_version field, and manifest.json fallback.
-	if vi.GameVersion != "" {
-		cs = append(cs, types.InstalledConstraint{
-			Type:  types.ConstraintTypeManifest,
-			Range: vi.GameVersion,
-		})
-	}
-	// Only maps receive a buildings_index entry constraint
-	if assetType == types.AssetTypeMap && vi.MapBuildingsConstraint != "" {
-		cs = append(cs, types.InstalledConstraint{
-			Type:  types.ConstraintTypeBuildingsIndex,
-			Range: vi.MapBuildingsConstraint,
-		})
-	}
-	return cs
-}
-
 // DetectedGameVersion is the single source of truth for game-version detection.
 func (d *Downloader) DetectedGameVersion() (*semver.Version, bool) {
 	if d.GetGameVersion == nil {
@@ -989,22 +969,14 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 		)
 		return &resp
 	}
-	for _, c := range constraints {
-		satisfied, err := types.SemverSatisfiesConstraint(gameVersion, c.Range)
-		if err != nil {
-			// Malformed constraint is treated as satisfied; log and move on.
-			d.Logger.Error("Unparseable compatibility constraint; treating as satisfied", err,
-				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range)
-		}
-		if !satisfied {
-			resp := d.installError(
-				assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
-				fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersion.String(), c.Range, c.Type),
-				nil,
-				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range, "game_version", gameVersion.String(),
-			)
-			return &resp
-		}
+	if c := types.FirstUnsatisfiedConstraint(gameVersion, constraints); c != nil {
+		resp := d.installError(
+			assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
+			fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersion.String(), c.Range, c.Type),
+			nil,
+			"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range, "game_version", gameVersion.String(),
+		)
+		return &resp
 	}
 	return nil
 }
@@ -1091,7 +1063,7 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 		return d.installError(types.AssetTypeMap, mapId, version, types.ConfigData{}, types.InstallErrorVersionNotFound, "Specified version not found for map", nil, "map_id", mapId, "version", version, "available_versions", availableVersions)
 	}
 
-	mapConstraints := constraintsFromVersionInfo(types.AssetTypeMap, *versionInfo)
+	mapConstraints := types.ConstraintsFromVersionInfo(types.AssetTypeMap, *versionInfo)
 	if resp := d.ensureCompatibilityConstraints(types.AssetTypeMap, mapId, version, mapConstraints); resp != nil {
 		return *resp
 	}
