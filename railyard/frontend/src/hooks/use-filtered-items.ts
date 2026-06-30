@@ -61,20 +61,20 @@ export function useFilteredItems({
     () => buildTaggedItems(mods, maps),
     [mods, maps],
   );
-  const showIncompatible = statusFilters.includes('incompatible');
-  const showTest = statusFilters.includes('test');
-  const allItems = useMemo(
-    () =>
-      registryItems.filter((entry) => {
-        const incompatible = incompatibleItemKeys?.has(
-          `${entry.type}:${entry.item.id}`,
-        );
-        const test = entry.item.is_test === true;
-        if (!incompatible && !test) return true;
-        return (incompatible && showIncompatible) || (test && showTest);
-      }),
-    [incompatibleItemKeys, registryItems, showIncompatible, showTest],
-  );
+
+  const allItems = useMemo(() => {
+    if (statusFilters.length === 0) return registryItems;
+    return registryItems.filter((entry) => {
+      const key = `${entry.type}:${entry.item.id}`;
+      const isIncompatible = incompatibleItemKeys?.has(key) ?? false;
+      for (const sf of statusFilters) {
+        if (sf === 'compatible' && !isIncompatible) return true;
+        if (sf === 'incompatible' && isIncompatible) return true;
+        if (sf === 'test' && entry.item.is_test === true) return true;
+      }
+      return false;
+    });
+  }, [incompatibleItemKeys, registryItems, statusFilters]);
   const accessors = useMemo(
     () => createTaggedListingAccessors<TaggedItem>(),
     [],

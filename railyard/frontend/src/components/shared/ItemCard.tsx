@@ -79,9 +79,9 @@ export function ItemCard({
       population={mapItem?.population}
       installedVersion={installedVersion}
       totalDownloads={totalDownloads}
-      titleBadge={
+      topLeftBadge={
         incompatible || test ? (
-          <span className="flex shrink-0 items-center gap-1">
+          <span className="flex items-center gap-1">
             {test && <TestBadge />}
             {incompatible && <IncompatibleBadge />}
           </span>

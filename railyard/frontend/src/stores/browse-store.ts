@@ -15,27 +15,26 @@ import {
 } from '@subway-builder-modded/stores-core';
 import { create } from 'zustand';
 
+import type { StatusFilter } from '@/stores/library-store';
+
 export { createRandomSeed };
 
 export type BrowseFilterState = SourceAssetQueryFilterState;
 export type BrowseFilterUpdater = AssetQueryFilterUpdater<BrowseFilterState>;
-export type BrowseStatusFilter = 'incompatible' | 'test';
 export type BrowseFilterStoreState = AssetQueryFilterStoreState<
   BrowseFilterState,
   SourceFilterByAssetType
 >;
 
 const defaultSearchFilters = createDefaultSourceFilters();
-const DEFAULT_STATUS_FILTERS: BrowseStatusFilter[] = ['test', 'incompatible'];
-const createDefaultStatusFilters = () => [...DEFAULT_STATUS_FILTERS];
 
 interface BrowseViewModeStoreState {
   viewMode: SearchViewMode;
   viewModeInitialized: boolean;
-  statusFilters: BrowseStatusFilter[];
+  statusFilters: StatusFilter[];
   setViewMode: (viewMode: SearchViewMode) => void;
   initializeViewMode: (viewMode: SearchViewMode) => void;
-  toggleStatusFilter: (filter: BrowseStatusFilter) => void;
+  toggleStatusFilter: (filter: StatusFilter) => void;
   clearStatusFilters: () => void;
 }
 
@@ -47,7 +46,7 @@ export const useBrowseStore = create<
   scopedByType: createSourceFilterByAssetType(defaultSearchFilters, 1),
   viewMode: 'full',
   viewModeInitialized: false,
-  statusFilters: createDefaultStatusFilters(),
+  statusFilters: [],
   setFilters: (updater) =>
     set((state) => {
       const nextFilters =
@@ -60,7 +59,7 @@ export const useBrowseStore = create<
   setType: (type) =>
     set((state) => ({
       ...switchFilter(state.filters, state.page, state.scopedByType, type),
-      statusFilters: createDefaultStatusFilters(),
+      statusFilters: [],
     })),
   setPage: (page) =>
     set((state) => {

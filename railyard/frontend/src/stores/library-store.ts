@@ -37,13 +37,7 @@ const defaultLibraryFilters: LibraryFilters = {
   },
 };
 
-export type StatusFilter = 'local' | 'incompatible' | 'test';
-const DEFAULT_STATUS_FILTERS: StatusFilter[] = [
-  'test',
-  'local',
-  'incompatible',
-];
-const createDefaultStatusFilters = () => [...DEFAULT_STATUS_FILTERS];
+export type StatusFilter = 'compatible' | 'local' | 'incompatible' | 'test';
 
 interface LibraryState extends AssetQueryFilterStoreState<
   LibraryFilters,
@@ -65,7 +59,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   page: 1,
   scopedByType: createFilterByAssetType(ASSET_TYPES, defaultLibraryFilters, 1),
   selectedIds: new Set<string>(),
-  statusFilters: createDefaultStatusFilters(),
+  statusFilters: [],
   toggleStatusFilter: (filter) =>
     set((state) => ({
       statusFilters: state.statusFilters.includes(filter)
@@ -85,7 +79,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   setType: (type) =>
     set((state) => ({
       ...switchFilter(state.filters, state.page, state.scopedByType, type),
-      statusFilters: createDefaultStatusFilters(),
+      statusFilters: [],
     })),
   setPage: (page) =>
     set((state) => {

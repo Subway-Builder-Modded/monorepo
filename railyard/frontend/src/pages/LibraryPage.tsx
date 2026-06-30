@@ -302,17 +302,17 @@ export function LibraryPage() {
   });
 
   const statusCounts = useMemo(() => {
-    let local = 0,
-      incompatible = 0,
-      test = 0;
+    let local = 0, incompatible = 0, test = 0, compatible = 0;
     for (const item of installedItems) {
       if (item.type !== filters.type) continue;
       if (item.isLocal) local++;
       if (!item.isLocal && item.item.is_test === true) test++;
       if (isInstalledCompatible(gameVersion, item.constraints ?? []) === false)
         incompatible++;
+      else
+        compatible++;
     }
-    return { local, incompatible, test };
+    return { local, incompatible, test, compatible };
   }, [installedItems, filters.type, gameVersion]);
 
   const handleInstallBrowse = useCallback(() => {
@@ -482,7 +482,6 @@ export function LibraryPage() {
             <AssetStatusFilterSection
               activeFilters={statusFilters}
               counts={statusCounts}
-              options={['test', 'local', 'incompatible']}
               onToggle={toggleStatusFilter}
             />
           }

@@ -55,8 +55,8 @@ import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterS
 import { ItemCard } from '@/components/shared/ItemCard';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
-import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useGameVersion } from '@/hooks/use-game-version';
+import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { selectLatestCompatibleVersion } from '@/lib/version-compatibility';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -71,18 +71,6 @@ interface BrowsePageContentProps {
   warmupMode: boolean;
   onWarmupComplete: () => void;
 }
-
-const FIELD_ICONS: Record<string, typeof Type> = {
-  ...DEFAULT_FIELD_ICONS,
-  name: Type,
-  city_code: Hash,
-  country: Globe,
-  author: User,
-  population: Users,
-  downloads: Download,
-  last_updated: Calendar,
-  random: Shuffle,
-};
 
 function getDownloadableVersions(
   assetType: AssetType,
@@ -99,12 +87,22 @@ function isGameVersionIncompatible(
   gameVersion: string,
 ): boolean {
   if (!gameVersion) return false;
-
   const downloadableVersions = getDownloadableVersions(assetType, versions);
   if (downloadableVersions.length === 0) return false;
-
   return !selectLatestCompatibleVersion(downloadableVersions, gameVersion);
 }
+
+const FIELD_ICONS: Record<string, typeof Type> = {
+  ...DEFAULT_FIELD_ICONS,
+  name: Type,
+  city_code: Hash,
+  country: Globe,
+  author: User,
+  population: Users,
+  downloads: Download,
+  last_updated: Calendar,
+  random: Shuffle,
+};
 
 function BrowsePageContent({
   warmupMode,
@@ -207,66 +205,35 @@ function BrowsePageContent({
 
   useEffect(() => {
     let cancelled = false;
-
     if (!gameVersion) {
       setIncompatibleItemKeys(new Set());
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }
-
     const assetRefs = [
       ...mods.map((item) => ({ type: 'mod' as const, id: item.id })),
       ...maps.map((item) => ({ type: 'map' as const, id: item.id })),
     ];
-
     Promise.all(
       assetRefs.map(async ({ type, id }) => {
         try {
           const response = await GetInstallableVersionsResponse(type, id);
-          if (response.status !== 'success') {
-            console.warn(
-              `[browse:versions] Failed to load ${type}:${id} versions: ${response.message}`,
-            );
-            return null;
-          }
-
-          return isGameVersionIncompatible(
-            type,
-            response.versions ?? [],
-            gameVersion,
-          )
+          if (response.status !== 'success') return null;
+          return isGameVersionIncompatible(type, response.versions ?? [], gameVersion)
             ? `${type}:${id}`
             : null;
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          console.warn(
-            `[browse:versions] Failed to load ${type}:${id} versions: ${message}`,
-          );
+        } catch {
           return null;
         }
       }),
     )
       .then((keys) => {
-        if (!cancelled) {
+        if (!cancelled)
           setIncompatibleItemKeys(
-            new Set(keys.filter((key): key is string => Boolean(key))),
+            new Set(keys.filter((k): k is string => k !== null)),
           );
-        }
       })
-      .catch((err) => {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : String(err);
-          console.warn(
-            `[browse:versions] Failed to load installable versions: ${message}`,
-          );
-          setIncompatibleItemKeys(new Set());
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => { if (!cancelled) setIncompatibleItemKeys(new Set()); });
+    return () => { cancelled = true; };
   }, [gameVersion, maps, mods]);
 
   const {
@@ -279,18 +246,16 @@ function BrowsePageContent({
     setType,
     setPage,
     dimCounts: filteredDimCounts,
-  } = useFilteredItems({
-    mods,
-    maps,
-    modDownloadTotals,
-    mapDownloadTotals,
-    incompatibleItemKeys,
-  });
+  } = useFilteredItems({ mods, maps, modDownloadTotals, mapDownloadTotals, incompatibleItemKeys });
 
   const statusCounts = useMemo(() => {
     const typedItems = filters.type === 'mod' ? mods : maps;
     return {
+      compatible: typedItems.filter(
+        (item) => !incompatibleItemKeys.has(`${filters.type}:${item.id}`),
+      ).length,
       test: typedItems.filter((item) => item.is_test === true).length,
+      local: 0,
       incompatible: typedItems.filter((item) =>
         incompatibleItemKeys.has(`${filters.type}:${item.id}`),
       ).length,
@@ -448,7 +413,6 @@ function BrowsePageContent({
               <AssetStatusFilterSection
                 activeFilters={statusFilters}
                 counts={statusCounts}
-                options={['test', 'incompatible']}
                 onToggle={toggleStatusFilter}
               />
             }
@@ -520,15 +484,13 @@ function BrowsePageContent({
                 installedVersion={installedVersionByItemKey.get(
                   `${itemType}-${item.id}`,
                 )}
+                incompatible={incompatibleItemKeys.has(`${itemType}:${item.id}`)}
+                test={item.is_test === true}
                 totalDownloads={
                   itemType === 'mod'
                     ? (modDownloadTotals[item.id] ?? 0)
                     : (mapDownloadTotals[item.id] ?? 0)
                 }
-                incompatible={incompatibleItemKeys.has(
-                  `${itemType}:${item.id}`,
-                )}
-                test={item.is_test === true}
               />
             )}
             pagination={

@@ -119,18 +119,6 @@ describe('useLibraryStore per-asset-type state', () => {
     expect(state.filters.perPage).toBe(48);
   });
 
-  it('resets status filters to defaults when switching type', () => {
-    useLibraryStore.setState({ statusFilters: ['test'] });
-
-    useLibraryStore.getState().setType('map');
-
-    expect(useLibraryStore.getState().statusFilters).toEqual([
-      'test',
-      'local',
-      'incompatible',
-    ]);
-  });
-
   it('removes only specified selected ids', () => {
     useLibraryStore.getState().selectAll(['mod-a', 'map-b', 'mod-c']);
 
@@ -143,35 +131,21 @@ describe('useLibraryStore per-asset-type state', () => {
 
 describe('useLibraryStore statusFilters', () => {
   beforeEach(() => {
-    useLibraryStore.setState({
-      statusFilters: ['test', 'local', 'incompatible'],
-    });
-  });
-
-  it('defaults to showing all status-tagged assets', () => {
-    expect(useLibraryStore.getState().statusFilters).toEqual([
-      'test',
-      'local',
-      'incompatible',
-    ]);
-  });
-
-  it('toggleStatusFilter adds a status when not present', () => {
     useLibraryStore.setState({ statusFilters: [] });
+  });
+
+  it('toggleStatusFilter adds a filter when not present', () => {
     useLibraryStore.getState().toggleStatusFilter('local');
     expect(useLibraryStore.getState().statusFilters).toEqual(['local']);
   });
 
-  it('toggleStatusFilter removes a status when already present', () => {
+  it('toggleStatusFilter removes a filter when already present', () => {
+    useLibraryStore.setState({ statusFilters: ['local', 'incompatible'] });
     useLibraryStore.getState().toggleStatusFilter('local');
-    expect(useLibraryStore.getState().statusFilters).toEqual([
-      'test',
-      'incompatible',
-    ]);
+    expect(useLibraryStore.getState().statusFilters).toEqual(['incompatible']);
   });
 
   it('toggleStatusFilter supports all status types', () => {
-    useLibraryStore.setState({ statusFilters: [] });
     useLibraryStore.getState().toggleStatusFilter('test');
     expect(useLibraryStore.getState().statusFilters).toContain('test');
   });
@@ -181,6 +155,17 @@ describe('useLibraryStore statusFilters', () => {
       statusFilters: ['local', 'incompatible', 'test'],
     });
     useLibraryStore.getState().clearStatusFilters();
+    expect(useLibraryStore.getState().statusFilters).toEqual([]);
+  });
+
+  it('compatible is a valid filter value', () => {
+    useLibraryStore.getState().toggleStatusFilter('compatible');
+    expect(useLibraryStore.getState().statusFilters).toEqual(['compatible']);
+  });
+
+  it('resets to empty when switching type', () => {
+    useLibraryStore.setState({ statusFilters: ['incompatible', 'local'] });
+    useLibraryStore.getState().setType('map');
     expect(useLibraryStore.getState().statusFilters).toEqual([]);
   });
 });

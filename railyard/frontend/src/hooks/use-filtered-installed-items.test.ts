@@ -19,9 +19,7 @@ function installedItem(
     item: {
       id: 'asset-a',
       name: 'Asset A',
-      author: {
-        author_alias: 'Author',
-      },
+      author: { author_alias: 'Author' },
       tags: [],
       gallery: [],
       description: '',
@@ -30,54 +28,70 @@ function installedItem(
   } as InstalledTaggedItem;
 }
 
+const gameVersion = '1.2.0';
+
 describe('isInstalledItemVisibleByStatus', () => {
-  const gameVersion = '1.2.0';
-
-  it('always keeps assets with no special status visible', () => {
-    expect(
-      isInstalledItemVisibleByStatus(
-        installedItem(),
-        ['incompatible'],
-        gameVersion,
-      ),
-    ).toBe(true);
-  });
-
-  it('hides incompatible assets when incompatible is disabled', () => {
-    const item = installedItem({
+  it('shows all assets when no filters are active', () => {
+    const incompatibleItem = installedItem({
       constraints: [{ type: 'manifest', range: '>2.0.0' }],
     });
-
-    expect(
-      isInstalledItemVisibleByStatus(item, ['test', 'local'], gameVersion),
-    ).toBe(false);
+    expect(isInstalledItemVisibleByStatus(incompatibleItem, [], gameVersion)).toBe(true);
+    expect(isInstalledItemVisibleByStatus(installedItem(), [], gameVersion)).toBe(true);
   });
 
-  it('keeps incompatible assets visible when incompatible is enabled', () => {
-    const item = installedItem({
+  it('compatible filter shows only compatible assets', () => {
+    const compatible = installedItem();
+    const incompatible = installedItem({
       constraints: [{ type: 'manifest', range: '>2.0.0' }],
     });
-
-    expect(
-      isInstalledItemVisibleByStatus(item, ['incompatible'], gameVersion),
-    ).toBe(true);
+    expect(isInstalledItemVisibleByStatus(compatible, ['compatible'], gameVersion)).toBe(true);
+    expect(isInstalledItemVisibleByStatus(incompatible, ['compatible'], gameVersion)).toBe(false);
   });
 
-  it('uses OR logic when an asset matches multiple statuses', () => {
-    const baseItem = installedItem();
-    const item = installedItem({
+  it('incompatible filter shows only incompatible assets', () => {
+    const compatible = installedItem();
+    const incompatible = installedItem({
+      constraints: [{ type: 'manifest', range: '>2.0.0' }],
+    });
+    expect(isInstalledItemVisibleByStatus(compatible, ['incompatible'], gameVersion)).toBe(false);
+    expect(isInstalledItemVisibleByStatus(incompatible, ['incompatible'], gameVersion)).toBe(true);
+  });
+
+  it('test filter shows only test assets', () => {
+    const normal = installedItem();
+    const testItem = installedItem({
       item: {
-        ...(baseItem.item as types.ModManifest),
+        ...(normal.item as types.ModManifest),
+        is_test: true,
+      } as types.ModManifest,
+    });
+    expect(isInstalledItemVisibleByStatus(normal, ['test'], gameVersion)).toBe(false);
+    expect(isInstalledItemVisibleByStatus(testItem, ['test'], gameVersion)).toBe(true);
+  });
+
+  it('local filter shows only local assets', () => {
+    const remote = installedItem();
+    const local = installedItem({ isLocal: true });
+    expect(isInstalledItemVisibleByStatus(remote, ['local'], gameVersion)).toBe(false);
+    expect(isInstalledItemVisibleByStatus(local, ['local'], gameVersion)).toBe(true);
+  });
+
+  it('OR logic: asset matching any selected filter is visible', () => {
+    const testIncompatible = installedItem({
+      item: {
+        ...(installedItem().item as types.ModManifest),
         is_test: true,
       } as types.ModManifest,
       constraints: [{ type: 'manifest', range: '>2.0.0' }],
     });
+    expect(isInstalledItemVisibleByStatus(testIncompatible, ['test'], gameVersion)).toBe(true);
+    expect(isInstalledItemVisibleByStatus(testIncompatible, ['incompatible'], gameVersion)).toBe(true);
+    expect(isInstalledItemVisibleByStatus(testIncompatible, ['compatible'], gameVersion)).toBe(false);
+  });
 
-    expect(isInstalledItemVisibleByStatus(item, ['test'], gameVersion)).toBe(
-      true,
-    );
-    expect(
-      isInstalledItemVisibleByStatus(item, ['incompatible'], gameVersion),
-    ).toBe(true);
+  it('treats assets with no constraints (null compat) as compatible', () => {
+    const noConstraints = installedItem({ constraints: [] });
+    expect(isInstalledItemVisibleByStatus(noConstraints, ['compatible'], gameVersion)).toBe(true);
+    expect(isInstalledItemVisibleByStatus(noConstraints, ['incompatible'], gameVersion)).toBe(false);
   });
 });

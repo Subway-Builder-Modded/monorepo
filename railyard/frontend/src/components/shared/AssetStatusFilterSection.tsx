@@ -4,16 +4,17 @@ import {
 } from '@subway-builder-modded/asset-listings-ui';
 import { cn, Separator } from '@subway-builder-modded/shared-ui';
 import {
+  Check,
   CircleAlert,
   FlaskConical,
   HardDrive,
   type LucideIcon,
 } from 'lucide-react';
 
-export type AssetStatusFilterKey = 'test' | 'local' | 'incompatible';
+import type { StatusFilter } from '@/stores/library-store';
 
 interface AssetStatusFilterOption {
-  key: AssetStatusFilterKey;
+  key: StatusFilter;
   label: string;
   Icon: LucideIcon;
   iconColor: string;
@@ -24,7 +25,25 @@ interface AssetStatusFilterOption {
   hoverText: string;
 }
 
-const STATUS_OPTIONS: Record<AssetStatusFilterKey, AssetStatusFilterOption> = {
+const OPTION_ORDER: StatusFilter[] = [
+  'compatible',
+  'test',
+  'local',
+  'incompatible',
+];
+
+const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
+  compatible: {
+    key: 'compatible',
+    label: 'Compatible',
+    Icon: Check,
+    iconColor: 'text-[var(--action-success)]',
+    activeText: 'text-[var(--action-success)]',
+    activeBg: 'bg-[color-mix(in_oklab,var(--action-success)_12%,transparent)]',
+    activePill: 'bg-[var(--action-success)]',
+    hoverBg: 'group-hover:bg-[color-mix(in_oklab,var(--action-success)_10%,transparent)]',
+    hoverText: 'group-hover:text-[var(--action-success)]',
+  },
   test: {
     key: 'test',
     label: 'Test',
@@ -61,28 +80,20 @@ const STATUS_OPTIONS: Record<AssetStatusFilterKey, AssetStatusFilterOption> = {
   },
 };
 
-export interface AssetStatusFilterSectionProps<
-  TStatus extends AssetStatusFilterKey,
-> {
-  activeFilters: readonly TStatus[];
-  counts: Record<TStatus, number>;
-  options: readonly TStatus[];
-  onToggle: (status: TStatus) => void;
+export interface AssetStatusFilterSectionProps {
+  activeFilters: readonly StatusFilter[];
+  counts: Record<StatusFilter, number>;
+  onToggle: (status: StatusFilter) => void;
 }
 
-export function AssetStatusFilterSection<TStatus extends AssetStatusFilterKey>({
+export function AssetStatusFilterSection({
   activeFilters,
   counts,
-  options,
   onToggle,
-}: AssetStatusFilterSectionProps<TStatus>) {
-  const visibleOptions = options
-    .map((key) => STATUS_OPTIONS[key])
-    .filter(
-      ({ key }) =>
-        (counts[key as TStatus] ?? 0) > 0 ||
-        activeFilters.includes(key as TStatus),
-    );
+}: AssetStatusFilterSectionProps) {
+  const visibleOptions = OPTION_ORDER.map((key) => STATUS_OPTIONS[key]).filter(
+    ({ key }) => (counts[key] ?? 0) > 0 || activeFilters.includes(key),
+  );
 
   if (visibleOptions.length === 0) return null;
 
@@ -106,14 +117,13 @@ export function AssetStatusFilterSection<TStatus extends AssetStatusFilterKey>({
               hoverBg,
               hoverText,
             }) => {
-              const typedKey = key as TStatus;
-              const active = activeFilters.includes(typedKey);
-              const count = counts[typedKey] ?? 0;
+              const active = activeFilters.includes(key);
+              const count = counts[key] ?? 0;
               return (
                 <button
                   key={key}
                   type="button"
-                  onClick={() => onToggle(typedKey)}
+                  onClick={() => onToggle(key)}
                   aria-pressed={active}
                   className="group relative w-full text-left"
                 >

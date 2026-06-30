@@ -54,27 +54,27 @@ function itemStatusRank(
   return 0;
 }
 
-function getItemStatusFilters(
+function matchesStatusFilter(
   item: InstalledTaggedItem,
+  sf: StatusFilter,
   gameVersion: string,
-): StatusFilter[] {
-  const statuses: StatusFilter[] = [];
-  if (item.isLocal) statuses.push('local');
-  if (!item.isLocal && item.item.is_test === true) statuses.push('test');
-  if (isInstalledCompatible(gameVersion, item.constraints ?? []) === false) {
-    statuses.push('incompatible');
-  }
-  return statuses;
+): boolean {
+  if (sf === 'local') return item.isLocal;
+  if (sf === 'incompatible')
+    return isInstalledCompatible(gameVersion, item.constraints ?? []) === false;
+  if (sf === 'compatible')
+    return isInstalledCompatible(gameVersion, item.constraints ?? []) !== false;
+  if (sf === 'test') return !item.isLocal && item.item.is_test === true;
+  return false;
 }
 
 export function isInstalledItemVisibleByStatus(
   item: InstalledTaggedItem,
-  visibleStatuses: readonly StatusFilter[],
+  statusFilters: readonly StatusFilter[],
   gameVersion: string,
 ): boolean {
-  const itemStatusFilters = getItemStatusFilters(item, gameVersion);
-  if (itemStatusFilters.length === 0) return true;
-  return itemStatusFilters.some((sf) => visibleStatuses.includes(sf));
+  if (statusFilters.length === 0) return true;
+  return statusFilters.some((sf) => matchesStatusFilter(item, sf, gameVersion));
 }
 
 export function useFilteredInstalledItems({
@@ -123,14 +123,11 @@ export function useFilteredInstalledItems({
       accessors,
     });
 
-    // Status visibility toggles are subtractive: normal assets always show,
-    // status-tagged assets show when at least one matching status is enabled.
-    if (statusFilters.length < 3) {
+    // Status filter — applied post-process since it depends on runtime game version
+    if (statusFilters.length > 0) {
       result = result.filter((item) =>
-        isInstalledItemVisibleByStatus(
-          item as InstalledTaggedItem,
-          statusFilters,
-          gameVersion,
+        statusFilters.some((sf) =>
+          matchesStatusFilter(item as InstalledTaggedItem, sf, gameVersion),
         ),
       );
     }

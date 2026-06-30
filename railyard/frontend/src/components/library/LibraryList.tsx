@@ -22,12 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@subway-builder-modded/shared-ui';
-import {
-  CircleFadingArrowUp,
-  FolderOpen,
-  OctagonX,
-  Trash2,
-} from 'lucide-react';
+import { CircleFadingArrowUp, FolderOpen, OctagonX, Trash2 } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
@@ -71,6 +66,7 @@ const UNINSTALL_ICON_ACCENT = LOCAL_ACCENTS.uninstall.iconButton;
 
 const ENTRIES_PREVIEW_LIMIT = 10;
 const LIBRARY_TEXT_SORT_FIELDS = new Set<SortField>(TEXT_SORT_FIELDS);
+
 
 const COL = {
   gap: 'gap-3',

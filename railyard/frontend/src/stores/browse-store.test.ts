@@ -48,7 +48,6 @@ describe('useBrowseStore per-asset-type state', () => {
       },
       viewMode: 'full',
       viewModeInitialized: false,
-      statusFilters: ['test', 'incompatible'],
     });
   });
 
@@ -103,17 +102,6 @@ describe('useBrowseStore per-asset-type state', () => {
     expect(state.page).toBe(2);
   });
 
-  it('resets status filters to defaults when switching type', () => {
-    useBrowseStore.setState({ statusFilters: ['test'] });
-
-    useBrowseStore.getState().setType('mod');
-
-    expect(useBrowseStore.getState().statusFilters).toEqual([
-      'test',
-      'incompatible',
-    ]);
-  });
-
   it('keeps query and perPage shared across type switches', () => {
     useBrowseStore.getState().setFilters((prev) => ({
       ...prev,
@@ -130,6 +118,39 @@ describe('useBrowseStore per-asset-type state', () => {
     state = useBrowseStore.getState();
     expect(state.filters.query).toBe('metro');
     expect(state.filters.perPage).toBe(24);
+  });
+});
+
+describe('useBrowseStore status filters', () => {
+  beforeEach(() => {
+    useBrowseStore.setState({ statusFilters: [] });
+  });
+
+  it('defaults to empty (no filter active = show all)', () => {
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
+  });
+
+  it('toggleStatusFilter adds a filter when not present', () => {
+    useBrowseStore.getState().toggleStatusFilter('incompatible');
+    expect(useBrowseStore.getState().statusFilters).toEqual(['incompatible']);
+  });
+
+  it('toggleStatusFilter removes a filter when already present', () => {
+    useBrowseStore.setState({ statusFilters: ['incompatible', 'test'] });
+    useBrowseStore.getState().toggleStatusFilter('incompatible');
+    expect(useBrowseStore.getState().statusFilters).toEqual(['test']);
+  });
+
+  it('clearStatusFilters empties the list', () => {
+    useBrowseStore.setState({ statusFilters: ['compatible', 'test'] });
+    useBrowseStore.getState().clearStatusFilters();
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
+  });
+
+  it('resets to empty when switching type', () => {
+    useBrowseStore.setState({ statusFilters: ['incompatible'] });
+    useBrowseStore.getState().setType('mod');
+    expect(useBrowseStore.getState().statusFilters).toEqual([]);
   });
 });
 
@@ -163,31 +184,5 @@ describe('useBrowseStore view mode', () => {
     useBrowseStore.setState({ viewMode: 'compact', viewModeInitialized: true });
     useBrowseStore.getState().setViewMode('list');
     expect(useBrowseStore.getState().viewMode).toBe('list');
-  });
-});
-
-describe('useBrowseStore status filters', () => {
-  beforeEach(() => {
-    useBrowseStore.setState({ statusFilters: [] });
-  });
-
-  it('toggles status filtering', () => {
-    useBrowseStore.getState().toggleStatusFilter('incompatible');
-    expect(useBrowseStore.getState().statusFilters).toEqual(['incompatible']);
-
-    useBrowseStore.getState().toggleStatusFilter('test');
-    expect(useBrowseStore.getState().statusFilters).toEqual([
-      'incompatible',
-      'test',
-    ]);
-
-    useBrowseStore.getState().toggleStatusFilter('incompatible');
-    expect(useBrowseStore.getState().statusFilters).toEqual(['test']);
-  });
-
-  it('clears status filters', () => {
-    useBrowseStore.setState({ statusFilters: ['incompatible', 'test'] });
-    useBrowseStore.getState().clearStatusFilters();
-    expect(useBrowseStore.getState().statusFilters).toEqual([]);
   });
 });
