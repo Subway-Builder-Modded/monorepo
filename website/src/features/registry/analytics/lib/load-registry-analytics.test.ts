@@ -113,6 +113,7 @@ const authorsByDayCsv = [
   "author,author_alias,attribution_link,asset_count,map_count,mod_count,total_downloads,2026_03_11,2026_03_12,2026_03_13",
   "author-a,Author A,/registry/authors/author-a,3,2,1,30,0,4,6",
   "author-b,Author B,/registry/authors/author-b,1,0,1,5,0,0,5",
+  "author-c,Author C,/registry/authors/author-c,1,1,0,2,0,2,0",
 ].join("\n");
 
 const mapStatisticsCsv = [
@@ -159,8 +160,8 @@ describe("loadRegistryAnalyticsData", () => {
     });
     expect(data.authors.history).toEqual([
       { date: "2026-03-11", authors: 1 },
-      { date: "2026-03-12", authors: 1 },
-      { date: "2026-03-13", authors: 2 },
+      { date: "2026-03-12", authors: 2 },
+      { date: "2026-03-13", authors: 3 },
     ]);
     expect(data.authors.rankings[0]).toMatchObject({
       id: "author-a",

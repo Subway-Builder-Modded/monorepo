@@ -197,6 +197,30 @@ function getPublishedDate(item: RegistryAnalyticsItem): string | null {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
+function getFirstActivityDate(row: CsvRow, dateHeaders: string[]): string | null {
+  for (const dateHeader of dateHeaders) {
+    if (getNumber(row[dateHeader]) > 0) {
+      return normalizeDate(dateHeader);
+    }
+  }
+
+  return null;
+}
+
+function setEarliestAuthorDate(
+  authorDates: Map<string, string>,
+  authorId: string | undefined,
+  date: string | null,
+) {
+  const normalizedAuthorId = authorId?.trim().toLowerCase();
+  if (!normalizedAuthorId || !date) return;
+
+  const currentDate = authorDates.get(normalizedAuthorId);
+  if (!currentDate || date < currentDate) {
+    authorDates.set(normalizedAuthorId, date);
+  }
+}
+
 function normalizeHistory(
   rows: CsvRow[],
   items: RegistryAnalyticsItem[],
@@ -273,14 +297,19 @@ function buildAuthorHistory(
   const firstPublishedDateByAuthor = new Map<string, string>();
 
   for (const item of items) {
-    const authorId = item.authorId?.trim().toLowerCase();
-    const publishedDate = getPublishedDate(item);
-    if (!authorId || !publishedDate) continue;
+    setEarliestAuthorDate(
+      firstPublishedDateByAuthor,
+      item.authorId ?? undefined,
+      getPublishedDate(item),
+    );
+  }
 
-    const currentDate = firstPublishedDateByAuthor.get(authorId);
-    if (!currentDate || publishedDate < currentDate) {
-      firstPublishedDateByAuthor.set(authorId, publishedDate);
-    }
+  for (const row of rows) {
+    setEarliestAuthorDate(
+      firstPublishedDateByAuthor,
+      row.author,
+      getFirstActivityDate(row, dateHeaders),
+    );
   }
 
   return dateHeaders.map((dateKey) => {
