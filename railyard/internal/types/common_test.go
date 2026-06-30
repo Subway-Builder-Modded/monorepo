@@ -47,6 +47,11 @@ func TestAutoPurgeDownloadErrors(t *testing.T) {
 	require.True(t, AutoPurgeDownloadErrors(InstallErrorChecksumFailed))
 	require.True(t, AutoPurgeDownloadErrors(InstallErrorVersionNotFound))
 	require.False(t, AutoPurgeDownloadErrors(InstallErrorVersionLookup))
+
+	// Confirmed incompatibility purges; an undetectable version does not (it is an
+	// unknown — blocked but preserved for retry once detection works).
+	require.True(t, AutoPurgeDownloadErrors(InstallErrorIncompatibleGameVersion))
+	require.False(t, AutoPurgeDownloadErrors(InstallErrorGameVersionUndetectable))
 }
 
 func TestAssetTypeDir(t *testing.T) {

@@ -97,10 +97,11 @@ var autoPurgeDownloadErrorTypes = map[DownloaderErrorType]struct{}{
 	InstallErrorChecksumFailed:  {},
 	// Error for a version removed from the installable set while the app is running; ReconcileSubscriptionVersions repairs the same condition before sync at startup.
 	InstallErrorVersionNotFound: {},
-	// Game version incompatibility errors: subscription is purged so the user is not saddled with an asset that silently never installs.
-	// The initial failure is still surfaced to the user before purge.
+	// Confirmed incompatibility (game detected, constraint violated): purge so the user is not saddled with an asset that silently never installs.
+	// InstallErrorGameVersionUndetectable is deliberately NOT purged — an undetectable
+	// version (misconfigured exe, early startup) is an unknown, not an incompatibility
+	// verdict, so the install is blocked but the subscription is preserved for retry.
 	InstallErrorIncompatibleGameVersion: {},
-	InstallErrorGameVersionUndetectable: {},
 }
 
 func AutoPurgeDownloadErrors(err DownloaderErrorType) bool {
