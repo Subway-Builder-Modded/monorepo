@@ -28,10 +28,7 @@ export interface InstalledConstraint {
   range: string;
 }
 
-/**
- * Returns false if any constraint is violated, null when compatibility
- * cannot be determined (no game version detected, or no constraints stored).
- */
+/** False if any constraint is violated; null when undeterminable (no game version, or none stored). */
 export function isInstalledCompatible(
   gameVersion: string,
   constraints: InstalledConstraint[],
@@ -44,10 +41,7 @@ export function isInstalledCompatible(
   return true;
 }
 
-/**
- * Returns the subset of constraints that fail for the given game version,
- * sorted so buildings_index (more specific) comes before manifest.
- */
+/** The constraints that fail for the game version, buildings_index first. */
 export function getFailingConstraints(
   gameVersion: string,
   constraints: InstalledConstraint[],
@@ -56,12 +50,11 @@ export function getFailingConstraints(
   const failing = constraints.filter(
     (c) => isCompatible(gameVersion, c.range) === false,
   );
+  // buildings_index is the more specific format requirement, so surface it first.
   return failing.sort((a) => (a.type === 'buildings_index' ? -1 : 1));
 }
 
-// describeConstraintRange turns a single-operator semver range into plain
-// language, preserving boundary inclusivity (>= includes, > excludes). Compound
-// or unrecognized ranges are returned unchanged. Mirrors the Go humanizeSemverRange.
+// describeConstraintRange turns a single-operator semver range into plain language. Mirrors Go humanizeSemverRange.
 export function describeConstraintRange(range: string): string {
   const r = range.trim();
   // Two-char operators first so ">=" is not matched as ">".
@@ -90,9 +83,7 @@ function constraintLabel(type: string): string {
   return type === 'buildings_index' ? 'Buildings format' : 'Game version';
 }
 
-// constraintsFromVersion builds the compatibility constraints a registry version
-// imposes: its game-version range, plus (for maps) its buildings-index range.
-// Mirrors the Go ConstraintsFromVersionInfo.
+// constraintsFromVersion builds the constraints a version imposes. Mirrors Go ConstraintsFromVersionInfo.
 export function constraintsFromVersion(
   version: GameCompatibleVersion,
 ): InstalledConstraint[] {
@@ -109,17 +100,15 @@ export function constraintsFromVersion(
   return constraints;
 }
 
-// describeConstraintRequirement phrases what a constraint needs, without the
-// user's current version, e.g. "Game version: needs 1.3.0 or newer". Use where
-// the game version is already shown elsewhere (e.g. a dialog header).
+// describeConstraintRequirement phrases a constraint's requirement, e.g. "Game version: needs 1.3.0 or newer".
+// Use where the game version is already shown elsewhere (e.g. a dialog header).
 export function describeConstraintRequirement(
   constraint: InstalledConstraint,
 ): string {
   return `${constraintLabel(constraint.type)}: needs ${describeConstraintRange(constraint.range)}`;
 }
 
-// describeConstraint adds the user's current version, e.g.
-// "Game version: needs 1.3.0 or newer (you have 1.2.0)". Mirrors Go DescribeConstraint.
+// describeConstraint adds the user's version, e.g. "… needs 1.3.0 or newer (you have 1.2.0)". Mirrors Go DescribeConstraint.
 export function describeConstraint(
   constraint: InstalledConstraint,
   gameVersion: string,
@@ -127,9 +116,7 @@ export function describeConstraint(
   return `${describeConstraintRequirement(constraint)} (you have ${gameVersion})`;
 }
 
-// describeIncompatibility builds the full unified message for a version's failing
-// constraints, e.g. "Not compatible with your game version. Game version: needs
-// 1.3.0 or newer (you have 1.2.0)". Empty when fully compatible.
+// describeIncompatibility builds the full incompatibility message, or "" when compatible. Mirrors Go DescribeIncompatibility.
 export function describeIncompatibility(
   gameVersion: string,
   constraints: InstalledConstraint[],

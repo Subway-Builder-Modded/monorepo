@@ -332,7 +332,7 @@ func humanizeSemverRange(rangeExpr string) string {
 
 // DetectedVersion returns the detected game version as parsed semver.
 func (r GameVersionResponse) DetectedVersion() (*semver.Version, bool) {
-	// No version detecteed
+	// No version detected
 	if r.Status != ResponseSuccess || r.Version == "" {
 		return nil, false
 	}
