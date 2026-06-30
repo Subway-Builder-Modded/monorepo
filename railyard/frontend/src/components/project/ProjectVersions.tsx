@@ -39,11 +39,6 @@ import { toast } from 'sonner';
 import { Link } from 'wouter';
 
 import {
-  constraintsFromVersion,
-  describeIncompatibility,
-  getFailingConstraints,
-} from '@/lib/version-compatibility';
-import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
   withLockAwareConfirm,
@@ -54,6 +49,11 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import {
+  constraintsFromVersion,
+  describeIncompatibility,
+  getFailingConstraints,
+} from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,

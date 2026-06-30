@@ -163,7 +163,9 @@ describe('describeIncompatibility', () => {
 
   it('is empty when fully compatible', () => {
     expect(
-      describeIncompatibility('2.0.0', [{ type: 'manifest', range: '>=1.3.0' }]),
+      describeIncompatibility('2.0.0', [
+        { type: 'manifest', range: '>=1.3.0' },
+      ]),
     ).toBe('');
   });
 });
