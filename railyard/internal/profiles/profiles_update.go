@@ -640,10 +640,7 @@ func shouldUpdate(targetSet map[assetVersionKey]struct{}, assetType types.AssetT
 }
 
 // resolveLatestCompatibleInstallableVersion returns the latest integrity-complete
-// version the current game version can install. ok is false — meaning "no update"
-// — when the game version is undetected or every installable version is
-// incompatible, so a subscription is never advanced to a version the downloader
-// would reject.
+// version the current game version can install.
 func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 	assetType types.AssetType,
 	assetID string,
@@ -653,9 +650,8 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 		return "", false, fmt.Errorf("Failed to resolve installable versions: %w", err)
 	}
 
-	// Hard rule: without a detected game version we cannot verify compatibility,
-	// so never advertise an update.
-	gameVersion, ok := s.detectedGameVersion()
+	// Without a detected game version we cannot verify compatibility so never advertise an update.
+	gameVersion, ok := s.Downloader.DetectedGameVersion()
 	if !ok {
 		return "", false, nil
 	}
@@ -670,15 +666,6 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 		return "", false, err
 	}
 	return latest, true, nil
-}
-
-// detectedGameVersion returns the parsed detected game version, or ok=false when
-// it cannot be determined.
-func (s *UserProfiles) detectedGameVersion() (*semver.Version, bool) {
-	if s.Downloader == nil || s.Downloader.GetGameVersion == nil {
-		return nil, false
-	}
-	return s.Downloader.GetGameVersion().DetectedVersion()
 }
 
 // filterGameCompatibleVersions keeps the versions the detected game version can

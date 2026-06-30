@@ -966,12 +966,22 @@ func constraintsFromVersionInfo(assetType types.AssetType, vi types.VersionInfo)
 }
 
 // ensureCompatibilityConstraints gates an install on all applicable constraints.
+// DetectedGameVersion returns the parsed detected game version, or ok=false when
+// detection is unavailable (not wired) or the version could not be determined.
+// Single source of truth for game-version detection across the backend.
+func (d *Downloader) DetectedGameVersion() (*semver.Version, bool) {
+	if d.GetGameVersion == nil {
+		return nil, false
+	}
+	return d.GetGameVersion().DetectedVersion()
+}
+
 func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, assetID, version string, constraints []types.InstalledConstraint) *types.AssetInstallResponse {
+	// No detection capability wired (e.g. early startup) → cannot verify; allow.
 	if d.GetGameVersion == nil || len(constraints) == 0 {
 		return nil
 	}
-	gameVersionResp := d.GetGameVersion()
-	gameVersion, ok := gameVersionResp.DetectedVersion()
+	gameVersion, ok := d.DetectedGameVersion()
 	if !ok {
 		resp := d.installError(
 			assetType, assetID, version, types.ConfigData{}, types.InstallErrorGameVersionUndetectable,
@@ -991,9 +1001,9 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 		if !constraint.Check(gameVersion) {
 			resp := d.installError(
 				assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
-				fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersionResp.Version, c.Range, c.Type),
+				fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersion.String(), c.Range, c.Type),
 				nil,
-				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range, "game_version", gameVersionResp.Version,
+				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range, "game_version", gameVersion.String(),
 			)
 			return &resp
 		}
