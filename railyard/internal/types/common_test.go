@@ -5,8 +5,60 @@ import (
 	"io"
 	"testing"
 
+	semver "github.com/Masterminds/semver/v3"
 	"github.com/stretchr/testify/require"
 )
+
+func TestParseSemver(t *testing.T) {
+	v, err := ParseSemver("v1.3.0")
+	require.NoError(t, err)
+	require.Equal(t, "1.3.0", v.String(), "tolerates a v prefix")
+
+	_, err = ParseSemver("not-a-version")
+	require.Error(t, err)
+}
+
+func TestIsSemverNewer(t *testing.T) {
+	newer, err := IsSemverNewer("2.0.0", "1.0.0")
+	require.NoError(t, err)
+	require.True(t, newer)
+
+	same, err := IsSemverNewer("1.0.0", "1.0.0")
+	require.NoError(t, err)
+	require.False(t, same, "same version is not newer")
+
+	older, err := IsSemverNewer("1.0.0", "2.0.0")
+	require.NoError(t, err)
+	require.False(t, older)
+
+	prefixed, err := IsSemverNewer("v2.0.0", "1.0.0")
+	require.NoError(t, err)
+	require.True(t, prefixed, "tolerates a v prefix")
+
+	_, err = IsSemverNewer("bad", "1.0.0")
+	require.Error(t, err)
+}
+
+func TestSemverSatisfiesConstraint(t *testing.T) {
+	gameVersion := semver.MustParse("1.3.0")
+
+	ok, err := SemverSatisfiesConstraint(gameVersion, "")
+	require.NoError(t, err)
+	require.True(t, ok, "empty range imposes no requirement")
+
+	ok, err = SemverSatisfiesConstraint(gameVersion, ">=1.0.0")
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	ok, err = SemverSatisfiesConstraint(gameVersion, ">=1.4.0")
+	require.NoError(t, err)
+	require.False(t, ok)
+
+	// A malformed range is treated as satisfied, but surfaces the parse error.
+	ok, err = SemverSatisfiesConstraint(gameVersion, "not-a-range")
+	require.Error(t, err)
+	require.True(t, ok)
+}
 
 func TestIsValidAssetType(t *testing.T) {
 	require.True(t, IsValidAssetType(AssetTypeMap))

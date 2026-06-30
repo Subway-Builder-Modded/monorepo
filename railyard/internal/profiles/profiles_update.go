@@ -589,7 +589,7 @@ func latestAssetUpdates[T any](
 			continue
 		}
 
-		isUpgrade, cmpErr := isSemverUpgrade(latestVersion, currentVersion)
+		isUpgrade, cmpErr := types.IsSemverNewer(latestVersion, currentVersion)
 		if cmpErr != nil {
 			*errors = append(*errors, updateSubscriptionError(
 				profileID, assetID, args.assetType, types.ErrorLookupFailed,
@@ -670,39 +670,23 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 
 // filterGameCompatibleVersions keeps the versions the detected game version can install.
 func filterGameCompatibleVersions(assetType types.AssetType, versions []types.VersionInfo, gameVersion *semver.Version) []types.VersionInfo {
+	// A malformed constraint is treated as satisfied (lenient), so the err is ignored.
+	satisfies := func(rangeExpr string) bool {
+		ok, _ := types.SemverSatisfiesConstraint(gameVersion, rangeExpr)
+		return ok
+	}
 	compatible := make([]types.VersionInfo, 0, len(versions))
 	for _, version := range versions {
-		if !gameVersionSatisfiesRange(gameVersion, version.GameVersion) {
+		if !satisfies(version.GameVersion) {
 			continue
 		}
 		// Maps additionally pin a buildings-index range; mods never set one.
-		if assetType == types.AssetTypeMap && !gameVersionSatisfiesRange(gameVersion, version.MapBuildingsConstraint) {
+		if assetType == types.AssetTypeMap && !satisfies(version.MapBuildingsConstraint) {
 			continue
 		}
 		compatible = append(compatible, version)
 	}
 	return compatible
-}
-
-// gameVersionSatisfiesRange reports whether the game version satisfies a semver range.
-func gameVersionSatisfiesRange(gameVersion *semver.Version, rangeExpr string) bool {
-	rangeExpr = strings.TrimSpace(rangeExpr)
-	// An empty range imposes no requirement.
-	if rangeExpr == "" {
-		return true
-	}
-	constraint, err := semver.NewConstraint(strings.TrimPrefix(rangeExpr, "v"))
-	if err != nil {
-		// Treat a malformed constraint as satisfied so it never hides an update,
-		// mirroring the frontend selectLatestCompatibleVersion.
-		return true
-	}
-	return constraint.Check(gameVersion)
-}
-
-// parseAssetSemver parses an asset version, tolerating an optional "v" prefix.
-func parseAssetSemver(version string) (*semver.Version, error) {
-	return semver.NewVersion(strings.TrimPrefix(strings.TrimSpace(version), "v"))
 }
 
 // latestSemverVersion returns the highest semver version from the provided list.
@@ -712,12 +696,12 @@ func latestSemverVersion(versions []types.VersionInfo) (string, error) {
 	}
 
 	best := versions[0].Version
-	current, err := parseAssetSemver(best)
+	current, err := types.ParseSemver(best)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse initial semver version %q: %w", best, err)
 	}
 	for _, version := range versions[1:] {
-		other, parseErr := parseAssetSemver(version.Version)
+		other, parseErr := types.ParseSemver(version.Version)
 		if parseErr != nil {
 			return "", fmt.Errorf("failed to parse semver version %q: %w", version.Version, parseErr)
 		}
@@ -727,19 +711,6 @@ func latestSemverVersion(versions []types.VersionInfo) (string, error) {
 		}
 	}
 	return best, nil
-}
-
-// isSemverUpgrade reports whether candidate is a strictly newer semver than current.
-func isSemverUpgrade(candidate, current string) (bool, error) {
-	candidateVer, err := parseAssetSemver(candidate)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse candidate version %q: %w", candidate, err)
-	}
-	currentVer, err := parseAssetSemver(current)
-	if err != nil {
-		return false, fmt.Errorf("failed to parse current version %q: %w", current, err)
-	}
-	return candidateVer.GreaterThan(currentVer), nil
 }
 
 // ===== Runtime Mutation Helpers ===== //

@@ -990,13 +990,13 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 		return &resp
 	}
 	for _, c := range constraints {
-		constraint, err := semver.NewConstraint(strings.TrimPrefix(c.Range, "v"))
+		satisfied, err := types.SemverSatisfiesConstraint(gameVersion, c.Range)
 		if err != nil {
-			d.Logger.Error("Unparseable compatibility constraint; skipping check", err,
+			// Malformed constraint is treated as satisfied; log and move on.
+			d.Logger.Error("Unparseable compatibility constraint; treating as satisfied", err,
 				"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range)
-			continue
 		}
-		if !constraint.Check(gameVersion) {
+		if !satisfied {
 			resp := d.installError(
 				assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
 				fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersion.String(), c.Range, c.Type),
@@ -1416,7 +1416,7 @@ func resolveDependencyCandidate(modID string, ranges []string, versions []types.
 	var candidate *types.VersionInfo
 	var candidateSemver *semver.Version
 	for i := range versions {
-		parsedVersion, err := semver.NewVersion(strings.TrimPrefix(types.NormalizeSemver(versions[i].Version), "v"))
+		parsedVersion, err := types.ParseSemver(versions[i].Version)
 		if err != nil {
 			continue
 		}

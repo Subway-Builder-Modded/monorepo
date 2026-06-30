@@ -10,15 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGameVersionSatisfiesRange(t *testing.T) {
-	gameVersion := semver.MustParse("1.3.0")
-
-	require.True(t, gameVersionSatisfiesRange(gameVersion, ""), "empty range imposes no requirement")
-	require.True(t, gameVersionSatisfiesRange(gameVersion, ">=1.0.0"))
-	require.False(t, gameVersionSatisfiesRange(gameVersion, ">=1.4.0"))
-	require.True(t, gameVersionSatisfiesRange(gameVersion, "not-a-range"), "unparseable range must not hide an update")
-}
-
 func TestFilterGameCompatibleVersionsPicksLatestCompatible(t *testing.T) {
 	gameVersion := semver.MustParse("1.3.0")
 	versions := []types.VersionInfo{
@@ -59,24 +50,6 @@ func TestFilterGameCompatibleVersionsNoneCompatible(t *testing.T) {
 		{Version: "2.1.0", GameVersion: ">=1.5.0"},
 	}
 	require.Empty(t, filterGameCompatibleVersions(types.AssetTypeMod, versions, gameVersion))
-}
-
-func TestIsSemverUpgrade(t *testing.T) {
-	upgrade, err := isSemverUpgrade("2.0.0", "1.0.0")
-	require.NoError(t, err)
-	require.True(t, upgrade)
-
-	same, err := isSemverUpgrade("1.0.0", "1.0.0")
-	require.NoError(t, err)
-	require.False(t, same, "same version is not an upgrade")
-
-	downgrade, err := isSemverUpgrade("1.0.0", "2.0.0")
-	require.NoError(t, err)
-	require.False(t, downgrade, "a lower compatible version is not an upgrade")
-
-	prefixed, err := isSemverUpgrade("v2.0.0", "1.0.0")
-	require.NoError(t, err)
-	require.True(t, prefixed, "tolerates a v prefix")
 }
 
 func TestUpdateSubscriptionsToLatestUndetectedGameVersionShowsNoUpdates(t *testing.T) {

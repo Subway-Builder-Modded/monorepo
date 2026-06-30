@@ -98,10 +98,9 @@ var autoPurgeDownloadErrorTypes = map[DownloaderErrorType]struct{}{
 	// Error for a version removed from the installable set while the app is running; ReconcileSubscriptionVersions repairs the same condition before sync at startup.
 	InstallErrorVersionNotFound: {},
 	// Confirmed incompatibility (game detected, constraint violated): purge so the user is not saddled with an asset that silently never installs.
-	// InstallErrorGameVersionUndetectable is deliberately NOT purged — an undetectable
-	// version (misconfigured exe, early startup) is an unknown, not an incompatibility
-	// verdict, so the install is blocked but the subscription is preserved for retry.
 	InstallErrorIncompatibleGameVersion: {},
+	// IMPORTANT: InstallErrorGameVersionUndetectable is deliberately NOT purged — an undetectable version (misconfigured exe, early startup) is an unknown, not an incompatibility verdict
+	// In this case the install is blocked but the subscription is preserved for retry.
 }
 
 func AutoPurgeDownloadErrors(err DownloaderErrorType) bool {
@@ -231,6 +230,40 @@ func NormalizeSemver(version string) string {
 		return trimmed
 	}
 	return "v" + trimmed
+}
+
+// ParseSemver parses a version string, tolerating an optional "v" prefix.
+func ParseSemver(version string) (*semver.Version, error) {
+	return semver.NewVersion(strings.TrimPrefix(strings.TrimSpace(version), "v"))
+}
+
+// IsSemverNewer reports whether candidate is a strictly newer semver than current.
+func IsSemverNewer(candidate, current string) (bool, error) {
+	candidateVer, err := ParseSemver(candidate)
+	if err != nil {
+		return false, err
+	}
+	currentVer, err := ParseSemver(current)
+	if err != nil {
+		return false, err
+	}
+	return candidateVer.GreaterThan(currentVer), nil
+}
+
+// SemverSatisfiesConstraint reports whether version satisfies a semver range.
+// An empty range imposes no requirement; a malformed range is treated as
+// satisfied (the err is returned so callers may log it) so a bad constraint
+// never hides an otherwise-valid result.
+func SemverSatisfiesConstraint(version *semver.Version, rangeExpr string) (bool, error) {
+	rangeExpr = strings.TrimSpace(rangeExpr)
+	if rangeExpr == "" {
+		return true, nil
+	}
+	constraint, err := semver.NewConstraint(strings.TrimPrefix(rangeExpr, "v"))
+	if err != nil {
+		return true, err
+	}
+	return constraint.Check(version), nil
 }
 
 // DetectedVersion returns the detected game version as parsed semver.
