@@ -32,11 +32,12 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
+import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { getCountryFlagIcon } from '@/lib/flags';
 import {
   handleSubscriptionMutationError,
@@ -50,6 +51,10 @@ import {
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
 import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
+import {
+  constraintsFromVersion,
+  resolveAvailableUpdate,
+} from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -177,11 +182,11 @@ export function ProjectHeader({
     };
   }, [installedVersion, item.id, type, installing, uninstalling]);
 
-  const updateTargetVersion = pendingLatestVersion ?? effectiveVersion?.version;
-  const hasUpdate =
-    installedVersion &&
-    updateTargetVersion &&
-    installedVersion !== updateTargetVersion;
+  // Updates come solely from the backend's pending resolution (see resolveAvailableUpdate):
+  // no local latest-version fallback, which would resurface updates the backend suppressed
+  // when the game version is undetected — or point at a downgrade.
+  const { targetVersion: updateTargetVersion, hasUpdate } =
+    resolveAvailableUpdate(installedVersion, pendingLatestVersion);
   const authorAlias = item.author.author_alias;
   const authorAttributionLink = item.author.attribution_link;
 
@@ -299,7 +304,7 @@ export function ProjectHeader({
           uninstalling ||
           versionsLoading;
 
-    let installUpdateTooltip: string;
+    let installUpdateTooltip: ReactNode;
     switch (true) {
       case installing:
         installUpdateTooltip = 'Cancel';
@@ -316,11 +321,18 @@ export function ProjectHeader({
       case uninstalling:
         installUpdateTooltip = 'Uninstalling...';
         break;
-      case !!noCompatibleVersion:
-        installUpdateTooltip = latestVersion?.game_version
-          ? `Not compatible with your game version (you have ${gameVersion}, need ${latestVersion.game_version})`
-          : `No compatible version for game ${gameVersion}`;
+      case !!noCompatibleVersion: {
+        installUpdateTooltip = latestVersion ? (
+          <IncompatibilityTooltipContent
+            title="Unable to Install"
+            gameVersion={gameVersion}
+            constraints={constraintsFromVersion(latestVersion)}
+          />
+        ) : (
+          `No compatible version for game ${gameVersion}`
+        );
         break;
+      }
       case !!effectiveVersion:
         installUpdateTooltip = `Install ${effectiveVersion!.version}`;
         break;

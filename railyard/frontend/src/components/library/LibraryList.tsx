@@ -39,6 +39,7 @@ import {
 } from '@/components/shared/AssetStatusBadges';
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
+import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import { useGameVersion } from '@/hooks/use-game-version';
 import { getCountryFlagIcon } from '@/lib/flags';
@@ -55,10 +56,7 @@ import {
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
 } from '@/lib/subscription-updates';
-import {
-  getFailingConstraints,
-  isInstalledCompatible,
-} from '@/lib/version-compatibility';
+import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { useConfigStore } from '@/stores/config-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useLibraryStore } from '@/stores/library-store';
@@ -267,9 +265,6 @@ function LibraryListRow({
   const isLocal = entry.isLocal;
   const showIncompatible =
     isInstalledCompatible(gameVersion, entry.constraints ?? []) === false;
-  const failingConstraints = showIncompatible
-    ? getFailingConstraints(gameVersion, entry.constraints ?? [])
-    : [];
   const showTest = !isLocal && entry.item.is_test === true;
   const map = isMap ? (entry.item as types.MapManifest) : null;
 
@@ -446,15 +441,11 @@ function LibraryListRow({
                     <IncompatibleBadge />
                   </span>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-56 space-y-0.5">
-                  {failingConstraints.map((c) => (
-                    <p key={c.type}>
-                      {c.type === 'buildings_index'
-                        ? 'Buildings index format'
-                        : 'Game version'}
-                      : requires {c.range}
-                    </p>
-                  ))}
+                <TooltipContent className="max-w-64">
+                  <IncompatibilityTooltipContent
+                    gameVersion={gameVersion}
+                    constraints={entry.constraints ?? []}
+                  />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

@@ -20,3 +20,15 @@ export function isCompatible(
     return null;
   }
 }
+
+/**
+ * True when candidate is a strictly newer semver than current. False when either is
+ * unparseable, so an unknown version never surfaces a downgrade as an available update.
+ * Mirrors the Go IsSemverNewer.
+ */
+export function isUpgrade(candidate: string, current: string): boolean {
+  const candidateVer = semver.coerce(candidate);
+  const currentVer = semver.coerce(current);
+  if (!candidateVer || !currentVer) return false;
+  return semver.gt(candidateVer, currentVer);
+}

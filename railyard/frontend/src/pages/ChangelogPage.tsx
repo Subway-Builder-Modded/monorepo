@@ -50,8 +50,8 @@ import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
+import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { useGameVersion } from '@/hooks/use-game-version';
-import { isCompatible } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -63,6 +63,11 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import {
+  constraintsFromVersion,
+  getDownloadableVersions,
+  getFailingConstraints,
+} from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -190,8 +195,7 @@ export function ChangelogPage() {
           return;
         }
         const all = response.versions ?? [];
-        const visibleVersions =
-          type === 'mod' ? all.filter((v) => v.manifest) : all;
+        const visibleVersions = getDownloadableVersions(type, all);
 
         let mergedVersions = withZeroDownloads(visibleVersions);
         try {
@@ -249,7 +253,8 @@ export function ChangelogPage() {
     if (!item || !type) return;
     if (
       versionInfo?.version === version &&
-      isCompatible(gameVersion, versionInfo.game_version) === false
+      getFailingConstraints(gameVersion, constraintsFromVersion(versionInfo))
+        .length > 0
     ) {
       toast.error(
         `Cannot install ${version}: it is not compatible with game version ${gameVersion}.`,
@@ -356,8 +361,9 @@ export function ChangelogPage() {
 
   const renderInstallButton = () => {
     if (!versionInfo) return null;
-    const compat = isCompatible(gameVersion, versionInfo.game_version);
-    const incompatible = compat === false;
+    const constraints = constraintsFromVersion(versionInfo);
+    const incompatible =
+      getFailingConstraints(gameVersion, constraints).length > 0;
 
     if (uninstalling) {
       return (
@@ -429,9 +435,12 @@ export function ChangelogPage() {
                 </Button>
               </span>
             </TooltipTrigger>
-            <TooltipContent>
-              Not compatible with your game version (you have {gameVersion},
-              need {versionInfo.game_version})
+            <TooltipContent className="max-w-64">
+              <IncompatibilityTooltipContent
+                title="Unable to Install"
+                gameVersion={gameVersion}
+                constraints={constraints}
+              />
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

@@ -668,13 +668,12 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 	return latest, true, nil
 }
 
-// filterGameCompatibleVersions keeps the versions the detected game version can
-// install, judging compatibility the same way the installer does.
+// filterGameCompatibleVersions keeps the versions the detected game version can install.
 func filterGameCompatibleVersions(assetType types.AssetType, versions []types.VersionInfo, gameVersion *semver.Version) []types.VersionInfo {
 	compatible := make([]types.VersionInfo, 0, len(versions))
 	for _, version := range versions {
 		constraints := types.ConstraintsFromVersionInfo(assetType, version)
-		if types.FirstUnsatisfiedConstraint(gameVersion, constraints) == nil {
+		if len(types.UnsatisfiedConstraints(gameVersion, constraints)) == 0 {
 			compatible = append(compatible, version)
 		}
 	}

@@ -25,7 +25,10 @@ import { ProjectGallery } from '@/components/project/ProjectGallery';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
 import { ProjectVersions } from '@/components/project/ProjectVersions';
 import { useGameVersion } from '@/hooks/use-game-version';
-import { selectLatestCompatibleVersion } from '@/lib/version-compatibility';
+import {
+  getDownloadableVersions,
+  selectLatestCompatibleVersion,
+} from '@/lib/version-compatibility';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
@@ -83,8 +86,7 @@ export function ProjectPage() {
           return;
         }
         const all = response.versions || [];
-        const visibleVersions =
-          type === 'mod' ? all.filter((ver) => ver.manifest) : all;
+        const visibleVersions = getDownloadableVersions(type, all);
 
         let mergedVersions = withZeroDownloads(visibleVersions);
         try {

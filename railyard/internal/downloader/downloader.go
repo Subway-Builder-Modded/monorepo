@@ -969,12 +969,12 @@ func (d *Downloader) ensureCompatibilityConstraints(assetType types.AssetType, a
 		)
 		return &resp
 	}
-	if c := types.FirstUnsatisfiedConstraint(gameVersion, constraints); c != nil {
+	if message := types.DescribeIncompatibility(gameVersion, constraints); message != "" {
 		resp := d.installError(
 			assetType, assetID, version, types.ConfigData{}, types.InstallErrorIncompatibleGameVersion,
-			fmt.Sprintf("Asset is not compatible with current game version (%s): requires %s (%s)", gameVersion.String(), c.Range, c.Type),
+			message,
 			nil,
-			"asset_id", assetID, "constraint_type", c.Type, "constraint", c.Range, "game_version", gameVersion.String(),
+			"asset_id", assetID, "game_version", gameVersion.String(),
 		)
 		return &resp
 	}

@@ -38,7 +38,7 @@ import semver from 'semver';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
-import { isCompatible } from '@/lib/semver';
+import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -50,6 +50,10 @@ import {
   isCancellationSyncError,
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
+import {
+  constraintsFromVersion,
+  getFailingConstraints,
+} from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -235,15 +239,9 @@ export function ProjectVersions({
           const installing = isInstalling(itemId);
           const installingVersion = getInstallingVersion(itemId);
           const uninstalling = isUninstalling(itemId);
-          const compat = isCompatible(gameVersion, v.game_version);
-          const buildingsCompat = v.map_buildings_constraint
-            ? isCompatible(gameVersion, v.map_buildings_constraint)
-            : null;
-          const incompatible = compat === false || buildingsCompat === false;
-          const incompatibleConstraint =
-            buildingsCompat === false
-              ? v.map_buildings_constraint
-              : v.game_version;
+          const constraints = constraintsFromVersion(v);
+          const incompatible =
+            getFailingConstraints(gameVersion, constraints).length > 0;
 
           return (
             <ProjectVersionRow
@@ -295,8 +293,11 @@ export function ProjectVersions({
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        Not compatible with your game version (you have{' '}
-                        {gameVersion}, need {incompatibleConstraint})
+                        <IncompatibilityTooltipContent
+                          title="Unable to Install"
+                          gameVersion={gameVersion}
+                          constraints={constraints}
+                        />
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

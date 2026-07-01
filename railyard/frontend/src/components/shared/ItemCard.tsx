@@ -7,6 +7,12 @@ import {
   assetTypeToListingPath,
   resolveMapLocation,
 } from '@subway-builder-modded/config';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@subway-builder-modded/shared-ui';
 import { useMemo } from 'react';
 import { Link } from 'wouter';
 
@@ -23,6 +29,7 @@ interface ItemCardWrapperProps {
   installedVersion?: string;
   totalDownloads?: number;
   incompatible?: boolean;
+  gameVersion?: string;
   test?: boolean;
   viewMode?: 'full' | 'compact' | 'list';
   descriptionMode?: 'raw' | 'preview';
@@ -40,6 +47,7 @@ export function ItemCard({
   installedVersion,
   totalDownloads,
   incompatible = false,
+  gameVersion,
   test = false,
   viewMode = 'full',
   descriptionMode = 'raw',
@@ -47,6 +55,11 @@ export function ItemCard({
   const isMap = isMapManifest(item);
   const mapItem = isMap ? (item as types.MapManifest) : null;
   const CountryFlag = getCountryFlagIcon(mapItem?.country);
+  // Browse only knows that no downloadable version is compatible (versions can fail
+  // for different reasons), so the hover is a single statement rather than per-reason rows.
+  const incompatibleReason = gameVersion
+    ? `No asset version is compatible with game version ${gameVersion}.`
+    : 'No compatible asset version available.';
 
   const formatDescription = useMemo(() => {
     if (descriptionMode === 'preview') {
@@ -83,7 +96,20 @@ export function ItemCard({
         incompatible || test ? (
           <span className="inline-flex items-center gap-1">
             {test && <TestBadge />}
-            {incompatible && <IncompatibleBadge />}
+            {incompatible && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <IncompatibleBadge />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-64">
+                    {incompatibleReason}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </span>
         ) : undefined
       }
