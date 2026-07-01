@@ -1,8 +1,21 @@
+import type { AssetType } from '@subway-builder-modded/config';
+
 import { isCompatible, isUpgrade } from '@/lib/semver';
 
 interface GameCompatibleVersion {
   game_version: string;
   map_buildings_constraint?: string;
+}
+
+// getDownloadableVersions keeps the versions actually installable for an asset type: mods
+// require a manifest asset, maps have no such gate. Mirrors the backend's installable filter.
+export function getDownloadableVersions<T extends { manifest?: string }>(
+  assetType: AssetType,
+  versions: T[],
+): T[] {
+  return assetType === 'mod'
+    ? versions.filter((version) => version.manifest)
+    : versions;
 }
 
 /**
@@ -28,6 +41,19 @@ export function resolveAvailableUpdate(
   };
 }
 
+// isVersionGameCompatible reports whether the game version satisfies every constraint a
+// version imposes (its manifest game_version and, for maps, its buildings-index range).
+// The single compatibility predicate, shared by selection and per-version checks.
+export function isVersionGameCompatible(
+  version: GameCompatibleVersion,
+  gameVersion: string,
+): boolean {
+  return (
+    getFailingConstraints(gameVersion, constraintsFromVersion(version))
+      .length === 0
+  );
+}
+
 export function selectLatestCompatibleVersion<T extends GameCompatibleVersion>(
   versions: T[],
   gameVersion: string,
@@ -35,15 +61,9 @@ export function selectLatestCompatibleVersion<T extends GameCompatibleVersion>(
   const latestVersion = versions[0];
   if (!latestVersion || !gameVersion) return latestVersion;
 
-  return versions.find((version) => {
-    if (isCompatible(gameVersion, version.game_version) === false) return false;
-    if (
-      version.map_buildings_constraint &&
-      isCompatible(gameVersion, version.map_buildings_constraint) === false
-    )
-      return false;
-    return true;
-  });
+  return versions.find((version) =>
+    isVersionGameCompatible(version, gameVersion),
+  );
 }
 
 export interface InstalledConstraint {

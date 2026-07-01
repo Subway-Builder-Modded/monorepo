@@ -2,7 +2,10 @@ import type { AssetType } from '@subway-builder-modded/config';
 import { useEffect, useState } from 'react';
 
 import { useGameVersion } from '@/hooks/use-game-version';
-import { selectLatestCompatibleVersion } from '@/lib/version-compatibility';
+import {
+  getDownloadableVersions,
+  selectLatestCompatibleVersion,
+} from '@/lib/version-compatibility';
 
 import type { types } from '../../wailsjs/go/models';
 import { GetInstallableVersionsResponse } from '../../wailsjs/go/registry/Registry';
@@ -15,16 +18,6 @@ export interface AssetRef {
 // composeIncompatibleKey is the stable key format used to mark an incompatible asset.
 export function composeIncompatibleKey(type: AssetType, id: string): string {
   return `${type}:${id}`;
-}
-
-// Mods can only be installed from versions carrying a manifest; maps have no such gate.
-function getDownloadableVersions(
-  assetType: AssetType,
-  versions: types.VersionInfo[],
-): types.VersionInfo[] {
-  return assetType === 'mod'
-    ? versions.filter((version) => version.manifest)
-    : versions;
 }
 
 // isGameVersionIncompatible reports whether the game version can install no downloadable

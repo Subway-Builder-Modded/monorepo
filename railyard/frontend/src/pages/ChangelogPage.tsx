@@ -65,6 +65,7 @@ import {
 } from '@/lib/subscription-sync-error';
 import {
   constraintsFromVersion,
+  getDownloadableVersions,
   getFailingConstraints,
 } from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
@@ -194,8 +195,7 @@ export function ChangelogPage() {
           return;
         }
         const all = response.versions ?? [];
-        const visibleVersions =
-          type === 'mod' ? all.filter((v) => v.manifest) : all;
+        const visibleVersions = getDownloadableVersions(type, all);
 
         let mergedVersions = withZeroDownloads(visibleVersions);
         try {

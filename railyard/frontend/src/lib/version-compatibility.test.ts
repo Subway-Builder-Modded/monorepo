@@ -6,10 +6,12 @@ import {
   describeConstraintRange,
   describeConstraintRequirement,
   describeIncompatibility,
+  getDownloadableVersions,
   getFailingConstraints,
   INCOMPATIBLE_GAME_VERSION_MESSAGE,
   type InstalledConstraint,
   isInstalledCompatible,
+  isVersionGameCompatible,
   resolveAvailableUpdate,
   selectLatestCompatibleVersion,
 } from './version-compatibility';
@@ -211,5 +213,55 @@ describe('resolveAvailableUpdate', () => {
     expect(resolveAvailableUpdate('1.2.0', '1.1.0')).toEqual({
       hasUpdate: false,
     });
+  });
+});
+
+describe('getDownloadableVersions', () => {
+  const versions = [
+    { version: '2.0.0', manifest: 'm.json' },
+    { version: '1.0.0' }, // no manifest asset
+  ];
+
+  it('keeps only manifest-bearing versions for mods', () => {
+    const result = getDownloadableVersions('mod', versions);
+    expect(result.map((v) => v.version)).toEqual(['2.0.0']);
+  });
+
+  it('keeps every version for maps', () => {
+    const result = getDownloadableVersions('map', versions);
+    expect(result.map((v) => v.version)).toEqual(['2.0.0', '1.0.0']);
+  });
+});
+
+describe('isVersionGameCompatible', () => {
+  it('is true when the game version satisfies every constraint', () => {
+    expect(isVersionGameCompatible({ game_version: '>=1.0.0' }, '1.3.0')).toBe(
+      true,
+    );
+    expect(
+      isVersionGameCompatible(
+        { game_version: '>=1.0.0', map_buildings_constraint: '>1.2.0' },
+        '1.3.0',
+      ),
+    ).toBe(true);
+  });
+
+  it('is false when the manifest constraint fails', () => {
+    expect(isVersionGameCompatible({ game_version: '>=1.4.0' }, '1.3.0')).toBe(
+      false,
+    );
+  });
+
+  it('is false when the buildings-index constraint fails', () => {
+    expect(
+      isVersionGameCompatible(
+        { game_version: '>=1.0.0', map_buildings_constraint: '<1.3.0' },
+        '1.3.0',
+      ),
+    ).toBe(false);
+  });
+
+  it('treats a version with no requirements as compatible', () => {
+    expect(isVersionGameCompatible({ game_version: '' }, '1.3.0')).toBe(true);
   });
 });
