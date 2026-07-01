@@ -503,6 +503,7 @@ function BrowsePageContent({
                 incompatible={incompatibleItemKeys.has(
                   `${itemType}:${item.id}`,
                 )}
+                gameVersion={gameVersion}
                 test={item.is_test === true}
                 totalDownloads={
                   itemType === 'mod'

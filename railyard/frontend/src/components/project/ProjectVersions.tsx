@@ -38,6 +38,7 @@ import semver from 'semver';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
+import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -51,7 +52,6 @@ import {
 } from '@/lib/subscription-sync-error';
 import {
   constraintsFromVersion,
-  describeIncompatibility,
   getFailingConstraints,
 } from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
@@ -293,7 +293,11 @@ export function ProjectVersions({
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {describeIncompatibility(gameVersion, constraints)}
+                        <IncompatibilityTooltipContent
+                          title="Unable to Install"
+                          gameVersion={gameVersion}
+                          constraints={constraints}
+                        />
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

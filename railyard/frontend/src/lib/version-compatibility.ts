@@ -79,7 +79,7 @@ export function describeConstraintRange(range: string): string {
 export const INCOMPATIBLE_GAME_VERSION_MESSAGE =
   'Not compatible with your game version';
 
-function constraintLabel(type: string): string {
+export function constraintLabel(type: string): string {
   return type === 'buildings_index' ? 'Buildings format' : 'Game version';
 }
 

@@ -32,11 +32,12 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
+import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { isUpgrade } from '@/lib/semver';
 import {
@@ -51,10 +52,7 @@ import {
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
 import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
-import {
-  constraintsFromVersion,
-  describeIncompatibility,
-} from '@/lib/version-compatibility';
+import { constraintsFromVersion } from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -307,7 +305,7 @@ export function ProjectHeader({
           uninstalling ||
           versionsLoading;
 
-    let installUpdateTooltip: string;
+    let installUpdateTooltip: ReactNode;
     switch (true) {
       case installing:
         installUpdateTooltip = 'Cancel';
@@ -325,14 +323,15 @@ export function ProjectHeader({
         installUpdateTooltip = 'Uninstalling...';
         break;
       case !!noCompatibleVersion: {
-        const incompatibility = latestVersion
-          ? describeIncompatibility(
-              gameVersion,
-              constraintsFromVersion(latestVersion),
-            )
-          : '';
-        installUpdateTooltip =
-          incompatibility || `No compatible version for game ${gameVersion}`;
+        installUpdateTooltip = latestVersion ? (
+          <IncompatibilityTooltipContent
+            title="Unable to Install"
+            gameVersion={gameVersion}
+            constraints={constraintsFromVersion(latestVersion)}
+          />
+        ) : (
+          `No compatible version for game ${gameVersion}`
+        );
         break;
       }
       case !!effectiveVersion:
