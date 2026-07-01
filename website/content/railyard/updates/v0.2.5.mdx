@@ -1,7 +1,7 @@
 ---
 title: v0.2.5
 icon: TrainTrack
-date: June 29, 2026
+date: July 1, 2026
 tag: beta
 url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.5
 previousVersion: v0.2.4
@@ -10,22 +10,45 @@ compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.4...v
 
 <ChangelogSection type="features">
 
-- Added the ability to filter compatible/incompatible/test content on **Browse** via the sidebar.
+- Railyard now attempts to auto-resolve the new Windows executable path for game version `1.4.x`
+- Added sidebar filters to **Browse** for Compatible/Incompatible/Test content
+
+<p align="center">
+  <Image width="600" alt="image" src="/images/railyard/updates/v0.2.5/sidebar-filters.png" />
+</p>
+
+- Added support to import multiple assets at once
+  - Each asset is reviewable independently, with clear conflict/validity messages
+
+<p align="center">
+  <Image width="800" alt="image" src="/images/railyard/updates/v0.2.5/review-import.png" />
+</p>
+
+- Unified incompatible asset handling across the application
+  - Whenever an asset is incompatible with the detected game version, a tooltip will display describing the issue
+
+<p align="center">
+  <Image
+    width="400"
+    alt="image"
+    src="/images/railyard/updates/v0.2.5/incompatibility-tooltip.png"
+  />
+</p>
 
 </ChangelogSection>
 
 <ChangelogSection type="improvements">
 
-- Added an attempt to auto-resolve the new Windows executable path to avoid wiping subscriptions
-- Added support for multiple imports in library
-  - Conflicting assets can be batch replaced
-- Invalid imports now enumerate which files are missing instead of saying a generic "missing one or more required files" message
+- Undetectable game version no longer causes Railyard to aggressively prune subscriptions
+- **Discover** now reflects the same incompatible chips as **Library**/**Browse**
+- Invalid imports now list which files are missing instead of saying a generic "missing one or more required files" message
 
 </ChangelogSection>
 
 <ChangelogSection type="bugfixes">
 
 - Fixed an issue where the `Flatpak` mount for Linux version detection wouldn't launch due to location or would become orphaned due to improper process killing
-- Fixed a bug with **Enable Dev Tools** on Linux by passing the variable into flatpak-spawn
+- Fixed a bug with **Enable Dev Tools** on Linux by passing the variable into `flatpak-spawn`
+- The install page no longer displays upgrades to asset versions incompatible with game version
 
 </ChangelogSection>
