@@ -58,8 +58,8 @@ export function ItemCard({
   // Browse only knows that no downloadable version is compatible (versions can fail
   // for different reasons), so the hover is a single statement rather than per-reason rows.
   const incompatibleReason = gameVersion
-    ? `No version is compatible with game ${gameVersion}.`
-    : 'No compatible version available.';
+    ? `No asset version is compatible with game version ${gameVersion}.`
+    : 'No compatible asset version available.';
 
   const formatDescription = useMemo(() => {
     if (descriptionMode === 'preview') {

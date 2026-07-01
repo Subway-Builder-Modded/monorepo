@@ -783,6 +783,43 @@ func TestGetInstalledModsResponseIncludesInstalledSizeBytes(t *testing.T) {
 	require.Equal(t, int64(0), reg.GetInstalledMods()[0].InstalledSizeBytes)
 }
 
+// TestGetInstalledResponseSizeIgnoresExecutableValidity guards the regression where a
+// renamed/missing game executable zeroed every installed size: the mods/maps folders derive
+// only from MetroMakerDataPath, so sizes must still be reported when just the exe is invalid.
+func TestGetInstalledResponseSizeIgnoresExecutableValidity(t *testing.T) {
+	testutil.NewHarness(t)
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	testutil.SetValidConfigPaths(t, &cfg.Cfg)
+	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+
+	cityCode := "AAA"
+	mapPath := paths.JoinLocalPath(cfg.Cfg.GetMapsFolderPath(), cityCode)
+	require.NoError(t, os.MkdirAll(mapPath, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, constants.RailyardAssetMarker), []byte("x"), 0o644))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, "roads.geojson.gz"), []byte("12345"), 0o644))
+
+	modPath := paths.JoinLocalPath(cfg.Cfg.GetModsFolderPath(), "mod-a")
+	require.NoError(t, os.MkdirAll(modPath, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modPath, constants.RailyardAssetMarker), []byte("x"), 0o644))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(modPath, "mod.bin"), []byte("12345"), 0o644))
+
+	reg.AddInstalledMap("map-a", "1.0.0", false, types.ConfigData{Code: cityCode})
+	reg.AddInstalledMod("mod-a", "1.0.0", false, nil)
+
+	// Simulate the game exe being renamed away: the stored path no longer resolves, so the
+	// overall config is invalid — but the installed files are untouched.
+	require.NoError(t, os.Remove(cfg.Cfg.ExecutablePath))
+	valid, _ := cfg.Cfg.ValidateConfigPaths()
+	require.False(t, valid, "precondition: config is invalid because the exe is missing")
+
+	mapsResp := reg.GetInstalledMapsResponse()
+	modsResp := reg.GetInstalledModsResponse()
+	require.Len(t, mapsResp.Maps, 1)
+	require.Len(t, modsResp.Mods, 1)
+	require.Greater(t, mapsResp.Maps[0].InstalledSizeBytes, int64(0))
+	require.Greater(t, modsResp.Mods[0].InstalledSizeBytes, int64(0))
+}
+
 func TestGetInstalledResponseSizeErrorsAreNonFatal(t *testing.T) {
 	testutil.NewHarness(t)
 	cfg := config.NewConfig(testutil.TestLogSink{})

@@ -1,9 +1,15 @@
 import { ErrorBanner } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
 import { Skeleton } from '@subway-builder-modded/shared-ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { ItemCard } from '@/components/shared/ItemCard';
+import { useGameVersion } from '@/hooks/use-game-version';
+import {
+  type AssetRef,
+  composeIncompatibleKey,
+  useIncompatibleAssetKeys,
+} from '@/hooks/use-incompatible-asset-keys';
 import type { TaggedItem } from '@/lib/tagged-items';
 
 const DISCOVER_CARD_MIN_WIDTH = 220;
@@ -30,6 +36,12 @@ export function DiscoverSectionGrid({
 }: DiscoverSectionGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(1);
+  const gameVersion = useGameVersion();
+  const assetRefs = useMemo<AssetRef[]>(
+    () => items.map(({ type, item }) => ({ type, id: item.id })),
+    [items],
+  );
+  const incompatibleItemKeys = useIncompatibleAssetKeys(assetRefs);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -117,6 +129,11 @@ export function DiscoverSectionGrid({
             viewMode="compact"
             installedVersion={getInstalledVersion(item.id) ?? undefined}
             totalDownloads={getTotalDownloads(type, item.id)}
+            incompatible={incompatibleItemKeys.has(
+              composeIncompatibleKey(type, item.id),
+            )}
+            gameVersion={gameVersion}
+            test={item.is_test === true}
           />
         </div>
       ))}

@@ -120,28 +120,33 @@ func (c AppConfig) AreConfigPathsConfigured() bool {
 	return strings.TrimSpace(c.MetroMakerDataPath) != "" && strings.TrimSpace(c.ExecutablePath) != ""
 }
 
-// GetModsFolderPath returns the full path to the mods folder based on the MetroMakerDataPath in AppConfig, or an empty string if paths are not properly configured.
+// GetModsFolderPath returns the full path to the mods folder, or an empty string when the
+// MetroMaker data folder is not valid. It derives only from MetroMakerDataPath, so it is
+// deliberately independent of executable validity — installed files live here regardless of
+// whether the game exe is currently launchable.
 func (c AppConfig) GetModsFolderPath() string {
-	pathsValid, _ := c.ValidateConfigPaths()
-	if pathsValid {
+	_, validation := c.ValidateConfigPaths()
+	if validation.MetroMakerDataPathValid {
 		return paths.MetroMakerModsPath(c.MetroMakerDataPath)
 	}
 	return ""
 }
 
-// GetThumbnailFolderPath returns the full path to the thumbnail folder based on the MetroMakerDataPath in AppConfig, or an empty string if paths are not properly configured.
+// GetThumbnailFolderPath returns the full path to the thumbnail folder, or an empty string
+// when the MetroMaker data folder is not valid. See GetModsFolderPath on exe independence.
 func (c AppConfig) GetThumbnailFolderPath() string {
-	pathsValid, _ := c.ValidateConfigPaths()
-	if pathsValid {
+	_, validation := c.ValidateConfigPaths()
+	if validation.MetroMakerDataPathValid {
 		return paths.JoinLocalPath(c.MetroMakerDataPath, "public", "data", "city-maps")
 	}
 	return ""
 }
 
-// GetMapsFolderPath returns the full path to the maps folder based on the MetroMakerDataPath in AppConfig, or an empty string if paths are not properly configured.
+// GetMapsFolderPath returns the full path to the maps folder, or an empty string when the
+// MetroMaker data folder is not valid. See GetModsFolderPath on exe independence.
 func (c AppConfig) GetMapsFolderPath() string {
-	pathsValid, _ := c.ValidateConfigPaths()
-	if pathsValid {
+	_, validation := c.ValidateConfigPaths()
+	if validation.MetroMakerDataPathValid {
 		return paths.MetroMakerMapsDataPath(c.MetroMakerDataPath)
 	}
 	return ""
