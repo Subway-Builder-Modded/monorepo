@@ -6,12 +6,8 @@ import type {
   SortState,
 } from '@subway-builder-modded/config';
 import { assetTypeToListingPath } from '@subway-builder-modded/config';
-import {
-  formatSourceQuality,
-  resolveMapLocation,
-} from '@subway-builder-modded/config';
 import { TEXT_SORT_FIELDS } from '@subway-builder-modded/config';
-import { Badge, Button } from '@subway-builder-modded/shared-ui';
+import { Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { AppDialog } from '@subway-builder-modded/shared-ui';
 import { LOCAL_ACCENTS } from '@subway-builder-modded/shared-ui';
@@ -272,15 +268,6 @@ function LibraryListRow({
   const mapCountry = map?.country ?? '';
   const CountryFlag = getCountryFlagIcon(mapCountry);
 
-  const badges = isMap
-    ? [
-        resolveMapLocation(map ?? {}),
-        formatSourceQuality(map?.source_quality ?? ''),
-        map?.level_of_detail,
-        ...(map?.special_demand ?? []),
-      ].filter((v): v is string => Boolean(v))
-    : (entry.item.tags ?? []);
-
   const pendingUpdate = isLocal
     ? undefined
     : getPendingSubscriptionUpdate(
@@ -290,9 +277,6 @@ function LibraryListRow({
       );
 
   const projectHref = `/project/${assetTypeToListingPath(entry.type)}/${entry.item.id}`;
-
-  const visibleBadges = badges.slice(0, 2);
-  const overflowCount = badges.length - visibleBadges.length;
 
   const handleUninstall = async () => {
     setUninstallLoading(true);
@@ -404,25 +388,6 @@ function LibraryListRow({
               />
             </p>
           </div>
-
-          {!isLocal && (
-            <div className="shrink-0 flex items-center gap-1">
-              {visibleBadges.map((badge) => (
-                <Badge
-                  key={badge}
-                  variant="secondary"
-                  className="px-1.5 py-0 text-xs"
-                >
-                  {badge}
-                </Badge>
-              ))}
-              {overflowCount > 0 && (
-                <Badge variant="outline" className="px-1.5 py-0 text-xs">
-                  +{overflowCount}
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
 
         <div
