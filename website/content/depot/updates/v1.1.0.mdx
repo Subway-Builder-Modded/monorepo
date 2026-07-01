@@ -1,0 +1,29 @@
+---
+title: v1.1.0
+icon: Warehouse
+date: June 30, 2026
+tag: release
+url: https://github.com/Subway-Builder-Modded/depot/releases/tag/1.1.0
+previousVersion: v1.0.8
+compareUrl: https://github.com/Subway-Builder-Modded/depot/compare/1.0.8...1.1.0#files_bucket
+---
+
+<ChangelogSection type="features">
+
+- Enabled the building foundation depth layer
+  - Depths are at least 10m, and at most 80m
+  - Values are calculated according to `alpha * height * (height / min_width)^0.25`, where `alpha=0.25`
+    - This can be disabled if you wish to use the default 10m foundation for all buildings
+- Enabled use of GEBCO bathymetry data (toggleable)
+  - Enabled the ocean floor depth layer
+  - Enabled ocean collisions
+    - Now, all track must be either elevated or at least 4m below the seafloor
+    - Where there are no GEBCO data (coastal waters, rivers, lakes), a flat value of -4m is used
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Clipped park polygons so that they do not overlap with aerodromes to avoid a visual bug when in 3D mode
+
+</ChangelogSection>
