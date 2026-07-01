@@ -388,7 +388,6 @@ function LibraryListRow({
               />
             </p>
           </div>
-
         </div>
 
         <div
