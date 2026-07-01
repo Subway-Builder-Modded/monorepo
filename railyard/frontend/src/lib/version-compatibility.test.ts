@@ -10,6 +10,7 @@ import {
   INCOMPATIBLE_GAME_VERSION_MESSAGE,
   type InstalledConstraint,
   isInstalledCompatible,
+  resolveAvailableUpdate,
   selectLatestCompatibleVersion,
 } from './version-compatibility';
 
@@ -180,5 +181,35 @@ describe('isInstalledCompatible', () => {
     ['only manifest (fails)', '0.9.0', [MANIFEST], false],
   ])('%s', (_, gameVersion, constraints, expected) => {
     expect(isInstalledCompatible(gameVersion, constraints)).toBe(expected);
+  });
+});
+
+describe('resolveAvailableUpdate', () => {
+  it('surfaces the pending version when it is strictly newer', () => {
+    expect(resolveAvailableUpdate('1.0.0', '1.2.0')).toEqual({
+      targetVersion: '1.2.0',
+      hasUpdate: true,
+    });
+  });
+
+  it('reports no update when nothing is installed', () => {
+    expect(resolveAvailableUpdate(undefined, '1.2.0')).toEqual({
+      hasUpdate: false,
+    });
+  });
+
+  it('reports no update when the backend suppressed it (undetected game version)', () => {
+    // The pending resolution is null precisely because the game version was undetected,
+    // so an installed asset must not be offered a (phantom) update.
+    expect(resolveAvailableUpdate('1.0.0', null)).toEqual({ hasUpdate: false });
+  });
+
+  it('does not surface a pending version that is not strictly newer', () => {
+    expect(resolveAvailableUpdate('1.2.0', '1.2.0')).toEqual({
+      hasUpdate: false,
+    });
+    expect(resolveAvailableUpdate('1.2.0', '1.1.0')).toEqual({
+      hasUpdate: false,
+    });
   });
 });

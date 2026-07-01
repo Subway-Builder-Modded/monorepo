@@ -1,8 +1,31 @@
-import { isCompatible } from '@/lib/semver';
+import { isCompatible, isUpgrade } from '@/lib/semver';
 
 interface GameCompatibleVersion {
   game_version: string;
   map_buildings_constraint?: string;
+}
+
+/**
+ * Decides whether an installed asset has an available update, from the backend's
+ * pending resolution. That resolution is the single source of truth: it filters to
+ * game-compatible versions and returns nothing when the game version is undetected.
+ * We surface it only when strictly newer than what is installed — defense-in-depth,
+ * since the backend already guarantees that. Never falls back to a locally-computed
+ * "latest version", which would resurface updates the backend deliberately suppressed
+ * (phantom updates when undetected) or point at an older version (a downgrade).
+ */
+export function resolveAvailableUpdate(
+  installedVersion: string | null | undefined,
+  pendingLatestVersion: string | null,
+): { targetVersion?: string; hasUpdate: boolean } {
+  if (!installedVersion || !pendingLatestVersion) {
+    return { hasUpdate: false };
+  }
+  const hasUpdate = isUpgrade(pendingLatestVersion, installedVersion);
+  return {
+    targetVersion: hasUpdate ? pendingLatestVersion : undefined,
+    hasUpdate,
+  };
 }
 
 export function selectLatestCompatibleVersion<T extends GameCompatibleVersion>(

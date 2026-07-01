@@ -39,7 +39,6 @@ import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { getCountryFlagIcon } from '@/lib/flags';
-import { isUpgrade } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -52,7 +51,10 @@ import {
   toSubscriptionSyncErrorState,
 } from '@/lib/subscription-sync-error';
 import { requestLatestSubscriptionUpdatesForActiveProfile } from '@/lib/subscription-updates';
-import { constraintsFromVersion } from '@/lib/version-compatibility';
+import {
+  constraintsFromVersion,
+  resolveAvailableUpdate,
+} from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import {
   AssetConflictError,
@@ -180,14 +182,11 @@ export function ProjectHeader({
     };
   }, [installedVersion, item.id, type, installing, uninstalling]);
 
-  const updateTargetVersion = pendingLatestVersion ?? effectiveVersion?.version;
-  // Strictly newer only: the effectiveVersion fallback can resolve to a version older
-  // than what is installed (e.g. newer releases are game-incompatible), which must not
-  // be surfaced as an update.
-  const hasUpdate =
-    installedVersion &&
-    updateTargetVersion &&
-    isUpgrade(updateTargetVersion, installedVersion);
+  // Updates come solely from the backend's pending resolution (see resolveAvailableUpdate):
+  // no local latest-version fallback, which would resurface updates the backend suppressed
+  // when the game version is undetected — or point at a downgrade.
+  const { targetVersion: updateTargetVersion, hasUpdate } =
+    resolveAvailableUpdate(installedVersion, pendingLatestVersion);
   const authorAlias = item.author.author_alias;
   const authorAttributionLink = item.author.attribution_link;
 
