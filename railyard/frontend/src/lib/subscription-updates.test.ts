@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  composeAssetKey,
   getPendingSubscriptionUpdate,
   indexPendingSubscriptionUpdates,
   toLatestUpdateRequestTargets,
@@ -27,9 +26,9 @@ describe('subscription-updates helpers', () => {
       } as types.PendingSubscriptionUpdate,
     ]);
 
-    expect(Object.keys(pending)).toEqual(['map-map-a', 'mod-mod-a']);
-    expect(pending['map-map-a']?.latestVersion).toBe('1.2.0');
-    expect(pending['mod-mod-a']?.latestVersion).toBe('2.1.0');
+    expect(Object.keys(pending)).toEqual(['map:map-a', 'mod:mod-a']);
+    expect(pending['map:map-a']?.latestVersion).toBe('1.2.0');
+    expect(pending['mod:mod-a']?.latestVersion).toBe('2.1.0');
   });
 
   it('returns empty object for undefined or empty input', () => {
@@ -76,11 +75,6 @@ describe('subscription-updates helpers', () => {
       new types.SubscriptionUpdateTarget({ assetId: 'map-a', type: 'map' }),
       new types.SubscriptionUpdateTarget({ assetId: 'mod-b', type: 'mod' }),
     ]);
-  });
-
-  it('composes stable asset keys', () => {
-    expect(composeAssetKey('map', 'map-a')).toBe('map-map-a');
-    expect(composeAssetKey('mod', 'mod-x')).toBe('mod-mod-x');
   });
 
   it('looks up a pending update by type and id', () => {

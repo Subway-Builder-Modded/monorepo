@@ -2,6 +2,7 @@ import type { AssetType } from '@subway-builder-modded/config';
 import { useEffect, useState } from 'react';
 
 import { useGameVersion } from '@/hooks/use-game-version';
+import { assetKey } from '@/lib/asset-key';
 import {
   getDownloadableVersions,
   selectLatestCompatibleVersion,
@@ -13,11 +14,6 @@ import { GetInstallableVersionsResponse } from '../../wailsjs/go/registry/Regist
 export interface AssetRef {
   type: AssetType;
   id: string;
-}
-
-// composeIncompatibleKey is the stable key format used to mark an incompatible asset.
-export function composeIncompatibleKey(type: AssetType, id: string): string {
-  return `${type}:${id}`;
 }
 
 // isGameVersionIncompatible reports whether the game version can install no downloadable
@@ -35,7 +31,7 @@ export function isGameVersionIncompatible(
 
 /**
  * Resolves which of the given assets have no game-compatible installable version, keyed by
- * composeIncompatibleKey. Fetches installable versions per asset (cached in the registry).
+ * assetKey. Fetches installable versions per asset (cached in the registry).
  * Returns an empty set while the game version is undetected — unknown is not incompatible.
  *
  * Pass a memoized assetRefs so the effect only re-runs when the asset set or game version
@@ -66,7 +62,7 @@ export function useIncompatibleAssetKeys(
             response.versions ?? [],
             gameVersion,
           )
-            ? composeIncompatibleKey(type, id)
+            ? assetKey(type, id)
             : null;
         } catch {
           return null;
