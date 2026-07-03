@@ -69,7 +69,7 @@ describe('useRegistryStore download totals', () => {
     expect(state.downloadTotalsLoaded).toBe(true);
   });
 
-  it('keeps zero/default totals on non-success responses', async () => {
+  it('does not latch loaded when every asset type fails, so it retries', async () => {
     mockGetDownloadCountsByAssetType
       .mockResolvedValueOnce({
         status: 'error',
@@ -82,12 +82,71 @@ describe('useRegistryStore download totals', () => {
         message: 'partial',
         assetType: 'map',
         counts: {},
+      })
+      // A later call retries (not skipped) and succeeds.
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: 'ok',
+        assetType: 'mod',
+        counts: { mod_a: { '1.0.0': 3 } },
+      })
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: 'ok',
+        assetType: 'map',
+        counts: { map_a: { '1.0.0': 5 } },
+      });
+
+    await useRegistryStore.getState().ensureDownloadTotals();
+    expect(useRegistryStore.getState().modDownloadTotals).toEqual({});
+    expect(useRegistryStore.getState().mapDownloadTotals).toEqual({});
+    // Not latched: total failure must not cache zeros.
+    expect(useRegistryStore.getState().downloadTotalsLoaded).toBe(false);
+
+    // Because it stayed unloaded, a plain (non-forced) call refetches and recovers.
+    await useRegistryStore.getState().ensureDownloadTotals();
+    expect(mockGetDownloadCountsByAssetType).toHaveBeenCalledTimes(4);
+    expect(useRegistryStore.getState().modDownloadTotals).toEqual({ mod_a: 3 });
+    expect(useRegistryStore.getState().mapDownloadTotals).toEqual({ map_a: 5 });
+    expect(useRegistryStore.getState().downloadTotalsLoaded).toBe(true);
+  });
+
+  it('preserves prior totals and stays unloaded when the request throws', async () => {
+    useRegistryStore.setState({
+      modDownloadTotals: { mod_a: 7 },
+      mapDownloadTotals: { map_a: 8 },
+      downloadTotalsLoaded: true,
+    });
+    mockGetDownloadCountsByAssetType.mockRejectedValue(new Error('boom'));
+
+    await useRegistryStore.getState().ensureDownloadTotals({ force: true });
+
+    const state = useRegistryStore.getState();
+    // Not wiped to zero, and not latched so a later call retries.
+    expect(state.modDownloadTotals).toEqual({ mod_a: 7 });
+    expect(state.mapDownloadTotals).toEqual({ map_a: 8 });
+    expect(state.downloadTotalsLoaded).toBe(false);
+  });
+
+  it('latches loaded on a partial success (at least one asset type)', async () => {
+    mockGetDownloadCountsByAssetType
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: 'ok',
+        assetType: 'mod',
+        counts: { mod_a: { '1.0.0': 2 } },
+      })
+      .mockResolvedValueOnce({
+        status: 'error',
+        message: 'failed',
+        assetType: 'map',
+        counts: {},
       });
 
     await useRegistryStore.getState().ensureDownloadTotals();
 
     const state = useRegistryStore.getState();
-    expect(state.modDownloadTotals).toEqual({});
+    expect(state.modDownloadTotals).toEqual({ mod_a: 2 });
     expect(state.mapDownloadTotals).toEqual({});
     expect(state.downloadTotalsLoaded).toBe(true);
   });
@@ -115,6 +174,50 @@ describe('useRegistryStore download totals', () => {
 
     expect(mockGetDownloadCountsByAssetType).toHaveBeenCalledTimes(2);
     expect(useRegistryStore.getState().downloadTotalsLoaded).toBe(true);
+  });
+
+  it('force-reload replaces totals cached empty during the startup window', async () => {
+    mockGetDownloadCountsByAssetType
+      // First load lands before the registry populated counts: success but empty.
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: 'ok',
+        assetType: 'mod',
+        counts: {},
+      })
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: 'ok',
+        assetType: 'map',
+        counts: {},
+      })
+      // The forced reload (as triggered on registry:ready) sees the now-populated counts.
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: 'ok',
+        assetType: 'mod',
+        counts: { mod_a: { '1.0.0': 4 } },
+      })
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: 'ok',
+        assetType: 'map',
+        counts: { map_a: { '1.0.0': 9 } },
+      });
+
+    await useRegistryStore.getState().ensureDownloadTotals();
+    // Poisoned: empty totals, but marked loaded so a non-forced call will not refetch.
+    expect(useRegistryStore.getState().modDownloadTotals).toEqual({});
+    expect(useRegistryStore.getState().downloadTotalsLoaded).toBe(true);
+
+    await useRegistryStore.getState().ensureDownloadTotals();
+    expect(mockGetDownloadCountsByAssetType).toHaveBeenCalledTimes(2);
+
+    // The registry:ready fix forces a refetch, which recovers the real totals.
+    await useRegistryStore.getState().ensureDownloadTotals({ force: true });
+    expect(mockGetDownloadCountsByAssetType).toHaveBeenCalledTimes(4);
+    expect(useRegistryStore.getState().modDownloadTotals).toEqual({ mod_a: 4 });
+    expect(useRegistryStore.getState().mapDownloadTotals).toEqual({ map_a: 9 });
   });
 
   it('skips re-fetching when totals are already loaded', async () => {
