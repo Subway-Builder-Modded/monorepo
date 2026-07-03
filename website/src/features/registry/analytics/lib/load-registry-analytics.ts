@@ -43,6 +43,9 @@ export type RegistryAnalyticsProjectRanking = {
   id: string;
   name: string;
   href: string;
+  authorId: string;
+  authorName: string;
+  authorHref: string;
   downloads: number;
   maps: number;
   mods: number;
@@ -54,6 +57,7 @@ export type RegistryAnalyticsMapStatisticRanking = {
   name: string;
   authorId: string;
   authorName: string;
+  searchAliases: string[];
   countryCode: string;
   cityCode: string;
   demand: number;
@@ -101,6 +105,9 @@ export type RegistryAnalyticsContentRanking = {
   name: string;
   authorId: string;
   authorName: string;
+  searchAliases: string[];
+  countryCode: string;
+  countryName: string;
   downloads: number;
 };
 
@@ -348,6 +355,9 @@ function buildProjectRankings(
       id: project.id,
       name: project.name,
       href: project.href,
+      authorId: project.authorId,
+      authorName: project.authorLabel,
+      authorHref: project.authorHref,
       downloads: project.downloads,
       maps: project.maps,
       mods: project.mods,
@@ -380,22 +390,27 @@ function buildMapPlayableAreaLookup(
 function buildMapStatisticRankings(
   rows: CsvRow[],
   playableAreaByMapId: Map<string, number>,
-  validItemIds: Set<string>,
+  validItemsById: Map<string, RegistryAnalyticsItem>,
 ): RegistryAnalyticsMapStatisticRanking[] {
   return rows
-    .filter((row) => validItemIds.has(row.id ?? ""))
-    .map((row) => ({
-      id: row.id ?? "",
-      name: row.name?.trim() || row.id || "Unknown map",
-      authorId: row.author?.trim() || "",
-      authorName: row.author_alias?.trim() || row.author?.trim() || "Unknown author",
-      countryCode: row.country?.trim().toUpperCase() || "",
-      cityCode: row.city_code?.trim().toUpperCase() || "",
-      demand: getNumber(row.population),
-      pops: getNumber(row.population_count),
-      demandPoints: getNumber(row.points_count),
-      playableAreaKm2: playableAreaByMapId.get(row.id ?? "") ?? 0,
-    }))
+    .filter((row) => validItemsById.has(row.id ?? ""))
+    .map((row) => {
+      const item = validItemsById.get(row.id ?? "");
+      return {
+        id: row.id ?? "",
+        name: row.name?.trim() || item?.name || row.id || "Unknown map",
+        authorId: row.author?.trim() || item?.authorId || "",
+        authorName:
+          row.author_alias?.trim() || item?.author || row.author?.trim() || "Unknown author",
+        searchAliases: item?.searchAliases ?? [],
+        countryCode: row.country?.trim().toUpperCase() || item?.countryCode || "",
+        cityCode: row.city_code?.trim().toUpperCase() || item?.cityCode || "",
+        demand: getNumber(row.population),
+        pops: getNumber(row.population_count),
+        demandPoints: getNumber(row.points_count),
+        playableAreaKm2: playableAreaByMapId.get(row.id ?? "") ?? 0,
+      };
+    })
     .filter((row) => row.id)
     .sort((left, right) => right.demand - left.demand);
 }
@@ -412,7 +427,7 @@ function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
 function normalizeRankingRows(
   rows: CsvRow[],
   getDownloads: (row: CsvRow) => number,
-  validItemIds: Set<string>,
+  validItemsById: Map<string, RegistryAnalyticsItem>,
 ): Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> {
   const grouped: Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> = {
     maps: [],
@@ -420,15 +435,19 @@ function normalizeRankingRows(
   };
 
   for (const row of rows) {
-    if (!validItemIds.has(row.id ?? "")) continue;
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
     const type = getAssetType(row.listing_type);
     if (!type) continue;
     grouped[type].push({
       id: row.id ?? "",
       type,
-      name: row.name?.trim() || row.id || "Unknown asset",
-      authorId: row.author?.trim() || "",
-      authorName: row.author_alias?.trim() || row.author?.trim() || "Unknown author",
+      name: row.name?.trim() || item.name || row.id || "Unknown asset",
+      authorId: row.author?.trim() || item.authorId || "",
+      authorName: row.author_alias?.trim() || item.author || row.author?.trim() || "Unknown author",
+      searchAliases: item.searchAliases ?? [],
+      countryCode: item.countryCode ?? "",
+      countryName: item.countryName ?? "",
       downloads: getDownloads(row),
     });
   }
@@ -439,12 +458,15 @@ function normalizeRankingRows(
   };
 }
 
-function buildFourteenDayRankings(rows: CsvRow[], validItemIds: Set<string>) {
+function buildFourteenDayRankings(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+) {
   const dateHeaders = getDateHeaders(rows).slice(-14);
   return normalizeRankingRows(
     rows,
     (row) => dateHeaders.reduce((sum, dateKey) => sum + getNumber(row[dateKey]), 0),
-    validItemIds,
+    validItemsById,
   );
 }
 
@@ -507,24 +529,24 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   const mapStatisticRows = parseCsv(mapStatisticsRaw);
   const byDayRows = parseCsv(byDayRaw);
   const allItems = itemEntries.flat();
-  const validItemIds = new Set(allItems.map((item) => item.id));
+  const validItemsById = buildValidItemsById(allItems);
   const contentRankings = buildEmptyContentRankings();
   contentRankings["all-time"] = normalizeRankingRows(
     parseCsv(allTimeRaw),
     (row) => getNumber(row.adjusted_total_downloads || row.total_downloads),
-    validItemIds,
+    validItemsById,
   );
   contentRankings["3d"] = normalizeRankingRows(
     parseCsv(last3Raw),
     (row) => getNumber(row.adjusted_download_change || row.download_change),
-    validItemIds,
+    validItemsById,
   );
   contentRankings["7d"] = normalizeRankingRows(
     parseCsv(last7Raw),
     (row) => getNumber(row.adjusted_download_change || row.download_change),
-    validItemIds,
+    validItemsById,
   );
-  contentRankings["14d"] = buildFourteenDayRankings(byDayRows, validItemIds);
+  contentRankings["14d"] = buildFourteenDayRankings(byDayRows, validItemsById);
   const history = normalizeHistory(byDayRows, allItems);
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
@@ -557,7 +579,11 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       rankings: buildProjectRankings(creatorData.projects),
     },
     mapStatistics: {
-      rankings: buildMapStatisticRankings(mapStatisticRows, playableAreaByMapId, validMapIds),
+      rankings: buildMapStatisticRankings(
+        mapStatisticRows,
+        playableAreaByMapId,
+        new Map([...validItemsById].filter(([id]) => validMapIds.has(id))),
+      ),
     },
   };
 }

@@ -49,11 +49,25 @@ describe("filterRegistryItems", () => {
   it("matches by registry-provided search aliases", () => {
     const items = [
       makeItem({ name: "Primary Name", searchAliases: ["Alternate Name"] }),
-      makeItem({ id: "item-b", name: "Other Name", searchAliases: ["Second Alternate"] }),
+      makeItem({ id: "item-b", name: "Other Item", searchAliases: ["Second Alternate"] }),
     ];
     const result = filterRegistryItems(items, "alternate name", []);
     expect(result).toHaveLength(1);
     expect(result[0]?.name).toBe("Primary Name");
+  });
+
+  it("matches map country codes by country exonyms, endonyms, and aliases", () => {
+    const items = [
+      makeItem({ id: "map-prague", countryCode: "CZ", countryName: "Czechia" }),
+      makeItem({ id: "map-london", countryCode: "GB", countryName: "United Kingdom" }),
+    ];
+
+    expect(filterRegistryItems(items, "Czech Republic", []).map((item) => item.id)).toEqual([
+      "map-prague",
+    ]);
+    expect(filterRegistryItems(items, "Great Britain", []).map((item) => item.id)).toEqual([
+      "map-london",
+    ]);
   });
 
   it("filters by selected tags (any may match)", () => {

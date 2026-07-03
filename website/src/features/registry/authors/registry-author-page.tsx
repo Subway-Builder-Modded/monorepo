@@ -62,6 +62,7 @@ import {
   type DetailMetric,
 } from "@/features/registry/detail/components/details-tab";
 import { filterRegistryItems } from "@/features/registry/lib/filter-registry-items";
+import { matchesRegistrySearch } from "@/features/registry/lib/registry-search";
 import { getRegistryAuthorUrl, getRegistryProjectUrl } from "@/features/registry/lib/routing";
 import { sortRegistryItems } from "@/features/registry/lib/sort-registry-items";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
@@ -671,12 +672,13 @@ function AuthorProjectCard({ project }: { project: RegistryAuthorProjectSummary 
 function AuthorProjects({ projects }: { projects: RegistryAuthorProjectSummary[] }) {
   const [query, setQuery] = useState("");
   const filteredProjects = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return projects;
-    return projects.filter(
-      (project) =>
-        project.projectName.toLowerCase().includes(normalizedQuery) ||
-        project.projectId.toLowerCase().includes(normalizedQuery),
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return projects;
+    return projects.filter((project) =>
+      matchesRegistrySearch(
+        [project.projectName, project.projectId, ...project.searchTerms],
+        trimmedQuery,
+      ),
     );
   }, [projects, query]);
 

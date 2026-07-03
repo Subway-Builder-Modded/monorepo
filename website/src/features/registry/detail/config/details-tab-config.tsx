@@ -215,9 +215,19 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
         getValue: (detail) => formatFileSizeMb(detail.mapFields?.fileSizes.pmtiles ?? null),
       },
       {
-        title: "Buildings Index",
+        title: "Buildings Index (JSON)",
         icon: Building2,
-        getValue: (detail) => formatFileSizeMb(detail.mapFields?.fileSizes.buildingsIndex ?? null),
+        getValue: (detail) =>
+          formatFileSizeMb(detail.mapFields?.fileSizes.buildingsIndexJson ?? null),
+        shouldRender: (detail) =>
+          typeof detail.mapFields?.fileSizes.buildingsIndexJson === "number",
+      },
+      {
+        title: "Buildings Index (BIN)",
+        icon: Building2,
+        getValue: (detail) =>
+          formatFileSizeMb(detail.mapFields?.fileSizes.buildingsIndexBin ?? null),
+        shouldRender: (detail) => typeof detail.mapFields?.fileSizes.buildingsIndexBin === "number",
       },
       {
         title: "Demand Data",

@@ -478,6 +478,9 @@ importers:
       '@subway-builder-modded/analytics':
         specifier: workspace:*
         version: link:../packages/analytics
+      '@subway-builder-modded/asset-listings-state':
+        specifier: workspace:*
+        version: link:../packages/asset-listings-state
       '@subway-builder-modded/config':
         specifier: workspace:^
         version: link:../packages/config
