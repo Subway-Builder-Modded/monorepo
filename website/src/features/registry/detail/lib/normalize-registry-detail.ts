@@ -270,13 +270,22 @@ function resolveFileSizeMb(
 
 function isKnownMapFileSizeKey(normalizedKey: string): boolean {
   return (
-    normalizedKey.endsWith(".pmtiles") ||
-    normalizedKey === "buildings_index.json" ||
-    normalizedKey === "demand_data.json" ||
-    normalizedKey === "ocean_depth_index.json" ||
-    normalizedKey === "roads.geojson" ||
-    normalizedKey === "runways_taxiways.geojson"
+    matchesFileSizeKey(normalizedKey, ".pmtiles") ||
+    matchesFileSizeKey(normalizedKey, "buildings_index.json") ||
+    matchesFileSizeKey(normalizedKey, "buildings_index.bin") ||
+    matchesFileSizeKey(normalizedKey, "demand_data.json") ||
+    matchesFileSizeKey(normalizedKey, "ocean_depth_index.json") ||
+    matchesFileSizeKey(normalizedKey, "roads.geojson") ||
+    matchesFileSizeKey(normalizedKey, "runways_taxiways.geojson")
   );
+}
+
+function matchesFileSizeKey(normalizedKey: string, expectedKey: string): boolean {
+  if (expectedKey.startsWith(".")) {
+    return normalizedKey.endsWith(expectedKey) || normalizedKey.endsWith(`${expectedKey}.gz`);
+  }
+
+  return normalizedKey === expectedKey || normalizedKey === `${expectedKey}.gz`;
 }
 
 function resolveOtherMapFileSizes(fileSizes: Record<string, number> | undefined): number | null {
@@ -297,12 +306,21 @@ function resolveOtherMapFileSizes(fileSizes: Record<string, number> | undefined)
 
 function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
   return {
-    pmtiles: resolveFileSizeMb(fileSizes, (key) => key.endsWith(".pmtiles")),
-    buildingsIndex: resolveFileSizeMb(fileSizes, (key) => key === "buildings_index.json"),
-    demandData: resolveFileSizeMb(fileSizes, (key) => key === "demand_data.json"),
-    oceanDepthIndex: resolveFileSizeMb(fileSizes, (key) => key === "ocean_depth_index.json"),
-    roads: resolveFileSizeMb(fileSizes, (key) => key === "roads.geojson"),
-    runwaysTaxiways: resolveFileSizeMb(fileSizes, (key) => key === "runways_taxiways.geojson"),
+    pmtiles: resolveFileSizeMb(fileSizes, (key) => matchesFileSizeKey(key, ".pmtiles")),
+    buildingsIndexJson: resolveFileSizeMb(fileSizes, (key) =>
+      matchesFileSizeKey(key, "buildings_index.json"),
+    ),
+    buildingsIndexBin: resolveFileSizeMb(fileSizes, (key) =>
+      matchesFileSizeKey(key, "buildings_index.bin"),
+    ),
+    demandData: resolveFileSizeMb(fileSizes, (key) => matchesFileSizeKey(key, "demand_data.json")),
+    oceanDepthIndex: resolveFileSizeMb(fileSizes, (key) =>
+      matchesFileSizeKey(key, "ocean_depth_index.json"),
+    ),
+    roads: resolveFileSizeMb(fileSizes, (key) => matchesFileSizeKey(key, "roads.geojson")),
+    runwaysTaxiways: resolveFileSizeMb(fileSizes, (key) =>
+      matchesFileSizeKey(key, "runways_taxiways.geojson"),
+    ),
     other: resolveOtherMapFileSizes(fileSizes),
   };
 }

@@ -47,6 +47,7 @@ import { RegistryEmptyState } from "@/features/registry/components/browse/regist
 import { RegistryTabs } from "@/features/registry/components/registry-tabs";
 import { RegistryToolbarSearch } from "@/features/registry/components/registry-toolbar-search";
 import { RegistryTypeToggle } from "@/features/registry/components/registry-type-toggle";
+import { AuthorRoleBadge } from "@/features/registry/components/author-role-badge";
 import {
   DetailsMetricGrid,
   type DetailMetric,
@@ -411,6 +412,10 @@ function getContentRankingKey(row: RegistryAnalyticsContentRanking) {
   return `${row.type}:${row.id}`;
 }
 
+function matchesAnalyticsSearch(values: Array<string | null | undefined>, query: string) {
+  return values.some((value) => value?.toLowerCase().includes(query));
+}
+
 type RegistryRankingColumn<TRow> = {
   id: string;
   label: string;
@@ -591,7 +596,10 @@ function RegistryContentTab({
     }
 
     return sortedRows.filter((row) =>
-      `${row.name} ${row.authorName}`.toLowerCase().includes(normalizedQuery),
+      matchesAnalyticsSearch(
+        [row.name, row.id, row.authorName, row.authorId, ...row.searchAliases],
+        normalizedQuery,
+      ),
     );
   }, [rankingQuery, sortedRows]);
   const contentColumns = useMemo<RegistryRankingColumn<RegistryAnalyticsContentRanking>[]>(
@@ -861,13 +869,19 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         width: "36%",
         cellClassName: "font-medium text-foreground",
         render: (row) => (
-          <Link
-            to={getRegistryAuthorUrl(row.id, "analytics")}
-            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
-          >
-            <span className="truncate">{row.name}</span>
-            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
-          </Link>
+          <span className="inline-flex max-w-full items-center gap-1.5">
+            <Link
+              to={getRegistryAuthorUrl(row.id, "analytics")}
+              className="inline-flex min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+            >
+              <span className="truncate">{row.name}</span>
+              <ExternalLink
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden={true}
+              />
+            </Link>
+            <AuthorRoleBadge authorId={row.id} className="shrink-0" />
+          </span>
         ),
       },
       {
@@ -1031,7 +1045,9 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return sortedRows;
     return sortedRows.filter((row) =>
-      `${row.name} ${row.id}`.toLowerCase().includes(normalizedQuery),
+      `${row.name} ${row.id} ${row.authorName} ${row.authorId}`
+        .toLowerCase()
+        .includes(normalizedQuery),
     );
   }, [query, sortedRows]);
 
@@ -1058,7 +1074,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
       {
         id: "project",
         label: "Project",
-        width: hasMaps && hasMods && hasAssets ? "36%" : "52%",
+        width: hasMaps && hasMods && hasAssets ? "26%" : "38%",
         cellClassName: "font-medium text-foreground",
         render: (row) => (
           <Link
@@ -1068,6 +1084,28 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
             <span className="truncate">{row.name}</span>
             <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
           </Link>
+        ),
+      },
+      {
+        id: "author",
+        label: "Author",
+        width: "18%",
+        cellClassName: "font-medium text-foreground",
+        render: (row) => (
+          <span className="inline-flex max-w-full items-center gap-1.5">
+            <Link
+              to={getRegistryAuthorUrl(row.authorId, "analytics")}
+              className="inline-flex min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+              title={row.authorName}
+            >
+              <span className="truncate">{row.authorName}</span>
+              <ExternalLink
+                className="size-3.5 shrink-0 text-muted-foreground"
+                aria-hidden={true}
+              />
+            </Link>
+            <AuthorRoleBadge authorId={row.authorId} className="shrink-0" />
+          </span>
         ),
       },
       {
@@ -1229,9 +1267,18 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return sortedRows;
     return sortedRows.filter((row) =>
-      `${row.name} ${row.authorName} ${row.cityCode} ${row.countryCode}`
-        .toLowerCase()
-        .includes(normalizedQuery),
+      matchesAnalyticsSearch(
+        [
+          row.name,
+          row.id,
+          row.authorName,
+          row.authorId,
+          row.cityCode,
+          row.countryCode,
+          ...row.searchAliases,
+        ],
+        normalizedQuery,
+      ),
     );
   }, [query, sortedRows]);
 

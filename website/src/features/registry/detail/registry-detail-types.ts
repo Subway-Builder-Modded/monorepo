@@ -70,7 +70,8 @@ export type RegistryDetailMapFields = {
   levelOfDetail: "High" | "Medium" | "Low" | null;
   fileSizes: {
     pmtiles: number | null;
-    buildingsIndex: number | null;
+    buildingsIndexJson: number | null;
+    buildingsIndexBin: number | null;
     demandData: number | null;
     oceanDepthIndex: number | null;
     roads: number | null;
