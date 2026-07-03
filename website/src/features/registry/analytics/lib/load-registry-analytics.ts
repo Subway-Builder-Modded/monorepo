@@ -114,8 +114,7 @@ export type RegistryAnalyticsContentRanking = {
 
 const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
-const MOST_POPULAR_BY_DAY_URL =
-  "/registry-cache/analytics/most_popular_by_day.csv";
+const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
 const RANKING_URLS = {
   "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
   "3d": "/registry-cache/analytics/most_popular_last_3d.csv",
@@ -171,9 +170,7 @@ function parseCsv(raw: string): CsvRow[] {
 
   return lines.slice(1).map((line) => {
     const values = parseCsvLine(line);
-    return Object.fromEntries(
-      headers.map((header, index) => [header, values[index] ?? ""]),
-    );
+    return Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""]));
   });
 }
 
@@ -187,26 +184,18 @@ function normalizeDate(value: string | undefined): string {
 }
 
 function getDateHeaders(rows: CsvRow[]): string[] {
-  return Object.keys(rows[0] ?? {}).filter((header) =>
-    /^\d{4}_\d{2}_\d{2}$/.test(header),
-  );
+  return Object.keys(rows[0] ?? {}).filter((header) => /^\d{4}_\d{2}_\d{2}$/.test(header));
 }
 
-function getAssetType(
-  value: string | undefined,
-): RegistryAnalyticsAssetTypeId | null {
+function getAssetType(value: string | undefined): RegistryAnalyticsAssetTypeId | null {
   if (value === "map" || value === "maps") return "maps";
   if (value === "mod" || value === "mods") return "mods";
   return null;
 }
 
-type RegistryAnalyticsItem = Awaited<
-  ReturnType<typeof loadRegistryItemsForType>
->[number];
+type RegistryAnalyticsItem = Awaited<ReturnType<typeof loadRegistryItemsForType>>[number];
 
-function buildValidItemsById(
-  items: RegistryAnalyticsItem[],
-): Map<string, RegistryAnalyticsItem> {
+function buildValidItemsById(items: RegistryAnalyticsItem[]): Map<string, RegistryAnalyticsItem> {
   return new Map(items.map((item) => [item.id, item]));
 }
 
@@ -216,10 +205,7 @@ function getPublishedDate(item: RegistryAnalyticsItem): string | null {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
-function getFirstActivityDate(
-  row: CsvRow,
-  dateHeaders: string[],
-): string | null {
+function getFirstActivityDate(row: CsvRow, dateHeaders: string[]): string | null {
   for (const dateHeader of dateHeaders) {
     if (getNumber(row[dateHeader]) > 0) {
       return normalizeDate(dateHeader);
@@ -382,9 +368,8 @@ function buildProjectRankings(
 }
 
 function getManifestPlayableAreaKm2(manifest: unknown): number | null {
-  const value = (
-    manifest as { grid_statistics?: { detail?: { playableAreaKm2?: unknown } } }
-  ).grid_statistics?.detail?.playableAreaKm2;
+  const value = (manifest as { grid_statistics?: { detail?: { playableAreaKm2?: unknown } } })
+    .grid_statistics?.detail?.playableAreaKm2;
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
@@ -417,13 +402,9 @@ function buildMapStatisticRankings(
         name: row.name?.trim() || item?.name || row.id || "Unknown map",
         authorId: row.author?.trim() || item?.authorId || "",
         authorName:
-          row.author_alias?.trim() ||
-          item?.author ||
-          row.author?.trim() ||
-          "Unknown author",
+          row.author_alias?.trim() || item?.author || row.author?.trim() || "Unknown author",
         searchAliases: item?.searchAliases ?? [],
-        countryCode:
-          row.country?.trim().toUpperCase() || item?.countryCode || "",
+        countryCode: row.country?.trim().toUpperCase() || item?.countryCode || "",
         cityCode: row.city_code?.trim().toUpperCase() || item?.cityCode || "",
         demand: getNumber(row.population),
         pops: getNumber(row.population_count),
@@ -449,10 +430,7 @@ function normalizeRankingRows(
   getDownloads: (row: CsvRow) => number,
   validItemsById: Map<string, RegistryAnalyticsItem>,
 ): Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> {
-  const grouped: Record<
-    RegistryAnalyticsAssetTypeId,
-    RegistryAnalyticsContentRanking[]
-  > = {
+  const grouped: Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> = {
     maps: [],
     mods: [],
   };
@@ -467,11 +445,7 @@ function normalizeRankingRows(
       type,
       name: row.name?.trim() || item.name || row.id || "Unknown asset",
       authorId: row.author?.trim() || item.authorId || "",
-      authorName:
-        row.author_alias?.trim() ||
-        item.author ||
-        row.author?.trim() ||
-        "Unknown author",
+      authorName: row.author_alias?.trim() || item.author || row.author?.trim() || "Unknown author",
       searchAliases: item.searchAliases ?? [],
       countryCode: item.countryCode ?? "",
       countryName: item.countryName ?? "",
@@ -493,8 +467,7 @@ function buildFourteenDayRankings(
   const dateHeaders = getDateHeaders(rows).slice(-14);
   return normalizeRankingRows(
     rows,
-    (row) =>
-      dateHeaders.reduce((sum, dateKey) => sum + getNumber(row[dateKey]), 0),
+    (row) => dateHeaders.reduce((sum, dateKey) => sum + getNumber(row[dateKey]), 0),
     validItemsById,
   );
 }
@@ -508,9 +481,7 @@ export function filterRegistryAnalyticsHistory(
   return history.slice(-periodDays);
 }
 
-export function sumRegistryAnalyticsHistory(
-  history: RegistryAnalyticsHistoryPoint[],
-) {
+export function sumRegistryAnalyticsHistory(history: RegistryAnalyticsHistoryPoint[]) {
   return history.reduce(
     (totals, row) => ({
       downloads: {
