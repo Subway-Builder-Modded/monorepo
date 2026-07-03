@@ -95,10 +95,12 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
         const totalsByAsset = emptyRecordByAssetType<Record<string, number>>(
           () => ({}),
         );
+        let anySucceeded = false;
 
         results.forEach((result, index) => {
           const assetType = ASSET_TYPES[index];
           if (result.status === 'success') {
+            anySucceeded = true;
             totalsByAsset[assetType] = toCumulativeDownloadTotals(
               result.counts,
             );
@@ -110,6 +112,13 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
         });
 
         if (requestGeneration !== downloadTotalsGeneration) return;
+        // Only latch loaded when a request actually succeeded. If every asset type failed,
+        // leave prior totals untouched and stay unloaded so a later call retries instead of
+        // caching zeros from a transient backend error.
+        if (!anySucceeded) {
+          set({ downloadTotalsLoaded: false });
+          return;
+        }
         set({
           modDownloadTotals: totalsByAsset.mod,
           mapDownloadTotals: totalsByAsset.map,
@@ -119,11 +128,8 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
         const message = err instanceof Error ? err.message : String(err);
         console.warn(`[downloads] Failed to load download counts: ${message}`);
         if (requestGeneration !== downloadTotalsGeneration) return;
-        set({
-          modDownloadTotals: {},
-          mapDownloadTotals: {},
-          downloadTotalsLoaded: true,
-        });
+        // Request threw entirely: keep any prior totals and stay unloaded so we retry.
+        set({ downloadTotalsLoaded: false });
       }
     })();
 

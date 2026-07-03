@@ -243,7 +243,9 @@ func (r *Registry) isUpToDateWithRemote() (bool, error) {
 	}
 	var parsed remoteCommitResponse
 	if err := json.Unmarshal(body, &parsed); err != nil {
-		return false, err
+		// Name the source (the commit API response, not a local file) and its byte length so an
+		// empty/truncated body is obvious in the log instead of a bare "unexpected end of JSON input".
+		return false, fmt.Errorf("registry precheck: decoding commit response from %s (%d bytes): %w", apiURL, len(body), err)
 	}
 	if parsed.SHA == "" {
 		return false, fmt.Errorf("registry precheck returned empty sha")
