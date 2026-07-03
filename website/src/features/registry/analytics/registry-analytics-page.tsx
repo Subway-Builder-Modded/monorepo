@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   BookText,
   ChartLine,
@@ -39,7 +45,10 @@ import {
   AnalyticsStackedBarChart,
 } from "@subway-builder-modded/analytics";
 import type { PieSlice } from "@subway-builder-modded/analytics";
-import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
+import {
+  getSuiteAnalyticsNavItem,
+  getSuiteById,
+} from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
@@ -53,7 +62,10 @@ import {
   type DetailMetric,
 } from "@/features/registry/detail/components/details-tab";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
-import { getRegistryAuthorUrl, getRegistryDetailUrl } from "@/features/registry/lib/routing";
+import {
+  getRegistryAuthorUrl,
+  getRegistryDetailUrl,
+} from "@/features/registry/lib/routing";
 import {
   buildRegistryCountrySearchValues,
   matchesRegistrySearch,
@@ -141,7 +153,11 @@ function getGraphHistory(
   period: RegistryAnalyticsPeriodId,
 ) {
   const periodDays = period === "all-time" ? null : Number.parseInt(period, 10);
-  if ((period === "3d" || period === "7d") && periodDays && history.length > periodDays) {
+  if (
+    (period === "3d" || period === "7d") &&
+    periodDays &&
+    history.length > periodDays
+  ) {
     return history.slice(-(periodDays + 1));
   }
   return filterRegistryAnalyticsHistory(history, period);
@@ -198,7 +214,9 @@ function PeriodToggle({
   return (
     <Tabs
       value={value}
-      onValueChange={(nextValue) => onChange(nextValue as RegistryAnalyticsPeriodId)}
+      onValueChange={(nextValue) =>
+        onChange(nextValue as RegistryAnalyticsPeriodId)
+      }
       style={style}
     >
       <TabsList
@@ -240,7 +258,10 @@ function RegistryPieChartCard({
   );
 }
 
-function buildPeriodBreakdown(data: RegistryAnalyticsData, period: RegistryAnalyticsPeriodId) {
+function buildPeriodBreakdown(
+  data: RegistryAnalyticsData,
+  period: RegistryAnalyticsPeriodId,
+) {
   if (period === "all-time") {
     return {
       listings: {
@@ -254,7 +275,9 @@ function buildPeriodBreakdown(data: RegistryAnalyticsData, period: RegistryAnaly
     };
   }
 
-  const totals = sumRegistryAnalyticsHistory(filterRegistryAnalyticsHistory(data.history, period));
+  const totals = sumRegistryAnalyticsHistory(
+    filterRegistryAnalyticsHistory(data.history, period),
+  );
   return {
     listings: {
       maps: totals.listings.maps,
@@ -294,7 +317,8 @@ function RegistryOverviewTab({
     Maps: row.cumulativeDownloads.maps,
     Mods: row.cumulativeDownloads.mods,
   }));
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const chartTicks =
+    period === "all-time" ? undefined : chartData.map((point) => point.date);
   const breakdown = buildPeriodBreakdown(data, period);
   const listingSlices: PieSlice[] = [
     {
@@ -336,7 +360,11 @@ function RegistryOverviewTab({
       }
     >
       <section className="space-y-3">
-        <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
+        <SectionSeparator
+          label="Overview"
+          icon={LayoutDashboard}
+          className="mb-4"
+        />
         <DetailsMetricGrid
           items={buildOverviewCards(data)}
           className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
@@ -346,14 +374,26 @@ function RegistryOverviewTab({
       </section>
 
       <section className="space-y-3">
-        <SectionSeparator label="Cumulative Downloads" icon={ChartLine} className="mb-4" />
+        <SectionSeparator
+          label="Cumulative Downloads"
+          icon={ChartLine}
+          className="mb-4"
+        />
         <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
           <AnalyticsStackedBarChart
             key="registry-cumulative-downloads-all-time"
             data={cumulativeChartData}
             bars={[
-              { key: "Maps", name: "Maps", color: "var(--registry-maps-accent)" },
-              { key: "Mods", name: "Mods", color: "var(--registry-mods-accent)" },
+              {
+                key: "Maps",
+                name: "Maps",
+                color: "var(--registry-maps-accent)",
+              },
+              {
+                key: "Mods",
+                name: "Mods",
+                color: "var(--registry-mods-accent)",
+              },
             ]}
             xAxisKey="date"
             height={280}
@@ -365,21 +405,39 @@ function RegistryOverviewTab({
         <PeriodToggle
           value={period}
           onChange={(nextPeriod) =>
-            navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], { preserveScroll: true })
+            navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], {
+              preserveScroll: true,
+            })
           }
         />
       </div>
 
       <section className="space-y-3">
-        <SectionSeparator label="Downloads Timeline" icon={Clock} className="mb-4" />
+        <SectionSeparator
+          label="Downloads Timeline"
+          icon={Clock}
+          className="mb-4"
+        />
         <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
           <AnalyticsLineChart
             key={`registry-downloads-${period}`}
             data={chartData}
             lines={[
-              { key: "Maps", name: "Maps", color: "var(--registry-maps-accent)" },
-              { key: "Mods", name: "Mods", color: "var(--registry-mods-accent)" },
-              { key: "Total", name: "Total", color: "var(--registry-type-accent)" },
+              {
+                key: "Maps",
+                name: "Maps",
+                color: "var(--registry-maps-accent)",
+              },
+              {
+                key: "Mods",
+                name: "Mods",
+                color: "var(--registry-mods-accent)",
+              },
+              {
+                key: "Total",
+                name: "Total",
+                color: "var(--registry-type-accent)",
+              },
             ]}
             xAxisKey="date"
             xAxisTicks={chartTicks}
@@ -397,7 +455,11 @@ function RegistryOverviewTab({
             icon={FileStack}
             data={listingSlices}
           />
-          <RegistryPieChartCard title="Downloads" icon={ChartPie} data={downloadSlices} />
+          <RegistryPieChartCard
+            title="Downloads"
+            icon={ChartPie}
+            data={downloadSlices}
+          />
         </div>
       </section>
     </section>
@@ -409,7 +471,9 @@ function compareDownloads(
   right: RegistryAnalyticsContentRanking,
   direction: "asc" | "desc",
 ) {
-  return direction === "asc" ? left.downloads - right.downloads : right.downloads - left.downloads;
+  return direction === "asc"
+    ? left.downloads - right.downloads
+    : right.downloads - left.downloads;
 }
 
 function getContentRankingKey(row: RegistryAnalyticsContentRanking) {
@@ -429,6 +493,36 @@ type RegistryRankingColumn<TRow> = {
   onSort?: () => void;
   render: (row: TRow) => ReactNode;
 };
+
+function AnalyticsAuthorCell({
+  authorId,
+  authorName,
+  accentColor = "var(--suite-accent-light)",
+}: {
+  authorId: string;
+  authorName: string;
+  accentColor?: string;
+}) {
+  return (
+    <span
+      className="inline-flex w-full min-w-0 max-w-full items-center gap-1.5"
+      style={{ "--analytics-author-accent": accentColor } as CSSProperties}
+    >
+      <Link
+        to={getRegistryAuthorUrl(authorId, "analytics")}
+        className="inline-flex min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--analytics-author-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+        title={authorName}
+      >
+        <span className="truncate">{authorName}</span>
+        <ExternalLink
+          className="size-3.5 shrink-0 text-muted-foreground"
+          aria-hidden={true}
+        />
+      </Link>
+      <AuthorRoleBadge authorId={authorId} className="shrink-0" />
+    </span>
+  );
+}
 
 function RegistryRankingsTable<TRow>({
   rows,
@@ -471,7 +565,10 @@ function RegistryRankingsTable<TRow>({
       <div className="grid grid-cols-[3rem_minmax(0,1fr)] gap-x-3">
         <div className="flex flex-col pt-11" aria-hidden={true}>
           {visibleRows.map((row) => (
-            <div key={`${getRowKey(row)}-rank`} className="flex h-14 items-center justify-center">
+            <div
+              key={`${getRowKey(row)}-rank`}
+              className="flex h-14 items-center justify-center"
+            >
               <RankBadge
                 rank={rankByRowKey.get(getRowKey(row)) ?? null}
                 className="size-7 text-xs"
@@ -480,10 +577,14 @@ function RegistryRankingsTable<TRow>({
           ))}
         </div>
         <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-          <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+          <ScrollArea scrollbars="horizontal" className="w-full">
             <div
               className="min-w-[var(--registry-rankings-table-min-width)] xl:min-w-0"
-              style={{ "--registry-rankings-table-min-width": minTableWidth } as CSSProperties}
+              style={
+                {
+                  "--registry-rankings-table-min-width": minTableWidth,
+                } as CSSProperties
+              }
             >
               <Table className="table-fixed">
                 <colgroup>
@@ -516,7 +617,10 @@ function RegistryRankingsTable<TRow>({
                 </TableHeader>
                 <TableBody>
                   {visibleRows.map((row) => (
-                    <TableRow key={getRowKey(row)} className="h-14 border-border/60">
+                    <TableRow
+                      key={getRowKey(row)}
+                      className="h-14 border-border/60"
+                    >
                       {columns.map((column) => (
                         <TableCell
                           key={column.id}
@@ -566,17 +670,24 @@ function RegistryContentTab({
   const [visibleCount, setVisibleCount] = useState(CONTENT_ASSET_INCREMENT);
   const [rankingQuery, setRankingQuery] = useState("");
   const graphRows = useMemo(
-    () => getGraphHistory(data.history, period).filter((row) => row.date !== "2026-03-11"),
+    () =>
+      getGraphHistory(data.history, period).filter(
+        (row) => row.date !== "2026-03-11",
+      ),
     [data.history, period],
   );
   const chartData = graphRows.map((row) => ({
     date: row.date,
     Downloads: row.downloads[assetTypeId],
   }));
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const chartTicks =
+    period === "all-time" ? undefined : chartData.map((point) => point.date);
   const baseRows = data.contentRankings[period][assetTypeId];
   const sortedRows = useMemo(
-    () => [...baseRows].sort((left, right) => compareDownloads(left, right, sortDirection)),
+    () =>
+      [...baseRows].sort((left, right) =>
+        compareDownloads(left, right, sortDirection),
+      ),
     [baseRows, sortDirection],
   );
   const rankByRowKey = useMemo(
@@ -611,12 +722,14 @@ function RegistryContentTab({
       ),
     );
   }, [rankingQuery, sortedRows]);
-  const contentColumns = useMemo<RegistryRankingColumn<RegistryAnalyticsContentRanking>[]>(
+  const contentColumns = useMemo<
+    RegistryRankingColumn<RegistryAnalyticsContentRanking>[]
+  >(
     () => [
       {
         id: "name",
         label: "Name",
-        width: "45%",
+        width: "32%",
         cellClassName: "font-medium text-foreground",
         render: (row) => (
           <Link
@@ -624,23 +737,36 @@ function RegistryContentTab({
             className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
           >
             <span className="truncate">{row.name}</span>
-            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+            <ExternalLink
+              className="size-3.5 shrink-0 text-muted-foreground"
+              aria-hidden={true}
+            />
           </Link>
         ),
       },
       {
+        id: "country",
+        label: "Country",
+        width: "10%",
+        render: (row) => <CountryCell countryCode={row.countryCode} />,
+      },
+      {
+        id: "cityCode",
+        label: "City Code",
+        width: "10%",
+        cellClassName: "font-mono text-sm uppercase text-muted-foreground",
+        render: (row) => row.cityCode || "--",
+      },
+      {
         id: "author",
         label: "Author",
-        width: "35%",
+        width: "28%",
         cellClassName: "text-foreground",
         render: (row) => (
-          <Link
-            to={getRegistryAuthorUrl(row.authorId, "analytics")}
-            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
-          >
-            <span className="truncate">{row.authorName}</span>
-            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
-          </Link>
+          <AnalyticsAuthorCell
+            authorId={row.authorId}
+            authorName={row.authorName}
+          />
         ),
       },
       {
@@ -651,8 +777,10 @@ function RegistryContentTab({
         active: true,
         direction: sortDirection,
         align: "right",
-        onSort: () => setSortDirection((current) => (current === "asc" ? "desc" : "asc")),
-        cellClassName: "font-semibold tabular-nums text-[var(--registry-type-accent)]",
+        onSort: () =>
+          setSortDirection((current) => (current === "asc" ? "desc" : "asc")),
+        cellClassName:
+          "font-semibold tabular-nums text-[var(--registry-type-accent)]",
         render: (row) => formatNumber(row.downloads),
       },
     ],
@@ -685,7 +813,9 @@ function RegistryContentTab({
         <PeriodToggle
           value={period}
           onChange={(nextPeriod) =>
-            navigate(getContentPath(nextPeriod, assetTypeId), { preserveScroll: true })
+            navigate(getContentPath(nextPeriod, assetTypeId), {
+              preserveScroll: true,
+            })
           }
           className="grid-cols-2 sm:grid-cols-4"
           style={
@@ -701,9 +831,12 @@ function RegistryContentTab({
             mods: data.overview.mods.listings,
           }}
           onChange={(nextType) =>
-            navigate(getContentPath(period, nextType as RegistryAnalyticsAssetTypeId), {
-              preserveScroll: true,
-            })
+            navigate(
+              getContentPath(period, nextType as RegistryAnalyticsAssetTypeId),
+              {
+                preserveScroll: true,
+              },
+            )
           }
           className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
           ariaLabel="Content asset type"
@@ -763,7 +896,11 @@ function RegistryContentTab({
 
 type AuthorRankingSortKey = "downloads" | "maps" | "mods" | "assets";
 type ProjectRankingSortKey = "downloads" | "maps" | "mods" | "assets";
-type MapStatisticSortKey = "demand" | "pops" | "demandPoints" | "playableAreaKm2";
+type MapStatisticSortKey =
+  | "demand"
+  | "pops"
+  | "demandPoints"
+  | "playableAreaKm2";
 
 const AUTHOR_SORT_DEFAULTS: Record<AuthorRankingSortKey, "asc" | "desc"> = {
   downloads: "desc",
@@ -772,12 +909,13 @@ const AUTHOR_SORT_DEFAULTS: Record<AuthorRankingSortKey, "asc" | "desc"> = {
   assets: "desc",
 };
 
-const MAP_STATISTIC_SORT_DEFAULTS: Record<MapStatisticSortKey, "asc" | "desc"> = {
-  demand: "desc",
-  pops: "desc",
-  demandPoints: "desc",
-  playableAreaKm2: "desc",
-};
+const MAP_STATISTIC_SORT_DEFAULTS: Record<MapStatisticSortKey, "asc" | "desc"> =
+  {
+    demand: "desc",
+    pops: "desc",
+    demandPoints: "desc",
+    playableAreaKm2: "desc",
+  };
 
 function getAuthorRankingKey(row: RegistryAnalyticsAuthorRanking) {
   return row.id;
@@ -824,7 +962,9 @@ function compareMapStatisticRankings(
 function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
   const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
   const [directions, setDirections] =
-    useState<Record<AuthorRankingSortKey, "asc" | "desc">>(AUTHOR_SORT_DEFAULTS);
+    useState<Record<AuthorRankingSortKey, "asc" | "desc">>(
+      AUTHOR_SORT_DEFAULTS,
+    );
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];
@@ -852,7 +992,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
   const filteredRows = useMemo(() => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return sortedRows;
-    return sortedRows.filter((row) => matchesRegistrySearch([row.name, row.id], trimmedQuery));
+    return sortedRows.filter((row) =>
+      matchesRegistrySearch([row.name, row.id], trimmedQuery),
+    );
   }, [query, sortedRows]);
 
   const handleSort = (nextSortKey: AuthorRankingSortKey) => {
@@ -868,7 +1010,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     setSortKey(nextSortKey);
   };
 
-  const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsAuthorRanking>[]>(
+  const columns = useMemo<
+    RegistryRankingColumn<RegistryAnalyticsAuthorRanking>[]
+  >(
     () => [
       {
         id: "author",
@@ -876,19 +1020,7 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         width: "36%",
         cellClassName: "font-medium text-foreground",
         render: (row) => (
-          <span className="inline-flex max-w-full items-center gap-1.5">
-            <Link
-              to={getRegistryAuthorUrl(row.id, "analytics")}
-              className="inline-flex min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
-            >
-              <span className="truncate">{row.name}</span>
-              <ExternalLink
-                className="size-3.5 shrink-0 text-muted-foreground"
-                aria-hidden={true}
-              />
-            </Link>
-            <AuthorRoleBadge authorId={row.id} className="shrink-0" />
-          </span>
+          <AnalyticsAuthorCell authorId={row.id} authorName={row.name} />
         ),
       },
       {
@@ -902,7 +1034,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--suite-accent-light)",
         onSort: () => handleSort("downloads"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "downloads" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+          sortKey === "downloads"
+            ? "text-[var(--suite-accent-light)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.downloads),
       },
@@ -917,7 +1051,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--map-accent)",
         onSort: () => handleSort("maps"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "maps" ? "text-[var(--map-accent)]" : "text-muted-foreground"
+          sortKey === "maps"
+            ? "text-[var(--map-accent)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.maps),
       },
@@ -932,7 +1068,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--mod-accent)",
         onSort: () => handleSort("mods"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "mods" ? "text-[var(--mod-accent)]" : "text-muted-foreground"
+          sortKey === "mods"
+            ? "text-[var(--mod-accent)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.mods),
       },
@@ -947,7 +1085,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--suite-accent-light)",
         onSort: () => handleSort("assets"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "assets" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+          sortKey === "assets"
+            ? "text-[var(--suite-accent-light)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.assets),
       },
@@ -1027,7 +1167,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
 function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
   const [sortKey, setSortKey] = useState<ProjectRankingSortKey>("downloads");
   const [directions, setDirections] =
-    useState<Record<ProjectRankingSortKey, "asc" | "desc">>(AUTHOR_SORT_DEFAULTS);
+    useState<Record<ProjectRankingSortKey, "asc" | "desc">>(
+      AUTHOR_SORT_DEFAULTS,
+    );
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];
@@ -1052,7 +1194,10 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return sortedRows;
     return sortedRows.filter((row) =>
-      matchesRegistrySearch([row.name, row.id, row.authorName, row.authorId], trimmedQuery),
+      matchesRegistrySearch(
+        [row.name, row.id, row.authorName, row.authorId],
+        trimmedQuery,
+      ),
     );
   }, [query, sortedRows]);
 
@@ -1074,61 +1219,59 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
   const hasAssets = data.projects.rankings.some((row) => row.assets > 0);
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
-  const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsProjectRanking>[]>(() => {
-    const nextColumns: RegistryRankingColumn<RegistryAnalyticsProjectRanking>[] = [
-      {
-        id: "project",
-        label: "Project",
-        width: hasMaps && hasMods && hasAssets ? "26%" : "38%",
-        cellClassName: "font-medium text-foreground",
-        render: (row) => (
-          <Link
-            to={`${row.href}/analytics`}
-            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
-          >
-            <span className="truncate">{row.name}</span>
-            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
-          </Link>
-        ),
-      },
-      {
-        id: "author",
-        label: "Author",
-        width: "18%",
-        cellClassName: "font-medium text-foreground",
-        render: (row) => (
-          <span className="inline-flex max-w-full items-center gap-1.5">
+  const columns = useMemo<
+    RegistryRankingColumn<RegistryAnalyticsProjectRanking>[]
+  >(() => {
+    const nextColumns: RegistryRankingColumn<RegistryAnalyticsProjectRanking>[] =
+      [
+        {
+          id: "project",
+          label: "Project",
+          width: hasMaps && hasMods && hasAssets ? "26%" : "38%",
+          cellClassName: "font-medium text-foreground",
+          render: (row) => (
             <Link
-              to={getRegistryAuthorUrl(row.authorId, "analytics")}
-              className="inline-flex min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
-              title={row.authorName}
+              to={`${row.href}/analytics`}
+              className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
             >
-              <span className="truncate">{row.authorName}</span>
+              <span className="truncate">{row.name}</span>
               <ExternalLink
                 className="size-3.5 shrink-0 text-muted-foreground"
                 aria-hidden={true}
               />
             </Link>
-            <AuthorRoleBadge authorId={row.authorId} className="shrink-0" />
-          </span>
-        ),
-      },
-      {
-        id: "downloads",
-        label: "Downloads",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "downloads",
-        direction: directions.downloads,
-        align: "right",
-        accentColor: "var(--suite-accent-light)",
-        onSort: () => handleSort("downloads"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "downloads" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.downloads),
-      },
-    ];
+          ),
+        },
+        {
+          id: "author",
+          label: "Author",
+          width: "18%",
+          cellClassName: "font-medium text-foreground",
+          render: (row) => (
+            <AnalyticsAuthorCell
+              authorId={row.authorId}
+              authorName={row.authorName}
+            />
+          ),
+        },
+        {
+          id: "downloads",
+          label: "Downloads",
+          width: "16%",
+          sortable: true,
+          active: sortKey === "downloads",
+          direction: directions.downloads,
+          align: "right",
+          accentColor: "var(--suite-accent-light)",
+          onSort: () => handleSort("downloads"),
+          cellClassName: `font-semibold tabular-nums ${
+            sortKey === "downloads"
+              ? "text-[var(--suite-accent-light)]"
+              : "text-muted-foreground"
+          }`,
+          render: (row) => formatNumber(row.downloads),
+        },
+      ];
 
     if (hasMaps) {
       nextColumns.push({
@@ -1142,7 +1285,9 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--map-accent)",
         onSort: () => handleSort("maps"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "maps" ? "text-[var(--map-accent)]" : "text-muted-foreground"
+          sortKey === "maps"
+            ? "text-[var(--map-accent)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.maps),
       });
@@ -1160,7 +1305,9 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--mod-accent)",
         onSort: () => handleSort("mods"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "mods" ? "text-[var(--mod-accent)]" : "text-muted-foreground"
+          sortKey === "mods"
+            ? "text-[var(--mod-accent)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.mods),
       });
@@ -1178,7 +1325,9 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--suite-accent-light)",
         onSort: () => handleSort("assets"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "assets" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+          sortKey === "assets"
+            ? "text-[var(--suite-accent-light)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.assets),
       });
@@ -1237,7 +1386,9 @@ function CountryCell({ countryCode }: { countryCode: string }) {
   const FlagIcon = getCountryFlagIcon(countryCode);
   return (
     <span className="inline-flex items-center gap-2 font-mono text-sm uppercase text-muted-foreground">
-      {FlagIcon ? <FlagIcon className="h-3.5 w-5 rounded-[2px]" aria-hidden={true} /> : null}
+      {FlagIcon ? (
+        <FlagIcon className="h-3.5 w-5 rounded-[2px]" aria-hidden={true} />
+      ) : null}
       <span>{countryCode || "--"}</span>
     </span>
   );
@@ -1245,9 +1396,9 @@ function CountryCell({ countryCode }: { countryCode: string }) {
 
 function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
   const [sortKey, setSortKey] = useState<MapStatisticSortKey>("demand");
-  const [directions, setDirections] = useState<Record<MapStatisticSortKey, "asc" | "desc">>(
-    MAP_STATISTIC_SORT_DEFAULTS,
-  );
+  const [directions, setDirections] = useState<
+    Record<MapStatisticSortKey, "asc" | "desc">
+  >(MAP_STATISTIC_SORT_DEFAULTS);
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];
@@ -1302,7 +1453,9 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
   };
 
   const mapConfig = getRegistryTypeConfigOrDefault("maps");
-  const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsMapStatisticRanking>[]>(
+  const columns = useMemo<
+    RegistryRankingColumn<RegistryAnalyticsMapStatisticRanking>[]
+  >(
     () => [
       {
         id: "map",
@@ -1315,7 +1468,10 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
             className="inline-flex w-full min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
           >
             <span className="truncate">{row.name}</span>
-            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
+            <ExternalLink
+              className="size-3.5 shrink-0 text-muted-foreground"
+              aria-hidden={true}
+            />
           </Link>
         ),
       },
@@ -1325,14 +1481,10 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
         width: "13%",
         cellClassName: "min-w-0 text-foreground",
         render: (row) => (
-          <Link
-            to={getRegistryAuthorUrl(row.authorId, "analytics")}
-            className="inline-flex w-full min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
-            title={row.authorName}
-          >
-            <span className="truncate">{row.authorName}</span>
-            <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
-          </Link>
+          <AnalyticsAuthorCell
+            authorId={row.authorId}
+            authorName={row.authorName}
+          />
         ),
       },
       {
@@ -1359,7 +1511,9 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--registry-type-accent)",
         onSort: () => handleSort("demand"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "demand" ? "text-[var(--registry-type-accent)]" : "text-muted-foreground"
+          sortKey === "demand"
+            ? "text-[var(--registry-type-accent)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.demand),
       },
@@ -1374,7 +1528,9 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
         accentColor: "var(--registry-type-accent)",
         onSort: () => handleSort("pops"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "pops" ? "text-[var(--registry-type-accent)]" : "text-muted-foreground"
+          sortKey === "pops"
+            ? "text-[var(--registry-type-accent)]"
+            : "text-muted-foreground"
         }`,
         render: (row) => formatNumber(row.pops),
       },
@@ -1499,13 +1655,19 @@ export function RegistryAnalyticsPage({
           description={navItem?.description}
           actions={[
             { label: "View Registry", href: "/registry", icon: Search },
-            { label: "View Documentation", href: "/registry/docs", icon: BookText },
+            {
+              label: "View Documentation",
+              href: "/registry/docs",
+              icon: BookText,
+            },
           ]}
         />
 
         <RegistryAnalyticsTabs
           activeTab={activeTab}
-          onChange={(nextTab) => navigate(TAB_PATHS[nextTab], { preserveScroll: true })}
+          onChange={(nextTab) =>
+            navigate(TAB_PATHS[nextTab], { preserveScroll: true })
+          }
         />
 
         {error ? (
@@ -1519,7 +1681,11 @@ export function RegistryAnalyticsPage({
         ) : activeTab === "overview" ? (
           <RegistryOverviewTab data={data} period={periodId} />
         ) : activeTab === "content" ? (
-          <RegistryContentTab data={data} period={periodId} assetTypeId={assetTypeId} />
+          <RegistryContentTab
+            data={data}
+            period={periodId}
+            assetTypeId={assetTypeId}
+          />
         ) : activeTab === "authors" ? (
           <RegistryAuthorsTab data={data} />
         ) : activeTab === "projects" ? (
