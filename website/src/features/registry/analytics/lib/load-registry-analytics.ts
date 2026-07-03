@@ -106,6 +106,8 @@ export type RegistryAnalyticsContentRanking = {
   authorId: string;
   authorName: string;
   searchAliases: string[];
+  countryCode: string;
+  countryName: string;
   downloads: number;
 };
 
@@ -444,6 +446,8 @@ function normalizeRankingRows(
       authorId: row.author?.trim() || item.authorId || "",
       authorName: row.author_alias?.trim() || item.author || row.author?.trim() || "Unknown author",
       searchAliases: item.searchAliases ?? [],
+      countryCode: item.countryCode ?? "",
+      countryName: item.countryName ?? "",
       downloads: getDownloads(row),
     });
   }

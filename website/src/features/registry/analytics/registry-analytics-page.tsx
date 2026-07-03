@@ -55,6 +55,10 @@ import {
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { getRegistryAuthorUrl, getRegistryDetailUrl } from "@/features/registry/lib/routing";
 import {
+  buildRegistryCountrySearchValues,
+  matchesRegistrySearch,
+} from "@/features/registry/lib/registry-search";
+import {
   filterRegistryAnalyticsHistory,
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
@@ -412,10 +416,6 @@ function getContentRankingKey(row: RegistryAnalyticsContentRanking) {
   return `${row.type}:${row.id}`;
 }
 
-function matchesAnalyticsSearch(values: Array<string | null | undefined>, query: string) {
-  return values.some((value) => value?.toLowerCase().includes(query));
-}
-
 type RegistryRankingColumn<TRow> = {
   id: string;
   label: string;
@@ -596,8 +596,17 @@ function RegistryContentTab({
     }
 
     return sortedRows.filter((row) =>
-      matchesAnalyticsSearch(
-        [row.name, row.id, row.authorName, row.authorId, ...row.searchAliases],
+      matchesRegistrySearch(
+        [
+          row.name,
+          row.id,
+          row.authorName,
+          row.authorId,
+          row.countryCode,
+          row.countryName,
+          ...buildRegistryCountrySearchValues(row.countryCode),
+          ...row.searchAliases,
+        ],
         normalizedQuery,
       ),
     );
@@ -841,11 +850,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     [direction, sortKey, sortedRows],
   );
   const filteredRows = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return sortedRows;
-    return sortedRows.filter((row) =>
-      `${row.name} ${row.id}`.toLowerCase().includes(normalizedQuery),
-    );
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return sortedRows;
+    return sortedRows.filter((row) => matchesRegistrySearch([row.name, row.id], trimmedQuery));
   }, [query, sortedRows]);
 
   const handleSort = (nextSortKey: AuthorRankingSortKey) => {
@@ -1042,12 +1049,10 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
     [direction, sortKey, sortedRows],
   );
   const filteredRows = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return sortedRows;
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return sortedRows;
     return sortedRows.filter((row) =>
-      `${row.name} ${row.id} ${row.authorName} ${row.authorId}`
-        .toLowerCase()
-        .includes(normalizedQuery),
+      matchesRegistrySearch([row.name, row.id, row.authorName, row.authorId], trimmedQuery),
     );
   }, [query, sortedRows]);
 
@@ -1264,10 +1269,10 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
     [direction, sortKey, sortedRows],
   );
   const filteredRows = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return sortedRows;
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return sortedRows;
     return sortedRows.filter((row) =>
-      matchesAnalyticsSearch(
+      matchesRegistrySearch(
         [
           row.name,
           row.id,
@@ -1275,9 +1280,10 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
           row.authorId,
           row.cityCode,
           row.countryCode,
+          ...buildRegistryCountrySearchValues(row.countryCode),
           ...row.searchAliases,
         ],
-        normalizedQuery,
+        trimmedQuery,
       ),
     );
   }, [query, sortedRows]);

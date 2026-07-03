@@ -42,6 +42,7 @@ vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
           maps: 2,
           mods: 1,
           assets: 3,
+          searchTerms: ["Map Alpha", "Tokyo"],
         },
       ],
     }),
@@ -213,6 +214,8 @@ describe("loadRegistryAnalyticsData", () => {
     });
     expect(data.contentRankings["all-time"].maps[0]).toMatchObject({
       id: "map-b",
+      countryCode: "JP",
+      countryName: "",
       searchAliases: ["Beta City"],
     });
     expect(data.contentRankings["all-time"].maps.map((row) => row.id)).toEqual(["map-b", "map-a"]);

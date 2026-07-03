@@ -25,6 +25,7 @@ import { RegistryTabs } from "@/features/registry/components/registry-tabs";
 import { RegistryToolbarDropdown } from "@/features/registry/components/registry-toolbar-dropdown";
 import { RegistryToolbarSearch } from "@/features/registry/components/registry-toolbar-search";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
+import { matchesRegistrySearch } from "@/features/registry/lib/registry-search";
 import {
   loadCreatorDatabaseData,
   type RegistryCreatorDatabaseAuthor,
@@ -124,10 +125,10 @@ function applyDirection(value: number, direction: SortDirection) {
   return direction === "desc" ? -value : value;
 }
 
-function filterByQuery<T extends { searchText: string }>(items: T[], query: string) {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) return items;
-  return items.filter((item) => item.searchText.includes(normalizedQuery));
+function filterByQuery<T extends { searchTerms: string[] }>(items: T[], query: string) {
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery) return items;
+  return items.filter((item) => matchesRegistrySearch(item.searchTerms, trimmedQuery));
 }
 
 function parsePage(raw: string | null): number {
@@ -600,7 +601,7 @@ export function RegistryCreatorDatabasePage({
   const authorRows = useMemo(() => {
     const rows = (data?.authors ?? []).map((author) => ({
       ...author,
-      searchText: `${author.label} ${author.id}`.toLowerCase(),
+      searchTerms: [author.label, author.id, ...author.searchTerms],
     }));
     return sortAuthors(
       filterByQuery(rows, params.query),
@@ -613,8 +614,13 @@ export function RegistryCreatorDatabasePage({
   const projectRows = useMemo(() => {
     const rows = (data?.projects ?? []).map((project) => ({
       ...project,
-      searchText:
-        `${project.name} ${project.id} ${project.authorLabel} ${project.authorId}`.toLowerCase(),
+      searchTerms: [
+        project.name,
+        project.id,
+        project.authorLabel,
+        project.authorId,
+        ...project.searchTerms,
+      ],
     }));
     return sortProjects(
       filterByQuery(rows, params.query),

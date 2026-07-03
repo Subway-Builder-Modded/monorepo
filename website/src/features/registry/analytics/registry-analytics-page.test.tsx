@@ -71,6 +71,8 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
                 authorId: "author-a",
                 authorName: "Author A",
                 searchAliases: ["Tokyo", "Toukyou"],
+                countryCode: "GB",
+                countryName: "United Kingdom",
                 downloads: 42,
               },
             ],
@@ -82,6 +84,8 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
                 authorId: "author-b",
                 authorName: "Author B",
                 searchAliases: ["Alternate Mod"],
+                countryCode: "",
+                countryName: "",
                 downloads: 84,
               },
             ],
@@ -151,7 +155,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               name: "Map Alpha",
               authorId: "author-a",
               authorName: "Author A",
-              countryCode: "JP",
+              countryCode: "GB",
               cityCode: "TYO",
               searchAliases: ["Tokyo", "Toukyou"],
               demand: 1_000_000,
@@ -245,6 +249,21 @@ describe("RegistryAnalyticsPage", () => {
     expect(screen.getByRole("button", { name: "Clear Filters" })).toBeInTheDocument();
   });
 
+  it("searches content analytics maps by country aliases", async () => {
+    render(<RegistryAnalyticsPage tabId="content" assetTypeId="maps" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Map Alpha")).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText("Search maps...");
+    fireEvent.change(searchInput, {
+      target: { value: "great britain" },
+    });
+
+    expect(screen.getByText("Map Alpha")).toBeInTheDocument();
+  });
+
   it("renders author analytics timeline and rankings", async () => {
     render(<RegistryAnalyticsPage tabId="authors" />);
 
@@ -317,6 +336,12 @@ describe("RegistryAnalyticsPage", () => {
     const searchInput = screen.getByPlaceholderText("Search maps...");
     fireEvent.change(searchInput, {
       target: { value: "toukyou" },
+    });
+
+    expect(screen.getByText("Map Alpha")).toBeInTheDocument();
+
+    fireEvent.change(searchInput, {
+      target: { value: "great britain" },
     });
 
     expect(screen.getByText("Map Alpha")).toBeInTheDocument();
