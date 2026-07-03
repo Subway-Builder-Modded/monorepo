@@ -4,10 +4,6 @@ import {
   ProjectDetailShell,
   ProjectTabs,
 } from '@subway-builder-modded/asset-listings-ui';
-import {
-  mergeVersionDownloads,
-  withZeroDownloads,
-} from '@subway-builder-modded/asset-listings-ui';
 import { listingPathToAssetType } from '@subway-builder-modded/config';
 import {
   Breadcrumb,
@@ -18,25 +14,18 @@ import {
   BreadcrumbSeparator,
 } from '@subway-builder-modded/shared-ui';
 import { AlignLeft, CircleAlert, History, Images } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link, useRoute } from 'wouter';
 
 import { ProjectGallery } from '@/components/project/ProjectGallery';
 import { ProjectHeader } from '@/components/project/ProjectHeader';
 import { ProjectVersions } from '@/components/project/ProjectVersions';
 import { useGameVersion } from '@/hooks/use-game-version';
-import {
-  getDownloadableVersions,
-  selectLatestCompatibleVersion,
-} from '@/lib/version-compatibility';
+import { useInstallableVersions } from '@/hooks/use-installable-versions';
+import { selectLatestCompatibleVersion } from '@/lib/version-compatibility';
 import { useRegistryStore } from '@/stores/registry-store';
 import { useUIStore } from '@/stores/ui-store';
 
-import type { types } from '../../wailsjs/go/models';
-import {
-  GetAssetDownloadCounts,
-  GetInstallableVersionsResponse,
-} from '../../wailsjs/go/registry/Registry';
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
 export function ProjectPage() {
@@ -63,68 +52,16 @@ export function ProjectPage() {
         ? maps.find((m) => m.id === id)
         : undefined;
 
-  const [versions, setVersions] = useState<types.VersionInfo[]>([]);
-  const [versionsLoading, setVersionsLoading] = useState(true);
-  const [versionsError, setVersionsError] = useState<string | null>(null);
   const gameVersion = useGameVersion();
+  const {
+    versions,
+    loading: versionsLoading,
+    error: versionsError,
+  } = useInstallableVersions(type, item?.id);
 
   useEffect(() => {
     ensureDownloadTotals();
   }, [ensureDownloadTotals]);
-
-  useEffect(() => {
-    if (!item || !type) return;
-    let cancelled = false;
-    setVersionsLoading(true);
-    setVersionsError(null);
-    GetInstallableVersionsResponse(type, item.id)
-      .then(async (response) => {
-        if (cancelled) return;
-        if (response.status !== 'success') {
-          setVersionsError(response.message || 'Failed to load versions');
-          setVersionsLoading(false);
-          return;
-        }
-        const all = response.versions || [];
-        const visibleVersions = getDownloadableVersions(type, all);
-
-        let mergedVersions = withZeroDownloads(visibleVersions);
-        try {
-          const countsResult = await GetAssetDownloadCounts(type, item.id);
-          if (countsResult.status === 'success') {
-            mergedVersions = mergeVersionDownloads(
-              visibleVersions,
-              countsResult.counts ?? {},
-              `${type}:${item.id}`,
-            );
-          } else {
-            console.warn(
-              `[${type}:${item.id}] Failed to fetch download counts: ${countsResult.message}`,
-            );
-          }
-        } catch (countErr) {
-          const message =
-            countErr instanceof Error ? countErr.message : String(countErr);
-          console.warn(
-            `[${type}:${item.id}] Failed to fetch download counts: ${message}`,
-          );
-        }
-
-        if (!cancelled) {
-          setVersions(mergedVersions);
-          setVersionsLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setVersionsError(err instanceof Error ? err.message : String(err));
-          setVersionsLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [type, item?.id]);
 
   const latestVersion = versions[0];
   const latestCompatibleVersion = useMemo(() => {

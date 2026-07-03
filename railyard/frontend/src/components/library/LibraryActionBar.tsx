@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { type InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
+import { assetKey } from '@/lib/asset-key';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -18,7 +19,6 @@ import {
 } from '@/lib/subscription-mutation-ui';
 import {
   type AssetTarget,
-  composeAssetKey,
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
   toPendingUpdateTargets,
@@ -58,7 +58,7 @@ export function LibraryActionBar({
   if (selectedIds.size === 0) return null;
 
   const selectedTargets: AssetTarget[] = allItems
-    .filter((item) => selectedIds.has(composeAssetKey(item.type, item.item.id)))
+    .filter((item) => selectedIds.has(assetKey(item.type, item.item.id)))
     .map((item) => ({
       type: item.type,
       id: item.item.id,
@@ -91,9 +91,7 @@ export function LibraryActionBar({
           ? `${uninstallTargets[0].name} has been uninstalled.`
           : `${count} items have been uninstalled.`,
       );
-      const removedKeys = uninstallTargets.map((t) =>
-        composeAssetKey(t.type, t.id),
-      );
+      const removedKeys = uninstallTargets.map((t) => assetKey(t.type, t.id));
       removeSelected(removedKeys);
       void onRefreshPendingUpdates();
       setUninstallTargets(null);

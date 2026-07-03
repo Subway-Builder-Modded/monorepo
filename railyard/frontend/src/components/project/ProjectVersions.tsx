@@ -34,11 +34,11 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { useState } from 'react';
-import semver from 'semver';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
 import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
+import { compareSemver } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -211,16 +211,7 @@ export function ProjectVersions({
   }
 
   const hasAnyGameVersion = versions.some((v) => v.game_version);
-  const sorted = sortProjectVersions(versions, sort, (left, right) => {
-    const leftSemver = semver.coerce(left);
-    const rightSemver = semver.coerce(right);
-
-    if (leftSemver && rightSemver) {
-      return semver.compare(leftSemver, rightSemver);
-    }
-
-    return left.localeCompare(right, undefined, { numeric: true });
-  });
+  const sorted = sortProjectVersions(versions, sort, compareSemver);
   const typeListingPath = assetTypeToListingPath(type);
 
   return (

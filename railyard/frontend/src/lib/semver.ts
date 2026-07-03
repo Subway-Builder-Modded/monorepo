@@ -32,3 +32,15 @@ export function isUpgrade(candidate: string, current: string): boolean {
   if (!candidateVer || !currentVer) return false;
   return semver.gt(candidateVer, currentVer);
 }
+
+/**
+ * Comparator for version strings: negative if a < b, positive if a > b, 0 if equal.
+ * Compares by coerced semver when both sides parse (tolerating "v" prefixes); otherwise
+ * falls back to numeric-aware string comparison so non-semver labels still order stably.
+ */
+export function compareSemver(a: string, b: string): number {
+  const aVer = semver.coerce(a);
+  const bVer = semver.coerce(b);
+  if (aVer && bVer) return semver.compare(aVer, bVer);
+  return a.localeCompare(b, undefined, { numeric: true });
+}

@@ -59,9 +59,9 @@ import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useGameVersion } from '@/hooks/use-game-version';
 import {
   type AssetRef,
-  composeIncompatibleKey,
   useIncompatibleAssetKeys,
 } from '@/hooks/use-incompatible-asset-keys';
+import { assetKey } from '@/lib/asset-key';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
 import { useProfileStore } from '@/stores/profile-store';
@@ -159,7 +159,7 @@ function BrowsePageContent({
     () =>
       new Map(
         installedItems.map((e) => [
-          `${e.type}-${e.item.id}`,
+          assetKey(e.type, e.item.id),
           e.installedVersion,
         ]),
       ),
@@ -211,15 +211,12 @@ function BrowsePageContent({
     const typedItems = filters.type === 'mod' ? mods : maps;
     return {
       compatible: typedItems.filter(
-        (item) =>
-          !incompatibleItemKeys.has(
-            composeIncompatibleKey(filters.type, item.id),
-          ),
+        (item) => !incompatibleItemKeys.has(assetKey(filters.type, item.id)),
       ).length,
       test: typedItems.filter((item) => item.is_test === true).length,
       local: 0,
       incompatible: typedItems.filter((item) =>
-        incompatibleItemKeys.has(composeIncompatibleKey(filters.type, item.id)),
+        incompatibleItemKeys.has(assetKey(filters.type, item.id)),
       ).length,
     };
   }, [filters.type, incompatibleItemKeys, maps, mods]);
@@ -438,16 +435,16 @@ function BrowsePageContent({
             gridPreset={cardGridPreset}
             renderItem={({ type: itemType, item }) => (
               <ItemCard
-                key={`${itemType}-${item.id}`}
+                key={assetKey(itemType, item.id)}
                 type={itemType}
                 item={item}
                 viewMode={viewMode}
                 descriptionMode="preview"
                 installedVersion={installedVersionByItemKey.get(
-                  `${itemType}-${item.id}`,
+                  assetKey(itemType, item.id),
                 )}
                 incompatible={incompatibleItemKeys.has(
-                  composeIncompatibleKey(itemType, item.id),
+                  assetKey(itemType, item.id),
                 )}
                 gameVersion={gameVersion}
                 test={item.is_test === true}

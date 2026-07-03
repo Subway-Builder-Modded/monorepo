@@ -5,10 +5,6 @@ import {
   formatProjectVersionDate,
   MarkdownPanel,
 } from '@subway-builder-modded/asset-listings-ui';
-import {
-  mergeVersionDownloads,
-  withZeroDownloads,
-} from '@subway-builder-modded/asset-listings-ui';
 import { listingPathToAssetType } from '@subway-builder-modded/config';
 import {
   Badge,
@@ -52,6 +48,7 @@ import { Link, useRoute } from 'wouter';
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
 import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { useGameVersion } from '@/hooks/use-game-version';
+import { useInstallableVersions } from '@/hooks/use-installable-versions';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -65,7 +62,6 @@ import {
 } from '@/lib/subscription-sync-error';
 import {
   constraintsFromVersion,
-  getDownloadableVersions,
   getFailingConstraints,
 } from '@/lib/version-compatibility';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
@@ -77,10 +73,6 @@ import { useRegistryStore } from '@/stores/registry-store';
 
 import { ComputeDependencyList } from '../../wailsjs/go/downloader/Downloader';
 import type { types } from '../../wailsjs/go/models';
-import {
-  GetAssetDownloadCounts,
-  GetInstallableVersionsResponse,
-} from '../../wailsjs/go/registry/Registry';
 import { BrowserOpenURL } from '../../wailsjs/runtime/runtime';
 
 const INSTALL_ACCENT = getLocalAccentClasses('install');
@@ -132,11 +124,15 @@ export function ChangelogPage() {
         ? maps.find((m) => m.id === id)
         : undefined;
 
-  const [versionInfo, setVersionInfo] = useState<types.VersionInfo | null>(
-    null,
+  const {
+    versions,
+    loading,
+    error: fetchError,
+  } = useInstallableVersions(type, item?.id);
+  const versionInfo = useMemo(
+    () => versions.find((v) => v.version === versionParam) ?? null,
+    [versions, versionParam],
   );
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
   const gameVersion = useGameVersion();
 
   const [activeTab, setActiveTab] = useState('changelog');
@@ -180,51 +176,6 @@ export function ChangelogPage() {
 
   const projectHref =
     routeType && id ? `/project/${routeType}/${id}` : '/browse';
-
-  useEffect(() => {
-    if (!item || !type || !versionParam) return;
-    let cancelled = false;
-    setLoading(true);
-    setFetchError(null);
-    GetInstallableVersionsResponse(type, item.id)
-      .then(async (response) => {
-        if (cancelled) return;
-        if (response.status !== 'success') {
-          setFetchError(response.message || 'Failed to load versions');
-          setLoading(false);
-          return;
-        }
-        const all = response.versions ?? [];
-        const visibleVersions = getDownloadableVersions(type, all);
-
-        let mergedVersions = withZeroDownloads(visibleVersions);
-        try {
-          const countsResult = await GetAssetDownloadCounts(type, item.id);
-          if (countsResult.status === 'success') {
-            mergedVersions = mergeVersionDownloads(
-              visibleVersions,
-              countsResult.counts ?? {},
-              `${type}:${item.id}`,
-            );
-          }
-        } catch {}
-
-        if (!cancelled) {
-          const found = mergedVersions.find((v) => v.version === versionParam);
-          setVersionInfo(found ?? null);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setFetchError(err instanceof Error ? err.message : String(err));
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [type, item?.id, versionParam]);
 
   useEffect(() => {
     setResolvedDeps(null);
