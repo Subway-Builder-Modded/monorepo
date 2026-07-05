@@ -106,10 +106,17 @@ function generateTabs(places) {
           "/data/" + place.code + "/ocean_depth_index.json";
       }
 
+      let foundationsTileURL = tilesURL;
+
+      if (place.hasFoundationTiles) {
+        foundationsTileURL = baseURL + "/" + place.code + "_foundations/{z}/{x}/{y}.mvt";
+      }
+
+
       window.SubwayBuilderAPI.map.setTileURLOverride({
         cityCode: place.code,
         tilesUrl: tilesURL,
-        foundationTilesUrl: tilesURL,
+        foundationTilesUrl: foundationsTileURL,
         maxZoom: config.tileZoomLevel,
       });
 

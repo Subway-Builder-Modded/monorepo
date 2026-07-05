@@ -35,6 +35,11 @@ var mapArtifactTargets = []mapArtifactTarget{
 		DestinationDir: (*Downloader).getMapThumbnailPath,
 		Suffix:         files.MapThumbnailFileExt,
 	},
+	{
+		Key:            files.MapArchiveKeyFoundationTiles,
+		DestinationDir: (*Downloader).getMapTilePath,
+		Suffix:         files.MapFoundationTileFileExt,
+	},
 }
 
 func reportExtractProgress(fn ExtractProgressFunc, itemID string, extracted int64, total int64) {
@@ -342,7 +347,7 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 
 				for key, fileStruct := range filesFound {
 					// Skip tile/thumbnail artifacts in the main loop since they are saved in a separate Railyard-managed directory.
-					if !fileStruct.Found || key == files.MapArchiveKeyTiles || key == files.MapArchiveKeyThumbnail {
+					if !fileStruct.Found || key == files.MapArchiveKeyTiles || key == files.MapArchiveKeyThumbnail || key == files.MapArchiveKeyFoundationTiles {
 						continue
 					}
 
