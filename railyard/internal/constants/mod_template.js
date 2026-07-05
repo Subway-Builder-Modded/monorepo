@@ -90,7 +90,7 @@ function generateTabs(places) {
       }
       await window.SubwayBuilderAPI.registerCity(newPlace);
       window.SubwayBuilderAPI.map.setDefaultLayerVisibility(place.code, {
-        oceanFoundations: false,
+        oceanFoundations: place.hasOceanDepth ? true : false,
         trackElevations: false,
       });
 
