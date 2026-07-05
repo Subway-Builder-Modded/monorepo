@@ -385,6 +385,80 @@ func TestValidateInstalledMapDataDownloaded(t *testing.T) {
 	}
 }
 
+func TestBuildMapArchiveFileIndexTileClassification(t *testing.T) {
+	// Test the classification logic for distinguishing foundation tiles from regular tiles.
+	// This verifies lines 90-94 in map_validation.go: files ending with _foundations.pmtiles
+	// are marked as foundation tiles, while files with .pmtiles extension are marked as tiles.
+
+	tests := []struct {
+		name              string
+		files             map[string][]byte
+		expectTiles       bool
+		expectFoundations bool
+	}{
+		{
+			name: "regular tiles only",
+			files: map[string][]byte{
+				MapConfigFileName:    mustMapConfigJSON(t, "AAA"),
+				MapDemandFileName:    []byte("{}"),
+				MapRoadsFileName:     []byte("{}"),
+				MapRunwaysFileName:   []byte("{}"),
+				MapBuildingsFileName: []byte("{}"),
+				"AAA.pmtiles":        []byte("regular-tiles"),
+			},
+			expectTiles:       true,
+			expectFoundations: false,
+		},
+		{
+			name: "foundation tiles only",
+			files: map[string][]byte{
+				MapConfigFileName:         mustMapConfigJSON(t, "BBB"),
+				MapDemandFileName:         []byte("{}"),
+				MapRoadsFileName:          []byte("{}"),
+				MapRunwaysFileName:        []byte("{}"),
+				MapBuildingsFileName:      []byte("{}"),
+				"BBB_foundations.pmtiles": []byte("foundation-tiles"),
+			},
+			expectTiles:       false,
+			expectFoundations: true,
+		},
+		{
+			name: "both regular and foundation tiles",
+			files: map[string][]byte{
+				MapConfigFileName:         mustMapConfigJSON(t, "CCC"),
+				MapDemandFileName:         []byte("{}"),
+				MapRoadsFileName:          []byte("{}"),
+				MapRunwaysFileName:        []byte("{}"),
+				MapBuildingsFileName:      []byte("{}"),
+				"CCC.pmtiles":             []byte("regular-tiles-data"),
+				"CCC_foundations.pmtiles": []byte("foundation-tiles-data"),
+			},
+			expectTiles:       true,
+			expectFoundations: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			zipPath := writeZipArchive(t, tt.files)
+			file, err := zip.OpenReader(zipPath)
+			require.NoError(t, err)
+			defer file.Close()
+
+			filesFound := BuildMapArchiveFileIndex(file.File)
+
+			if tt.expectTiles {
+				require.True(t, filesFound[MapArchiveKeyTiles].Found, "expected MapArchiveKeyTiles to be found")
+				require.NotNil(t, filesFound[MapArchiveKeyTiles].FileObject)
+			}
+			if tt.expectFoundations {
+				require.True(t, filesFound[MapArchiveKeyFoundationTiles].Found, "expected MapArchiveKeyFoundationTiles to be found")
+				require.NotNil(t, filesFound[MapArchiveKeyFoundationTiles].FileObject)
+			}
+		})
+	}
+}
+
 func mustMapConfigJSON(t *testing.T, code string) []byte {
 	t.Helper()
 	cfg := types.ConfigData{
