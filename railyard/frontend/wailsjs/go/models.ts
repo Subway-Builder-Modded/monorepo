@@ -153,6 +153,7 @@ export namespace types {
 	    demandDotScaling?: number;
 	    initialViewState: InitialViewState;
 	    hasOceanDepth?: boolean;
+	    hasFoundationTiles?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ConfigData(source);
@@ -174,6 +175,7 @@ export namespace types {
 	        this.demandDotScaling = source["demandDotScaling"];
 	        this.initialViewState = this.convertValues(source["initialViewState"], InitialViewState);
 	        this.hasOceanDepth = source["hasOceanDepth"];
+	        this.hasFoundationTiles = source["hasFoundationTiles"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

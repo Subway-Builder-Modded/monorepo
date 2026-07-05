@@ -87,14 +87,13 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 		case MapOceanDepthFileName:
 			filesFound[MapArchiveKeyOceanDepth] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		}
-		if path.Ext(normalizedName) == MapTileFileExt {
+		if strings.HasSuffix(normalizedName, MapFoundationTileFileExt) {
+			filesFound[MapArchiveKeyFoundationTiles] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
+		} else if path.Ext(normalizedName) == MapTileFileExt {
 			filesFound[MapArchiveKeyTiles] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		}
 		if path.Ext(normalizedName) == MapThumbnailFileExt {
 			filesFound[MapArchiveKeyThumbnail] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
-		}
-		if path.Ext(normalizedName) == MapFoundationTileFileExt {
-			filesFound[MapArchiveKeyFoundationTiles] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		}
 	}
 

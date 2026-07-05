@@ -112,7 +112,6 @@ function generateTabs(places) {
         foundationsTileURL = baseURL + "/" + place.code + "_foundations/{z}/{x}/{y}.mvt";
       }
 
-
       window.SubwayBuilderAPI.map.setTileURLOverride({
         cityCode: place.code,
         tilesUrl: tilesURL,
