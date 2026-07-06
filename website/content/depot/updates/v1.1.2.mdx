@@ -1,0 +1,28 @@
+---
+title: v1.1.2
+icon: Warehouse
+date: July 6, 2026
+tag: release
+url: https://github.com/Subway-Builder-Modded/depot/releases/tag/1.1.2
+previousVersion: v1.1.1
+compareUrl: https://github.com/Subway-Builder-Modded/depot/compare/1.1.1...1.1.2#files_bucket
+---
+
+<ChangelogSection type="features">
+
+- Allowed choice of road types when extracting roads
+  - This should only ever be needed for big maps with absurd road density (like Tokyo)
+- Split foundations tiles into a separate PMTiles file (`<city-code>_foundations.pmtiles`)
+- Uncapped the size of pmtiles by default
+  - Users can still choose to cap the size of building tiles via `max_building_tile_size=<value>`, which automatically will drop the smallest buildings until reaching the specified max size for each tile at each zoom
+- Enabled new **Commercial** map layer for Subway Builder versions `>=1.4.5`
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+- Optimized ocean depth index loop
+- Added check for building heights \<= 0 and reverted those values to the default height
+- Removed unnecessary map layers, like roads (these are controlled by `roads.geojson`)
+
+</ChangelogSection>
