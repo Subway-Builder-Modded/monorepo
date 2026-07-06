@@ -110,20 +110,21 @@ type MetroMakerModManifest struct {
 
 // ConfigData represents the structure of the config.json file found within a map zip file, containing metadata about the map and its initial view state.
 type ConfigData struct {
-	Name             string           `json:"name"`
-	Code             string           `json:"code"`
-	Description      string           `json:"description"`
-	Population       int              `json:"population"`
-	Country          *string          `json:"country,omitempty"`
-	ThumbnailBbox    *[4]float64      `json:"thumbnailBbox,omitempty"`
-	Bbox             *[4]float64      `json:"bbox,omitempty"`
-	Creator          string           `json:"creator"`
-	Version          string           `json:"version"`
-	MinZoom          *int             `json:"minZoom,omitempty"`
-	MaxZoom          *int             `json:"maxZoom,omitempty"`
-	DemandDotScaling *float64         `json:"demandDotScaling,omitempty"`
-	InitialViewState InitialViewState `json:"initialViewState"`
-	HasOceanDepth    bool             `json:"hasOceanDepth,omitempty"`
+	Name               string           `json:"name"`
+	Code               string           `json:"code"`
+	Description        string           `json:"description"`
+	Population         int              `json:"population"`
+	Country            *string          `json:"country,omitempty"`
+	ThumbnailBbox      *[4]float64      `json:"thumbnailBbox,omitempty"`
+	Bbox               *[4]float64      `json:"bbox,omitempty"`
+	Creator            string           `json:"creator"`
+	Version            string           `json:"version"`
+	MinZoom            *int             `json:"minZoom,omitempty"`
+	MaxZoom            *int             `json:"maxZoom,omitempty"`
+	DemandDotScaling   *float64         `json:"demandDotScaling,omitempty"`
+	InitialViewState   InitialViewState `json:"initialViewState"`
+	HasOceanDepth      bool             `json:"hasOceanDepth,omitempty"`
+	HasFoundationTiles bool             `json:"hasFoundationTiles,omitempty"`
 }
 
 // CityInfo represents the metadata information about a city as defined in the cities.yaml file, including its code, name, version, hash, size, last modified time, and the file name of the map zip.

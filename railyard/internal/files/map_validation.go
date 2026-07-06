@@ -23,18 +23,20 @@ const (
 	MapBuildingsBinFileName = "buildings_index.bin"  // newer (1.3.0+) buildings index format
 	MapOceanDepthFileName   = "ocean_depth_index.json"
 
-	MapTileFileExt      = ".pmtiles"
-	MapThumbnailFileExt = ".svg"
+	MapTileFileExt           = ".pmtiles"
+	MapFoundationTileFileExt = "_foundations.pmtiles" // Assuming the same extension for foundation tiles
+	MapThumbnailFileExt      = ".svg"
 
-	MapArchiveKeyConfig       = "config"
-	MapArchiveKeyDemandData   = "demandData"
-	MapArchiveKeyRoads        = "roads"
-	MapArchiveKeyRunways      = "runways"
-	MapArchiveKeyBuildings    = "buildings"
-	MapArchiveKeyBuildingsBin = "buildingsBin"
-	MapArchiveKeyTiles        = "tiles"
-	MapArchiveKeyThumbnail    = "thumbnail"
-	MapArchiveKeyOceanDepth   = "oceanDepth"
+	MapArchiveKeyConfig          = "config"
+	MapArchiveKeyDemandData      = "demandData"
+	MapArchiveKeyRoads           = "roads"
+	MapArchiveKeyRunways         = "runways"
+	MapArchiveKeyBuildings       = "buildings"
+	MapArchiveKeyBuildingsBin    = "buildingsBin"
+	MapArchiveKeyTiles           = "tiles"
+	MapArchiveKeyFoundationTiles = "foundationTiles"
+	MapArchiveKeyThumbnail       = "thumbnail"
+	MapArchiveKeyOceanDepth      = "oceanDepth"
 )
 
 // BuildMapArchiveFileIndex builds an index of expected map archive files for validation, returning a map of file keys to their presence and file objects in the archive
@@ -45,11 +47,12 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 		MapArchiveKeyRoads:      {Found: false, FileObject: nil, Required: true},
 		MapArchiveKeyRunways:    {Found: false, FileObject: nil, Required: true},
 		// ValidateMapArchive enforces that at least one buildings index is present; neither is strictly required on its own.
-		MapArchiveKeyBuildings:    {Found: false, FileObject: nil, Required: false},
-		MapArchiveKeyBuildingsBin: {Found: false, FileObject: nil, Required: false},
-		MapArchiveKeyTiles:        {Found: false, FileObject: nil, Required: true},
-		MapArchiveKeyThumbnail:    {Found: false, FileObject: nil, Required: false},
-		MapArchiveKeyOceanDepth:   {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyBuildings:       {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyBuildingsBin:    {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyTiles:           {Found: false, FileObject: nil, Required: true},
+		MapArchiveKeyFoundationTiles: {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyThumbnail:       {Found: false, FileObject: nil, Required: false},
+		MapArchiveKeyOceanDepth:      {Found: false, FileObject: nil, Required: false},
 	}
 
 	for _, file := range zipFiles {
@@ -84,7 +87,9 @@ func BuildMapArchiveFileIndex(zipFiles []*zip.File) map[string]types.FileFoundSt
 		case MapOceanDepthFileName:
 			filesFound[MapArchiveKeyOceanDepth] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
 		}
-		if path.Ext(normalizedName) == MapTileFileExt {
+		if strings.HasSuffix(normalizedName, MapFoundationTileFileExt) {
+			filesFound[MapArchiveKeyFoundationTiles] = types.FileFoundStruct{Found: true, FileObject: file, Required: false}
+		} else if path.Ext(normalizedName) == MapTileFileExt {
 			filesFound[MapArchiveKeyTiles] = types.FileFoundStruct{Found: true, FileObject: file, Required: true}
 		}
 		if path.Ext(normalizedName) == MapThumbnailFileExt {

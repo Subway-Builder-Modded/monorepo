@@ -891,6 +891,9 @@ func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
 		if _, err := os.Stat(paths.JoinLocalPath(a.Config.Cfg.GetMapsFolderPath(), m.MapConfig.Code, "ocean_depth_index.json.gz")); !errors.Is(err, fs.ErrNotExist) {
 			m.MapConfig.HasOceanDepth = true
 		}
+		if _, err := os.Stat(paths.JoinLocalPath(paths.AppDataRoot(), "tiles", m.MapConfig.Code+"_foundations.pmtiles")); !errors.Is(err, fs.ErrNotExist) {
+			m.MapConfig.HasFoundationTiles = true
+		}
 		stem, err := setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary)
 		if err != nil {
 			if skipIncompatibleMaps {

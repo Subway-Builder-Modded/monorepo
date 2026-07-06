@@ -90,7 +90,7 @@ function generateTabs(places) {
       }
       await window.SubwayBuilderAPI.registerCity(newPlace);
       window.SubwayBuilderAPI.map.setDefaultLayerVisibility(place.code, {
-        oceanFoundations: false,
+        oceanFoundations: place.hasOceanDepth ? true : false,
         trackElevations: false,
       });
 
@@ -106,10 +106,16 @@ function generateTabs(places) {
           "/data/" + place.code + "/ocean_depth_index.json";
       }
 
+      let foundationsTileURL = tilesURL;
+
+      if (place.hasFoundationTiles) {
+        foundationsTileURL = baseURL + "/" + place.code + "_foundations/{z}/{x}/{y}.mvt";
+      }
+
       window.SubwayBuilderAPI.map.setTileURLOverride({
         cityCode: place.code,
         tilesUrl: tilesURL,
-        foundationTilesUrl: tilesURL,
+        foundationTilesUrl: foundationsTileURL,
         maxZoom: config.tileZoomLevel,
       });
 
@@ -162,21 +168,27 @@ function generateTabs(places) {
     let colorToUsePark;
     let colorToUseAirport;
 
-    if (colorsData.useCustomColors) {
+    // Best source: from API, doesn't rely on potentially unpopulated localstorage
+    if (SubwayBuilderAPI.gameState && SubwayBuilderAPI.gameState.getMapColors) {
+      const mapColors = SubwayBuilderAPI.gameState.getMapColors();
+      colorToUsePark = mapColors.parks;
+      colorToUseAirport = mapColors.airports;
+    // Next best source: from localStorage if game version is above v1.3.0 (should always be populated)
+    } else if (config.gameVersion && semverCompare(config.gameVersion, "1.3.0")) {
+      colorToUsePark = colorsData[themeObject].parks;
+      colorToUseAirport = colorsData[themeObject].airports;
+    // pre v1.4.0 when custom colors were optional
+    } else if (colorsData.useCustomColors) {
       colorToUsePark = colorsData[themeObject]?.parks
         ? colorsData[themeObject].parks
         : config.colors[currentTheme].PARK;
       colorToUseAirport = colorsData[themeObject]?.airports
         ? colorsData[themeObject].airports
         : config.colors[currentTheme].AIRPORT;
+    // Fall back to old default colors if everything else fails
     } else {
       colorToUsePark = config.colors[currentTheme].PARK;
       colorToUseAirport = config.colors[currentTheme].AIRPORT;
-    }
-
-    if (config.gameVersion && semverCompare(config.gameVersion, "1.3.0")) {
-      colorToUsePark = colorsData[themeObject].parks;
-      colorToUseAirport = colorsData[themeObject].airports;
     }
 
     function isFoundationsVisible(map) {

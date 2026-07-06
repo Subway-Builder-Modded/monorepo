@@ -38,6 +38,7 @@ import { GalleryImage } from '@/components/shared/GalleryImage';
 import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import { useGameVersion } from '@/hooks/use-game-version';
+import { assetKey } from '@/lib/asset-key';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
 import { formatStorageSize } from '@/lib/size-format';
@@ -47,7 +48,6 @@ import {
   withLockAwareConfirm,
 } from '@/lib/subscription-mutation-ui';
 import {
-  composeAssetKey,
   getPendingSubscriptionUpdate,
   type PendingUpdatesByKey,
   type PendingUpdateTarget,
@@ -118,7 +118,7 @@ export function LibraryList({
     [sort, columnDirections, onSortChange],
   );
 
-  const allKeys = items.map((e) => composeAssetKey(e.type, e.item.id));
+  const allKeys = items.map((e) => assetKey(e.type, e.item.id));
   const allSelected =
     items.length > 0 && allKeys.every((k) => selectedIds.has(k));
   const someSelected = !allSelected && allKeys.some((k) => selectedIds.has(k));
@@ -209,7 +209,7 @@ export function LibraryList({
       <div className="divide-y divide-border/50">
         {items.map((entry) => (
           <LibraryListRow
-            key={composeAssetKey(entry.type, entry.item.id)}
+            key={assetKey(entry.type, entry.item.id)}
             entry={entry}
             showMapColumns={showMapColumns}
             pendingUpdatesByKey={pendingUpdatesByKey}
@@ -255,7 +255,7 @@ function LibraryListRow({
   );
   const gameVersion = useGameVersion();
 
-  const key = composeAssetKey(entry.type, entry.item.id);
+  const key = assetKey(entry.type, entry.item.id);
   const isSelected = selectedIds.has(key);
   const isMap = entry.type === 'map';
   const isLocal = entry.isLocal;

@@ -91,6 +91,12 @@ function App() {
         eventName: 'registry:ready',
         handler: () => {
           void useRegistryStore.getState().reload();
+          // Registry init has now loaded download counts into memory. Force a refetch so any
+          // totals that resolved empty during the startup window (before counts were
+          // populated) are replaced rather than left cached as zero.
+          void useRegistryStore
+            .getState()
+            .ensureDownloadTotals({ force: true });
           void useInstalledStore.getState().updateInstalledLists();
         },
       },

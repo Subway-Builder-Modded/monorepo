@@ -6,6 +6,7 @@ import { type PerPage } from '@subway-builder-modded/config';
 import { useDeferredValue, useMemo } from 'react';
 
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
+import { assetKey } from '@/lib/asset-key';
 import {
   buildTaggedItems,
   compareItems,
@@ -65,7 +66,7 @@ export function useFilteredItems({
   const allItems = useMemo(() => {
     if (statusFilters.length === 0) return registryItems;
     return registryItems.filter((entry) => {
-      const key = `${entry.type}:${entry.item.id}`;
+      const key = assetKey(entry.type, entry.item.id);
       const isIncompatible = incompatibleItemKeys?.has(key) ?? false;
       for (const sf of statusFilters) {
         if (sf === 'compatible' && !isIncompatible) return true;

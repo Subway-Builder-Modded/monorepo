@@ -1,5 +1,7 @@
 import type { AssetType } from '@subway-builder-modded/config';
 
+import { assetKey } from '@/lib/asset-key';
+
 import { types } from '../../wailsjs/go/models';
 import {
   GetActiveProfile,
@@ -22,16 +24,12 @@ export type PendingUpdatesByKey = Record<
   types.PendingSubscriptionUpdate
 >;
 
-export function composeAssetKey(type: AssetType, id: string): string {
-  return `${type}-${id}`;
-}
-
 export function indexPendingSubscriptionUpdates(
   updates?: types.PendingSubscriptionUpdate[] | null,
 ): PendingUpdatesByKey {
   const byKey: PendingUpdatesByKey = {};
   for (const update of updates ?? []) {
-    byKey[composeAssetKey(update.type as AssetType, update.assetId)] = update;
+    byKey[assetKey(update.type as AssetType, update.assetId)] = update;
   }
   return byKey;
 }
@@ -41,7 +39,7 @@ export function getPendingSubscriptionUpdate(
   type: AssetType,
   id: string,
 ): types.PendingSubscriptionUpdate | undefined {
-  return pendingUpdatesByKey[composeAssetKey(type, id)];
+  return pendingUpdatesByKey[assetKey(type, id)];
 }
 
 export function toPendingUpdateTargets(

@@ -7,9 +7,9 @@ import { ItemCard } from '@/components/shared/ItemCard';
 import { useGameVersion } from '@/hooks/use-game-version';
 import {
   type AssetRef,
-  composeIncompatibleKey,
   useIncompatibleAssetKeys,
 } from '@/hooks/use-incompatible-asset-keys';
+import { assetKey } from '@/lib/asset-key';
 import type { TaggedItem } from '@/lib/tagged-items';
 
 const DISCOVER_CARD_MIN_WIDTH = 220;
@@ -129,9 +129,7 @@ export function DiscoverSectionGrid({
             viewMode="compact"
             installedVersion={getInstalledVersion(item.id) ?? undefined}
             totalDownloads={getTotalDownloads(type, item.id)}
-            incompatible={incompatibleItemKeys.has(
-              composeIncompatibleKey(type, item.id),
-            )}
+            incompatible={incompatibleItemKeys.has(assetKey(type, item.id))}
             gameVersion={gameVersion}
             test={item.is_test === true}
           />
