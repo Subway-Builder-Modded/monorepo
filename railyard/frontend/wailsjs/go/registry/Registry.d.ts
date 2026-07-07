@@ -11,6 +11,8 @@ export function AssetMissingInstallableVersion(arg1:types.AssetType,arg2:string)
 
 export function BootstrapInstalledStateFromProfile(arg1:types.UserProfile):Promise<void>;
 
+export function GameIncompatibleAssets(arg1:types.AssetType,arg2:string):Promise<types.GameIncompatibleAssetsResponse>;
+
 export function GetAssetDownloadCounts(arg1:types.AssetType,arg2:string):Promise<types.AssetDownloadCountsResponse>;
 
 export function GetDownloadCountsByAssetType(arg1:types.AssetType):Promise<types.DownloadCountsByAssetTypeResponse>;

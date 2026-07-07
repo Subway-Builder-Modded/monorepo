@@ -2,8 +2,12 @@ package registry
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"railyard/internal/types"
+
+	semver "github.com/Masterminds/semver/v3"
 )
 
 // getIntegrityListing returns the integrity entry for the requested asset.
@@ -116,6 +120,81 @@ func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID str
 	}
 
 	return filtered, nil
+}
+
+// integrityVersionConstraints derives a version's compatibility constraints purely from its
+// integrity record — the manifest game_version and, for maps, the buildings-index format inferred
+// from matched_files. Reuses the same constraint builder as install/update.
+func integrityVersionConstraints(assetType types.AssetType, status types.IntegrityVersionStatus) []types.InstalledConstraint {
+	vi := types.VersionInfo{GameVersion: status.GameVersion}
+	if assetType == types.AssetTypeMap {
+		vi.MapBuildingsConstraint = buildingsIndexConstraintFromMatchedFiles(status.MatchedFiles)
+	}
+	return types.ConstraintsFromVersionInfo(assetType, vi)
+}
+
+// listingHasGameCompatibleVersion reports whether any integrity-complete version of the listing is
+// compatible with the game version.
+func listingHasGameCompatibleVersion(assetType types.AssetType, listing types.IntegrityListing, gameVersion *semver.Version) bool {
+	for _, status := range listing.Versions {
+		if !status.IsComplete {
+			continue
+		}
+		if len(types.UnsatisfiedConstraints(gameVersion, integrityVersionConstraints(assetType, status))) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// GameIncompatibleAssets returns the IDs of assets that have at least one installable version but
+// none compatible with the given game version, computed entirely from the loaded integrity report —
+// no remote fetch. Integrity already carries the version list, game_version, and buildings format,
+// so this is the source of truth for the compatibility badge. An empty or unparseable game version
+// yields an empty result: unknown is never treated as incompatible.
+func (r *Registry) GameIncompatibleAssets(assetType types.AssetType, gameVersion string) types.GameIncompatibleAssetsResponse {
+	resp := types.GameIncompatibleAssetsResponse{
+		AssetType: string(assetType),
+		AssetIDs:  []string{},
+	}
+	if !types.IsValidAssetType(assetType) {
+		r.logger.Warn("GameIncompatibleAssets rejected invalid asset type", "asset_type", assetType)
+		resp.GenericResponse = types.ErrorResponse(fmt.Sprintf("invalid asset type %q", assetType))
+		return resp
+	}
+
+	trimmed := strings.TrimSpace(gameVersion)
+	if trimmed == "" {
+		resp.GenericResponse = types.SuccessResponse("No game version detected; no assets flagged")
+		return resp
+	}
+	gameVer, err := types.ParseSemver(trimmed)
+	if err != nil {
+		resp.GenericResponse = types.SuccessResponse("Game version unparseable; no assets flagged")
+		return resp
+	}
+
+	report, err := r.GetIntegrityReport(assetType)
+	if err != nil || len(report.Listings) == 0 {
+		// No integrity loaded (early startup / unreachable) → cannot judge; flag nothing.
+		resp.GenericResponse = types.SuccessResponse("No integrity report loaded; no assets flagged")
+		return resp
+	}
+
+	for assetID, listing := range report.Listings {
+		// No installable version at all is "delisted", not "game-incompatible"; skip it here.
+		if !listing.HasCompleteVersion {
+			continue
+		}
+		if listingHasGameCompatibleVersion(assetType, listing, gameVer) {
+			continue
+		}
+		resp.AssetIDs = append(resp.AssetIDs, assetID)
+	}
+	sort.Strings(resp.AssetIDs)
+
+	resp.GenericResponse = types.SuccessResponse("Game-incompatible assets computed")
+	return resp
 }
 
 // GetInstallableVersionsResponse returns installable versions with response metadata.

@@ -18,6 +18,10 @@ export function BootstrapInstalledStateFromProfile(arg1) {
   return window['go']['registry']['Registry']['BootstrapInstalledStateFromProfile'](arg1);
 }
 
+export function GameIncompatibleAssets(arg1, arg2) {
+  return window['go']['registry']['Registry']['GameIncompatibleAssets'](arg1, arg2);
+}
+
 export function GetAssetDownloadCounts(arg1, arg2) {
   return window['go']['registry']['Registry']['GetAssetDownloadCounts'](arg1, arg2);
 }
