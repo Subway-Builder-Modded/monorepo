@@ -4,6 +4,7 @@ import {
   getVisibleNodes,
   getAllNodes,
   getDocSourcePath,
+  getEditUrl,
 } from "@/features/docs/lib/content";
 import type { DocsTree, DocsTreeNode } from "@/features/docs/lib/types";
 
@@ -127,6 +128,14 @@ describe("getDocSourcePath", () => {
   it("builds path for root-level doc", () => {
     expect(getDocSourcePath("template-mod", "v1.0", "getting-started")).toBe(
       "/content/template-mod/docs/v1.0/getting-started.mdx",
+    );
+  });
+});
+
+describe("getEditUrl", () => {
+  it("builds the GitHub source URL for versioned docs", () => {
+    expect(getEditUrl("railyard", "v0.2", "troubleshooting-railyard")).toBe(
+      "https://github.com/Subway-Builder-Modded/monorepo/blob/website-dev/content/railyard/docs/v0.2/troubleshooting-railyard.mdx",
     );
   });
 });
