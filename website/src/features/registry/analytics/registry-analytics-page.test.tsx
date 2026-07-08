@@ -42,6 +42,12 @@ vi.mock("@subway-builder-modded/analytics", () => ({
   ),
 }));
 
+vi.mock("@/features/registry/components/author-role-badge", () => ({
+  AuthorRoleBadge: ({ authorId }: { authorId: string | null | undefined }) => (
+    <span data-testid={`author-role-badge-${authorId ?? "unknown"}`}>Developer role</span>
+  ),
+}));
+
 vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./lib/load-registry-analytics")>();
   return {
@@ -64,6 +70,9 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
                 name: "Map Alpha",
                 authorId: "author-a",
                 authorName: "Author A",
+                searchAliases: ["Tokyo", "Toukyou"],
+                countryCode: "GB",
+                countryName: "United Kingdom",
                 downloads: 42,
               },
             ],
@@ -74,6 +83,9 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
                 name: "Mod Alpha",
                 authorId: "author-b",
                 authorName: "Author B",
+                searchAliases: ["Alternate Mod"],
+                countryCode: "",
+                countryName: "",
                 downloads: 84,
               },
             ],
@@ -114,6 +126,9 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               id: "author-a/project-a",
               name: "Project A",
               href: "/registry/authors/author-a/project-a",
+              authorId: "author-a",
+              authorName: "Author A",
+              authorHref: "/registry/authors/author-a",
               downloads: 220,
               maps: 2,
               mods: 0,
@@ -123,6 +138,9 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               id: "author-b/project-b",
               name: "Project B",
               href: "/registry/authors/author-b/project-b",
+              authorId: "author-b",
+              authorName: "Author B",
+              authorHref: "/registry/authors/author-b",
               downloads: 84,
               maps: 1,
               mods: 0,
@@ -137,8 +155,9 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               name: "Map Alpha",
               authorId: "author-a",
               authorName: "Author A",
-              countryCode: "JP",
+              countryCode: "GB",
               cityCode: "TYO",
+              searchAliases: ["Tokyo", "Toukyou"],
               demand: 1_000_000,
               pops: 2_000,
               demandPoints: 300,
@@ -217,11 +236,32 @@ describe("RegistryAnalyticsPage", () => {
 
     const searchInput = screen.getByPlaceholderText("Search mods...");
     fireEvent.change(searchInput, {
+      target: { value: "alternate mod" },
+    });
+
+    expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
+
+    fireEvent.change(searchInput, {
       target: { value: "missing asset" },
     });
 
     expect(screen.getByText("No items match your search.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Clear Filters" })).toBeInTheDocument();
+  });
+
+  it("searches content analytics maps by country aliases", async () => {
+    render(<RegistryAnalyticsPage tabId="content" assetTypeId="maps" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Map Alpha")).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText("Search maps...");
+    fireEvent.change(searchInput, {
+      target: { value: "great britain" },
+    });
+
+    expect(screen.getByText("Map Alpha")).toBeInTheDocument();
   });
 
   it("renders author analytics timeline and rankings", async () => {
@@ -241,6 +281,8 @@ describe("RegistryAnalyticsPage", () => {
       "href",
       "/registry/authors/author-a/analytics",
     );
+    expect(screen.getByTestId("author-role-badge-author-a")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Author A/i })).not.toHaveTextContent("Developer role");
   });
 
   it("renders project analytics rankings and omits all-zero columns", async () => {
@@ -251,6 +293,7 @@ describe("RegistryAnalyticsPage", () => {
     });
 
     expect(screen.getByText("Rankings")).toBeInTheDocument();
+    expect(screen.getByText("Author")).toBeInTheDocument();
     expect(screen.getByText("Maps")).toBeInTheDocument();
     expect(screen.queryByText("Mods")).not.toBeInTheDocument();
     expect(screen.getByText("Assets")).toBeInTheDocument();
@@ -259,6 +302,12 @@ describe("RegistryAnalyticsPage", () => {
       "href",
       "/registry/authors/author-a/project-a/analytics",
     );
+    expect(screen.getByRole("link", { name: /Author A/i })).toHaveAttribute(
+      "href",
+      "/registry/authors/author-a/analytics",
+    );
+    expect(screen.getByTestId("author-role-badge-author-a")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Author A/i })).not.toHaveTextContent("Developer role");
   });
 
   it("renders map statistics rankings", async () => {
@@ -283,5 +332,18 @@ describe("RegistryAnalyticsPage", () => {
       "href",
       "/registry/authors/author-a/analytics",
     );
+
+    const searchInput = screen.getByPlaceholderText("Search maps...");
+    fireEvent.change(searchInput, {
+      target: { value: "toukyou" },
+    });
+
+    expect(screen.getByText("Map Alpha")).toBeInTheDocument();
+
+    fireEvent.change(searchInput, {
+      target: { value: "great britain" },
+    });
+
+    expect(screen.getByText("Map Alpha")).toBeInTheDocument();
   });
 });

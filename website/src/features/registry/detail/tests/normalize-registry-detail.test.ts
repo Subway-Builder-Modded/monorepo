@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getDetailsTabSections } from "@/features/registry/detail/config/details-tab-config";
 import { normalizeRegistryDetail } from "@/features/registry/detail/lib/normalize-registry-detail";
 import type { RegistryDetailLoadedData } from "@/features/registry/detail/registry-detail-types";
 
@@ -173,12 +174,13 @@ describe("normalizeRegistryDetail", () => {
       manifest: {
         ...BASE.manifest,
         file_sizes: {
-          "asset.pmtiles": 18.2,
-          "buildings_index.json": 42,
-          "demand_data.json": 4.35,
-          "ocean_depth_index.json": 2.63,
-          "roads.geojson": 11.46,
-          "runways_taxiways.geojson": 0,
+          "asset.pmtiles.gz": 18.2,
+          "buildings_index.json.gz": 42,
+          "buildings_index.bin.gz": 24,
+          "demand_data.json.gz": 4.35,
+          "ocean_depth_index.json.gz": 2.63,
+          "roads.geojson.gz": 11.46,
+          "runways_taxiways.geojson.gz": 0,
           "water.geojson": 7.5,
           "config.json": 0.01,
         },
@@ -187,12 +189,70 @@ describe("normalizeRegistryDetail", () => {
 
     expect(model.mapFields?.fileSizes).toEqual({
       pmtiles: 18.2,
-      buildingsIndex: 42,
+      buildingsIndexJson: 42,
+      buildingsIndexBin: 24,
       demandData: 4.35,
       oceanDepthIndex: 2.63,
       roads: 11.46,
       runwaysTaxiways: null,
       other: 7.51,
     });
+  });
+
+  it("renders buildings index file size cards only for present formats", () => {
+    const baseModel = normalizeRegistryDetail({
+      ...BASE,
+      manifest: {
+        ...BASE.manifest,
+        file_sizes: {
+          "asset.pmtiles": 18.2,
+          "demand_data.json": 4.35,
+          "roads.geojson": 11.46,
+        },
+      },
+    });
+    const jsonModel = normalizeRegistryDetail({
+      ...BASE,
+      manifest: {
+        ...BASE.manifest,
+        file_sizes: {
+          "buildings_index.json.gz": 42,
+        },
+      },
+    });
+    const binModel = normalizeRegistryDetail({
+      ...BASE,
+      manifest: {
+        ...BASE.manifest,
+        file_sizes: {
+          "buildings_index.bin.gz": 24,
+        },
+      },
+    });
+    const bothModel = normalizeRegistryDetail({
+      ...BASE,
+      manifest: {
+        ...BASE.manifest,
+        file_sizes: {
+          "buildings_index.json": 42,
+          "buildings_index.bin.gz": 24,
+        },
+      },
+    });
+
+    const getFileSizeTitles = (model: typeof baseModel) =>
+      getDetailsTabSections(model)
+        .find((section) => section.title === "File Sizes")
+        ?.cards.map((card) => card.title) ?? [];
+
+    expect(getFileSizeTitles(baseModel)).not.toContain("Buildings Index (JSON)");
+    expect(getFileSizeTitles(baseModel)).not.toContain("Buildings Index (BIN)");
+    expect(getFileSizeTitles(jsonModel)).toContain("Buildings Index (JSON)");
+    expect(getFileSizeTitles(jsonModel)).not.toContain("Buildings Index (BIN)");
+    expect(getFileSizeTitles(binModel)).not.toContain("Buildings Index (JSON)");
+    expect(getFileSizeTitles(binModel)).toContain("Buildings Index (BIN)");
+    expect(getFileSizeTitles(bothModel)).toEqual(
+      expect.arrayContaining(["Buildings Index (JSON)", "Buildings Index (BIN)"]),
+    );
   });
 });

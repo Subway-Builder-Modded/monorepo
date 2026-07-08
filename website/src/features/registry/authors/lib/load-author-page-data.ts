@@ -4,6 +4,7 @@ import {
   getRegistryAuthorsIndexPath,
 } from "@/features/registry/lib/registry-asset-paths";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
+import { buildRegistryItemSearchValues } from "@/features/registry/lib/registry-search";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 
 export type RegistryAuthorProfile = {
@@ -38,6 +39,7 @@ export type RegistryAuthorProjectSummary = {
   mods: number;
   totalDownloads: number;
   rank: number | null;
+  searchTerms: string[];
 };
 
 export type RegistryAuthorAssetSummary = {
@@ -349,7 +351,10 @@ function computeAuthorProjects(
   itemsByType: Record<string, RegistrySearchItem[]>,
   allItemsByType: Record<string, RegistrySearchItem[]>,
 ): RegistryAuthorProjectSummary[] {
-  const projects = new Map<string, { maps: number; mods: number; totalDownloads: number }>();
+  const projects = new Map<
+    string,
+    { maps: number; mods: number; totalDownloads: number; searchTerms: Set<string> }
+  >();
 
   for (const item of Object.values(itemsByType).flat()) {
     const projectId = item.projectId?.trim();
@@ -360,10 +365,12 @@ function computeAuthorProjects(
       maps: 0,
       mods: 0,
       totalDownloads: 0,
+      searchTerms: new Set<string>(),
     };
     if (item.type === "maps") current.maps += 1;
     if (item.type === "mods") current.mods += 1;
     current.totalDownloads += item.totalDownloads;
+    buildRegistryItemSearchValues(item).forEach((term) => current.searchTerms.add(term));
     projects.set(normalizedProjectId, current);
   }
 
@@ -379,6 +386,7 @@ function computeAuthorProjects(
       mods: totals.mods,
       totalDownloads: totals.totalDownloads,
       rank: computeProjectDownloadRank(projectId, allItemsByType),
+      searchTerms: [...totals.searchTerms],
     }))
     .sort((left, right) => right.totalDownloads - left.totalDownloads);
 }

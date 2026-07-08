@@ -35,10 +35,14 @@ vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
           id: "author-a/project-a",
           name: "Project A",
           href: "/registry/authors/author-a/project-a",
+          authorId: "author-a",
+          authorLabel: "Author A",
+          authorHref: "/registry/authors/author-a",
           downloads: 30,
           maps: 2,
           mods: 1,
           assets: 3,
+          searchTerms: ["Map Alpha", "Tokyo"],
         },
       ],
     }),
@@ -52,7 +56,12 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
             {
               id: "map-a",
               type: "maps",
+              name: "Map Alpha",
+              author: "Author A",
               authorId: "author-a",
+              searchAliases: ["Tokyo", "Toukyou"],
+              cityCode: "TYO",
+              countryCode: "JP",
               publishedAt: Date.UTC(2026, 2, 11),
               totalDownloads: 10,
               manifest: {
@@ -66,7 +75,12 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
             {
               id: "map-b",
               type: "maps",
+              name: "Map Beta",
+              author: "Author A",
               authorId: "author-a",
+              searchAliases: ["Beta City"],
+              cityCode: "OSA",
+              countryCode: "JP",
               publishedAt: Date.UTC(2026, 2, 12),
               totalDownloads: 20,
               manifest: {},
@@ -76,7 +90,10 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
             {
               id: "mod-a",
               type: "mods",
+              name: "Mod Alpha",
+              author: "Author B",
               authorId: "author-b",
+              searchAliases: ["Alternate Mod"],
               publishedAt: Date.UTC(2026, 2, 13),
               totalDownloads: 5,
               manifest: {},
@@ -174,6 +191,9 @@ describe("loadRegistryAnalyticsData", () => {
     expect(data.projects.rankings[0]).toMatchObject({
       id: "author-a/project-a",
       name: "Project A",
+      authorId: "author-a",
+      authorName: "Author A",
+      authorHref: "/registry/authors/author-a",
       downloads: 30,
       maps: 2,
       mods: 1,
@@ -186,10 +206,17 @@ describe("loadRegistryAnalyticsData", () => {
       authorName: "Author A",
       countryCode: "JP",
       cityCode: "TYO",
+      searchAliases: ["Tokyo", "Toukyou"],
       demand: 1_000_000,
       pops: 2_000,
       demandPoints: 300,
       playableAreaKm2: 42,
+    });
+    expect(data.contentRankings["all-time"].maps[0]).toMatchObject({
+      id: "map-b",
+      countryCode: "JP",
+      countryName: "",
+      searchAliases: ["Beta City"],
     });
     expect(data.contentRankings["all-time"].maps.map((row) => row.id)).toEqual(["map-b", "map-a"]);
     expect(data.mapStatistics.rankings.map((row) => row.id)).toEqual(["map-a"]);

@@ -501,7 +501,7 @@ function RailyardVersionsBreakdown({ data }: { data: RailyardAnalyticsData }) {
     <div>
       <SectionSeparator label="Breakdown" icon={ListOrdered} className="mb-4 mt-7" />
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-        <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+        <ScrollArea scrollbars="horizontal" className="w-full">
           <div className="min-w-[52rem] xl:min-w-0">
             <Table>
               <colgroup>
@@ -730,7 +730,7 @@ function RailyardOperatingSystemsBreakdown({ data }: { data: RailyardAnalyticsDa
     <div>
       <SectionSeparator label="Breakdown" icon={ListOrdered} className="mb-4 mt-7" />
       <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
-        <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+        <ScrollArea scrollbars="horizontal" className="w-full">
           <div className="min-w-[76rem] xl:min-w-0">
             <Table>
               <colgroup>

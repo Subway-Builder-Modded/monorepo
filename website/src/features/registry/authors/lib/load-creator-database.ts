@@ -1,6 +1,7 @@
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 import { getRegistryAuthorsIndexPath } from "@/features/registry/lib/registry-asset-paths";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
+import { buildRegistryItemSearchValues } from "@/features/registry/lib/registry-search";
 import { getRegistryAuthorUrl, getRegistryProjectUrl } from "@/features/registry/lib/routing";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 
@@ -15,6 +16,7 @@ export type RegistryCreatorDatabaseAuthor = {
   collaborations: number;
   assets: number;
   downloads: number;
+  searchTerms: string[];
 };
 
 export type RegistryCreatorDatabaseProject = {
@@ -28,6 +30,7 @@ export type RegistryCreatorDatabaseProject = {
   mods: number;
   assets: number;
   downloads: number;
+  searchTerms: string[];
 };
 
 export type RegistryCreatorDatabaseData = {
@@ -111,6 +114,7 @@ function buildAuthors(
       collaborations: number;
       assets: number;
       downloads: number;
+      searchTerms: Set<string>;
     }
   >();
 
@@ -128,6 +132,7 @@ function buildAuthors(
       collaborations: 0,
       assets: 0,
       downloads: 0,
+      searchTerms: new Set<string>(),
     });
   }
 
@@ -145,11 +150,13 @@ function buildAuthors(
       collaborations: 0,
       assets: 0,
       downloads: 0,
+      searchTerms: new Set<string>(),
     };
     if (item.type === "maps") current.maps += 1;
     if (item.type === "mods") current.mods += 1;
     current.assets += 1;
     current.downloads += item.totalDownloads;
+    buildRegistryItemSearchValues(item).forEach((term) => current.searchTerms.add(term));
     authorsById.set(normalizedId, current);
   }
 
@@ -183,6 +190,7 @@ function buildAuthors(
     .filter((author) => author.assets > 0 || author.collaborations > 0)
     .map((author) => ({
       ...author,
+      searchTerms: [...author.searchTerms],
       href: getRegistryAuthorUrl(author.id),
     }))
     .sort((left, right) => right.downloads - left.downloads);
@@ -198,16 +206,23 @@ function buildProjects(
       maps: number;
       mods: number;
       downloads: number;
+      searchTerms: Set<string>;
     }
   >();
 
   for (const item of allItems) {
     const projectId = normalizeId(item.projectId ?? "");
     if (!projectId) continue;
-    const current = projects.get(projectId) ?? { maps: 0, mods: 0, downloads: 0 };
+    const current = projects.get(projectId) ?? {
+      maps: 0,
+      mods: 0,
+      downloads: 0,
+      searchTerms: new Set<string>(),
+    };
     if (item.type === "maps") current.maps += 1;
     if (item.type === "mods") current.mods += 1;
     current.downloads += item.totalDownloads;
+    buildRegistryItemSearchValues(item).forEach((term) => current.searchTerms.add(term));
     projects.set(projectId, current);
   }
 
@@ -226,6 +241,7 @@ function buildProjects(
         mods: totals.mods,
         assets: totals.maps + totals.mods,
         downloads: totals.downloads,
+        searchTerms: [...totals.searchTerms],
       };
     })
     .filter((project) => project.assets > 1)

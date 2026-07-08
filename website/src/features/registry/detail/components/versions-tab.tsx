@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { Download, Loader2 } from "lucide-react";
-import { ScrollArea, SortableTableHead } from "@subway-builder-modded/shared-ui";
+import { ScrollArea, StaticTableHead } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/lib/router";
 import { articleMdxComponents } from "@/features/content/mdx";
 import { MdxRenderedHtml } from "@/features/content/mdx/rendered-html";
@@ -23,8 +23,6 @@ type VersionsTabProps = {
   selectedVersionId?: string;
 };
 
-type VersionsSortKey = "version" | "releaseDate" | "downloads";
-type VersionsSortDirection = "asc" | "desc";
 type VersionChangelogComponent = ComponentType<{
   components?: Record<string, ComponentType<any>>;
 }>;
@@ -127,51 +125,6 @@ function formatDownloads(value: number | null): string {
   return numberFormatter.format(value);
 }
 
-function compareNullableNumbers(
-  left: number | null,
-  right: number | null,
-  direction: VersionsSortDirection,
-): number {
-  if (left === null && right === null) {
-    return 0;
-  }
-  if (left === null) {
-    return 1;
-  }
-  if (right === null) {
-    return -1;
-  }
-  return direction === "asc" ? left - right : right - left;
-}
-
-function sortVersions(
-  versions: RegistryDetailVersion[],
-  key: VersionsSortKey,
-  direction: VersionsSortDirection,
-): RegistryDetailVersion[] {
-  const next = [...versions];
-
-  next.sort((left, right) => {
-    if (key === "version") {
-      const comparison = left.version.localeCompare(right.version, undefined, {
-        numeric: true,
-        sensitivity: "base",
-      });
-      return direction === "asc" ? comparison : -comparison;
-    }
-
-    if (key === "releaseDate") {
-      const leftDate = left.releaseDate ? Date.parse(left.releaseDate) : null;
-      const rightDate = right.releaseDate ? Date.parse(right.releaseDate) : null;
-      return compareNullableNumbers(leftDate, rightDate, direction);
-    }
-
-    return compareNullableNumbers(left.downloads, right.downloads, direction);
-  });
-
-  return next;
-}
-
 export function VersionsTab({
   versions,
   routeSegment,
@@ -184,21 +137,6 @@ export function VersionsTab({
   );
   const [isChangelogLoading, setIsChangelogLoading] = useState(false);
   const [changelogError, setChangelogError] = useState<string | null>(null);
-  const [sortKey, setSortKey] = useState<VersionsSortKey>("version");
-  const [sortDirectionByKey, setSortDirectionByKey] = useState<
-    Record<VersionsSortKey, VersionsSortDirection>
-  >({
-    version: "desc",
-    releaseDate: "desc",
-    downloads: "desc",
-  });
-
-  const sortDirection = sortDirectionByKey[sortKey];
-
-  const sortedVersions = useMemo(
-    () => sortVersions(versions, sortKey, sortDirection),
-    [versions, sortKey, sortDirection],
-  );
   const selectedVersion = useMemo(
     () =>
       selectedVersionId
@@ -222,17 +160,6 @@ export function VersionsTab({
 
     return null;
   }, [versionChangelog]);
-
-  const handleSort = (nextKey: VersionsSortKey) => {
-    if (nextKey === sortKey) {
-      setSortDirectionByKey((current) => ({
-        ...current,
-        [nextKey]: current[nextKey] === "asc" ? "desc" : "asc",
-      }));
-      return;
-    }
-    setSortKey(nextKey);
-  };
 
   // Load changelog markdown for selected version from the version source.
   // GitHub-backed items use release notes, while custom maps read from their update JSON.
@@ -392,43 +319,23 @@ export function VersionsTab({
     );
   }
 
-  const activeCellStyle = { color: "var(--registry-type-accent)" };
-
   return (
     <div className="mdx-table-wrap my-1 overflow-hidden rounded-lg border border-border/50">
-      <ScrollArea scrollbars="horizontal" className="w-full pb-2">
+      <ScrollArea scrollbars="horizontal" className="w-full">
         <div className="min-w-[44rem] xl:min-w-0">
           <table className="w-full table-fixed text-sm">
             <thead className="border-b border-border/50 bg-muted/30">
               <tr>
-                <SortableTableHead
-                  label="Version"
-                  active={sortKey === "version"}
-                  direction={sortDirection}
-                  onClick={() => handleSort("version")}
-                />
-                <SortableTableHead
-                  label="Release Date"
-                  active={sortKey === "releaseDate"}
-                  direction={sortDirection}
-                  onClick={() => handleSort("releaseDate")}
-                />
-                <SortableTableHead
-                  label="Downloads"
-                  active={sortKey === "downloads"}
-                  direction={sortDirection}
-                  onClick={() => handleSort("downloads")}
-                />
+                <StaticTableHead label="Version" />
+                <StaticTableHead label="Release Date" />
+                <StaticTableHead label="Downloads" />
                 <th className="w-14 align-middle px-0 py-2.5 text-center font-semibold text-muted-foreground" />
               </tr>
             </thead>
             <tbody>
-              {sortedVersions.map((version) => (
+              {versions.map((version) => (
                 <tr key={version.version} className="hover:bg-muted/20">
-                  <td
-                    className="border-t border-border/30 px-4 py-2.5 font-medium text-foreground"
-                    style={sortKey === "version" ? activeCellStyle : undefined}
-                  >
+                  <td className="border-t border-border/30 px-4 py-2.5 font-medium text-foreground">
                     <Link
                       to={getRegistryVersionUrl(routeSegment, listingId, version.version)}
                       preserveScroll={true}
@@ -437,16 +344,10 @@ export function VersionsTab({
                       {version.version}
                     </Link>
                   </td>
-                  <td
-                    className="border-t border-border/30 px-4 py-2.5 text-foreground/85"
-                    style={sortKey === "releaseDate" ? activeCellStyle : undefined}
-                  >
+                  <td className="border-t border-border/30 px-4 py-2.5 text-foreground/85">
                     {formatRegistryDate(version.releaseDate)}
                   </td>
-                  <td
-                    className="border-t border-border/30 px-4 py-2.5 text-left text-foreground/85 tabular-nums"
-                    style={sortKey === "downloads" ? activeCellStyle : undefined}
-                  >
+                  <td className="border-t border-border/30 px-4 py-2.5 text-left text-foreground/85 tabular-nums">
                     {formatDownloads(version.downloads)}
                   </td>
                   <td className="border-t border-border/30 px-0 py-2.5 text-center">

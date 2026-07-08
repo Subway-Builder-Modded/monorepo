@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   findUpdateEntry,
+  getUpdateEditUrl,
   getUpdateSourcePath,
   getUpdatesEntries,
 } from "@/features/updates/lib/content";
@@ -23,5 +24,11 @@ describe("updates content", () => {
 
   it("builds canonical source path", () => {
     expect(getUpdateSourcePath("website", "v2.0.0")).toBe("/content/website/updates/v2.0.0.mdx");
+  });
+
+  it("builds the GitHub source URL for updates", () => {
+    expect(getUpdateEditUrl("railyard", "v0.2.6")).toBe(
+      "https://github.com/Subway-Builder-Modded/monorepo/blob/website-dev/content/railyard/updates/v0.2.6.mdx",
+    );
   });
 });

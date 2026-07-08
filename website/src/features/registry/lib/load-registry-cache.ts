@@ -4,6 +4,7 @@ import type {
   RawRegistryIntegrity,
   RegistrySearchItem,
 } from "./registry-search-types";
+import { normalizeMapCountry } from "@subway-builder-modded/asset-listings-state";
 import { LOCATION_TAGS } from "@subway-builder-modded/config";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 import {
@@ -394,7 +395,8 @@ export async function loadRegistryItemsForType(
     if (manifest.is_test === true) continue;
     const authorId = manifest.author?.trim() || null;
 
-    const countryCode = manifest.country?.toUpperCase() ?? null;
+    const normalizedCountryCode = normalizeMapCountry(manifest.country);
+    const countryCode = normalizedCountryCode || null;
     let countryName: string | null = null;
     let countryEmoji: string | null = null;
 
