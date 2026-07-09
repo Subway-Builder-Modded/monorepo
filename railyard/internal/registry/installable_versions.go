@@ -138,7 +138,7 @@ func listingHasGameCompatibleVersion(assetType types.AssetType, listing types.In
 		if !status.IsComplete {
 			continue
 		}
-		if len(types.UnsatisfiedConstraints(gameVersion, integrityVersionConstraints(assetType, status))) == 0 {
+		if types.ConstraintsSatisfied(gameVersion, integrityVersionConstraints(assetType, status)) {
 			return true
 		}
 	}
