@@ -280,7 +280,7 @@ type IntegrityVersionStatus struct {
 	Source       IntegrityVersionSource `json:"source"`
 	Fingerprint  string                 `json:"fingerprint"`
 	CheckedAt    string                 `json:"checked_at"`
-	ReleasedAt string `json:"released_at,omitempty"`
+	ReleasedAt   string                 `json:"released_at,omitempty"`
 }
 
 // IntegrityVersionSource represents the source information for a version
