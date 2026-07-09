@@ -169,6 +169,13 @@ type VersionsResponse struct {
 	Versions []VersionInfo `json:"versions"`
 }
 
+// GameIncompatibleAssetsResponse carries the IDs of assets with no game-compatible installable version.
+type GameIncompatibleAssetsResponse struct {
+	GenericResponse
+	AssetType string   `json:"assetType"`
+	AssetIDs  []string `json:"assetIds"`
+}
+
 type GalleryImageResponse struct {
 	GenericResponse
 	ImageURL string `json:"imageUrl"`

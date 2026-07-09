@@ -47,43 +47,132 @@ func TestGetWithGithubTokenAppliesHeadersAndToken(t *testing.T) {
 	require.Equal(t, "1", seenCustom)
 }
 
-func TestGetWithGithubTokenFallsBackToUnauthenticatedOn401(t *testing.T) {
+type stubResponse struct {
+	status  int
+	headers map[string]string
+}
+
+type githubTokenResult struct {
+	resp          *http.Response
+	err           error
+	requestCount  int
+	authHeaders   []string
+	callbackCodes []int
+}
+
+// runGithubTokenRequest serves the given responses in order (repeating the last), calls
+// GetWithGithubToken with a forced token, and records the auth header and OnTokenRejected code seen
+// on each request so a table can assert on token-fallback vs rate-limit behaviour.
+func runGithubTokenRequest(t *testing.T, responses []stubResponse) githubTokenResult {
+	t.Helper()
 	var mu sync.Mutex
-	requestCount := 0
-	authHeaders := make([]string, 0, 2)
-	callbackCodes := make([]int, 0, 1)
+	res := githubTokenResult{}
 
 	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		mu.Lock()
-		requestCount++
-		authHeaders = append(authHeaders, r.Header.Get("Authorization"))
-		index := requestCount
+		idx := res.requestCount
+		res.requestCount++
+		res.authHeaders = append(res.authHeaders, r.Header.Get("Authorization"))
 		mu.Unlock()
 
-		if index == 1 {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+		if idx >= len(responses) {
+			idx = len(responses) - 1
 		}
-		w.WriteHeader(http.StatusOK)
+		for key, value := range responses[idx].headers {
+			w.Header().Set(key, value)
+		}
+		w.WriteHeader(responses[idx].status)
 	}))
 	defer server.Close()
 
-	resp, err := GetWithGithubToken(NewAPIClient(), GithubTokenRequestArgs{
+	// OnTokenRejected fires synchronously inside GetWithGithubToken, so no lock is needed here.
+	res.resp, res.err = GetWithGithubToken(NewAPIClient(), GithubTokenRequestArgs{
 		URL:              server.URL,
 		GitHubToken:      "token-abc",
 		ForceAuthByToken: true,
 		OnTokenRejected: func(statusCode int) {
-			callbackCodes = append(callbackCodes, statusCode)
+			res.callbackCodes = append(res.callbackCodes, statusCode)
 		},
 	})
-	require.NoError(t, err)
-	require.NotNil(t, resp)
-	defer resp.Body.Close()
-	require.Equal(t, http.StatusOK, resp.StatusCode)
-	require.Equal(t, []int{http.StatusUnauthorized}, callbackCodes)
-	require.Len(t, authHeaders, 2)
-	require.Equal(t, "Bearer token-abc", authHeaders[0])
-	require.Empty(t, authHeaders[1])
+	return res
+}
+
+func TestGetWithGithubTokenAuthAndRateLimitHandling(t *testing.T) {
+	const bearer = "Bearer token-abc"
+	rateLimit403 := func(header, value string) []stubResponse {
+		return []stubResponse{{status: http.StatusForbidden, headers: map[string]string{header: value}}}
+	}
+
+	cases := []struct {
+		name          string
+		responses     []stubResponse
+		wantErr       bool
+		wantStatus    int
+		wantRequests  int
+		wantAuth      []string
+		wantCallbacks []int
+	}{
+		{
+			name:          "401 falls back to an unauthenticated retry",
+			responses:     []stubResponse{{status: http.StatusUnauthorized}, {status: http.StatusOK}},
+			wantStatus:    http.StatusOK,
+			wantRequests:  2,
+			wantAuth:      []string{bearer, ""},
+			wantCallbacks: []int{http.StatusUnauthorized},
+		},
+		{
+			name:          "genuine 403 falls back to an unauthenticated retry",
+			responses:     []stubResponse{{status: http.StatusForbidden}, {status: http.StatusOK}},
+			wantStatus:    http.StatusOK,
+			wantRequests:  2,
+			wantAuth:      []string{bearer, ""},
+			wantCallbacks: []int{http.StatusForbidden},
+		},
+		{
+			// A rate-limit 403 must NOT trigger an unauthenticated retry (that silently drops the
+			// token) and must surface as a rate limit, not "forbidden".
+			name:          "rate-limit 403 via exhausted quota keeps the token",
+			responses:     rateLimit403("X-RateLimit-Remaining", "0"),
+			wantErr:       true,
+			wantRequests:  1,
+			wantAuth:      []string{bearer},
+			wantCallbacks: []int{http.StatusTooManyRequests},
+		},
+		{
+			name:          "rate-limit 403 via retry-after keeps the token",
+			responses:     rateLimit403("Retry-After", "60"),
+			wantErr:       true,
+			wantRequests:  1,
+			wantAuth:      []string{bearer},
+			wantCallbacks: []int{http.StatusTooManyRequests},
+		},
+		{
+			name:          "429 surfaces a rate limit and keeps the token",
+			responses:     []stubResponse{{status: http.StatusTooManyRequests}},
+			wantErr:       true,
+			wantRequests:  1,
+			wantAuth:      []string{bearer},
+			wantCallbacks: []int{http.StatusTooManyRequests},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := runGithubTokenRequest(t, tc.responses)
+			if tc.wantErr {
+				require.Error(t, res.err)
+				require.Nil(t, res.resp)
+			} else {
+				require.NoError(t, res.err)
+				require.NotNil(t, res.resp)
+				res.resp.Body.Close()
+				require.Equal(t, tc.wantStatus, res.resp.StatusCode)
+			}
+			require.Equal(t, tc.wantRequests, res.requestCount)
+			require.Equal(t, tc.wantAuth, res.authHeaders)
+			require.Equal(t, tc.wantCallbacks, res.callbackCodes)
+		})
+	}
 }
 
 func TestGetWithGithubTokenSkipsAuthForNonGitHubHostWhenNotForced(t *testing.T) {

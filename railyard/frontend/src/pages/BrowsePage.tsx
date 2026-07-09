@@ -57,10 +57,7 @@ import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
 import { useGameVersion } from '@/hooks/use-game-version';
-import {
-  type AssetRef,
-  useIncompatibleAssetKeys,
-} from '@/hooks/use-incompatible-asset-keys';
+import { useIncompatibleAssetKeys } from '@/hooks/use-incompatible-asset-keys';
 import { assetKey } from '@/lib/asset-key';
 import { createRandomSeed, useBrowseStore } from '@/stores/browse-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -110,14 +107,7 @@ function BrowsePageContent({
   const ensureDownloadTotals = useRegistryStore((s) => s.ensureDownloadTotals);
   const installedMaps = useInstalledStore((s) => s.installedMaps);
   const installedMods = useInstalledStore((s) => s.installedMods);
-  const incompatibleAssetRefs = useMemo<AssetRef[]>(
-    () => [
-      ...mods.map((item) => ({ type: 'mod' as const, id: item.id })),
-      ...maps.map((item) => ({ type: 'map' as const, id: item.id })),
-    ],
-    [mods, maps],
-  );
-  const incompatibleItemKeys = useIncompatibleAssetKeys(incompatibleAssetRefs);
+  const incompatibleItemKeys = useIncompatibleAssetKeys();
 
   const modManifestById = useMemo(
     () => new Map(mods.map((manifest) => [manifest.id, manifest])),

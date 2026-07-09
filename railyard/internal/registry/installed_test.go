@@ -41,7 +41,7 @@ func fixtureRegistryMapManifest(id string, cityCode string) types.MapManifest {
 
 func TestWriteInstalledToDiskPersistsMapsAndMods(t *testing.T) {
 	testutil.NewHarness(t)
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	reg.installedMods = []types.InstalledModInfo{
 		{ID: "mod-a", Version: "1.0.0"},
@@ -63,7 +63,7 @@ func TestWriteInstalledToDiskPersistsMapsAndMods(t *testing.T) {
 
 func TestWriteInstalledToDiskRollsBackWhenOnePathFails(t *testing.T) {
 	testutil.NewHarness(t)
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 
 	originalMods := []types.InstalledModInfo{
@@ -104,7 +104,7 @@ func TestFetchFromDiskRecoversFromCorruptedInstalledState(t *testing.T) {
 	require.NoError(t, os.WriteFile(paths.InstalledModsPath(), []byte("{invalid"), 0o644))
 	require.NoError(t, os.WriteFile(paths.InstalledMapsPath(), []byte("{invalid"), 0o644))
 
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 	require.Empty(t, reg.GetInstalledMods())
@@ -664,7 +664,7 @@ func TestBootstrapInstalledStateFromProfilePrefersDiskConfigForLocalMap(t *testi
 
 func TestInstalledStatePersistsMutations(t *testing.T) {
 	testutil.NewHarness(t)
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 
 	reg.AddInstalledMod("mod-a", "1.0.0", true, nil)
 	reg.AddInstalledMod("mod-b", "2.0.0", false, nil)
@@ -695,7 +695,7 @@ func TestInstalledStatePersistsMutations(t *testing.T) {
 
 func TestAddInstalledAssetUpsertsExistingEntry(t *testing.T) {
 	testutil.NewHarness(t)
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 
 	reg.AddInstalledMap("map-a", "1.0.0", false, types.ConfigData{Code: "AAA"})
 	reg.AddInstalledMap("map-a", "2.0.0", true, types.ConfigData{Code: "BBB"})
@@ -721,7 +721,7 @@ func TestAddInstalledAssetUpsertsExistingEntry(t *testing.T) {
 
 func TestGetRemoteInstalledMaps(t *testing.T) {
 	testutil.NewHarness(t)
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 
 	reg.AddInstalledMap("map-remote", "1.0.0", false, types.ConfigData{Code: "AAA"})

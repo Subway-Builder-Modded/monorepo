@@ -117,6 +117,17 @@ func TestUnsatisfiedConstraints(t *testing.T) {
 	require.Empty(t, UnsatisfiedConstraints(semver.MustParse("2.0.0"), both))
 }
 
+func TestConstraintsSatisfied(t *testing.T) {
+	constraints := []InstalledConstraint{
+		{Type: ConstraintTypeManifest, Range: ">=1.3.0"},
+		{Type: ConstraintTypeBuildingsIndex, Range: ">1.3.0"},
+	}
+	require.True(t, ConstraintsSatisfied(semver.MustParse("1.4.0"), constraints))
+	require.False(t, ConstraintsSatisfied(semver.MustParse("1.2.0"), constraints))
+	// No constraints is trivially compatible.
+	require.True(t, ConstraintsSatisfied(semver.MustParse("1.0.0"), nil))
+}
+
 func TestIsValidAssetType(t *testing.T) {
 	require.True(t, IsValidAssetType(AssetTypeMap))
 	require.True(t, IsValidAssetType(AssetTypeMod))

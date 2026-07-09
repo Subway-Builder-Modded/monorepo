@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"railyard/internal/config"
 	"railyard/internal/constants"
 	"railyard/internal/files"
 	"railyard/internal/paths"
@@ -47,7 +46,7 @@ func loadedRegistryWithDownloads(t *testing.T) *Registry {
 		},
 	})
 
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 	return reg
@@ -150,7 +149,7 @@ func TestFetchFromDiskFiltersOutAssetsMissingIntegrityListings(t *testing.T) {
 		},
 	))
 
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 
@@ -198,7 +197,7 @@ func TestFetchFromDiskFiltersOutAssetsWithoutCompleteIntegrityVersions(t *testin
 		},
 	))
 
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 	require.NoError(t, reg.fetchFromDisk())
 

@@ -565,6 +565,24 @@ export namespace types {
 	        this.imageUrl = source["imageUrl"];
 	    }
 	}
+	export class GameIncompatibleAssetsResponse {
+	    status: string;
+	    message: string;
+	    assetType: string;
+	    assetIds: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new GameIncompatibleAssetsResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.message = source["message"];
+	        this.assetType = source["assetType"];
+	        this.assetIds = source["assetIds"];
+	    }
+	}
 	export class GameRunningResponse {
 	    status: string;
 	    message: string;

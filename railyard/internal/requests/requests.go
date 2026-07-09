@@ -95,24 +95,29 @@ func GetWithGithubToken(client *http.Client, opts GithubTokenRequestArgs) (*http
 		return nil, err
 	}
 
-	if tokenApplied && (resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden) {
-		// If the first authenticated requests with 401/403, assume the token is invalid/has permission issues
+	rateLimited := isRateLimited(resp)
+
+	// A 401, or a 403 that is not a rate limit, means the token was rejected (invalid/insufficient
+	// scope)
+	if tokenApplied && !rateLimited &&
+		(resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden) {
 		if opts.OnTokenRejected != nil {
-			// Callback to notify about token rejection
 			opts.OnTokenRejected(resp.StatusCode)
 		}
 		resp.Body.Close()
 
-		// Attempt again with unauthorized request
+		// Retry once without the token
 		reqNoAuth, reqErr := buildRequest(false)
 		if reqErr != nil {
 			return nil, reqErr
 		}
 		return client.Do(reqNoAuth)
 	}
-	if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode == http.StatusForbidden {
+
+	if rateLimited {
 		if opts.OnTokenRejected != nil {
-			opts.OnTokenRejected(resp.StatusCode)
+			// Report as a rate limit (not the raw 403/429) so the surface shows the right message.
+			opts.OnTokenRejected(http.StatusTooManyRequests)
 		}
 		resp.Body.Close()
 		return nil, &url.Error{
@@ -123,4 +128,16 @@ func GetWithGithubToken(client *http.Client, opts GithubTokenRequestArgs) (*http
 	}
 
 	return resp, nil
+}
+
+// isRateLimited reports whether a GitHub response is a rate limit rather than a genuine auth failure.
+func isRateLimited(resp *http.Response) bool {
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return true // 429 is always a rate limit
+	}
+	// GitHub signals a rate-limit 403 via a Retry-After backoff or an exhausted quota.
+	if resp.StatusCode == http.StatusForbidden {
+		return resp.Header.Get("Retry-After") != "" || resp.Header.Get("X-RateLimit-Remaining") == "0"
+	}
+	return false
 }

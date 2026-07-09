@@ -282,6 +282,11 @@ func UnsatisfiedConstraints(gameVersion *semver.Version, constraints []Installed
 	return failing
 }
 
+// ConstraintsSatisfied reports whether the game version fails no constraint. Mirrors the frontend isVersionGameCompatible.
+func ConstraintsSatisfied(gameVersion *semver.Version, constraints []InstalledConstraint) bool {
+	return len(UnsatisfiedConstraints(gameVersion, constraints)) == 0
+}
+
 // IncompatibleGameVersionMessage is the base sentence for incompatibility surfaces, mirrored in the frontend.
 const IncompatibleGameVersionMessage = "Not compatible with your game version"
 

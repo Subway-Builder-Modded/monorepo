@@ -3,8 +3,6 @@ package registry
 import (
 	"testing"
 
-	"railyard/internal/config"
-	"railyard/internal/testutil"
 	"railyard/internal/testutil/registrytest"
 	"railyard/internal/types"
 
@@ -12,7 +10,7 @@ import (
 )
 
 func TestGetInstallableVersions(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	registrytest.SetManifestsForTest(t, reg, nil, []types.MapManifest{
 		func() types.MapManifest {
 			manifest := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
@@ -53,7 +51,7 @@ func TestGetInstallableVersions(t *testing.T) {
 }
 
 func TestGetInstallableVersionsRejectsMissingOrIncompleteListings(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	registrytest.SetManifestsForTest(t, reg, nil, []types.MapManifest{
 		func() types.MapManifest {
 			manifest := registrytest.MockMapManifestWithIDAndCode("missing-map", "BBB")
@@ -94,7 +92,7 @@ func TestGetInstallableVersionsRejectsMissingOrIncompleteListings(t *testing.T) 
 }
 
 func TestAssetMissingInstallableVersion(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 
 	// No integrity report loaded: never reported as definitively missing (would be unsafe to purge).
 	require.False(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-a"))

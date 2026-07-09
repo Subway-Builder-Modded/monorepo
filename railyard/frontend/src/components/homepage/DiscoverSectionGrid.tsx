@@ -1,14 +1,11 @@
 import { ErrorBanner } from '@subway-builder-modded/asset-listings-ui';
 import type { AssetType } from '@subway-builder-modded/config';
 import { Skeleton } from '@subway-builder-modded/shared-ui';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { ItemCard } from '@/components/shared/ItemCard';
 import { useGameVersion } from '@/hooks/use-game-version';
-import {
-  type AssetRef,
-  useIncompatibleAssetKeys,
-} from '@/hooks/use-incompatible-asset-keys';
+import { useIncompatibleAssetKeys } from '@/hooks/use-incompatible-asset-keys';
 import { assetKey } from '@/lib/asset-key';
 import type { TaggedItem } from '@/lib/tagged-items';
 
@@ -37,11 +34,7 @@ export function DiscoverSectionGrid({
   const containerRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(1);
   const gameVersion = useGameVersion();
-  const assetRefs = useMemo<AssetRef[]>(
-    () => items.map(({ type, item }) => ({ type, id: item.id })),
-    [items],
-  );
-  const incompatibleItemKeys = useIncompatibleAssetKeys(assetRefs);
+  const incompatibleItemKeys = useIncompatibleAssetKeys();
 
   useEffect(() => {
     const container = containerRef.current;
