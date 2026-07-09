@@ -82,8 +82,7 @@ func (r *Registry) latestIntegrityCheckedAt(assetType types.AssetType, assetID s
 	return best, nil
 }
 
-// enrichFirstReleased best-effort stamps each manifest's FirstReleased from its earliest complete-version publish date.
-// Unlike last_updated this never drops an asset: an unresolvable debut date is left as 0 (sorts last on "First Released").
+// enrichFirstReleased informs the manifest's FirstReleased from its earliest complete-version publish date.
 func enrichFirstReleased[T any](
 	manifests []T,
 	assetType types.AssetType,
@@ -96,15 +95,13 @@ func enrichFirstReleased[T any](
 	}
 }
 
-// earliestReleasedAt returns the oldest publish date across an asset's complete versions (its debut), or 0 if none resolves.
-// Uses only the immutable released_at (github publishedAt / custom date). A version without one is treated as unknown and
-// skipped rather than falling back to checked_at, so an asset with no dated version sorts as oldest instead of
-// masquerading as newly released via a recent check timestamp.
+// earliestReleasedAt returns the oldest publish date across an asset's complete versions, or 0 if none resolves.
 func (r *Registry) earliestReleasedAt(assetType types.AssetType, assetID string) int64 {
 	listing, _ := r.getIntegrityListing(assetType, assetID)
 
 	best := int64(0)
 	for _, status := range listing.Versions {
+		// Skip incomplete versions and those without a released_at date
 		if !status.IsComplete || status.ReleasedAt == "" {
 			continue
 		}
@@ -113,6 +110,7 @@ func (r *Registry) earliestReleasedAt(assetType types.AssetType, assetID string)
 			continue
 		}
 		timestamp := parsed.Unix()
+		// Keep the oldest timestamp
 		if best == 0 || timestamp < best {
 			best = timestamp
 		}

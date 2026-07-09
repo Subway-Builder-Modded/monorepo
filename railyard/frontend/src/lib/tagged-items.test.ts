@@ -141,11 +141,23 @@ describe('compareItems', () => {
 
     // desc (newest first): the undated item sinks to the bottom.
     expect(
-      compareItems(dated, undated, { field: 'first_released', direction: 'desc' }, {}, {}),
+      compareItems(
+        dated,
+        undated,
+        { field: 'first_released', direction: 'desc' },
+        {},
+        {},
+      ),
     ).toBeLessThan(0);
     // asc (oldest first): the undated item rises to the top.
     expect(
-      compareItems(dated, undated, { field: 'first_released', direction: 'asc' }, {}, {}),
+      compareItems(
+        dated,
+        undated,
+        { field: 'first_released', direction: 'asc' },
+        {},
+        {},
+      ),
     ).toBeGreaterThan(0);
   });
 
