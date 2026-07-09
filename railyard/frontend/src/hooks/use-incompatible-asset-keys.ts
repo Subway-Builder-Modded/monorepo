@@ -9,11 +9,8 @@ import { GameIncompatibleAssets } from '../../wailsjs/go/registry/Registry';
 const ASSET_TYPES: AssetType[] = ['mod', 'map'];
 
 /**
- * Returns the set of assetKey()s for assets that have no game-compatible installable version.
- *
- * The backend computes this from the integrity report (which already carries every version's
- * game_version and buildings format) — no per-asset remote fetch, so it makes zero GitHub API calls
- * regardless of catalog size. Empty while the game version is undetected: unknown is not incompatible.
+ * Returns the assetKey()s of assets with no game-compatible installable version. The backend derives
+ * this from the integrity report — no per-asset remote fetch. Empty while the game version is undetected.
  */
 export function useIncompatibleAssetKeys(): ReadonlySet<string> {
   const gameVersion = useGameVersion();

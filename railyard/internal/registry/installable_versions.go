@@ -122,19 +122,17 @@ func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID str
 	return filtered, nil
 }
 
-// integrityVersionConstraints derives a version's compatibility constraints purely from its
-// integrity record — the manifest game_version and, for maps, the buildings-index format inferred
-// from matched_files. Reuses the same constraint builder as install/update.
+// integrityVersionConstraints builds a version's compatibility constraints from its integrity record.
 func integrityVersionConstraints(assetType types.AssetType, status types.IntegrityVersionStatus) []types.InstalledConstraint {
 	vi := types.VersionInfo{GameVersion: status.GameVersion}
 	if assetType == types.AssetTypeMap {
+		// Maps also constrain by buildings-index format, inferred from the integrity matched_files.
 		vi.MapBuildingsConstraint = buildingsIndexConstraintFromMatchedFiles(status.MatchedFiles)
 	}
 	return types.ConstraintsFromVersionInfo(assetType, vi)
 }
 
-// listingHasGameCompatibleVersion reports whether any integrity-complete version of the listing is
-// compatible with the game version.
+// listingHasGameCompatibleVersion reports whether any integrity-complete version satisfies the game version.
 func listingHasGameCompatibleVersion(assetType types.AssetType, listing types.IntegrityListing, gameVersion *semver.Version) bool {
 	for _, status := range listing.Versions {
 		if !status.IsComplete {
@@ -147,11 +145,8 @@ func listingHasGameCompatibleVersion(assetType types.AssetType, listing types.In
 	return false
 }
 
-// GameIncompatibleAssets returns the IDs of assets that have at least one installable version but
-// none compatible with the given game version, computed entirely from the loaded integrity report —
-// no remote fetch. Integrity already carries the version list, game_version, and buildings format,
-// so this is the source of truth for the compatibility badge. An empty or unparseable game version
-// yields an empty result: unknown is never treated as incompatible.
+// GameIncompatibleAssets returns the IDs of assets whose installable versions are all incompatible
+// with the game version, derived from the loaded integrity report (no remote fetch).
 func (r *Registry) GameIncompatibleAssets(assetType types.AssetType, gameVersion string) types.GameIncompatibleAssetsResponse {
 	resp := types.GameIncompatibleAssetsResponse{
 		AssetType: string(assetType),
@@ -163,6 +158,7 @@ func (r *Registry) GameIncompatibleAssets(assetType types.AssetType, gameVersion
 		return resp
 	}
 
+	// Unknown or unparseable game version is not a verdict — flag nothing.
 	trimmed := strings.TrimSpace(gameVersion)
 	if trimmed == "" {
 		resp.GenericResponse = types.SuccessResponse("No game version detected; no assets flagged")
@@ -176,13 +172,13 @@ func (r *Registry) GameIncompatibleAssets(assetType types.AssetType, gameVersion
 
 	report, err := r.GetIntegrityReport(assetType)
 	if err != nil || len(report.Listings) == 0 {
-		// No integrity loaded (early startup / unreachable) → cannot judge; flag nothing.
+		// No integrity loaded (early startup / unreachable): cannot judge, so flag nothing.
 		resp.GenericResponse = types.SuccessResponse("No integrity report loaded; no assets flagged")
 		return resp
 	}
 
 	for assetID, listing := range report.Listings {
-		// No installable version at all is "delisted", not "game-incompatible"; skip it here.
+		// No installable version at all is "delisted", not game-incompatible.
 		if !listing.HasCompleteVersion {
 			continue
 		}
