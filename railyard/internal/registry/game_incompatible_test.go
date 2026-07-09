@@ -3,8 +3,6 @@ package registry
 import (
 	"testing"
 
-	"railyard/internal/config"
-	"railyard/internal/testutil"
 	"railyard/internal/types"
 
 	"github.com/stretchr/testify/require"
@@ -85,7 +83,7 @@ func TestGameIncompatibleAssets(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+			reg := newTestRegistry(t)
 			report := types.RegistryIntegrityReport{Listings: tc.listings}
 			if tc.assetType == types.AssetTypeMod {
 				reg.integrityMods = report

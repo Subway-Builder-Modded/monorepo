@@ -15,7 +15,7 @@ import (
 )
 
 func TestFilterSemverVersions(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	filtered := reg.filterSemverVersions([]types.VersionInfo{
 		{Version: "1.2.3"},
 		{Version: "v2.3.4"},
@@ -71,7 +71,7 @@ func TestGetGitHubVersionsAuthFallbackAndCache(t *testing.T) {
 }
 
 func TestClearVersionsCache(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.versions.set("github|owner/repo", []types.VersionInfo{{Version: "v1.0.0"}})
 
 	_, ok := reg.versions.get("github|owner/repo")
@@ -84,7 +84,7 @@ func TestClearVersionsCache(t *testing.T) {
 }
 
 func TestGetVersionsRevalidatesWithETag(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 
 	var requestCount int32
@@ -125,12 +125,12 @@ func TestGetVersionsRevalidatesWithETag(t *testing.T) {
 func TestVersionsCachePersistsAcrossInstances(t *testing.T) {
 	testutil.NewHarness(t)
 
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.versions.load() // enables persistence against the temp data dir
 	reg.versions.store("github|owner/repo", "etag-9", []types.VersionInfo{{Version: "v2.0.0"}})
 
 	// A fresh instance loads the persisted entry (versions + ETag) from disk.
-	reg2 := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg2 := newTestRegistry(t)
 	reg2.versions.load()
 
 	cached, ok := reg2.versions.get("github|owner/repo")
@@ -145,7 +145,7 @@ func TestVersionsCachePersistsAcrossInstances(t *testing.T) {
 
 // Explicit regression test for Custom JSON versions to ensure that semver sorting is working and that higher semver versions are recorded as "higher" than lower ones, even if they are recorded after in the JSON file.
 func TestGetCustomVersionsSortsSemverDescending(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 
 	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -181,7 +181,7 @@ func TestGetCustomVersionsSortsSemverDescending(t *testing.T) {
 }
 
 func TestEnrichVersionsPreservesSourceProvidedGameVersionAndDeps(t *testing.T) {
-	reg := NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
+	reg := newTestRegistry(t)
 	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
 
 	server := testutil.NewLocalhostServer(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {

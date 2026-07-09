@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"railyard/internal/config"
 	"railyard/internal/testutil"
 	"railyard/internal/types"
 
@@ -16,11 +15,6 @@ func mustUnix(t *testing.T, value string) int64 {
 	parsed, err := time.Parse(time.RFC3339, value)
 	require.NoError(t, err)
 	return parsed.Unix()
-}
-
-func newTestRegistry(t *testing.T) *Registry {
-	t.Helper()
-	return NewRegistry(testutil.TestLogSink{}, config.NewConfig(testutil.TestLogSink{}))
 }
 
 func integrityReport(id string, versions map[string]types.IntegrityVersionStatus) types.RegistryIntegrityReport {
