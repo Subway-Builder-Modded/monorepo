@@ -102,6 +102,10 @@ func (r *Registry) fetchFromDisk() error {
 	// not shown rather than surfaced with a misleading epoch date.
 	mods = enrichLastUpdated(mods, types.AssetTypeMod, modManifestBase, r.resolveAssetLastUpdated, r.logger)
 	maps = enrichLastUpdated(maps, types.AssetTypeMap, mapManifestBase, r.resolveAssetLastUpdated, r.logger)
+
+	// first_released (asset debut) is best-effort: the oldest complete-version publish date, 0 when unresolvable.
+	enrichFirstReleased(mods, types.AssetTypeMod, modManifestBase, r.earliestReleasedAt)
+	enrichFirstReleased(maps, types.AssetTypeMap, mapManifestBase, r.earliestReleasedAt)
 	r.logger.Info("Registry load: integrity filter + enrichment", "mods", len(mods), "maps", len(maps), "duration", time.Since(stepStart))
 
 	// Make updates only when all reads are successful to avoid partial registry updates

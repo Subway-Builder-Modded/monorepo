@@ -43,7 +43,7 @@ describe('sort helpers', () => {
     const modOptions = getSortOptionsForType('mod');
     const mapOptions = getSortOptionsForType('map');
 
-    expect(modOptions).toHaveLength(9);
+    expect(modOptions).toHaveLength(11);
     expect(modOptions.map((option) => option.value)).not.toContain('population:asc');
     expect(modOptions.map((option) => option.value)).not.toContain('population:desc');
     expect(modOptions.map((option) => option.value)).not.toContain('city_code:asc');
@@ -52,7 +52,7 @@ describe('sort helpers', () => {
     expect(modOptions.map((option) => option.value)).toContain('last_updated:desc');
     expect(modOptions.map((option) => option.value)).toContain('random:asc');
     expect(modOptions.map((option) => option.value)).not.toContain('random:desc');
-    expect(mapOptions).toHaveLength(15);
+    expect(mapOptions).toHaveLength(17);
     expect(mapOptions).toEqual(SORT_OPTIONS);
   });
 

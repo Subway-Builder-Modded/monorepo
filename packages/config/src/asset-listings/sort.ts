@@ -13,6 +13,7 @@ export type SortField =
   | 'population'
   | 'downloads'
   | 'last_updated'
+  | 'first_released'
   | 'random';
 
 export type SortDirection = 'asc' | 'desc';
@@ -32,6 +33,7 @@ export interface SortOption {
 
 const SORT_FIELDS = [
   'last_updated',
+  'first_released',
   'downloads',
   'population',
   'name',
@@ -72,6 +74,8 @@ function sortOptionLabel(field: SortField): string {
       return 'Downloads';
     case 'last_updated':
       return 'Last Updated';
+    case 'first_released':
+      return 'First Released';
     case 'random':
       return 'Random';
     default:

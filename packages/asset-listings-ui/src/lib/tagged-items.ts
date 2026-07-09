@@ -34,6 +34,14 @@ export function getLastUpdated(item: AbstractTaggedItem): number {
     : 0;
 }
 
+// Asset debut (earliest complete integrity version). 0 when unresolvable, so it sorts last under desc.
+export function getFirstReleased(item: AbstractTaggedItem): number {
+  const timestamp = item.item.first_released;
+  return typeof timestamp === 'number' && Number.isFinite(timestamp)
+    ? timestamp
+    : 0;
+}
+
 /**
  * Generic comparison function for tagged items (mods and maps).
  * Supports different data structures through flexible field access.
@@ -114,6 +122,11 @@ export function compareItems<T extends AbstractTaggedItem>(
       const updatedA = getLastUpdated(a);
       const updatedB = getLastUpdated(b);
       return compareByDirection(updatedA, updatedB, sort.direction);
+    }
+    case 'first_released': {
+      const releasedA = getFirstReleased(a);
+      const releasedB = getFirstReleased(b);
+      return compareByDirection(releasedA, releasedB, sort.direction);
     }
     default:
       return 0;

@@ -64,6 +64,42 @@ func TestEnrichLastUpdatedFallsBackToIntegrityCheckedAt(t *testing.T) {
 	require.Equal(t, mustUnix(t, "2026-04-15T03:51:46Z"), maps[0].LastUpdated)
 }
 
+func TestEnrichFirstReleasedUsesEarliestReleasedAt(t *testing.T) {
+	reg := newTestRegistry(t)
+	maps := []types.MapManifest{
+		{AssetManifest: types.AssetManifest{ID: "map-a"}},
+		{AssetManifest: types.AssetManifest{ID: "map-mixed"}},
+		{AssetManifest: types.AssetManifest{ID: "map-undated"}},
+	}
+	reg.integrityMaps = types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			// Earliest complete version's released_at is the debut.
+			"map-a": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{
+				"1.0.0": {IsComplete: true, ReleasedAt: "2024-02-01T00:00:00Z", CheckedAt: "2026-05-01T00:00:00Z"},
+				"1.1.0": {IsComplete: true, ReleasedAt: "2024-06-01T00:00:00Z", CheckedAt: "2026-05-01T00:00:00Z"},
+				"0.9.0": {IsComplete: false, ReleasedAt: "2023-01-01T00:00:00Z"}, // incomplete: ignored
+			}},
+			// Some versions lack released_at: the min over the dated ones wins (undated skipped).
+			"map-mixed": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{
+				"1.0.0": {IsComplete: true, CheckedAt: "2025-03-10T00:00:00Z"}, // no released_at: skipped
+				"2.0.0": {IsComplete: true, ReleasedAt: "2025-08-10T00:00:00Z", CheckedAt: "2025-08-11T00:00:00Z"},
+			}},
+			// No released_at anywhere: 0 (unknown → sorts oldest). checked_at is NOT used as a proxy.
+			"map-undated": {HasCompleteVersion: true, Versions: map[string]types.IntegrityVersionStatus{
+				"1.0.0": {IsComplete: true, CheckedAt: "2026-06-01T00:00:00Z"},
+			}},
+		},
+	}
+
+	enrichFirstReleased(maps, types.AssetTypeMap, mapManifestBase, reg.earliestReleasedAt)
+
+	require.Equal(t, mustUnix(t, "2024-02-01T00:00:00Z"), maps[0].FirstReleased)
+	require.Equal(t, mustUnix(t, "2025-08-10T00:00:00Z"), maps[1].FirstReleased)
+	require.Equal(t, int64(0), maps[2].FirstReleased) // undated asset sorts oldest, never as newest
+}
+
 func TestDetermineLatestTimestampWithStable(t *testing.T) {
 	versions := []types.VersionInfo{
 		{Version: "2.0.0", Date: "2026-01-02T00:00:00Z", Prerelease: true},

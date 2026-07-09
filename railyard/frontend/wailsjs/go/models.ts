@@ -1053,6 +1053,7 @@ export namespace types {
 	    source: IntegrityVersionSource;
 	    fingerprint: string;
 	    checked_at: string;
+	    released_at?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new IntegrityVersionStatus(source);
@@ -1069,6 +1070,7 @@ export namespace types {
 	        this.source = this.convertValues(source["source"], IntegrityVersionSource);
 	        this.fingerprint = source["fingerprint"];
 	        this.checked_at = source["checked_at"];
+	        this.released_at = source["released_at"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1175,6 +1177,7 @@ export namespace types {
 	    author: any;
 	    github_id: number;
 	    last_updated: number;
+	    first_released?: number;
 	    description: string;
 	    tags: string[];
 	    gallery: string[];
@@ -1206,6 +1209,7 @@ export namespace types {
 	        this.author = this.convertValues(source["author"], null);
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
+	        this.first_released = source["first_released"];
 	        this.description = source["description"];
 	        this.tags = source["tags"];
 	        this.gallery = source["gallery"];
@@ -1287,6 +1291,7 @@ export namespace types {
 	    author: any;
 	    github_id: number;
 	    last_updated: number;
+	    first_released?: number;
 	    description: string;
 	    tags: string[];
 	    gallery: string[];
@@ -1308,6 +1313,7 @@ export namespace types {
 	        this.author = this.convertValues(source["author"], null);
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
+	        this.first_released = source["first_released"];
 	        this.description = source["description"];
 	        this.tags = source["tags"];
 	        this.gallery = source["gallery"];

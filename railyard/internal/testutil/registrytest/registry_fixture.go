@@ -176,8 +176,8 @@ func buildIntegrityReport(ids []string) types.RegistryIntegrityReport {
 	listings := make(map[string]types.IntegrityListing, len(ids))
 	hasComplete := true
 	for _, id := range ids {
-		// Mirror real registry data: a complete version always carries a
-		// checked_at timestamp, which is how the app derives last_updated offline.
+		// Mirror real registry data: a complete version carries a checked_at
+		// (drives last_updated) and a released_at publish date (drives first_released).
 		listings[id] = types.IntegrityListing{
 			HasCompleteVersion:   true,
 			LatestSemverVersion:  nil,
@@ -185,7 +185,7 @@ func buildIntegrityReport(ids []string) types.RegistryIntegrityReport {
 			CompleteVersions:     []string{},
 			IncompleteVersions:   []string{},
 			Versions: map[string]types.IntegrityVersionStatus{
-				"v1.0.0": {IsComplete: true, CheckedAt: "2026-01-01T00:00:00Z"},
+				"v1.0.0": {IsComplete: true, CheckedAt: "2026-01-01T00:00:00Z", ReleasedAt: "2025-12-01T00:00:00Z"},
 			},
 		}
 	}

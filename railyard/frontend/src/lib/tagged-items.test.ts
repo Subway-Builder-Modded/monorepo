@@ -121,6 +121,34 @@ describe('compareItems', () => {
     ).toBeGreaterThan(0); // newer should come first
   });
 
+  it('sorts by first_released', () => {
+    const older = makeMod({ first_released: 100 });
+    const newer = makeMod({ first_released: 999 });
+    expect(
+      compareItems(
+        older,
+        newer,
+        { field: 'first_released', direction: 'desc' },
+        {},
+        {},
+      ),
+    ).toBeGreaterThan(0); // more recently debuted comes first
+  });
+
+  it('sorts an undated (missing first_released) item as oldest in both directions', () => {
+    const dated = makeMod({ first_released: 500 });
+    const undated = makeMod({ first_released: undefined }); // no debut date → treated as 0
+
+    // desc (newest first): the undated item sinks to the bottom.
+    expect(
+      compareItems(dated, undated, { field: 'first_released', direction: 'desc' }, {}, {}),
+    ).toBeLessThan(0);
+    // asc (oldest first): the undated item rises to the top.
+    expect(
+      compareItems(dated, undated, { field: 'first_released', direction: 'asc' }, {}, {}),
+    ).toBeGreaterThan(0);
+  });
+
   it('sorts maps by population', () => {
     const small = makeMap({ population: 10_000 });
     const large = makeMap({ population: 1_000_000 });

@@ -82,6 +82,44 @@ func (r *Registry) latestIntegrityCheckedAt(assetType types.AssetType, assetID s
 	return best, nil
 }
 
+// enrichFirstReleased best-effort stamps each manifest's FirstReleased from its earliest complete-version publish date.
+// Unlike last_updated this never drops an asset: an unresolvable debut date is left as 0 (sorts last on "First Released").
+func enrichFirstReleased[T any](
+	manifests []T,
+	assetType types.AssetType,
+	base func(*T) *types.AssetManifest,
+	resolve func(types.AssetType, string) int64,
+) {
+	for i := range manifests {
+		asset := base(&manifests[i])
+		asset.FirstReleased = resolve(assetType, asset.ID)
+	}
+}
+
+// earliestReleasedAt returns the oldest publish date across an asset's complete versions (its debut), or 0 if none resolves.
+// Uses only the immutable released_at (github publishedAt / custom date). A version without one is treated as unknown and
+// skipped rather than falling back to checked_at, so an asset with no dated version sorts as oldest instead of
+// masquerading as newly released via a recent check timestamp.
+func (r *Registry) earliestReleasedAt(assetType types.AssetType, assetID string) int64 {
+	listing, _ := r.getIntegrityListing(assetType, assetID)
+
+	best := int64(0)
+	for _, status := range listing.Versions {
+		if !status.IsComplete || status.ReleasedAt == "" {
+			continue
+		}
+		parsed, err := time.Parse(time.RFC3339, status.ReleasedAt)
+		if err != nil {
+			continue
+		}
+		timestamp := parsed.Unix()
+		if best == 0 || timestamp < best {
+			best = timestamp
+		}
+	}
+	return best
+}
+
 // determineLatestTimestamp iterates through a list of versions to find the most recent stable release timestamp, falling back to a prerelease timestamp if no stable version is available.
 // This is retained for the on-demand version-resolution path; the registry load path no longer calls it.
 func determineLatestTimestamp(logger logSink, versions []types.VersionInfo, updateType string) (int64, error) {
