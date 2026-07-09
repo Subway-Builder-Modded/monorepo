@@ -60,6 +60,7 @@ type AssetManifest struct {
 	Author        AuthorDetails `json:"author"`
 	GithubID      int           `json:"github_id"`
 	LastUpdated   int64         `json:"last_updated"`
+	FirstReleased int64         `json:"first_released,omitempty"`
 	Description   string        `json:"description"`
 	Tags          []string      `json:"tags"`
 	Gallery       []string      `json:"gallery"`
@@ -279,6 +280,7 @@ type IntegrityVersionStatus struct {
 	Source       IntegrityVersionSource `json:"source"`
 	Fingerprint  string                 `json:"fingerprint"`
 	CheckedAt    string                 `json:"checked_at"`
+	ReleasedAt   string                 `json:"released_at,omitempty"`
 }
 
 // IntegrityVersionSource represents the source information for a version
