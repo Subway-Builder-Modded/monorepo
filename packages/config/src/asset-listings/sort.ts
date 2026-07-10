@@ -73,9 +73,9 @@ function sortOptionLabel(field: SortField): string {
     case 'downloads':
       return 'Downloads';
     case 'last_updated':
-      return 'Last Updated';
+      return 'Date Updated';
     case 'first_released':
-      return 'First Released';
+      return 'Date Released';
     case 'random':
       return 'Random';
     default:
