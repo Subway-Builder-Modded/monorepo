@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -14,37 +15,46 @@ import (
 func GetSteamLibraryPath(ctx context.Context) (string, error) {
 	switch runtime.GOOS {
 	case "darwin":
-		if res, err := os.Stat("~/Library/Application Support/Steam/steamapps"); err == nil && res.IsDir() {
-			return "~/Library/Application Support/Steam/steamapps", nil
-		} else {
-			res, err := wailsruntime.OpenDirectoryDialog(ctx, wailsruntime.OpenDialogOptions{
-				CanCreateDirectories: false,
-				Title:                "Select steamapps Path",
-			})
-			if err != nil {
-				return "", err
+		if home, err := os.UserHomeDir(); err == nil {
+			p := filepath.Join(home, "Library", "Application Support", "Steam", "steamapps")
+			if res, statErr := os.Stat(p); statErr == nil && res.IsDir() {
+				return p, nil
 			}
-			return res, nil
 		}
+		res, err := wailsruntime.OpenDirectoryDialog(ctx, wailsruntime.OpenDialogOptions{
+			CanCreateDirectories: false,
+			Title:                "Select steamapps Path",
+		})
+		if err != nil {
+			return "", err
+		}
+		return res, nil
 	case "linux":
-		if res, err := os.Stat("~/.steam/steam/steamapps"); err == nil && res.IsDir() {
-			return "~/.steam/steam/steamapps", nil
-		} else if res, err := os.Stat("~/.local/share/Steam/steamapps"); err == nil && res.IsDir() {
-			return "~/.local/share/Steam/steamapps", nil
-		} else if res, err := os.Stat("~/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps"); err == nil && res.IsDir() {
-			return "~/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps", nil
-		} else if res, err := os.Stat("/var/lib/snapd/snap/steam/common/steamapps"); err == nil && res.IsDir() {
-			return "/var/lib/snapd/snap/steam/common/steamapps", nil
-		} else {
-			res, err := wailsruntime.OpenDirectoryDialog(ctx, wailsruntime.OpenDialogOptions{
-				CanCreateDirectories: false,
-				Title:                "Select steamapps Path",
-			})
-			if err != nil {
-				return "", err
-			}
-			return res, nil
+		var candidates []string
+		if home, err := os.UserHomeDir(); err == nil {
+			candidates = append(candidates,
+				filepath.Join(home, ".steam", "steam", "steamapps"),
+				filepath.Join(home, ".local", "share", "Steam", "steamapps"),
+				filepath.Join(home, ".var", "app", "com.valvesoftware.Steam", ".local", "share", "Steam", "steamapps"),
+			)
 		}
+		candidates = append(candidates, "/var/lib/snapd/snap/steam/common/steamapps")
+		for _, p := range candidates {
+			if p == "" {
+				continue
+			}
+			if res, err := os.Stat(p); err == nil && res.IsDir() {
+				return p, nil
+			}
+		}
+		res, err := wailsruntime.OpenDirectoryDialog(ctx, wailsruntime.OpenDialogOptions{
+			CanCreateDirectories: false,
+			Title:                "Select steamapps Path",
+		})
+		if err != nil {
+			return "", err
+		}
+		return res, nil
 	}
 	return "", errors.New("Unsupported OS: " + runtime.GOOS)
 }
