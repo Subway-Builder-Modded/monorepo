@@ -835,7 +835,7 @@ func (a *App) StopGame() types.GenericResponse {
 
 	if err := cmd.Process.Kill(); err != nil {
 		if a.Config.Cfg.UseSteamLaunch && runtime.GOOS == "linux" {
-			command := exec.Command("flatpak-spawn", "--host", "kill", "-9", strconv.Itoa(cmd.Process.Pid))
+			command := exec.Command("flatpak-spawn", "--host", "pkill", "-9", "metro-maker4")
 			err := command.Run()
 			if err != nil {
 				a.Logger.Warn("Failed to kill Steam-launched game process on Linux", "error", err)
