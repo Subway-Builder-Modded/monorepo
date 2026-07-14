@@ -55,7 +55,7 @@ type NavLinkConfig = {
   isCurrent: (location: string) => boolean;
 };
 
-const navLinks: NavLinkConfig[] = [
+var navLinks: NavLinkConfig[] = [
   {
     href: '/browse',
     label: 'Browse',
@@ -89,7 +89,9 @@ const navLinks: NavLinkConfig[] = [
     icon: Settings,
     isCurrent: (location: string) => location.startsWith('/settings'),
   },
-] as const;
+];
+
+
 
 const MOD_REMINDER_KEY = 'railyard:mod-reminder-acknowledged';
 const NAV_ITEM_BASE_CLASS =
@@ -244,6 +246,8 @@ export function Navbar() {
     };
   }, []);
 
+  const isUsingSteam = useConfigStore(s => s.config?.useSteamLaunch ?? false);
+
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-3 z-50">
       <div className={cn(APP_SHELL_WIDTH_CLASS, APP_SHELL_PADDING_CLASS)}>
@@ -260,6 +264,9 @@ export function Navbar() {
             </NavbarBrandBlock>
             <nav className="flex max-w-full flex-wrap items-center gap-1.5">
               {navLinks.map(({ href, label, icon: Icon, isCurrent }) => {
+                if(isUsingSteam && href === '/logs') {
+                  return null;
+                }
                 const current = isCurrent(location);
 
                 return (

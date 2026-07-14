@@ -20,6 +20,7 @@ type AppConfig struct {
 	ChromeSandboxPath       string `json:"chromeSandboxPath,omitempty"`
 	ViewTestAssets          bool   `json:"viewTestAssets,omitempty"`
 	DefaultSteamLibraryPath string `json:"defaultSteamLibraryPath,omitempty"`
+	UseSteamLaunch          bool   `json:"useSteamLaunch,omitempty"` // Whether to launch the game through Steam instead of directly.
 	// Other fields to be appended here
 }
 
