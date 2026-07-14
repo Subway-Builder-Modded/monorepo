@@ -261,7 +261,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
   {
     id: "registry-creator-database",
     suiteId: "registry",
-    title: "Creator Database",
+    title: "Creators",
     description: "Search the Registry author and project database.",
     href: "/registry/authors",
     icon: Users,

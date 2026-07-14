@@ -106,11 +106,11 @@ const STATIC_NAV_METADATA: Record<string, { description: string; title: string }
     description: STATIC_SUITE_METADATA.registry.homeDescription,
   },
   "/registry/authors": {
-    title: "Creator Database",
+    title: "Creators",
     description: "Search the Registry author and project database.",
   },
   "/registry/authors/projects": {
-    title: "Creator Database",
+    title: "Creators",
     description: "Search the Registry author and project database.",
   },
   "/registry/docs": {
