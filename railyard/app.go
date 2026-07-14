@@ -839,7 +839,9 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	// Wait for process exit in background
 	go func() {
+		var err error
 		if cfg.Config.UseSteamLaunch && runtime.GOOS == "linux" {
+			a.Logger.Info("Waiting for Steam-launched game process to exit on Linux")
 			// On Linux, Steam-launched processes may not be direct children of the Railyard process, so we cannot reliably wait on them. Instead, we poll for process exit.
 			command := exec.Command("flatpak-spawn", "--host", "pgrep", "-l", "metro-maker4")
 			for {
@@ -853,9 +855,9 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 					break
 				}
 			}
+		} else {
+			err = cmd.Wait()
 		}
-
-		err := cmd.Wait()
 		a.gameMu.Lock()
 		a.gameCmd = nil
 		a.gameStarting = false
