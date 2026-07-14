@@ -212,7 +212,7 @@ export function GeneralSettingsPanel() {
                   {config?.useSteamLaunch ? 'Enabled' : 'Disabled'}
                 </Badge>
               }
-              description="Launch the game through Steam instead of directly"
+              description="Launch the game through Steam instead of from the executable directly (Recommended for Steam users)"
               action={
                 <SettingToggleButton
                   accent="update"
