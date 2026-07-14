@@ -616,7 +616,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	}
 
 	cfg := a.Config.GetConfig()
-	if !cfg.Validation.ExecutablePathValid {
+	if !cfg.Validation.ExecutablePathValid && !cfg.Config.UseSteamLaunch {
 		return types.ErrorResponse("game executable path is not configured or invalid")
 	}
 
