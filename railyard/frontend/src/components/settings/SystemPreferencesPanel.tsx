@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 
 import { SettingRow } from '@/components/settings/SettingRow';
 import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
+import { useConfigStore } from '@/stores/config-store';
 import { useProfileStore } from '@/stores/profile-store';
 
 import {
@@ -23,6 +24,7 @@ import {
 
 export function SystemPreferencesPanel() {
   const profile = useProfileStore((s) => s.profile);
+  const usingSteam = useConfigStore((s) => s.config?.useSteamLaunch ?? false);
   const updateSystemPreferences = useProfileStore(
     (s) => s.updateSystemPreferences,
   );
@@ -134,19 +136,21 @@ export function SystemPreferencesPanel() {
               />
             }
           />
-          <SettingRow
-            icon={<Terminal className="h-4 w-4" />}
-            label="Developer Tools"
-            description="Enable Chromium DevTools for inspecting the app interface"
-            action={
-              <SettingToggleButton
-                enabled={!!profile?.systemPreferences?.useDevTools}
-                onToggle={handleToggleDevTools}
-                enabledLabel="Enabled"
-                disabledLabel="Disabled"
-              />
-            }
-          />
+          {!usingSteam && (
+            <SettingRow
+              icon={<Terminal className="h-4 w-4" />}
+              label="Developer Tools"
+              description="Enable Chromium DevTools for inspecting the app interface"
+              action={
+                <SettingToggleButton
+                  enabled={!!profile?.systemPreferences?.useDevTools}
+                  onToggle={handleToggleDevTools}
+                  enabledLabel="Enabled"
+                  disabledLabel="Disabled"
+                />
+              }
+            />
+          )}
           {platform === 'linux' && (
             <SettingRow
               icon={<Shield className="h-4 w-4" />}

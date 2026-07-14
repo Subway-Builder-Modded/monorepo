@@ -580,31 +580,32 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		// Prefer host launch via Flatpak
 		if cfg.Config.UseSteamLaunch {
 			// Launch via Steam URL to ensure Steam overlay and proper launch context
-			cmd = exec.Command("cmd", "/C", "start", constants.STEAM_URL)
-		}
-		if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
-			if a.Config.Cfg.ChromeSandboxPath != "" {
-				// Ensure sandbox is used if available to avoid permission issues in Flatpak environments
-				args := []string{"--env=CHROME_DEVEL_SANDBOX=" + a.Config.Cfg.ChromeSandboxPath}
-				// Pass it through --env because thats how flatpak-spawn works
-				if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
-					args = append(args, "--env=DEBUG_PROD=TRUE")
-				}
-				args = append(args, "--host", exePath)
-				args = append(args, extraSplitArgs...)
-				cmd = exec.Command("flatpak-spawn", args...)
-			} else {
-				args := []string{"--host", exePath, "--no-sandbox"}
-				args = append(args, extraSplitArgs...)
-				cmd = exec.Command("flatpak-spawn", args...)
-			}
+			cmd = exec.Command("xdg-open", constants.STEAM_URL)
 		} else {
-			// Fall back to direct launch if flatpak-spawn is not available
-			a.Logger.Warn("flatpak-spawn not available; falling back to direct executable launch", "error", lookPathErr)
-			cmd = exec.Command(exePath, extraSplitArgs...)
-			cmd.Dir = filepath.Dir(exePath)
-			if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
-				cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
+			if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
+				if a.Config.Cfg.ChromeSandboxPath != "" {
+					// Ensure sandbox is used if available to avoid permission issues in Flatpak environments
+					args := []string{"--env=CHROME_DEVEL_SANDBOX=" + a.Config.Cfg.ChromeSandboxPath}
+					// Pass it through --env because thats how flatpak-spawn works
+					if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
+						args = append(args, "--env=DEBUG_PROD=TRUE")
+					}
+					args = append(args, "--host", exePath)
+					args = append(args, extraSplitArgs...)
+					cmd = exec.Command("flatpak-spawn", args...)
+				} else {
+					args := []string{"--host", exePath, "--no-sandbox"}
+					args = append(args, extraSplitArgs...)
+					cmd = exec.Command("flatpak-spawn", args...)
+				}
+			} else {
+				// Fall back to direct launch if flatpak-spawn is not available
+				a.Logger.Warn("flatpak-spawn not available; falling back to direct executable launch", "error", lookPathErr)
+				cmd = exec.Command(exePath, extraSplitArgs...)
+				cmd.Dir = filepath.Dir(exePath)
+				if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
+					cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
+				}
 			}
 		}
 	} else {
