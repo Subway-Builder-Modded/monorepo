@@ -17,7 +17,6 @@ finish-args:
   - --device=dri
   - --talk-name=org.freedesktop.Flatpak
   - --talk-name=org.freedesktop.portal.Desktop
-  - --pid=host
 
 modules:
   - name: Railyard

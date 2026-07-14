@@ -16,6 +16,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -684,14 +685,27 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 			}
 		case "linux":
 			for foundProcess == nil {
-				processses, err := ps.Processes()
+				processCmd := exec.Command("flatpak-spawn", "--host", "pgrep", "-l", "metro-maker4")
+				processes, err := processCmd.Output()
+				// Separate into a list of lines, each containing "pid process_name"
+				lines := strings.Split(string(processes), "\n")
 				if err != nil {
 					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
 					break
 				}
-				for _, proc := range processses {
-					if strings.HasSuffix(proc.Executable(), "metro-maker4") {
-						gameProcess, err := os.FindProcess(proc.Pid())
+				for _, proc := range lines {
+					if strings.HasSuffix(proc, "metro-maker4") {
+						// Extract PID from the line
+						parts := strings.Split(proc, " ")
+						if len(parts) < 2 {
+							continue
+						}
+						pid, err := strconv.Atoi(parts[0])
+						if err != nil {
+							a.Logger.Warn("Failed to parse PID", "error", err)
+							break
+						}
+						gameProcess, err := os.FindProcess(pid)
 						if err != nil {
 							a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
 							break
@@ -699,7 +713,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 						foundProcess = &exec.Cmd{
 							Process: gameProcess,
 						}
-						a.Logger.Info("Found Steam-launched game process", "pid", proc.Pid())
+						a.Logger.Info("Found Steam-launched game process", "pid", pid)
 						break
 					}
 				}
@@ -799,6 +813,14 @@ func (a *App) StopGame() types.GenericResponse {
 	}
 
 	if err := cmd.Process.Kill(); err != nil {
+		if a.Config.Cfg.UseSteamLaunch && runtime.GOOS == "linux" {
+			command := exec.Command("flatpak-spawn", "--host", "kill", "-9", strconv.Itoa(cmd.Process.Pid))
+			err := command.Run()
+			if err != nil {
+				a.Logger.Warn("Failed to kill Steam-launched game process on Linux", "error", err)
+				return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
+			}
+		}
 		a.Logger.Warn("Failed to kill game process", "error", err)
 		return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
 	}
