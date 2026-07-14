@@ -153,6 +153,48 @@ describe("loadRegistryItemsForType", () => {
     expect(items[0]?.thumbnailSrc).toBeNull();
   });
 
+  it("uses absolute gallery URLs as card thumbnails", async () => {
+    const base = "/registry-cache/maps";
+    const remoteThumbnail =
+      "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/alpha/gallery/preview.webp";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: { alpha: { has_complete_version: true, versions: {} } },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ maps: ["alpha"] }),
+      [`${base}/alpha/manifest.json`]: JSON.stringify({
+        name: "Alpha",
+        gallery: [remoteThumbnail, "gallery/second.webp"],
+      }),
+    });
+
+    const items = await loadRegistryItemsForType("maps", "maps");
+
+    expect(items[0]?.thumbnailSrc).toBe(remoteThumbnail);
+  });
+
+  it("keeps legacy relative gallery thumbnails on the local-cache fallback", async () => {
+    const base = "/registry-cache/maps";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: { alpha: { has_complete_version: true, versions: {} } },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ maps: ["alpha"] }),
+      [`${base}/alpha/manifest.json`]: JSON.stringify({
+        name: "Alpha",
+        gallery: ["gallery/preview.webp"],
+      }),
+    });
+
+    const items = await loadRegistryItemsForType("maps", "maps");
+
+    expect(items[0]?.thumbnailSrc).toBe("/registry-cache/maps/alpha/gallery/preview.webp");
+  });
+
   it("excludes items that fail integrity completeness", async () => {
     const base = "/registry-cache/mods";
 

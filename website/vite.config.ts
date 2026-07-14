@@ -170,12 +170,19 @@ const STATIC_NAV_METADATA: Record<string, { description: string; title: string }
 type StaticRegistryManifest = {
   description?: string;
   gallery?: string[];
+  is_test?: boolean;
   name?: string;
   source?: string;
 };
 
 type StaticRegistryIntegrity = {
-  listings?: Record<string, { versions?: Record<string, unknown> }>;
+  listings?: Record<
+    string,
+    {
+      has_complete_version?: boolean;
+      versions?: Record<string, { is_complete?: boolean }>;
+    }
+  >;
 };
 
 type StaticPageMetadata = {
@@ -555,6 +562,18 @@ function collectRegistryRoutes(publicDir: string): string[] {
     const ids = indexData[routeSegment] ?? Object.keys(integrity.listings ?? {});
 
     for (const id of ids) {
+      const listing = integrity.listings?.[id];
+      const hasCompleteVersion =
+        listing?.has_complete_version === true ||
+        Object.values(listing?.versions ?? {}).some((version) => version.is_complete === true);
+      if (!hasCompleteVersion) continue;
+
+      const manifest = readJsonFile<StaticRegistryManifest>(
+        path.join(collectionDir, id, "manifest.json"),
+        {},
+      );
+      if (!manifest.name || manifest.is_test === true) continue;
+
       routes.add(`/registry/${routeSegment}/${id}`);
       for (const tab of STATIC_REGISTRY_DETAIL_TABS) {
         routes.add(`/registry/${routeSegment}/${id}/${tab}`);
@@ -564,10 +583,6 @@ function collectRegistryRoutes(publicDir: string): string[] {
         routes.add(`/registry/${routeSegment}/${id}/versions/${version}`);
       }
 
-      const manifest = readJsonFile<StaticRegistryManifest>(
-        path.join(collectionDir, id, "manifest.json"),
-        {},
-      );
       const projectId = extractGithubRepoSlugFromUrl(manifest.source);
       if (projectId) {
         projectCounts.set(projectId, (projectCounts.get(projectId) ?? 0) + 1);

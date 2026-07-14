@@ -97,7 +97,9 @@ describe("resolvePageMetadata", () => {
         JSON.stringify({
           name: "South Florida",
           description: "# South Florida\n\nA detailed map of South Florida for Subway Builder.",
-          gallery: ["gallery/preview.webp"],
+          gallery: [
+            "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/south-florida/gallery/preview.webp",
+          ],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
@@ -110,7 +112,9 @@ describe("resolvePageMetadata", () => {
       expect(metadata.description).toBe(
         "South Florida A detailed map of South Florida for Subway Builder.",
       );
-      expect(metadata.imagePath).toBe("/registry-cache/maps/south-florida/gallery/preview.webp");
+      expect(metadata.imagePath).toBe(
+        "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/south-florida/gallery/preview.webp",
+      );
     } finally {
       globalThis.fetch = originalFetch;
     }

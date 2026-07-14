@@ -27,7 +27,9 @@ describe("usePageMetadata", () => {
         JSON.stringify({
           name: "South Florida",
           description: "# South Florida\n\nA detailed map of South Florida.",
-          gallery: ["gallery/preview.webp"],
+          gallery: [
+            "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/south-florida/gallery/preview.webp",
+          ],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
@@ -43,7 +45,7 @@ describe("usePageMetadata", () => {
         "South Florida A detailed map of South Florida.",
       );
       expect(findMeta("property", "og:image")?.content).toContain(
-        "/registry-cache/maps/south-florida/gallery/preview.webp",
+        "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/south-florida/gallery/preview.webp",
       );
     } finally {
       globalThis.fetch = originalFetch;

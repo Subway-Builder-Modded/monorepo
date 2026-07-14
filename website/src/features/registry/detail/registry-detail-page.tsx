@@ -15,7 +15,7 @@ import { NotFoundPage } from "@/features/not-found";
 import { buildRailyardDeeplink } from "@/features/registry/detail/lib/build-railyard-deeplink";
 import { loadRegistryDetail } from "@/features/registry/detail/lib/load-registry-detail";
 import { normalizeRegistryDetail } from "@/features/registry/detail/lib/normalize-registry-detail";
-import { getRegistryItemCachePath } from "@/features/registry/lib/registry-asset-paths";
+import { getRegistryMapBasemapUrl } from "@/features/registry/lib/registry-asset-paths";
 import { getRegistryDetailUrl } from "@/features/registry/lib/routing";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 import { DetailsTab } from "@/features/registry/detail/components/details-tab";
@@ -90,12 +90,10 @@ export function RegistryDetailPage({
         }
 
         const normalized = normalizeRegistryDetail(loaded);
+        setDetail(normalized);
+        setIsLoading(false);
 
-        await preloadDetailTabAssets(normalized);
-
-        if (!isCancelled) {
-          setDetail(normalized);
-        }
+        void preloadDetailTabAssets(normalized).catch(() => {});
       } catch {
         if (!isCancelled) {
           setDetail(null);
@@ -123,7 +121,7 @@ export function RegistryDetailPage({
   const railyardAccentDark = railyardSuite.accent.dark;
   const mapBasemapSrc =
     detail && getRegistryTypeUiRules(detail.typeId).showBasemapBackground
-      ? getRegistryItemCachePath(detail.routeSegment, detail.id, "basemap.svg")
+      ? getRegistryMapBasemapUrl(detail.id)
       : null;
 
   if (isLoading) {
