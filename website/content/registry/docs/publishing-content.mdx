@@ -31,6 +31,15 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 :::
 
+:::important
+
+You must expose your map's `manifest.json` outside the archive so Railyard can validate it without downloading the full ZIP. Specifically, Railyard checks that the `dependencies` field is present and includes `subway-builder`. This is required for all maps.
+
+- **GitHub Releases**: Upload `manifest.json` as a **separate release asset** alongside the ZIP file.
+- **Custom URL**: Your [Update JSON](/registry/docs/using-custom-url) serves as your manifest.
+
+:::
+
 :::tip
 
 You can host multiple maps in the same repository by uploading multiple ZIP files. If you are doing this, all maps must be uploaded as separate release assets and you must set up [Custom URL](/registry/docs/using-custom-url).
@@ -127,14 +136,14 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 ::::important
 
-You must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Specifically, Railyard checks that the `dependencies` field is present and includes `subway-builder`.
+You must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Specifically, Railyard checks that the `dependencies` field is present and includes `subway-builder`. This is required for all mods.
 
 - **GitHub Releases**: Upload `manifest.json` as a **separate release asset** alongside the ZIP file.
 - **Custom URL**: Provide a **Manifest URL** in the submission form pointing to the `manifest.json` for the current release.
 
-:::note
+:::tip
 
-Mods must declare dependencies in their `manifest.json` (the one shipped inside the mod's download ZIP). The `dependencies` field is required and must include a `subway-builder` semver range. You can also declare another existing mod as a dependency. For more information, see the [Dependencies guide](/registry/docs/dependencies).
+You can also declare another existing mod as a dependency. For more information, see the [Dependencies guide](/registry/docs/dependencies).
 
 :::
 
