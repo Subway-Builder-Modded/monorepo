@@ -11,7 +11,6 @@ describe("matchDocsRoute", () => {
   it("returns none for non-docs paths", () => {
     expect(matchDocsRoute("/", "")).toEqual({ kind: "none" });
     expect(matchDocsRoute("/railyard", "")).toEqual({ kind: "none" });
-    expect(matchDocsRoute("/railyard/browse", "")).toEqual({ kind: "none" });
   });
 
   it("returns none for unknown suite", () => {

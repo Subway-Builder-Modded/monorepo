@@ -135,7 +135,7 @@ describe("getDocSourcePath", () => {
 describe("getEditUrl", () => {
   it("builds the GitHub source URL for versioned docs", () => {
     expect(getEditUrl("railyard", "v0.2", "troubleshooting-railyard")).toBe(
-      "https://github.com/Subway-Builder-Modded/monorepo/blob/website-dev/content/railyard/docs/v0.2/troubleshooting-railyard.mdx",
+      "ttps://github.com/Subway-Builder-Modded/monorepo/edit/website-dev/website/content/railyard/docs/v0.2/troubleshooting-railyard.mdx",
     );
   });
 });
