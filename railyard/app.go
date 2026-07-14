@@ -413,8 +413,7 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	exePath := cfg.Config.ExecutablePath
 	var asarPath string
 
-	profile := a.Profiles.GetActiveProfile()
-	if profile.Status == types.ResponseSuccess && cfg.Config.UseSteamLaunch {
+	if cfg.Config.UseSteamLaunch {
 		steamPath := cfg.Config.DefaultSteamLibraryPath
 		gamePath, err := steam.AutodetectSteamSubwayBuilderPath(steamPath)
 		if err != nil {
@@ -579,6 +578,10 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		}
 	} else if runtime.GOOS == "linux" {
 		// Prefer host launch via Flatpak
+		if cfg.Config.UseSteamLaunch {
+			// Launch via Steam URL to ensure Steam overlay and proper launch context
+			cmd = exec.Command("cmd", "/C", "start", constants.STEAM_URL)
+		}
 		if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
 			if a.Config.Cfg.ChromeSandboxPath != "" {
 				// Ensure sandbox is used if available to avoid permission issues in Flatpak environments
@@ -605,7 +608,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 			}
 		}
 	} else {
-		if profile.Status == types.ResponseSuccess && cfg.Config.UseSteamLaunch {
+		if cfg.Config.UseSteamLaunch {
 			cmd = exec.Command("cmd", "/C", "start", constants.STEAM_URL)
 		} else {
 			cmd = exec.Command(exePath, extraSplitArgs...)
@@ -635,7 +638,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	}
 
 	// Get true process if launching via steam
-	if profile.Status == types.ResponseSuccess && cfg.Config.UseSteamLaunch {
+	if cfg.Config.UseSteamLaunch {
 		foundProcess := (*exec.Cmd)(nil)
 		switch runtime.GOOS {
 		case "windows":
@@ -678,6 +681,28 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 					}
 				}
 			}
+		case "linux":
+			for foundProcess == nil {
+				processses, err := ps.Processes()
+				if err != nil {
+					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
+					break
+				}
+				for _, proc := range processses {
+					if strings.HasSuffix(proc.Executable(), "metro-maker4") {
+						gameProcess, err := os.FindProcess(proc.Pid())
+						if err != nil {
+							a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+							break
+						}
+						foundProcess = &exec.Cmd{
+							Process: gameProcess,
+						}
+						a.Logger.Info("Found Steam-launched game process", "pid", proc.Pid())
+						break
+					}
+				}
+			}
 		}
 		cmd = foundProcess
 	}
@@ -690,7 +715,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	a.emitEvent("game:status", "running")
 
-	if profile.Status != types.ResponseSuccess || !cfg.Config.UseSteamLaunch {
+	if !cfg.Config.UseSteamLaunch {
 		a.emitEvent("game:log", map[string]string{
 			"stream": "stdout",
 			"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),
