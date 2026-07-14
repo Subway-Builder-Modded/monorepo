@@ -15,6 +15,7 @@ import (
 	"railyard/internal/logger"
 	"railyard/internal/paths"
 	"railyard/internal/requests"
+	"railyard/internal/steam"
 	"railyard/internal/types"
 
 	wruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -137,10 +138,23 @@ func (s *Config) UpdateConfig(mutator func(*types.AppConfig), persist bool) (typ
 func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigResponse {
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.UseSteamLaunch = useSteamLaunch
+		if cfg.UseSteamLaunch && cfg.DefaultSteamLibraryPath == "" {
+			path, err := steam.GetSteamLibraryPath(s.ctx)
+			if err != nil {
+				s.logger.Error("Failed to auto-detect Steam library path", err)
+				cfg.UseSteamLaunch = false
+			}
+			cfg.DefaultSteamLibraryPath = path
+		}
 	}, false)
 	if err != nil {
 		return types.ResolveConfigResponse{
 			GenericResponse: types.ErrorResponse(err.Error()),
+		}
+	}
+	if useSteamLaunch != result.Config.UseSteamLaunch {
+		return types.ResolveConfigResponse{
+			GenericResponse: types.ErrorResponse("Failed to update useSteamLaunch due to error setting Steam Library Path"),
 		}
 	}
 	return types.ResolveConfigResponse{
