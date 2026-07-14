@@ -109,7 +109,7 @@ export function Navbar() {
   const loading = useRegistryStore((s) => s.loading);
   const refreshing = useRegistryStore((s) => s.refreshing);
   const startupRefreshing = useRegistryStore((s) => s.startupRefreshing);
-  const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
+  const canLaunch = useConfigStore((s) => s.validation?.executablePathValid || (s.config?.useSteamLaunch ?? false));
   const running = useGameStore((s) => s.running);
   const starting = useGameStore((s) => s.starting);
   const launch = useGameStore((s) => s.launch);

@@ -119,7 +119,7 @@ func SubscriptionTypeResolvers(
 
 // AreConfigPathsConfigured checks if both required paths have been set in AppConfig
 func (c AppConfig) AreConfigPathsConfigured() bool {
-	return strings.TrimSpace(c.MetroMakerDataPath) != "" && strings.TrimSpace(c.ExecutablePath) != ""
+	return strings.TrimSpace(c.MetroMakerDataPath) != "" && (strings.TrimSpace(c.ExecutablePath) != "" || c.UseSteamLaunch)
 }
 
 // GetModsFolderPath returns the full path to the mods folder, or an empty string when the

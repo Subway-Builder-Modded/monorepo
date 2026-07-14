@@ -1,4 +1,4 @@
-import { Gamepad2, RefreshCw, TrainTrack } from 'lucide-react';
+import { Gamepad2, Joystick, RefreshCw, TrainTrack } from 'lucide-react';
 import { type ComponentType, type SVGProps } from 'react';
 
 import { GitHubIcon } from '@/components/icons/social-icons';
@@ -26,6 +26,13 @@ export const SETUP_STEPS: SetupStep[] = [
     label: 'Data Folder',
     description: 'Set the path to your metro-maker4 data folder.',
     canProceed: (s) => !!s.validation?.metroMakerDataPathValid,
+  },
+  {
+    icon: Joystick,
+    title: "Use Steam",
+    label: "Steam",
+    description: "Do you want to launch the game through Steam? This should be used if you own the game through Steam, and cannot be used otherwise.",
+    canProceed: () => true,
   },
   {
     icon: Gamepad2,
