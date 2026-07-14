@@ -27,11 +27,13 @@ import (
 	"railyard/internal/paths"
 	"railyard/internal/profiles"
 	"railyard/internal/registry"
+	"railyard/internal/steam"
 	"railyard/internal/types"
 	"railyard/internal/updater"
 	"railyard/internal/utils"
 
 	"github.com/beescuit/asar"
+	"github.com/mitchellh/go-ps"
 	"github.com/protomaps/go-pmtiles/pmtiles"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -409,35 +411,48 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 		return notDetected
 	}
 	exePath := cfg.Config.ExecutablePath
-
 	var asarPath string
-	switch {
-	case runtime.GOOS == "darwin":
-		// executablePath may point to the .app bundle or a binary nested inside it.
-		found, foundPath := findAsar(exePath)
-		if !found {
-			a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
+
+	profile := a.Profiles.GetActiveProfile()
+	if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseSteamLaunch {
+		steamPath := cfg.Config.DefaultSteamLibraryPath
+		gamePath, err := steam.AutodetectSteamSubwayBuilderPath(steamPath)
+		if err != nil {
+			a.Logger.Warn("Failed to detect Steam Subways Builder path for game version detection", "error", err)
 			return notDetected
 		}
-		asarPath = foundPath
-	case isAppImagePath(exePath):
-		if a.appImageMount != nil {
-			a.Logger.Info("Using existing AppImage mount for game version detection", "exePath", exePath, "mountPath", a.appImageMount.AppImageMountPath)
-			mountPath := a.appImageMount.AppImageMountPath
-			asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
-		} else {
-			a.Logger.Info("Mounting AppImage for game version detection", "exePath", exePath)
-			if appImageMount, err := newAppImageMount(exePath); err != nil {
-				a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
+		asarPath = filepath.Join(gamePath, constants.GameAsarRelPath)
+
+	} else {
+
+		switch {
+		case runtime.GOOS == "darwin":
+			// executablePath may point to the .app bundle or a binary nested inside it.
+			found, foundPath := findAsar(exePath)
+			if !found {
+				a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
 				return notDetected
-			} else {
-				a.appImageMount = appImageMount
+			}
+			asarPath = foundPath
+		case isAppImagePath(exePath):
+			if a.appImageMount != nil {
+				a.Logger.Info("Using existing AppImage mount for game version detection", "exePath", exePath, "mountPath", a.appImageMount.AppImageMountPath)
 				mountPath := a.appImageMount.AppImageMountPath
 				asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
+			} else {
+				a.Logger.Info("Mounting AppImage for game version detection", "exePath", exePath)
+				if appImageMount, err := newAppImageMount(exePath); err != nil {
+					a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
+					return notDetected
+				} else {
+					a.appImageMount = appImageMount
+					mountPath := a.appImageMount.AppImageMountPath
+					asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
+				}
 			}
+		default:
+			asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 		}
-	default:
-		asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 	}
 
 	archiveFile, err := os.Open(asarPath)
@@ -590,9 +605,12 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 			}
 		}
 	} else {
-		cmd = exec.Command(exePath, extraSplitArgs...)
-		cmd.Dir = filepath.Dir(exePath)
-
+		if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseSteamLaunch {
+			cmd = exec.Command("cmd", "/C", "start", constants.STEAM_URL)
+		} else {
+			cmd = exec.Command(exePath, extraSplitArgs...)
+			cmd.Dir = filepath.Dir(exePath)
+		}
 		if profile.Status == types.ResponseSuccess {
 			if profile.Profile.SystemPreferences.UseDevTools {
 				cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
@@ -616,6 +634,54 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		return types.ErrorResponse(fmt.Sprintf("failed to launch game: %v", err))
 	}
 
+	// Get true process if launching via steam
+	if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseSteamLaunch {
+		foundProcess := (*exec.Cmd)(nil)
+		switch runtime.GOOS {
+		case "windows":
+			for foundProcess == nil {
+				processses, err := ps.Processes()
+				if err != nil {
+					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
+					break
+				}
+				for _, proc := range processses {
+					if proc.Executable() == "game.exe" {
+						parent, err := ps.FindProcess(proc.PPid())
+						if err != nil {
+							a.Logger.Warn("Failed to find parent process while waiting for Steam-launched game", "error", err)
+							break
+						}
+						if parent.Executable() != "game.exe" {
+							gameProcess, err := os.FindProcess(proc.Pid())
+							if err != nil {
+								a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+								break
+							}
+							foundProcess = &exec.Cmd{
+								Process: gameProcess,
+							}
+							a.Logger.Info("Found Steam-launched game process", "pid", proc.Pid())
+							break
+						} else {
+							gameProcess, err := os.FindProcess(proc.PPid())
+							if err != nil {
+								a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+								break
+							}
+							foundProcess = &exec.Cmd{
+								Process: gameProcess,
+							}
+							a.Logger.Info("Found Steam-launched game process", "pid", proc.PPid())
+							break
+						}
+					}
+				}
+			}
+		}
+		cmd = foundProcess
+	}
+
 	a.gameMu.Lock()
 	a.gameCmd = cmd
 	a.gameStarting = false
@@ -624,10 +690,17 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	a.emitEvent("game:status", "running")
 
-	a.emitEvent("game:log", map[string]string{
-		"stream": "stdout",
-		"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),
-	})
+	if profile.Status != types.ResponseSuccess || !profile.Profile.SystemPreferences.UseSteamLaunch {
+		a.emitEvent("game:log", map[string]string{
+			"stream": "stdout",
+			"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),
+		})
+	} else {
+		a.emitEvent("game:log", map[string]string{
+			"stream": "stdout",
+			"line":   fmt.Sprintf("> %s %s", constants.STEAM_URL, "(cannot get logs when using Steam launch)"),
+		})
+	}
 
 	// Stream stdout/stderr to frontend
 	go a.streamGameOutput(stdout, "stdout")

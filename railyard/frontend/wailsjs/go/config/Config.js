@@ -6,6 +6,10 @@ export function ClearConfig() {
   return window['go']['config']['Config']['ClearConfig']();
 }
 
+export function ClearDefaultSteamLibraryPath() {
+  return window['go']['config']['Config']['ClearDefaultSteamLibraryPath']();
+}
+
 export function ClearGithubToken() {
   return window['go']['config']['Config']['ClearGithubToken']();
 }
@@ -60,6 +64,10 @@ export function UpdateCheckForUpdatesOnLaunch(arg1) {
 
 export function UpdateConfig(arg1, arg2) {
   return window['go']['config']['Config']['UpdateConfig'](arg1, arg2);
+}
+
+export function UpdateDefaultSteamLibraryPath(arg1) {
+  return window['go']['config']['Config']['UpdateDefaultSteamLibraryPath'](arg1);
 }
 
 export function UpdateExecutable(arg1) {

@@ -19,6 +19,7 @@ type AppConfig struct {
 	SetupCompleted          bool   `json:"setupCompleted"`
 	ChromeSandboxPath       string `json:"chromeSandboxPath,omitempty"`
 	ViewTestAssets          bool   `json:"viewTestAssets,omitempty"`
+	DefaultSteamLibraryPath string `json:"defaultSteamLibraryPath,omitempty"`
 	// Other fields to be appended here
 }
 
