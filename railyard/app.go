@@ -780,7 +780,10 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 				processes, err := processCmd.Output()
 				// Separate into a list of lines, each containing "pid process_name"
 				lines := strings.Split(string(processes), "\n")
-				if err != nil {
+				// Ignore exit code 1 (no processes found) and continue polling
+				var exitErr *exec.ExitError
+				errors.As(err, &exitErr)
+				if err != nil && exitErr.ExitCode() != 1 {
 					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
 					break
 				}
