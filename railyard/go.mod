@@ -1,6 +1,6 @@
 module railyard
 
-go 1.25.0
+go 1.26.1
 
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
@@ -9,6 +9,8 @@ require (
 	github.com/go-git/go-git/v5 v5.17.0
 	github.com/gofrs/flock v0.13.0
 	github.com/google/uuid v1.6.0
+	github.com/lewisgibson/go-vdf v0.0.0-20260423173933-a31546981217
+	github.com/mitchellh/go-ps v1.0.0
 	github.com/paulmach/orb v0.12.0
 	github.com/protomaps/go-pmtiles v1.30.1
 	github.com/shirou/gopsutil/v4 v4.26.2
@@ -154,7 +156,7 @@ require (
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/net v0.50.0 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sys v0.47.0
 	golang.org/x/text v0.34.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

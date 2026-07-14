@@ -45,6 +45,7 @@ export namespace types {
 	    setupCompleted: boolean;
 	    chromeSandboxPath?: string;
 	    viewTestAssets?: boolean;
+	    defaultSteamLibraryPath?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -60,6 +61,7 @@ export namespace types {
 	        this.setupCompleted = source["setupCompleted"];
 	        this.chromeSandboxPath = source["chromeSandboxPath"];
 	        this.viewTestAssets = source["viewTestAssets"];
+	        this.defaultSteamLibraryPath = source["defaultSteamLibraryPath"];
 	    }
 	}
 	export class AppVersionResponse {
@@ -314,6 +316,7 @@ export namespace types {
 	    autoUpdateSubscriptions: boolean;
 	    extraMemorySize?: number;
 	    useDevTools?: boolean;
+	    useSteamLaunch?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new SystemPreferences(source);
@@ -325,6 +328,7 @@ export namespace types {
 	        this.autoUpdateSubscriptions = source["autoUpdateSubscriptions"];
 	        this.extraMemorySize = source["extraMemorySize"];
 	        this.useDevTools = source["useDevTools"];
+	        this.useSteamLaunch = source["useSteamLaunch"];
 	    }
 	}
 	export class UIPreferences {

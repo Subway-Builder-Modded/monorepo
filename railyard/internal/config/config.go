@@ -246,6 +246,32 @@ func (s *Config) SaveConfig() types.ResolveConfigResponse {
 	}
 }
 
+func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) types.ResolveConfigResponse {
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.DefaultSteamLibraryPath = strings.TrimSpace(defaultSteamLibraryPath)
+	}, false)
+	if err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse("Default Steam library path updated"),
+		ResolveConfigResult: result,
+	}
+}
+
+func (s *Config) ClearDefaultSteamLibraryPath() types.ResolveConfigResponse {
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.DefaultSteamLibraryPath = ""
+	}, false)
+	if err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse("Default Steam library path cleared"),
+		ResolveConfigResult: result,
+	}
+}
+
 func (s *Config) UpdateGithubToken(githubToken string) types.ResolveConfigResponse {
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.GithubToken = githubToken
