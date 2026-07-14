@@ -52,7 +52,7 @@ export const SUITE_STEPS: SuiteStep[] = [
       imageAlt: "Railyard application interface",
     },
     primaryAction: { label: "Download App", href: "/railyard", icon: "download" },
-    secondaryAction: { label: "Browse Content", href: "/railyard/browse", icon: "compass" },
+    secondaryAction: { label: "View Documentation", href: "/railyard/docs", icon: "bookText" },
   },
   {
     id: "registry",

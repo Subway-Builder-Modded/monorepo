@@ -62,6 +62,9 @@ export function sortRegistryItems(
       case "lastUpdated":
         cmp = compareNumbers(a.lastActivityAt, b.lastActivityAt);
         break;
+      case "firstReleased":
+        cmp = compareNumbers(a.publishedAt ?? null, b.publishedAt ?? null);
+        break;
       case "downloads":
         cmp = compareNumbers(a.totalDownloads, b.totalDownloads);
         break;

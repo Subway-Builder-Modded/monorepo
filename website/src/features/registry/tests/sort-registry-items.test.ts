@@ -16,6 +16,7 @@ function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchIt
     thumbnailSrc: null,
     totalDownloads: 100,
     lastActivityAt: 1_000_000,
+    publishedAt: 500_000,
     cityCode: "AAA",
     countryCode: "US",
     countryName: "United States",
@@ -48,6 +49,16 @@ describe("sortRegistryItems", () => {
     const result = sortRegistryItems(items, "lastUpdated", "asc", SEED);
     expect(result[0]?.id).toBe("a");
     expect(result[1]?.id).toBe("b");
+  });
+
+  it("sorts by firstReleased descending", () => {
+    const items = [
+      makeItem({ id: "a", publishedAt: 500 }),
+      makeItem({ id: "b", publishedAt: 1000 }),
+      makeItem({ id: "c", publishedAt: 750 }),
+    ];
+    const result = sortRegistryItems(items, "firstReleased", "desc", SEED);
+    expect(result.map((i) => i.id)).toEqual(["b", "c", "a"]);
   });
 
   it("sorts by downloads descending", () => {

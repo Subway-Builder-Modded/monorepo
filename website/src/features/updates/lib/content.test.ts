@@ -28,7 +28,7 @@ describe("updates content", () => {
 
   it("builds the GitHub source URL for updates", () => {
     expect(getUpdateEditUrl("railyard", "v0.2.6")).toBe(
-      "https://github.com/Subway-Builder-Modded/monorepo/blob/website-dev/content/railyard/updates/v0.2.6.mdx",
+      "ttps://github.com/Subway-Builder-Modded/monorepo/edit/website-dev/website/content/railyard/updates/v0.2.6.mdx",
     );
   });
 });

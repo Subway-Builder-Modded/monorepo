@@ -54,6 +54,7 @@ export type RawRegistryManifest = {
   residents_total?: number;
   is_test?: boolean;
   last_updated?: number;
+  first_released?: number;
   source?: string;
 };
 
@@ -83,6 +84,7 @@ export type RawRegistryIntegrity = {
         {
           is_complete?: boolean;
           checked_at?: string;
+          released_at?: string;
         }
       >;
     }

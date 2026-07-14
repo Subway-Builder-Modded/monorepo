@@ -153,7 +153,7 @@ function CreditsPlate({
                 <li className="text-muted-foreground">
                   {slide.mapId ? (
                     <Link
-                      to={`/railyard/browse/maps/${slide.mapId}`}
+                      to={`/registry/maps/${slide.mapId}`}
                       className="font-bold text-foreground underline-offset-2 hover:underline"
                     >
                       {slide.mapName}
@@ -189,7 +189,7 @@ function CreditsPlate({
               {slide.mods.map((mod) => (
                 <li key={mod.modId} className="text-muted-foreground">
                   <Link
-                    to={`/railyard/browse/mods/${mod.modId}`}
+                    to={`/registry/mods/${mod.modId}`}
                     className="font-bold text-foreground underline-offset-2 hover:underline"
                   >
                     {mod.name}

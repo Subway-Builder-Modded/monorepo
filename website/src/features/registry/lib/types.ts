@@ -1,6 +1,7 @@
 /** Sort option identifiers for the registry browse UI. */
 export type RegistrySortId =
   | "lastUpdated"
+  | "firstReleased"
   | "downloads"
   | "population"
   | "name"
@@ -23,7 +24,8 @@ export type RegistrySortOption = {
 
 /** All available sort options for the registry browser. */
 export const REGISTRY_SORT_OPTIONS: RegistrySortOption[] = [
-  { id: "lastUpdated", label: "Last Updated", supportedTypes: "all", supportsDirection: true },
+  { id: "lastUpdated", label: "Date Updated", supportedTypes: "all", supportsDirection: true },
+  { id: "firstReleased", label: "Date Released", supportedTypes: "all", supportsDirection: true },
   { id: "downloads", label: "Downloads", supportedTypes: "all", supportsDirection: true },
   { id: "name", label: "Name", supportedTypes: "all", supportsDirection: true },
   { id: "author", label: "Author", supportedTypes: "all", supportsDirection: true },

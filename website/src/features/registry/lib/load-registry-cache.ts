@@ -77,12 +77,30 @@ function getCompleteVersionEntries(listing: IntegrityListing | undefined) {
   );
 }
 
-function getPublishedAt(listing: IntegrityListing | undefined, fallback: number): number {
+function parseDateTimestamp(value: string | undefined): number {
+  const timestamp = Date.parse(value ?? "");
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function getCompleteVersionPublishedAt(version: { released_at?: string; checked_at?: string }) {
+  return parseDateTimestamp(version.released_at) || parseDateTimestamp(version.checked_at);
+}
+
+function getPublishedAt(
+  manifest: RawRegistryManifest,
+  listing: IntegrityListing | undefined,
+  fallback: number,
+): number {
+  const manifestTimestamp = getUnixSecondsAsMs(manifest.first_released);
+  if (manifestTimestamp > 0) {
+    return manifestTimestamp;
+  }
+
   let earliest = Number.POSITIVE_INFINITY;
 
   for (const [, version] of getCompleteVersionEntries(listing)) {
-    const timestamp = Date.parse(version.checked_at ?? "");
-    if (Number.isFinite(timestamp) && timestamp < earliest) {
+    const timestamp = getCompleteVersionPublishedAt(version);
+    if (timestamp > 0 && timestamp < earliest) {
       earliest = timestamp;
     }
   }
@@ -425,7 +443,7 @@ export async function loadRegistryItemsForType(
       thumbnailSrc: resolveThumbnailSrc(typeRouteSegment, id, manifest.gallery),
       totalDownloads: getTotalDownloads(id, downloads),
       lastActivityAt,
-      publishedAt: getPublishedAt(listing, lastActivityAt),
+      publishedAt: getPublishedAt(manifest, listing, lastActivityAt),
       latestVersion,
       latestVersionUpdatedAt,
       cityCode: typeUiRules.hasMapMetadata ? (manifest.city_code ?? null) : null,
