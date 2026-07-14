@@ -477,7 +477,7 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	var asarPath string
 
 	profile := a.Profiles.GetActiveProfile()
-	if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseSteamLaunch {
+	if profile.Status == types.ResponseSuccess && cfg.Config.UseSteamLaunch {
 		steamPath := cfg.Config.DefaultSteamLibraryPath
 		gamePath, err := steam.AutodetectSteamSubwayBuilderPath(steamPath)
 		if err != nil {
@@ -696,7 +696,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 			}
 		}
 	} else {
-		if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseSteamLaunch {
+		if profile.Status == types.ResponseSuccess && cfg.Config.UseSteamLaunch {
 			cmd = exec.Command("cmd", "/C", "start", constants.STEAM_URL)
 		} else {
 			cmd = exec.Command(exePath, extraSplitArgs...)
@@ -726,7 +726,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	}
 
 	// Get true process if launching via steam
-	if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseSteamLaunch {
+	if profile.Status == types.ResponseSuccess && cfg.Config.UseSteamLaunch {
 		foundProcess := (*exec.Cmd)(nil)
 		switch runtime.GOOS {
 		case "windows":
@@ -781,7 +781,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	a.emitEvent("game:status", "running")
 
-	if profile.Status != types.ResponseSuccess || !profile.Profile.SystemPreferences.UseSteamLaunch {
+	if profile.Status != types.ResponseSuccess || !cfg.Config.UseSteamLaunch {
 		a.emitEvent("game:log", map[string]string{
 			"stream": "stdout",
 			"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),

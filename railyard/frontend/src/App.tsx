@@ -59,6 +59,7 @@ function App() {
 
   // Store state selectors for lifecycle coordination
   const configInitialized = useConfigStore((s) => s.initialized);
+  const usingSteam = useConfigStore((s) => s.config?.useSteamLaunch ?? false);
   const isConfigured = useConfigStore(
     (s) => s.validation?.isConfigured ?? false,
   );
@@ -316,7 +317,7 @@ function App() {
                 />
                 <Route path="/project/:type/:id" component={ProjectPage} />
                 <Route path="/profiles" component={ProfilesPage} />
-                <Route path="/logs" component={LogsPage} />
+                {!usingSteam && <Route path="/logs" component={LogsPage} />}
                 <Route path="/settings" component={SettingsPage} />
               </Switch>
             </Layout>

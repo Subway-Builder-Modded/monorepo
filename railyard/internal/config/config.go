@@ -134,6 +134,21 @@ func (s *Config) UpdateConfig(mutator func(*types.AppConfig), persist bool) (typ
 	return resolveConfigResultFromAppConfig(s.Cfg), nil
 }
 
+func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigResponse {
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.UseSteamLaunch = useSteamLaunch
+	}, false)
+	if err != nil {
+		return types.ResolveConfigResponse{
+			GenericResponse: types.ErrorResponse(err.Error()),
+		}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse("Config updated"),
+		ResolveConfigResult: result,
+	}
+}
+
 func (s *Config) UpdateCheckForUpdatesOnLaunch(checkForUpdates bool) types.ResolveConfigResponse {
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.CheckForUpdatesOnLaunch = checkForUpdates
