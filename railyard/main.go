@@ -10,7 +10,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
-	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 //go:embed all:frontend/dist
@@ -21,8 +20,6 @@ const singleInstanceID = "org.subwaybuildermodded.railyard"
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
-
-	wailsruntime.ResetSignalHandlers()
 
 	if startupTarget, ok := deeplink.ParseArgs(os.Args[1:]); ok {
 		app.HandleDeepLinkTarget(startupTarget)

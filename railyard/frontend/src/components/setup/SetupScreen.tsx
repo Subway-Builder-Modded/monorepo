@@ -221,8 +221,20 @@ export function SetupScreen() {
         await updateGithubToken(trimmedToken);
       }
       await completeSetup();
-    } finally {
+    } catch(error) {
       setSaving(false);
+    }
+  };
+
+  const handleSteamLaunch = async (useSteam: boolean) => {
+    try {
+      await useConfigStore.getState().updateUseSteamLaunch(useSteam);
+      setStep((s) => useSteam ? s + 2 : s + 1);
+    }
+    catch {
+      toast.error(
+        'An unexpected error occurred while setting the Steam launch option. Please try again.',
+      );
     }
   };
 
@@ -285,6 +297,22 @@ export function SetupScreen() {
                   <div className="flex gap-2">
                     <Button
                       className="flex-1"
+                      onClick={() => handleSteamLaunch(true)}
+                    >Yes, Use Steam</Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-primary text-primary hover:bg-primary/10"
+                      onClick={() => handleSteamLaunch(false)}
+                    >No, Don't Use Steam</Button>
+                  </div>
+                </>
+              )}
+
+              {step === 2 && (
+                <>
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
                       onClick={() => handleExecutable(true)}
                     >
                       <FolderSearch />
@@ -307,7 +335,7 @@ export function SetupScreen() {
                 </>
               )}
 
-              {step === 2 && (
+              {step === 3 && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <PasswordInput
@@ -351,7 +379,7 @@ export function SetupScreen() {
                 </div>
               )}
 
-              {step === 3 && (
+              {step === 4 && (
                 <div className="grid grid-cols-2 gap-3">
                   {(
                     [
@@ -419,7 +447,7 @@ export function SetupScreen() {
               ) : (
                 <div />
               )}
-              {step < SETUP_STEPS.length - 1 ? (
+              {step < SETUP_STEPS.length - 1  && step !== 1? (
                 <Button
                   onClick={() => setStep((s) => s + 1)}
                   disabled={!canProceed}
@@ -427,12 +455,12 @@ export function SetupScreen() {
                   {step === 2 && githubToken.trim() === '' ? 'Skip' : 'Next'}
                   <ChevronRight className="ml-1 size-4" />
                 </Button>
-              ) : (
+              ) : step >= SETUP_STEPS.length - 1 ? (
                 <Button onClick={handleFinish} disabled={!canProceed || saving}>
                   {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
                   Finish Setup
                 </Button>
-              )}
+              ) : null }
             </div>
           </div>
         </Card>

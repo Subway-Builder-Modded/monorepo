@@ -136,6 +136,14 @@ func (s *Config) UpdateConfig(mutator func(*types.AppConfig), persist bool) (typ
 }
 
 func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigResponse {
+	if !useSteamLaunch && s.Cfg.ExecutablePath == "" {
+		res := s.OpenExecutableDialog(types.SetConfigPathOptions{AllowAutoDetect: true})
+		if res.Status != types.ResponseSuccess {
+			return types.ResolveConfigResponse{
+				GenericResponse: types.ErrorResponse("Failed to update useSteamLaunch due to error setting Executable Path"),
+			}
+		}
+	}
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.UseSteamLaunch = useSteamLaunch
 		if cfg.UseSteamLaunch && cfg.DefaultSteamLibraryPath == "" {
