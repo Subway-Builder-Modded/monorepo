@@ -184,7 +184,7 @@ func (c AppConfig) ValidateConfigPaths() (bool, ConfigPathValidation) {
 
 	if strings.TrimSpace(c.ExecutablePath) != "" {
 		exeInfo, exeErr := os.Stat(c.ExecutablePath)
-		result.ExecutablePathValid = exeErr == nil && isExecutable(c.ExecutablePath, exeInfo)
+		result.ExecutablePathValid = (exeErr == nil && isExecutable(c.ExecutablePath, exeInfo)) || c.UseSteamLaunch
 	}
 
 	return result.IsValid(), result
