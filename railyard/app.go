@@ -471,7 +471,7 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	}
 
 	cfg := a.Config.GetConfig()
-	if !cfg.Validation.ExecutablePathValid {
+	if !cfg.Validation.ExecutablePathValid && !cfg.Config.UseSteamLaunch {
 		return notDetected
 	}
 	exePath := cfg.Config.ExecutablePath
