@@ -932,9 +932,10 @@ func (a *App) StopGame() types.GenericResponse {
 				a.Logger.Warn("Failed to kill Steam-launched game process on Linux", "error", err)
 				return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
 			}
+		} else {
+			a.Logger.Warn("Failed to kill game process", "error", err)
+			return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
 		}
-		a.Logger.Warn("Failed to kill game process", "error", err)
-		return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
 	}
 
 	a.Logger.Info("Game process killed successfully")
