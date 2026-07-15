@@ -231,7 +231,9 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     try {
       const result = await UpdateUseSteamLaunch(useSteamLaunch);
       if (result.status === 'error') {
-        throw new Error(result.message || 'Failed to update useSteamLaunch setting');
+        throw new Error(
+          result.message || 'Failed to update useSteamLaunch setting',
+        );
       }
       set({
         config: result.config,

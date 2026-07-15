@@ -95,9 +95,7 @@ export function GeneralSettingsPanel() {
     try {
       const newValue = !config?.useSteamLaunch;
       await updateUseSteamLaunch(newValue);
-      toast.success(
-        `Use Steam launch ${newValue ? 'enabled' : 'disabled'}.`,
-      );
+      toast.success(`Use Steam launch ${newValue ? 'enabled' : 'disabled'}.`);
     } catch {
       toast.error('Failed to update use Steam launch setting.');
     }
@@ -199,15 +197,13 @@ export function GeneralSettingsPanel() {
             />
 
             <SettingRow
-            icon={<Joystick className="h-4 w-4" />}
+              icon={<Joystick className="h-4 w-4" />}
               iconClassName="bg-[color-mix(in_oklab,var(--update-primary)_12%,transparent)] text-[var(--update-primary)]"
               label="Use Steam"
               badge={
                 <Badge
                   size="sm"
-                  variant={
-                    config?.useSteamLaunch ? 'success' : 'outline'
-                  }
+                  variant={config?.useSteamLaunch ? 'success' : 'outline'}
                 >
                   {config?.useSteamLaunch ? 'Enabled' : 'Disabled'}
                 </Badge>
@@ -279,51 +275,51 @@ export function GeneralSettingsPanel() {
                 iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
                 label="Game Executable"
                 badge={
-                <Badge
-                  size="sm"
-                  variant={
-                    validation?.executablePathValid
-                      ? 'success'
+                  <Badge
+                    size="sm"
+                    variant={
+                      validation?.executablePathValid
+                        ? 'success'
+                        : config?.executablePath
+                          ? 'destructive'
+                          : 'outline'
+                    }
+                  >
+                    {validation?.executablePathValid
+                      ? 'Valid'
                       : config?.executablePath
-                        ? 'destructive'
-                        : 'outline'
-                  }
-                >
-                  {validation?.executablePathValid
-                    ? 'Valid'
-                    : config?.executablePath
-                      ? 'Invalid'
-                      : 'Not Set'}
-                </Badge>
-              }
-              description={
-                <span className="block max-w-xs truncate font-mono">
-                  {config?.executablePath || 'Not configured'}
-                </span>
-              }
-              action={
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!config?.executablePath}
-                    className={FILES_ACCENT.solidButton}
-                    onClick={() => handleRevealPath(config?.executablePath)}
-                  >
-                    <FolderSearch className="size-3.5" />
-                    Reveal
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={FILES_ACCENT.outlineButton}
-                    onClick={handleChangeExecutable}
-                  >
-                    Change
-                  </Button>
-                </>
-              }
-            />
+                        ? 'Invalid'
+                        : 'Not Set'}
+                  </Badge>
+                }
+                description={
+                  <span className="block max-w-xs truncate font-mono">
+                    {config?.executablePath || 'Not configured'}
+                  </span>
+                }
+                action={
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!config?.executablePath}
+                      className={FILES_ACCENT.solidButton}
+                      onClick={() => handleRevealPath(config?.executablePath)}
+                    >
+                      <FolderSearch className="size-3.5" />
+                      Reveal
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={FILES_ACCENT.outlineButton}
+                      onClick={handleChangeExecutable}
+                    >
+                      Change
+                    </Button>
+                  </>
+                }
+              />
             )}
 
             <SettingRow

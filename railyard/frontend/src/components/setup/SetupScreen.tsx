@@ -221,7 +221,7 @@ export function SetupScreen() {
         await updateGithubToken(trimmedToken);
       }
       await completeSetup();
-    } catch(error) {
+    } catch (error) {
       setSaving(false);
     }
   };
@@ -229,9 +229,8 @@ export function SetupScreen() {
   const handleSteamLaunch = async (useSteam: boolean) => {
     try {
       await useConfigStore.getState().updateUseSteamLaunch(useSteam);
-      setStep((s) => useSteam ? s + 2 : s + 1);
-    }
-    catch {
+      setStep((s) => (useSteam ? s + 2 : s + 1));
+    } catch {
       toast.error(
         'An unexpected error occurred while setting the Steam launch option. Please try again.',
       );
@@ -298,12 +297,16 @@ export function SetupScreen() {
                     <Button
                       className="flex-1"
                       onClick={() => handleSteamLaunch(true)}
-                    >Yes, Use Steam</Button>
+                    >
+                      Yes, Use Steam
+                    </Button>
                     <Button
                       variant="outline"
                       className="flex-1 border-primary text-primary hover:bg-primary/10"
                       onClick={() => handleSteamLaunch(false)}
-                    >No, Don't Use Steam</Button>
+                    >
+                      No, Don't Use Steam
+                    </Button>
                   </div>
                 </>
               )}
@@ -447,7 +450,7 @@ export function SetupScreen() {
               ) : (
                 <div />
               )}
-              {step < SETUP_STEPS.length - 1  && step !== 1? (
+              {step < SETUP_STEPS.length - 1 && step !== 1 ? (
                 <Button
                   onClick={() => setStep((s) => s + 1)}
                   disabled={!canProceed}
@@ -460,7 +463,7 @@ export function SetupScreen() {
                   {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
                   Finish Setup
                 </Button>
-              ) : null }
+              ) : null}
             </div>
           </div>
         </Card>

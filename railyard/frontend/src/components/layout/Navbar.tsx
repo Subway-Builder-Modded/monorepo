@@ -91,8 +91,6 @@ var navLinks: NavLinkConfig[] = [
   },
 ];
 
-
-
 const MOD_REMINDER_KEY = 'railyard:mod-reminder-acknowledged';
 const NAV_ITEM_BASE_CLASS =
   'group relative flex items-center gap-2 rounded-lg px-[clamp(0.45rem,0.95vw,0.7rem)] py-[clamp(0.4rem,0.82vw,0.56rem)] text-[clamp(0.8rem,0.95vw,0.9rem)] font-semibold text-muted-foreground transition-all duration-150';
@@ -109,7 +107,10 @@ export function Navbar() {
   const loading = useRegistryStore((s) => s.loading);
   const refreshing = useRegistryStore((s) => s.refreshing);
   const startupRefreshing = useRegistryStore((s) => s.startupRefreshing);
-  const canLaunch = useConfigStore((s) => s.validation?.executablePathValid || (s.config?.useSteamLaunch ?? false));
+  const canLaunch = useConfigStore(
+    (s) =>
+      s.validation?.executablePathValid || (s.config?.useSteamLaunch ?? false),
+  );
   const running = useGameStore((s) => s.running);
   const starting = useGameStore((s) => s.starting);
   const launch = useGameStore((s) => s.launch);
@@ -246,7 +247,7 @@ export function Navbar() {
     };
   }, []);
 
-  const isUsingSteam = useConfigStore(s => s.config?.useSteamLaunch ?? false);
+  const isUsingSteam = useConfigStore((s) => s.config?.useSteamLaunch ?? false);
 
   return (
     <header ref={headerRef} className="fixed inset-x-0 top-3 z-50">
@@ -264,7 +265,7 @@ export function Navbar() {
             </NavbarBrandBlock>
             <nav className="flex max-w-full flex-wrap items-center gap-1.5">
               {navLinks.map(({ href, label, icon: Icon, isCurrent }) => {
-                if(isUsingSteam && href === '/logs') {
+                if (isUsingSteam && href === '/logs') {
                   return null;
                 }
                 const current = isCurrent(location);

@@ -29,9 +29,10 @@ export const SETUP_STEPS: SetupStep[] = [
   },
   {
     icon: Joystick,
-    title: "Use Steam",
-    label: "Steam",
-    description: "Do you want to launch the game through Steam? This should be used if you own the game through Steam, and cannot be used otherwise.",
+    title: 'Use Steam',
+    label: 'Steam',
+    description:
+      'Do you want to launch the game through Steam? This should be used if you own the game through Steam, and cannot be used otherwise.',
     canProceed: () => true,
   },
   {
