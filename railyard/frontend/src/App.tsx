@@ -7,6 +7,7 @@ import { Layout } from '@/components/layout/Layout';
 import { RequestErrorDialog } from '@/components/layout/RequestErrorDialog';
 import { SetupScreen } from '@/components/setup/SetupScreen';
 import { Toaster } from '@/components/ui/sonner';
+import { GameVersionProvider } from '@/hooks/use-game-version';
 import { useTheme } from '@/hooks/use-theme';
 import { BrowsePage } from '@/pages/BrowsePage';
 import { ChangelogPage } from '@/pages/ChangelogPage';
@@ -221,28 +222,30 @@ function App() {
   return (
     <div className="railyard-accent">
       <TooltipProvider>
-        <Layout>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/library" component={LibraryPage} />
-            <Route path="/browse" component={BrowsePage} />
-            <Route path="/search" component={BrowsePage} />
-            <Route
-              path="/project/:type/:id/changelog/:version"
-              component={ChangelogPage}
-            />
-            <Route path="/project/:type/:id" component={ProjectPage} />
-            <Route path="/profiles" component={ProfilesPage} />
-            <Route path="/logs" component={LogsPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="*" component={HomePage} />
-          </Switch>
-        </Layout>
-        <DownloadNotification />
-        <ExtractNotification />
-        <RegistryRefreshNotification />
-        <RequestErrorDialog />
-        <Toaster />
+        <GameVersionProvider>
+          <Layout>
+            <Switch>
+              <Route path="/" component={HomePage} />
+              <Route path="/library" component={LibraryPage} />
+              <Route path="/browse" component={BrowsePage} />
+              <Route path="/search" component={BrowsePage} />
+              <Route
+                path="/project/:type/:id/changelog/:version"
+                component={ChangelogPage}
+              />
+              <Route path="/project/:type/:id" component={ProjectPage} />
+              <Route path="/profiles" component={ProfilesPage} />
+              <Route path="/logs" component={LogsPage} />
+              <Route path="/settings" component={SettingsPage} />
+              <Route path="*" component={HomePage} />
+            </Switch>
+          </Layout>
+          <DownloadNotification />
+          <ExtractNotification />
+          <RegistryRefreshNotification />
+          <RequestErrorDialog />
+          <Toaster />
+        </GameVersionProvider>
       </TooltipProvider>
     </div>
   );
