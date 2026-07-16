@@ -113,9 +113,9 @@ type installedVersionArgs[T any] struct {
 type availableVersionArgs[U any] struct {
 	getManifestsFn func() []U
 	idFn           func(U) string
-	updateTypeFn   func(U) string
-	updateSourceFn func(U) string
-	getVersionsFn  func(string, string) ([]types.VersionInfo, error)
+	// resolveInstallableFn returns the installable versions for an asset from integrity.
+	// Availability for install only needs to know which versions are integrity-approved.
+	resolveInstallableFn func(types.AssetType, string) ([]types.VersionInfo, error)
 }
 
 // TODO: Consolidate this into a generic argument builder using types.AssetType to reduce duplication
@@ -130,11 +130,9 @@ func (s *UserProfiles) buildMapSyncArgs(profile types.UserProfile, isStale func(
 			versionFn:            func(item types.InstalledMapInfo) string { return item.Version },
 		},
 		availableArgs: availableVersionArgs[types.MapManifest]{
-			getManifestsFn: s.Registry.GetMaps,
-			idFn:           func(item types.MapManifest) string { return item.ID },
-			updateTypeFn:   func(item types.MapManifest) string { return item.Update.Type },
-			updateSourceFn: func(item types.MapManifest) string { return item.Update.Source() },
-			getVersionsFn:  s.Registry.GetVersions,
+			getManifestsFn:       s.Registry.GetMaps,
+			idFn:                 func(item types.MapManifest) string { return item.ID },
+			resolveInstallableFn: s.Registry.GetInstallableVersionsFromIntegrity,
 		},
 		install: func(assetID string, version string) types.AssetInstallResponse {
 			return s.Downloader.InstallAsset(types.InstallAssetRequest{
@@ -163,11 +161,9 @@ func (s *UserProfiles) buildModSyncArgs(profile types.UserProfile, isStale func(
 			versionFn:            func(item types.InstalledModInfo) string { return item.Version },
 		},
 		availableArgs: availableVersionArgs[types.ModManifest]{
-			getManifestsFn: s.Registry.GetMods,
-			idFn:           func(item types.ModManifest) string { return item.ID },
-			updateTypeFn:   func(item types.ModManifest) string { return item.Update.Type },
-			updateSourceFn: func(item types.ModManifest) string { return item.Update.Source() },
-			getVersionsFn:  s.Registry.GetVersions,
+			getManifestsFn:       s.Registry.GetMods,
+			idFn:                 func(item types.ModManifest) string { return item.ID },
+			resolveInstallableFn: s.Registry.GetInstallableVersionsFromIntegrity,
 		},
 		install: func(assetID string, version string) types.AssetInstallResponse {
 			return s.Downloader.InstallAsset(types.InstallAssetRequest{
@@ -401,16 +397,12 @@ func buildAvailableVersionIndex[U any](
 
 	for assetID := range subscriptions {
 		// If a particular assetID is not found in the registry's available manifests, skip and consider it to be "unavailable".
-		manifest, ok := manifestByID[assetID]
-		if !ok {
+		if _, ok := manifestByID[assetID]; !ok {
 			continue
 		}
 
-		// Determine which versions are available for this asset, based on its update configuration.
-		versions, err := availableArgs.getVersionsFn(
-			availableArgs.updateTypeFn(manifest),
-			availableArgs.updateSourceFn(manifest),
-		)
+		// Determine which versions are installable for this asset from the integrity report.
+		versions, err := availableArgs.resolveInstallableFn(assetType, assetID)
 		if err != nil {
 			*syncErrors = append(*syncErrors, updateSubscriptionError(profileID, assetID, assetType, types.ErrorLookupFailed, fmt.Errorf("Failed to resolve available versions for %s %q: %w", assetType, assetID, err)))
 			continue

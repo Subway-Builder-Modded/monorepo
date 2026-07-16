@@ -42,6 +42,10 @@ export function GetInstallableVersions(arg1, arg2) {
   return window['go']['registry']['Registry']['GetInstallableVersions'](arg1, arg2);
 }
 
+export function GetInstallableVersionsFromIntegrity(arg1, arg2) {
+  return window['go']['registry']['Registry']['GetInstallableVersionsFromIntegrity'](arg1, arg2);
+}
+
 export function GetInstallableVersionsResponse(arg1, arg2) {
   return window['go']['registry']['Registry']['GetInstallableVersionsResponse'](arg1, arg2);
 }

@@ -245,11 +245,9 @@ func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 				}
 				return manifests
 			},
-			idFn:           func(item types.MapManifest) string { return item.ID },
-			updateTypeFn:   func(item types.MapManifest) string { return item.Update.Type },
-			updateSourceFn: func(item types.MapManifest) string { return item.Update.URL },
-			getVersionsFn: func(_ string, repoOrURL string) ([]types.VersionInfo, error) {
-				versions := fixture.availableVersions[repoOrURL]
+			idFn: func(item types.MapManifest) string { return item.ID },
+			resolveInstallableFn: func(_ types.AssetType, assetID string) ([]types.VersionInfo, error) {
+				versions := fixture.availableVersions[assetID]
 				list := make([]types.VersionInfo, 0, len(versions))
 				for version := range versions {
 					list = append(list, types.VersionInfo{Version: version})
@@ -288,11 +286,9 @@ func mockModAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 				}
 				return manifests
 			},
-			idFn:           func(item types.ModManifest) string { return item.ID },
-			updateTypeFn:   func(item types.ModManifest) string { return item.Update.Type },
-			updateSourceFn: func(item types.ModManifest) string { return item.Update.URL },
-			getVersionsFn: func(_ string, repoOrURL string) ([]types.VersionInfo, error) {
-				versions := fixture.availableVersions[repoOrURL]
+			idFn: func(item types.ModManifest) string { return item.ID },
+			resolveInstallableFn: func(_ types.AssetType, assetID string) ([]types.VersionInfo, error) {
+				versions := fixture.availableVersions[assetID]
 				list := make([]types.VersionInfo, 0, len(versions))
 				for version := range versions {
 					list = append(list, types.VersionInfo{Version: version})
