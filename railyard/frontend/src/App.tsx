@@ -10,6 +10,7 @@ import { SetupScreen } from '@/components/setup/SetupScreen';
 import { Toaster } from '@/components/ui/sonner';
 import { GameVersionProvider } from '@/hooks/use-game-version';
 import { useTheme } from '@/hooks/use-theme';
+import { markFirst, measureAsync } from '@/lib/perf';
 import { BrowsePage } from '@/pages/BrowsePage';
 import { ChangelogPage } from '@/pages/ChangelogPage';
 import { HomePage } from '@/pages/HomePage';
@@ -147,28 +148,31 @@ function App() {
       {
         name: 'bootstrap-user-state',
         enabled: isBackendReady,
-        run: async () => {
-          const { initialize: initializeConfig } = useConfigStore.getState();
-          const { initialize: initializeProfile } = useProfileStore.getState();
-          const { initialize: initializeGame } = useGameStore.getState();
+        run: () =>
+          measureAsync('startup.bootstrap-user-state', async () => {
+            const { initialize: initializeConfig } = useConfigStore.getState();
+            const { initialize: initializeProfile } =
+              useProfileStore.getState();
+            const { initialize: initializeGame } = useGameStore.getState();
 
-          await initializeConfig();
-          await initializeProfile();
-          initializeGame();
-        },
+            await initializeConfig();
+            await initializeProfile();
+            initializeGame();
+          }),
       },
       {
         name: 'bootstrap-registry-state',
         enabled: isBackendReady && configInitialized && isConfigured,
-        run: async () => {
-          const { initialize: initializeRegistry } =
-            useRegistryStore.getState();
-          const { initialize: initializeInstalled } =
-            useInstalledStore.getState();
+        run: () =>
+          measureAsync('startup.bootstrap-registry-state', async () => {
+            const { initialize: initializeRegistry } =
+              useRegistryStore.getState();
+            const { initialize: initializeInstalled } =
+              useInstalledStore.getState();
 
-          await initializeRegistry();
-          await initializeInstalled();
-        },
+            await initializeRegistry();
+            await initializeInstalled();
+          }),
       },
     ],
     consumePendingDeepLink: () => ConsumePendingDeepLink(),
@@ -179,6 +183,26 @@ function App() {
     canNavigatePendingRoute: appReadyForNavigation,
     navigate: (route) => setLocation(route),
   });
+
+  // Mark each cold-start milestone once (markFirst is idempotent).
+  // Store this in the persisted perf log to make any future startup regression visible as a shifted timestamp.
+  useEffect(() => {
+    if (startupReady) markFirst('startup.backend-ready');
+    if (configInitialized && profileInitialized) {
+      markFirst('startup.user-state-ready');
+    }
+    if (registryInitialized && installedInitialized) {
+      markFirst('startup.registry-ready');
+    }
+    if (appReadyForNavigation) markFirst('startup.app-interactive');
+  }, [
+    startupReady,
+    configInitialized,
+    profileInitialized,
+    registryInitialized,
+    installedInitialized,
+    appReadyForNavigation,
+  ]);
 
   const baseLoading =
     !startupReady || !configInitialized || !profileInitialized;

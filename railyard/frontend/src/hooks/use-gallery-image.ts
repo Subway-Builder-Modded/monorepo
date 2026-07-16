@@ -4,6 +4,8 @@ import {
 } from '@subway-builder-modded/config';
 import { useEffect, useState } from 'react';
 
+import { markFirst } from '@/lib/perf';
+
 import { GetGalleryServerPort } from '../../wailsjs/go/main/App';
 
 // Images are served as full-resolution URLs by the gallery server.
@@ -49,6 +51,9 @@ function decodeGalleryImage(url: string): Promise<boolean> {
       .decode()
       .then(() => {
         decoded.add(url);
+        // First off-thread decode to complete ~ first gallery paint; a proxy for how long
+        // the initial card render takes to become visible.
+        markFirst('gallery.firstImageDecoded');
         return true;
       })
       .catch(() => false)
