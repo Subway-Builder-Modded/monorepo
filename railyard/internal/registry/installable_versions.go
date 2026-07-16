@@ -90,6 +90,38 @@ func (r *Registry) filterVersionsByIntegrity(
 	return filtered, nil
 }
 
+// GetInstallableVersionsFromIntegrity returns the integrity-approved installable versions for
+// an asset built solely from the loaded integrity report.
+// This is the fast path for startup reconcile/update, which only needs to know which versions exist and are 
+// game-compatible; this avoids a Github conditional request per subscription.
+func (r *Registry) GetInstallableVersionsFromIntegrity(assetType types.AssetType, assetID string) ([]types.VersionInfo, error) {
+	listing, ok := r.getIntegrityListing(assetType, assetID)
+	if !ok {
+		return nil, fmt.Errorf("%s %q is missing from integrity cache", assetType, assetID)
+	}
+	if !listing.HasCompleteVersion {
+		return nil, fmt.Errorf("%s %q has no complete versions in integrity cache", assetType, assetID)
+	}
+
+	versions := make([]types.VersionInfo, 0, len(listing.Versions))
+	for version, status := range listing.Versions {
+		if !status.IsComplete {
+			continue
+		}
+		// Only the fields needed to resolve versions are populated; download URLs and changelogs are absent.
+		vi := types.VersionInfo{
+			Version:      version,
+			GameVersion:  status.GameVersion,
+			Dependencies: status.Dependencies,
+		}
+		if assetType == types.AssetTypeMap {
+			vi.MapBuildingsConstraint = buildingsIndexConstraintFromMatchedFiles(status.MatchedFiles)
+		}
+		versions = append(versions, vi)
+	}
+	return versions, nil
+}
+
 // GetInstallableVersions returns the integrity-approved versions for an asset.
 func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID string) ([]types.VersionInfo, error) {
 	updateType, source, err := r.resolveAssetUpdateSource(assetType, assetID)

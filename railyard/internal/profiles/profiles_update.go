@@ -406,7 +406,8 @@ func (s *UserProfiles) reconcileSubscriptionVersion(
 ) (*types.SubscriptionOperation, *types.UserProfilesError) {
 	pinned := strings.TrimSpace(pinnedVersion)
 
-	installable, lookupErr := s.Registry.GetInstallableVersions(assetType, assetID)
+	// Resolve installable versions from the integrity report.
+	installable, lookupErr := s.Registry.GetInstallableVersionsFromIntegrity(assetType, assetID)
 	if lookupErr == nil {
 		for _, version := range installable {
 			if strings.TrimSpace(version.Version) == pinned {
@@ -671,7 +672,10 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersionForGame(
 	assetID string,
 	gameVersion *semver.Version,
 ) (string, bool, error) {
-	versions, err := s.Registry.GetInstallableVersions(assetType, assetID)
+	// Resolve from the integrity report (no upstream release fetch): finding the latest
+	// game-compatible version only needs versions + constraints, which integrity carries.
+	// The actual install (SyncSubscriptions) still fetches for the download URL.
+	versions, err := s.Registry.GetInstallableVersionsFromIntegrity(assetType, assetID)
 	if err != nil {
 		return "", false, fmt.Errorf("Failed to resolve installable versions: %w", err)
 	}
