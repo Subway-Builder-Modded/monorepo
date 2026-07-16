@@ -53,8 +53,11 @@ type App struct {
 	gameCmd       *exec.Cmd
 	gameStarting  bool
 	pmtilesServer *http.Server
-	startupMu     sync.RWMutex
-	startupReady  bool
+
+	galleryServer     *http.Server
+	galleryServerPort int
+	startupMu         sync.RWMutex
+	startupReady      bool
 
 	deepLinks     deepLinkQueue
 	appImageMount *appImageMount
@@ -80,6 +83,36 @@ func NewApp() *App {
 	}
 }
 
+// startGalleryServer starts a HTTP server that serves registry asset images so
+// the frontend can load them as URLs. 
+// Started at startup (not game launch) so images are available on the first render.
+func (a *App) startGalleryServer() {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		a.Logger.Warn("Failed to start gallery image server", "error", err)
+		return
+	}
+	a.galleryServerPort = listener.Addr().(*net.TCPAddr).Port
+
+	mux := http.NewServeMux()
+	mux.Handle(galleryAssetPrefix, galleryAssetHandler(a.Registry.RepoPath()))
+	srv := &http.Server{Handler: mux}
+	a.galleryServer = srv
+
+	a.Logger.Info("Gallery image server started", "port", a.galleryServerPort)
+	go func() {
+		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+			a.Logger.Warn("Gallery image server stopped", "error", err)
+		}
+	}()
+}
+
+// GetGalleryServerPort returns the loopback port serving registry asset images, or 0 when
+// the server failed to start.
+func (a *App) GetGalleryServerPort() int {
+	return a.galleryServerPort
+}
+
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
@@ -87,6 +120,7 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.Config.SetContext(ctx)
 	a.Registry.SetContext(ctx)
+	a.startGalleryServer()
 	a.Downloader.InstallDependency = func(itemId string, itemType types.AssetType, version types.Version) {
 		result := a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 			ProfileID:             a.Profiles.GetActiveProfile().Profile.ID,
@@ -212,6 +246,10 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 
 	a.Logger.Info("application shutdown")
+
+	if a.galleryServer != nil {
+		a.galleryServer.Close()
+	}
 
 	if err := a.Logger.Shutdown(); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "failed to flush app logs on shutdown: %v\n", err)
