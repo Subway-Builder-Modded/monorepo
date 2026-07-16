@@ -42,6 +42,17 @@ export async function measureAsync<T>(
   }
 }
 
+// measureSync times a synchronous step and logs its duration. Use for main-thread work
+// (filtering, sorting), so the log attributes the freeze.
+export function measureSync<T>(name: string, fn: () => T): T {
+  const start = performance.now();
+  try {
+    return fn();
+  } finally {
+    log(`${name}: ${(performance.now() - start).toFixed(1)}ms`);
+  }
+}
+
 // addLongTaskObserver reports every main-thread task over ~50ms and its start time, so a
 // UI freeze shows up as a log entry.
 export function addLongTaskObserver() {

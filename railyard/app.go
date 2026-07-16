@@ -18,6 +18,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"railyard/internal/config"
 	"railyard/internal/constants"
@@ -431,6 +432,12 @@ func findAsar(exePath string) (bool, string) {
 // package.json, returning an empty version with a warning status if detection fails.
 // It is intentionally uncached; the game can update while Railyard runs, so every call re-detects to keep compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
 func (a *App) GetGameVersion() types.GameVersionResponse {
+	// Timed because this decodes the entire game app.asar on every call and is invoked both
+	// from the frontend and internally on each subscription-update pass; a known hot spot.
+	start := time.Now()
+	defer func() {
+		a.Logger.Perf("backend", "gameVersion.resolve", "duration", time.Since(start))
+	}()
 	a.Logger.Info("Attempting to resolve game version")
 	notDetected := types.GameVersionResponse{
 		GenericResponse: types.WarnResponse("Game version not detected"),

@@ -7,6 +7,7 @@ import { useDeferredValue, useMemo } from 'react';
 
 import { usePaginationSync } from '@/hooks/use-pagination-sync';
 import { assetKey } from '@/lib/asset-key';
+import { measureSync } from '@/lib/perf';
 import {
   buildTaggedItems,
   compareItems,
@@ -96,27 +97,34 @@ export function useFilteredItems({
     [deferredFilters],
   );
 
+  // Measured (sync); this runs multiple filter passes over the registry.
   const dimCounts = useMemo(
     () =>
-      buildDimensionCounts({
-        items: allItems,
-        filters: countFilters,
-        accessors,
-      }),
+      measureSync('browse.dimCounts', () =>
+        buildDimensionCounts({
+          items: allItems,
+          filters: countFilters,
+          accessors,
+        }),
+      ),
     [accessors, allItems, countFilters],
   );
 
+  // Measured (sync); this fully filters + sorts the registry (and may rebuild a Fuse
+  // index) on every filter/page change.
   const filteredPage = useMemo(
     () =>
-      filterAndPaginateTaggedItems({
-        items: allItems,
-        page,
-        filters: deferredFilters,
-        modDownloadTotals,
-        mapDownloadTotals,
-        compareItems,
-        accessors,
-      }),
+      measureSync('browse.filterAndPaginate', () =>
+        filterAndPaginateTaggedItems({
+          items: allItems,
+          page,
+          filters: deferredFilters,
+          modDownloadTotals,
+          mapDownloadTotals,
+          compareItems,
+          accessors,
+        }),
+      ),
     [
       accessors,
       allItems,
