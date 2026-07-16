@@ -6,6 +6,8 @@ import {
   useState,
 } from 'react';
 
+import { measureAsync } from '@/lib/perf';
+
 import { GetGameVersion } from '../../wailsjs/go/main/App';
 
 const GameVersionContext = createContext<string>('');
@@ -16,7 +18,9 @@ export function GameVersionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const fetchGameVersion = () => {
-      GetGameVersion()
+      // Measure because GetGameVersion re-reads app.asar off disk on every call and this
+      // fires on every window focus.
+      measureAsync('gameVersion.detect', () => GetGameVersion())
         .then((response) => {
           if (response.status === 'success') {
             setGameVersion(response.version || '');

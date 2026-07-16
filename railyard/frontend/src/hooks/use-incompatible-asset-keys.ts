@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { useGameVersion } from '@/hooks/use-game-version';
 import { assetKey } from '@/lib/asset-key';
+import { measureAsync } from '@/lib/perf';
 
 import { GameIncompatibleAssets } from '../../wailsjs/go/registry/Registry';
 
@@ -25,8 +26,12 @@ export function useIncompatibleAssetKeys(): ReadonlySet<string> {
       };
     }
 
-    Promise.all(
-      ASSET_TYPES.map((type) => GameIncompatibleAssets(type, gameVersion)),
+    // Measure because this fans out one call per asset type on every game-version change and
+    // is mounted by several consumers at once.
+    measureAsync('incompatibleAssets.fetch', () =>
+      Promise.all(
+        ASSET_TYPES.map((type) => GameIncompatibleAssets(type, gameVersion)),
+      ),
     )
       .then((responses) => {
         if (cancelled) return;

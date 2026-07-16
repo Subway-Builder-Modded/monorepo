@@ -1,6 +1,7 @@
 # Ignore agentic files and directories
 .claude/
 .serena/
+.notes/
 conventions.md
 CLAUDE.md
 AGENTS.md
