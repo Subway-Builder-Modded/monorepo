@@ -184,9 +184,8 @@ function App() {
     navigate: (route) => setLocation(route),
   });
 
-  // Stamp each cold-start milestone once (markFirst is idempotent). This is the critical
-  // path we tuned to stop the WebView freezing on launch; keeping it in the persisted perf
-  // log makes any future startup regression visible as a shifted timestamp.
+  // Mark each cold-start milestone once (markFirst is idempotent).
+  // Store this in the persisted perf log to make any future startup regression visible as a shifted timestamp.
   useEffect(() => {
     if (startupReady) markFirst('startup.backend-ready');
     if (configInitialized && profileInitialized) {
