@@ -50,7 +50,7 @@ const STARTUP_REFRESH_DELAY_MS = 2000;
 
 function App() {
   useTheme();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const updateInstalledLists = useInstalledStore((s) => s.updateInstalledLists);
   const acknowledgeCancel = useInstalledStore(
     (s) => s.acknowledgeCancelledInstall,
@@ -75,6 +75,9 @@ function App() {
     (s) => s.profile?.systemPreferences?.refreshRegistryOnStartup ?? false,
   );
   const startupRefreshTriggered = useRef(false);
+  // Track which keep-alive tab pages have been visited, so we mount each on first visit and
+  // then keep it mounted (hidden) across navigation.
+  const mountedTabs = useRef({ home: false, browse: false, library: false });
 
   const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const appReadyForNavigation =
@@ -264,16 +267,47 @@ function App() {
     );
   }
 
+  // Route classification for the keep-alive tabs. Home is the default/fallback; the remaining routes are rendered by the <Switch> below.
+  const isLibraryRoute = location === '/library';
+  const isBrowseRoute = location === '/browse' || location === '/search';
+  const isOtherRoute =
+    location.startsWith('/project/') ||
+    location === '/profiles' ||
+    location === '/logs' ||
+    location === '/settings';
+  const isHomeRoute = !isLibraryRoute && !isBrowseRoute && !isOtherRoute;
+
+  // Mount a tab the first time it is visited, then keep it mounted afterwards.
+  if (isHomeRoute) mountedTabs.current.home = true;
+  if (isBrowseRoute) mountedTabs.current.browse = true;
+  if (isLibraryRoute) mountedTabs.current.library = true;
+
+  // display:contents makes the active tab's wrapper transparent to layout (identical to
+  // rendering the page directly); inactive tabs stay mounted but display:none.
+  const tabStyle = (active: boolean) =>
+    ({ display: active ? 'contents' : 'none' }) as const;
+
   return (
     <div className="railyard-accent">
       <TooltipProvider>
         <GameVersionProvider>
           <Layout>
+            {mountedTabs.current.home && (
+              <div style={tabStyle(isHomeRoute)}>
+                <HomePage />
+              </div>
+            )}
+            {mountedTabs.current.browse && (
+              <div style={tabStyle(isBrowseRoute)}>
+                <BrowsePage />
+              </div>
+            )}
+            {mountedTabs.current.library && (
+              <div style={tabStyle(isLibraryRoute)}>
+                <LibraryPage />
+              </div>
+            )}
             <Switch>
-              <Route path="/" component={HomePage} />
-              <Route path="/library" component={LibraryPage} />
-              <Route path="/browse" component={BrowsePage} />
-              <Route path="/search" component={BrowsePage} />
               <Route
                 path="/project/:type/:id/changelog/:version"
                 component={ChangelogPage}
@@ -282,7 +316,6 @@ function App() {
               <Route path="/profiles" component={ProfilesPage} />
               <Route path="/logs" component={LogsPage} />
               <Route path="/settings" component={SettingsPage} />
-              <Route path="*" component={HomePage} />
             </Switch>
           </Layout>
           <DownloadNotification />

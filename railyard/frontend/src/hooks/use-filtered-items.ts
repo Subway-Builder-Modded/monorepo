@@ -81,20 +81,9 @@ export function useFilteredItems({
     () => createTaggedListingAccessors<TaggedItem>(),
     [],
   );
-  const deferredQuery = useDeferredValue(filters.query);
-  const deferredFilters = useMemo(
-    () =>
-      deferredQuery === filters.query
-        ? filters
-        : { ...filters, query: deferredQuery },
-    [deferredQuery, filters],
-  );
   const countFilters = useMemo(
-    () =>
-      deferredFilters.query
-        ? { ...deferredFilters, query: '' }
-        : deferredFilters,
-    [deferredFilters],
+    () => (filters.query ? { ...filters, query: '' } : filters),
+    [filters],
   );
 
   // Measured (sync); this runs multiple filter passes over the registry.
@@ -110,36 +99,33 @@ export function useFilteredItems({
     [accessors, allItems, countFilters],
   );
 
-  // Measured (sync); this fully filters + sorts the registry (and may rebuild a Fuse
-  // index) on every filter/page change.
+  // Measured (sync); this fully filters + sorts the registry.and should be cheap — the real cost
+  // is rendering the resulting cards, which is why the output is deferred below.
   const filteredPage = useMemo(
     () =>
       measureSync('browse.filterAndPaginate', () =>
         filterAndPaginateTaggedItems({
           items: allItems,
           page,
-          filters: deferredFilters,
+          filters,
           modDownloadTotals,
           mapDownloadTotals,
           compareItems,
           accessors,
         }),
       ),
-    [
-      accessors,
-      allItems,
-      deferredFilters,
-      mapDownloadTotals,
-      modDownloadTotals,
-      page,
-    ],
+    [accessors, allItems, filters, mapDownloadTotals, modDownloadTotals, page],
   );
 
+  // Render the list from a DEFERRED copy: a filter/page change updates the controls and sidebar
+  // counts immediately, while the heavy card-grid re-render runs at low priority so it never blocks the main thread with a long freeze.
+  const deferredFilteredPage = useDeferredValue(filteredPage);
+
   return {
-    items: filteredPage.items,
-    page: filteredPage.page,
-    totalPages: filteredPage.totalPages,
-    totalResults: filteredPage.totalResults,
+    items: deferredFilteredPage.items,
+    page: deferredFilteredPage.page,
+    totalPages: deferredFilteredPage.totalPages,
+    totalResults: deferredFilteredPage.totalResults,
     filters,
     setFilters,
     setType,

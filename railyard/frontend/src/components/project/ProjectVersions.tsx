@@ -33,7 +33,7 @@ import {
   Loader2,
   TriangleAlert,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
@@ -112,17 +112,20 @@ export function ProjectVersions({
     conflict: types.MapCodeConflict;
   } | null>(null);
 
-  const {
-    getInstalledVersion,
-    installMod,
-    installMap,
-    isInstalling,
-    getInstallingVersion,
-    isUninstalling,
-  } = useInstalledStore();
+  // Subscribe only to this item's derived install state (constant across all version rows), so
+  // an install tick on another asset doesn't re-render the whole versions list.
+  const installedVersion = useInstalledStore((s) =>
+    s.getInstalledVersion(itemId),
+  );
+  const installing = useInstalledStore((s) => s.isInstalling(itemId));
+  const installingVersion = useInstalledStore((s) =>
+    s.getInstallingVersion(itemId),
+  );
+  const uninstalling = useInstalledStore((s) => s.isUninstalling(itemId));
+  const installMod = useInstalledStore((s) => s.installMod);
+  const installMap = useInstalledStore((s) => s.installMap);
 
   const cancellationToastId = `cancel-install-${type}-${itemId}`;
-  const installedVersion = getInstalledVersion(itemId);
   const { locked: mutationLocked, reason: mutationLockedReason } =
     useSubscriptionMutationLockState();
 
@@ -211,7 +214,30 @@ export function ProjectVersions({
   }
 
   const hasAnyGameVersion = versions.some((v) => v.game_version);
-  const sorted = sortProjectVersions(versions, sort, compareSemver);
+  const sorted = useMemo(
+    () => sortProjectVersions(versions, sort, compareSemver),
+    [versions, sort],
+  );
+  // Precompute each version's constraints + incompatibility once (semver parsing) instead of on
+  // every row render.
+  const versionCompatibility = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        constraints: ReturnType<typeof constraintsFromVersion>;
+        incompatible: boolean;
+      }
+    >();
+    for (const v of versions) {
+      const constraints = constraintsFromVersion(v);
+      map.set(v.version, {
+        constraints,
+        incompatible:
+          getFailingConstraints(gameVersion, constraints).length > 0,
+      });
+    }
+    return map;
+  }, [versions, gameVersion]);
   const typeListingPath = assetTypeToListingPath(type);
 
   return (
@@ -227,12 +253,9 @@ export function ProjectVersions({
       >
         {sorted.map((v) => {
           const isThisInstalled = installedVersion === v.version;
-          const installing = isInstalling(itemId);
-          const installingVersion = getInstallingVersion(itemId);
-          const uninstalling = isUninstalling(itemId);
-          const constraints = constraintsFromVersion(v);
-          const incompatible =
-            getFailingConstraints(gameVersion, constraints).length > 0;
+          const compat = versionCompatibility.get(v.version);
+          const constraints = compat?.constraints ?? [];
+          const incompatible = compat?.incompatible ?? false;
 
           return (
             <ProjectVersionRow

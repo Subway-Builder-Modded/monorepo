@@ -13,10 +13,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@subway-builder-modded/shared-ui';
-import { useMemo } from 'react';
+import { memo, useEffect, useMemo } from 'react';
 import { Link } from 'wouter';
 
 import { getCountryFlagIcon } from '@/lib/flags';
+import { countRenders } from '@/lib/perf';
 
 import type { types } from '../../../wailsjs/go/models';
 import { IncompatibleBadge, TestBadge } from './AssetStatusBadges';
@@ -41,7 +42,9 @@ function isMapManifest(
   return 'city_code' in item;
 }
 
-export function ItemCard({
+// Memoized so a parent re-render (filter/search/selection change on a page full of cards) only
+// re-renders the cards whose props actually changed, not the whole grid.
+function ItemCardComponent({
   type,
   item,
   installedVersion,
@@ -52,6 +55,11 @@ export function ItemCard({
   viewMode = 'full',
   descriptionMode = 'raw',
 }: ItemCardWrapperProps) {
+  // Counts committed renders (skipped renders from memo aren't counted) to measure fan-out.
+  useEffect(() => {
+    countRenders('itemCard');
+  });
+
   const isMap = isMapManifest(item);
   const mapItem = isMap ? (item as types.MapManifest) : null;
   const CountryFlag = getCountryFlagIcon(mapItem?.country);
@@ -139,3 +147,5 @@ export function ItemCard({
     />
   );
 }
+
+export const ItemCard = memo(ItemCardComponent);

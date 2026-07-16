@@ -126,20 +126,18 @@ export function ProjectHeader({
     conflict: types.MapCodeConflict;
   } | null>(null);
 
-  const {
-    installMod,
-    installMap,
-    getInstalledVersion,
-    isInstalling,
-    isUninstalling,
-    uninstallAssets,
-    updateAssetsToLatest,
-    cancelPendingInstall,
-  } = useInstalledStore();
-
-  const installedVersion = getInstalledVersion(item.id);
-  const installing = isInstalling(item.id);
-  const uninstalling = isUninstalling(item.id);
+  // Subscribe only to this item's derived install state (not the whole store), so an install
+  // progress tick on some *other* asset doesn't re-render this header.
+  const installedVersion = useInstalledStore((s) =>
+    s.getInstalledVersion(item.id),
+  );
+  const installing = useInstalledStore((s) => s.isInstalling(item.id));
+  const uninstalling = useInstalledStore((s) => s.isUninstalling(item.id));
+  const installMod = useInstalledStore((s) => s.installMod);
+  const installMap = useInstalledStore((s) => s.installMap);
+  const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
+  const updateAssetsToLatest = useInstalledStore((s) => s.updateAssetsToLatest);
+  const cancelPendingInstall = useInstalledStore((s) => s.cancelPendingInstall);
   const noCompatibleVersion = Boolean(
     gameVersion && latestVersion && !latestCompatibleVersion,
   );
