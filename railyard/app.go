@@ -84,7 +84,7 @@ func NewApp() *App {
 }
 
 // startGalleryServer starts a HTTP server that serves registry asset images so
-// the frontend can load them as URLs. 
+// the frontend can load them as URLs.
 // Started at startup (not game launch) so images are available on the first render.
 func (a *App) startGalleryServer() {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")

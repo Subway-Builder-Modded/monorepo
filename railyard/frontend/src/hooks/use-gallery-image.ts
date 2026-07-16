@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { GetGalleryServerPort } from '../../wailsjs/go/main/App';
 
-// Images are served as full-resolution URLs by the gallery server. 
+// Images are served as full-resolution URLs by the gallery server.
 // Decode each image off the main thread via img.decode() before showing it, so the main thread doesn't freeze when many cards mount at once.
 let cachedPort: number | null = null;
 let portPromise: Promise<number | null> | null = null;
