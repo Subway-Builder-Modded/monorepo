@@ -283,7 +283,7 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 	a.emitEvent("registry:ready")
 
 	// The registry refresh is intentionally NOT run here. The git operations hog CPU resources
-	// and starve the WebView2 UI thread, which can freeze the initial render until the fetch is completed. 
+	// and starve the WebView2 UI thread, which can freeze the initial render until the fetch is completed.
 
 	// Run before sync, and independently of the auto-update preference, so a single stuck
 	// subscription cannot fail the startup sync for every other asset.

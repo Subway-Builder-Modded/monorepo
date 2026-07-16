@@ -75,10 +75,10 @@ type progressWriter struct {
 	emit  func(RegistryProgress)
 
 	// mu guards buf/lastStage/lastEmit. go-git's transport typically writes from a single goroutine, but the lock is cheap defence in case that ever changes.
-	mu        sync.Mutex
-	buf       bytes.Buffer
-	lastStage string
-	lastEmit  time.Time
+	mu         sync.Mutex
+	buf        bytes.Buffer
+	lastStage  string
+	lastEmit   time.Time
 	finalStage string
 }
 
