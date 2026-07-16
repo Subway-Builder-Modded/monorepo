@@ -41,7 +41,7 @@ import {
   TriangleAlert,
   X,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
@@ -300,6 +300,28 @@ export function ChangelogPage() {
     return formatDetailedProjectVersionDate(versionInfo.date);
   }, [versionInfo?.date]);
 
+  const handleChangelogLinkClick = useCallback((href: string) => {
+    BrowserOpenURL(href);
+  }, []);
+
+  // Memoize the markdown subtree so react-markdown only re-parses when the changelog text
+  // changes — not on every ChangelogPage re-render (install actions, copy toggles, etc.).
+  const changelogPanel = useMemo(
+    () =>
+      versionInfo?.changelog ? (
+        <MarkdownPanel
+          markdown={versionInfo.changelog}
+          className="border-0 bg-transparent p-0"
+          onLinkClick={handleChangelogLinkClick}
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground italic">
+          No changelog provided for this version.
+        </p>
+      ),
+    [versionInfo?.changelog, handleChangelogLinkClick],
+  );
+
   if (!item || !type) {
     return (
       <EmptyState
@@ -546,21 +568,7 @@ export function ChangelogPage() {
                       <div className="border-b border-border px-4 py-3">
                         <h2 className="text-sm font-semibold">Changelog</h2>
                       </div>
-                      <div className="p-4">
-                        {versionInfo.changelog ? (
-                          <MarkdownPanel
-                            markdown={versionInfo.changelog}
-                            className="border-0 bg-transparent p-0"
-                            onLinkClick={(href) => {
-                              BrowserOpenURL(href);
-                            }}
-                          />
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">
-                            No changelog provided for this version.
-                          </p>
-                        )}
-                      </div>
+                      <div className="p-4">{changelogPanel}</div>
                     </div>
                   )}
 

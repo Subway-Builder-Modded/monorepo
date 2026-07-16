@@ -24,7 +24,7 @@ import {
   OctagonX,
   Trash2,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
@@ -41,6 +41,7 @@ import { useGameVersion } from '@/hooks/use-game-version';
 import { assetKey } from '@/lib/asset-key';
 import { getCountryFlagIcon } from '@/lib/flags';
 import { openInstallFolder } from '@/lib/install-path';
+import { countRenders } from '@/lib/perf';
 import { formatStorageSize } from '@/lib/size-format';
 import {
   handleSubscriptionMutationError,
@@ -232,7 +233,11 @@ interface LibraryListRowProps {
   mutationLockedReason?: string;
 }
 
-function LibraryListRow({
+// Memoized so a selection toggle (or any parent re-render) re-renders only the affected rows,
+// not the whole list. entry/pendingUpdatesByKey/callbacks are stable references from the parent.
+const LibraryListRow = memo(LibraryListRowImpl);
+
+function LibraryListRowImpl({
   entry,
   showMapColumns,
   pendingUpdatesByKey,
@@ -240,12 +245,16 @@ function LibraryListRow({
   mutationLocked,
   mutationLockedReason,
 }: LibraryListRowProps) {
+  const key = assetKey(entry.type, entry.item.id);
+
   const [uninstallOpen, setUninstallOpen] = useState(false);
   const [uninstallLoading, setUninstallLoading] = useState(false);
   const [updateOpen, setUpdateOpen] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
 
-  const selectedIds = useLibraryStore((s) => s.selectedIds);
+  // Subscribe to only this row's selection so a toggle re-renders just the affected row(s)
+  // instead of every row reacting to the whole selectedIds set.
+  const isSelected = useLibraryStore((s) => s.selectedIds.has(key));
   const toggleSelected = useLibraryStore((s) => s.toggleSelected);
   const removeSelected = useLibraryStore((s) => s.removeSelected);
   const uninstallAssets = useInstalledStore((s) => s.uninstallAssets);
@@ -255,8 +264,10 @@ function LibraryListRow({
   );
   const gameVersion = useGameVersion();
 
-  const key = assetKey(entry.type, entry.item.id);
-  const isSelected = selectedIds.has(key);
+  useEffect(() => {
+    countRenders('libraryListRow');
+  });
+
   const isMap = entry.type === 'map';
   const isLocal = entry.isLocal;
   const showIncompatible =

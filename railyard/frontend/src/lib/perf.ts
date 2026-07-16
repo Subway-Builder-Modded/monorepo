@@ -53,6 +53,36 @@ export function measureSync<T>(name: string, fn: () => T): T {
   }
 }
 
+// countRenders tallies how many times a component renders within a burst and logs the total. 
+// Re-render fan-out then shows up as a single number. 
+// This should be called from useEffect without dependencies so it counts committed renders and respects React.memo.
+const renderTallies = new Map<
+  string,
+  { count: number; timer: ReturnType<typeof setTimeout> }
+>();
+
+function flushRenderTally(name: string) {
+  const tally = renderTallies.get(name);
+  if (!tally) return;
+  renderTallies.delete(name);
+  log(`${name} rendered ${tally.count}×`);
+}
+
+// Use 250ms to avoid logging a render burst that is still in progress (e.g. a parent re-rendering children one at a time).
+export function countRenders(name: string) {
+  const existing = renderTallies.get(name);
+  if (existing) {
+    existing.count += 1;
+    clearTimeout(existing.timer);
+    existing.timer = setTimeout(() => flushRenderTally(name), 250);
+    return;
+  }
+  renderTallies.set(name, {
+    count: 1,
+    timer: setTimeout(() => flushRenderTally(name), 250),
+  });
+}
+
 // addLongTaskObserver reports every main-thread task over ~50ms and its start time, so a
 // UI freeze shows up as a log entry.
 export function addLongTaskObserver() {
