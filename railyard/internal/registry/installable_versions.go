@@ -92,7 +92,7 @@ func (r *Registry) filterVersionsByIntegrity(
 
 // GetInstallableVersionsFromIntegrity returns the integrity-approved installable versions for
 // an asset built solely from the loaded integrity report.
-// This is the fast path for startup reconcile/update, which only needs to know which versions exist and are 
+// This is the fast path for startup reconcile/update, which only needs to know which versions exist and are
 // game-compatible; this avoids a Github conditional request per subscription.
 func (r *Registry) GetInstallableVersionsFromIntegrity(assetType types.AssetType, assetID string) ([]types.VersionInfo, error) {
 	listing, ok := r.getIntegrityListing(assetType, assetID)
