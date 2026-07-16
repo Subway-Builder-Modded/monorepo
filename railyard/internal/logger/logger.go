@@ -178,6 +178,13 @@ func (l *AppLogger) MultipleError(msg string, errs []error, attrs ...any) {
 	l.base.Error(msg, attrs...)
 }
 
+// Perf logs a performance diagnostic at info level. Entries carry perf=true so they can be
+// filtered from the log, and source identifies where the measurement came from (e.g.
+// "frontend" or "backend"). Use for durations, long tasks, and startup timings.
+func (l *AppLogger) Perf(source string, msg string, attrs ...any) {
+	l.base.Info(msg, append([]any{"perf", true, "source", source}, attrs...)...)
+}
+
 func (l *AppLogger) LogResponse(msg string, response types.GenericResponse, attrs ...any) {
 	baseAttrs := append([]any{"status", response.Status, "message", response.Message}, attrs...)
 

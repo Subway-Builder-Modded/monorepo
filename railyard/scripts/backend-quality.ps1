@@ -23,14 +23,13 @@ function Invoke-CheckedCommand {
 }
 
 Write-Host "[backend] checking Go formatting..."
-$goFiles = git ls-files "*.go"
-if ($goFiles) {
-    $unformatted = gofmt -l $goFiles
-    if ($unformatted) {
-        Write-Host "[backend] gofmt required for:"
-        $unformatted | ForEach-Object { Write-Host $_ }
-        throw "[backend] gofmt check failed"
-    }
+# Check the module by directory (absolute path); a `git ls-files` list resolves relative to
+# the current directory and breaks in linked git worktrees (see pre-push-check.ps1).
+$unformatted = gofmt -l $rootDir
+if ($unformatted) {
+    Write-Host "[backend] gofmt required for:"
+    $unformatted | ForEach-Object { Write-Host $_ }
+    throw "[backend] gofmt check failed"
 }
 
 Write-Host "[backend] running Go tests..."
