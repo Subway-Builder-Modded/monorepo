@@ -9,7 +9,7 @@ func TestGameVersionCacheEntryMatches(t *testing.T) {
 	base := time.Unix(1_700_000_000, 0)
 	entry := gameVersionCacheEntry{
 		asarPath: "/game/resources/app.asar",
-		mTime:  base,
+		mTime:    base,
 		size:     1024,
 		version:  "1.4.10",
 		valid:    true,

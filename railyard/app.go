@@ -77,13 +77,13 @@ type App struct {
 // while the asar's path, size, and mod time are unchanged.
 type gameVersionCacheEntry struct {
 	asarPath string
-	mTime  time.Time
+	mTime    time.Time
 	size     int64
 	version  string
 	valid    bool
 }
 
-// matches reports whether a cached entry is still valid for the asar currently on disk. 
+// matches reports whether a cached entry is still valid for the asar currently on disk.
 func (e gameVersionCacheEntry) matches(asarPath string, size int64, mTime time.Time) bool {
 	return e.valid && e.asarPath == asarPath && e.size == size && e.mTime.Equal(mTime)
 }
@@ -550,7 +550,7 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 		a.gameVersionMu.Lock()
 		a.gameVersionCache = gameVersionCacheEntry{
 			asarPath: asarPath,
-			mTime:  info.ModTime(),
+			mTime:    info.ModTime(),
 			size:     info.Size(),
 			version:  pkg.Version,
 			valid:    true,
