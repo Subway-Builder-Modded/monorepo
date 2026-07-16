@@ -25,6 +25,8 @@ export function IsStartupReady():Promise<types.StartupReadyResponse>;
 
 export function LaunchGame(arg1:boolean):Promise<types.GenericResponse>;
 
+export function LogFrontend(arg1:string,arg2:string):Promise<void>;
+
 export function ManuallyCheckForUpdates():Promise<types.GenericResponse>;
 
 export function OpenImportAssetDialog(arg1:types.AssetType):Promise<types.ImportAssetDialogResponse>;

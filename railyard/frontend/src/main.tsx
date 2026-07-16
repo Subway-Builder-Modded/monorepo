@@ -4,6 +4,10 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
+import { addLongTaskObserver } from './lib/perf';
+
+// Surface cold-start main-thread freezes in the console.
+addLongTaskObserver();
 
 // ── Disable browser zoom (Ctrl +/-, Ctrl 0, Ctrl scroll) ──
 document.addEventListener('keydown', (e) => {

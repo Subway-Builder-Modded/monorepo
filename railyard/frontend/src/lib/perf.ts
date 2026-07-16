@@ -1,0 +1,61 @@
+// Lightweight performance-logging utility file that emits timing marks, measured durations, and
+// main-thread long tasks to the console as well as the persisted backend log for diagnosing slow startups and other
+// frontend performance issues.
+import { LogFrontend } from '../../wailsjs/go/main/App';
+
+const PREFIX = '[perf]';
+
+function log(message: string) {
+  const line = `${PREFIX} ${message}`;
+
+  console.log(line);
+  try {
+    void LogFrontend('perf', line);
+  } catch {
+    // Not running inside Wails (e.g. unit tests); console output is enough.
+  }
+}
+
+// mark logs a labelled point in time (ms since navigation), so gaps between marks are visible.
+export function mark(name: string) {
+  log(`${name} @ ${performance.now().toFixed(0)}ms`);
+}
+
+// markFirst stamps a point in time only the first time it is called with a given name.
+const firstSeen = new Set<string>();
+export function markFirst(name: string) {
+  if (firstSeen.has(name)) return;
+  firstSeen.add(name);
+  mark(name);
+}
+
+// measureAsync times an async step and logs its duration (includes await time).
+export async function measureAsync<T>(
+  name: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const start = performance.now();
+  try {
+    return await fn();
+  } finally {
+    log(`${name}: ${(performance.now() - start).toFixed(1)}ms`);
+  }
+}
+
+// addLongTaskObserver reports every main-thread task over ~50ms and its start time, so a
+// UI freeze shows up as a log entry.
+export function addLongTaskObserver() {
+  if (typeof PerformanceObserver === 'undefined') return;
+  try {
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        log(
+          `LONG TASK ${entry.duration.toFixed(0)}ms starting @ ${entry.startTime.toFixed(0)}ms`,
+        );
+      }
+    });
+    observer.observe({ entryTypes: ['longtask'] });
+  } catch {
+    // longtask entry type not supported in this webview; marks still work.
+  }
+}

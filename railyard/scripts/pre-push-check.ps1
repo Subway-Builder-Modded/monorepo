@@ -16,16 +16,17 @@ function Invoke-CheckedCommand {
 }
 
 Write-Host "[pre-push] applying Go formatting..."
-$goFiles = git ls-files "*.go"
-if ($goFiles) {
-    Invoke-CheckedCommand { gofmt -w $goFiles } "[pre-push] gofmt apply failed"
+# Format the module by directory (absolute path) rather than a `git ls-files` file list.
+# ls-files paths are resolved relative to the current directory, which breaks in linked git
+# worktrees — gofmt then receives `railyard/`-prefixed paths it cannot stat. Passing the
+# absolute module directory is cwd-independent and also covers not-yet-tracked files.
+Invoke-CheckedCommand { gofmt -w $rootDir } "[pre-push] gofmt apply failed"
 
-    $remainingUnformatted = gofmt -l $goFiles
-    if ($remainingUnformatted) {
-        Write-Host "[pre-push] gofmt still required for:"
-        $remainingUnformatted | ForEach-Object { Write-Host $_ }
-        throw "[pre-push] gofmt post-apply check failed"
-    }
+$remainingUnformatted = gofmt -l $rootDir
+if ($remainingUnformatted) {
+    Write-Host "[pre-push] gofmt still required for:"
+    $remainingUnformatted | ForEach-Object { Write-Host $_ }
+    throw "[pre-push] gofmt post-apply check failed"
 }
 
 Write-Host "[pre-push] running backend quality checks..."
