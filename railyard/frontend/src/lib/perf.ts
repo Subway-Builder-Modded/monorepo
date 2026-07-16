@@ -53,8 +53,8 @@ export function measureSync<T>(name: string, fn: () => T): T {
   }
 }
 
-// countRenders tallies how many times a component renders within a burst and logs the total. 
-// Re-render fan-out then shows up as a single number. 
+// countRenders tallies how many times a component renders within a burst and logs the total.
+// Re-render fan-out then shows up as a single number.
 // This should be called from useEffect without dependencies so it counts committed renders and respects React.memo.
 const renderTallies = new Map<
   string,

@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { GetGalleryServerPort } from '../../wailsjs/go/main/App';
 
 // Images are served as full-resolution URLs by the gallery server and handed straight to
-// <img loading="lazy" decoding="async">. 
+// <img loading="lazy" decoding="async">.
 // Do NOT gate on img.decode(): letting the webview load/decode each image natively means only on-screen images load, and they stream in one
 // at a time instead of the whole grid locking on a skeleton until every image has decoded.
 let cachedPort: number | null = null;
@@ -59,7 +59,7 @@ export async function preloadGalleryImage(
 }
 
 // useGalleryImage returns the image URL as soon as it can (synchronously once the port is cached)
-// and lets the browser load/decode the image progressively. 
+// and lets the browser load/decode the image progressively.
 export function useGalleryImage(
   type: AssetType,
   id: string,
