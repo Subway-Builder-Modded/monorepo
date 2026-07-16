@@ -80,6 +80,11 @@ func (r *Registry) SetContext(ctx context.Context) {
 	r.context = ctx
 }
 
+// RepoPath returns the local registry repository path.
+func (r *Registry) RepoPath() string {
+	return r.repoPath
+}
+
 // Initialize ensures a valid local registry repo exists.
 // It does not force a remote refresh.
 func (r *Registry) Initialize() error {

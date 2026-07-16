@@ -4,135 +4,122 @@ import {
 } from '@subway-builder-modded/config';
 import { useEffect, useState } from 'react';
 
-import { GetGalleryImageResponse } from '../../wailsjs/go/registry/Registry';
+import { GetGalleryServerPort } from '../../wailsjs/go/main/App';
 
-interface GalleryImageCacheEntry {
-  imageUrl: string | null;
-  error: boolean;
+// Images are served as full-resolution URLs by the gallery server.
+// Decode each image off the main thread via img.decode() before showing it, so the main thread doesn't freeze when many cards mount at once.
+let cachedPort: number | null = null;
+let portPromise: Promise<number | null> | null = null;
+
+function fetchGalleryPort(): Promise<number | null> {
+  if (cachedPort !== null) return Promise.resolve(cachedPort);
+  if (!portPromise) {
+    portPromise = GetGalleryServerPort()
+      .then((port) => {
+        cachedPort = port && port > 0 ? port : null;
+        return cachedPort;
+      })
+      .catch(() => null);
+  }
+  return portPromise;
 }
 
-const galleryImageCache = new Map<string, GalleryImageCacheEntry>();
-const galleryImageRequests = new Map<string, Promise<GalleryImageCacheEntry>>();
-
-function getCacheKey(type: AssetType, id: string, imagePath: string) {
-  return `${type}:${id}:${imagePath}`;
-}
-
-async function requestGalleryImage(
+function galleryImageUrl(
+  port: number,
   type: AssetType,
   id: string,
   imagePath: string,
-): Promise<GalleryImageCacheEntry> {
-  try {
-    const response = await GetGalleryImageResponse(
-      assetTypeToListingPath(type),
-      id,
-      imagePath,
-    );
-    if (response.status !== 'success') {
-      return { imageUrl: null, error: true };
-    }
-
-    const imageUrl = response.imageUrl || null;
-    return { imageUrl, error: false };
-  } catch {
-    return { imageUrl: null, error: true };
-  }
+): string {
+  const segments = [assetTypeToListingPath(type), id, ...imagePath.split('/')];
+  return `http://127.0.0.1:${port}/gallery/${segments.map(encodeURIComponent).join('/')}`;
 }
 
-function getOrRequestGalleryImage(
+// Dedup off-main-thread decodes so an image is only decoded once and
+// tab switches (which remount cards) reuse the already-decoded result.
+const decoded = new Set<string>();
+const decoding = new Map<string, Promise<boolean>>();
+
+function decodeGalleryImage(url: string): Promise<boolean> {
+  if (decoded.has(url)) return Promise.resolve(true);
+  let promise = decoding.get(url);
+  if (!promise) {
+    const img = new Image();
+    img.src = url;
+    promise = img
+      .decode()
+      .then(() => {
+        decoded.add(url);
+        return true;
+      })
+      .catch(() => false)
+      .finally(() => {
+        decoding.delete(url);
+      });
+    decoding.set(url, promise);
+  }
+  return promise;
+}
+
+async function resolveGalleryUrl(
   type: AssetType,
   id: string,
   imagePath: string,
-): Promise<GalleryImageCacheEntry> {
-  const cacheKey = getCacheKey(type, id, imagePath);
-  const cached = galleryImageCache.get(cacheKey);
-  if (cached) {
-    return Promise.resolve(cached);
-  }
-
-  const inFlight = galleryImageRequests.get(cacheKey);
-  if (inFlight) {
-    return inFlight;
-  }
-
-  const request = (async () => {
-    try {
-      const entry = await requestGalleryImage(type, id, imagePath);
-      galleryImageCache.set(cacheKey, entry);
-      return entry;
-    } finally {
-      galleryImageRequests.delete(cacheKey);
-    }
-  })();
-
-  galleryImageRequests.set(cacheKey, request);
-  return request;
+): Promise<string | null> {
+  const port = await fetchGalleryPort();
+  return port === null ? null : galleryImageUrl(port, type, id, imagePath);
 }
 
+// preloadGalleryImage resolves and off-thread-decodes an image ahead of render.
 export async function preloadGalleryImage(
-  type: AssetType,
-  id: string,
+  type?: AssetType,
+  id?: string,
   imagePath?: string,
 ): Promise<void> {
-  if (!imagePath) {
+  if (!type || !id || !imagePath) {
+    await fetchGalleryPort();
     return;
   }
-  await getOrRequestGalleryImage(type, id, imagePath);
+  const url = await resolveGalleryUrl(type, id, imagePath);
+  if (url) await decodeGalleryImage(url);
 }
 
+// useGalleryImage returns the image URL once it has been decoded off the main thread. While
+// resolving/decoding it reports loading so the card shows its skeleton.
 export function useGalleryImage(
   type: AssetType,
   id: string,
   imagePath?: string,
-) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+): { imageUrl: string | null; loading: boolean; error: boolean } {
+  const [state, setState] = useState<{
+    url: string | null;
+    loading: boolean;
+    error: boolean;
+  }>(() => ({ url: null, loading: Boolean(imagePath), error: false }));
 
   useEffect(() => {
     if (!imagePath) {
-      setImageUrl(null);
-      setError(false);
-      setLoading(false);
+      setState({ url: null, loading: false, error: false });
       return;
     }
-
     let cancelled = false;
-    const cacheKey = getCacheKey(type, id, imagePath);
-    const cached = galleryImageCache.get(cacheKey);
-    if (cached) {
-      setImageUrl(cached.imageUrl);
-      setError(cached.error);
-      setLoading(false);
-      return;
-    }
+    setState({ url: null, loading: true, error: false });
 
-    setLoading(true);
-    setError(false);
-
-    const loadImage = async () => {
-      try {
-        const entry = await getOrRequestGalleryImage(type, id, imagePath);
-        if (!cancelled) {
-          setImageUrl(entry.imageUrl);
-          setError(entry.error);
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) {
-          setImageUrl(null);
-          setError(true);
-          setLoading(false);
-        }
+    void (async () => {
+      const url = await resolveGalleryUrl(type, id, imagePath);
+      if (cancelled) return;
+      if (!url) {
+        setState({ url: null, loading: false, error: true });
+        return;
       }
-    };
-    loadImage();
+      const ok = await decodeGalleryImage(url);
+      if (cancelled) return;
+      setState({ url: ok ? url : null, loading: false, error: !ok });
+    })();
 
     return () => {
       cancelled = true;
     };
   }, [type, id, imagePath]);
 
-  return { imageUrl, loading, error };
+  return { imageUrl: state.url, loading: state.loading, error: state.error };
 }

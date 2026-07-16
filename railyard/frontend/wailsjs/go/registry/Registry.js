@@ -134,6 +134,10 @@ export function RemoveInstalledMod(arg1) {
   return window['go']['registry']['Registry']['RemoveInstalledMod'](arg1);
 }
 
+export function RepoPath() {
+  return window['go']['registry']['Registry']['RepoPath']();
+}
+
 export function SetContext(arg1) {
   return window['go']['registry']['Registry']['SetContext'](arg1);
 }

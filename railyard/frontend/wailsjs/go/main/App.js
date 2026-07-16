@@ -10,6 +10,10 @@ export function GetCurrentVersion() {
   return window['go']['main']['App']['GetCurrentVersion']();
 }
 
+export function GetGalleryServerPort() {
+  return window['go']['main']['App']['GetGalleryServerPort']();
+}
+
 export function GetGameVersion() {
   return window['go']['main']['App']['GetGameVersion']();
 }
