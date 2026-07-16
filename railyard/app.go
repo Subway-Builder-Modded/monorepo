@@ -63,10 +63,29 @@ type App struct {
 	deepLinks     deepLinkQueue
 	appImageMount *appImageMount
 
+	// gameVersionCache memoizes the detected game version keyed by the app.asar's path + stat.
+	gameVersionMu    sync.Mutex
+	gameVersionCache gameVersionCacheEntry
+
 	// Test-only hooks for controlling the launch-starting window and event sink.
 	launchGameTestReady chan<- struct{}
 	launchGameTestBlock <-chan struct{}
 	emitEventFunc       func(name string, optionalData ...interface{})
+}
+
+// gameVersionCacheEntry is the memoized result of a successful app.asar decode. It is reused
+// while the asar's path, size, and mod time are unchanged.
+type gameVersionCacheEntry struct {
+	asarPath string
+	mTime  time.Time
+	size     int64
+	version  string
+	valid    bool
+}
+
+// matches reports whether a cached entry is still valid for the asar currently on disk. 
+func (e gameVersionCacheEntry) matches(asarPath string, size int64, mTime time.Time) bool {
+	return e.valid && e.asarPath == asarPath && e.size == size && e.mTime.Equal(mTime)
 }
 
 // NewApp creates a new App application struct
@@ -430,13 +449,17 @@ func findAsar(exePath string) (bool, string) {
 
 // GetGameVersion detects the installed Subway Builder version from app.asar's
 // package.json, returning an empty version with a warning status if detection fails.
-// It is intentionally uncached; the game can update while Railyard runs, so every call re-detects to keep compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
+// The result is cached keyed by the asar's path + size + mod time: decoding the whole archive
+// costs hundreds of ms and this is called frequently (frontend + every subscription pass), so
+// repeat calls only stat the file. A game update mid-session changes the mod time and re-decodes,
+// keeping compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
 func (a *App) GetGameVersion() types.GameVersionResponse {
-	// Timed because this decodes the entire game app.asar on every call and is invoked both
-	// from the frontend and internally on each subscription-update pass; a known hot spot.
+	// Timed (with cached=true|false) because the decode path is a known hot spot; the log lets us
+	// confirm repeat calls hit the cache instead of re-decoding.
 	start := time.Now()
+	cached := false
 	defer func() {
-		a.Logger.Perf("backend", "gameVersion.resolve", "duration", time.Since(start))
+		a.Logger.Perf("backend", "gameVersion.resolve", "duration", time.Since(start), "cached", cached)
 	}()
 	a.Logger.Info("Attempting to resolve game version")
 	notDetected := types.GameVersionResponse{
@@ -480,6 +503,21 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 		asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 	}
 
+	info, statErr := os.Stat(asarPath)
+	if statErr == nil {
+		a.gameVersionMu.Lock()
+		entry := a.gameVersionCache
+		a.gameVersionMu.Unlock()
+		if entry.matches(asarPath, info.Size(), info.ModTime()) {
+			cached = true
+			return types.GameVersionResponse{
+				GenericResponse: types.SuccessResponse("Game version detected"),
+				Version:         entry.version,
+			}
+		}
+	}
+
+	// Stat failure just falls through to the decode path (which reports the real error).
 	archiveFile, err := os.Open(asarPath)
 	if err != nil {
 		a.Logger.Warn("Failed to open app.asar for game version detection", "error", err, "asarPath", asarPath)
@@ -505,6 +543,19 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	if err := json.NewDecoder(packageFile.Open()).Decode(&pkg); err != nil {
 		a.Logger.Warn("Failed to decode package.json", "asarPath", asarPath, "error", err)
 		return notDetected
+	}
+
+	// Cache the successful decode so later calls stat-and-return until the asar changes.
+	if statErr == nil {
+		a.gameVersionMu.Lock()
+		a.gameVersionCache = gameVersionCacheEntry{
+			asarPath: asarPath,
+			mTime:  info.ModTime(),
+			size:     info.Size(),
+			version:  pkg.Version,
+			valid:    true,
+		}
+		a.gameVersionMu.Unlock()
 	}
 
 	a.Logger.Info("Game version detected", "version", pkg.Version)
