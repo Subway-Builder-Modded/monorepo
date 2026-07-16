@@ -1,5 +1,6 @@
 import { useWailsStartup } from '@subway-builder-modded/lifecycle-wails';
 import { SuiteLoader, TooltipProvider } from '@subway-builder-modded/shared-ui';
+import { useEffect, useRef } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 
 import { DownloadNotification } from '@/components/layout/DownloadNotification';
@@ -40,6 +41,12 @@ interface RegistryRefreshProgressEvent {
   stage?: string;
 }
 
+// Delay before the frontend triggers the startup registry refresh, measured from when the
+// app becomes interactive.
+// Ideally the dealy should be long enough for first paint + gallery image decode to settle so
+// the  git fetch doesn't compete with CPU resources.
+const STARTUP_REFRESH_DELAY_MS = 2000;
+
 function App() {
   useTheme();
   const [, setLocation] = useLocation();
@@ -62,6 +69,11 @@ function App() {
   const registryInitialized = useRegistryStore((s) => s.initialized);
   const installedInitialized = useInstalledStore((s) => s.initialized);
   const setStartupRefreshing = useRegistryStore((s) => s.setStartupRefreshing);
+  const registryRefresh = useRegistryStore((s) => s.refresh);
+  const refreshRegistryOnStartup = useProfileStore(
+    (s) => s.profile?.systemPreferences?.refreshRegistryOnStartup ?? false,
+  );
+  const startupRefreshTriggered = useRef(false);
 
   const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const appReadyForNavigation =
@@ -70,6 +82,15 @@ function App() {
     (!showRegistrySteps || (registryInitialized && installedInitialized)) &&
     isConfigured &&
     setupCompleted;
+
+  // Kick off the registry refresh (git fetch) on startup if the user has enabled it in preferences.
+  useEffect(() => {
+    if (startupRefreshTriggered.current) return;
+    if (!appReadyForNavigation || !refreshRegistryOnStartup) return;
+    startupRefreshTriggered.current = true;
+
+    window.setTimeout(() => void registryRefresh(), STARTUP_REFRESH_DELAY_MS);
+  }, [appReadyForNavigation, refreshRegistryOnStartup, registryRefresh]);
 
   const { startupReady, fatalError } = useWailsStartup({
     subscribe: (eventName, handler) => EventsOn(eventName, handler),

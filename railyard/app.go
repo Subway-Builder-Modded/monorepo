@@ -272,7 +272,6 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
 	}
 
-	registryReady := false
 	if err := a.Registry.Initialize(); err != nil {
 		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
 	} else {
@@ -280,15 +279,11 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		if err := a.addSaltsOnFirstRun(); err != nil {
 			a.Logger.Warn("Failed to add salts to existing assets on first run", "error", err)
 		}
-		registryReady = true
 	}
 	a.emitEvent("registry:ready")
 
-	if registryReady && activeProfile.SystemPreferences.RefreshRegistryOnStartup {
-		if err := a.Registry.Refresh(); err != nil {
-			a.Logger.Warn("Failed to refresh registry on startup", "error", err)
-		}
-	}
+	// The registry refresh is intentionally NOT run here. The git operations hog CPU resources
+	// and starve the WebView2 UI thread, which can freeze the initial render until the fetch is completed. 
 
 	// Run before sync, and independently of the auto-update preference, so a single stuck
 	// subscription cannot fail the startup sync for every other asset.
