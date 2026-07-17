@@ -7,6 +7,7 @@ import {
 } from 'react';
 
 import { measureAsync } from '@/lib/perf';
+import { useConfigStore } from '@/stores/config-store';
 
 import { GetGameVersion } from '../../wailsjs/go/main/App';
 
@@ -19,6 +20,15 @@ const FOCUS_REFETCH_INTERVAL_MS = 60_000; // Poll every minute
 // GameVersionProvider shares one detected Subway Builder version across the app.
 export function GameVersionProvider({ children }: { children: ReactNode }) {
   const [gameVersion, setGameVersion] = useState<string>('');
+  // The detected version depends on where the game is resolved from; re-detect immediately when
+  // launch configuration changes (e.g. the Use Steam toggle) instead of waiting for a focus poll.
+  const useSteamLaunch = useConfigStore(
+    (s) => s.config?.useSteamLaunch ?? false,
+  );
+  const executablePath = useConfigStore((s) => s.config?.executablePath ?? '');
+  const steamLibraryPath = useConfigStore(
+    (s) => s.config?.defaultSteamLibraryPath ?? '',
+  );
 
   useEffect(() => {
     let lastFetchedAt = 0;
@@ -43,7 +53,7 @@ export function GameVersionProvider({ children }: { children: ReactNode }) {
     };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, []);
+  }, [useSteamLaunch, executablePath, steamLibraryPath]);
 
   return (
     <GameVersionContext.Provider value={gameVersion}>
