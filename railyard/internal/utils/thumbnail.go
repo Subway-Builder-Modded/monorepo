@@ -85,36 +85,43 @@ func fetchWithRetry(url string, retries int, delay time.Duration) ([]byte, error
 	return nil, fmt.Errorf("failed to fetch %s after %d attempts: %w", url, retries, lastErr)
 }
 
-// CanGenerateThumbnail reports whether the config carries any view source a thumbnail can
-// be derived from: a thumbnail bbox, a map bbox, or a non-zero initial view state.
-func CanGenerateThumbnail(cityConfig types.ConfigData) bool {
-	return cityConfig.ThumbnailBbox != nil || cityConfig.Bbox != nil ||
-		cityConfig.InitialViewState.Latitude != 0 || cityConfig.InitialViewState.Longitude != 0
-}
+const defaultThumbnailZoom = 12
 
-func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (string, error) {
-	bboxToUse := cityConfig.ThumbnailBbox
-	if bboxToUse == nil {
-		bboxToUse = cityConfig.Bbox
-	}
-	if bboxToUse == nil {
-		// Derive bbox from initialViewState
-		lat := cityConfig.InitialViewState.Latitude
-		lng := cityConfig.InitialViewState.Longitude
+// resolveThumbnailBbox picks the bbox a thumbnail is rendered from: a bbox derived from a
+// non-zero initial view state (preferred; span from its zoom, defaulting to
+// defaultThumbnailZoom), then the thumbnail bbox. Returns nil when neither is present. The
+// full map bbox is never used — it can cover far too large an area.
+func resolveThumbnailBbox(cityConfig types.ConfigData) *[4]float64 {
+	lat := cityConfig.InitialViewState.Latitude
+	lng := cityConfig.InitialViewState.Longitude
+	if lat != 0 || lng != 0 {
 		zoom := cityConfig.InitialViewState.Zoom
-		if lat == 0 && lng == 0 {
-			return "", fmt.Errorf("no bounding box or initial view state found for city %s", cityCode)
+		if zoom == 0 {
+			zoom = defaultThumbnailZoom
 		}
 		// Approximate span based on zoom level
 		latSpan := 180.0 / math.Pow(2, zoom)
 		lngSpan := 360.0 / math.Pow(2, zoom)
-		derived := [4]float64{lng - lngSpan, lat - latSpan, lng + lngSpan, lat + latSpan}
-		bboxToUse = &derived
+		return &[4]float64{lng - lngSpan, lat - latSpan, lng + lngSpan, lat + latSpan}
+	}
+	return cityConfig.ThumbnailBbox
+}
+
+// CanGenerateThumbnail reports whether the config carries a view source a thumbnail can be
+// derived from: a non-zero initial view state or a thumbnail bbox.
+func CanGenerateThumbnail(cityConfig types.ConfigData) bool {
+	return resolveThumbnailBbox(cityConfig) != nil
+}
+
+func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (string, error) {
+	bboxToUse := resolveThumbnailBbox(cityConfig)
+	if bboxToUse == nil {
+		return "", fmt.Errorf("no initial view state or thumbnail bbox found for city %s", cityCode)
 	}
 
 	zoom := int(cityConfig.InitialViewState.Zoom)
 	if zoom == 0 {
-		zoom = 12
+		zoom = defaultThumbnailZoom
 	}
 
 	minXTile := lon2tile(bboxToUse[0], zoom)

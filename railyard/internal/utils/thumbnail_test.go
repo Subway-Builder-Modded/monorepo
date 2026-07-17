@@ -88,10 +88,41 @@ func TestCanGenerateThumbnail(t *testing.T) {
 	bbox := [4]float64{0, 0, 1, 1}
 	require.False(t, CanGenerateThumbnail(types.ConfigData{}))
 	require.True(t, CanGenerateThumbnail(types.ConfigData{ThumbnailBbox: &bbox}))
-	require.True(t, CanGenerateThumbnail(types.ConfigData{Bbox: &bbox}))
 	require.True(t, CanGenerateThumbnail(types.ConfigData{
 		InitialViewState: types.InitialViewState{Latitude: 35.0, Longitude: 135.0},
 	}))
+	// The full map bbox is never a thumbnail source.
+	require.False(t, CanGenerateThumbnail(types.ConfigData{Bbox: &bbox}))
+}
+
+func TestResolveThumbnailBbox(t *testing.T) {
+	thumbBbox := [4]float64{1, 2, 3, 4}
+
+	// A non-zero view state wins over the thumbnail bbox; span comes from its zoom.
+	resolved := resolveThumbnailBbox(types.ConfigData{
+		ThumbnailBbox:    &thumbBbox,
+		InitialViewState: types.InitialViewState{Latitude: 35.0, Longitude: 135.0, Zoom: 10},
+	})
+	require.NotNil(t, resolved)
+	lngSpan := 360.0 / 1024.0
+	latSpan := 180.0 / 1024.0
+	require.InDelta(t, 135.0-lngSpan, resolved[0], 1e-9)
+	require.InDelta(t, 35.0-latSpan, resolved[1], 1e-9)
+	require.InDelta(t, 135.0+lngSpan, resolved[2], 1e-9)
+	require.InDelta(t, 35.0+latSpan, resolved[3], 1e-9)
+
+	// An unset zoom defaults to 12 for the span derivation.
+	resolved = resolveThumbnailBbox(types.ConfigData{
+		InitialViewState: types.InitialViewState{Latitude: 35.0, Longitude: 135.0},
+	})
+	require.NotNil(t, resolved)
+	require.InDelta(t, 135.0-360.0/4096.0, resolved[0], 1e-9)
+
+	// Without a view state the thumbnail bbox is used verbatim.
+	resolved = resolveThumbnailBbox(types.ConfigData{ThumbnailBbox: &thumbBbox})
+	require.Equal(t, &thumbBbox, resolved)
+
+	require.Nil(t, resolveThumbnailBbox(types.ConfigData{}))
 }
 
 func TestGenerateThumbnailErrorsWhenNoBoundsOrViewState(t *testing.T) {
@@ -99,7 +130,7 @@ func TestGenerateThumbnailErrorsWhenNoBoundsOrViewState(t *testing.T) {
 
 	_, err := GenerateThumbnail("TEST", cityConfig, 1234)
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "no bounding box or initial view state")
+	require.Contains(t, err.Error(), "no initial view state or thumbnail bbox")
 }
 
 func TestGenerateThumbnailReturnsSVGWhenTilesUnavailableOrInvalid(t *testing.T) {
@@ -117,7 +148,7 @@ func TestGenerateThumbnailReturnsSVGWhenTilesUnavailableOrInvalid(t *testing.T) 
 	require.NoError(t, scanErr)
 
 	bbox := [4]float64{0, 0, 0, 0}
-	cityConfig := types.ConfigData{Bbox: &bbox}
+	cityConfig := types.ConfigData{ThumbnailBbox: &bbox}
 
 	svgText, err := GenerateThumbnail("TEST", cityConfig, port)
 	require.NoError(t, err)
