@@ -43,7 +43,7 @@ import {
 } from '@/components/layout/IncompatibleAssetsDialog';
 import { DisabledReasonTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { useGameVersion } from '@/hooks/use-game-version';
-import { isInstalledCompatible } from '@/lib/version-compatibility';
+import { getFailingConstraints } from '@/lib/version-compatibility';
 import { useConfigStore } from '@/stores/config-store';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -142,24 +142,29 @@ export function Navbar() {
   };
 
   const buildIncompatibleAssets = (): IncompatibleAsset[] => {
+    // The dialog lists only the constraints that actually fail: a satisfied constraint on an
+    // incompatible asset (e.g. a met game-version floor next to a failing buildings-format
+    // ceiling) would otherwise read as a spurious incompatibility reason.
     const result: IncompatibleAsset[] = [];
     for (const m of installedMaps) {
-      if (isInstalledCompatible(gameVersion, m.constraints ?? []) === false) {
+      const failing = getFailingConstraints(gameVersion, m.constraints ?? []);
+      if (failing.length > 0) {
         result.push({
           name: m.config?.name ?? m.id,
           version: m.version,
           assetType: 'map' as const,
-          constraints: m.constraints ?? [],
+          constraints: failing,
         });
       }
     }
     for (const m of installedMods) {
-      if (isInstalledCompatible(gameVersion, m.constraints ?? []) === false) {
+      const failing = getFailingConstraints(gameVersion, m.constraints ?? []);
+      if (failing.length > 0) {
         result.push({
           name: m.manifest?.name ?? m.id,
           version: m.version,
           assetType: 'mod' as const,
-          constraints: m.constraints ?? [],
+          constraints: failing,
         });
       }
     }
