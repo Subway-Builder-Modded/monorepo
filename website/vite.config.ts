@@ -85,6 +85,11 @@ const STATIC_NAV_METADATA: Record<string, { description: string; title: string }
     title: "License",
     description: "Terms and licensing information for Subway Builder Modded projects.",
   },
+  "/terms-of-service": {
+    title: "Terms of Service",
+    description:
+      "The terms of service, guidelines, and regulations of Subway Builder Modded and its services.",
+  },
   "/railyard": {
     title: "Railyard",
     description: STATIC_SUITE_METADATA.railyard.homeDescription,

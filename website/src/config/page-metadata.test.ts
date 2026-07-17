@@ -161,6 +161,18 @@ describe("resolvePageMetadata", () => {
     expect(metadata.imagePath).toBe("/logo.svg");
   });
 
+  it("resolves /terms-of-service page metadata from navigation config", () => {
+    const metadata = resolvePageMetadata("/terms-of-service");
+
+    expect(metadata.title).toBe("Terms of Service");
+    expect(metadata.pageTitle).toBe("Terms of Service");
+    expect(metadata.description).toBe(
+      "The terms of service, guidelines, and regulations of Subway Builder Modded and its services.",
+    );
+    expect(metadata.suite.id).toBe("general");
+    expect(metadata.imagePath).toBe("/logo.svg");
+  });
+
   it("resolves /credits page metadata from navigation config", () => {
     const metadata = resolvePageMetadata("/credits");
 
