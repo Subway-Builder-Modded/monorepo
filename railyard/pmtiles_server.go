@@ -29,12 +29,26 @@ func thumbnailDirFor(metroMakerDataPath string) string {
 	return path.Join(metroMakerDataPath, "public", "data", "city-maps")
 }
 
-// thumbnailHandler serves generated map thumbnails from dir with permissive CORS.
-func thumbnailHandler(dir string) http.HandlerFunc {
+// statusRecorder captures the status code written to a ResponseWriter for request logging.
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (r *statusRecorder) WriteHeader(status int) {
+	r.status = status
+	r.ResponseWriter.WriteHeader(status)
+}
+
+// thumbnailHandler serves generated map thumbnails from dir with permissive CORS,
+// logging each request so missing/stale thumbnails are diagnosable from the app log.
+func thumbnailHandler(dir string, log logger.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filePath := path.Join(dir, path.Base(r.URL.Path))
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		http.ServeFile(w, r, filePath)
+		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+		http.ServeFile(rec, r, filePath)
+		log.Info("Handled thumbnail request", "path", r.URL.Path, "status", rec.status)
 	}
 }
 
@@ -117,7 +131,7 @@ func (a *App) startPMTilesServer() (int, error) {
 
 	thumbnailDir := thumbnailDirFor(a.Config.Cfg.MetroMakerDataPath)
 	mux := http.NewServeMux()
-	mux.Handle("/thumbnails/", thumbnailHandler(thumbnailDir))
+	mux.Handle("/thumbnails/", thumbnailHandler(thumbnailDir, a.Logger))
 	mux.Handle("/debug/thumbnails", thumbnailDebugHandler(thumbnailDir, port))
 	mux.Handle("/", pmtilesProxyHandler(pmtilesServer, a.Logger))
 

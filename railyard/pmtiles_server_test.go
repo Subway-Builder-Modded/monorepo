@@ -47,14 +47,14 @@ func TestThumbnailHandlerServesFileWithCORS(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "ukb.svg"), []byte("<svg/>"), 0o644))
 
 	rec := httptest.NewRecorder()
-	thumbnailHandler(dir)(rec, httptest.NewRequest(http.MethodGet, "/thumbnails/ukb.svg", nil))
+	thumbnailHandler(dir, testutil.TestLogSink{})(rec, httptest.NewRequest(http.MethodGet, "/thumbnails/ukb.svg", nil))
 	require.Equal(t, http.StatusOK, rec.Code)
 	require.Equal(t, "*", rec.Header().Get("Access-Control-Allow-Origin"))
 	require.Equal(t, "<svg/>", rec.Body.String())
 
 	// Missing thumbnails 404; path traversal is neutralized by serving only the base name.
 	rec = httptest.NewRecorder()
-	thumbnailHandler(dir)(rec, httptest.NewRequest(http.MethodGet, "/thumbnails/missing.svg", nil))
+	thumbnailHandler(dir, testutil.TestLogSink{})(rec, httptest.NewRequest(http.MethodGet, "/thumbnails/missing.svg", nil))
 	require.Equal(t, http.StatusNotFound, rec.Code)
 }
 
