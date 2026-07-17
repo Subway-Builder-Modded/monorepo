@@ -42,6 +42,10 @@ export function GetInstallableVersions(arg1, arg2) {
   return window['go']['registry']['Registry']['GetInstallableVersions'](arg1, arg2);
 }
 
+export function GetInstallableVersionsFromIntegrity(arg1, arg2) {
+  return window['go']['registry']['Registry']['GetInstallableVersionsFromIntegrity'](arg1, arg2);
+}
+
 export function GetInstallableVersionsResponse(arg1, arg2) {
   return window['go']['registry']['Registry']['GetInstallableVersionsResponse'](arg1, arg2);
 }
@@ -128,6 +132,10 @@ export function RemoveInstalledMap(arg1) {
 
 export function RemoveInstalledMod(arg1) {
   return window['go']['registry']['Registry']['RemoveInstalledMod'](arg1);
+}
+
+export function RepoPath() {
+  return window['go']['registry']['Registry']['RepoPath']();
 }
 
 export function SetContext(arg1) {

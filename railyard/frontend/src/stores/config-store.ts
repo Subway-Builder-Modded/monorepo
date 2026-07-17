@@ -60,17 +60,23 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       if (result.status === 'error') {
         throw new Error(result.message || 'Failed to load config');
       }
-      const tokenValid = result.hasGithubToken
-        ? (await IsGithubTokenValid()).valid
-        : false;
+      // Mark initialized from GetConfig alone — this gates the startup loader, and nothing on
+      // the render path needs GitHub-token validity synchronously.
       set({
         config: result.config,
         validation: result.validation,
         hasGithubToken: result.hasGithubToken,
         initialized: true,
         loading: false,
-        githubTokenValid: tokenValid,
+        githubTokenValid: false,
       });
+      // Validate any configured token off the first-paint path; fill in the result when the
+      // (network) check returns so first paint doesn't wait on a GitHub round-trip.
+      if (result.hasGithubToken) {
+        void IsGithubTokenValid()
+          .then((res) => set({ githubTokenValid: res.valid }))
+          .catch(() => {});
+      }
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : String(err),

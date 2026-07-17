@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,10 +23,6 @@ const registryRepoPath = "Subway-Builder-Modded/registry"
 
 // registryRefName is the branch tracked locally and queried for the pre-check fast exit.
 const registryRefName = "main"
-
-type remoteCommitResponse struct {
-	SHA string `json:"sha"`
-}
 
 // openOrClone opens an existing repo or force-clones if missing/corrupt.
 func (r *Registry) openOrClone() error {
@@ -226,7 +221,9 @@ func (r *Registry) isUpToDateWithRemote() (bool, error) {
 		URL:         apiURL,
 		GitHubToken: r.config.GetGithubToken(),
 		Headers: map[string]string{
-			"Accept": "application/vnd.github+json",
+			// Request only the commit SHA as a plain-text body. The default
+			// response is the full commit object which can exceed the read limit.
+			"Accept": "application/vnd.github.sha",
 		},
 	})
 	if err != nil {
@@ -237,20 +234,15 @@ func (r *Registry) isUpToDateWithRemote() (bool, error) {
 		return false, fmt.Errorf("registry precheck returned status %d", resp.StatusCode)
 	}
 
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 64*1024))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1024))
 	if err != nil {
 		return false, err
 	}
-	var parsed remoteCommitResponse
-	if err := json.Unmarshal(body, &parsed); err != nil {
-		// Name the source (the commit API response, not a local file) and its byte length so an
-		// empty/truncated body is obvious in the log instead of a bare "unexpected end of JSON input".
-		return false, fmt.Errorf("registry precheck: decoding commit response from %s (%d bytes): %w", apiURL, len(body), err)
+	remoteSHA := strings.TrimSpace(string(body))
+	if remoteSHA == "" {
+		return false, fmt.Errorf("registry precheck returned empty sha from %s", apiURL)
 	}
-	if parsed.SHA == "" {
-		return false, fmt.Errorf("registry precheck returned empty sha")
-	}
-	return strings.EqualFold(parsed.SHA, localSHA), nil
+	return strings.EqualFold(remoteSHA, localSHA), nil
 }
 
 // areSparseSubtreesUnchanged returns true when every directory in registrySparseCheckoutDirs has the same tree hash in the local HEAD commit and the supplied hash from remote.

@@ -18,6 +18,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"railyard/internal/config"
 	"railyard/internal/constants"
@@ -53,16 +54,38 @@ type App struct {
 	gameCmd       *exec.Cmd
 	gameStarting  bool
 	pmtilesServer *http.Server
-	startupMu     sync.RWMutex
-	startupReady  bool
+
+	galleryServer     *http.Server
+	galleryServerPort int
+	startupMu         sync.RWMutex
+	startupReady      bool
 
 	deepLinks     deepLinkQueue
 	appImageMount *appImageMount
+
+	// gameVersionCache memoizes the detected game version keyed by the app.asar's path + stat.
+	gameVersionMu    sync.Mutex
+	gameVersionCache gameVersionCacheEntry
 
 	// Test-only hooks for controlling the launch-starting window and event sink.
 	launchGameTestReady chan<- struct{}
 	launchGameTestBlock <-chan struct{}
 	emitEventFunc       func(name string, optionalData ...interface{})
+}
+
+// gameVersionCacheEntry is the memoized result of a successful app.asar decode. It is reused
+// while the asar's path, size, and mod time are unchanged.
+type gameVersionCacheEntry struct {
+	asarPath string
+	mTime    time.Time
+	size     int64
+	version  string
+	valid    bool
+}
+
+// matches reports whether a cached entry is still valid for the asar currently on disk.
+func (e gameVersionCacheEntry) matches(asarPath string, size int64, mTime time.Time) bool {
+	return e.valid && e.asarPath == asarPath && e.size == size && e.mTime.Equal(mTime)
 }
 
 // NewApp creates a new App application struct
@@ -80,6 +103,36 @@ func NewApp() *App {
 	}
 }
 
+// startGalleryServer starts a HTTP server that serves registry asset images so
+// the frontend can load them as URLs.
+// Started at startup (not game launch) so images are available on the first render.
+func (a *App) startGalleryServer() {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		a.Logger.Warn("Failed to start gallery image server", "error", err)
+		return
+	}
+	a.galleryServerPort = listener.Addr().(*net.TCPAddr).Port
+
+	mux := http.NewServeMux()
+	mux.Handle(galleryAssetPrefix, galleryAssetHandler(a.Registry.RepoPath()))
+	srv := &http.Server{Handler: mux}
+	a.galleryServer = srv
+
+	a.Logger.Info("Gallery image server started", "port", a.galleryServerPort)
+	go func() {
+		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+			a.Logger.Warn("Gallery image server stopped", "error", err)
+		}
+	}()
+}
+
+// GetGalleryServerPort returns the loopback port serving registry asset images, or 0 when
+// the server failed to start.
+func (a *App) GetGalleryServerPort() int {
+	return a.galleryServerPort
+}
+
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
@@ -87,6 +140,7 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.Config.SetContext(ctx)
 	a.Registry.SetContext(ctx)
+	a.startGalleryServer()
 	a.Downloader.InstallDependency = func(itemId string, itemType types.AssetType, version types.Version) {
 		result := a.Profiles.UpdateSubscriptions(types.UpdateSubscriptionsRequest{
 			ProfileID:             a.Profiles.GetActiveProfile().Profile.ID,
@@ -213,6 +267,10 @@ func (a *App) shutdown(ctx context.Context) {
 
 	a.Logger.Info("application shutdown")
 
+	if a.galleryServer != nil {
+		a.galleryServer.Close()
+	}
+
 	if err := a.Logger.Shutdown(); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "failed to flush app logs on shutdown: %v\n", err)
 	}
@@ -272,7 +330,6 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
 	}
 
-	registryReady := false
 	if err := a.Registry.Initialize(); err != nil {
 		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
 	} else {
@@ -280,15 +337,11 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		if err := a.addSaltsOnFirstRun(); err != nil {
 			a.Logger.Warn("Failed to add salts to existing assets on first run", "error", err)
 		}
-		registryReady = true
 	}
 	a.emitEvent("registry:ready")
 
-	if registryReady && activeProfile.SystemPreferences.RefreshRegistryOnStartup {
-		if err := a.Registry.Refresh(); err != nil {
-			a.Logger.Warn("Failed to refresh registry on startup", "error", err)
-		}
-	}
+	// The registry refresh is intentionally NOT run here. The git operations hog CPU resources
+	// and starve the WebView2 UI thread, which can freeze the initial render until the fetch is completed.
 
 	// Run before sync, and independently of the auto-update preference, so a single stuck
 	// subscription cannot fail the startup sync for every other asset.
@@ -396,8 +449,18 @@ func findAsar(exePath string) (bool, string) {
 
 // GetGameVersion detects the installed Subway Builder version from app.asar's
 // package.json, returning an empty version with a warning status if detection fails.
-// It is intentionally uncached; the game can update while Railyard runs, so every call re-detects to keep compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
+// The result is cached keyed by the asar's path + size + mod time: decoding the whole archive
+// costs hundreds of ms and this is called frequently (frontend + every subscription pass), so
+// repeat calls only stat the file. A game update mid-session changes the mod time and re-decodes,
+// keeping compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
 func (a *App) GetGameVersion() types.GameVersionResponse {
+	// Timed (with cached=true|false) because the decode path is a known hot spot; the log lets us
+	// confirm repeat calls hit the cache instead of re-decoding.
+	start := time.Now()
+	cached := false
+	defer func() {
+		a.Logger.Perf("backend", "gameVersion.resolve", "duration", time.Since(start), "cached", cached)
+	}()
 	a.Logger.Info("Attempting to resolve game version")
 	notDetected := types.GameVersionResponse{
 		GenericResponse: types.WarnResponse("Game version not detected"),
@@ -440,6 +503,21 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 		asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 	}
 
+	info, statErr := os.Stat(asarPath)
+	if statErr == nil {
+		a.gameVersionMu.Lock()
+		entry := a.gameVersionCache
+		a.gameVersionMu.Unlock()
+		if entry.matches(asarPath, info.Size(), info.ModTime()) {
+			cached = true
+			return types.GameVersionResponse{
+				GenericResponse: types.SuccessResponse("Game version detected"),
+				Version:         entry.version,
+			}
+		}
+	}
+
+	// Stat failure just falls through to the decode path (which reports the real error).
 	archiveFile, err := os.Open(asarPath)
 	if err != nil {
 		a.Logger.Warn("Failed to open app.asar for game version detection", "error", err, "asarPath", asarPath)
@@ -465,6 +543,19 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	if err := json.NewDecoder(packageFile.Open()).Decode(&pkg); err != nil {
 		a.Logger.Warn("Failed to decode package.json", "asarPath", asarPath, "error", err)
 		return notDetected
+	}
+
+	// Cache the successful decode so later calls stat-and-return until the asar changes.
+	if statErr == nil {
+		a.gameVersionMu.Lock()
+		a.gameVersionCache = gameVersionCacheEntry{
+			asarPath: asarPath,
+			mTime:    info.ModTime(),
+			size:     info.Size(),
+			version:  pkg.Version,
+			valid:    true,
+		}
+		a.gameVersionMu.Unlock()
 	}
 
 	a.Logger.Info("Game version detected", "version", pkg.Version)

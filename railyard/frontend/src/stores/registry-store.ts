@@ -9,6 +9,7 @@ import {
   GetModsResponse,
   RefreshResponse,
 } from '../../wailsjs/go/registry/Registry';
+import { measureAsync } from '../lib/perf';
 
 interface RegistryState {
   mods: types.ModManifest[];
@@ -74,9 +75,10 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
     const force = options?.force ?? false;
     if (!force && get().downloadTotalsLoaded) return;
 
-    if (!force && downloadTotalsRequest) {
+    // Join any in-flight fetch rather than starting a second concurrent request.
+    if (downloadTotalsRequest) {
       await downloadTotalsRequest;
-      return;
+      if (!force || get().downloadTotalsLoaded) return;
     }
 
     const requestGeneration = ++downloadTotalsGeneration;
@@ -84,7 +86,9 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
       set({ downloadTotalsLoaded: false });
     }
 
-    const request = (async () => {
+    // Measured because this per-asset-type fan-out runs several times on startup (page
+    // mounts + forced refreshes) and is a known refetch hot spot.
+    const request = measureAsync('registry.downloadTotals', async () => {
       try {
         const results = await Promise.all(
           ASSET_TYPES.map((assetType) =>
@@ -131,7 +135,7 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
         // Request threw entirely: keep any prior totals and stay unloaded so we retry.
         set({ downloadTotalsLoaded: false });
       }
-    })();
+    });
 
     downloadTotalsRequest = request;
     try {

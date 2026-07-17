@@ -10,6 +10,10 @@ export function GetCurrentVersion() {
   return window['go']['main']['App']['GetCurrentVersion']();
 }
 
+export function GetGalleryServerPort() {
+  return window['go']['main']['App']['GetGalleryServerPort']();
+}
+
 export function GetGameVersion() {
   return window['go']['main']['App']['GetGameVersion']();
 }
@@ -44,6 +48,10 @@ export function IsStartupReady() {
 
 export function LaunchGame(arg1) {
   return window['go']['main']['App']['LaunchGame'](arg1);
+}
+
+export function LogFrontend(arg1, arg2) {
+  return window['go']['main']['App']['LogFrontend'](arg1, arg2);
 }
 
 export function ManuallyCheckForUpdates() {

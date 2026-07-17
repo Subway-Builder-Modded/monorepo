@@ -1,5 +1,6 @@
 import { useWailsStartup } from '@subway-builder-modded/lifecycle-wails';
 import { SuiteLoader, TooltipProvider } from '@subway-builder-modded/shared-ui';
+import { useEffect, useRef } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 
 import { DownloadNotification } from '@/components/layout/DownloadNotification';
@@ -7,7 +8,10 @@ import { Layout } from '@/components/layout/Layout';
 import { RequestErrorDialog } from '@/components/layout/RequestErrorDialog';
 import { SetupScreen } from '@/components/setup/SetupScreen';
 import { Toaster } from '@/components/ui/sonner';
+import { GameVersionProvider } from '@/hooks/use-game-version';
+import { IncompatibleAssetKeysProvider } from '@/hooks/use-incompatible-asset-keys';
 import { useTheme } from '@/hooks/use-theme';
+import { markFirst, measureAsync } from '@/lib/perf';
 import { BrowsePage } from '@/pages/BrowsePage';
 import { ChangelogPage } from '@/pages/ChangelogPage';
 import { HomePage } from '@/pages/HomePage';
@@ -39,9 +43,15 @@ interface RegistryRefreshProgressEvent {
   stage?: string;
 }
 
+// Delay before the frontend triggers the startup registry refresh, measured from when the
+// app becomes interactive.
+// Ideally the dealy should be long enough for first paint + gallery image decode to settle so
+// the  git fetch doesn't compete with CPU resources.
+const STARTUP_REFRESH_DELAY_MS = 2000;
+
 function App() {
   useTheme();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const updateInstalledLists = useInstalledStore((s) => s.updateInstalledLists);
   const acknowledgeCancel = useInstalledStore(
     (s) => s.acknowledgeCancelledInstall,
@@ -61,6 +71,14 @@ function App() {
   const registryInitialized = useRegistryStore((s) => s.initialized);
   const installedInitialized = useInstalledStore((s) => s.initialized);
   const setStartupRefreshing = useRegistryStore((s) => s.setStartupRefreshing);
+  const registryRefresh = useRegistryStore((s) => s.refresh);
+  const refreshRegistryOnStartup = useProfileStore(
+    (s) => s.profile?.systemPreferences?.refreshRegistryOnStartup ?? false,
+  );
+  const startupRefreshTriggered = useRef(false);
+  // Track which keep-alive tab pages have been visited, so we mount each on first visit and
+  // then keep it mounted (hidden) across navigation.
+  const mountedTabs = useRef({ home: false, browse: false, library: false });
 
   const showRegistrySteps = configInitialized && isConfigured && setupCompleted;
   const appReadyForNavigation =
@@ -69,6 +87,15 @@ function App() {
     (!showRegistrySteps || (registryInitialized && installedInitialized)) &&
     isConfigured &&
     setupCompleted;
+
+  // Kick off the registry refresh (git fetch) on startup if the user has enabled it in preferences.
+  useEffect(() => {
+    if (startupRefreshTriggered.current) return;
+    if (!appReadyForNavigation || !refreshRegistryOnStartup) return;
+    startupRefreshTriggered.current = true;
+
+    window.setTimeout(() => void registryRefresh(), STARTUP_REFRESH_DELAY_MS);
+  }, [appReadyForNavigation, refreshRegistryOnStartup, registryRefresh]);
 
   const { startupReady, fatalError } = useWailsStartup({
     subscribe: (eventName, handler) => EventsOn(eventName, handler),
@@ -125,28 +152,31 @@ function App() {
       {
         name: 'bootstrap-user-state',
         enabled: isBackendReady,
-        run: async () => {
-          const { initialize: initializeConfig } = useConfigStore.getState();
-          const { initialize: initializeProfile } = useProfileStore.getState();
-          const { initialize: initializeGame } = useGameStore.getState();
+        run: () =>
+          measureAsync('startup.bootstrap-user-state', async () => {
+            const { initialize: initializeConfig } = useConfigStore.getState();
+            const { initialize: initializeProfile } =
+              useProfileStore.getState();
+            const { initialize: initializeGame } = useGameStore.getState();
 
-          await initializeConfig();
-          await initializeProfile();
-          initializeGame();
-        },
+            await initializeConfig();
+            await initializeProfile();
+            initializeGame();
+          }),
       },
       {
         name: 'bootstrap-registry-state',
         enabled: isBackendReady && configInitialized && isConfigured,
-        run: async () => {
-          const { initialize: initializeRegistry } =
-            useRegistryStore.getState();
-          const { initialize: initializeInstalled } =
-            useInstalledStore.getState();
+        run: () =>
+          measureAsync('startup.bootstrap-registry-state', async () => {
+            const { initialize: initializeRegistry } =
+              useRegistryStore.getState();
+            const { initialize: initializeInstalled } =
+              useInstalledStore.getState();
 
-          await initializeRegistry();
-          await initializeInstalled();
-        },
+            await initializeRegistry();
+            await initializeInstalled();
+          }),
       },
     ],
     consumePendingDeepLink: () => ConsumePendingDeepLink(),
@@ -157,6 +187,26 @@ function App() {
     canNavigatePendingRoute: appReadyForNavigation,
     navigate: (route) => setLocation(route),
   });
+
+  // Mark each cold-start milestone once (markFirst is idempotent).
+  // Store this in the persisted perf log to make any future startup regression visible as a shifted timestamp.
+  useEffect(() => {
+    if (startupReady) markFirst('startup.backend-ready');
+    if (configInitialized && profileInitialized) {
+      markFirst('startup.user-state-ready');
+    }
+    if (registryInitialized && installedInitialized) {
+      markFirst('startup.registry-ready');
+    }
+    if (appReadyForNavigation) markFirst('startup.app-interactive');
+  }, [
+    startupReady,
+    configInitialized,
+    profileInitialized,
+    registryInitialized,
+    installedInitialized,
+    appReadyForNavigation,
+  ]);
 
   const baseLoading =
     !startupReady || !configInitialized || !profileInitialized;
@@ -218,31 +268,65 @@ function App() {
     );
   }
 
+  // Route classification for the keep-alive tabs. Home is the default/fallback; the remaining routes are rendered by the <Switch> below.
+  const isLibraryRoute = location === '/library';
+  const isBrowseRoute = location === '/browse' || location === '/search';
+  const isOtherRoute =
+    location.startsWith('/project/') ||
+    location === '/profiles' ||
+    location === '/logs' ||
+    location === '/settings';
+  const isHomeRoute = !isLibraryRoute && !isBrowseRoute && !isOtherRoute;
+
+  // Mount a tab the first time it is visited, then keep it mounted afterwards.
+  if (isHomeRoute) mountedTabs.current.home = true;
+  if (isBrowseRoute) mountedTabs.current.browse = true;
+  if (isLibraryRoute) mountedTabs.current.library = true;
+
+  // display:contents makes the active tab's wrapper transparent to layout (identical to
+  // rendering the page directly); inactive tabs stay mounted but display:none.
+  const tabStyle = (active: boolean) =>
+    ({ display: active ? 'contents' : 'none' }) as const;
+
   return (
     <div className="railyard-accent">
       <TooltipProvider>
-        <Layout>
-          <Switch>
-            <Route path="/" component={HomePage} />
-            <Route path="/library" component={LibraryPage} />
-            <Route path="/browse" component={BrowsePage} />
-            <Route path="/search" component={BrowsePage} />
-            <Route
-              path="/project/:type/:id/changelog/:version"
-              component={ChangelogPage}
-            />
-            <Route path="/project/:type/:id" component={ProjectPage} />
-            <Route path="/profiles" component={ProfilesPage} />
-            <Route path="/logs" component={LogsPage} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route path="*" component={HomePage} />
-          </Switch>
-        </Layout>
-        <DownloadNotification />
-        <ExtractNotification />
-        <RegistryRefreshNotification />
-        <RequestErrorDialog />
-        <Toaster />
+        <GameVersionProvider>
+          <IncompatibleAssetKeysProvider>
+            <Layout>
+              {mountedTabs.current.home && (
+                <div style={tabStyle(isHomeRoute)}>
+                  <HomePage />
+                </div>
+              )}
+              {mountedTabs.current.browse && (
+                <div style={tabStyle(isBrowseRoute)}>
+                  <BrowsePage />
+                </div>
+              )}
+              {mountedTabs.current.library && (
+                <div style={tabStyle(isLibraryRoute)}>
+                  <LibraryPage />
+                </div>
+              )}
+              <Switch>
+                <Route
+                  path="/project/:type/:id/changelog/:version"
+                  component={ChangelogPage}
+                />
+                <Route path="/project/:type/:id" component={ProjectPage} />
+                <Route path="/profiles" component={ProfilesPage} />
+                <Route path="/logs" component={LogsPage} />
+                <Route path="/settings" component={SettingsPage} />
+              </Switch>
+            </Layout>
+            <DownloadNotification />
+            <ExtractNotification />
+            <RegistryRefreshNotification />
+            <RequestErrorDialog />
+            <Toaster />
+          </IncompatibleAssetKeysProvider>
+        </GameVersionProvider>
       </TooltipProvider>
     </div>
   );

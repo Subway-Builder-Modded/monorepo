@@ -406,7 +406,8 @@ func (s *UserProfiles) reconcileSubscriptionVersion(
 ) (*types.SubscriptionOperation, *types.UserProfilesError) {
 	pinned := strings.TrimSpace(pinnedVersion)
 
-	installable, lookupErr := s.Registry.GetInstallableVersions(assetType, assetID)
+	// Resolve installable versions from the integrity report.
+	installable, lookupErr := s.Registry.GetInstallableVersionsFromIntegrity(assetType, assetID)
 	if lookupErr == nil {
 		for _, version := range installable {
 			if strings.TrimSpace(version.Version) == pinned {
@@ -517,6 +518,17 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 	warnings := make([]types.UserProfilesError, 0)
 	targetSet := makeTargetSet(targets)
 
+	// Detect the game version once for the whole pass.
+	gameVersion, gameDetected := s.Downloader.DetectedGameVersion()
+	resolveLatest := func(assetType types.AssetType, assetID string) (string, bool, error) {
+		// Without a detected game version we cannot verify compatibility, so never
+		// advertise an update.
+		if !gameDetected {
+			return "", false, nil
+		}
+		return s.resolveLatestCompatibleInstallableVersionForGame(assetType, assetID, gameVersion)
+	}
+
 	latestAssetUpdates(
 		latestSubscriptionArgs[types.MapManifest]{
 			assetType:     types.AssetTypeMap,
@@ -524,7 +536,7 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 			getManifests:  s.Registry.GetMaps,
 			idFn:          func(m types.MapManifest) string { return m.ID },
 		},
-		profileID, targetSet, s.resolveLatestCompatibleInstallableVersion, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, resolveLatest, updates, &pendingUpdates, &warnings,
 	)
 
 	latestAssetUpdates(
@@ -534,7 +546,7 @@ func (s *UserProfiles) resolveLatestSubscriptionUpdates(
 			getManifests:  s.Registry.GetMods,
 			idFn:          func(m types.ModManifest) string { return m.ID },
 		},
-		profileID, targetSet, s.resolveLatestCompatibleInstallableVersion, updates, &pendingUpdates, &warnings,
+		profileID, targetSet, resolveLatest, updates, &pendingUpdates, &warnings,
 	)
 
 	return updates, pendingUpdates, warnings
@@ -645,15 +657,27 @@ func (s *UserProfiles) resolveLatestCompatibleInstallableVersion(
 	assetType types.AssetType,
 	assetID string,
 ) (string, bool, error) {
-	versions, err := s.Registry.GetInstallableVersions(assetType, assetID)
-	if err != nil {
-		return "", false, fmt.Errorf("Failed to resolve installable versions: %w", err)
-	}
-
 	// Without a detected game version we cannot verify compatibility so never advertise an update.
 	gameVersion, ok := s.Downloader.DetectedGameVersion()
 	if !ok {
 		return "", false, nil
+	}
+	return s.resolveLatestCompatibleInstallableVersionForGame(assetType, assetID, gameVersion)
+}
+
+// resolveLatestCompatibleInstallableVersionForGame returns the latest installable version
+// compatible with gameVersion, letting a batch resolve detection once and reuse it.
+func (s *UserProfiles) resolveLatestCompatibleInstallableVersionForGame(
+	assetType types.AssetType,
+	assetID string,
+	gameVersion *semver.Version,
+) (string, bool, error) {
+	// Resolve from the integrity report (no upstream release fetch): finding the latest
+	// game-compatible version only needs versions + constraints, which integrity carries.
+	// The actual install (SyncSubscriptions) still fetches for the download URL.
+	versions, err := s.Registry.GetInstallableVersionsFromIntegrity(assetType, assetID)
+	if err != nil {
+		return "", false, fmt.Errorf("Failed to resolve installable versions: %w", err)
 	}
 
 	compatible := filterGameCompatibleVersions(assetType, versions, gameVersion)

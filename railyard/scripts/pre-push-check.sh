@@ -5,18 +5,16 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
 echo "[pre-push] applying Go formatting..."
-GO_FILES="$(git ls-files '*.go')"
-if [ -n "$GO_FILES" ]; then
-  # shellcheck disable=SC2086
-  gofmt -w $GO_FILES
+# Format the module by directory (absolute path) rather than a `git ls-files` file list.
+# ls-files paths resolve relative to the current directory, which breaks in linked git
+# worktrees; the absolute module directory is cwd-independent.
+gofmt -w "$ROOT_DIR"
 
-  # shellcheck disable=SC2086
-  REMAINING_UNFORMATTED="$(gofmt -l $GO_FILES)"
-  if [ -n "$REMAINING_UNFORMATTED" ]; then
-    echo "[pre-push] gofmt still required for:"
-    echo "$REMAINING_UNFORMATTED"
-    exit 1
-  fi
+REMAINING_UNFORMATTED="$(gofmt -l "$ROOT_DIR")"
+if [ -n "$REMAINING_UNFORMATTED" ]; then
+  echo "[pre-push] gofmt still required for:"
+  echo "$REMAINING_UNFORMATTED"
+  exit 1
 fi
 
 echo "[pre-push] running backend quality checks..."

@@ -75,10 +75,11 @@ type progressWriter struct {
 	emit  func(RegistryProgress)
 
 	// mu guards buf/lastStage/lastEmit. go-git's transport typically writes from a single goroutine, but the lock is cheap defence in case that ever changes.
-	mu        sync.Mutex
-	buf       bytes.Buffer
-	lastStage string
-	lastEmit  time.Time
+	mu         sync.Mutex
+	buf        bytes.Buffer
+	lastStage  string
+	lastEmit   time.Time
+	finalStage string
 }
 
 func newProgressWriter(phase string, emit func(RegistryProgress)) *progressWriter {
@@ -140,6 +141,11 @@ func (pw *progressWriter) processSegment(segment []byte) {
 	isFinal := percent >= 100
 	now := time.Now()
 
+	// Git prints each stage's 100% line twice — deduplicate the second one.
+	if isFinal && stage == pw.finalStage {
+		return
+	}
+
 	// Always let stage transitions and the 100% tick through, even inside the throttle window.
 	// The former ensures the UI shows stage handoffs, the latter prevents the bar from getting stuck mid-progress if the throttle happens to swallow the final tick.
 	if !stageChanged && !isFinal && now.Sub(pw.lastEmit) < progressThrottle {
@@ -147,6 +153,9 @@ func (pw *progressWriter) processSegment(segment []byte) {
 	}
 	pw.lastStage = stage
 	pw.lastEmit = now
+	if isFinal {
+		pw.finalStage = stage
+	}
 
 	pw.emit(RegistryProgress{
 		Stage:       stage,

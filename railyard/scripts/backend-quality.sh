@@ -12,15 +12,13 @@ if [ ! -f "$PLACEHOLDER_FILE" ]; then
 fi
 
 echo "[backend] checking Go formatting..."
-GO_FILES="$(git ls-files '*.go')"
-if [ -n "$GO_FILES" ]; then
-  # shellcheck disable=SC2086
-  UNFORMATTED="$(gofmt -l $GO_FILES)"
-  if [ -n "$UNFORMATTED" ]; then
-    echo "[backend] gofmt required for:"
-    echo "$UNFORMATTED"
-    exit 1
-  fi
+# Check the module by directory (absolute path); a `git ls-files` list resolves relative to
+# the current directory and breaks in linked git worktrees (see pre-push-check.sh).
+UNFORMATTED="$(gofmt -l "$ROOT_DIR")"
+if [ -n "$UNFORMATTED" ]; then
+  echo "[backend] gofmt required for:"
+  echo "$UNFORMATTED"
+  exit 1
 fi
 
 echo "[backend] running Go tests..."

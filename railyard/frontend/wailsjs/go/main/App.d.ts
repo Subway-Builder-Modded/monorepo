@@ -7,6 +7,8 @@ export function ConsumePendingDeepLink():Promise<types.DeepLinkResponse>;
 
 export function GetCurrentVersion():Promise<types.AppVersionResponse>;
 
+export function GetGalleryServerPort():Promise<number>;
+
 export function GetGameVersion():Promise<types.GameVersionResponse>;
 
 export function GetPlatform():Promise<types.PlatformResponse>;
@@ -24,6 +26,8 @@ export function IsGameRunning():Promise<types.GameRunningResponse>;
 export function IsStartupReady():Promise<types.StartupReadyResponse>;
 
 export function LaunchGame(arg1:boolean):Promise<types.GenericResponse>;
+
+export function LogFrontend(arg1:string,arg2:string):Promise<void>;
 
 export function ManuallyCheckForUpdates():Promise<types.GenericResponse>;
 

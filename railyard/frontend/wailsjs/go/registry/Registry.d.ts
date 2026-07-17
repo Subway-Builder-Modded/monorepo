@@ -23,6 +23,8 @@ export function GetGalleryImageResponse(arg1:string,arg2:string,arg3:string):Pro
 
 export function GetInstallableVersions(arg1:types.AssetType,arg2:string):Promise<Array<types.VersionInfo>>;
 
+export function GetInstallableVersionsFromIntegrity(arg1:types.AssetType,arg2:string):Promise<Array<types.VersionInfo>>;
+
 export function GetInstallableVersionsResponse(arg1:types.AssetType,arg2:string):Promise<types.VersionsResponse>;
 
 export function GetInstalledMapCodes():Promise<Array<string>>;
@@ -66,6 +68,8 @@ export function RefreshResponse():Promise<types.GenericResponse>;
 export function RemoveInstalledMap(arg1:string):Promise<void>;
 
 export function RemoveInstalledMod(arg1:string):Promise<void>;
+
+export function RepoPath():Promise<string>;
 
 export function SetContext(arg1:context.Context):Promise<void>;
 

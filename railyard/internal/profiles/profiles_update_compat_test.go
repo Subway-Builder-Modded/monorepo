@@ -82,3 +82,41 @@ func TestUpdateSubscriptionsToLatestUndetectedGameVersionShowsNoUpdates(t *testi
 	require.Equal(t, 0, result.PendingCount)
 	require.Empty(t, result.PendingUpdates)
 }
+
+func TestUpdateSubscriptionsToLatestDetectsGameVersionOncePerPass(t *testing.T) {
+	testutil.NewHarness(t)
+
+	state := types.InitialProfilesState()
+	profile := state.Profiles[types.DefaultProfileID]
+	profile.Subscriptions.Maps["map-a"] = "1.0.0"
+	profile.Subscriptions.Maps["map-b"] = "1.0.0"
+	profile.Subscriptions.Mods["mod-a"] = "1.0.0"
+	profile.Subscriptions.Mods["mod-b"] = "1.0.0"
+	state.Profiles[types.DefaultProfileID] = profile
+
+	svc, _, reg := loadedUserProfilesServiceWithDependencies(t, state)
+	cleanup := mockRegistry(t, reg, []registryFixture{
+		{assetID: "map-a", assetType: types.AssetTypeMap, versions: []string{"1.0.0", "2.0.0"}, mapCode: "AAA"},
+		{assetID: "map-b", assetType: types.AssetTypeMap, versions: []string{"1.0.0", "2.0.0"}, mapCode: "BBB"},
+		{assetID: "mod-a", assetType: types.AssetTypeMod, versions: []string{"1.0.0", "1.5.0"}},
+		{assetID: "mod-b", assetType: types.AssetTypeMod, versions: []string{"1.0.0", "1.5.0"}},
+	})
+	defer cleanup()
+
+	// Detection re-reads app.asar off disk; the batch must resolve it once, not per asset.
+	calls := 0
+	svc.Downloader.GetGameVersion = func() types.GameVersionResponse {
+		calls++
+		return types.GameVersionResponse{
+			GenericResponse: types.SuccessResponse("Game version detected"),
+			Version:         "2.0.0",
+		}
+	}
+
+	svc.UpdateSubscriptionsToLatest(types.UpdateSubscriptionsToLatestRequest{
+		ProfileID: types.DefaultProfileID,
+		Apply:     false,
+	})
+
+	require.Equal(t, 1, calls, "game version should be detected once per pass, not once per subscribed asset")
+}
