@@ -179,7 +179,7 @@ export interface FilteredPageResult<TTaggedItem> {
   totalResults: number;
 }
 
-interface FilterTaggedItemsParams<
+export interface FilterTaggedItemsParams<
   TTaggedItem extends TaggedListingItem,
   TMapFilters,
   TSortState = SortState,
@@ -250,7 +250,9 @@ function matchesDimensionFilters<TTaggedItem extends TaggedListingItem, TMapFilt
   });
 }
 
-function filterTaggedItems<
+// Applies type, dimension, and query filters to items — the shared filter pass behind
+// filterAndSortTaggedItems and the facet counts.
+export function filterTaggedItems<
   TTaggedItem extends TaggedListingItem,
   TMapFilters,
   TSortState = SortState,

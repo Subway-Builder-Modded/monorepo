@@ -189,6 +189,7 @@ function BrowsePageContent({
     setType,
     setPage,
     dimCounts: filteredDimCounts,
+    statusCounts,
   } = useFilteredItems({
     mods,
     maps,
@@ -196,20 +197,6 @@ function BrowsePageContent({
     mapDownloadTotals,
     incompatibleItemKeys,
   });
-
-  const statusCounts = useMemo(() => {
-    const typedItems = filters.type === 'mod' ? mods : maps;
-    return {
-      compatible: typedItems.filter(
-        (item) => !incompatibleItemKeys.has(assetKey(filters.type, item.id)),
-      ).length,
-      test: typedItems.filter((item) => item.is_test === true).length,
-      local: 0,
-      incompatible: typedItems.filter((item) =>
-        incompatibleItemKeys.has(assetKey(filters.type, item.id)),
-      ).length,
-    };
-  }, [filters.type, incompatibleItemKeys, maps, mods]);
 
   const sortFieldOptions = useMemo(
     () => getSortFieldOptions(filters.type),

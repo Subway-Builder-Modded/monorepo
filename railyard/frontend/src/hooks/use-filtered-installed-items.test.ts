@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  countInstalledStatuses,
   type InstalledTaggedItem,
   isInstalledItemVisibleByStatus,
 } from '@/hooks/use-filtered-installed-items';
@@ -125,6 +126,26 @@ describe('isInstalledItemVisibleByStatus', () => {
         gameVersion,
       ),
     ).toBe(false);
+  });
+
+  it('counts statuses over the given items, with compatible overlapping local/test', () => {
+    const items = [
+      installedItem(),
+      installedItem({ isLocal: true }),
+      installedItem({
+        item: {
+          ...(installedItem().item as types.ModManifest),
+          is_test: true,
+        } as types.ModManifest,
+      }),
+      installedItem({ constraints: [{ type: 'manifest', range: '>2.0.0' }] }),
+    ];
+    expect(countInstalledStatuses(items, gameVersion)).toEqual({
+      compatible: 3,
+      local: 1,
+      test: 1,
+      incompatible: 1,
+    });
   });
 
   it('treats assets with no constraints (null compat) as compatible', () => {

@@ -1,5 +1,12 @@
 export type StatusFilter = 'compatible' | 'local' | 'incompatible' | 'test';
 
+export const STATUS_FILTER_VALUES: readonly StatusFilter[] = [
+  'compatible',
+  'local',
+  'incompatible',
+  'test',
+];
+
 export interface StatusFilterSlice {
   statusFilters: StatusFilter[];
   toggleStatusFilter: (filter: StatusFilter) => void;

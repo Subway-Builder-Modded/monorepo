@@ -224,7 +224,6 @@ export function GeneralSettingsPanel() {
               }
             />
 
-
             <SettingRow
               icon={<FolderOpen className="h-4 w-4" />}
               iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
