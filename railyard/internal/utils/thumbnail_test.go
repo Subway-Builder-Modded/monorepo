@@ -17,15 +17,27 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewProjectionAndProject(t *testing.T) {
-	proj := newProjection(0, 0, 0, 0)
-	require.InDelta(t, 800.0/4096.0, proj.scale, 1e-9)
-	require.InDelta(t, 0.0, proj.offsetX, 1e-9)
-	require.InDelta(t, 0.0, proj.offsetY, 1e-9)
+func TestProjection(t *testing.T) {
+	// One tile spans the full canvas height when scale = pixels per tile.
+	proj := projection{originX: 5, originY: 3, scale: float64(thumbnailHeight)}
+	x, y := proj.project(5, 3, 0, 0)
+	require.InDelta(t, 0.0, x, 1e-9)
+	require.InDelta(t, 0.0, y, 1e-9)
+	x, y = proj.project(5, 3, mvtExtent, mvtExtent)
+	require.InDelta(t, float64(thumbnailHeight), x, 1e-9)
+	require.InDelta(t, float64(thumbnailHeight), y, 1e-9)
 
-	x, y := proj.project(0, 0, 4096, 4096)
-	require.InDelta(t, 800.0, x, 1e-9)
-	require.InDelta(t, 800.0, y, 1e-9)
+	// Fractional origins shift the output; neighbouring tiles continue seamlessly.
+	proj = projection{originX: 5.5, originY: 3, scale: 100}
+	x, y = proj.project(6, 4, 0, 0)
+	require.InDelta(t, 50.0, x, 1e-9)
+	require.InDelta(t, 100.0, y, 1e-9)
+}
+
+func TestLonLatToFractionalTile(t *testing.T) {
+	require.InDelta(t, 0.5, lon2tileF(0, 0), 1e-9)
+	require.InDelta(t, 0.5, lat2tileF(0, 0), 1e-9)
+	require.InDelta(t, 2.0, lon2tileF(0, 2), 1e-9)
 }
 
 func TestLonLatToTileAtZoomZero(t *testing.T) {
@@ -34,7 +46,7 @@ func TestLonLatToTileAtZoomZero(t *testing.T) {
 }
 
 func TestBuildLineStringPath(t *testing.T) {
-	proj := projection{scale: 1}
+	proj := projection{scale: mvtExtent}
 	path := buildLineStringPath(&proj, 0, 0, orb.LineString{
 		orb.Point{1, 2},
 		orb.Point{3, 4},
@@ -44,7 +56,7 @@ func TestBuildLineStringPath(t *testing.T) {
 }
 
 func TestBuildRingPath(t *testing.T) {
-	proj := projection{scale: 1}
+	proj := projection{scale: mvtExtent}
 	path := buildRingPath(&proj, 0, 0, orb.Ring{
 		orb.Point{0, 0},
 		orb.Point{2, 0},
@@ -96,34 +108,41 @@ func TestCanGenerateThumbnail(t *testing.T) {
 	require.False(t, CanGenerateThumbnail(types.ConfigData{Bbox: &bbox}))
 }
 
-func TestResolveThumbnailBbox(t *testing.T) {
-	thumbBbox := [4]float64{1, 2, 3, 4}
+func TestResolveThumbnailFrame(t *testing.T) {
+	thumbBbox := [4]float64{24.086076, 56.884742, 24.16834, 56.929961}
 
-	// A non-zero view state wins over the thumbnail bbox; span comes from its zoom.
-	resolved := resolveThumbnailBbox(types.ConfigData{
+	// A non-zero view state wins over the thumbnail bbox and fills the fixed 16:9 canvas,
+	// centered on the view state.
+	frame := resolveThumbnailFrame(types.ConfigData{
 		ThumbnailBbox:    &thumbBbox,
-		InitialViewState: types.InitialViewState{Latitude: 35.0, Longitude: 135.0, Zoom: 10},
-	})
-	require.NotNil(t, resolved)
-	lngSpan := 360.0 / 1024.0
-	latSpan := 180.0 / 1024.0
-	require.InDelta(t, 135.0-lngSpan, resolved[0], 1e-9)
-	require.InDelta(t, 35.0-latSpan, resolved[1], 1e-9)
-	require.InDelta(t, 135.0+lngSpan, resolved[2], 1e-9)
-	require.InDelta(t, 35.0+latSpan, resolved[3], 1e-9)
+		InitialViewState: types.InitialViewState{Latitude: 56.907352, Longitude: 24.127208, Zoom: 12},
+	}, 12)
+	require.NotNil(t, frame)
+	require.Equal(t, thumbnailWidth, frame.width)
+	require.Equal(t, thumbnailHeight, frame.height)
+	require.InDelta(t, float64(thumbnailWidth)/float64(thumbnailHeight), frame.spanX/frame.spanY, 1e-9)
+	require.InDelta(t, lon2tileF(24.127208, 12), frame.originX+frame.spanX/2, 1e-9)
+	require.InDelta(t, lat2tileF(56.907352, 12), frame.originY+frame.spanY/2, 1e-9)
 
-	// An unset zoom defaults to 12 for the span derivation.
-	resolved = resolveThumbnailBbox(types.ConfigData{
-		InitialViewState: types.InitialViewState{Latitude: 35.0, Longitude: 135.0},
-	})
-	require.NotNil(t, resolved)
-	require.InDelta(t, 135.0-360.0/4096.0, resolved[0], 1e-9)
+	// An explicit thumbnail bbox is framed exactly: its aspect dictates the canvas,
+	// fit within the full 1920x1080.
+	frame = resolveThumbnailFrame(types.ConfigData{ThumbnailBbox: &thumbBbox}, 12)
+	require.NotNil(t, frame)
+	require.InDelta(t, lon2tileF(thumbBbox[0], 12), frame.originX, 1e-9)
+	require.InDelta(t, lat2tileF(thumbBbox[3], 12), frame.originY, 1e-9)
+	require.InDelta(t, frame.spanX/frame.spanY, float64(frame.width)/float64(frame.height), 1e-2)
+	require.True(t, frame.width <= thumbnailWidth && frame.height <= thumbnailHeight)
+	require.True(t, frame.width == thumbnailWidth || frame.height == thumbnailHeight)
 
-	// Without a view state the thumbnail bbox is used verbatim.
-	resolved = resolveThumbnailBbox(types.ConfigData{ThumbnailBbox: &thumbBbox})
-	require.Equal(t, &thumbBbox, resolved)
+	require.Nil(t, resolveThumbnailFrame(types.ConfigData{}, 12))
+	// The full map bbox is never a thumbnail source.
+	require.Nil(t, resolveThumbnailFrame(types.ConfigData{Bbox: &thumbBbox}, 12))
+}
 
-	require.Nil(t, resolveThumbnailBbox(types.ConfigData{}))
+func TestThumbnailPaletteDerivedFromMapColors(t *testing.T) {
+	require.Equal(t, "240,241,245", hexToRGBTriple("#f0f1f5"))
+	// Park displayed color = MAP_COLORS park at the game's 0.8 fill opacity over land.
+	require.Equal(t, "184,221,192", blendHexOverRGB("#A9D8B6", thumbnailBackgroundRGB, 0.8))
 }
 
 func TestGenerateThumbnailErrorsWhenNoBoundsOrViewState(t *testing.T) {
@@ -154,6 +173,24 @@ func TestGenerateThumbnailReturnsSVGWhenTilesUnavailableOrInvalid(t *testing.T) 
 	svgText, err := GenerateThumbnail("TEST", cityConfig, port)
 	require.NoError(t, err)
 	require.Contains(t, svgText, "<svg")
+	require.Contains(t, svgText, `width="1920"`)
+	require.Contains(t, svgText, `height="1080"`)
+}
+
+func TestRenderPolygonWithHoleUsesSinglePathEvenOdd(t *testing.T) {
+	var output strings.Builder
+	canvas := svg.New(&output)
+	canvas.Start(20, 20)
+	proj := projection{scale: mvtExtent}
+	outer := orb.Ring{orb.Point{0, 0}, orb.Point{10, 0}, orb.Point{10, 10}, orb.Point{0, 10}}
+	hole := orb.Ring{orb.Point{4, 4}, orb.Point{6, 4}, orb.Point{6, 6}, orb.Point{4, 6}}
+	renderGeometry(canvas, &proj, 0, 0, orb.Polygon{outer, hole}, "1,2,3")
+	canvas.End()
+
+	out := output.String()
+	require.Equal(t, 1, strings.Count(out, "<path"))
+	require.Contains(t, out, "fill-rule:evenodd")
+	require.Equal(t, 2, strings.Count(out, "Z"))
 }
 
 func TestRenderGeometryHandlesKnownTypes(t *testing.T) {
