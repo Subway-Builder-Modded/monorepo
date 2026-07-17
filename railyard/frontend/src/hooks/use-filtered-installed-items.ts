@@ -1,4 +1,7 @@
-import { filterAndSortTaggedItems } from '@subway-builder-modded/asset-listings-state';
+import {
+  filterAndSortTaggedItems,
+  filterTaggedItems,
+} from '@subway-builder-modded/asset-listings-state';
 import {
   ASSET_LISTING_FUSE_SEARCH_OPTIONS,
   type PerPage,
@@ -16,6 +19,7 @@ import {
 import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { type StatusFilter, useLibraryStore } from '@/stores/library-store';
 import { useProfileStore } from '@/stores/profile-store';
+import { STATUS_FILTER_VALUES } from '@/stores/status-filter-slice';
 
 import type { types } from '../../wailsjs/go/models';
 
@@ -68,6 +72,28 @@ function matchesStatusFilter(
   return false;
 }
 
+// Counts how many items match each status. Statuses overlap: 'compatible' means
+// "not incompatible", so local and test items also count as compatible.
+export function countInstalledStatuses(
+  items: readonly InstalledTaggedItem[],
+  gameVersion: string,
+): Record<StatusFilter, number> {
+  const counts: Record<StatusFilter, number> = {
+    compatible: 0,
+    test: 0,
+    local: 0,
+    incompatible: 0,
+  };
+  for (const item of items) {
+    for (const status of STATUS_FILTER_VALUES) {
+      if (matchesStatusFilter(item, status, gameVersion)) {
+        counts[status] += 1;
+      }
+    }
+  }
+  return counts;
+}
+
 export function isInstalledItemVisibleByStatus(
   item: InstalledTaggedItem,
   statusFilters: readonly StatusFilter[],
@@ -101,19 +127,51 @@ export function useFilteredInstalledItems({
 
   usePaginationSync({ defaultPerPage, filters, setFilters, setPage });
 
+  // Status filter applied up front (it depends on runtime game version) so both the
+  // listing and the dimension counts reflect the active status selection. Status is a
+  // type-scoped facet: items of the other type pass through so its type/dim counts stay
+  // independent of the status selection (which setType clears on switch anyway).
+  const statusScopedItems = useMemo(
+    () =>
+      statusFilters.length === 0
+        ? items
+        : items.filter(
+            (item) =>
+              item.type !== filters.type ||
+              isInstalledItemVisibleByStatus(item, statusFilters, gameVersion),
+          ),
+    [filters.type, gameVersion, items, statusFilters],
+  );
+
   const dimCounts = useMemo(
     () =>
       buildDimensionCounts({
-        items,
+        items: statusScopedItems,
         filters: countFilters as TaggedItemFilterState,
         accessors,
       }),
-    [accessors, countFilters, items],
+    [accessors, countFilters, statusScopedItems],
+  );
+
+  // Status facet counts: every other facet applies (type, tags, map dims), but not the
+  // status selection itself, and — per the countFilters convention — not the query.
+  const statusCounts = useMemo(
+    () =>
+      countInstalledStatuses(
+        filterTaggedItems({
+          items,
+          filters: countFilters as TaggedItemFilterState,
+          accessors,
+          fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+        }),
+        gameVersion,
+      ),
+    [accessors, countFilters, gameVersion, items],
   );
 
   const filtered = useMemo(() => {
-    let result = filterAndSortTaggedItems({
-      items,
+    const result = filterAndSortTaggedItems({
+      items: statusScopedItems,
       filters,
       modDownloadTotals,
       mapDownloadTotals,
@@ -122,17 +180,6 @@ export function useFilteredInstalledItems({
       fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
       accessors,
     });
-
-    // Status filter — applied post-process since it depends on runtime game version
-    if (statusFilters.length > 0) {
-      result = result.filter((item) =>
-        isInstalledItemVisibleByStatus(
-          item as InstalledTaggedItem,
-          statusFilters,
-          gameVersion,
-        ),
-      );
-    }
 
     const numericalSort: Partial<
       Record<string, (i: InstalledTaggedItem) => number>
@@ -153,11 +200,10 @@ export function useFilteredInstalledItems({
     return result;
   }, [
     accessors,
-    items,
+    statusScopedItems,
     filters,
     mapDownloadTotals,
     modDownloadTotals,
-    statusFilters,
     gameVersion,
   ]);
 
@@ -180,5 +226,6 @@ export function useFilteredInstalledItems({
     setType,
     setPage,
     dimCounts,
+    statusCounts,
   };
 }

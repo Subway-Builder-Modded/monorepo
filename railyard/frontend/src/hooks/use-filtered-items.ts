@@ -1,5 +1,6 @@
 import {
   filterAndPaginateTaggedItems,
+  filterTaggedItems,
   type SourceAssetQueryFilterState,
 } from '@subway-builder-modded/asset-listings-state';
 import { type PerPage } from '@subway-builder-modded/config';
@@ -19,6 +20,10 @@ import {
 } from '@/lib/tagged-listing-filters';
 import { type BrowseFilterState, useBrowseStore } from '@/stores/browse-store';
 import { useProfileStore } from '@/stores/profile-store';
+import {
+  STATUS_FILTER_VALUES,
+  type StatusFilter,
+} from '@/stores/status-filter-slice';
 
 import type { types } from '../../wailsjs/go/models';
 
@@ -40,6 +45,20 @@ export interface TaggedItemFilterState {
     tags: string[];
   };
   map: BrowseFilterState['map'];
+}
+
+function matchesBrowseStatus(
+  entry: TaggedItem,
+  status: StatusFilter,
+  incompatibleItemKeys: ReadonlySet<string> | undefined,
+): boolean {
+  const isIncompatible =
+    incompatibleItemKeys?.has(assetKey(entry.type, entry.item.id)) ?? false;
+  if (status === 'compatible') return !isIncompatible;
+  if (status === 'incompatible') return isIncompatible;
+  if (status === 'test') return entry.item.is_test === true;
+  // 'local' never applies to registry listings.
+  return false;
 }
 
 export function useFilteredItems({
@@ -64,19 +83,19 @@ export function useFilteredItems({
     [mods, maps],
   );
 
+  // Status is a type-scoped facet: it only constrains the browsed type. Items of the
+  // other type pass through so its type/dim counts stay independent of the status
+  // selection (which setType clears on switch anyway).
   const allItems = useMemo(() => {
     if (statusFilters.length === 0) return registryItems;
-    return registryItems.filter((entry) => {
-      const key = assetKey(entry.type, entry.item.id);
-      const isIncompatible = incompatibleItemKeys?.has(key) ?? false;
-      for (const sf of statusFilters) {
-        if (sf === 'compatible' && !isIncompatible) return true;
-        if (sf === 'incompatible' && isIncompatible) return true;
-        if (sf === 'test' && entry.item.is_test === true) return true;
-      }
-      return false;
-    });
-  }, [incompatibleItemKeys, registryItems, statusFilters]);
+    return registryItems.filter(
+      (entry) =>
+        entry.type !== filters.type ||
+        statusFilters.some((sf) =>
+          matchesBrowseStatus(entry, sf, incompatibleItemKeys),
+        ),
+    );
+  }, [filters.type, incompatibleItemKeys, registryItems, statusFilters]);
   const accessors = useMemo(
     () => createTaggedListingAccessors<TaggedItem>(),
     [],
@@ -97,6 +116,34 @@ export function useFilteredItems({
         }),
       ),
     [accessors, allItems, countFilters],
+  );
+
+  // Status facet counts: every other facet applies (type, tags, map dims), but not the
+  // status selection itself, and — per the countFilters convention — not the query.
+  const statusCounts = useMemo(
+    () =>
+      measureSync('browse.statusCounts', () => {
+        const facetItems = filterTaggedItems({
+          items: registryItems,
+          filters: countFilters,
+          accessors,
+        });
+        const counts: Record<StatusFilter, number> = {
+          compatible: 0,
+          test: 0,
+          local: 0,
+          incompatible: 0,
+        };
+        for (const entry of facetItems) {
+          for (const status of STATUS_FILTER_VALUES) {
+            if (matchesBrowseStatus(entry, status, incompatibleItemKeys)) {
+              counts[status] += 1;
+            }
+          }
+        }
+        return counts;
+      }),
+    [accessors, countFilters, incompatibleItemKeys, registryItems],
   );
 
   // Measured (sync); this fully filters + sorts the registry.and should be cheap — the real cost
@@ -131,5 +178,6 @@ export function useFilteredItems({
     setType,
     setPage,
     dimCounts,
+    statusCounts,
   };
 }

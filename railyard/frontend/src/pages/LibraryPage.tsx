@@ -44,7 +44,6 @@ import { LibraryList } from '@/components/library/LibraryList';
 import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterSection';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
-import { useGameVersion } from '@/hooks/use-game-version';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -55,7 +54,6 @@ import {
   type PendingUpdatesByKey,
   requestLatestSubscriptionUpdatesForActiveProfile,
 } from '@/lib/subscription-updates';
-import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { useBrowseStore } from '@/stores/browse-store';
 import { useDownloadQueueStore } from '@/stores/download-queue-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -165,7 +163,6 @@ export function LibraryPage() {
 
   const statusFilters = useLibraryStore((s) => s.statusFilters);
   const toggleStatusFilter = useLibraryStore((s) => s.toggleStatusFilter);
-  const gameVersion = useGameVersion();
 
   const mods = useRegistryStore((s) => s.mods);
   const maps = useRegistryStore((s) => s.maps);
@@ -289,27 +286,12 @@ export function LibraryPage() {
     setType,
     setPage,
     dimCounts: filteredDimCounts,
+    statusCounts,
   } = useFilteredInstalledItems({
     items: installedItems,
     modDownloadTotals,
     mapDownloadTotals,
   });
-
-  const statusCounts = useMemo(() => {
-    let local = 0,
-      incompatible = 0,
-      test = 0,
-      compatible = 0;
-    for (const item of installedItems) {
-      if (item.type !== filters.type) continue;
-      if (item.isLocal) local++;
-      if (!item.isLocal && item.item.is_test === true) test++;
-      if (isInstalledCompatible(gameVersion, item.constraints ?? []) === false)
-        incompatible++;
-      else compatible++;
-    }
-    return { local, incompatible, test, compatible };
-  }, [installedItems, filters.type, gameVersion]);
 
   const handleInstallBrowse = useCallback(() => {
     useBrowseStore.getState().setType(filters.type);
