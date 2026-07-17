@@ -1,7 +1,8 @@
 package main
 
-// Game version detection: resolving the installed game's app.asar per platform and launch
-// type, decoding its package.json version, and caching the result keyed by the asar's stat.
+// This file defines game version detection: resolving the installed game's app.asar per
+// platform and launch type, decoding its package.json version, and caching the result
+// keyed by the asar's stat.
 
 import (
 	"encoding/json"

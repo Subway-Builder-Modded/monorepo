@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -62,4 +63,34 @@ func galleryAssetHandler(repoPath string) http.Handler {
 
 		http.ServeFile(w, req, full)
 	})
+}
+
+// startGalleryServer starts a HTTP server that serves registry asset images so
+// the frontend can load them as URLs.
+// Started at startup (not game launch) so images are available on the first render.
+func (a *App) startGalleryServer() {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		a.Logger.Warn("Failed to start gallery image server", "error", err)
+		return
+	}
+	a.galleryServerPort = listener.Addr().(*net.TCPAddr).Port
+
+	mux := http.NewServeMux()
+	mux.Handle(galleryAssetPrefix, galleryAssetHandler(a.Registry.RepoPath()))
+	srv := &http.Server{Handler: mux}
+	a.galleryServer = srv
+
+	a.Logger.Info("Gallery image server started", "port", a.galleryServerPort)
+	go func() {
+		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
+			a.Logger.Warn("Gallery image server stopped", "error", err)
+		}
+	}()
+}
+
+// GetGalleryServerPort returns the loopback port serving registry asset images, or 0 when
+// the server failed to start.
+func (a *App) GetGalleryServerPort() int {
+	return a.galleryServerPort
 }
