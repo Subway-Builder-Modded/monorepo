@@ -316,41 +316,44 @@ func TestFindDefaultPathReturnsNotFoundWhenTypeMismatches(t *testing.T) {
 	require.Equal(t, "", found)
 }
 
-func createWritableCandidateFile(t *testing.T, candidates []string) string {
+// tempExecutableFixture creates a valid executable candidate under a temp dir. Tests must
+// never write to the real default candidate locations.
+func tempExecutableFixture(t *testing.T) string {
 	t.Helper()
-
-	candidate, success := firstValidCandidate(candidates)
-	if !success {
-		t.Skip("no valid default executable candidate path available")
-		return ""
-	}
-
-	require.NoError(t, os.MkdirAll(filepath.Dir(candidate), 0o755))
+	candidate := filepath.Join(t.TempDir(), "game.exe")
 	require.NoError(t, os.WriteFile(candidate, []byte("x"), 0o755))
 	return candidate
 }
 
-func createWritableCandidateDir(t *testing.T, candidates []string) string {
+// tempMetroMakerFixture creates a valid MetroMaker data folder candidate under a temp dir.
+func tempMetroMakerFixture(t *testing.T) string {
 	t.Helper()
-
-	candidate, success := firstValidCandidate(candidates)
-	if !success {
-		t.Skip("no valid default metro maker data folder candidate path available")
-		return ""
-	}
-
+	candidate := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(candidate, "cities"), 0o755))
 	require.NoError(t, os.MkdirAll(filepath.Join(candidate, "Local Storage"), 0o755))
 	return candidate
 }
 
-func firstValidCandidate(candidates []string) (string, bool) {
-	for _, candidate := range candidates {
-		if candidate != "" && filepath.IsAbs(candidate) {
-			return candidate, true
-		}
-	}
-	return "", false
+// installTempExecutableCandidate points executable auto-detection at a temp fixture for the
+// duration of the test.
+func installTempExecutableCandidate(t *testing.T) string {
+	t.Helper()
+	candidate := tempExecutableFixture(t)
+	prev := executableCandidates
+	executableCandidates = func() []string { return []string{candidate} }
+	t.Cleanup(func() { executableCandidates = prev })
+	return candidate
+}
+
+// installTempMetroMakerCandidate points data-folder auto-detection at a temp fixture for the
+// duration of the test.
+func installTempMetroMakerCandidate(t *testing.T) string {
+	t.Helper()
+	candidate := tempMetroMakerFixture(t)
+	prev := metroMakerDataFolderCandidates
+	metroMakerDataFolderCandidates = func() []string { return []string{candidate} }
+	t.Cleanup(func() { metroMakerDataFolderCandidates = prev })
+	return candidate
 }
 
 func TestOpenExecutableDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
@@ -364,7 +367,7 @@ func TestOpenExecutableDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 	require.NoError(t, err)
 	saved := h.cfg.SaveConfig()
 	require.Equal(t, types.ResponseSuccess, saved.Status)
-	detectedPath := createWritableCandidateFile(t, DefaultExecutableCandidates())
+	detectedPath := installTempExecutableCandidate(t)
 
 	response := h.cfg.OpenExecutableDialog(types.SetConfigPathOptions{AllowAutoDetect: true})
 	require.Equal(t, types.ResponseSuccess, response.Status)
@@ -384,13 +387,13 @@ func TestOpenExecutableDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 func TestOpenMetroMakerDialogAutoDetectSuccessDoesNotPersist(t *testing.T) {
 	h := setup(t, types.AppConfig{})
 	railyardPath := h.runtime().Config.RailyardPath
-	executablePath := createWritableCandidateFile(t, DefaultExecutableCandidates())
+	executablePath := tempExecutableFixture(t)
 
 	_, err := h.cfg.UpdateExecutable(executablePath)
 	require.NoError(t, err)
 	saved := h.cfg.SaveConfig()
 	require.Equal(t, types.ResponseSuccess, saved.Status)
-	detectedPath := createWritableCandidateDir(t, DefaultMetroMakerDataFolderCandidates())
+	detectedPath := installTempMetroMakerCandidate(t)
 
 	response := h.cfg.OpenMetroMakerDataFolderDialog(types.SetConfigPathOptions{AllowAutoDetect: true})
 	require.Equal(t, types.ResponseSuccess, response.Status)
@@ -437,11 +440,11 @@ func TestUpdateConfigCannotMutateRailyardPath(t *testing.T) {
 
 func TestTryAutoDetectExecutableSucceedsWhenExecutablePathIsValid(t *testing.T) {
 	testutil.NewHarness(t)
-	detectedPath := createWritableCandidateFile(t, DefaultExecutableCandidates())
+	detectedPath := tempExecutableFixture(t)
 
 	cfg := NewConfig(testutil.TestLogSink{})
 	autoDetected, success := cfg.TryAutoDetectPath(
-		DefaultExecutableCandidates(),
+		[]string{filepath.Join(t.TempDir(), "missing.exe"), detectedPath},
 		false,
 		cfg.UpdateExecutable,
 		func(v types.ConfigPathValidation) bool { return v.ExecutablePathValid },
@@ -457,11 +460,11 @@ func TestTryAutoDetectExecutableSucceedsWhenExecutablePathIsValid(t *testing.T) 
 
 func TestTryAutoDetectMetroMakerSucceedsWhenMetroMakerDataPathIsValid(t *testing.T) {
 	testutil.NewHarness(t)
-	detectedPath := createWritableCandidateDir(t, DefaultMetroMakerDataFolderCandidates())
+	detectedPath := tempMetroMakerFixture(t)
 
 	cfg := NewConfig(testutil.TestLogSink{})
 	autoDetected, success := cfg.TryAutoDetectPath(
-		DefaultMetroMakerDataFolderCandidates(),
+		[]string{filepath.Join(t.TempDir(), "missing"), detectedPath},
 		true,
 		cfg.UpdateMetroMakerDataFolder,
 		func(v types.ConfigPathValidation) bool { return v.MetroMakerDataPathValid },
