@@ -39,6 +39,7 @@ import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { getCountryFlagIcon } from '@/lib/flags';
+import { SBM_SITE_ORIGIN, sbmAuthorUrl } from '@/lib/sbm-site';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -186,7 +187,11 @@ export function ProjectHeader({
   const { targetVersion: updateTargetVersion, hasUpdate } =
     resolveAvailableUpdate(installedVersion, pendingLatestVersion);
   const authorAlias = item.author.author_alias;
-  const authorAttributionLink = item.author.attribution_link;
+  // Prefer the author's SBM website profile (which also carries their attribution
+  // link); fall back to the raw attribution link for authors without a registry entry.
+  const authorLink = item.author.author_id
+    ? sbmAuthorUrl(item.author.author_id)
+    : item.author.attribution_link;
 
   const doInstall = async (version: string, replaceOnConflict = false) => {
     try {
@@ -286,7 +291,7 @@ export function ProjectHeader({
   };
 
   const renderActionButtons = () => {
-    const analyticsUrl = `https://subwaybuildermodded.com/registry/${assetTypeToListingPath(type)}/${item.id}`;
+    const analyticsUrl = `${SBM_SITE_ORIGIN}/registry/${assetTypeToListingPath(type)}/${item.id}`;
 
     // Combined install / update / cancel button
     const isInstalled = !!installedVersion;
@@ -499,17 +504,24 @@ export function ProjectHeader({
               )}
               <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                 <span className="shrink-0">by</span>
-                <Button
-                  variant="link"
-                  className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1"
-                  onClick={() => BrowserOpenURL(authorAttributionLink)}
-                >
+                {authorLink ? (
+                  <Button
+                    variant="link"
+                    className="h-auto p-0 text-sm font-normal text-muted-foreground hover:text-foreground gap-1"
+                    onClick={() => BrowserOpenURL(authorLink)}
+                  >
+                    <AuthorName
+                      name={authorAlias}
+                      contributorTier={item.author.contributor_tier}
+                    />
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                ) : (
                   <AuthorName
                     name={authorAlias}
                     contributorTier={item.author.contributor_tier}
                   />
-                  <ExternalLink className="h-3 w-3" />
-                </Button>
+                )}
               </p>
             </div>
 
