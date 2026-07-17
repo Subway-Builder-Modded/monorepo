@@ -63,7 +63,7 @@ export function LogsPage() {
     serverPort,
   } = useGameStore();
 
-  const canLaunch = useConfigStore((s) => s.validation?.executablePathValid);
+  const canLaunch = useConfigStore((s) => s.validation?.gameSourceValid);
   const [deleteSessionOpen, setDeleteSessionOpen] = useState(false);
 
   const selectedSession =

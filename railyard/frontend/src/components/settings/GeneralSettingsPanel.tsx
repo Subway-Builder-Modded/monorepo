@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { SettingRow } from '@/components/settings/SettingRow';
 import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
 import { useConfigStore } from '@/stores/config-store';
+import { useGameStore } from '@/stores/game-store';
 
 import {
   ManuallyCheckForUpdates,
@@ -56,6 +57,9 @@ export function GeneralSettingsPanel() {
 
   const [githubTokenDialogOpen, setGithubTokenDialogOpen] = useState(false);
   const [githubTokenDraft, setGithubTokenDraft] = useState('');
+  // Critical paths (executable / data folder / Steam launch) are locked while the game is
+  // live; the backend rejects these edits too — this mirrors that rule in the UI.
+  const gameActive = useGameStore((s) => s.running || s.starting);
 
   const handleRevealPath = async (path: string | undefined) => {
     if (!path) return;
@@ -215,9 +219,53 @@ export function GeneralSettingsPanel() {
                   accent="update"
                   enabled={config?.useSteamLaunch || false}
                   onToggle={handleChangeUseSteamLaunch}
+                  disabled={gameActive}
                 />
               }
             />
+
+            {config?.useSteamLaunch && (
+              <SettingRow
+                icon={<Gamepad2 className="h-4 w-4" />}
+                iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
+                label="Steam Game"
+                badge={
+                  <Badge
+                    size="sm"
+                    variant={
+                      validation?.steamGamePathValid
+                        ? 'success'
+                        : config?.steamGamePath
+                          ? 'destructive'
+                          : 'outline'
+                    }
+                  >
+                    {validation?.steamGamePathValid
+                      ? 'Valid'
+                      : config?.steamGamePath
+                        ? 'Invalid'
+                        : 'Not Detected'}
+                  </Badge>
+                }
+                description={
+                  <span className="block max-w-xs truncate font-mono">
+                    {config?.steamGamePath || 'Not detected'}
+                  </span>
+                }
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!config?.steamGamePath}
+                    className={FILES_ACCENT.solidButton}
+                    onClick={() => handleRevealPath(config?.steamGamePath)}
+                  >
+                    <FolderSearch className="size-3.5" />
+                    Reveal
+                  </Button>
+                }
+              />
+            )}
 
             <SettingRow
               icon={<FolderOpen className="h-4 w-4" />}
@@ -263,6 +311,7 @@ export function GeneralSettingsPanel() {
                     size="sm"
                     className={FILES_ACCENT.outlineButton}
                     onClick={handleChangeDataFolder}
+                    disabled={gameActive}
                   >
                     Change
                   </Button>
@@ -315,6 +364,7 @@ export function GeneralSettingsPanel() {
                       size="sm"
                       className={FILES_ACCENT.outlineButton}
                       onClick={handleChangeExecutable}
+                      disabled={gameActive}
                     >
                       Change
                     </Button>

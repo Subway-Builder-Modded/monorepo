@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"railyard/internal/config"
+	"railyard/internal/gate"
 	"railyard/internal/logger"
 	"railyard/internal/types"
 
@@ -64,4 +65,25 @@ func TestLaunchGameRejectsConcurrentStartWhileStarting(t *testing.T) {
 	require.Equal(t, types.ResponseError, first.Status)
 	require.Equal(t, "game executable path is not configured or invalid", first.Message)
 	require.False(t, app.gameStarting)
+}
+
+func TestLaunchGameRejectedWhileContentOpsHoldGate(t *testing.T) {
+	app := newTestApp()
+	app.Config = config.NewConfig(app.Logger)
+	app.emitEventFunc = func(string, ...interface{}) {}
+	app.contentGate = &gate.GameContentGate{}
+	require.NoError(t, app.contentGate.BeginContentOp())
+
+	result := app.LaunchGame(false)
+	require.Equal(t, types.ResponseError, result.Status)
+	require.Contains(t, result.Message, "content is being installed")
+	require.False(t, app.gameStarting)
+
+	app.contentGate.EndContentOp()
+	// With the gate free, the launch proceeds past exclusivity and fails on config instead,
+	// releasing its session so a later launch remains possible.
+	result = app.LaunchGame(false)
+	require.Equal(t, types.ResponseError, result.Status)
+	require.Equal(t, "game executable path is not configured or invalid", result.Message)
+	require.False(t, app.contentGate.GameSessionActive())
 }

@@ -26,11 +26,11 @@ import (
 	"railyard/internal/constants"
 	"railyard/internal/downloader"
 	"railyard/internal/files"
+	"railyard/internal/gate"
 	"railyard/internal/logger"
 	"railyard/internal/paths"
 	"railyard/internal/profiles"
 	"railyard/internal/registry"
-	"railyard/internal/steam"
 	"railyard/internal/types"
 	"railyard/internal/updater"
 	"railyard/internal/utils"
@@ -58,6 +58,8 @@ type App struct {
 	gameCmd       *exec.Cmd
 	gameStarting  bool
 	pmtilesServer *http.Server
+	// contentGate enforces mutual exclusion between the game session and content mutations.
+	contentGate *gate.GameContentGate
 
 	galleryServer     *http.Server
 	galleryServerPort int
@@ -98,12 +100,17 @@ func NewApp() *App {
 	cfg := config.NewConfig(l)
 	reg := registry.NewRegistry(l, cfg)
 	dl := downloader.NewDownloader(cfg, reg, l)
+	contentGate := &gate.GameContentGate{}
+	dl.Gate = contentGate
+	userProfiles := profiles.NewUserProfiles(reg, dl, l, cfg)
+	userProfiles.Gate = contentGate
 	return &App{
-		Registry:   reg,
-		Config:     cfg,
-		Downloader: dl,
-		Profiles:   profiles.NewUserProfiles(reg, dl, l, cfg),
-		Logger:     l,
+		Registry:    reg,
+		Config:      cfg,
+		Downloader:  dl,
+		Profiles:    userProfiles,
+		Logger:      l,
+		contentGate: contentGate,
 	}
 }
 
@@ -188,6 +195,7 @@ func (a *App) startup(ctx context.Context) {
 	a.Downloader.GetGameVersion = func() types.GameVersionResponse {
 		return a.GetGameVersion()
 	}
+	a.Config.IsGameRunning = a.contentGate.GameSessionActive
 	a.Downloader.OnRegistryUpdate = func() {
 		a.emitEvent("registry:update")
 	}
@@ -472,24 +480,16 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	}
 
 	cfg := a.Config.GetConfig()
-	if !cfg.Validation.ExecutablePathValid && !cfg.Config.UseSteamLaunch {
+	if !cfg.Validation.GameSourceValid {
 		return notDetected
 	}
 	exePath := cfg.Config.ExecutablePath
 	var asarPath string
 
 	if cfg.Config.UseSteamLaunch {
-		gamePath, err := steam.AutodetectSteamSubwayBuilderPath(cfg.Config.DefaultSteamLibraryPath)
-		if err != nil {
-			a.Logger.Warn("Failed to detect Steam Subway Builder path for game version detection", "error", err)
-			return notDetected
-		}
-		if runtime.GOOS == "darwin" {
-			// The macOS Steam install nests the asar inside the .app bundle.
-			asarPath = filepath.Join(gamePath, constants.GameMacAppBundle, constants.GameAsarMacRelPath)
-		} else {
-			asarPath = filepath.Join(gamePath, constants.GameAsarRelPath)
-		}
+		// SteamGamePath is resolved and validated when Steam launch is configured, so no
+		// per-call library autodetection is needed here.
+		asarPath = constants.SteamGameAsarPath(cfg.Config.SteamGamePath)
 	} else {
 
 		switch {
@@ -601,6 +601,13 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		a.gameMu.Unlock()
 		return types.ErrorResponse("game is already running")
 	}
+	// The session holds the exclusivity gate from here until the game exits, covering mod
+	// generation and launch; content operations cannot start or be in flight underneath it.
+	sessionToken, gateErr := a.contentGate.BeginGameSession()
+	if gateErr != nil {
+		a.gameMu.Unlock()
+		return types.ErrorResponse(fmt.Sprintf("cannot launch the game: %v", gateErr))
+	}
 	a.gameStarting = true
 	a.gameMu.Unlock()
 
@@ -612,6 +619,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		a.gameMu.Lock()
 		a.gameStarting = false
 		a.gameMu.Unlock()
+		a.contentGate.EndGameSession(sessionToken)
 		a.emitEvent("game:status", "stopped")
 	}()
 
@@ -627,7 +635,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	}
 
 	cfg := a.Config.GetConfig()
-	if !cfg.Validation.ExecutablePathValid && !cfg.Config.UseSteamLaunch {
+	if !cfg.Validation.GameSourceValid {
 		return types.ErrorResponse("game executable path is not configured or invalid")
 	}
 
@@ -923,6 +931,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		a.gameCmd = nil
 		a.gameStarting = false
 		a.gameMu.Unlock()
+		a.contentGate.EndGameSession(sessionToken)
 
 		exitCode := 0
 		if err != nil {

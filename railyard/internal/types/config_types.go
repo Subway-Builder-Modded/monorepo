@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 
+	"railyard/internal/constants"
 	"railyard/internal/paths"
 )
 
@@ -21,6 +22,7 @@ type AppConfig struct {
 	ViewTestAssets          bool   `json:"viewTestAssets,omitempty"`
 	DefaultSteamLibraryPath string `json:"defaultSteamLibraryPath,omitempty"`
 	UseSteamLaunch          bool   `json:"useSteamLaunch,omitempty"` // Whether to launch the game through Steam instead of directly.
+	SteamGamePath           string `json:"steamGamePath,omitempty"`  // Resolved Steam game install directory; independent of ExecutablePath.
 	// Other fields to be appended here
 }
 
@@ -29,6 +31,9 @@ type ConfigPathValidation struct {
 	IsConfigured            bool `json:"isConfigured"`
 	MetroMakerDataPathValid bool `json:"metroMakerDataPathValid"`
 	ExecutablePathValid     bool `json:"executablePathValid"`
+	SteamGamePathValid      bool `json:"steamGamePathValid"`
+	// GameSourceValid reports whether the active launch target is valid.
+	GameSourceValid bool `json:"gameSourceValid"`
 }
 
 // ResolveConfigResult describes the result of resolving app config from disk.
@@ -117,9 +122,17 @@ func SubscriptionTypeResolvers(
 	}
 }
 
-// AreConfigPathsConfigured checks if both required paths have been set in AppConfig
+// AreConfigPathsConfigured checks if both required paths have been set in AppConfig.
 func (c AppConfig) AreConfigPathsConfigured() bool {
-	return strings.TrimSpace(c.MetroMakerDataPath) != "" && (strings.TrimSpace(c.ExecutablePath) != "" || c.UseSteamLaunch)
+	// The game source path is mode-specific; the Steam game path when launching through
+	// Steam, the executable path otherwise.
+	gameSource := ""
+	if c.UseSteamLaunch {
+		gameSource = c.SteamGamePath
+	} else {
+		gameSource = c.ExecutablePath
+	}
+	return strings.TrimSpace(c.MetroMakerDataPath) != "" && strings.TrimSpace(gameSource) != ""
 }
 
 // GetModsFolderPath returns the full path to the mods folder, or an empty string when the
@@ -139,6 +152,10 @@ func (c AppConfig) GetModsFolderPath() string {
 func (c AppConfig) GetThumbnailFolderPath() string {
 	_, validation := c.ValidateConfigPaths()
 	if validation.MetroMakerDataPathValid {
+		// TODO: This does not allow persons who have never downloaded/played a non-modded map
+		// to have a valid MetroMaker path; we should fall back to check if metro-maker4 is the
+		// path name, though of course this is not guaranteed to be correct (if the user renames)
+		// the install path for example.
 		return paths.JoinLocalPath(c.MetroMakerDataPath, "public", "data", "city-maps")
 	}
 	return ""
@@ -184,12 +201,23 @@ func (c AppConfig) ValidateConfigPaths() (bool, ConfigPathValidation) {
 
 	if strings.TrimSpace(c.ExecutablePath) != "" {
 		exeInfo, exeErr := os.Stat(c.ExecutablePath)
-		result.ExecutablePathValid = (exeErr == nil && isExecutable(c.ExecutablePath, exeInfo)) || c.UseSteamLaunch
+		result.ExecutablePathValid = exeErr == nil && isExecutable(c.ExecutablePath, exeInfo)
+	}
+
+	if strings.TrimSpace(c.SteamGamePath) != "" {
+		asarInfo, asarErr := os.Stat(constants.SteamGameAsarPath(c.SteamGamePath))
+		result.SteamGamePathValid = asarErr == nil && asarInfo.Mode().IsRegular()
+	}
+
+	if c.UseSteamLaunch {
+		result.GameSourceValid = result.SteamGamePathValid
+	} else {
+		result.GameSourceValid = result.ExecutablePathValid
 	}
 
 	return result.IsValid(), result
 }
 
 func (v ConfigPathValidation) IsValid() bool {
-	return v.IsConfigured && v.MetroMakerDataPathValid && v.ExecutablePathValid
+	return v.IsConfigured && v.MetroMakerDataPathValid && v.GameSourceValid
 }

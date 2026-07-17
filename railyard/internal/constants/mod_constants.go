@@ -2,6 +2,8 @@ package constants
 
 import (
 	_ "embed"
+	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -22,6 +24,15 @@ const GameAsarMacRelPath = "Contents/Resources/app.asar"
 
 // GameAsarRelPath is the path to app.asar relative to the game executable on Windows and Linux.
 const GameAsarRelPath = "resources/app.asar"
+
+// SteamGameAsarPath returns the app.asar location inside a Steam game install directory,
+// which nests inside the .app bundle on macOS.
+func SteamGameAsarPath(gamePath string) string {
+	if runtime.GOOS == "darwin" {
+		return filepath.Join(gamePath, GameMacAppBundle, GameAsarMacRelPath)
+	}
+	return filepath.Join(gamePath, GameAsarRelPath)
+}
 
 //go:embed mod_template.js
 var modTemplate string

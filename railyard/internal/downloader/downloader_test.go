@@ -18,6 +18,7 @@ import (
 
 	"railyard/internal/config"
 	"railyard/internal/constants"
+	"railyard/internal/gate"
 	"railyard/internal/logger"
 	"railyard/internal/registry"
 	"railyard/internal/testutil"
@@ -1537,4 +1538,53 @@ func TestComputeDependencyListFailsOnCycle(t *testing.T) {
 	require.Equal(t, types.ResponseError, result.Status)
 	require.Contains(t, result.Message, "circular dependency detected")
 	require.Nil(t, result.InstallList)
+}
+
+func TestEnqueueOperationRejectedWhileGameSessionActive(t *testing.T) {
+	d := newTestDownloader()
+	d.Logger = testutil.TestLogSink{}
+	d.Gate = &gate.GameContentGate{}
+
+	_, err := d.Gate.BeginGameSession()
+	require.NoError(t, err)
+
+	install := d.enqueueOperation(operationActionInstall, downloadQueueKey{assetType: types.AssetTypeMod, assetID: "x"}, "k1", func() operationResult {
+		t.Fatal("operation must not run while a game session holds the gate")
+		return operationResult{}
+	}, operationResult{}, nil)
+	require.Equal(t, types.ResponseError, install.assetInstallResponse.Status)
+	require.Equal(t, types.InstallErrorGameRunning, install.assetInstallResponse.ErrorType)
+
+	uninstall := d.enqueueOperation(operationActionUninstall, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "y"}, "k2", func() operationResult {
+		t.Fatal("operation must not run while a game session holds the gate")
+		return operationResult{}
+	}, operationResult{}, nil)
+	require.Equal(t, types.ResponseError, uninstall.assetUninstallResponse.Status)
+}
+
+func TestEnqueueOperationHoldsGateAgainstGameLaunch(t *testing.T) {
+	d := newTestDownloader()
+	d.Logger = testutil.TestLogSink{}
+	d.Gate = &gate.GameContentGate{}
+
+	release := make(chan struct{})
+	opRunning := make(chan struct{})
+	done := make(chan operationResult, 1)
+	go func() {
+		done <- d.enqueueOperation(operationActionInstall, downloadQueueKey{assetType: types.AssetTypeMod, assetID: "x"}, "k1", func() operationResult {
+			close(opRunning)
+			<-release
+			return operationResult{}
+		}, operationResult{}, nil)
+	}()
+
+	<-opRunning
+	_, err := d.Gate.BeginGameSession()
+	require.ErrorIs(t, err, gate.ErrContentOpsActive)
+
+	close(release)
+	<-done
+	token, err := d.Gate.BeginGameSession()
+	require.NoError(t, err)
+	d.Gate.EndGameSession(token)
 }

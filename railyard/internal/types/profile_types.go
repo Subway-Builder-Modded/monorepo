@@ -252,6 +252,7 @@ const (
 	ErrorDefaultProtected   UserProfilesErrorType = "default_profile_protected"
 	ErrorActiveProtected    UserProfilesErrorType = "active_profile_protected"
 	ErrorSwapConfirmation   UserProfilesErrorType = "swap_confirmation_required"
+	ErrorGameRunning        UserProfilesErrorType = "game_running"
 	ErrorArchiveMissing     UserProfilesErrorType = "archive_missing"
 	ErrorArchiveStale       UserProfilesErrorType = "archive_stale"
 	ErrorArchiveUpdate      UserProfilesErrorType = "archive_update_failed"

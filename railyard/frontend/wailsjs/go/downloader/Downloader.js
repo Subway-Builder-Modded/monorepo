@@ -18,6 +18,10 @@ export function FindMapCodeConflict(arg1, arg2, arg3) {
   return window['go']['downloader']['Downloader']['FindMapCodeConflict'](arg1, arg2, arg3);
 }
 
+export function HasActiveOperations() {
+  return window['go']['downloader']['Downloader']['HasActiveOperations']();
+}
+
 export function ImportAsset(arg1, arg2, arg3) {
   return window['go']['downloader']['Downloader']['ImportAsset'](arg1, arg2, arg3);
 }
