@@ -221,7 +221,7 @@ export function SetupScreen() {
         await updateGithubToken(trimmedToken);
       }
       await completeSetup();
-    } catch (error) {
+    } finally {
       setSaving(false);
     }
   };

@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"railyard/internal/config"
@@ -478,14 +479,17 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	var asarPath string
 
 	if cfg.Config.UseSteamLaunch {
-		steamPath := cfg.Config.DefaultSteamLibraryPath
-		gamePath, err := steam.AutodetectSteamSubwayBuilderPath(steamPath)
+		gamePath, err := steam.AutodetectSteamSubwayBuilderPath(cfg.Config.DefaultSteamLibraryPath)
 		if err != nil {
-			a.Logger.Warn("Failed to detect Steam Subways Builder path for game version detection", "error", err)
+			a.Logger.Warn("Failed to detect Steam Subway Builder path for game version detection", "error", err)
 			return notDetected
 		}
-		asarPath = filepath.Join(gamePath, constants.GameAsarRelPath)
-
+		if runtime.GOOS == "darwin" {
+			// The macOS Steam install nests the asar inside the .app bundle.
+			asarPath = filepath.Join(gamePath, constants.GameMacAppBundle, constants.GameAsarMacRelPath)
+		} else {
+			asarPath = filepath.Join(gamePath, constants.GameAsarRelPath)
+		}
 	} else {
 
 		switch {
@@ -580,6 +584,13 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	}
 }
 
+// Steam launches return before the game starts, so the real game process is discovered by
+// polling; discovery is bounded so a cancelled Steam prompt cannot hang the launch.
+const (
+	steamPollInterval           = time.Second
+	steamLaunchDiscoveryTimeout = 2 * time.Minute
+)
+
 func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	a.gameMu.Lock()
 	if a.gameStarting {
@@ -651,7 +662,11 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	a.Logger.Info("Launching game", "path", exePath)
 
 	var cmd *exec.Cmd
-	if runtime.GOOS == "darwin" && (strings.HasSuffix(exePath, ".app") || strings.Contains(exePath, ".app/")) {
+	if cfg.Config.UseSteamLaunch && runtime.GOOS == "darwin" {
+		// `open` hands the steam:// URL to Steam and returns immediately; the real game
+		// process is discovered by polling below.
+		cmd = exec.Command("open", constants.STEAM_URL)
+	} else if runtime.GOOS == "darwin" && (strings.HasSuffix(exePath, ".app") || strings.Contains(exePath, ".app/")) {
 		// On macOS, resolve .app bundle to the inner executable and launch via shell
 		// to handle Electron stub executables that lack valid magic bytes
 		innerExe := exePath
@@ -733,9 +748,10 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	// Get true process if launching via steam
 	if cfg.Config.UseSteamLaunch {
 		foundProcess := (*exec.Cmd)(nil)
+		deadline := time.Now().Add(steamLaunchDiscoveryTimeout)
 		switch runtime.GOOS {
 		case "windows":
-			for foundProcess == nil {
+			for foundProcess == nil && time.Now().Before(deadline) {
 				processses, err := ps.Processes()
 				if err != nil {
 					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
@@ -773,17 +789,19 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 						}
 					}
 				}
+				if foundProcess == nil {
+					time.Sleep(steamPollInterval)
+				}
 			}
 		case "linux":
-			for foundProcess == nil {
+			for foundProcess == nil && time.Now().Before(deadline) {
 				processCmd := exec.Command("flatpak-spawn", "--host", "pgrep", "-l", "metro-maker4")
 				processes, err := processCmd.Output()
 				// Separate into a list of lines, each containing "pid process_name"
 				lines := strings.Split(string(processes), "\n")
 				// Ignore exit code 1 (no processes found) and continue polling
 				var exitErr *exec.ExitError
-				errors.As(err, &exitErr)
-				if err != nil && exitErr.ExitCode() != 1 {
+				if err != nil && (!errors.As(err, &exitErr) || exitErr.ExitCode() != 1) {
 					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
 					break
 				}
@@ -811,7 +829,39 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 						break
 					}
 				}
+				if foundProcess == nil {
+					time.Sleep(steamPollInterval)
+				}
 			}
+		case "darwin":
+			for foundProcess == nil && time.Now().Before(deadline) {
+				output, err := exec.Command("pgrep", "-x", constants.GameMacProcessName).Output()
+				// pgrep exits 1 when nothing matches; keep polling in that case.
+				var exitErr *exec.ExitError
+				if err != nil && (!errors.As(err, &exitErr) || exitErr.ExitCode() != 1) {
+					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
+					break
+				}
+				if pidLine, _, _ := strings.Cut(strings.TrimSpace(string(output)), "\n"); pidLine != "" {
+					pid, err := strconv.Atoi(pidLine)
+					if err != nil {
+						a.Logger.Warn("Failed to parse PID", "error", err, "line", pidLine)
+						break
+					}
+					gameProcess, err := os.FindProcess(pid)
+					if err != nil {
+						a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+						break
+					}
+					foundProcess = &exec.Cmd{Process: gameProcess}
+					a.Logger.Info("Found Steam-launched game process", "pid", pid)
+					break
+				}
+				time.Sleep(steamPollInterval)
+			}
+		}
+		if foundProcess == nil {
+			return types.ErrorResponse("could not find the Steam-launched game process; the launch may have been cancelled")
 		}
 		cmd = foundProcess
 	}
@@ -857,6 +907,14 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 					// Process not found, assume it has exited
 					break
 				}
+				time.Sleep(steamPollInterval)
+			}
+		} else if cfg.Config.UseSteamLaunch && runtime.GOOS == "darwin" {
+			a.Logger.Info("Waiting for Steam-launched game process to exit on macOS")
+			// The game is not a child of the Railyard process, so Wait is unavailable; poll
+			// the discovered pid with signal 0 until it is gone.
+			for cmd.Process.Signal(syscall.Signal(0)) == nil {
+				time.Sleep(steamPollInterval)
 			}
 		} else {
 			err = cmd.Wait()

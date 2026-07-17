@@ -55,7 +55,7 @@ type NavLinkConfig = {
   isCurrent: (location: string) => boolean;
 };
 
-var navLinks: NavLinkConfig[] = [
+const navLinks: NavLinkConfig[] = [
   {
     href: '/browse',
     label: 'Browse',

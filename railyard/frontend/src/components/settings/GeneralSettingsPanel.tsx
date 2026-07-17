@@ -95,6 +95,7 @@ export function GeneralSettingsPanel() {
     try {
       const newValue = !config?.useSteamLaunch;
       await updateUseSteamLaunch(newValue);
+      await saveConfig();
       toast.success(`Use Steam launch ${newValue ? 'enabled' : 'disabled'}.`);
     } catch {
       toast.error('Failed to update use Steam launch setting.');
