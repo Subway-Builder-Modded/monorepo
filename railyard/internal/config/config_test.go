@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"railyard/internal/paths"
+	"railyard/internal/steam"
 	"railyard/internal/testutil"
 	"railyard/internal/types"
 	"testing"
@@ -476,4 +477,58 @@ func TestTryAutoDetectMetroMakerSucceedsWhenMetroMakerDataPathIsValid(t *testing
 
 	runtimeAfter := cfg.GetConfig()
 	require.Equal(t, detectedPath, runtimeAfter.Config.MetroMakerDataPath)
+}
+
+// tempSteamappsFixture creates a steamapps directory containing a Subway Builder install.
+func tempSteamappsFixture(t *testing.T) (steamapps string, gamePath string) {
+	t.Helper()
+	steamapps = filepath.Join(t.TempDir(), "steamapps")
+	gamePath = filepath.Join(steamapps, "common", "Subway Builder")
+	require.NoError(t, os.MkdirAll(gamePath, 0o755))
+	manifest := filepath.Join(steamapps, "appmanifest_"+steam.SubwayBuilderAppID+".acf")
+	require.NoError(t, os.WriteFile(manifest, []byte("\"AppState\"\n{\n}\n"), 0o644))
+	return steamapps, gamePath
+}
+
+func TestUpdateUseSteamLaunchEnableResolvesGamePath(t *testing.T) {
+	steamapps, gamePath := tempSteamappsFixture(t)
+	h := setup(t, types.AppConfig{DefaultSteamLibraryPath: steamapps})
+
+	res := h.cfg.UpdateUseSteamLaunch(true)
+	require.Equal(t, types.ResponseSuccess, res.Status)
+	require.True(t, res.Config.UseSteamLaunch)
+	require.Equal(t, gamePath, res.Config.SteamGamePath)
+}
+
+func TestUpdateUseSteamLaunchEnableFailsWhenGameNotInstalled(t *testing.T) {
+	emptySteamapps := filepath.Join(t.TempDir(), "steamapps")
+	require.NoError(t, os.MkdirAll(emptySteamapps, 0o755))
+	h := setup(t, types.AppConfig{DefaultSteamLibraryPath: emptySteamapps})
+
+	res := h.cfg.UpdateUseSteamLaunch(true)
+	require.Equal(t, types.ResponseError, res.Status)
+	require.False(t, h.runtime().Config.UseSteamLaunch)
+}
+
+func TestUpdateUseSteamLaunchDisableKeepsConfiguredExecutable(t *testing.T) {
+	steamapps, _ := tempSteamappsFixture(t)
+	h := setup(t, types.AppConfig{
+		DefaultSteamLibraryPath: steamapps,
+		UseSteamLaunch:          true,
+		ExecutablePath:          "dir/executable.exe",
+	})
+
+	res := h.cfg.UpdateUseSteamLaunch(false)
+	require.Equal(t, types.ResponseSuccess, res.Status)
+	require.False(t, res.Config.UseSteamLaunch)
+	require.Equal(t, "dir/executable.exe", res.Config.ExecutablePath)
+}
+
+func TestCompleteSetupPersists(t *testing.T) {
+	h := setup(t, types.AppConfig{})
+
+	res := h.cfg.CompleteSetup()
+	require.Equal(t, types.ResponseSuccess, res.Status)
+	require.True(t, res.Config.SetupCompleted)
+	require.True(t, h.persisted().SetupCompleted)
 }

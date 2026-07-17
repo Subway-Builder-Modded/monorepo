@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"io"
+	"net/http"
 	"testing"
 
 	semver "github.com/Masterminds/semver/v3"
@@ -241,4 +242,25 @@ func TestNormalizeSemver(t *testing.T) {
 	require.Equal(t, "v1.2.3", NormalizeSemver("v1.2.3"))
 	require.Equal(t, "v1.2.3", NormalizeSemver(" 1.2.3 "))
 	require.Equal(t, "", NormalizeSemver("   "))
+}
+
+func TestGetErrorTypeForStatus(t *testing.T) {
+	require.Equal(t, RequestErrorUnauthorized, GetErrorTypeForStatus(http.StatusUnauthorized))
+	require.Equal(t, RequestErrorForbidden, GetErrorTypeForStatus(http.StatusForbidden))
+	require.Equal(t, RequestErrorTooMany, GetErrorTypeForStatus(http.StatusTooManyRequests))
+	require.Contains(t, string(GetErrorTypeForStatus(http.StatusTeapot)), "418")
+}
+
+func TestGameVersionResponseDetectedVersion(t *testing.T) {
+	detected, ok := GameVersionResponse{
+		GenericResponse: SuccessResponse("ok"),
+		Version:         "v1.4.11",
+	}.DetectedVersion()
+	require.True(t, ok)
+	require.Equal(t, "1.4.11", detected.String())
+
+	_, ok = GameVersionResponse{GenericResponse: WarnResponse("nope")}.DetectedVersion()
+	require.False(t, ok)
+	_, ok = GameVersionResponse{GenericResponse: SuccessResponse("ok")}.DetectedVersion()
+	require.False(t, ok)
 }

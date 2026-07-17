@@ -80,6 +80,7 @@ func (r *Registry) localCloneHasTags() bool {
 // forceClone removes any existing directory and performs a fresh clone,
 // checking out only registrySparseCheckoutDirs.
 func (r *Registry) forceClone() error {
+	cloneURL := r.registryCloneURL()
 	// Instantiate monitor to report refresh progress via Wails events
 	progress := newProgressWriter(progressPhaseClone, r.emitProgress)
 	if err := files.WritePathsAtomically([]files.AtomicWrite{
@@ -88,7 +89,7 @@ func (r *Registry) forceClone() error {
 			Label: "registry clone directory",
 			Callback: func(stagingPath string) error {
 				repo, cloneErr := git.PlainClone(stagingPath, false, &git.CloneOptions{
-					URL:           RegistryRepoURL,
+					URL:           cloneURL,
 					ReferenceName: plumbing.NewBranchReferenceName("main"),
 					SingleBranch:  true,
 					Depth:         1,
@@ -110,11 +111,11 @@ func (r *Registry) forceClone() error {
 			},
 		},
 	}); err != nil {
-		return fmt.Errorf("failed to clone registry repository %q: %w", RegistryRepoURL, err)
+		return fmt.Errorf("failed to clone registry repository %q: %w", cloneURL, err)
 	}
 
 	if err := r.fetchFromDisk(); err != nil {
-		return fmt.Errorf("failed to load registry data after clone from %q: %w", RegistryRepoURL, err)
+		return fmt.Errorf("failed to load registry data after clone from %q: %w", cloneURL, err)
 	}
 
 	return nil

@@ -50,6 +50,9 @@ type Registry struct {
 
 	// gitHubAPIBaseURL overrides types.GitHubAPIBaseURL when non-empty. Reserved for tests that redirect HTTP traffic to a localhost server; production leaves this empty so all callers fall through to the const.
 	gitHubAPIBaseURL string
+
+	// registryRepoURL overrides RegistryRepoURL when non-empty. Reserved for tests that clone from a local fixture repository; production leaves this empty so all callers fall through to the const.
+	registryRepoURL string
 }
 
 // githubAPIBase returns the GitHub API base URL. Tests may set gitHubAPIBaseURL on the Registry to override the production default.
@@ -58,6 +61,14 @@ func (r *Registry) githubAPIBase() string {
 		return r.gitHubAPIBaseURL
 	}
 	return types.GitHubAPIBaseURL
+}
+
+// registryCloneURL returns the registry clone URL. Tests may set registryRepoURL on the Registry to override the production default.
+func (r *Registry) registryCloneURL() string {
+	if r.registryRepoURL != "" {
+		return r.registryRepoURL
+	}
+	return RegistryRepoURL
 }
 
 // NewRegistry creates a new Registry instance with the platform-appropriate

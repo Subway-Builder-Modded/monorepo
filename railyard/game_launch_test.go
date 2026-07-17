@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os/exec"
+	"runtime"
+	"strings"
 	"testing"
 
 	"railyard/internal/config"
@@ -58,4 +61,64 @@ func TestLaunchGameRejectedWhileContentOpsHoldGate(t *testing.T) {
 	require.Equal(t, types.ResponseError, result.Status)
 	require.Equal(t, "game executable path is not configured or invalid", result.Message)
 	require.False(t, app.contentGate.GameSessionActive())
+}
+
+func TestIsGameRunning(t *testing.T) {
+	app := newTestApp()
+	require.False(t, app.IsGameRunning().Running)
+
+	app.gameCmd = &exec.Cmd{} // started, not yet waited on
+	require.True(t, app.IsGameRunning().Running)
+
+	finished := exec.Command("true")
+	require.NoError(t, finished.Run())
+	app.gameCmd = finished // ProcessState set after Wait
+	require.False(t, app.IsGameRunning().Running)
+}
+
+func TestStopGameStateGuards(t *testing.T) {
+	app := newTestApp()
+	app.Config = config.NewConfig(app.Logger)
+
+	app.gameStarting = true
+	res := app.StopGame()
+	require.Equal(t, types.ResponseError, res.Status)
+	require.Equal(t, "game is still starting", res.Message)
+
+	app.gameStarting = false
+	res = app.StopGame()
+	require.Equal(t, types.ResponseError, res.Status)
+	require.Equal(t, "game is not running", res.Message)
+}
+
+func TestStopGameKillsRunningProcess(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses a sleep fixture process")
+	}
+	app := newTestApp()
+	app.Config = config.NewConfig(app.Logger)
+
+	cmd := exec.Command("sleep", "60")
+	require.NoError(t, cmd.Start())
+	app.gameCmd = cmd
+
+	res := app.StopGame()
+	require.Equal(t, types.ResponseSuccess, res.Status)
+	require.Nil(t, app.gameCmd)
+	require.False(t, app.gameStarting)
+	_ = cmd.Wait() // reap the killed fixture
+}
+
+func TestStreamGameOutputEmitsPerLine(t *testing.T) {
+	app := newTestApp()
+	var lines []string
+	app.emitEventFunc = func(name string, data ...interface{}) {
+		require.Equal(t, "game:log", name)
+		payload := data[0].(map[string]string)
+		require.Equal(t, "stderr", payload["stream"])
+		lines = append(lines, payload["line"])
+	}
+
+	app.streamGameOutput(strings.NewReader("first\nsecond\n"), "stderr")
+	require.Equal(t, []string{"first", "second"}, lines)
 }
