@@ -1,0 +1,33 @@
+---
+title: v0.2.8
+icon: TrainTrack
+date: July 17, 2026
+tag: beta
+url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.8
+previousVersion: v0.2.7
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.7...v0.2.8
+---
+
+<ChangelogSection type="features">
+
+- Added Steam version compatibility for all three major operating systems
+- If the steam option is enabled, Railyard will attempt to autodetect the install path
+- Dev tools and Subway Builder logs are unavailable on Steam
+- Consistency pass on game launch semantics
+  - Game launch is now mutually exclusive with installing/importing content and profile swapping
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+- Thumbnails now generate with the maps' native park layer
+- Author links now redirect to website author pages instead of the registry attribution link
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Fixed **Asset Status** counts not being updated when sidebar sub-filters are applied
+- Fixed thumbnail cache not respecting map version asset updates (thumbnails now regenerate each time a map's install is updated)
+
+</ChangelogSection>
