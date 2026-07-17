@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	svg "github.com/ajstarks/svgo"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/mvt"
+	"github.com/paulmach/orb/geojson"
 )
 
 type projection struct {
@@ -152,7 +154,7 @@ func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (
 	var svgBuffer bytes.Buffer
 	svgCanvas := svg.New(&svgBuffer)
 	svgCanvas.Start(800, 800)
-	svgCanvas.Rect(0, 0, 800, 800, "fill:rgb(242,231,211)")
+	svgCanvas.Rect(0, 0, 800, 800, "fill:rgb("+thumbnailBackgroundRGB+")")
 
 	for _, tile := range allTiles {
 		layers, err := mvt.Unmarshal(tile.Data)
@@ -161,20 +163,18 @@ func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (
 			continue
 		}
 
-		var waterLayer *mvt.Layer
-		for _, layer := range layers {
-			if layer.Name == "water" {
-				waterLayer = layer
-				break
+		for _, style := range thumbnailLayerStyles {
+			for _, layer := range layers {
+				if layer.Name != style.Layer {
+					continue
+				}
+				for _, feature := range layer.Features {
+					if !style.includes(feature) {
+						continue
+					}
+					renderGeometry(svgCanvas, &proj, tile.X, tile.Y, feature.Geometry, style.RGB)
+				}
 			}
-		}
-
-		if waterLayer == nil {
-			continue
-		}
-
-		for _, feature := range waterLayer.Features {
-			renderGeometry(svgCanvas, &proj, tile.X, tile.Y, feature.Geometry)
 		}
 	}
 
@@ -182,39 +182,69 @@ func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (
 	return svgBuffer.String(), nil
 }
 
-func renderGeometry(canvas *svg.SVG, proj *projection, tileX, tileY int, geometry orb.Geometry) {
+// thumbnailBackgroundRGB fills the canvas under the rendered layers, standing in for land.
+const thumbnailBackgroundRGB = "242,231,211"
+
+// thumbnailLayerStyle selects tile features to draw and the RGB triple ("r,g,b") they are
+// drawn with. An empty Kinds slice selects every feature in the layer; otherwise only
+// features whose "kind" property matches.
+type thumbnailLayerStyle struct {
+	Layer string
+	Kinds []string
+	RGB   string
+}
+
+// thumbnailLayerStyles are the layers a thumbnail is composed of, rendered in order within
+// each tile, so later entries draw on top.
+var thumbnailLayerStyles = []thumbnailLayerStyle{
+	{Layer: "landuse", Kinds: []string{"park"}, RGB: "180,210,160"},
+	{Layer: "water", RGB: "159,201,234"},
+}
+
+func (s thumbnailLayerStyle) includes(feature *geojson.Feature) bool {
+	if len(s.Kinds) == 0 {
+		return true
+	}
+	kind, _ := feature.Properties["kind"].(string)
+	return slices.Contains(s.Kinds, kind)
+}
+
+func renderGeometry(canvas *svg.SVG, proj *projection, tileX, tileY int, geometry orb.Geometry, rgb string) {
+	pointStyle := "fill:rgb(" + rgb + ")"
+	lineStyle := "stroke:rgb(" + rgb + ");fill:none"
+	ringStyle := "fill:rgb(" + rgb + ");stroke:none"
 	switch g := geometry.(type) {
 	case orb.Point:
 		x, y := proj.project(tileX, tileY, g.X(), g.Y())
 		p := fmt.Sprintf("M %f,%f m -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0", x, y)
-		canvas.Path(p, "fill:rgb(159,201,234)")
+		canvas.Path(p, pointStyle)
 	case orb.LineString:
 		if p := buildLineStringPath(proj, tileX, tileY, g); p != "" {
-			canvas.Path(p, "stroke:rgb(159,201,234);fill:none")
+			canvas.Path(p, lineStyle)
 		}
 	case orb.Polygon:
 		for _, ring := range g {
 			if p := buildRingPath(proj, tileX, tileY, ring); p != "" {
-				canvas.Path(p, "fill:rgb(159,201,234);stroke:none")
+				canvas.Path(p, ringStyle)
 			}
 		}
 	case orb.MultiPoint:
 		for _, pt := range g {
 			x, y := proj.project(tileX, tileY, pt.X(), pt.Y())
 			p := fmt.Sprintf("M %f,%f m -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0", x, y)
-			canvas.Path(p, "fill:rgb(159,201,234)")
+			canvas.Path(p, pointStyle)
 		}
 	case orb.MultiLineString:
 		for _, ls := range g {
 			if p := buildLineStringPath(proj, tileX, tileY, ls); p != "" {
-				canvas.Path(p, "stroke:rgb(159,201,234);fill:none")
+				canvas.Path(p, lineStyle)
 			}
 		}
 	case orb.MultiPolygon:
 		for _, polygon := range g {
 			for _, ring := range polygon {
 				if p := buildRingPath(proj, tileX, tileY, ring); p != "" {
-					canvas.Path(p, "fill:rgb(159,201,234);stroke:none")
+					canvas.Path(p, ringStyle)
 				}
 			}
 		}

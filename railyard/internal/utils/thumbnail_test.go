@@ -13,6 +13,7 @@ import (
 
 	svg "github.com/ajstarks/svgo"
 	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/geojson"
 	"github.com/stretchr/testify/require"
 )
 
@@ -161,13 +162,32 @@ func TestRenderGeometryHandlesKnownTypes(t *testing.T) {
 	canvas.Start(20, 20)
 	proj := projection{scale: 1}
 
-	renderGeometry(canvas, &proj, 0, 0, orb.Point{1, 1})
-	renderGeometry(canvas, &proj, 0, 0, orb.LineString{orb.Point{0, 0}, orb.Point{1, 1}})
-	renderGeometry(canvas, &proj, 0, 0, orb.Polygon{orb.Ring{orb.Point{0, 0}, orb.Point{1, 0}, orb.Point{1, 1}}})
-	renderGeometry(canvas, &proj, 0, 0, orb.MultiPoint{orb.Point{2, 2}})
-	renderGeometry(canvas, &proj, 0, 0, orb.MultiLineString{orb.LineString{orb.Point{0, 1}, orb.Point{1, 2}}})
-	renderGeometry(canvas, &proj, 0, 0, orb.MultiPolygon{orb.Polygon{orb.Ring{orb.Point{0, 0}, orb.Point{1, 0}, orb.Point{1, 1}}}})
+	renderGeometry(canvas, &proj, 0, 0, orb.Point{1, 1}, "1,2,3")
+	renderGeometry(canvas, &proj, 0, 0, orb.LineString{orb.Point{0, 0}, orb.Point{1, 1}}, "1,2,3")
+	renderGeometry(canvas, &proj, 0, 0, orb.Polygon{orb.Ring{orb.Point{0, 0}, orb.Point{1, 0}, orb.Point{1, 1}}}, "1,2,3")
+	renderGeometry(canvas, &proj, 0, 0, orb.MultiPoint{orb.Point{2, 2}}, "1,2,3")
+	renderGeometry(canvas, &proj, 0, 0, orb.MultiLineString{orb.LineString{orb.Point{0, 1}, orb.Point{1, 2}}}, "1,2,3")
+	renderGeometry(canvas, &proj, 0, 0, orb.MultiPolygon{orb.Polygon{orb.Ring{orb.Point{0, 0}, orb.Point{1, 0}, orb.Point{1, 1}}}}, "1,2,3")
 
 	canvas.End()
 	require.Contains(t, output.String(), "<path")
+	require.Contains(t, output.String(), "rgb(1,2,3)")
+}
+
+func TestThumbnailLayerStyleIncludes(t *testing.T) {
+	park := geojson.NewFeature(orb.Point{})
+	park.Properties = geojson.Properties{"kind": "park"}
+	residential := geojson.NewFeature(orb.Point{})
+	residential.Properties = geojson.Properties{"kind": "residential"}
+	noKind := geojson.NewFeature(orb.Point{})
+
+	// No Kinds filter selects every feature in the layer.
+	all := thumbnailLayerStyle{Layer: "water"}
+	require.True(t, all.includes(park))
+	require.True(t, all.includes(noKind))
+
+	parksOnly := thumbnailLayerStyle{Layer: "landuse", Kinds: []string{"park"}}
+	require.True(t, parksOnly.includes(park))
+	require.False(t, parksOnly.includes(residential))
+	require.False(t, parksOnly.includes(noKind))
 }
