@@ -357,10 +357,10 @@ export function RegistryDetailPage({
               />
             </div>
 
-            <div className="relative grid gap-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(220px,0.8fr)] lg:items-start">
-              <main className="min-w-0">
+            <div className="relative grid gap-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(220px,0.8fr)] lg:items-stretch">
+              <main className="min-w-0 lg:flex lg:min-h-0 lg:flex-col">
                 <section
-                  className="rounded-xl border border-border/70 p-4 sm:p-5"
+                  className="rounded-xl border border-border/70 p-4 sm:p-5 lg:flex lg:h-full lg:flex-col"
                   style={{
                     backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
                   }}
@@ -390,7 +390,10 @@ export function RegistryDetailPage({
                       selectedVersionId={versionId}
                     />
                   </div>
-                  <div hidden={visibleActiveTab !== "map"}>
+                  <div
+                    className={visibleActiveTab === "map" ? "h-full" : undefined}
+                    hidden={visibleActiveTab !== "map"}
+                  >
                     <MapTab mapId={detail.id} />
                   </div>
                 </section>

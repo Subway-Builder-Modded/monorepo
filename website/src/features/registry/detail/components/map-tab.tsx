@@ -293,7 +293,7 @@ export function MapTab({ mapId }: { mapId: string }) {
 
   if (status === "loading") {
     return (
-      <div className="flex h-[26rem] items-center justify-center rounded-xl border border-border/65 bg-muted/25 text-sm text-muted-foreground">
+      <div className="flex h-[26rem] items-center justify-center rounded-xl border border-border/65 bg-muted/25 text-sm text-muted-foreground lg:h-full">
         Loading...
       </div>
     );
@@ -301,7 +301,7 @@ export function MapTab({ mapId }: { mapId: string }) {
 
   if (status === "empty") {
     return (
-      <div className="flex h-[26rem] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-4 text-center">
+      <div className="flex h-[26rem] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-4 text-center lg:h-full">
         <MapPin className="mb-2 h-5 w-5 text-muted-foreground" aria-hidden={true} />
         <p className="text-sm text-muted-foreground">Heatmap grid data is not available.</p>
       </div>
@@ -310,7 +310,7 @@ export function MapTab({ mapId }: { mapId: string }) {
 
   if (status === "error") {
     return (
-      <div className="flex h-[26rem] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-4 text-center">
+      <div className="flex h-[26rem] flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 px-4 text-center lg:h-full">
         <AlertCircle className="mb-2 h-5 w-5 text-muted-foreground" aria-hidden={true} />
         <p className="text-sm text-muted-foreground">Unable to load map heatmap data right now.</p>
       </div>
@@ -318,7 +318,7 @@ export function MapTab({ mapId }: { mapId: string }) {
   }
 
   return (
-    <div className="registry-map-tab space-y-3">
+    <div className="registry-map-tab space-y-3 lg:flex lg:h-full lg:flex-col">
       <MapViewIndicator
         icon={ActiveMetricIcon}
         viewName={activeMetricConfig.shortLabel}
@@ -328,8 +328,8 @@ export function MapTab({ mapId }: { mapId: string }) {
         onNext={() => setMetricByOffset(1)}
       />
 
-      <div className="overflow-visible rounded-xl border border-border/60 bg-card/65 p-1.5 ring-1 ring-foreground/5">
-        <div className="relative h-[26rem] w-full overflow-visible rounded-lg">
+      <div className="overflow-visible rounded-xl border border-border/60 bg-card/65 p-1.5 ring-1 ring-foreground/5 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+        <div className="relative h-[26rem] w-full overflow-visible rounded-lg lg:h-auto lg:min-h-0 lg:flex-1">
           <div className="h-full w-full overflow-hidden rounded-lg">
             <div
               ref={containerRef}

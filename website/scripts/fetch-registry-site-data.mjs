@@ -38,6 +38,10 @@ const WEBSITE_PERIOD_DAYS = {
 
 const COPY_MAPPINGS = [
   {
+    source: "docs/terms-of-service.mdx",
+    destination: "public/registry-cache/docs/terms-of-service.mdx",
+  },
+  {
     source: "analytics/most_popular_all_time.csv",
     destination: "public/registry-cache/analytics/most_popular_all_time.csv",
   },
@@ -552,7 +556,7 @@ function copyMappedFiles(snapshotRoot, workspaceRoot, materializedFiles, progres
 
 function removeGeneratedRegistryCache(workspaceRoot) {
   const cacheRoot = path.join(workspaceRoot, "public", "registry-cache");
-  const ownedRoots = ["authors", "credits", "maps", "mods"].map((dirName) =>
+  const ownedRoots = ["authors", "credits", "docs", "maps", "mods"].map((dirName) =>
     path.join(cacheRoot, dirName),
   );
   let removedCount = 0;

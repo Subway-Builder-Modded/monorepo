@@ -16,6 +16,7 @@ import {
   BookText,
   Megaphone,
   Warehouse,
+  ShieldCheck,
 } from "lucide-react";
 import { GithubIcon, DiscordIcon, MarkdownIcon } from "@subway-builder-modded/icons";
 
@@ -212,6 +213,16 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/license",
     icon: Scale,
     activeMatchRules: [{ kind: "exact", path: "/license" }],
+  },
+  {
+    id: "general-terms-of-service",
+    suiteId: "general",
+    title: "Terms of Service",
+    description:
+      "The terms of service, guidelines, and regulations of Subway Builder Modded and its services.",
+    href: "/terms-of-service",
+    icon: ShieldCheck,
+    activeMatchRules: [{ kind: "exact", path: "/terms-of-service" }],
   },
   {
     id: "railyard-home",
