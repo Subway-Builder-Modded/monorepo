@@ -23,20 +23,15 @@ import (
 
 type Config struct {
 	// Mutex should be locked for all read/write operations
-	mu     sync.Mutex
-	ctx    context.Context
-	Cfg    types.AppConfig
-	logger logger.Logger
-	loaded bool
-
-	// IsGameRunning reports whether the game is starting or running; wired by App on startup.
-	// While true, critical-path edits (executable / data folder / Steam launch) are rejected,
-	// since the live game session resolves against the current paths.
+	mu            sync.Mutex
+	ctx           context.Context
+	Cfg           types.AppConfig
+	logger        logger.Logger
+	loaded        bool
 	IsGameRunning func() bool
 }
 
-// errIfGameRunning rejects a critical-path edit while the game is live. The subject names the
-// setting in the returned user-facing error. Unwired (e.g. in tests) means not running.
+// errIfGameRunning rejects a critical-path edit while the game is live.
 func (s *Config) errIfGameRunning(subject string) error {
 	if s.IsGameRunning != nil && s.IsGameRunning() {
 		return fmt.Errorf("%s cannot be changed while the game is running", subject)
@@ -332,8 +327,7 @@ func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) t
 		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
 	}
 	trimmed := strings.TrimSpace(defaultSteamLibraryPath)
-	// The stored game path is derived from the library, so re-resolve it together; a failed
-	// detection stores "" and surfaces as SteamGamePathValid=false rather than a stale path.
+	// The stored game path is derived from the library, so re-resolve it together.
 	gamePath := ""
 	if trimmed != "" {
 		if detected, err := steam.AutodetectSteamSubwayBuilderPath(trimmed); err == nil {
@@ -342,6 +336,7 @@ func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) t
 			s.logger.Warn("Subway Builder not found under updated Steam library path", "steam_library_path", trimmed, "error", err)
 		}
 	}
+	// A failed detection stores "" and surfaces as SteamGamePathValid=false
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.DefaultSteamLibraryPath = trimmed
 		cfg.SteamGamePath = gamePath

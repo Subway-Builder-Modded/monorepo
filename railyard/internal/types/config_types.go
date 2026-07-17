@@ -123,12 +123,14 @@ func SubscriptionTypeResolvers(
 }
 
 // AreConfigPathsConfigured checks if both required paths have been set in AppConfig.
-// The game source path is mode-specific; the Steam game path when launching through
-// Steam, the executable path otherwise.
 func (c AppConfig) AreConfigPathsConfigured() bool {
-	gameSource := c.ExecutablePath
+	// The game source path is mode-specific; the Steam game path when launching through
+	// Steam, the executable path otherwise.
+	gameSource := ""
 	if c.UseSteamLaunch {
 		gameSource = c.SteamGamePath
+	} else {
+		gameSource = c.ExecutablePath
 	}
 	return strings.TrimSpace(c.MetroMakerDataPath) != "" && strings.TrimSpace(gameSource) != ""
 }
@@ -150,6 +152,10 @@ func (c AppConfig) GetModsFolderPath() string {
 func (c AppConfig) GetThumbnailFolderPath() string {
 	_, validation := c.ValidateConfigPaths()
 	if validation.MetroMakerDataPathValid {
+		// TODO: This does not allow persons who have never downloaded/played a non-modded map
+		// to have a valid MetroMaker path; we should fall back to check if metro-maker4 is the
+		// path name, though of course this is not guaranteed to be correct (if the user renames)
+		// the install path for example.
 		return paths.JoinLocalPath(c.MetroMakerDataPath, "public", "data", "city-maps")
 	}
 	return ""

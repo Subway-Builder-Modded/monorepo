@@ -1,5 +1,5 @@
-// Package gate enforces mutual exclusion between a running game session and mutations of
-// installed content (installs, uninstalls, imports): the game must never launch against
+// This package enforces mutual exclusion between a running game session and mutations of
+// installed content (installs, uninstalls, imports); the game must never launch against
 // content that is mid-change, and content must never change underneath a running game.
 package gate
 
@@ -15,10 +15,10 @@ var (
 	ErrContentOpsActive = errors.New("content is being installed")
 )
 
-// GameContentGate is the single authority on game-vs-content exclusivity. Content operations
-// hold the gate from enqueue until completion and may overlap each other; a game session holds
-// it exclusively from launch until the game process exits. Either side fails fast when the
-// other holds the gate. A nil gate imposes no exclusivity (used by tests).
+// GameContentGate is the authority for game<>content mutation exclusivity.
+// - content operations hold the gate from enqueue until completion and may overlap each other
+// - a game session holds it exclusively from launch until the game process exits.
+// Either side fails fast when the other holds the gate.
 type GameContentGate struct {
 	mu          sync.Mutex
 	contentOps  int
@@ -53,8 +53,6 @@ func (g *GameContentGate) EndContentOp() {
 }
 
 // BeginGameSession reserves the gate for a game session, returning a token for EndGameSession.
-// Tokens make stale end-of-session signals (e.g. a delayed exit watcher firing after a
-// relaunch) no-ops instead of releasing the wrong session.
 func (g *GameContentGate) BeginGameSession() (int, error) {
 	if g == nil {
 		return 0, nil
