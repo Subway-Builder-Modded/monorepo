@@ -18,3 +18,7 @@ foundry/schemas/.npm-cache/
 __pycache__/
 
 node_modules/
+
+# Wails dev/build artifacts emitted at the repo root (macOS dev churn)
+/build/
+/frontend/
