@@ -456,7 +456,7 @@ func (s *Config) OpenMetroMakerDataFolderDialog(options types.SetConfigPathOptio
 		options,
 		func() (types.SetConfigPathResult, bool) {
 			return s.TryAutoDetectPath(
-				DefaultMetroMakerDataFolderCandidates(),
+				metroMakerDataFolderCandidates(),
 				true,
 				s.UpdateMetroMakerDataFolder,
 				func(v types.ConfigPathValidation) bool { return v.MetroMakerDataPathValid },
@@ -490,7 +490,7 @@ func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.
 		options,
 		func() (types.SetConfigPathResult, bool) {
 			return s.TryAutoDetectPath(
-				DefaultExecutableCandidates(),
+				executableCandidates(),
 				false,
 				s.UpdateExecutable,
 				func(v types.ConfigPathValidation) bool { return v.ExecutablePathValid },
@@ -633,6 +633,13 @@ func FindDefaultPath(candidates []string, shouldBeDir bool) (detectedPath string
 
 	return "", false
 }
+
+// Auto-detect candidate providers, indirected so tests substitute temp-dir candidates
+// instead of touching real install locations.
+var (
+	executableCandidates           = DefaultExecutableCandidates
+	metroMakerDataFolderCandidates = DefaultMetroMakerDataFolderCandidates
+)
 
 // DefaultMetroMakerDataFolderCandidates returns the default locations for the metro maker data folder
 func DefaultMetroMakerDataFolderCandidates() []string {
