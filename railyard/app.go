@@ -12,11 +12,9 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
-	"time"
 
 	"railyard/internal/config"
 	"railyard/internal/constants"
@@ -31,7 +29,6 @@ import (
 	"railyard/internal/updater"
 	"railyard/internal/utils"
 
-	"github.com/beescuit/asar"
 	"github.com/protomaps/go-pmtiles/pmtiles"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -72,21 +69,6 @@ type App struct {
 	launchGameTestReady chan<- struct{}
 	launchGameTestBlock <-chan struct{}
 	emitEventFunc       func(name string, optionalData ...interface{})
-}
-
-// gameVersionCacheEntry is the memoized result of a successful app.asar decode. It is reused
-// while the asar's path, size, and mod time are unchanged.
-type gameVersionCacheEntry struct {
-	asarPath string
-	mTime    time.Time
-	size     int64
-	version  string
-	valid    bool
-}
-
-// matches reports whether a cached entry is still valid for the asar currently on disk.
-func (e gameVersionCacheEntry) matches(asarPath string, size int64, mTime time.Time) bool {
-	return e.valid && e.asarPath == asarPath && e.size == size && e.mTime.Equal(mTime)
 }
 
 // NewApp creates a new App application struct
@@ -433,151 +415,6 @@ func (a *App) cleanupTmpStaging(stage string) {
 	}
 }
 
-// findAsar walks up from exePath until it finds a directory that contains
-// Contents/Resources/app.asar, returning the full asar path. This handles both
-// the case where executablePath is the .app bundle and where it is the binary inside it.
-func findAsar(exePath string) (bool, string) {
-	dir := exePath
-	if info, err := os.Stat(exePath); err == nil && !info.IsDir() {
-		dir = filepath.Dir(exePath)
-	}
-	for {
-		candidate := filepath.Join(dir, constants.GameAsarMacRelPath)
-		if _, err := os.Stat(candidate); err == nil {
-			return true, candidate
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			return false, ""
-		}
-		dir = parent
-	}
-}
-
-// GetGameVersion detects the installed Subway Builder version from app.asar's
-// package.json, returning an empty version with a warning status if detection fails.
-// The result is cached keyed by the asar's path + size + mod time: decoding the whole archive
-// costs hundreds of ms and this is called frequently (frontend + every subscription pass), so
-// repeat calls only stat the file. A game update mid-session changes the mod time and re-decodes,
-// keeping compatibility checks and mod-loaded artifacts (e.g. buildings index) current.
-func (a *App) GetGameVersion() types.GameVersionResponse {
-	// Timed (with cached=true|false) because the decode path is a known hot spot; the log lets us
-	// confirm repeat calls hit the cache instead of re-decoding.
-	start := time.Now()
-	cached := false
-	defer func() {
-		a.Logger.Perf("backend", "gameVersion.resolve", "duration", time.Since(start), "cached", cached)
-	}()
-	a.Logger.Info("Attempting to resolve game version")
-	notDetected := types.GameVersionResponse{
-		GenericResponse: types.WarnResponse("Game version not detected"),
-		Version:         "",
-	}
-
-	cfg := a.Config.GetConfig()
-	if !cfg.Validation.GameSourceValid {
-		return notDetected
-	}
-	exePath := cfg.Config.ExecutablePath
-	var asarPath string
-
-	if cfg.Config.UseSteamLaunch {
-		// SteamGamePath is resolved and validated when Steam launch is configured, so no
-		// per-call library autodetection is needed here.
-		asarPath = constants.SteamGameAsarPath(cfg.Config.SteamGamePath)
-	} else {
-
-		switch {
-		case runtime.GOOS == "darwin":
-			// executablePath may point to the .app bundle or a binary nested inside it.
-			found, foundPath := findAsar(exePath)
-			if !found {
-				a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
-				return notDetected
-			}
-			asarPath = foundPath
-		case isAppImagePath(exePath):
-			if a.appImageMount != nil {
-				a.Logger.Info("Using existing AppImage mount for game version detection", "exePath", exePath, "mountPath", a.appImageMount.AppImageMountPath)
-				mountPath := a.appImageMount.AppImageMountPath
-				asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
-			} else {
-				a.Logger.Info("Mounting AppImage for game version detection", "exePath", exePath)
-				if appImageMount, err := newAppImageMount(exePath); err != nil {
-					a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
-					return notDetected
-				} else {
-					a.appImageMount = appImageMount
-					mountPath := a.appImageMount.AppImageMountPath
-					asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
-				}
-			}
-		default:
-			asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
-		}
-	}
-
-	info, statErr := os.Stat(asarPath)
-	if statErr == nil {
-		a.gameVersionMu.Lock()
-		entry := a.gameVersionCache
-		a.gameVersionMu.Unlock()
-		if entry.matches(asarPath, info.Size(), info.ModTime()) {
-			cached = true
-			return types.GameVersionResponse{
-				GenericResponse: types.SuccessResponse("Game version detected"),
-				Version:         entry.version,
-			}
-		}
-	}
-
-	// Stat failure just falls through to the decode path (which reports the real error).
-	archiveFile, err := os.Open(asarPath)
-	if err != nil {
-		a.Logger.Warn("Failed to open app.asar for game version detection", "error", err, "asarPath", asarPath)
-		return notDetected
-	}
-	defer archiveFile.Close()
-
-	archive, err := asar.Decode(archiveFile)
-	if err != nil {
-		a.Logger.Warn("Failed to decode app.asar for game version detection", "error", err, "asarPath", asarPath)
-		return notDetected
-	}
-
-	packageFile := archive.Find("package.json")
-	if packageFile == nil {
-		a.Logger.Warn("Failed to find package.json in app.asar", "asarPath", asarPath)
-		return notDetected
-	}
-
-	var pkg struct {
-		Version string `json:"version"`
-	}
-	if err := json.NewDecoder(packageFile.Open()).Decode(&pkg); err != nil {
-		a.Logger.Warn("Failed to decode package.json", "asarPath", asarPath, "error", err)
-		return notDetected
-	}
-
-	// Cache the successful decode so later calls stat-and-return until the asar changes.
-	if statErr == nil {
-		a.gameVersionMu.Lock()
-		a.gameVersionCache = gameVersionCacheEntry{
-			asarPath: asarPath,
-			mTime:    info.ModTime(),
-			size:     info.Size(),
-			version:  pkg.Version,
-			valid:    true,
-		}
-		a.gameVersionMu.Unlock()
-	}
-
-	a.Logger.Info("Game version detected", "version", pkg.Version)
-	return types.GameVersionResponse{
-		GenericResponse: types.SuccessResponse("Game version detected"),
-		Version:         pkg.Version,
-	}
-}
 func (a *App) ManuallyCheckForUpdates() types.GenericResponse {
 	a.Logger.Info("Manually checking for updates")
 	updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
