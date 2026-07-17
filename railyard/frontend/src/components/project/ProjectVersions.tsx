@@ -269,7 +269,9 @@ export function ProjectVersions({
               date={v.date}
               downloads={v.downloads}
               changelogHref={`/project/${typeListingPath}/${itemId}/changelog/${encodeURIComponent(v.version)}`}
-              className={incompatible ? 'opacity-50' : undefined}
+              className={
+                incompatible || mutationLocked ? 'opacity-50' : undefined
+              }
               renderLink={(href, className, children) => (
                 <Link href={href} className={className}>
                   {children}
@@ -291,7 +293,7 @@ export function ProjectVersions({
                     <CheckCircle className="h-2.5 w-2.5" />
                     Installed
                   </Badge>
-                ) : incompatible ? (
+                ) : incompatible || mutationLocked ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -310,7 +312,10 @@ export function ProjectVersions({
                         <IncompatibilityTooltipContent
                           title="Unable to Install"
                           gameVersion={gameVersion}
-                          constraints={constraints}
+                          constraints={incompatible ? constraints : []}
+                          lockedReason={
+                            mutationLocked ? mutationLockedReason : undefined
+                          }
                         />
                       </TooltipContent>
                     </Tooltip>
@@ -321,7 +326,6 @@ export function ProjectVersions({
                     size="icon-xs"
                     className={INSTALL_ACCENT.outlineButton}
                     onClick={() => handleInstall(v.version, v.prerelease)}
-                    disabled={mutationLocked}
                   >
                     <Download className="h-3.5 w-3.5" />
                   </Button>

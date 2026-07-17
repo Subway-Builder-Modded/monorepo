@@ -312,6 +312,16 @@ export function ProjectHeader({
       case installing:
         installUpdateTooltip = 'Cancel';
         break;
+      case mutationLocked:
+        installUpdateTooltip = (
+          <IncompatibilityTooltipContent
+            title={isInstalled ? 'Unable to Update' : 'Unable to Install'}
+            gameVersion={gameVersion}
+            constraints={[]}
+            lockedReason={mutationLockedReason}
+          />
+        );
+        break;
       case isInstalled:
         installUpdateTooltip =
           hasUpdate && updateTargetVersion
@@ -383,9 +393,19 @@ export function ProjectHeader({
 
     const uninstallDisabled =
       installing || uninstalling || !isInstalled || mutationLocked;
-    const uninstallTooltip = isInstalled
-      ? `Uninstall ${installedVersion}`
-      : 'Not installed';
+    const uninstallTooltip =
+      isInstalled && mutationLocked ? (
+        <IncompatibilityTooltipContent
+          title="Unable to Uninstall"
+          gameVersion={gameVersion}
+          constraints={[]}
+          lockedReason={mutationLockedReason}
+        />
+      ) : isInstalled ? (
+        `Uninstall ${installedVersion}`
+      ) : (
+        'Not installed'
+      );
 
     return (
       <TooltipProvider>

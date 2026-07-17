@@ -47,6 +47,7 @@ import { Link, useRoute } from 'wouter';
 
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
 import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
+import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import { useGameVersion } from '@/hooks/use-game-version';
 import { useInstallableVersions } from '@/hooks/use-installable-versions';
 import {
@@ -380,19 +381,25 @@ export function ChangelogPage() {
             <CheckCircle className="h-3.5 w-3.5" />
             Installed
           </Badge>
-          <Button
-            variant="destructive"
-            size="icon-sm"
-            onClick={() => setUninstallOpen(true)}
-            aria-label="Uninstall"
-            disabled={mutationLocked}
+          <MutationLockTooltip
+            locked={mutationLocked}
+            reason={mutationLockedReason}
+            title="Unable to Uninstall"
           >
-            <X className="h-4 w-4" />
-          </Button>
+            <Button
+              variant="destructive"
+              size="icon-sm"
+              onClick={() => setUninstallOpen(true)}
+              aria-label="Uninstall"
+              disabled={mutationLocked}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </MutationLockTooltip>
         </div>
       );
     }
-    if (incompatible) {
+    if (incompatible || mutationLocked) {
       return (
         <TooltipProvider>
           <Tooltip>
@@ -412,7 +419,8 @@ export function ChangelogPage() {
               <IncompatibilityTooltipContent
                 title="Unable to Install"
                 gameVersion={gameVersion}
-                constraints={constraints}
+                constraints={incompatible ? constraints : []}
+                lockedReason={mutationLocked ? mutationLockedReason : undefined}
               />
             </TooltipContent>
           </Tooltip>
@@ -430,7 +438,6 @@ export function ChangelogPage() {
             doInstall(versionInfo.version);
           }
         }}
-        disabled={mutationLocked}
       >
         <Download className="h-4 w-4" />
         Install {versionInfo.version}

@@ -36,6 +36,7 @@ import {
 import { AuthorName } from '@/components/shared/AuthorName';
 import { GalleryImage } from '@/components/shared/GalleryImage';
 import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
+import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import type { InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import { useGameVersion } from '@/hooks/use-game-version';
 import { assetKey } from '@/lib/asset-key';
@@ -479,16 +480,22 @@ function LibraryListRowImpl({
           )}
         >
           {pendingUpdate && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn('h-7 w-7', UPDATE_ICON_ACCENT)}
-              onClick={() => setUpdateOpen(true)}
-              aria-label="Update to latest"
-              disabled={mutationLocked}
+            <MutationLockTooltip
+              locked={mutationLocked}
+              reason={mutationLockedReason}
+              title="Unable to Update"
             >
-              <CircleFadingArrowUp className="h-3.5 w-3.5" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn('h-7 w-7', UPDATE_ICON_ACCENT)}
+                onClick={() => setUpdateOpen(true)}
+                aria-label="Update to latest"
+                disabled={mutationLocked}
+              >
+                <CircleFadingArrowUp className="h-3.5 w-3.5" />
+              </Button>
+            </MutationLockTooltip>
           )}
           <Button
             variant="ghost"
@@ -500,16 +507,22 @@ function LibraryListRowImpl({
           >
             <FolderOpen className="h-3.5 w-3.5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn('h-7 w-7', UNINSTALL_ICON_ACCENT)}
-            onClick={() => setUninstallOpen(true)}
-            aria-label="Uninstall"
-            disabled={mutationLocked}
+          <MutationLockTooltip
+            locked={mutationLocked}
+            reason={mutationLockedReason}
+            title="Unable to Uninstall"
           >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn('h-7 w-7', UNINSTALL_ICON_ACCENT)}
+              onClick={() => setUninstallOpen(true)}
+              aria-label="Uninstall"
+              disabled={mutationLocked}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </MutationLockTooltip>
         </div>
       </article>
 

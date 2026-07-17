@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 
 import { SettingRow } from '@/components/settings/SettingRow';
 import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
+import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import { useConfigStore } from '@/stores/config-store';
 import { useGameStore } from '@/stores/game-store';
 
@@ -35,6 +36,10 @@ import {
   ManuallyCheckForUpdates,
   OpenInFileExplorer,
 } from '../../../wailsjs/go/main/App';
+
+// Detail line for settings controls locked during a live game session.
+const GAME_SETTINGS_LOCK_DETAIL =
+  'Cannot change game settings while the game is running.';
 
 const FILES_ACCENT = getLocalAccentClasses('files');
 const UPDATE_ACCENT = getLocalAccentClasses('update');
@@ -215,12 +220,18 @@ export function GeneralSettingsPanel() {
               }
               description="Launch the game through Steam instead of from the executable directly (Recommended for Steam users)"
               action={
-                <SettingToggleButton
-                  accent="update"
-                  enabled={config?.useSteamLaunch || false}
-                  onToggle={handleChangeUseSteamLaunch}
-                  disabled={gameActive}
-                />
+                <MutationLockTooltip
+                  locked={gameActive}
+                  reason={GAME_SETTINGS_LOCK_DETAIL}
+                  title="Unable to Change Launch Mode"
+                >
+                  <SettingToggleButton
+                    accent="update"
+                    enabled={config?.useSteamLaunch || false}
+                    onToggle={handleChangeUseSteamLaunch}
+                    disabled={gameActive}
+                  />
+                </MutationLockTooltip>
               }
             />
 
@@ -306,15 +317,21 @@ export function GeneralSettingsPanel() {
                     <FolderSearch className="size-3.5" />
                     Reveal
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={FILES_ACCENT.outlineButton}
-                    onClick={handleChangeDataFolder}
-                    disabled={gameActive}
+                  <MutationLockTooltip
+                    locked={gameActive}
+                    reason={GAME_SETTINGS_LOCK_DETAIL}
+                    title="Unable to Change Data Folder"
                   >
-                    Change
-                  </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={FILES_ACCENT.outlineButton}
+                      onClick={handleChangeDataFolder}
+                      disabled={gameActive}
+                    >
+                      Change
+                    </Button>
+                  </MutationLockTooltip>
                 </>
               }
             />
@@ -400,15 +417,21 @@ export function GeneralSettingsPanel() {
                       <FolderSearch className="size-3.5" />
                       Reveal
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={FILES_ACCENT.outlineButton}
-                      onClick={handleChangeExecutable}
-                      disabled={gameActive}
+                    <MutationLockTooltip
+                      locked={gameActive}
+                      reason={GAME_SETTINGS_LOCK_DETAIL}
+                      title="Unable to Change Executable"
                     >
-                      Change
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={FILES_ACCENT.outlineButton}
+                        onClick={handleChangeExecutable}
+                        disabled={gameActive}
+                      >
+                        Change
+                      </Button>
+                    </MutationLockTooltip>
                   </>
                 }
               />
