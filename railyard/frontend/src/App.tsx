@@ -9,6 +9,7 @@ import { RequestErrorDialog } from '@/components/layout/RequestErrorDialog';
 import { SetupScreen } from '@/components/setup/SetupScreen';
 import { Toaster } from '@/components/ui/sonner';
 import { GameVersionProvider } from '@/hooks/use-game-version';
+import { IncompatibleAssetKeysProvider } from '@/hooks/use-incompatible-asset-keys';
 import { useTheme } from '@/hooks/use-theme';
 import { markFirst, measureAsync } from '@/lib/perf';
 import { BrowsePage } from '@/pages/BrowsePage';
@@ -291,38 +292,40 @@ function App() {
     <div className="railyard-accent">
       <TooltipProvider>
         <GameVersionProvider>
-          <Layout>
-            {mountedTabs.current.home && (
-              <div style={tabStyle(isHomeRoute)}>
-                <HomePage />
-              </div>
-            )}
-            {mountedTabs.current.browse && (
-              <div style={tabStyle(isBrowseRoute)}>
-                <BrowsePage />
-              </div>
-            )}
-            {mountedTabs.current.library && (
-              <div style={tabStyle(isLibraryRoute)}>
-                <LibraryPage />
-              </div>
-            )}
-            <Switch>
-              <Route
-                path="/project/:type/:id/changelog/:version"
-                component={ChangelogPage}
-              />
-              <Route path="/project/:type/:id" component={ProjectPage} />
-              <Route path="/profiles" component={ProfilesPage} />
-              <Route path="/logs" component={LogsPage} />
-              <Route path="/settings" component={SettingsPage} />
-            </Switch>
-          </Layout>
-          <DownloadNotification />
-          <ExtractNotification />
-          <RegistryRefreshNotification />
-          <RequestErrorDialog />
-          <Toaster />
+          <IncompatibleAssetKeysProvider>
+            <Layout>
+              {mountedTabs.current.home && (
+                <div style={tabStyle(isHomeRoute)}>
+                  <HomePage />
+                </div>
+              )}
+              {mountedTabs.current.browse && (
+                <div style={tabStyle(isBrowseRoute)}>
+                  <BrowsePage />
+                </div>
+              )}
+              {mountedTabs.current.library && (
+                <div style={tabStyle(isLibraryRoute)}>
+                  <LibraryPage />
+                </div>
+              )}
+              <Switch>
+                <Route
+                  path="/project/:type/:id/changelog/:version"
+                  component={ChangelogPage}
+                />
+                <Route path="/project/:type/:id" component={ProjectPage} />
+                <Route path="/profiles" component={ProfilesPage} />
+                <Route path="/logs" component={LogsPage} />
+                <Route path="/settings" component={SettingsPage} />
+              </Switch>
+            </Layout>
+            <DownloadNotification />
+            <ExtractNotification />
+            <RegistryRefreshNotification />
+            <RequestErrorDialog />
+            <Toaster />
+          </IncompatibleAssetKeysProvider>
         </GameVersionProvider>
       </TooltipProvider>
     </div>

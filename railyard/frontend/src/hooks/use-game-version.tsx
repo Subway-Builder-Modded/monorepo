@@ -12,14 +12,18 @@ import { GetGameVersion } from '../../wailsjs/go/main/App';
 
 const GameVersionContext = createContext<string>('');
 
+// Skip focus refetch if we detected recently: a game can only update while it isn't running,
+// so checking at most this often still picks up an update promptly without an IPC on every re-focus.
+const FOCUS_REFETCH_INTERVAL_MS = 60_000; // Poll every minute
+
 // GameVersionProvider shares one detected Subway Builder version across the app.
 export function GameVersionProvider({ children }: { children: ReactNode }) {
   const [gameVersion, setGameVersion] = useState<string>('');
 
   useEffect(() => {
+    let lastFetchedAt = 0;
     const fetchGameVersion = () => {
-      // Measure because GetGameVersion re-reads app.asar off disk on every call and this
-      // fires on every window focus.
+      lastFetchedAt = Date.now();
       measureAsync('gameVersion.detect', () => GetGameVersion())
         .then((response) => {
           if (response.status === 'success') {
@@ -29,12 +33,16 @@ export function GameVersionProvider({ children }: { children: ReactNode }) {
         .catch(() => {});
     };
 
-    // Detection is centralized; GetGameVersion is intentionally uncached and re-reads app.asar off disk on every call
-    // Therefore, a page mounting several consumers would otherwise fire one detection call for each.
+    // Detection is centralized so a page mounting several consumers fires one detection call.
     fetchGameVersion();
-    // Re-fetch on focus so an open page picks up a game update (and refreshed compatibility) that happened while Railyard ran.
-    window.addEventListener('focus', fetchGameVersion);
-    return () => window.removeEventListener('focus', fetchGameVersion);
+    // Re-fetch on focus so an open page picks up a game update that happened while
+    // Railyard was running without re-detecting on every window focus.
+    const onFocus = () => {
+      if (Date.now() - lastFetchedAt < FOCUS_REFETCH_INTERVAL_MS) return;
+      fetchGameVersion();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, []);
 
   return (

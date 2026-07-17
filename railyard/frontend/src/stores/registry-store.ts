@@ -75,9 +75,10 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
     const force = options?.force ?? false;
     if (!force && get().downloadTotalsLoaded) return;
 
-    if (!force && downloadTotalsRequest) {
+    // Join any in-flight fetch rather than starting a second concurrent request.
+    if (downloadTotalsRequest) {
       await downloadTotalsRequest;
-      return;
+      if (!force || get().downloadTotalsLoaded) return;
     }
 
     const requestGeneration = ++downloadTotalsGeneration;
