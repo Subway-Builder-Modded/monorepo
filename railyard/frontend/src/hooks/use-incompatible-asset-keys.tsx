@@ -1,5 +1,11 @@
 import type { AssetType } from '@subway-builder-modded/config';
-import { useEffect, useState } from 'react';
+import {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 import { useGameVersion } from '@/hooks/use-game-version';
 import { assetKey } from '@/lib/asset-key';
@@ -9,11 +15,21 @@ import { GameIncompatibleAssets } from '../../wailsjs/go/registry/Registry';
 
 const ASSET_TYPES: AssetType[] = ['mod', 'map'];
 
+const IncompatibleAssetKeysContext = createContext<ReadonlySet<string>>(
+  new Set(),
+);
+
 /**
- * Returns the assetKey()s of assets with no game-compatible installable version. The backend derives
- * this from the integrity report — no per-asset remote fetch. Empty while the game version is undetected.
+ * Resolves the assetKey()s of assets with no game-compatible installable version ONCE per game
+ * version and shares the result, so the several consumers (Browse, the Home grids) don't each
+ * fan out their own GameIncompatibleAssets calls or build competing Set identities that would
+ * invalidate downstream filter memos.
  */
-export function useIncompatibleAssetKeys(): ReadonlySet<string> {
+export function IncompatibleAssetKeysProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const gameVersion = useGameVersion();
   const [keys, setKeys] = useState<ReadonlySet<string>>(() => new Set());
 
@@ -26,8 +42,7 @@ export function useIncompatibleAssetKeys(): ReadonlySet<string> {
       };
     }
 
-    // Measure because this fans out one call per asset type on every game-version change and
-    // is mounted by several consumers at once.
+    // The backend derives this from the integrity report — no per-asset remote fetch.
     measureAsync('incompatibleAssets.fetch', () =>
       Promise.all(
         ASSET_TYPES.map((type) => GameIncompatibleAssets(type, gameVersion)),
@@ -54,5 +69,15 @@ export function useIncompatibleAssetKeys(): ReadonlySet<string> {
     };
   }, [gameVersion]);
 
-  return keys;
+  return (
+    <IncompatibleAssetKeysContext.Provider value={keys}>
+      {children}
+    </IncompatibleAssetKeysContext.Provider>
+  );
+}
+
+// useIncompatibleAssetKeys reads the shared incompatible-key set. Empty while the game version is
+// undetected or the first resolution is in flight.
+export function useIncompatibleAssetKeys(): ReadonlySet<string> {
+  return useContext(IncompatibleAssetKeysContext);
 }

@@ -42,8 +42,14 @@ export function useInstallableVersions(
     setLoading(true);
     setError(null);
 
-    GetInstallableVersionsResponse(type, id)
-      .then(async (response) => {
+    // The version list and the per-version download counts are independent backend calls, so
+    // fetch them concurrently. Counts are best-effort — a failure resolves to null and the
+    // versions still render with zero counts.
+    Promise.all([
+      GetInstallableVersionsResponse(type, id),
+      GetAssetDownloadCounts(type, id).catch(() => null),
+    ])
+      .then(([response, counts]) => {
         if (cancelled) return;
         if (response.status !== 'success') {
           setError(response.message || 'Failed to load versions');
@@ -56,31 +62,20 @@ export function useInstallableVersions(
           response.versions ?? [],
         );
         let merged = withZeroDownloads(downloadable);
-        try {
-          const counts = await GetAssetDownloadCounts(type, id);
-          if (counts.status === 'success') {
-            merged = mergeVersionDownloads(
-              downloadable,
-              counts.counts ?? {},
-              `${type}:${id}`,
-            );
-          } else {
-            console.warn(
-              `[${type}:${id}] Failed to fetch download counts: ${counts.message}`,
-            );
-          }
-        } catch (countErr) {
-          const message =
-            countErr instanceof Error ? countErr.message : String(countErr);
+        if (counts && counts.status === 'success') {
+          merged = mergeVersionDownloads(
+            downloadable,
+            counts.counts ?? {},
+            `${type}:${id}`,
+          );
+        } else if (counts) {
           console.warn(
-            `[${type}:${id}] Failed to fetch download counts: ${message}`,
+            `[${type}:${id}] Failed to fetch download counts: ${counts.message}`,
           );
         }
 
-        if (!cancelled) {
-          setVersions(merged);
-          setLoading(false);
-        }
+        setVersions(merged);
+        setLoading(false);
       })
       .catch((err) => {
         if (!cancelled) {
