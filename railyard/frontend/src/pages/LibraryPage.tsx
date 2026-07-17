@@ -42,6 +42,7 @@ import { ImportReviewDialog } from '@/components/library/ImportReviewDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
 import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterSection';
+import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
 import {
@@ -560,15 +561,21 @@ export function LibraryPage() {
             <Plus className="h-4 w-4" />
             {filters.type === 'map' ? 'Install Maps' : 'Install Mods'}
           </Button>
-          <Button
-            variant="outline"
-            className={`shrink-0 gap-1.5 ${IMPORT_ACCENT.outlineButton}`}
-            onClick={() => setImportDialogOpen(true)}
-            disabled={mutationLocked}
+          <MutationLockTooltip
+            locked={mutationLocked}
+            reason={mutationLockedReason}
+            title="Unable to Import"
           >
-            <Inbox className="h-4 w-4" />
-            Import Assets
-          </Button>
+            <Button
+              variant="outline"
+              className={`shrink-0 gap-1.5 ${IMPORT_ACCENT.outlineButton}`}
+              onClick={() => setImportDialogOpen(true)}
+              disabled={mutationLocked}
+            >
+              <Inbox className="h-4 w-4" />
+              Import Assets
+            </Button>
+          </MutationLockTooltip>
         </div>
 
         {installedItems.length === 0 ? (

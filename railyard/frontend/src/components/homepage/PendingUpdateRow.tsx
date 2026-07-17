@@ -3,6 +3,8 @@ import { Badge, Button } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
 import { ArrowRight, MapPin, Package, RefreshCw } from 'lucide-react';
 
+import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
+
 interface PendingUpdateRowProps {
   name: string;
   type: AssetType;
@@ -12,6 +14,8 @@ interface PendingUpdateRowProps {
   onUpdate: () => void;
   updateButtonClassName: string;
   disabled?: boolean;
+  // Shown as a tooltip on the disabled update button (e.g. the game-session lock reason).
+  disabledReason?: string;
 }
 
 export function PendingUpdateRow({
@@ -23,6 +27,7 @@ export function PendingUpdateRow({
   onUpdate,
   updateButtonClassName,
   disabled = false,
+  disabledReason,
 }: PendingUpdateRowProps) {
   return (
     <div className="group flex items-center gap-3 rounded-lg border border-border bg-background/60 px-3.5 py-2.5 transition-colors duration-150 hover:border-foreground/15">
@@ -56,21 +61,27 @@ export function PendingUpdateRow({
         <span className="font-mono text-xs font-semibold text-[var(--update-primary)]">
           {latestVersion}
         </span>
-        <Button
-          size="sm"
-          disabled={isUpdating || disabled}
-          onClick={onUpdate}
-          className={cn(
-            'h-7 min-w-[4.5rem] px-3 text-xs',
-            updateButtonClassName,
-          )}
+        <MutationLockTooltip
+          locked={disabled && !isUpdating}
+          reason={disabledReason}
+          title="Unable to Update"
         >
-          {isUpdating ? (
-            <RefreshCw className="h-3 w-3 animate-spin" aria-hidden />
-          ) : (
-            'Update'
-          )}
-        </Button>
+          <Button
+            size="sm"
+            disabled={isUpdating || disabled}
+            onClick={onUpdate}
+            className={cn(
+              'h-7 min-w-[4.5rem] px-3 text-xs',
+              updateButtonClassName,
+            )}
+          >
+            {isUpdating ? (
+              <RefreshCw className="h-3 w-3 animate-spin" aria-hidden />
+            ) : (
+              'Update'
+            )}
+          </Button>
+        </MutationLockTooltip>
       </div>
     </div>
   );

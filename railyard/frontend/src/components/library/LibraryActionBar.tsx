@@ -10,6 +10,7 @@ import {
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import { type InstalledTaggedItem } from '@/hooks/use-filtered-installed-items';
 import { assetKey } from '@/lib/asset-key';
 import {
@@ -170,27 +171,39 @@ export function LibraryActionBar({
         </div>
 
         {selectedUpdateTargets.length > 0 && (
-          <Button
-            size="sm"
-            onClick={handleUpdate}
-            className={`gap-1.5 ${UPDATE_ACCENT_BUTTON_CLASS}`}
-            disabled={mutationLocked}
+          <MutationLockTooltip
+            locked={mutationLocked}
+            reason={mutationLockedReason}
+            title="Unable to Update"
           >
-            <CircleFadingArrowUp className="h-3.5 w-3.5" />
-            Update Selected
-          </Button>
+            <Button
+              size="sm"
+              onClick={handleUpdate}
+              className={`gap-1.5 ${UPDATE_ACCENT_BUTTON_CLASS}`}
+              disabled={mutationLocked}
+            >
+              <CircleFadingArrowUp className="h-3.5 w-3.5" />
+              Update Selected
+            </Button>
+          </MutationLockTooltip>
         )}
 
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleRemove}
-          className="gap-1.5"
-          disabled={mutationLocked}
+        <MutationLockTooltip
+          locked={mutationLocked}
+          reason={mutationLockedReason}
+          title="Unable to Uninstall"
         >
-          <Trash2 className="h-3.5 w-3.5" />
-          Uninstall
-        </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleRemove}
+            className="gap-1.5"
+            disabled={mutationLocked}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Uninstall
+          </Button>
+        </MutationLockTooltip>
       </div>
 
       {uninstallTargets && uninstallTargets.length > 0 && (

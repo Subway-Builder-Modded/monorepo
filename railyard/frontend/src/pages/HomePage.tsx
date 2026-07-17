@@ -27,6 +27,7 @@ import { DiscoverSectionGrid } from '@/components/homepage/DiscoverSectionGrid';
 import { PendingUpdateRow } from '@/components/homepage/PendingUpdateRow';
 import { QuickNavCard } from '@/components/homepage/QuickNavCard';
 import { SectionHeader } from '@/components/homepage/SectionHeader';
+import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import {
   handleSubscriptionMutationError,
   useSubscriptionMutationLockState,
@@ -274,22 +275,28 @@ export function HomePage() {
             }
             action={
               !updatesLoading && pendingUpdateEntries.length > 0 ? (
-                <Button
-                  size="sm"
-                  disabled={updatingAll || mutationLocked}
-                  onClick={() => setUpdateAllConfirmOpen(true)}
-                  className={cn(
-                    'h-8 gap-1.5 text-xs',
-                    UPDATE_ACCENT.solidButton,
-                  )}
+                <MutationLockTooltip
+                  locked={mutationLocked && !updatingAll}
+                  reason={mutationLockedReason}
+                  title="Unable to Update"
                 >
-                  {updatingAll ? (
-                    <RefreshCw className="h-3 w-3 animate-spin" aria-hidden />
-                  ) : (
-                    <Download className="h-3 w-3" aria-hidden />
-                  )}
-                  Update All
-                </Button>
+                  <Button
+                    size="sm"
+                    disabled={updatingAll || mutationLocked}
+                    onClick={() => setUpdateAllConfirmOpen(true)}
+                    className={cn(
+                      'h-8 gap-1.5 text-xs',
+                      UPDATE_ACCENT.solidButton,
+                    )}
+                  >
+                    {updatingAll ? (
+                      <RefreshCw className="h-3 w-3 animate-spin" aria-hidden />
+                    ) : (
+                      <Download className="h-3 w-3" aria-hidden />
+                    )}
+                    Update All
+                  </Button>
+                </MutationLockTooltip>
               ) : undefined
             }
           />
@@ -322,6 +329,7 @@ export function HomePage() {
                     onUpdate={() => void runUpdateOperations([{ type, id }])}
                     updateButtonClassName={UPDATE_ACCENT.solidButton}
                     disabled={mutationLocked}
+                    disabledReason={mutationLockedReason}
                   />
                 ),
               )

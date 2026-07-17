@@ -41,6 +41,7 @@ import {
   type IncompatibleAsset,
   IncompatibleAssetsDialog,
 } from '@/components/layout/IncompatibleAssetsDialog';
+import { DisabledReasonTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { useGameVersion } from '@/hooks/use-game-version';
 import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { useConfigStore } from '@/stores/config-store';
@@ -347,11 +348,29 @@ export function Navbar() {
                 </TooltipTrigger>
                 {!canLaunch ? (
                   <TooltipContent>
-                    Configure game executable in Settings first
+                    <DisabledReasonTooltipContent
+                      title="Unable to Launch Game"
+                      reasons={[
+                        {
+                          reason: 'Game Not Configured',
+                          detail:
+                            'Configure the game executable in Settings first.',
+                        },
+                      ]}
+                    />
                   </TooltipContent>
                 ) : contentBusy ? (
                   <TooltipContent>
-                    Wait for content installs to finish
+                    <DisabledReasonTooltipContent
+                      title="Unable to Launch Game"
+                      reasons={[
+                        {
+                          reason: 'Content Updates in Progress',
+                          detail:
+                            'Cannot launch the game while content is being updated.',
+                        },
+                      ]}
+                    />
                   </TooltipContent>
                 ) : null}
               </Tooltip>
