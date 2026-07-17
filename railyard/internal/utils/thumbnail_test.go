@@ -84,6 +84,16 @@ func TestFetchWithRetryFailure(t *testing.T) {
 	require.Contains(t, err.Error(), "after 2 attempts")
 }
 
+func TestCanGenerateThumbnail(t *testing.T) {
+	bbox := [4]float64{0, 0, 1, 1}
+	require.False(t, CanGenerateThumbnail(types.ConfigData{}))
+	require.True(t, CanGenerateThumbnail(types.ConfigData{ThumbnailBbox: &bbox}))
+	require.True(t, CanGenerateThumbnail(types.ConfigData{Bbox: &bbox}))
+	require.True(t, CanGenerateThumbnail(types.ConfigData{
+		InitialViewState: types.InitialViewState{Latitude: 35.0, Longitude: 135.0},
+	}))
+}
+
 func TestGenerateThumbnailErrorsWhenNoBoundsOrViewState(t *testing.T) {
 	cityConfig := types.ConfigData{}
 

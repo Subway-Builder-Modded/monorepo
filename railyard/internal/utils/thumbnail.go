@@ -85,6 +85,13 @@ func fetchWithRetry(url string, retries int, delay time.Duration) ([]byte, error
 	return nil, fmt.Errorf("failed to fetch %s after %d attempts: %w", url, retries, lastErr)
 }
 
+// CanGenerateThumbnail reports whether the config carries any view source a thumbnail can
+// be derived from: a thumbnail bbox, a map bbox, or a non-zero initial view state.
+func CanGenerateThumbnail(cityConfig types.ConfigData) bool {
+	return cityConfig.ThumbnailBbox != nil || cityConfig.Bbox != nil ||
+		cityConfig.InitialViewState.Latitude != 0 || cityConfig.InitialViewState.Longitude != 0
+}
+
 func GenerateThumbnail(cityCode string, cityConfig types.ConfigData, port int) (string, error) {
 	bboxToUse := cityConfig.ThumbnailBbox
 	if bboxToUse == nil {
