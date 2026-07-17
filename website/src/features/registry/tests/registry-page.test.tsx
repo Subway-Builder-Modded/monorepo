@@ -114,7 +114,9 @@ describe("RegistryRoute", () => {
       render(<RegistryRoute />);
     });
 
-    expect(screen.getByRole("button", { name: "Last Updated" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Date Updated" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Date Updated" }));
+    expect(screen.getByRole("menuitemradio", { name: "Date Released" })).toBeInTheDocument();
   });
 
   it("renders the view toggle", async () => {

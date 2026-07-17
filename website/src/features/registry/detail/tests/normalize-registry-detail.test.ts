@@ -30,7 +30,13 @@ const BASE: RegistryDetailLoadedData = {
   },
   manifest: {
     description: "# Asset A\n\nDetailed description",
-    gallery: ["gallery/shot.png", "https://cdn.example.test/remote.png", "/absolute.png", ""],
+    gallery: [
+      "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/asset-a/gallery/shot.png",
+      "gallery/legacy.png",
+      "https://cdn.example.test/remote.png",
+      "/absolute.png",
+      "",
+    ],
     source: "https://example.test/source",
     source_quality: "high-quality",
     level_of_detail: "medium-detail",
@@ -112,7 +118,8 @@ describe("normalizeRegistryDetail", () => {
     });
     expect(model.tags).toEqual(["tag-b", "tag-a"]);
     expect(model.galleryImages).toEqual([
-      "/registry-cache/maps/asset-a/gallery/shot.png",
+      "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/asset-a/gallery/shot.png",
+      "/registry-cache/maps/asset-a/gallery/legacy.png",
       "https://cdn.example.test/remote.png",
       "/absolute.png",
     ]);

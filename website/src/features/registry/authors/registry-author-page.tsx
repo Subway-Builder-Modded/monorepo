@@ -471,7 +471,7 @@ function AuthorAssetSection({
                     Math.min(current + AUTHOR_ASSET_INCREMENT, sortedItems.length),
                   )
                 }
-                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[light-dark(var(--registry-type-accent-light),var(--registry-type-accent-dark))] bg-[light-dark(var(--registry-type-accent-light),var(--registry-type-accent-dark))] px-4 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--registry-type-accent-light)_44%,transparent)]"
+                className="inline-flex h-10 items-center gap-2 rounded-lg border border-[var(--registry-type-accent)] bg-[var(--registry-type-accent)] px-4 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--registry-type-accent)_44%,transparent)]"
               >
                 <Plus className="size-4" aria-hidden={true} />
                 Load More

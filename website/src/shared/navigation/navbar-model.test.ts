@@ -13,6 +13,6 @@ describe("buildNavbarDisplayModel", () => {
 
     expect(model.suiteRailItems.length).toBe(6);
     expect(model.allSuiteGroups.length).toBe(6);
-    expect(model.allSuiteGroups.find((group) => group.id === "general")?.items.length).toBe(4);
+    expect(model.allSuiteGroups.find((group) => group.id === "general")?.items.length).toBe(5);
   });
 });

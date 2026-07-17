@@ -27,7 +27,7 @@ describe("HeroCreditsTooltip", () => {
     expect(within(tooltip).getByText(slide.mods?.[0].name as string)).toBeVisible();
     expect(within(tooltip).getByRole("link", { name: slide.mapName as string })).toHaveAttribute(
       "href",
-      `/railyard/browse/maps/${slide.mapId}`,
+      `/registry/maps/${slide.mapId}`,
     );
   });
 

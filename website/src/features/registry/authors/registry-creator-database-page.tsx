@@ -452,12 +452,7 @@ function CreatorTabs({
   ];
 
   return (
-    <RegistryTabs
-      value={value}
-      tabs={tabs}
-      ariaLabel="Creator database tabs"
-      onValueChange={onChange}
-    />
+    <RegistryTabs value={value} tabs={tabs} ariaLabel="Creators tabs" onValueChange={onChange} />
   );
 }
 
@@ -678,7 +673,7 @@ export function RegistryCreatorDatabasePage({
                 aria-hidden={true}
               />
               <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Creator Database
+                Creators
               </h1>
             </div>
           </div>

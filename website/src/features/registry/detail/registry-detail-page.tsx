@@ -15,7 +15,7 @@ import { NotFoundPage } from "@/features/not-found";
 import { buildRailyardDeeplink } from "@/features/registry/detail/lib/build-railyard-deeplink";
 import { loadRegistryDetail } from "@/features/registry/detail/lib/load-registry-detail";
 import { normalizeRegistryDetail } from "@/features/registry/detail/lib/normalize-registry-detail";
-import { getRegistryItemCachePath } from "@/features/registry/lib/registry-asset-paths";
+import { getRegistryMapBasemapUrl } from "@/features/registry/lib/registry-asset-paths";
 import { getRegistryDetailUrl } from "@/features/registry/lib/routing";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 import { DetailsTab } from "@/features/registry/detail/components/details-tab";
@@ -90,12 +90,10 @@ export function RegistryDetailPage({
         }
 
         const normalized = normalizeRegistryDetail(loaded);
+        setDetail(normalized);
+        setIsLoading(false);
 
-        await preloadDetailTabAssets(normalized);
-
-        if (!isCancelled) {
-          setDetail(normalized);
-        }
+        void preloadDetailTabAssets(normalized).catch(() => {});
       } catch {
         if (!isCancelled) {
           setDetail(null);
@@ -123,7 +121,7 @@ export function RegistryDetailPage({
   const railyardAccentDark = railyardSuite.accent.dark;
   const mapBasemapSrc =
     detail && getRegistryTypeUiRules(detail.typeId).showBasemapBackground
-      ? getRegistryItemCachePath(detail.routeSegment, detail.id, "basemap.svg")
+      ? getRegistryMapBasemapUrl(detail.id)
       : null;
 
   if (isLoading) {
@@ -359,10 +357,10 @@ export function RegistryDetailPage({
               />
             </div>
 
-            <div className="relative grid gap-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(220px,0.8fr)] lg:items-start">
-              <main className="min-w-0">
+            <div className="relative grid gap-6 lg:grid-cols-[minmax(0,2.2fr)_minmax(220px,0.8fr)] lg:items-stretch">
+              <main className="min-w-0 lg:flex lg:min-h-0 lg:flex-col">
                 <section
-                  className="rounded-xl border border-border/70 p-4 sm:p-5"
+                  className="rounded-xl border border-border/70 p-4 sm:p-5 lg:flex lg:h-full lg:flex-col"
                   style={{
                     backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
                   }}
@@ -392,7 +390,10 @@ export function RegistryDetailPage({
                       selectedVersionId={versionId}
                     />
                   </div>
-                  <div hidden={visibleActiveTab !== "map"}>
+                  <div
+                    className={visibleActiveTab === "map" ? "h-full" : undefined}
+                    hidden={visibleActiveTab !== "map"}
+                  >
                     <MapTab mapId={detail.id} />
                   </div>
                 </section>

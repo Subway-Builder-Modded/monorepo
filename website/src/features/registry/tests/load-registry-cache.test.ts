@@ -64,6 +64,72 @@ describe("loadRegistryItemsForType", () => {
     expect(items[0]?.lastActivityAt).toBe(1_720_000_000_000);
   });
 
+  it("prefers manifest first_released for published date", async () => {
+    const base = "/registry-cache/mods";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: {
+          "release-source-mod": {
+            has_complete_version: true,
+            versions: {
+              v1: {
+                is_complete: true,
+                released_at: "2026-06-21T07:16:20.303Z",
+                checked_at: "2026-06-22T07:16:20.303Z",
+              },
+            },
+          },
+        },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ mods: ["release-source-mod"] }),
+      [`${base}/release-source-mod/manifest.json`]: JSON.stringify({
+        name: "Release Source Mod",
+        first_released: 1_710_000_000,
+      }),
+    });
+
+    const items = await loadRegistryItemsForType("mods", "mods");
+
+    expect(items[0]?.publishedAt).toBe(1_710_000_000_000);
+  });
+
+  it("derives published date from earliest complete version release date", async () => {
+    const base = "/registry-cache/mods";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: {
+          "derived-release-mod": {
+            has_complete_version: true,
+            versions: {
+              v1: {
+                is_complete: true,
+                released_at: "2026-06-21T07:16:20.303Z",
+                checked_at: "2026-06-23T07:16:20.303Z",
+              },
+              v2: {
+                is_complete: true,
+                released_at: "2026-06-20T07:16:20.303Z",
+                checked_at: "2026-06-22T07:16:20.303Z",
+              },
+            },
+          },
+        },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ mods: ["derived-release-mod"] }),
+      [`${base}/derived-release-mod/manifest.json`]: JSON.stringify({
+        name: "Derived Release Mod",
+      }),
+    });
+
+    const items = await loadRegistryItemsForType("mods", "mods");
+
+    expect(items[0]?.publishedAt).toBe(Date.parse("2026-06-20T07:16:20.303Z"));
+  });
+
   it("returns zero downloads and null thumbnail when optional data is missing", async () => {
     const base = "/registry-cache/maps";
 
@@ -85,6 +151,48 @@ describe("loadRegistryItemsForType", () => {
     expect(items).toHaveLength(1);
     expect(items[0]?.totalDownloads).toBe(0);
     expect(items[0]?.thumbnailSrc).toBeNull();
+  });
+
+  it("uses absolute gallery URLs as card thumbnails", async () => {
+    const base = "/registry-cache/maps";
+    const remoteThumbnail =
+      "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/abc123/maps/alpha/gallery/preview.webp";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: { alpha: { has_complete_version: true, versions: {} } },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ maps: ["alpha"] }),
+      [`${base}/alpha/manifest.json`]: JSON.stringify({
+        name: "Alpha",
+        gallery: [remoteThumbnail, "gallery/second.webp"],
+      }),
+    });
+
+    const items = await loadRegistryItemsForType("maps", "maps");
+
+    expect(items[0]?.thumbnailSrc).toBe(remoteThumbnail);
+  });
+
+  it("keeps legacy relative gallery thumbnails on the local-cache fallback", async () => {
+    const base = "/registry-cache/maps";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: { alpha: { has_complete_version: true, versions: {} } },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ maps: ["alpha"] }),
+      [`${base}/alpha/manifest.json`]: JSON.stringify({
+        name: "Alpha",
+        gallery: ["gallery/preview.webp"],
+      }),
+    });
+
+    const items = await loadRegistryItemsForType("maps", "maps");
+
+    expect(items[0]?.thumbnailSrc).toBe("/registry-cache/maps/alpha/gallery/preview.webp");
   });
 
   it("excludes items that fail integrity completeness", async () => {

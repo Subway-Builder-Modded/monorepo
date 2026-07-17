@@ -3,6 +3,7 @@ import { useLocation } from "@/lib/router";
 import { DocsRoute, matchDocsRoute } from "@/features/docs";
 import { UpdatesRoute, matchUpdatesRoute } from "@/features/updates";
 import { LicenseRoute, matchLicenseRoute } from "@/features/license";
+import { TermsOfServiceRoute, matchTermsOfServiceRoute } from "@/features/terms-of-service";
 import { CreditsRoute, matchCreditsRoute } from "@/features/credits";
 import { ContributeRoute, matchContributeRoute } from "@/features/contribute";
 import { CommunityRoute, matchCommunityRoute } from "@/features/community";
@@ -32,6 +33,11 @@ function RouteSwitch() {
   const licenseMatch = matchLicenseRoute(location.pathname);
   if (licenseMatch.kind !== "none") {
     return <LicenseRoute />;
+  }
+
+  const termsOfServiceMatch = matchTermsOfServiceRoute(location.pathname);
+  if (termsOfServiceMatch.kind !== "none") {
+    return <TermsOfServiceRoute />;
   }
 
   const creditsMatch = matchCreditsRoute(location.pathname);

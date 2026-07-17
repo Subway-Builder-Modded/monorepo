@@ -12,6 +12,7 @@ import {
   User,
   Users,
   Building2,
+  CalendarDays,
   Shuffle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -19,6 +20,7 @@ import { RegistryToolbarDropdown } from "./registry-toolbar-dropdown";
 
 const SORT_ICONS: Record<RegistrySortId, LucideIcon> = {
   lastUpdated: Clock,
+  firstReleased: CalendarDays,
   downloads: ArrowDownToLine,
   name: Type,
   author: User,
@@ -27,7 +29,12 @@ const SORT_ICONS: Record<RegistrySortId, LucideIcon> = {
   random: Shuffle,
 };
 
-const NUMERIC_SORT_IDS = new Set<RegistrySortId>(["downloads", "population"]);
+const NUMERIC_SORT_IDS = new Set<RegistrySortId>([
+  "lastUpdated",
+  "firstReleased",
+  "downloads",
+  "population",
+]);
 
 type RegistrySortBarProps = {
   activeTypeId: string;
