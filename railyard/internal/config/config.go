@@ -28,6 +28,20 @@ type Config struct {
 	Cfg    types.AppConfig
 	logger logger.Logger
 	loaded bool
+
+	// IsGameRunning reports whether the game is starting or running; wired by App on startup.
+	// While true, critical-path edits (executable / data folder / Steam launch) are rejected,
+	// since the live game session resolves against the current paths.
+	IsGameRunning func() bool
+}
+
+// errIfGameRunning rejects a critical-path edit while the game is live. The subject names the
+// setting in the returned user-facing error. Unwired (e.g. in tests) means not running.
+func (s *Config) errIfGameRunning(subject string) error {
+	if s.IsGameRunning != nil && s.IsGameRunning() {
+		return fmt.Errorf("%s cannot be changed while the game is running", subject)
+	}
+	return nil
 }
 
 func NewConfig(l logger.Logger) *Config {
@@ -136,6 +150,9 @@ func (s *Config) UpdateConfig(mutator func(*types.AppConfig), persist bool) (typ
 }
 
 func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigResponse {
+	if err := s.errIfGameRunning("Steam launch"); err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
 	if !useSteamLaunch && s.Cfg.ExecutablePath == "" {
 		res := s.OpenExecutableDialog(types.SetConfigPathOptions{AllowAutoDetect: true})
 		if res.Status != types.ResponseSuccess {
@@ -144,25 +161,40 @@ func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigRe
 			}
 		}
 	}
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
-		cfg.UseSteamLaunch = useSteamLaunch
-		if cfg.UseSteamLaunch && cfg.DefaultSteamLibraryPath == "" {
+
+	// Enabling requires resolving the Steam game install up front, so failure is surfaced
+	// here instead of leaving Steam launch on with nothing to launch.
+	libraryPath := s.Cfg.DefaultSteamLibraryPath
+	gamePath := s.Cfg.SteamGamePath
+	if useSteamLaunch {
+		if libraryPath == "" {
 			path, err := steam.GetSteamLibraryPath(s.ctx)
 			if err != nil {
 				s.logger.Error("Failed to auto-detect Steam library path", err)
-				cfg.UseSteamLaunch = false
+				return types.ResolveConfigResponse{
+					GenericResponse: types.ErrorResponse("Failed to locate a Steam library on this system"),
+				}
 			}
-			cfg.DefaultSteamLibraryPath = path
+			libraryPath = path
 		}
+		detected, err := steam.AutodetectSteamSubwayBuilderPath(libraryPath)
+		if err != nil {
+			s.logger.Error("Failed to detect Steam Subway Builder install", err, "steam_library_path", libraryPath)
+			return types.ResolveConfigResponse{
+				GenericResponse: types.ErrorResponse("Subway Builder was not found in your Steam libraries"),
+			}
+		}
+		gamePath = detected
+	}
+
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.UseSteamLaunch = useSteamLaunch
+		cfg.DefaultSteamLibraryPath = libraryPath
+		cfg.SteamGamePath = gamePath
 	}, false)
 	if err != nil {
 		return types.ResolveConfigResponse{
 			GenericResponse: types.ErrorResponse(err.Error()),
-		}
-	}
-	if useSteamLaunch != result.Config.UseSteamLaunch {
-		return types.ResolveConfigResponse{
-			GenericResponse: types.ErrorResponse("Failed to update useSteamLaunch due to error setting Steam Library Path"),
 		}
 	}
 	return types.ResolveConfigResponse{
@@ -203,6 +235,9 @@ func (s *Config) CompleteSetup() types.ResolveConfigResponse {
 
 // UpdateExecutable updates and persists ExecutablePath to the runtime app config.
 func (s *Config) UpdateExecutable(executablePath string) (types.ResolveConfigResult, error) {
+	if err := s.errIfGameRunning("the game executable"); err != nil {
+		return types.ResolveConfigResult{}, err
+	}
 	return s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.ExecutablePath = strings.TrimSpace(executablePath)
 	}, false)
@@ -232,6 +267,9 @@ func (s *Config) verifyMetroMakerDataFolder(path string) error {
 
 // UpdateMetroMakerDataFolder updates and persists metroMakerDataPath to the runtime app config.
 func (s *Config) UpdateMetroMakerDataFolder(metroMakerDataPath string) (types.ResolveConfigResult, error) {
+	if err := s.errIfGameRunning("the data folder"); err != nil {
+		return types.ResolveConfigResult{}, err
+	}
 	if err := s.verifyMetroMakerDataFolder(metroMakerDataPath); err != nil {
 		return types.ResolveConfigResult{}, fmt.Errorf("invalid metro maker data folder: %w", err)
 	}
@@ -250,6 +288,9 @@ func (s *Config) SetConfig(next types.AppConfig) (types.AppConfig, error) {
 			GithubToken:             next.GithubToken,
 			CheckForUpdatesOnLaunch: next.CheckForUpdatesOnLaunch,
 			SetupCompleted:          next.SetupCompleted,
+			UseSteamLaunch:          next.UseSteamLaunch,
+			DefaultSteamLibraryPath: strings.TrimSpace(next.DefaultSteamLibraryPath),
+			SteamGamePath:           strings.TrimSpace(next.SteamGamePath),
 		}
 	}, false)
 	if err != nil {
@@ -261,6 +302,9 @@ func (s *Config) SetConfig(next types.AppConfig) (types.AppConfig, error) {
 
 // ClearConfig clears all config fields in memory (by replacing them with zero values).
 func (s *Config) ClearConfig() types.ResolveConfigResponse {
+	if err := s.errIfGameRunning("configuration"); err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
 	updated, err := s.SetConfig(types.AppConfig{})
 	if err != nil {
 		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
@@ -284,8 +328,23 @@ func (s *Config) SaveConfig() types.ResolveConfigResponse {
 }
 
 func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) types.ResolveConfigResponse {
+	if err := s.errIfGameRunning("the Steam library path"); err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
+	trimmed := strings.TrimSpace(defaultSteamLibraryPath)
+	// The stored game path is derived from the library, so re-resolve it together; a failed
+	// detection stores "" and surfaces as SteamGamePathValid=false rather than a stale path.
+	gamePath := ""
+	if trimmed != "" {
+		if detected, err := steam.AutodetectSteamSubwayBuilderPath(trimmed); err == nil {
+			gamePath = detected
+		} else {
+			s.logger.Warn("Subway Builder not found under updated Steam library path", "steam_library_path", trimmed, "error", err)
+		}
+	}
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
-		cfg.DefaultSteamLibraryPath = strings.TrimSpace(defaultSteamLibraryPath)
+		cfg.DefaultSteamLibraryPath = trimmed
+		cfg.SteamGamePath = gamePath
 	}, false)
 	if err != nil {
 		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
@@ -297,8 +356,12 @@ func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) t
 }
 
 func (s *Config) ClearDefaultSteamLibraryPath() types.ResolveConfigResponse {
+	if err := s.errIfGameRunning("the Steam library path"); err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.DefaultSteamLibraryPath = ""
+		cfg.SteamGamePath = ""
 	}, false)
 	if err != nil {
 		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
@@ -391,6 +454,9 @@ func (s *Config) IsGithubTokenValid() types.GithubTokenValidResponse {
 // OpenMetroMakerDataFolderDialog opens a directory picker and persists MetroMakerDataPath when selected.
 // On user cancel, it returns the current config unchanged.
 func (s *Config) OpenMetroMakerDataFolderDialog(options types.SetConfigPathOptions) types.SetConfigPathResponse {
+	if err := s.errIfGameRunning("the data folder"); err != nil {
+		return types.SetConfigPathResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
 	result, err := s.setConfigPathWithDialog(
 		options,
 		func() (types.SetConfigPathResult, bool) {
@@ -422,6 +488,9 @@ func (s *Config) OpenMetroMakerDataFolderDialog(options types.SetConfigPathOptio
 // OpenExecutableDialog opens a file picker and persists ExecutablePath when selected.
 // On user cancel, it returns the current config unchanged.
 func (s *Config) OpenExecutableDialog(options types.SetConfigPathOptions) types.SetConfigPathResponse {
+	if err := s.errIfGameRunning("the game executable"); err != nil {
+		return types.SetConfigPathResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
 	result, err := s.setConfigPathWithDialog(
 		options,
 		func() (types.SetConfigPathResult, bool) {

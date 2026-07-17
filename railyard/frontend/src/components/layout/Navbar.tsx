@@ -108,8 +108,7 @@ export function Navbar() {
   const refreshing = useRegistryStore((s) => s.refreshing);
   const startupRefreshing = useRegistryStore((s) => s.startupRefreshing);
   const canLaunch = useConfigStore(
-    (s) =>
-      s.validation?.executablePathValid || (s.config?.useSteamLaunch ?? false),
+    (s) => s.validation?.gameSourceValid ?? false,
   );
   const running = useGameStore((s) => s.running);
   const starting = useGameStore((s) => s.starting);
@@ -117,6 +116,11 @@ export function Navbar() {
   const stop = useGameStore((s) => s.stop);
   const installedMaps = useInstalledStore((s) => s.installedMaps);
   const installedMods = useInstalledStore((s) => s.installedMods);
+  // Launching regenerates the mod bundle from installed content, so it must wait for
+  // in-flight installs/uninstalls to settle. The backend enforces the same rule.
+  const contentBusy = useInstalledStore(
+    (s) => s.installing.size > 0 || s.uninstalling.size > 0 || s.importing,
+  );
   const gameVersion = useGameVersion();
   const [showModReminder, setShowModReminder] = useState(false);
   const [incompatibleAssets, setIncompatibleAssets] = useState<
@@ -332,7 +336,7 @@ export function Navbar() {
                         variant="ghost"
                         size="sm"
                         onClick={handleLaunch}
-                        disabled={!canLaunch || starting}
+                        disabled={!canLaunch || starting || contentBusy}
                         className="disabled:opacity-50"
                       >
                         <Play className="mr-1.5 h-[1.125rem] w-[1.125rem]" />
@@ -341,11 +345,15 @@ export function Navbar() {
                     </NavbarItem>
                   </span>
                 </TooltipTrigger>
-                {!canLaunch && (
+                {!canLaunch ? (
                   <TooltipContent>
                     Configure game executable in Settings first
                   </TooltipContent>
-                )}
+                ) : contentBusy ? (
+                  <TooltipContent>
+                    Wait for content installs to finish
+                  </TooltipContent>
+                ) : null}
               </Tooltip>
             )}
             <NavbarItem asChild className={NAV_ITEM_GREEN_HOVER_CLASS}>

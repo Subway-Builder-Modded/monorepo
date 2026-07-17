@@ -526,6 +526,17 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 		}
 	}
 
+	// Swapping archives and restores live maps/mods folders, so it holds the exclusivity
+	// gate as a content mutation for its full duration.
+	if err := s.Gate.BeginContentOp(); err != nil {
+		return profileStateErrorResult(
+			"Cannot swap profiles while the game is running",
+			currentProfile,
+			userProfilesError(targetProfile.ID, "", "", types.ErrorGameRunning, "", "Cannot swap profiles while the game is running"),
+		)
+	}
+	defer s.Gate.EndContentOp()
+
 	// Validate current profile archive status
 	isCurrentArchiveFresh, currentErrResult := s.resolveProfileArchiveFreshness(currentProfile, currentProfile, "current")
 	if currentErrResult != nil {

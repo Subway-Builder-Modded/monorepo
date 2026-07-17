@@ -93,6 +93,8 @@ interface InstalledState {
     { requestedVersion: string | null; rollbackVersion: string | null }
   >;
   uninstalling: Set<string>;
+  // True while a zip import (download-free install) is running, including extraction.
+  importing: boolean;
   loading: boolean;
   error: string | null;
   initialized: boolean;
@@ -370,7 +372,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     zipPath: string,
     replaceOnConflict = false,
   ) => {
-    set({ error: null });
+    set({ error: null, importing: true });
 
     try {
       const result = await importAssetForActiveProfile({
@@ -404,6 +406,8 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     } catch (err) {
       setErrorFromUnknown(err);
       throw err;
+    } finally {
+      set({ importing: false });
     }
   };
 
@@ -413,6 +417,7 @@ export const useInstalledStore = create<InstalledState>((set, get) => {
     installing: new Set<string>(),
     installOperationsById: {},
     uninstalling: new Set<string>(),
+    importing: false,
     loading: false,
     error: null,
     initialized: false,

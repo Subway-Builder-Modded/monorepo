@@ -17,6 +17,7 @@ interface SettingToggleButtonProps {
   accent?: 'install' | 'update' | 'profiles';
   enabledLabel?: string;
   disabledLabel?: string;
+  disabled?: boolean;
 }
 
 export function SettingToggleButton({
@@ -25,12 +26,14 @@ export function SettingToggleButton({
   accent = 'install',
   enabledLabel = 'Enabled',
   disabledLabel = 'Disabled',
+  disabled = false,
 }: SettingToggleButtonProps) {
   return (
     <Button
       variant="outline"
       size="sm"
       onClick={onToggle}
+      disabled={disabled}
       className={cn(
         'min-w-[6rem] gap-1.5 transition-all',
         enabled && TOGGLE_ENABLED[accent],

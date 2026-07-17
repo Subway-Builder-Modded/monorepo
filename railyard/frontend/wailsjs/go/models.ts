@@ -47,6 +47,7 @@ export namespace types {
 	    viewTestAssets?: boolean;
 	    defaultSteamLibraryPath?: string;
 	    useSteamLaunch?: boolean;
+	    steamGamePath?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -64,6 +65,7 @@ export namespace types {
 	        this.viewTestAssets = source["viewTestAssets"];
 	        this.defaultSteamLibraryPath = source["defaultSteamLibraryPath"];
 	        this.useSteamLaunch = source["useSteamLaunch"];
+	        this.steamGamePath = source["steamGamePath"];
 	    }
 	}
 	export class AppVersionResponse {
@@ -269,6 +271,8 @@ export namespace types {
 	    isConfigured: boolean;
 	    metroMakerDataPathValid: boolean;
 	    executablePathValid: boolean;
+	    steamGamePathValid: boolean;
+	    gameSourceValid: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ConfigPathValidation(source);
@@ -279,6 +283,8 @@ export namespace types {
 	        this.isConfigured = source["isConfigured"];
 	        this.metroMakerDataPathValid = source["metroMakerDataPathValid"];
 	        this.executablePathValid = source["executablePathValid"];
+	        this.steamGamePathValid = source["steamGamePathValid"];
+	        this.gameSourceValid = source["gameSourceValid"];
 	    }
 	}
 	export class Favorites {

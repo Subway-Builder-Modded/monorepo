@@ -19,6 +19,7 @@ import (
 	"railyard/internal/config"
 	"railyard/internal/constants"
 	"railyard/internal/files"
+	"railyard/internal/gate"
 	"railyard/internal/logger"
 	"railyard/internal/paths"
 	"railyard/internal/registry"
@@ -51,6 +52,8 @@ type Downloader struct {
 	OnRegistryUpdate  RegistryUpdateFunc
 	InstallDependency DependencyInstalledFunc
 	GetGameVersion    GameVersionFunc
+	// Gate enforces game-vs-content exclusivity; wired by App on startup (nil in tests).
+	Gate *gate.GameContentGate
 
 	downloadMu   sync.Mutex
 	downloadCond *sync.Cond
@@ -235,9 +238,31 @@ func (d *Downloader) cancelRunningInstall(assetID string, assetType types.AssetT
 	return true
 }
 
+// gameRunningOperationResult is the typed rejection for operations refused because a game
+// session holds the exclusivity gate.
+func (d *Downloader) gameRunningOperationResult(action operationAction, assetType types.AssetType, assetID string) operationResult {
+	base := d.throwError("Cannot modify installed content while the game is running", gate.ErrGameSessionActive, "asset_type", assetType, "asset_id", assetID, "action", action)
+	if action == operationActionInstall {
+		return operationResult{
+			assetInstallResponse: d.installResponse(assetType, assetID, "", types.ConfigData{}, base, types.InstallErrorGameRunning, nil),
+		}
+	}
+	return operationResult{
+		genericResponse:        base,
+		assetUninstallResponse: d.uninstallResponse(assetType, assetID, base, types.InstallErrorGameRunning),
+	}
+}
+
 // enqueueOperation adds a new operation to the queue using asset-level coalescing.
 // Only one queued operation per asset is retained; later requests supersede older pending requests.
+// The exclusivity gate is held from enqueue until the operation completes, so a game session can
+// neither start mid-operation nor have content change underneath it.
 func (d *Downloader) enqueueOperation(action operationAction, assetKey downloadQueueKey, key string, run func() operationResult, supersededResult operationResult, cancel context.CancelFunc) operationResult {
+	if err := d.Gate.BeginContentOp(); err != nil {
+		return d.gameRunningOperationResult(action, assetKey.assetType, assetKey.assetID)
+	}
+	defer d.Gate.EndContentOp()
+
 	d.startQueue()
 
 	op := &downloadOperation{

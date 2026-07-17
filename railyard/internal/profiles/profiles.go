@@ -7,6 +7,7 @@ import (
 
 	"railyard/internal/config"
 	"railyard/internal/downloader"
+	"railyard/internal/gate"
 	"railyard/internal/logger"
 	"railyard/internal/registry"
 	"railyard/internal/types"
@@ -19,8 +20,10 @@ type UserProfiles struct {
 	Registry     *registry.Registry
 	Config       *config.Config
 	Downloader   *downloader.Downloader
-	mu           sync.Mutex
-	loaded       bool
+	// Gate enforces game-vs-content exclusivity for profile swaps; wired by App (nil in tests).
+	Gate   *gate.GameContentGate
+	mu     sync.Mutex
+	loaded bool
 }
 
 const serviceName = "UserProfiles"
