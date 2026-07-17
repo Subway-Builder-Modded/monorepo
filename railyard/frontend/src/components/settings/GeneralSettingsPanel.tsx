@@ -224,48 +224,49 @@ export function GeneralSettingsPanel() {
               }
             />
 
-            {config?.useSteamLaunch && (
-              <SettingRow
-                icon={<Gamepad2 className="h-4 w-4" />}
-                iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
-                label="Steam Game"
-                badge={
-                  <Badge
-                    size="sm"
-                    variant={
-                      validation?.steamGamePathValid
-                        ? 'success'
-                        : config?.steamGamePath
-                          ? 'destructive'
-                          : 'outline'
-                    }
-                  >
-                    {validation?.steamGamePathValid
-                      ? 'Valid'
-                      : config?.steamGamePath
-                        ? 'Invalid'
-                        : 'Not Detected'}
-                  </Badge>
-                }
-                description={
-                  <span className="block max-w-xs truncate font-mono">
-                    {config?.steamGamePath || 'Not detected'}
-                  </span>
-                }
-                action={
+
+            <SettingRow
+              icon={<FolderOpen className="h-4 w-4" />}
+              iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
+              label="Railyard Path"
+              badge={
+                <Badge size="sm" variant="outline">
+                  Managed
+                </Badge>
+              }
+              description={
+                <span className="block max-w-xs truncate font-mono">
+                  {config?.railyardPath || 'Not configured'}
+                </span>
+              }
+              action={
+                <>
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={!config?.steamGamePath}
+                    disabled={!config?.railyardPath}
                     className={FILES_ACCENT.solidButton}
-                    onClick={() => handleRevealPath(config?.steamGamePath)}
+                    onClick={() => handleRevealPath(config?.railyardPath)}
                   >
                     <FolderSearch className="size-3.5" />
                     Reveal
                   </Button>
-                }
-              />
-            )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={true}
+                    className={FILES_ACCENT.outlineButton}
+                    onClick={() =>
+                      toast(
+                        'Railyard path is managed automatically and cannot be changed.',
+                      )
+                    }
+                  >
+                    Change
+                  </Button>
+                </>
+              }
+            />
 
             <SettingRow
               icon={<FolderOpen className="h-4 w-4" />}
@@ -319,7 +320,48 @@ export function GeneralSettingsPanel() {
               }
             />
 
-            {!config?.useSteamLaunch && (
+            {config?.useSteamLaunch ? (
+              <SettingRow
+                icon={<Gamepad2 className="h-4 w-4" />}
+                iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
+                label="Steam Game Folder"
+                badge={
+                  <Badge
+                    size="sm"
+                    variant={
+                      validation?.steamGamePathValid
+                        ? 'success'
+                        : config?.steamGamePath
+                          ? 'destructive'
+                          : 'outline'
+                    }
+                  >
+                    {validation?.steamGamePathValid
+                      ? 'Valid'
+                      : config?.steamGamePath
+                        ? 'Invalid'
+                        : 'Not Detected'}
+                  </Badge>
+                }
+                description={
+                  <span className="block max-w-xs truncate font-mono">
+                    {config?.steamGamePath || 'Not detected'}
+                  </span>
+                }
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!config?.steamGamePath}
+                    className={FILES_ACCENT.solidButton}
+                    onClick={() => handleRevealPath(config?.steamGamePath)}
+                  >
+                    <FolderSearch className="size-3.5" />
+                    Reveal
+                  </Button>
+                }
+              />
+            ) : (
               <SettingRow
                 icon={<Gamepad2 className="h-4 w-4" />}
                 iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
@@ -372,49 +414,6 @@ export function GeneralSettingsPanel() {
                 }
               />
             )}
-
-            <SettingRow
-              icon={<FolderOpen className="h-4 w-4" />}
-              iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
-              label="Railyard Path"
-              badge={
-                <Badge size="sm" variant="outline">
-                  Managed
-                </Badge>
-              }
-              description={
-                <span className="block max-w-xs truncate font-mono">
-                  {config?.railyardPath || 'Not configured'}
-                </span>
-              }
-              action={
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!config?.railyardPath}
-                    className={FILES_ACCENT.solidButton}
-                    onClick={() => handleRevealPath(config?.railyardPath)}
-                  >
-                    <FolderSearch className="size-3.5" />
-                    Reveal
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={true}
-                    className={FILES_ACCENT.outlineButton}
-                    onClick={() =>
-                      toast(
-                        'Railyard path is managed automatically and cannot be changed.',
-                      )
-                    }
-                  >
-                    Change
-                  </Button>
-                </>
-              }
-            />
 
             <SettingRow
               icon={<KeyRound className="h-4 w-4" />}

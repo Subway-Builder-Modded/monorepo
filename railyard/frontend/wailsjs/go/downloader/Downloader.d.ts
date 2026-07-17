@@ -11,8 +11,6 @@ export function DetectedGameVersion():Promise<semver.Version|boolean>;
 
 export function FindMapCodeConflict(arg1:string,arg2:string,arg3:boolean):Promise<types.MapCodeConflict|boolean>;
 
-export function HasActiveOperations():Promise<boolean>;
-
 export function ImportAsset(arg1:types.AssetType,arg2:string,arg3:boolean):Promise<types.AssetInstallResponse>;
 
 export function InstallAsset(arg1:types.InstallAssetRequest):Promise<types.AssetInstallResponse>;
