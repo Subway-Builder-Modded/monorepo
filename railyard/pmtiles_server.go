@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 
+	"railyard/internal/files"
 	"railyard/internal/logger"
 	"railyard/internal/paths"
 	"railyard/internal/utils"
@@ -65,6 +66,21 @@ func thumbnailDebugHandler(dir string, port int) http.HandlerFunc {
 	}
 }
 
+// thumbnailIsFresh reports whether the SVG at svgPath exists and is at least as new as the
+// map's tiles at tilesPath; an SVG older than its tiles is stale from a prior version.
+// Missing tiles leave nothing newer to render from, so the existing SVG counts as fresh.
+func thumbnailIsFresh(svgPath, tilesPath string) bool {
+	svgInfo, err := os.Stat(svgPath)
+	if err != nil {
+		return false
+	}
+	tilesInfo, err := os.Stat(tilesPath)
+	if err != nil {
+		return true
+	}
+	return !svgInfo.ModTime().Before(tilesInfo.ModTime())
+}
+
 // statusServer is the tile-serving surface of pmtiles.Server, narrowed for testing.
 type statusServer interface {
 	ServeHTTP(http.ResponseWriter, *http.Request) int
@@ -115,17 +131,18 @@ func (a *App) startPMTilesServer() (int, error) {
 }
 
 // generateMissingThumbnails renders and saves an SVG thumbnail for every installed map that
-// does not already have one.
+// lacks one, or whose thumbnail is older than its installed tiles.
 func (a *App) generateMissingThumbnails(port int) {
 	thumbnailDir := path.Join(a.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps")
 	os.MkdirAll(thumbnailDir, os.ModePerm)
 
 	for _, m := range a.Registry.GetInstalledMaps() {
 		svgPath := path.Join(thumbnailDir, m.MapConfig.Code+".svg")
-		if _, err := os.Stat(svgPath); err == nil {
+		tilesPath := path.Join(paths.TilesPath(), m.MapConfig.Code+files.MapTileFileExt)
+		if thumbnailIsFresh(svgPath, tilesPath) {
 			continue
 		}
-		if m.MapConfig.ThumbnailBbox == nil && m.MapConfig.Bbox == nil && m.MapConfig.InitialViewState.Latitude == 0 && m.MapConfig.InitialViewState.Longitude == 0 {
+		if !utils.CanGenerateThumbnail(m.MapConfig) {
 			continue
 		}
 		a.Logger.Info("Generating missing thumbnail", "map", m.MapConfig.Code)

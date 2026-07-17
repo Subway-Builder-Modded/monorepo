@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"railyard/internal/testutil"
 
@@ -15,6 +16,30 @@ import (
 func TestThumbnailDirFor(t *testing.T) {
 	require.Equal(t, "", thumbnailDirFor(""))
 	require.Equal(t, filepath.ToSlash(filepath.Join("/data", "public", "data", "city-maps")), thumbnailDirFor("/data"))
+}
+
+func TestThumbnailIsFresh(t *testing.T) {
+	dir := t.TempDir()
+	svgPath := filepath.Join(dir, "ukb.svg")
+	tilesPath := filepath.Join(dir, "ukb.pmtiles")
+
+	// Missing SVG is never fresh.
+	require.False(t, thumbnailIsFresh(svgPath, tilesPath))
+
+	// SVG without tiles is fresh — nothing newer to render from.
+	require.NoError(t, os.WriteFile(svgPath, []byte("<svg/>"), 0o644))
+	require.True(t, thumbnailIsFresh(svgPath, tilesPath))
+
+	// SVG newer than (or equal to) the tiles is fresh.
+	require.NoError(t, os.WriteFile(tilesPath, []byte("tiles"), 0o644))
+	base := time.Now()
+	require.NoError(t, os.Chtimes(tilesPath, base, base))
+	require.NoError(t, os.Chtimes(svgPath, base, base))
+	require.True(t, thumbnailIsFresh(svgPath, tilesPath))
+
+	// SVG older than the tiles is stale from a prior version.
+	require.NoError(t, os.Chtimes(svgPath, base.Add(-time.Minute), base.Add(-time.Minute)))
+	require.False(t, thumbnailIsFresh(svgPath, tilesPath))
 }
 
 func TestThumbnailHandlerServesFileWithCORS(t *testing.T) {
