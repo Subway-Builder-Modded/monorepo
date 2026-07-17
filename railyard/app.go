@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -29,7 +27,6 @@ import (
 	"railyard/internal/updater"
 	"railyard/internal/utils"
 
-	"github.com/protomaps/go-pmtiles/pmtiles"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -89,36 +86,6 @@ func NewApp() *App {
 		Logger:      l,
 		contentGate: contentGate,
 	}
-}
-
-// startGalleryServer starts a HTTP server that serves registry asset images so
-// the frontend can load them as URLs.
-// Started at startup (not game launch) so images are available on the first render.
-func (a *App) startGalleryServer() {
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		a.Logger.Warn("Failed to start gallery image server", "error", err)
-		return
-	}
-	a.galleryServerPort = listener.Addr().(*net.TCPAddr).Port
-
-	mux := http.NewServeMux()
-	mux.Handle(galleryAssetPrefix, galleryAssetHandler(a.Registry.RepoPath()))
-	srv := &http.Server{Handler: mux}
-	a.galleryServer = srv
-
-	a.Logger.Info("Gallery image server started", "port", a.galleryServerPort)
-	go func() {
-		if err := srv.Serve(listener); err != nil && err != http.ErrServerClosed {
-			a.Logger.Warn("Gallery image server stopped", "error", err)
-		}
-	}()
-}
-
-// GetGalleryServerPort returns the loopback port serving registry asset images, or 0 when
-// the server failed to start.
-func (a *App) GetGalleryServerPort() int {
-	return a.galleryServerPort
 }
 
 // startup is called when the app starts. The context is saved
@@ -488,174 +455,6 @@ func (a *App) GetPlatform() types.PlatformResponse {
 		Platform:        runtime.GOOS,
 	}
 }
-
-func (a *App) startPMTilesServer() (int, error) {
-	listener, err := net.Listen("tcp", ":0")
-	if err != nil {
-		a.Logger.Warn("Failed to start PMTiles server listener", "error", err)
-		return -1, err
-	}
-	port := listener.Addr().(*net.TCPAddr).Port
-
-	a.Logger.Info(fmt.Sprintf("Starting PMTiles server on port %d", port))
-
-	channel := make(chan error, 1)
-
-	go func(l *logger.AppLogger, port int, errorChan chan error, ln net.Listener) {
-		pmtilesServer, err := pmtiles.NewServerWithBucket(pmtiles.NewFileBucket(path.Join(paths.AppDataRoot(), "tiles")), "", log.New(l.Writer, "pmtiles: ", log.Default().Flags()), 128, "")
-		if err != nil {
-			ln.Close()
-			l.Error("Failed to create PMTiles server", err)
-			errorChan <- err
-			return
-		}
-		pmtilesServer.Start()
-
-		thumbnailDir := a.Config.Cfg.MetroMakerDataPath
-		if thumbnailDir != "" {
-			thumbnailDir = path.Join(thumbnailDir, "public", "data", "city-maps")
-		}
-
-		mux := http.NewServeMux()
-		mux.HandleFunc("/thumbnails/", func(w http.ResponseWriter, r *http.Request) {
-			filePath := path.Join(thumbnailDir, path.Base(r.URL.Path))
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			http.ServeFile(w, r, filePath)
-		})
-		mux.HandleFunc("/debug/thumbnails", func(w http.ResponseWriter, r *http.Request) {
-			entries, err := os.ReadDir(thumbnailDir)
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			if err != nil {
-				fmt.Fprintf(w, "<html><body><h1>Error</h1><pre>%s</pre></body></html>", err.Error())
-				return
-			}
-			fmt.Fprint(w, `<html><head><style>
-				body { font-family: monospace; background: #1a1a2e; color: #e0e0e0; padding: 2rem; }
-				h1 { color: #fff; }
-				a { color: #7c9bff; display: block; margin: 0.5rem 0; }
-				img { max-width: 200px; max-height: 200px; border: 1px solid #333; margin: 0.5rem; }
-				.entry { display: inline-block; text-align: center; margin: 1rem; }
-			</style></head><body>`)
-			fmt.Fprintf(w, "<h1>Thumbnails (%d)</h1>", len(entries))
-			for _, e := range entries {
-				if e.IsDir() {
-					continue
-				}
-				url := fmt.Sprintf("http://127.0.0.1:%d/thumbnails/%s", port, e.Name())
-				fmt.Fprintf(w, `<div class="entry"><a href="%s"><img src="%s" /><br/>%s</a></div>`, url, url, e.Name())
-			}
-			fmt.Fprint(w, "</body></html>")
-		})
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			statusCode := pmtilesServer.ServeHTTP(w, r)
-			l.Info("Handled PMTiles request", "path", r.URL.Path, "status", statusCode)
-		})
-		srv := &http.Server{Handler: mux}
-		a.pmtilesServer = srv
-		errorChan <- nil
-		l.Error("PMTiles error: ", srv.Serve(ln))
-	}(a.Logger, port, channel, listener)
-	return port, <-channel
-}
-
-func (a *App) generateMissingThumbnails(port int) {
-	thumbnailDir := path.Join(a.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps")
-	os.MkdirAll(thumbnailDir, os.ModePerm)
-
-	for _, m := range a.Registry.GetInstalledMaps() {
-		svgPath := path.Join(thumbnailDir, m.MapConfig.Code+".svg")
-		if _, err := os.Stat(svgPath); err == nil {
-			continue
-		}
-		if m.MapConfig.ThumbnailBbox == nil && m.MapConfig.Bbox == nil && m.MapConfig.InitialViewState.Latitude == 0 && m.MapConfig.InitialViewState.Longitude == 0 {
-			continue
-		}
-		a.Logger.Info("Generating missing thumbnail", "map", m.MapConfig.Code)
-		data, err := utils.GenerateThumbnail(m.MapConfig.Code, m.MapConfig, port)
-		if err != nil {
-			a.Logger.Warn("Failed to generate thumbnail", "map", m.MapConfig.Code, "error", err)
-			continue
-		}
-		if err := os.WriteFile(svgPath, []byte(data), 0644); err != nil {
-			a.Logger.Warn("Failed to save thumbnail", "map", m.MapConfig.Code, "error", err)
-		}
-	}
-}
-
-func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
-	maps := a.Registry.GetInstalledMaps()
-	a.Logger.Info("Generating mod with maps", "count", len(maps))
-
-	preferBinary := preferBinaryBuildingsIndex(a.GetGameVersion())
-	mapDataRoot := paths.MetroMakerMapsDataPath(a.Config.Cfg.MetroMakerDataPath)
-	places := make([]types.MetroMakerPlace, 0, len(maps))
-	for _, m := range maps {
-		if _, err := os.Stat(paths.JoinLocalPath(a.Config.Cfg.GetMapsFolderPath(), m.MapConfig.Code, "ocean_depth_index.json.gz")); !errors.Is(err, fs.ErrNotExist) {
-			m.MapConfig.HasOceanDepth = true
-		}
-		if _, err := os.Stat(paths.JoinLocalPath(paths.AppDataRoot(), "tiles", m.MapConfig.Code+"_foundations.pmtiles")); !errors.Is(err, fs.ErrNotExist) {
-			m.MapConfig.HasFoundationTiles = true
-		}
-		stem, err := setBuildingsIndexStem(mapDataRoot, m.MapConfig.Code, preferBinary)
-		if err != nil {
-			if skipIncompatibleMaps {
-				a.Logger.Warn("Skipping incompatible map from mod template", "map", m.MapConfig.Code, "error", err)
-				continue
-			}
-			stem = files.MapBuildingsFileName
-		}
-		places = append(places, types.MetroMakerPlace{
-			ConfigData:         m.MapConfig,
-			BuildingsIndexFile: stem,
-		})
-	}
-	config := types.MetroMakerModConfig{
-		Port:          port,
-		TileZoomLevel: 15,
-		Places:        places,
-		Colors:        constants.MAP_COLORS,
-		GameVersion:   a.GetGameVersion().Version,
-	}
-	manifest := types.MetroMakerModManifest{
-		Id:          "com.railyard.maploader",
-		Name:        "Railyard Map Loader",
-		Description: "Loads any custom maps installed by Railyard.",
-		Version:     strings.Replace(constants.MOD_VERSION, "v", "", 1),
-		Author: struct {
-			Name string `json:"name"`
-		}{
-			Name: "Railyard",
-		},
-		Main: "index.js",
-		Dependencies: map[string]string{
-			constants.GameDependencyKey: ">=1.0.0",
-		},
-	}
-	stringifiedConfig, err := json.Marshal(config)
-	if err != nil {
-		return fmt.Errorf("failed to marshal mod config: %w", err)
-	}
-	modContent := constants.ModTemplateWithConfig(string(stringifiedConfig))
-	manifestContent, err := json.Marshal(manifest)
-	if err != nil {
-		return fmt.Errorf("failed to marshal mod manifest: %w", err)
-	}
-	modsFolder := path.Join(a.Config.Cfg.MetroMakerDataPath, "mods", "mapLoader")
-	if err := os.MkdirAll(modsFolder, os.ModePerm); err != nil {
-		return fmt.Errorf("failed to create mod directory: %w", err)
-	}
-
-	if err := os.WriteFile(path.Join(modsFolder, "index.js"), []byte(modContent), 0644); err != nil {
-		return fmt.Errorf("failed to write mod index.js: %w", err)
-	}
-
-	if err := os.WriteFile(path.Join(modsFolder, "manifest.json"), manifestContent, 0644); err != nil {
-		return fmt.Errorf("failed to write mod manifest.json: %w", err)
-	}
-	return nil
-}
-
 func (a *App) addSaltsOnFirstRun() error {
 	if _, err := os.Stat(paths.JoinLocalPath(paths.AppDataRoot(), constants.RailyardAssetsSaltedMarker)); errors.Is(err, fs.ErrNotExist) {
 		a.Logger.Info("Adding salts to existing assets on first run")
