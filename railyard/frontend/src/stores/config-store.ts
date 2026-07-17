@@ -11,6 +11,7 @@ import {
   SaveConfig,
   UpdateCheckForUpdatesOnLaunch,
   UpdateGithubToken,
+  UpdateUseSteamLaunch,
 } from '../../wailsjs/go/config/Config';
 import { types } from '../../wailsjs/go/models';
 
@@ -37,6 +38,9 @@ interface ConfigState {
   clearGithubToken: () => Promise<types.ResolveConfigResponse>;
   updateCheckForUpdatesOnLaunch: (
     checkForUpdates: boolean,
+  ) => Promise<types.ResolveConfigResponse>;
+  updateUseSteamLaunch: (
+    useSteamLaunch: boolean,
   ) => Promise<types.ResolveConfigResponse>;
   completeSetup: () => Promise<void>;
 }
@@ -214,6 +218,27 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
         validation: result.validation,
         hasGithubToken: result.hasGithubToken,
         githubTokenValid: false,
+      });
+      return result;
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+      throw err;
+    }
+  },
+
+  updateUseSteamLaunch: async (useSteamLaunch: boolean) => {
+    set({ error: null });
+    try {
+      const result = await UpdateUseSteamLaunch(useSteamLaunch);
+      if (result.status === 'error') {
+        throw new Error(
+          result.message || 'Failed to update useSteamLaunch setting',
+        );
+      }
+      set({
+        config: result.config,
+        validation: result.validation,
+        hasGithubToken: result.hasGithubToken,
       });
       return result;
     } catch (err) {

@@ -19,6 +19,7 @@ import {
   FolderOpen,
   FolderSearch,
   Gamepad2,
+  Joystick,
   KeyRound,
   RefreshCw,
 } from 'lucide-react';
@@ -50,6 +51,7 @@ export function GeneralSettingsPanel() {
     updateGithubToken,
     clearGithubToken,
     updateCheckForUpdatesOnLaunch,
+    updateUseSteamLaunch,
   } = useConfigStore();
 
   const [githubTokenDialogOpen, setGithubTokenDialogOpen] = useState(false);
@@ -86,6 +88,17 @@ export function GeneralSettingsPanel() {
       );
     } catch {
       toast.error('Failed to update check for updates on launch setting.');
+    }
+  };
+
+  const handleChangeUseSteamLaunch = async () => {
+    try {
+      const newValue = !config?.useSteamLaunch;
+      await updateUseSteamLaunch(newValue);
+      await saveConfig();
+      toast.success(`Use Steam launch ${newValue ? 'enabled' : 'disabled'}.`);
+    } catch {
+      toast.error('Failed to update use Steam launch setting.');
     }
   };
 
@@ -185,6 +198,28 @@ export function GeneralSettingsPanel() {
             />
 
             <SettingRow
+              icon={<Joystick className="h-4 w-4" />}
+              iconClassName="bg-[color-mix(in_oklab,var(--update-primary)_12%,transparent)] text-[var(--update-primary)]"
+              label="Use Steam"
+              badge={
+                <Badge
+                  size="sm"
+                  variant={config?.useSteamLaunch ? 'success' : 'outline'}
+                >
+                  {config?.useSteamLaunch ? 'Enabled' : 'Disabled'}
+                </Badge>
+              }
+              description="Launch the game through Steam instead of from the executable directly (Recommended for Steam users)"
+              action={
+                <SettingToggleButton
+                  accent="update"
+                  enabled={config?.useSteamLaunch || false}
+                  onToggle={handleChangeUseSteamLaunch}
+                />
+              }
+            />
+
+            <SettingRow
               icon={<FolderOpen className="h-4 w-4" />}
               iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
               label="Data Folder"
@@ -235,56 +270,58 @@ export function GeneralSettingsPanel() {
               }
             />
 
-            <SettingRow
-              icon={<Gamepad2 className="h-4 w-4" />}
-              iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
-              label="Game Executable"
-              badge={
-                <Badge
-                  size="sm"
-                  variant={
-                    validation?.executablePathValid
-                      ? 'success'
+            {!config?.useSteamLaunch && (
+              <SettingRow
+                icon={<Gamepad2 className="h-4 w-4" />}
+                iconClassName="bg-[color-mix(in_oklab,var(--files-primary)_12%,transparent)] text-[var(--files-primary)]"
+                label="Game Executable"
+                badge={
+                  <Badge
+                    size="sm"
+                    variant={
+                      validation?.executablePathValid
+                        ? 'success'
+                        : config?.executablePath
+                          ? 'destructive'
+                          : 'outline'
+                    }
+                  >
+                    {validation?.executablePathValid
+                      ? 'Valid'
                       : config?.executablePath
-                        ? 'destructive'
-                        : 'outline'
-                  }
-                >
-                  {validation?.executablePathValid
-                    ? 'Valid'
-                    : config?.executablePath
-                      ? 'Invalid'
-                      : 'Not Set'}
-                </Badge>
-              }
-              description={
-                <span className="block max-w-xs truncate font-mono">
-                  {config?.executablePath || 'Not configured'}
-                </span>
-              }
-              action={
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={!config?.executablePath}
-                    className={FILES_ACCENT.solidButton}
-                    onClick={() => handleRevealPath(config?.executablePath)}
-                  >
-                    <FolderSearch className="size-3.5" />
-                    Reveal
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={FILES_ACCENT.outlineButton}
-                    onClick={handleChangeExecutable}
-                  >
-                    Change
-                  </Button>
-                </>
-              }
-            />
+                        ? 'Invalid'
+                        : 'Not Set'}
+                  </Badge>
+                }
+                description={
+                  <span className="block max-w-xs truncate font-mono">
+                    {config?.executablePath || 'Not configured'}
+                  </span>
+                }
+                action={
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={!config?.executablePath}
+                      className={FILES_ACCENT.solidButton}
+                      onClick={() => handleRevealPath(config?.executablePath)}
+                    >
+                      <FolderSearch className="size-3.5" />
+                      Reveal
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={FILES_ACCENT.outlineButton}
+                      onClick={handleChangeExecutable}
+                    >
+                      Change
+                    </Button>
+                  </>
+                }
+              />
+            )}
 
             <SettingRow
               icon={<FolderOpen className="h-4 w-4" />}

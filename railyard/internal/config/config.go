@@ -15,6 +15,7 @@ import (
 	"railyard/internal/logger"
 	"railyard/internal/paths"
 	"railyard/internal/requests"
+	"railyard/internal/steam"
 	"railyard/internal/types"
 
 	wruntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -134,6 +135,42 @@ func (s *Config) UpdateConfig(mutator func(*types.AppConfig), persist bool) (typ
 	return resolveConfigResultFromAppConfig(s.Cfg), nil
 }
 
+func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigResponse {
+	if !useSteamLaunch && s.Cfg.ExecutablePath == "" {
+		res := s.OpenExecutableDialog(types.SetConfigPathOptions{AllowAutoDetect: true})
+		if res.Status != types.ResponseSuccess {
+			return types.ResolveConfigResponse{
+				GenericResponse: types.ErrorResponse("Failed to update useSteamLaunch due to error setting Executable Path"),
+			}
+		}
+	}
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.UseSteamLaunch = useSteamLaunch
+		if cfg.UseSteamLaunch && cfg.DefaultSteamLibraryPath == "" {
+			path, err := steam.GetSteamLibraryPath(s.ctx)
+			if err != nil {
+				s.logger.Error("Failed to auto-detect Steam library path", err)
+				cfg.UseSteamLaunch = false
+			}
+			cfg.DefaultSteamLibraryPath = path
+		}
+	}, false)
+	if err != nil {
+		return types.ResolveConfigResponse{
+			GenericResponse: types.ErrorResponse(err.Error()),
+		}
+	}
+	if useSteamLaunch != result.Config.UseSteamLaunch {
+		return types.ResolveConfigResponse{
+			GenericResponse: types.ErrorResponse("Failed to update useSteamLaunch due to error setting Steam Library Path"),
+		}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse("Config updated"),
+		ResolveConfigResult: result,
+	}
+}
+
 func (s *Config) UpdateCheckForUpdatesOnLaunch(checkForUpdates bool) types.ResolveConfigResponse {
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.CheckForUpdatesOnLaunch = checkForUpdates
@@ -242,6 +279,32 @@ func (s *Config) SaveConfig() types.ResolveConfigResponse {
 	}
 	return types.ResolveConfigResponse{
 		GenericResponse:     types.SuccessResponse("Config saved"),
+		ResolveConfigResult: result,
+	}
+}
+
+func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) types.ResolveConfigResponse {
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.DefaultSteamLibraryPath = strings.TrimSpace(defaultSteamLibraryPath)
+	}, false)
+	if err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse("Default Steam library path updated"),
+		ResolveConfigResult: result,
+	}
+}
+
+func (s *Config) ClearDefaultSteamLibraryPath() types.ResolveConfigResponse {
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.DefaultSteamLibraryPath = ""
+	}, false)
+	if err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse("Default Steam library path cleared"),
 		ResolveConfigResult: result,
 	}
 }

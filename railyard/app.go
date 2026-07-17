@@ -16,8 +16,10 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"railyard/internal/config"
@@ -28,11 +30,13 @@ import (
 	"railyard/internal/paths"
 	"railyard/internal/profiles"
 	"railyard/internal/registry"
+	"railyard/internal/steam"
 	"railyard/internal/types"
 	"railyard/internal/updater"
 	"railyard/internal/utils"
 
 	"github.com/beescuit/asar"
+	"github.com/mitchellh/go-ps"
 	"github.com/protomaps/go-pmtiles/pmtiles"
 	wailsruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -468,39 +472,54 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	}
 
 	cfg := a.Config.GetConfig()
-	if !cfg.Validation.ExecutablePathValid {
+	if !cfg.Validation.ExecutablePathValid && !cfg.Config.UseSteamLaunch {
 		return notDetected
 	}
 	exePath := cfg.Config.ExecutablePath
-
 	var asarPath string
-	switch {
-	case runtime.GOOS == "darwin":
-		// executablePath may point to the .app bundle or a binary nested inside it.
-		found, foundPath := findAsar(exePath)
-		if !found {
-			a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
+
+	if cfg.Config.UseSteamLaunch {
+		gamePath, err := steam.AutodetectSteamSubwayBuilderPath(cfg.Config.DefaultSteamLibraryPath)
+		if err != nil {
+			a.Logger.Warn("Failed to detect Steam Subway Builder path for game version detection", "error", err)
 			return notDetected
 		}
-		asarPath = foundPath
-	case isAppImagePath(exePath):
-		if a.appImageMount != nil {
-			a.Logger.Info("Using existing AppImage mount for game version detection", "exePath", exePath, "mountPath", a.appImageMount.AppImageMountPath)
-			mountPath := a.appImageMount.AppImageMountPath
-			asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
+		if runtime.GOOS == "darwin" {
+			// The macOS Steam install nests the asar inside the .app bundle.
+			asarPath = filepath.Join(gamePath, constants.GameMacAppBundle, constants.GameAsarMacRelPath)
 		} else {
-			a.Logger.Info("Mounting AppImage for game version detection", "exePath", exePath)
-			if appImageMount, err := newAppImageMount(exePath); err != nil {
-				a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
+			asarPath = filepath.Join(gamePath, constants.GameAsarRelPath)
+		}
+	} else {
+
+		switch {
+		case runtime.GOOS == "darwin":
+			// executablePath may point to the .app bundle or a binary nested inside it.
+			found, foundPath := findAsar(exePath)
+			if !found {
+				a.Logger.Warn("Failed to locate app.asar for game version detection", "exePath", exePath)
 				return notDetected
-			} else {
-				a.appImageMount = appImageMount
+			}
+			asarPath = foundPath
+		case isAppImagePath(exePath):
+			if a.appImageMount != nil {
+				a.Logger.Info("Using existing AppImage mount for game version detection", "exePath", exePath, "mountPath", a.appImageMount.AppImageMountPath)
 				mountPath := a.appImageMount.AppImageMountPath
 				asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
+			} else {
+				a.Logger.Info("Mounting AppImage for game version detection", "exePath", exePath)
+				if appImageMount, err := newAppImageMount(exePath); err != nil {
+					a.Logger.Error("Failed to mount AppImage for game version detection", err, "exePath", exePath)
+					return notDetected
+				} else {
+					a.appImageMount = appImageMount
+					mountPath := a.appImageMount.AppImageMountPath
+					asarPath = filepath.Join(mountPath, constants.GameAsarRelPath)
+				}
 			}
+		default:
+			asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 		}
-	default:
-		asarPath = filepath.Join(filepath.Dir(exePath), constants.GameAsarRelPath)
 	}
 
 	info, statErr := os.Stat(asarPath)
@@ -565,6 +584,13 @@ func (a *App) GetGameVersion() types.GameVersionResponse {
 	}
 }
 
+// Steam launches return before the game starts, so the real game process is discovered by
+// polling; discovery is bounded so a cancelled Steam prompt cannot hang the launch.
+const (
+	steamPollInterval           = time.Second
+	steamLaunchDiscoveryTimeout = 2 * time.Minute
+)
+
 func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	a.gameMu.Lock()
 	if a.gameStarting {
@@ -601,7 +627,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	}
 
 	cfg := a.Config.GetConfig()
-	if !cfg.Validation.ExecutablePathValid {
+	if !cfg.Validation.ExecutablePathValid && !cfg.Config.UseSteamLaunch {
 		return types.ErrorResponse("game executable path is not configured or invalid")
 	}
 
@@ -636,7 +662,11 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	a.Logger.Info("Launching game", "path", exePath)
 
 	var cmd *exec.Cmd
-	if runtime.GOOS == "darwin" && (strings.HasSuffix(exePath, ".app") || strings.Contains(exePath, ".app/")) {
+	if cfg.Config.UseSteamLaunch && runtime.GOOS == "darwin" {
+		// `open` hands the steam:// URL to Steam and returns immediately; the real game
+		// process is discovered by polling below.
+		cmd = exec.Command("open", constants.STEAM_URL)
+	} else if runtime.GOOS == "darwin" && (strings.HasSuffix(exePath, ".app") || strings.Contains(exePath, ".app/")) {
 		// On macOS, resolve .app bundle to the inner executable and launch via shell
 		// to handle Electron stub executables that lack valid magic bytes
 		innerExe := exePath
@@ -655,35 +685,43 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		}
 	} else if runtime.GOOS == "linux" {
 		// Prefer host launch via Flatpak
-		if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
-			if a.Config.Cfg.ChromeSandboxPath != "" {
-				// Ensure sandbox is used if available to avoid permission issues in Flatpak environments
-				args := []string{"--env=CHROME_DEVEL_SANDBOX=" + a.Config.Cfg.ChromeSandboxPath}
-				// Pass it through --env because thats how flatpak-spawn works
-				if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
-					args = append(args, "--env=DEBUG_PROD=TRUE")
-				}
-				args = append(args, "--host", exePath)
-				args = append(args, extraSplitArgs...)
-				cmd = exec.Command("flatpak-spawn", args...)
-			} else {
-				args := []string{"--host", exePath, "--no-sandbox"}
-				args = append(args, extraSplitArgs...)
-				cmd = exec.Command("flatpak-spawn", args...)
-			}
+		if cfg.Config.UseSteamLaunch {
+			// Launch via Steam URL to ensure Steam overlay and proper launch context
+			cmd = exec.Command("xdg-open", constants.STEAM_URL)
 		} else {
-			// Fall back to direct launch if flatpak-spawn is not available
-			a.Logger.Warn("flatpak-spawn not available; falling back to direct executable launch", "error", lookPathErr)
-			cmd = exec.Command(exePath, extraSplitArgs...)
-			cmd.Dir = filepath.Dir(exePath)
-			if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
-				cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
+			if _, lookPathErr := exec.LookPath("flatpak-spawn"); lookPathErr == nil {
+				if a.Config.Cfg.ChromeSandboxPath != "" {
+					// Ensure sandbox is used if available to avoid permission issues in Flatpak environments
+					args := []string{"--env=CHROME_DEVEL_SANDBOX=" + a.Config.Cfg.ChromeSandboxPath}
+					// Pass it through --env because thats how flatpak-spawn works
+					if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
+						args = append(args, "--env=DEBUG_PROD=TRUE")
+					}
+					args = append(args, "--host", exePath)
+					args = append(args, extraSplitArgs...)
+					cmd = exec.Command("flatpak-spawn", args...)
+				} else {
+					args := []string{"--host", exePath, "--no-sandbox"}
+					args = append(args, extraSplitArgs...)
+					cmd = exec.Command("flatpak-spawn", args...)
+				}
+			} else {
+				// Fall back to direct launch if flatpak-spawn is not available
+				a.Logger.Warn("flatpak-spawn not available; falling back to direct executable launch", "error", lookPathErr)
+				cmd = exec.Command(exePath, extraSplitArgs...)
+				cmd.Dir = filepath.Dir(exePath)
+				if profile.Status == types.ResponseSuccess && profile.Profile.SystemPreferences.UseDevTools {
+					cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
+				}
 			}
 		}
 	} else {
-		cmd = exec.Command(exePath, extraSplitArgs...)
-		cmd.Dir = filepath.Dir(exePath)
-
+		if cfg.Config.UseSteamLaunch {
+			cmd = exec.Command("cmd", "/C", "start", constants.STEAM_URL)
+		} else {
+			cmd = exec.Command(exePath, extraSplitArgs...)
+			cmd.Dir = filepath.Dir(exePath)
+		}
 		if profile.Status == types.ResponseSuccess {
 			if profile.Profile.SystemPreferences.UseDevTools {
 				cmd.Env = append(os.Environ(), "DEBUG_PROD=TRUE")
@@ -707,6 +745,127 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 		return types.ErrorResponse(fmt.Sprintf("failed to launch game: %v", err))
 	}
 
+	// Get true process if launching via steam
+	if cfg.Config.UseSteamLaunch {
+		foundProcess := (*exec.Cmd)(nil)
+		deadline := time.Now().Add(steamLaunchDiscoveryTimeout)
+		switch runtime.GOOS {
+		case "windows":
+			for foundProcess == nil && time.Now().Before(deadline) {
+				processses, err := ps.Processes()
+				if err != nil {
+					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
+					break
+				}
+				for _, proc := range processses {
+					if proc.Executable() == "game.exe" {
+						parent, err := ps.FindProcess(proc.PPid())
+						if err != nil {
+							a.Logger.Warn("Failed to find parent process while waiting for Steam-launched game", "error", err)
+							break
+						}
+						if parent.Executable() != "game.exe" {
+							gameProcess, err := os.FindProcess(proc.Pid())
+							if err != nil {
+								a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+								break
+							}
+							foundProcess = &exec.Cmd{
+								Process: gameProcess,
+							}
+							a.Logger.Info("Found Steam-launched game process", "pid", proc.Pid())
+							break
+						} else {
+							gameProcess, err := os.FindProcess(proc.PPid())
+							if err != nil {
+								a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+								break
+							}
+							foundProcess = &exec.Cmd{
+								Process: gameProcess,
+							}
+							a.Logger.Info("Found Steam-launched game process", "pid", proc.PPid())
+							break
+						}
+					}
+				}
+				if foundProcess == nil {
+					time.Sleep(steamPollInterval)
+				}
+			}
+		case "linux":
+			for foundProcess == nil && time.Now().Before(deadline) {
+				processCmd := exec.Command("flatpak-spawn", "--host", "pgrep", "-l", "metro-maker4")
+				processes, err := processCmd.Output()
+				// Separate into a list of lines, each containing "pid process_name"
+				lines := strings.Split(string(processes), "\n")
+				// Ignore exit code 1 (no processes found) and continue polling
+				var exitErr *exec.ExitError
+				if err != nil && (!errors.As(err, &exitErr) || exitErr.ExitCode() != 1) {
+					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
+					break
+				}
+				for _, proc := range lines {
+					if strings.HasSuffix(proc, "metro-maker4") {
+						// Extract PID from the line
+						parts := strings.Split(proc, " ")
+						if len(parts) < 2 {
+							continue
+						}
+						pid, err := strconv.Atoi(parts[0])
+						if err != nil {
+							a.Logger.Warn("Failed to parse PID", "error", err)
+							break
+						}
+						gameProcess, err := os.FindProcess(pid)
+						if err != nil {
+							a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+							break
+						}
+						foundProcess = &exec.Cmd{
+							Process: gameProcess,
+						}
+						a.Logger.Info("Found Steam-launched game process", "pid", pid)
+						break
+					}
+				}
+				if foundProcess == nil {
+					time.Sleep(steamPollInterval)
+				}
+			}
+		case "darwin":
+			for foundProcess == nil && time.Now().Before(deadline) {
+				output, err := exec.Command("pgrep", "-x", constants.GameMacProcessName).Output()
+				// pgrep exits 1 when nothing matches; keep polling in that case.
+				var exitErr *exec.ExitError
+				if err != nil && (!errors.As(err, &exitErr) || exitErr.ExitCode() != 1) {
+					a.Logger.Warn("Failed to list processes while waiting for Steam-launched game", "error", err)
+					break
+				}
+				if pidLine, _, _ := strings.Cut(strings.TrimSpace(string(output)), "\n"); pidLine != "" {
+					pid, err := strconv.Atoi(pidLine)
+					if err != nil {
+						a.Logger.Warn("Failed to parse PID", "error", err, "line", pidLine)
+						break
+					}
+					gameProcess, err := os.FindProcess(pid)
+					if err != nil {
+						a.Logger.Warn("Failed to find Steam-launched game process", "error", err)
+						break
+					}
+					foundProcess = &exec.Cmd{Process: gameProcess}
+					a.Logger.Info("Found Steam-launched game process", "pid", pid)
+					break
+				}
+				time.Sleep(steamPollInterval)
+			}
+		}
+		if foundProcess == nil {
+			return types.ErrorResponse("could not find the Steam-launched game process; the launch may have been cancelled")
+		}
+		cmd = foundProcess
+	}
+
 	a.gameMu.Lock()
 	a.gameCmd = cmd
 	a.gameStarting = false
@@ -715,10 +874,17 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	a.emitEvent("game:status", "running")
 
-	a.emitEvent("game:log", map[string]string{
-		"stream": "stdout",
-		"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),
-	})
+	if !cfg.Config.UseSteamLaunch {
+		a.emitEvent("game:log", map[string]string{
+			"stream": "stdout",
+			"line":   fmt.Sprintf("> %s %s", strings.Split(a.gameCmd.Path, string(os.PathSeparator))[len(strings.Split(a.gameCmd.Path, string(os.PathSeparator)))-1], strings.Join(a.gameCmd.Args[1:], " ")),
+		})
+	} else {
+		a.emitEvent("game:log", map[string]string{
+			"stream": "stdout",
+			"line":   fmt.Sprintf("> %s %s", constants.STEAM_URL, "(cannot get logs when using Steam launch)"),
+		})
+	}
 
 	// Stream stdout/stderr to frontend
 	go a.streamGameOutput(stdout, "stdout")
@@ -726,7 +892,33 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	// Wait for process exit in background
 	go func() {
-		err := cmd.Wait()
+		var err error
+		if cfg.Config.UseSteamLaunch && runtime.GOOS == "linux" {
+			a.Logger.Info("Waiting for Steam-launched game process to exit on Linux")
+			// On Linux, Steam-launched processes may not be direct children of the Railyard process, so we cannot reliably wait on them. Instead, we poll for process exit.
+			for {
+				command := exec.Command("flatpak-spawn", "--host", "pgrep", "-l", "metro-maker4")
+				output, err := command.Output()
+				if err != nil {
+					// Process not found, assume it has exited
+					break
+				}
+				if len(output) == 0 {
+					// Process not found, assume it has exited
+					break
+				}
+				time.Sleep(steamPollInterval)
+			}
+		} else if cfg.Config.UseSteamLaunch && runtime.GOOS == "darwin" {
+			a.Logger.Info("Waiting for Steam-launched game process to exit on macOS")
+			// The game is not a child of the Railyard process, so Wait is unavailable; poll
+			// the discovered pid with signal 0 until it is gone.
+			for cmd.Process.Signal(syscall.Signal(0)) == nil {
+				time.Sleep(steamPollInterval)
+			}
+		} else {
+			err = cmd.Wait()
+		}
 		a.gameMu.Lock()
 		a.gameCmd = nil
 		a.gameStarting = false
@@ -791,8 +983,17 @@ func (a *App) StopGame() types.GenericResponse {
 	}
 
 	if err := cmd.Process.Kill(); err != nil {
-		a.Logger.Warn("Failed to kill game process", "error", err)
-		return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
+		if a.Config.Cfg.UseSteamLaunch && runtime.GOOS == "linux" {
+			command := exec.Command("flatpak-spawn", "--host", "pkill", "-9", "metro-maker4")
+			err := command.Run()
+			if err != nil {
+				a.Logger.Warn("Failed to kill Steam-launched game process on Linux", "error", err)
+				return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
+			}
+		} else {
+			a.Logger.Warn("Failed to kill game process", "error", err)
+			return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
+		}
 	}
 
 	a.Logger.Info("Game process killed successfully")

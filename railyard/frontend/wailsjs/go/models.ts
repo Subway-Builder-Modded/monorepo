@@ -45,6 +45,8 @@ export namespace types {
 	    setupCompleted: boolean;
 	    chromeSandboxPath?: string;
 	    viewTestAssets?: boolean;
+	    defaultSteamLibraryPath?: string;
+	    useSteamLaunch?: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new AppConfig(source);
@@ -60,6 +62,8 @@ export namespace types {
 	        this.setupCompleted = source["setupCompleted"];
 	        this.chromeSandboxPath = source["chromeSandboxPath"];
 	        this.viewTestAssets = source["viewTestAssets"];
+	        this.defaultSteamLibraryPath = source["defaultSteamLibraryPath"];
+	        this.useSteamLaunch = source["useSteamLaunch"];
 	    }
 	}
 	export class AppVersionResponse {

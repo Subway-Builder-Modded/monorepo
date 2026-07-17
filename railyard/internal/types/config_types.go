@@ -19,6 +19,8 @@ type AppConfig struct {
 	SetupCompleted          bool   `json:"setupCompleted"`
 	ChromeSandboxPath       string `json:"chromeSandboxPath,omitempty"`
 	ViewTestAssets          bool   `json:"viewTestAssets,omitempty"`
+	DefaultSteamLibraryPath string `json:"defaultSteamLibraryPath,omitempty"`
+	UseSteamLaunch          bool   `json:"useSteamLaunch,omitempty"` // Whether to launch the game through Steam instead of directly.
 	// Other fields to be appended here
 }
 
@@ -117,7 +119,7 @@ func SubscriptionTypeResolvers(
 
 // AreConfigPathsConfigured checks if both required paths have been set in AppConfig
 func (c AppConfig) AreConfigPathsConfigured() bool {
-	return strings.TrimSpace(c.MetroMakerDataPath) != "" && strings.TrimSpace(c.ExecutablePath) != ""
+	return strings.TrimSpace(c.MetroMakerDataPath) != "" && (strings.TrimSpace(c.ExecutablePath) != "" || c.UseSteamLaunch)
 }
 
 // GetModsFolderPath returns the full path to the mods folder, or an empty string when the
@@ -182,7 +184,7 @@ func (c AppConfig) ValidateConfigPaths() (bool, ConfigPathValidation) {
 
 	if strings.TrimSpace(c.ExecutablePath) != "" {
 		exeInfo, exeErr := os.Stat(c.ExecutablePath)
-		result.ExecutablePathValid = exeErr == nil && isExecutable(c.ExecutablePath, exeInfo)
+		result.ExecutablePathValid = (exeErr == nil && isExecutable(c.ExecutablePath, exeInfo)) || c.UseSteamLaunch
 	}
 
 	return result.IsValid(), result

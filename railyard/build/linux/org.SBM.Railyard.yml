@@ -1,6 +1,6 @@
 id: org.SBM.Railyard
 runtime: org.gnome.Platform
-runtime-version: "47"
+runtime-version: "49"
 sdk: org.gnome.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.golang
@@ -16,6 +16,7 @@ finish-args:
   - --socket=wayland
   - --device=dri
   - --talk-name=org.freedesktop.Flatpak
+  - --talk-name=org.freedesktop.portal.Desktop
 
 modules:
   - name: Railyard
@@ -28,6 +29,7 @@ modules:
       env:
         GOROOT: /usr/lib/sdk/golang
         GOFLAGS: "-mod=vendor"
+        GOTOOLCHAIN: local
     build-commands:
       - go build -mod=vendor -tags "desktop,production,webkit2_41" -ldflags "-s -w" -o /app/bin/railyard .
       - install -Dm644 ./build/linux/railyard.desktop /app/share/applications/org.SBM.Railyard.desktop

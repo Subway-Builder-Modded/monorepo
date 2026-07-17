@@ -10,6 +10,7 @@ import {
 import { useGameVersion } from '@/hooks/use-game-version';
 import { assetKey } from '@/lib/asset-key';
 import { measureAsync } from '@/lib/perf';
+import { useRegistryStore } from '@/stores/registry-store';
 
 import { GameIncompatibleAssets } from '../../wailsjs/go/registry/Registry';
 
@@ -21,9 +22,9 @@ const IncompatibleAssetKeysContext = createContext<ReadonlySet<string>>(
 
 /**
  * Resolves the assetKey()s of assets with no game-compatible installable version ONCE per game
- * version and shares the result, so the several consumers (Browse, the Home grids) don't each
- * fan out their own GameIncompatibleAssets calls or build competing Set identities that would
- * invalidate downstream filter memos.
+ * version and registry snapshot and shares the result, so the several consumers (Browse, the
+ * Home grids) don't each fan out their own GameIncompatibleAssets calls or build competing Set
+ * identities that would invalidate downstream filter memos.
  */
 export function IncompatibleAssetKeysProvider({
   children,
@@ -31,6 +32,10 @@ export function IncompatibleAssetKeysProvider({
   children: ReactNode;
 }) {
   const gameVersion = useGameVersion();
+  // Registry reloads replace these arrays, re-deriving the set when a refresh lands new
+  // installable versions that change an asset's compatibility.
+  const registryMods = useRegistryStore((s) => s.mods);
+  const registryMaps = useRegistryStore((s) => s.maps);
   const [keys, setKeys] = useState<ReadonlySet<string>>(() => new Set());
 
   useEffect(() => {
@@ -67,7 +72,7 @@ export function IncompatibleAssetKeysProvider({
     return () => {
       cancelled = true;
     };
-  }, [gameVersion]);
+  }, [gameVersion, registryMods, registryMaps]);
 
   return (
     <IncompatibleAssetKeysContext.Provider value={keys}>

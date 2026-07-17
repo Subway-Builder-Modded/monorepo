@@ -6,6 +6,10 @@ export function ClearConfig() {
   return window['go']['config']['Config']['ClearConfig']();
 }
 
+export function ClearDefaultSteamLibraryPath() {
+  return window['go']['config']['Config']['ClearDefaultSteamLibraryPath']();
+}
+
 export function ClearGithubToken() {
   return window['go']['config']['Config']['ClearGithubToken']();
 }
@@ -62,6 +66,10 @@ export function UpdateConfig(arg1, arg2) {
   return window['go']['config']['Config']['UpdateConfig'](arg1, arg2);
 }
 
+export function UpdateDefaultSteamLibraryPath(arg1) {
+  return window['go']['config']['Config']['UpdateDefaultSteamLibraryPath'](arg1);
+}
+
 export function UpdateExecutable(arg1) {
   return window['go']['config']['Config']['UpdateExecutable'](arg1);
 }
@@ -72,4 +80,8 @@ export function UpdateGithubToken(arg1) {
 
 export function UpdateMetroMakerDataFolder(arg1) {
   return window['go']['config']['Config']['UpdateMetroMakerDataFolder'](arg1);
+}
+
+export function UpdateUseSteamLaunch(arg1) {
+  return window['go']['config']['Config']['UpdateUseSteamLaunch'](arg1);
 }

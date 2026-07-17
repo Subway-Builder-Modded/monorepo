@@ -5,6 +5,8 @@ import {context} from '../models';
 
 export function ClearConfig():Promise<types.ResolveConfigResponse>;
 
+export function ClearDefaultSteamLibraryPath():Promise<types.ResolveConfigResponse>;
+
 export function ClearGithubToken():Promise<types.ResolveConfigResponse>;
 
 export function CompleteSetup():Promise<types.ResolveConfigResponse>;
@@ -33,8 +35,12 @@ export function UpdateCheckForUpdatesOnLaunch(arg1:boolean):Promise<types.Resolv
 
 export function UpdateConfig(arg1:any,arg2:boolean):Promise<types.ResolveConfigResult>;
 
+export function UpdateDefaultSteamLibraryPath(arg1:string):Promise<types.ResolveConfigResponse>;
+
 export function UpdateExecutable(arg1:string):Promise<types.ResolveConfigResult>;
 
 export function UpdateGithubToken(arg1:string):Promise<types.ResolveConfigResponse>;
 
 export function UpdateMetroMakerDataFolder(arg1:string):Promise<types.ResolveConfigResult>;
+
+export function UpdateUseSteamLaunch(arg1:boolean):Promise<types.ResolveConfigResponse>;
