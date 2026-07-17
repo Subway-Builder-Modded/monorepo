@@ -1,7 +1,8 @@
 package main
 
-// PMTiles sidecar server: serves map tiles and generated thumbnails to the running game over
-// loopback, plus generation of missing thumbnails for installed maps.
+// This file defines the PMTiles sidecar server, which serves map tiles and generated
+// thumbnails to the running game over loopback, plus generation of missing thumbnails
+// for installed maps.
 
 import (
 	"fmt"

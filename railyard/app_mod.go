@@ -1,7 +1,8 @@
 package main
 
-// Map-loader mod generation: assembles the Railyard map-loader mod (index.js + manifest) from
-// the installed maps and writes it into the MetroMaker mods folder before each game launch.
+// This file defines map-loader mod generation: assembling the Railyard map-loader mod
+// (index.js + manifest) from the installed maps and writing it into the MetroMaker mods
+// folder before each game launch.
 
 import (
 	"encoding/json"
