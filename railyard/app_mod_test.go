@@ -136,8 +136,15 @@ func readGeneratedModConfig(t *testing.T, indexPath string) types.MetroMakerModC
 	t.Helper()
 	raw, err := os.ReadFile(indexPath)
 	require.NoError(t, err)
-	// index.js starts with: const config = {...};
-	s := strings.TrimPrefix(string(raw), "const config = ")
+	// The mod is an esbuild bundle; the injected config appears as a
+	// `config = {...};` assignment inside the IIFE (no longer the file prefix).
+	// Anchor on that assignment and decode the JSON object that follows - the
+	// decoder stops at the end of the object and ignores the trailing `;` and
+	// the rest of the bundle.
+	const marker = "config = "
+	idx := strings.Index(string(raw), marker)
+	require.GreaterOrEqual(t, idx, 0, "config assignment not found in generated mod")
+	s := string(raw)[idx+len(marker):]
 	var cfg types.MetroMakerModConfig
 	require.NoError(t, json.NewDecoder(strings.NewReader(s)).Decode(&cfg))
 	return cfg

@@ -44,7 +44,7 @@ var modTemplate string
 
 func ModTemplateWithConfig(configJSON string) string {
 	out := strings.Replace(modTemplate, "$CONFIG", configJSON, 1)
-	out = strings.Replace(out, "$MOD_VERSION", MOD_VERSION, 1)
+	out = strings.Replace(out, "$MOD_VERSION", strings.TrimSpace(MOD_VERSION), 1)
 	return out
 }
 

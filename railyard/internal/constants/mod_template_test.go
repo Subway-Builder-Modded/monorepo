@@ -13,7 +13,7 @@ func TestModTemplateServesModdedDrivingPaths(t *testing.T) {
 
 	// The mod is a single self-contained IIFE (see packages/map-loader).
 	require.Contains(t, out, "})();")
-	// The driving-path server ships and is wired into the IIFE. 
+	// The driving-path server ships and is wired into the IIFE.
 	require.Contains(t, out, "installDrivingPathServer(config)")
 	require.Contains(t, out, "__railyardPathShim")
 	// It answers the request the pop-details view makes.
