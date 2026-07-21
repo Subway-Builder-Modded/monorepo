@@ -34,11 +34,18 @@ func SteamGameAsarPath(gamePath string) string {
 	return filepath.Join(gamePath, GameAsarRelPath)
 }
 
+// mod_template.js is generated: it is the esbuild IIFE bundle of the
+// packages/map-loader workspace package. DO NOT edit it by hand
+// CI enforces that the committed bundle matches source.
+//
+//go:generate pnpm --filter @subway-builder-modded/map-loader build
 //go:embed mod_template.js
 var modTemplate string
 
 func ModTemplateWithConfig(configJSON string) string {
-	return strings.Replace(modTemplate, "$CONFIG", configJSON, 1)
+	out := strings.Replace(modTemplate, "$CONFIG", configJSON, 1)
+	out = strings.Replace(out, "$MOD_VERSION", MOD_VERSION, 1)
+	return out
 }
 
 var MAP_COLORS = map[string]map[string]string{
