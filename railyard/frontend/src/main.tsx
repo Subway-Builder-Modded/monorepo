@@ -3,6 +3,7 @@ import './style.css';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { LogFrontend } from '../wailsjs/go/main/App';
 import App from './App';
 import { addLongTaskObserver } from './lib/perf';
 
@@ -117,7 +118,22 @@ document.addEventListener(
 
 const container = document.getElementById('root');
 
-const root = createRoot(container!);
+// Log renderer rerrors that no boundary handles, which could unmount the whole tree and blanks the
+// webview.
+const root = createRoot(container!, {
+  onUncaughtError: (error, errorInfo) => {
+    const err = error instanceof Error ? error : new Error(String(error));
+    const line = `[error] Uncaught React render error: ${err.message}\n${
+      err.stack ?? ''
+    }\ncomponentStack:${errorInfo.componentStack ?? ''}`;
+    console.error(line);
+    try {
+      void LogFrontend('error', line);
+    } catch {
+      // Not running inside Wails (e.g. unit tests); console output is enough.
+    }
+  },
+});
 
 root.render(
   <React.StrictMode>
