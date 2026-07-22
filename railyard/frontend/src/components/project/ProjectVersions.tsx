@@ -201,19 +201,9 @@ export function ProjectVersions({
     setTimeout(() => setErrorCopied(false), 2000);
   };
 
-  if (loading) {
-    return <ProjectVersionsLoadingState />;
-  }
-
-  if (error) {
-    return <ErrorBanner message={error} />;
-  }
-
-  if (versions.length === 0) {
-    return <EmptyState icon={FileText} title="No versions available" />;
-  }
-
   const hasAnyGameVersion = versions.some((v) => v.game_version);
+  // Place useMemo hooks above the early returns below so the hook order is stable across the
+  // loading -> loaded transition as React requires the same hooks every render.
   const sorted = useMemo(
     () => sortProjectVersions(versions, sort, compareSemver),
     [versions, sort],
@@ -238,6 +228,19 @@ export function ProjectVersions({
     }
     return map;
   }, [versions, gameVersion]);
+
+  if (loading) {
+    return <ProjectVersionsLoadingState />;
+  }
+
+  if (error) {
+    return <ErrorBanner message={error} />;
+  }
+
+  if (versions.length === 0) {
+    return <EmptyState icon={FileText} title="No versions available" />;
+  }
+
   const typeListingPath = assetTypeToListingPath(type);
 
   return (
