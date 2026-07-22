@@ -1,0 +1,21 @@
+{
+  "name": "@subway-builder-modded/map-loader",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "exports": {
+    ".": {
+      "default": "./src/index.js"
+    }
+  },
+  "devDependencies": {
+    "esbuild": "0.27.7",
+    "vitest": "^4.1.4"
+  }
+}

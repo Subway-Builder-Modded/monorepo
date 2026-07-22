@@ -9,6 +9,7 @@ on:
       - "packages/**"
       - "website/**"
       - "railyard/frontend/**"
+      - "railyard/internal/constants/mod_template.js"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "package.json"
@@ -21,6 +22,7 @@ on:
       - "packages/**"
       - "website/**"
       - "railyard/frontend/**"
+      - "railyard/internal/constants/mod_template.js"
       - "pnpm-workspace.yaml"
       - "pnpm-lock.yaml"
       - "package.json"
@@ -148,3 +150,34 @@ jobs:
 
       - name: Run shared package tests
         run: pnpm run test:packages
+
+  map-loader-bundle:
+    name: Verify Map Loader Bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Rebuild map-loader bundle
+        run: pnpm --filter @subway-builder-modded/map-loader build
+
+      - name: Fail if committed bundle is out of date
+        run: |
+          if ! git diff --exit-code railyard/internal/constants/mod_template.js; then
+            echo "::error::railyard/internal/constants/mod_template.js is out of date."
+            echo "Run: pnpm --filter @subway-builder-modded/map-loader build, then commit the result."
+            exit 1
+          fi

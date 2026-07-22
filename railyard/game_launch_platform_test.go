@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"testing"
 	"time"
@@ -65,7 +66,8 @@ func TestBuildLaunchCommandDarwinAppBundle(t *testing.T) {
 func TestBuildLaunchCommandDarwinNonBundleFallsBackToDirect(t *testing.T) {
 	cmd := buildLaunchCommand("darwin", launchSpec{exePath: "/opt/game/subway-builder"})
 	require.Equal(t, []string{"/opt/game/subway-builder"}, cmd.Args)
-	require.Equal(t, "/opt/game", cmd.Dir)
+	// ToSlash normalizes the host separator: filepath.Dir yields \opt\game on Windows.
+	require.Equal(t, "/opt/game", filepath.ToSlash(cmd.Dir))
 }
 
 func TestBuildLaunchCommandLinuxFlatpakVariants(t *testing.T) {
@@ -97,7 +99,7 @@ func TestBuildLaunchCommandLinuxFlatpakVariants(t *testing.T) {
 		useDevTools: true,
 	})
 	require.Equal(t, []string{"/games/metro-maker4"}, cmd.Args)
-	require.Equal(t, "/games", cmd.Dir)
+	require.Equal(t, "/games", filepath.ToSlash(cmd.Dir))
 	require.True(t, hasEnv(cmd, "DEBUG_PROD=TRUE"))
 }
 
