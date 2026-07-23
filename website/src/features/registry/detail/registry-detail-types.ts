@@ -1,3 +1,5 @@
+import type { DataQualityTier } from "@subway-builder-modded/config";
+
 import type { RegistryTypeConfig } from "@/shared/registry-card/registry-item-types";
 
 export type RegistryDetailSourceLink = {
@@ -66,7 +68,10 @@ export type RegistryDetailMapFields = {
   populationCount: number | null;
   pointsCount: number | null;
   playableAreaKm2: number | null;
-  sourceQuality: "High" | "Medium" | "Low" | null;
+  /** Raw data-quality tier from the manifest; formatted with formatDataQuality at render. */
+  dataQuality: DataQualityTier | null;
+  /** Weighted data-quality composite in [0, 1]; null when the map is unscored. */
+  weightedScore: number | null;
   levelOfDetail: "High" | "Medium" | "Low" | null;
   fileSizes: {
     pmtiles: number | null;
@@ -138,6 +143,13 @@ export type RegistryDetailLoadedData = {
     gallery?: string[];
     source?: string;
     source_quality?: string;
+    data_quality?: {
+      tier?: string;
+      raw_score?: number;
+      weighted_score?: number;
+      rubric_version?: number;
+      provenance?: string;
+    };
     level_of_detail?: string;
     population_count?: number;
     points_count?: number;

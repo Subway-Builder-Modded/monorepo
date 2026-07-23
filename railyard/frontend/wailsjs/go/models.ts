@@ -391,6 +391,26 @@ export namespace types {
 		    return a;
 		}
 	}
+	export class DataQuality {
+	    tier: string;
+	    raw_score?: number;
+	    weighted_score?: number;
+	    rubric_version: number;
+	    provenance?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DataQuality(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tier = source["tier"];
+	        this.raw_score = source["raw_score"];
+	        this.weighted_score = source["weighted_score"];
+	        this.rubric_version = source["rubric_version"];
+	        this.provenance = source["provenance"];
+	    }
+	}
 	export class DeepLinkTarget {
 	    type: string;
 	    id: string;
@@ -1203,6 +1223,7 @@ export namespace types {
 	    population: number;
 	    data_source: string;
 	    source_quality: string;
+	    data_quality?: DataQuality;
 	    level_of_detail: string;
 	    special_demand: string[];
 	    initial_view_state: InitialViewState;
@@ -1234,6 +1255,7 @@ export namespace types {
 	        this.population = source["population"];
 	        this.data_source = source["data_source"];
 	        this.source_quality = source["source_quality"];
+	        this.data_quality = this.convertValues(source["data_quality"], DataQuality);
 	        this.level_of_detail = source["level_of_detail"];
 	        this.special_demand = source["special_demand"];
 	        this.initial_view_state = this.convertValues(source["initial_view_state"], InitialViewState);

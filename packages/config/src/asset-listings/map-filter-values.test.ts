@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildSpecialDemandValues,
-  formatSourceQuality,
+  DATA_QUALITY_TIER_VALUES,
+  formatDataQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
-  SOURCE_QUALITY_VALUES,
+  resolveDataQualityTier,
 } from './map-filter-values';
 
 describe('LOCATION_TAGS', () => {
@@ -29,14 +30,6 @@ describe('LOCATION_TAGS', () => {
   });
 });
 
-describe('SOURCE_QUALITY_VALUES', () => {
-  it('contains low, medium, and high quality options', () => {
-    expect(SOURCE_QUALITY_VALUES).toContain('low-quality');
-    expect(SOURCE_QUALITY_VALUES).toContain('medium-quality');
-    expect(SOURCE_QUALITY_VALUES).toContain('high-quality');
-  });
-});
-
 describe('LEVEL_OF_DETAIL_VALUES', () => {
   it('contains low, medium, and high detail options', () => {
     expect(LEVEL_OF_DETAIL_VALUES).toContain('low-detail');
@@ -45,15 +38,48 @@ describe('LEVEL_OF_DETAIL_VALUES', () => {
   });
 });
 
-describe('formatSourceQuality', () => {
-  it('maps known values to their display labels', () => {
-    expect(formatSourceQuality('low-quality')).toBe('low-data-quality');
-    expect(formatSourceQuality('medium-quality')).toBe('medium-data-quality');
-    expect(formatSourceQuality('high-quality')).toBe('high-data-quality');
+describe('DATA_QUALITY_TIER_VALUES', () => {
+  it('contains the data-quality tiers in best-to-unknown order', () => {
+    expect(DATA_QUALITY_TIER_VALUES).toEqual([
+      'very-high',
+      'high',
+      'medium',
+      'low',
+      'very-low',
+      'absent',
+      'unknown',
+    ]);
+  });
+});
+
+describe('formatDataQuality', () => {
+  it('displays tiers with the -quality suffix and unknown as unknown-quality', () => {
+    expect(formatDataQuality('very-high')).toBe('very-high-quality');
+    expect(formatDataQuality('high')).toBe('high-quality');
+    expect(formatDataQuality('absent')).toBe('absent-quality');
+    expect(formatDataQuality('unknown')).toBe('unknown-quality');
   });
 
   it('returns the original value for unknown strings', () => {
-    expect(formatSourceQuality('unknown')).toBe('unknown');
+    expect(formatDataQuality('mystery-quality')).toBe('mystery-quality');
+  });
+});
+
+describe('resolveDataQualityTier', () => {
+  it('returns the tier from the data_quality block', () => {
+    expect(resolveDataQualityTier({ data_quality: { tier: 'high' } })).toBe('high');
+    expect(resolveDataQualityTier({ data_quality: { tier: 'unknown' } })).toBe(
+      'unknown',
+    );
+  });
+
+  it('treats a missing block as unknown and never reads the legacy field', () => {
+    expect(resolveDataQualityTier({})).toBe('unknown');
+    expect(
+      resolveDataQualityTier({
+        source_quality: 'high-quality',
+      } as Record<string, unknown>),
+    ).toBe('unknown');
   });
 });
 

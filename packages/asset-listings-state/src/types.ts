@@ -12,9 +12,9 @@ import {
   type FilterByAssetType,
 } from '@subway-builder-modded/stores-core';
 
-export interface SourceQualityMapFilters {
+export interface DataQualityMapFilters {
   locations: string[];
-  sourceQuality: string[];
+  dataQuality: string[];
   levelOfDetail: string[];
   specialDemand: string[];
   [key: string]: string[];
@@ -22,14 +22,14 @@ export interface SourceQualityMapFilters {
 
 export type SourceAssetQueryFilterState = BaseAssetQueryFilterState<
   AssetType,
-  SourceQualityMapFilters
+  DataQualityMapFilters
 >;
 
-export type SourceAssetFilterState = BaseAssetFilterState<SourceQualityMapFilters>;
+export type SourceAssetFilterState = BaseAssetFilterState<DataQualityMapFilters>;
 
 export type SourceFilterByAssetType = FilterByAssetType<
   AssetType,
-  SourceQualityMapFilters
+  DataQualityMapFilters
 >;
 
 export type AssetQueryFilterUpdater<TFilters> =
@@ -60,7 +60,7 @@ export function createDefaultSourceFilters(
     },
     map: {
       locations: [],
-      sourceQuality: [],
+      dataQuality: [],
       levelOfDetail: [],
       specialDemand: [],
     },

@@ -3,6 +3,7 @@ import Fuse, { type IFuseOptions } from 'fuse.js';
 import {
   ASSET_LISTING_FUSE_SEARCH_OPTIONS,
   buildListingCounts,
+  resolveDataQualityTier,
   type AssetListingCounts,
   type AssetType,
   type PerPage,
@@ -38,6 +39,7 @@ export interface AssetSearchable {
   country?: string | null;
   location?: string | null;
   source_quality?: string | null;
+  data_quality?: { tier?: string | null } | null;
   level_of_detail?: string | null;
   special_demand?: string[] | null;
 }
@@ -61,7 +63,7 @@ export function buildAssetSearchText<TItem extends AssetSearchable>(
       item.city_code ?? '',
       ...buildCountryCodeSearchTerms(item.country),
       item.location ?? '',
-      item.source_quality ?? '',
+      resolveDataQualityTier(item),
       item.level_of_detail ?? '',
       ...(item.special_demand ?? []),
     );

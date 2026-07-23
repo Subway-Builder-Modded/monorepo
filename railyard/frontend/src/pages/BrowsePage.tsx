@@ -18,14 +18,14 @@ import type { AssetType } from '@subway-builder-modded/config';
 import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
+  DATA_QUALITY_TIER_VALUES,
   DEFAULT_SORT_STATE,
-  formatSourceQuality,
+  formatDataQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
   SEARCH_FILTER_EMPTY_LABELS,
   type SortField,
-  SOURCE_QUALITY_VALUES,
   TEXT_SORT_FIELDS,
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
@@ -246,7 +246,7 @@ function BrowsePageContent({
           mod: { tags: prev.mod.tags },
           map: {
             locations: prev.map.locations,
-            sourceQuality: prev.map.sourceQuality,
+            dataQuality: prev.map.dataQuality,
             levelOfDetail: prev.map.levelOfDetail,
             specialDemand: prev.map.specialDemand,
           },
@@ -258,7 +258,7 @@ function BrowsePageContent({
           map: {
             ...prev.map,
             locations: next.map.locations,
-            sourceQuality: next.map.sourceQuality,
+            dataQuality: next.map.dataQuality,
             levelOfDetail: next.map.levelOfDetail,
             specialDemand: next.map.specialDemand,
           },
@@ -340,9 +340,9 @@ function BrowsePageContent({
             modCount={filteredDimCounts.modCount}
             mapCount={filteredDimCounts.mapCount}
             locationValues={LOCATION_TAGS}
-            sourceQualityValues={SOURCE_QUALITY_VALUES}
+            dataQualityValues={DATA_QUALITY_TIER_VALUES}
             levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
-            formatSourceQuality={formatSourceQuality}
+            formatDataQuality={formatDataQuality}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
             minimumVisibleOptions={2}
             statusContent={

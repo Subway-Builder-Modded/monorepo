@@ -8,6 +8,7 @@ import {
 } from '@subway-builder-modded/asset-listings-state';
 import {
   ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  resolveDataQualityTier,
   resolveMapLocation,
 } from '@subway-builder-modded/config';
 
@@ -53,16 +54,16 @@ export function createTaggedListingAccessors<
         filterKey: 'locations',
       },
       {
-        countKey: 'mapSourceQualityCounts',
+        countKey: 'mapDataQualityCounts',
         assetType: 'map',
         cardinality: 'single',
         getValue: (item) =>
           item.type === 'map'
-            ? ((item.item as types.MapManifest).source_quality ?? '')
+            ? resolveDataQualityTier(item.item as types.MapManifest)
             : undefined,
-        getSelected: (filters) => filters.map.sourceQuality ?? [],
+        getSelected: (filters) => filters.map.dataQuality ?? [],
         filterParent: 'map',
-        filterKey: 'sourceQuality',
+        filterKey: 'dataQuality',
       },
       {
         countKey: 'mapLevelOfDetailCounts',

@@ -114,8 +114,9 @@ describe('tagged-listing-filters', () => {
     expect(mapLocation.getValue(mapItem)).toBe('east-asia');
     expect(mapLocation.getValue(modItem)).toBeUndefined();
 
-    const mapQuality = findDim('mapSourceQualityCounts');
-    expect(mapQuality.getValue(mapItem)).toBe('');
+    const mapQuality = findDim('mapDataQualityCounts');
+    // No data_quality block resolves to the Unscored tier.
+    expect(mapQuality.getValue(mapItem)).toBe('unknown');
 
     const emptyFilters = {
       mod: { tags: [] },
@@ -139,7 +140,7 @@ describe('tagged-listing-filters', () => {
     expect(
       mapQuality.getSelected({
         mod: { tags: [] },
-        map: { sourceQuality: ['official'] },
+        map: { dataQuality: ['official'] },
       }),
     ).toEqual(['official']);
     expect(
@@ -169,7 +170,10 @@ describe('tagged-listing-filters', () => {
         item: createMapManifest({
           id: 'map-tokyo',
           location: 'east-asia',
-          source_quality: 'official',
+          data_quality: {
+            tier: 'very-high',
+            rubric_version: 1,
+          } as types.DataQuality,
           level_of_detail: 'full',
           special_demand: ['commuter'],
         }),
@@ -180,7 +184,10 @@ describe('tagged-listing-filters', () => {
           id: 'map-seoul',
           name: 'Seoul',
           location: 'east-asia',
-          source_quality: 'community',
+          data_quality: {
+            tier: 'medium',
+            rubric_version: 1,
+          } as types.DataQuality,
           level_of_detail: 'basic',
           special_demand: ['tourist'],
         }),
@@ -224,7 +231,7 @@ describe('tagged-listing-filters', () => {
         mod: { tags: [] },
         map: {
           locations: ['east-asia'],
-          sourceQuality: [],
+          dataQuality: [],
           levelOfDetail: [],
           specialDemand: [],
         },
@@ -236,9 +243,9 @@ describe('tagged-listing-filters', () => {
       'east-asia': 2,
       europe: 1,
     });
-    expect(mapCounts.mapSourceQualityCounts).toEqual({
-      official: 1,
-      community: 1,
+    expect(mapCounts.mapDataQualityCounts).toEqual({
+      'very-high': 1,
+      medium: 1,
     });
     expect(mapCounts.mapLevelOfDetailCounts).toEqual({
       full: 1,
@@ -260,7 +267,7 @@ describe('tagged-listing-filters', () => {
         mod: { tags: ['ui'] },
         map: {
           locations: [],
-          sourceQuality: [],
+          dataQuality: [],
           levelOfDetail: [],
           specialDemand: [],
         },

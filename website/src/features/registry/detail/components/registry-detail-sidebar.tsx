@@ -294,7 +294,7 @@ export function RegistryDetailSidebar({
               <DemandDataRow
                 icon={<BadgeCheck className="size-4.5" aria-hidden={true} />}
                 label="Data Quality"
-                value={detail.mapFields!.sourceQuality ?? "—"}
+                value={detail.mapFields!.dataQuality ?? "—"}
                 tooltipContent={
                   <>
                     Data Quality refers to the quality and granularity of the source of the

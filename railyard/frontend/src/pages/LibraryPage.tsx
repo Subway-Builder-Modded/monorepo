@@ -13,12 +13,12 @@ import {
 import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
-  formatSourceQuality,
+  DATA_QUALITY_TIER_VALUES,
+  formatDataQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
   SEARCH_FILTER_EMPTY_LABELS,
-  SOURCE_QUALITY_VALUES,
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
 import { Button } from '@subway-builder-modded/shared-ui';
@@ -440,7 +440,7 @@ export function LibraryPage() {
           mod: { tags: prev.mod.tags },
           map: {
             locations: prev.map.locations,
-            sourceQuality: prev.map.sourceQuality,
+            dataQuality: prev.map.dataQuality,
             levelOfDetail: prev.map.levelOfDetail,
             specialDemand: prev.map.specialDemand,
           },
@@ -452,7 +452,7 @@ export function LibraryPage() {
           map: {
             ...prev.map,
             locations: next.map.locations,
-            sourceQuality: next.map.sourceQuality,
+            dataQuality: next.map.dataQuality,
             levelOfDetail: next.map.levelOfDetail,
             specialDemand: next.map.specialDemand,
           },
@@ -503,9 +503,9 @@ export function LibraryPage() {
           modCount={filteredDimCounts.modCount}
           mapCount={filteredDimCounts.mapCount}
           locationValues={LOCATION_TAGS}
-          sourceQualityValues={SOURCE_QUALITY_VALUES}
+          dataQualityValues={DATA_QUALITY_TIER_VALUES}
           levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
-          formatSourceQuality={formatSourceQuality}
+          formatDataQuality={formatDataQuality}
           emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           minimumVisibleOptions={2}
           statusContent={

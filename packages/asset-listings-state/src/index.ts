@@ -29,5 +29,5 @@ export {
 	type SourceAssetFilterState,
 	type SourceAssetQueryFilterState,
 	type SourceFilterByAssetType,
-	type SourceQualityMapFilters,
+	type DataQualityMapFilters,
 } from './types';

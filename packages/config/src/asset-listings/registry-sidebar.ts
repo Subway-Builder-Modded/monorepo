@@ -1,6 +1,7 @@
 import { buildListingCounts } from './listing-counts';
 import {
-	DATA_QUALITY_VALUES,
+	DATA_QUALITY_TIER_VALUES,
+	formatDataQuality,
 	LEVEL_OF_DETAIL_VALUES,
 	LOCATION_TAGS,
 } from './map-filter-values';
@@ -29,7 +30,7 @@ const MOD_CONTENT_TAGS = [
 
 const MAP_SPECIAL_DEMAND_TAG_SET = new Set<string>(MAP_SPECIAL_DEMAND_TAGS);
 const MAP_REGION_TAG_SET = new Set<string>(LOCATION_TAGS);
-const MAP_DATA_QUALITY_TAG_SET = new Set<string>(DATA_QUALITY_VALUES);
+const MAP_DATA_QUALITY_TAG_SET = new Set<string>(DATA_QUALITY_TIER_VALUES);
 const MAP_LEVEL_OF_DETAIL_TAG_SET = new Set<string>(LEVEL_OF_DETAIL_VALUES);
 const MOD_CONTENT_TAG_SET = new Set<string>(MOD_CONTENT_TAGS);
 
@@ -50,7 +51,7 @@ export interface RegistryTagCategory {
 interface BuildRegistryTagCategoriesArgs {
 	typeId: string;
 	availableTags: readonly string[];
-	mapSourceQualityValues?: readonly string[];
+	mapDataQualityValues?: readonly string[];
 	mapLevelOfDetailValues?: readonly string[];
 }
 
@@ -61,18 +62,18 @@ function inOrder(values: readonly string[], available: Set<string>): string[] {
 export function buildRegistryTagCategories({
 	typeId,
 	availableTags,
-	mapSourceQualityValues = [],
+	mapDataQualityValues = [],
 	mapLevelOfDetailValues = [],
 }: BuildRegistryTagCategoriesArgs): RegistryTagCategory[] {
 	const sorted = [...new Set(availableTags)].sort((a, b) => a.localeCompare(b));
 
 	if (typeId === 'maps') {
 		const available = new Set(sorted);
-		const manifestDataQuality = new Set(mapSourceQualityValues);
+		const manifestDataQuality = new Set(mapDataQualityValues);
 		const manifestDetail = new Set(mapLevelOfDetailValues);
 
 		const regions = inOrder(LOCATION_TAGS, available);
-		const dataQuality = DATA_QUALITY_VALUES.filter(
+		const dataQuality = DATA_QUALITY_TIER_VALUES.filter(
 			(tag) => available.has(tag) || manifestDataQuality.has(tag),
 		);
 		const levelOfDetail = LEVEL_OF_DETAIL_VALUES.filter(
@@ -117,10 +118,7 @@ export function buildRegistryTagCounts(
 
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
-		if (tag === 'low-quality') return 'Low Data Quality';
-		if (tag === 'medium-quality') return 'Medium Data Quality';
-		if (tag === 'high-quality') return 'High Data Quality';
-		return tag;
+		return formatDataQuality(tag);
 	}
 
 	if (categoryId === 'level-of-detail') {

@@ -26,6 +26,11 @@ run_website_checks() {
     return 0
   fi
 
+  if [ ! -f "$WEBSITE_DIR/scripts/quality.ps1" ] && [ ! -f "$WEBSITE_DIR/scripts/quality.sh" ]; then
+    echo "[pre-push] website quality scripts not present; skipping website checks."
+    return 0
+  fi
+
   if command -v pwsh >/dev/null 2>&1; then
     pwsh -NoProfile -ExecutionPolicy Bypass -File "$WEBSITE_DIR/scripts/quality.ps1"
   elif command -v powershell >/dev/null 2>&1; then
