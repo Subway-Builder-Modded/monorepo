@@ -4,7 +4,6 @@ export type RegistrySortId =
   | "firstReleased"
   | "downloads"
   | "population"
-  | "dataQuality"
   | "name"
   | "cityCode"
   | "author"
@@ -31,7 +30,6 @@ export const REGISTRY_SORT_OPTIONS: RegistrySortOption[] = [
   { id: "name", label: "Name", supportedTypes: "all", supportsDirection: true },
   { id: "author", label: "Author", supportedTypes: "all", supportsDirection: true },
   { id: "population", label: "Population", supportedTypes: ["maps"], supportsDirection: true },
-  { id: "dataQuality", label: "Data Quality", supportedTypes: ["maps"], supportsDirection: true },
   { id: "cityCode", label: "City Code", supportedTypes: ["maps"], supportsDirection: true },
   { id: "random", label: "Random", supportedTypes: "all", supportsDirection: false },
 ];

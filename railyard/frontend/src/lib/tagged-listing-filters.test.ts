@@ -184,7 +184,10 @@ describe('tagged-listing-filters', () => {
           id: 'map-seoul',
           name: 'Seoul',
           location: 'east-asia',
-          data_quality: { tier: 'medium', rubric_version: 1 } as types.DataQuality,
+          data_quality: {
+            tier: 'medium',
+            rubric_version: 1,
+          } as types.DataQuality,
           level_of_detail: 'basic',
           special_demand: ['tourist'],
         }),

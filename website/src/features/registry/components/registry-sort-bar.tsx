@@ -6,7 +6,6 @@ import {
   ArrowDownAZ,
   ArrowUpAZ,
   ArrowUp10,
-  BadgeCheck,
   Clock,
   ArrowDownToLine,
   Type,
@@ -26,7 +25,6 @@ const SORT_ICONS: Record<RegistrySortId, LucideIcon> = {
   name: Type,
   author: User,
   population: Users,
-  dataQuality: BadgeCheck,
   cityCode: Building2,
   random: Shuffle,
 };
@@ -36,7 +34,6 @@ const NUMERIC_SORT_IDS = new Set<RegistrySortId>([
   "firstReleased",
   "downloads",
   "population",
-  "dataQuality",
 ]);
 
 type RegistrySortBarProps = {

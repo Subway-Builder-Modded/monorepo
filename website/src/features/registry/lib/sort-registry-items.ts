@@ -71,17 +71,6 @@ export function sortRegistryItems(
       case "population":
         cmp = compareNumbers(a.population, b.population);
         break;
-      case "dataQuality": {
-        // Unscored maps (no weighted composite) sort last in BOTH directions,
-        // so early-return before the direction flip below.
-        const aScore = a.weightedScore;
-        const bScore = b.weightedScore;
-        if (aScore === null && bScore === null) return 0;
-        if (aScore === null) return 1;
-        if (bScore === null) return -1;
-        cmp = aScore - bScore;
-        break;
-      }
       case "name":
         cmp = compareStrings(a.name, b.name);
         break;

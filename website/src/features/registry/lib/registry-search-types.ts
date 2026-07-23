@@ -29,8 +29,6 @@ export type RegistrySearchItem = {
   countryName: string | null;
   countryEmoji: string | null;
   population: number | null;
-  /** Weighted data-quality composite from the manifest's data_quality block; null when unscored. */
-  weightedScore: number | null;
   isTest: boolean;
   /** Raw manifest for advanced consumers; do not depend on shape. */
   manifest: unknown;

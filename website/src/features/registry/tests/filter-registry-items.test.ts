@@ -20,7 +20,6 @@ function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchIt
     countryCode: "AA",
     countryName: "Country A",
     countryEmoji: null,
-    weightedScore: null,
     population: 500000,
     isTest: false,
     manifest: {},

@@ -69,7 +69,6 @@ function makeMapItem(id: string) {
     countryName: null,
     countryEmoji: null,
     population: null,
-    weightedScore: null,
     isTest: false,
     manifest: {},
   };

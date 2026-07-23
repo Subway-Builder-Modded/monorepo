@@ -39,10 +39,7 @@ export interface AssetSearchable {
   country?: string | null;
   location?: string | null;
   source_quality?: string | null;
-  data_quality?: {
-    tier?: string | null;
-    weighted_score?: number | null;
-  } | null;
+  data_quality?: { tier?: string | null } | null;
   level_of_detail?: string | null;
   special_demand?: string[] | null;
 }

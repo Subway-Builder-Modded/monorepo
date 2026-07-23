@@ -455,12 +455,6 @@ export async function loadRegistryItemsForType(
             ? manifest.residents_total
             : null
         : null,
-      weightedScore:
-        typeUiRules.hasMapMetadata &&
-        typeof manifest.data_quality?.weighted_score === "number" &&
-        Number.isFinite(manifest.data_quality.weighted_score)
-          ? manifest.data_quality.weighted_score
-          : null,
       isTest: false,
       manifest,
     });
