@@ -1,6 +1,7 @@
 import { buildListingCounts } from './listing-counts';
 import {
 	DATA_QUALITY_TIER_VALUES,
+	formatDataQuality,
 	LEVEL_OF_DETAIL_VALUES,
 	LOCATION_TAGS,
 } from './map-filter-values';
@@ -117,8 +118,7 @@ export function buildRegistryTagCounts(
 
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
-		if (tag === 'unknown') return 'unknown-quality';
-		return `${tag}-quality`;
+		return formatDataQuality(tag);
 	}
 
 	if (categoryId === 'level-of-detail') {

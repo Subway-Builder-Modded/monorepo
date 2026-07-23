@@ -1,7 +1,11 @@
-import { resolveDataQualityTier } from "@subway-builder-modded/config";
+import {
+  DATA_QUALITY_TIER_VALUES,
+  formatDataQuality,
+  resolveDataQualityTier,
+  type DataQualityTier,
+} from "@subway-builder-modded/config";
 
 import type {
-  RegistryDataQualityLabel,
   RegistryDetailIntegrityVersion,
   RegistryDetailLoadedData,
   RegistryDetailModel,
@@ -50,22 +54,16 @@ function toExcerpt(input: string): string | null {
   return `${normalized.slice(0, 177).trimEnd()}...`;
 }
 
-const DATA_QUALITY_DISPLAY_LABELS: Record<string, RegistryDataQualityLabel> = {
-  "very-high": "Very High",
-  high: "High",
-  medium: "Medium",
-  low: "Low",
-  "very-low": "Very Low",
-  absent: "Absent",
-  unknown: "unknown-quality",
-};
-
-function normalizeDataQuality(value: string | undefined): RegistryDataQualityLabel | null {
+// The detail model carries the RAW tier; formatDataQuality is applied at the
+// render edge so display labels have a single source in the config package.
+function normalizeDataQuality(value: string | undefined): DataQualityTier | null {
   const normalized = value?.trim().toLowerCase();
   if (!normalized) {
     return null;
   }
-  return DATA_QUALITY_DISPLAY_LABELS[normalized] ?? null;
+  return (DATA_QUALITY_TIER_VALUES as readonly string[]).includes(normalized)
+    ? (normalized as DataQualityTier)
+    : null;
 }
 
 function normalizeDetailLevel(value: string | undefined): "High" | "Medium" | "Low" | null {
@@ -87,7 +85,7 @@ function normalizeDetailLevel(value: string | undefined): "High" | "Medium" | "L
 
 function isMapDemandDataTag(
   normalizedTag: string,
-  dataQuality: RegistryDataQualityLabel | null,
+  dataQuality: DataQualityTier | null,
   levelOfDetail: "High" | "Medium" | "Low" | null,
 ): boolean {
   const blocked = new Set([
@@ -113,9 +111,8 @@ function isMapDemandDataTag(
   ]);
 
   if (dataQuality) {
-    const qualityBase = dataQuality.toLowerCase();
-    blocked.add(qualityBase);
-    blocked.add(`${qualityBase}-quality`);
+    blocked.add(dataQuality);
+    blocked.add(formatDataQuality(dataQuality));
   }
 
   if (levelOfDetail) {
