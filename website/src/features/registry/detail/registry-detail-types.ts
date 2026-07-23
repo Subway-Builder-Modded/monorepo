@@ -60,7 +60,7 @@ export type RegistryDataQualityLabel =
   | "Low"
   | "Very Low"
   | "Absent"
-  | "Unscored";
+  | "unknown-quality";
 
 export type RegistryDetailMapFields = {
   rankings: {

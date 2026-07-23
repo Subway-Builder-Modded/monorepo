@@ -76,7 +76,7 @@ describe('formatRegistryTagLabel', () => {
   it('formats known map quality and detail values', () => {
     expect(formatRegistryTagLabel('data-quality', 'very-high')).toBe('very-high-quality');
     expect(formatRegistryTagLabel('data-quality', 'high')).toBe('high-quality');
-    expect(formatRegistryTagLabel('data-quality', 'unknown')).toBe('unscored');
+    expect(formatRegistryTagLabel('data-quality', 'unknown')).toBe('unknown-quality');
     expect(formatRegistryTagLabel('level-of-detail', 'high-detail')).toBe('High Detail');
     expect(formatRegistryTagLabel('other', 'custom')).toBe('custom');
   });

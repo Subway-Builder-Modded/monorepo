@@ -47,7 +47,7 @@ const DATA_QUALITY_LABELS: Record<string, string> = {
 	low: 'low-quality',
 	'very-low': 'very-low-quality',
 	absent: 'absent-quality',
-	unknown: 'unscored',
+	unknown: 'unknown-quality',
 };
 
 export function formatDataQuality(value: string): string {
@@ -57,7 +57,7 @@ export function formatDataQuality(value: string): string {
 /**
  * Data-quality tier for display and filtering. The registry guarantees a
  * `data_quality` block on every map manifest; a missing block (stale local
- * clone or snapshot predating the migration) reads as "unknown" (Unscored).
+ * clone or snapshot predating the migration) reads as "unknown".
  */
 export function resolveDataQualityTier(map: {
 	data_quality?: { tier?: string | null } | null;

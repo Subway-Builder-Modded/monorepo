@@ -39,7 +39,7 @@ describe('LEVEL_OF_DETAIL_VALUES', () => {
 });
 
 describe('DATA_QUALITY_TIER_VALUES', () => {
-  it('contains the data-quality tiers in best-to-unscored order', () => {
+  it('contains the data-quality tiers in best-to-unknown order', () => {
     expect(DATA_QUALITY_TIER_VALUES).toEqual([
       'very-high',
       'high',
@@ -53,11 +53,11 @@ describe('DATA_QUALITY_TIER_VALUES', () => {
 });
 
 describe('formatDataQuality', () => {
-  it('displays tiers with the -quality suffix and unknown as unscored', () => {
+  it('displays tiers with the -quality suffix and unknown as unknown-quality', () => {
     expect(formatDataQuality('very-high')).toBe('very-high-quality');
     expect(formatDataQuality('high')).toBe('high-quality');
     expect(formatDataQuality('absent')).toBe('absent-quality');
-    expect(formatDataQuality('unknown')).toBe('unscored');
+    expect(formatDataQuality('unknown')).toBe('unknown-quality');
   });
 
   it('returns the original value for unknown strings', () => {

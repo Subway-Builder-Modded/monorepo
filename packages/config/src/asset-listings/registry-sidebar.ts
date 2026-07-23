@@ -117,7 +117,7 @@ export function buildRegistryTagCounts(
 
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
-		if (tag === 'unknown') return 'unscored';
+		if (tag === 'unknown') return 'unknown-quality';
 		return `${tag}-quality`;
 	}
 
