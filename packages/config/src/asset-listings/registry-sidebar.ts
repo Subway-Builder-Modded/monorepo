@@ -1,6 +1,6 @@
 import { buildListingCounts } from './listing-counts';
 import {
-	EFFECTIVE_DATA_QUALITY_VALUES,
+	DATA_QUALITY_TIER_VALUES,
 	LEVEL_OF_DETAIL_VALUES,
 	LOCATION_TAGS,
 } from './map-filter-values';
@@ -29,7 +29,7 @@ const MOD_CONTENT_TAGS = [
 
 const MAP_SPECIAL_DEMAND_TAG_SET = new Set<string>(MAP_SPECIAL_DEMAND_TAGS);
 const MAP_REGION_TAG_SET = new Set<string>(LOCATION_TAGS);
-const MAP_DATA_QUALITY_TAG_SET = new Set<string>(EFFECTIVE_DATA_QUALITY_VALUES);
+const MAP_DATA_QUALITY_TAG_SET = new Set<string>(DATA_QUALITY_TIER_VALUES);
 const MAP_LEVEL_OF_DETAIL_TAG_SET = new Set<string>(LEVEL_OF_DETAIL_VALUES);
 const MOD_CONTENT_TAG_SET = new Set<string>(MOD_CONTENT_TAGS);
 
@@ -72,7 +72,7 @@ export function buildRegistryTagCategories({
 		const manifestDetail = new Set(mapLevelOfDetailValues);
 
 		const regions = inOrder(LOCATION_TAGS, available);
-		const dataQuality = EFFECTIVE_DATA_QUALITY_VALUES.filter(
+		const dataQuality = DATA_QUALITY_TIER_VALUES.filter(
 			(tag) => available.has(tag) || manifestDataQuality.has(tag),
 		);
 		const levelOfDetail = LEVEL_OF_DETAIL_VALUES.filter(
@@ -117,7 +117,6 @@ export function buildRegistryTagCounts(
 
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
-		// Data-quality tier values.
 		if (tag === 'very-high') return 'Very High Data Quality';
 		if (tag === 'high') return 'High Data Quality';
 		if (tag === 'medium') return 'Medium Data Quality';
@@ -125,10 +124,6 @@ export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: s
 		if (tag === 'very-low') return 'Very Low Data Quality';
 		if (tag === 'absent') return 'Absent Data Quality';
 		if (tag === 'unknown') return 'Unscored';
-		// Legacy self-reported values (pre-backfill manifests only).
-		if (tag === 'low-quality') return 'Low Data Quality (self-reported)';
-		if (tag === 'medium-quality') return 'Medium Data Quality (self-reported)';
-		if (tag === 'high-quality') return 'High Data Quality (self-reported)';
 		return tag;
 	}
 

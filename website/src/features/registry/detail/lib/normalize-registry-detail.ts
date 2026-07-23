@@ -1,4 +1,4 @@
-import { resolveEffectiveDataQuality } from "@subway-builder-modded/config";
+import { resolveDataQualityTier } from "@subway-builder-modded/config";
 
 import type {
   RegistryDataQualityLabel,
@@ -51,7 +51,6 @@ function toExcerpt(input: string): string | null {
 }
 
 const DATA_QUALITY_DISPLAY_LABELS: Record<string, RegistryDataQualityLabel> = {
-  // Data-quality tier values from the manifest's data_quality block.
   "very-high": "Very High",
   high: "High",
   medium: "Medium",
@@ -59,10 +58,6 @@ const DATA_QUALITY_DISPLAY_LABELS: Record<string, RegistryDataQualityLabel> = {
   "very-low": "Very Low",
   absent: "Absent",
   unknown: "Unscored",
-  // Legacy self-reported values (manifests predating the registry backfill).
-  "high-quality": "High",
-  "medium-quality": "Medium",
-  "low-quality": "Low",
 };
 
 function normalizeDataQuality(value: string | undefined): RegistryDataQualityLabel | null {
@@ -360,9 +355,7 @@ function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
 
 export function normalizeRegistryDetail(data: RegistryDetailLoadedData): RegistryDetailModel {
   const description = (data.manifest.description ?? data.item.description ?? "").trim();
-  const sourceQuality = normalizeDataQuality(
-    resolveEffectiveDataQuality(data.manifest) ?? undefined,
-  );
+  const sourceQuality = normalizeDataQuality(resolveDataQualityTier(data.manifest));
   const levelOfDetail = normalizeDetailLevel(data.manifest.level_of_detail);
   const tags = Array.from(
     new Set([...(data.manifest.tags ?? []), ...(data.item.tags ?? [])]),

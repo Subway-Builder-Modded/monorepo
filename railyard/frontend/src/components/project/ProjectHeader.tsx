@@ -3,8 +3,8 @@ import {
   assetTypeToListingPath,
 } from '@subway-builder-modded/config';
 import {
-  formatSourceQuality,
-  resolveEffectiveDataQuality,
+  formatDataQuality,
+  resolveDataQualityTier,
   resolveMapLocation,
 } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
@@ -477,7 +477,7 @@ export function ProjectHeader({
   const badges = mapItem
     ? [
         resolveMapLocation(mapItem),
-        formatSourceQuality(resolveEffectiveDataQuality(mapItem) ?? ''),
+        formatDataQuality(resolveDataQualityTier(mapItem)),
         mapItem.level_of_detail,
         ...(mapItem.special_demand ?? []),
       ].filter((v): v is string => Boolean(v))

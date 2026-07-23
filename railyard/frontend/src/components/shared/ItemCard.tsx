@@ -6,7 +6,7 @@ import type { AssetType } from '@subway-builder-modded/config';
 import {
   assetTypeToListingPath,
   formatDataQuality,
-  resolveEffectiveDataQuality,
+  resolveDataQualityTier,
   resolveMapLocation,
 } from '@subway-builder-modded/config';
 import {
@@ -96,9 +96,7 @@ function ItemCardComponent({
       }
       location={mapItem ? resolveMapLocation(mapItem) : undefined}
       source_quality={
-        mapItem
-          ? formatDataQuality(resolveEffectiveDataQuality(mapItem) ?? '')
-          : undefined
+        mapItem ? formatDataQuality(resolveDataQualityTier(mapItem)) : undefined
       }
       level_of_detail={mapItem?.level_of_detail}
       special_demand={mapItem?.special_demand}

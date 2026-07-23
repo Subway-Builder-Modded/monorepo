@@ -5,7 +5,7 @@ import type {
   RegistrySearchItem,
 } from "./registry-search-types";
 import { normalizeMapCountry } from "@subway-builder-modded/asset-listings-state";
-import { LOCATION_TAGS, resolveEffectiveDataQuality } from "@subway-builder-modded/config";
+import { LOCATION_TAGS, resolveDataQualityTier } from "@subway-builder-modded/config";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 import {
   getRegistryAuthorsIndexPath,
@@ -207,10 +207,7 @@ function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): s
       tagSet.add(locationTag);
     }
 
-    const effectiveQuality = resolveEffectiveDataQuality(manifest)?.trim();
-    if (effectiveQuality) {
-      tagSet.add(effectiveQuality);
-    }
+    tagSet.add(resolveDataQualityTier(manifest));
     if (manifest.level_of_detail?.trim()) {
       tagSet.add(manifest.level_of_detail.trim());
     }

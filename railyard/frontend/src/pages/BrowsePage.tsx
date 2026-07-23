@@ -18,9 +18,9 @@ import type { AssetType } from '@subway-builder-modded/config';
 import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
+  DATA_QUALITY_TIER_VALUES,
   DEFAULT_SORT_STATE,
-  EFFECTIVE_DATA_QUALITY_VALUES,
-  formatSourceQuality,
+  formatDataQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
@@ -340,9 +340,9 @@ function BrowsePageContent({
             modCount={filteredDimCounts.modCount}
             mapCount={filteredDimCounts.mapCount}
             locationValues={LOCATION_TAGS}
-            sourceQualityValues={EFFECTIVE_DATA_QUALITY_VALUES}
+            sourceQualityValues={DATA_QUALITY_TIER_VALUES}
             levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
-            formatSourceQuality={formatSourceQuality}
+            formatSourceQuality={formatDataQuality}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
             minimumVisibleOptions={2}
             statusContent={

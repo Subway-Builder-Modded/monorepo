@@ -115,7 +115,8 @@ describe('tagged-listing-filters', () => {
     expect(mapLocation.getValue(modItem)).toBeUndefined();
 
     const mapQuality = findDim('mapSourceQualityCounts');
-    expect(mapQuality.getValue(mapItem)).toBe('');
+    // No data_quality block resolves to the Unscored tier.
+    expect(mapQuality.getValue(mapItem)).toBe('unknown');
 
     const emptyFilters = {
       mod: { tags: [] },
@@ -169,7 +170,10 @@ describe('tagged-listing-filters', () => {
         item: createMapManifest({
           id: 'map-tokyo',
           location: 'east-asia',
-          source_quality: 'official',
+          data_quality: {
+            tier: 'very-high',
+            rubric_version: 1,
+          } as types.DataQuality,
           level_of_detail: 'full',
           special_demand: ['commuter'],
         }),
@@ -180,7 +184,7 @@ describe('tagged-listing-filters', () => {
           id: 'map-seoul',
           name: 'Seoul',
           location: 'east-asia',
-          source_quality: 'community',
+          data_quality: { tier: 'medium', rubric_version: 1 } as types.DataQuality,
           level_of_detail: 'basic',
           special_demand: ['tourist'],
         }),
@@ -237,8 +241,8 @@ describe('tagged-listing-filters', () => {
       europe: 1,
     });
     expect(mapCounts.mapSourceQualityCounts).toEqual({
-      official: 1,
-      community: 1,
+      'very-high': 1,
+      medium: 1,
     });
     expect(mapCounts.mapLevelOfDetailCounts).toEqual({
       full: 1,
