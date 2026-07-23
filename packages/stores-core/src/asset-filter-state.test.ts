@@ -14,7 +14,7 @@ import {
 
 interface TestMapFilters {
   locations: string[];
-  sourceQuality: string[];
+  dataQuality: string[];
   levelOfDetail: string[];
   specialDemand: string[];
 }
@@ -34,7 +34,7 @@ const defaultSearchFilters: TestFilterState = {
   },
   map: {
     locations: [],
-    sourceQuality: [],
+    dataQuality: [],
     levelOfDetail: [],
     specialDemand: [],
   },
@@ -56,7 +56,7 @@ describe('cloneFilterState', () => {
       mod: { tags: ['ui'] },
       map: {
         locations: ['europe'],
-        sourceQuality: ['high-quality'],
+        dataQuality: ['high-quality'],
         levelOfDetail: [],
         specialDemand: [],
       },
@@ -165,7 +165,7 @@ describe('switchFilter', () => {
       type: 'map',
       map: {
         locations: ['europe'],
-        sourceQuality: [],
+        dataQuality: [],
         levelOfDetail: [],
         specialDemand: [],
       },

@@ -34,7 +34,7 @@ interface TestItem {
 
 interface TestMapFilters {
   locations: string[];
-  sourceQuality: string[];
+  dataQuality: string[];
   levelOfDetail: string[];
   specialDemand: string[];
 }
@@ -85,7 +85,7 @@ const items: TestTaggedItem[] = [
 
 const mapFilters: TestMapFilters = {
   locations: [],
-  sourceQuality: [],
+  dataQuality: [],
   levelOfDetail: [],
   specialDemand: [],
 };
@@ -110,13 +110,13 @@ const testDimensions: AssetDimension<TestTaggedItem, TestMapFilters>[] = [
     filterKey: 'locations',
   },
   {
-    countKey: 'mapSourceQualityCounts',
+    countKey: 'mapDataQualityCounts',
     assetType: 'map',
     cardinality: 'single',
     getValue: (item) => item.item.quality,
-    getSelected: (filters) => filters.map.sourceQuality,
+    getSelected: (filters) => filters.map.dataQuality,
     filterParent: 'map',
-    filterKey: 'sourceQuality',
+    filterKey: 'dataQuality',
   },
   {
     countKey: 'mapLevelOfDetailCounts',
@@ -292,7 +292,7 @@ describe('filterAndSortTaggedItems', () => {
         mod: { tags: [] },
         map: {
           locations: ['europe'],
-          sourceQuality: ['verified'],
+          dataQuality: ['verified'],
           levelOfDetail: [],
           specialDemand: [],
         },
@@ -435,7 +435,7 @@ describe('filterAndSortTaggedItems', () => {
         mod: { tags: [] },
         map: {
           locations: ['east-asia'],
-          sourceQuality: ['verified'],
+          dataQuality: ['verified'],
           levelOfDetail: [],
           specialDemand: [],
         },
@@ -445,7 +445,7 @@ describe('filterAndSortTaggedItems', () => {
     });
 
     expect(counts.mapCount).toBe(1);
-    expect(counts.mapSourceQualityCounts).toEqual({
+    expect(counts.mapDataQualityCounts).toEqual({
       verified: 1,
       draft: 1,
     });

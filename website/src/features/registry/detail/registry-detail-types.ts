@@ -76,7 +76,7 @@ export type RegistryDetailMapFields = {
   populationCount: number | null;
   pointsCount: number | null;
   playableAreaKm2: number | null;
-  sourceQuality: RegistryDataQualityLabel | null;
+  dataQuality: RegistryDataQualityLabel | null;
   /** Weighted data-quality composite in [0, 1]; null when the map is unscored. */
   weightedScore: number | null;
   levelOfDetail: "High" | "Medium" | "Low" | null;

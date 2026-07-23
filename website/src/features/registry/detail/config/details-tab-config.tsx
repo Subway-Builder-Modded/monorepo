@@ -174,7 +174,7 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
         getTitleTooltipContent: (detail) => getDemandDataTooltipContent(detail),
         icon: BadgeCheck,
         getValue: (detail) => {
-          const label = detail.mapFields?.sourceQuality ?? "\u2014";
+          const label = detail.mapFields?.dataQuality ?? "\u2014";
           const score = detail.mapFields?.weightedScore;
           return typeof score === "number" ? `${label} (${score.toFixed(2)})` : label;
         },

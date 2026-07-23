@@ -50,7 +50,7 @@ export interface RegistryTagCategory {
 interface BuildRegistryTagCategoriesArgs {
 	typeId: string;
 	availableTags: readonly string[];
-	mapSourceQualityValues?: readonly string[];
+	mapDataQualityValues?: readonly string[];
 	mapLevelOfDetailValues?: readonly string[];
 }
 
@@ -61,14 +61,14 @@ function inOrder(values: readonly string[], available: Set<string>): string[] {
 export function buildRegistryTagCategories({
 	typeId,
 	availableTags,
-	mapSourceQualityValues = [],
+	mapDataQualityValues = [],
 	mapLevelOfDetailValues = [],
 }: BuildRegistryTagCategoriesArgs): RegistryTagCategory[] {
 	const sorted = [...new Set(availableTags)].sort((a, b) => a.localeCompare(b));
 
 	if (typeId === 'maps') {
 		const available = new Set(sorted);
-		const manifestDataQuality = new Set(mapSourceQualityValues);
+		const manifestDataQuality = new Set(mapDataQualityValues);
 		const manifestDetail = new Set(mapLevelOfDetailValues);
 
 		const regions = inOrder(LOCATION_TAGS, available);
@@ -117,9 +117,8 @@ export function buildRegistryTagCounts(
 
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
-		// Tiers display as their raw value; only unknown gets a friendlier label.
 		if (tag === 'unknown') return 'unscored';
-		return tag;
+		return `${tag}-quality`;
 	}
 
 	if (categoryId === 'level-of-detail') {

@@ -2,7 +2,7 @@ import {
   type AssetQueryFilterStoreState,
   createDefaultSourceFilters,
   type SourceAssetQueryFilterState,
-  type SourceQualityMapFilters,
+  type DataQualityMapFilters,
 } from '@subway-builder-modded/asset-listings-state';
 import {
   ASSET_TYPES,
@@ -30,7 +30,7 @@ type LibraryFilters = Omit<SourceAssetQueryFilterState, 'sort'> & {
 
 type LibraryFilterByAssetType = FilterByAssetType<
   'mod' | 'map',
-  SourceQualityMapFilters,
+  DataQualityMapFilters,
   InstalledSortState
 >;
 

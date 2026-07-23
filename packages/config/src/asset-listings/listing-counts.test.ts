@@ -66,7 +66,7 @@ describe('buildAssetListingCounts', () => {
 
     expect(result.mapLocationCounts).toEqual({ europe: 2 });
     // A map without a data_quality block counts as unknown (Unscored).
-    expect(result.mapSourceQualityCounts).toEqual({
+    expect(result.mapDataQualityCounts).toEqual({
       high: 1,
       unknown: 1,
     });

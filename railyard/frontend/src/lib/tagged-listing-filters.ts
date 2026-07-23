@@ -54,16 +54,16 @@ export function createTaggedListingAccessors<
         filterKey: 'locations',
       },
       {
-        countKey: 'mapSourceQualityCounts',
+        countKey: 'mapDataQualityCounts',
         assetType: 'map',
         cardinality: 'single',
         getValue: (item) =>
           item.type === 'map'
             ? resolveDataQualityTier(item.item as types.MapManifest)
             : undefined,
-        getSelected: (filters) => filters.map.sourceQuality ?? [],
+        getSelected: (filters) => filters.map.dataQuality ?? [],
         filterParent: 'map',
-        filterKey: 'sourceQuality',
+        filterKey: 'dataQuality',
       },
       {
         countKey: 'mapLevelOfDetailCounts',

@@ -87,7 +87,7 @@ function normalizeDetailLevel(value: string | undefined): "High" | "Medium" | "L
 
 function isMapDemandDataTag(
   normalizedTag: string,
-  sourceQuality: RegistryDataQualityLabel | null,
+  dataQuality: RegistryDataQualityLabel | null,
   levelOfDetail: "High" | "Medium" | "Low" | null,
 ): boolean {
   const blocked = new Set([
@@ -111,8 +111,8 @@ function isMapDemandDataTag(
     "unscored",
   ]);
 
-  if (sourceQuality) {
-    const qualityBase = sourceQuality.toLowerCase();
+  if (dataQuality) {
+    const qualityBase = dataQuality.toLowerCase();
     blocked.add(qualityBase);
     blocked.add(`${qualityBase}-quality`);
   }
@@ -355,7 +355,7 @@ function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
 
 export function normalizeRegistryDetail(data: RegistryDetailLoadedData): RegistryDetailModel {
   const description = (data.manifest.description ?? data.item.description ?? "").trim();
-  const sourceQuality = normalizeDataQuality(resolveDataQualityTier(data.manifest));
+  const dataQuality = normalizeDataQuality(resolveDataQualityTier(data.manifest));
   const levelOfDetail = normalizeDetailLevel(data.manifest.level_of_detail);
   const tags = Array.from(
     new Set([...(data.manifest.tags ?? []), ...(data.item.tags ?? [])]),
@@ -364,7 +364,7 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
       return true;
     }
     const normalizedTag = tag.trim().toLowerCase();
-    return !isMapDemandDataTag(normalizedTag, sourceQuality, levelOfDetail);
+    return !isMapDemandDataTag(normalizedTag, dataQuality, levelOfDetail);
   });
   const listingUpdatedDate = resolveListingUpdatedDate(data);
   const versions = resolveVersions(
@@ -441,7 +441,7 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
               Number.isFinite(data.manifest.grid_statistics.detail.playableAreaKm2)
                 ? data.manifest.grid_statistics.detail.playableAreaKm2
                 : null,
-            sourceQuality,
+            dataQuality,
             weightedScore:
               typeof data.manifest.data_quality?.weighted_score === "number" &&
               Number.isFinite(data.manifest.data_quality.weighted_score)

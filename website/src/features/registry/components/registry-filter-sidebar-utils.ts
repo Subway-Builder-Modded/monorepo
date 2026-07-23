@@ -38,7 +38,7 @@ export function buildTagCategories(
     .filter((manifest): manifest is Record<string, unknown> =>
       Boolean(manifest && typeof manifest === "object"),
     );
-  const sourceQualityFromManifest = mapManifests.map((manifest) =>
+  const dataQualityFromManifest = mapManifests.map((manifest) =>
     resolveDataQualityTier(
       manifest as { data_quality?: { tier?: string | null } | null },
     ),
@@ -51,7 +51,7 @@ export function buildTagCategories(
   const categories: RegistryTagCategory[] = buildRegistryTagCategories({
     typeId,
     availableTags,
-    mapSourceQualityValues: sourceQualityFromManifest,
+    mapDataQualityValues: dataQualityFromManifest,
     mapLevelOfDetailValues: levelOfDetailFromManifest,
   });
 

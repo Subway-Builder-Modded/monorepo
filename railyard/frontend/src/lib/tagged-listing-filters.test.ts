@@ -114,7 +114,7 @@ describe('tagged-listing-filters', () => {
     expect(mapLocation.getValue(mapItem)).toBe('east-asia');
     expect(mapLocation.getValue(modItem)).toBeUndefined();
 
-    const mapQuality = findDim('mapSourceQualityCounts');
+    const mapQuality = findDim('mapDataQualityCounts');
     // No data_quality block resolves to the Unscored tier.
     expect(mapQuality.getValue(mapItem)).toBe('unknown');
 
@@ -140,7 +140,7 @@ describe('tagged-listing-filters', () => {
     expect(
       mapQuality.getSelected({
         mod: { tags: [] },
-        map: { sourceQuality: ['official'] },
+        map: { dataQuality: ['official'] },
       }),
     ).toEqual(['official']);
     expect(
@@ -231,7 +231,7 @@ describe('tagged-listing-filters', () => {
         mod: { tags: [] },
         map: {
           locations: ['east-asia'],
-          sourceQuality: [],
+          dataQuality: [],
           levelOfDetail: [],
           specialDemand: [],
         },
@@ -243,7 +243,7 @@ describe('tagged-listing-filters', () => {
       'east-asia': 2,
       europe: 1,
     });
-    expect(mapCounts.mapSourceQualityCounts).toEqual({
+    expect(mapCounts.mapDataQualityCounts).toEqual({
       'very-high': 1,
       medium: 1,
     });
@@ -267,7 +267,7 @@ describe('tagged-listing-filters', () => {
         mod: { tags: ['ui'] },
         map: {
           locations: [],
-          sourceQuality: [],
+          dataQuality: [],
           levelOfDetail: [],
           specialDemand: [],
         },

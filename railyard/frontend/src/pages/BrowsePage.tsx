@@ -246,7 +246,7 @@ function BrowsePageContent({
           mod: { tags: prev.mod.tags },
           map: {
             locations: prev.map.locations,
-            sourceQuality: prev.map.sourceQuality,
+            dataQuality: prev.map.dataQuality,
             levelOfDetail: prev.map.levelOfDetail,
             specialDemand: prev.map.specialDemand,
           },
@@ -258,7 +258,7 @@ function BrowsePageContent({
           map: {
             ...prev.map,
             locations: next.map.locations,
-            sourceQuality: next.map.sourceQuality,
+            dataQuality: next.map.dataQuality,
             levelOfDetail: next.map.levelOfDetail,
             specialDemand: next.map.specialDemand,
           },
@@ -340,9 +340,9 @@ function BrowsePageContent({
             modCount={filteredDimCounts.modCount}
             mapCount={filteredDimCounts.mapCount}
             locationValues={LOCATION_TAGS}
-            sourceQualityValues={DATA_QUALITY_TIER_VALUES}
+            dataQualityValues={DATA_QUALITY_TIER_VALUES}
             levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
-            formatSourceQuality={formatDataQuality}
+            formatDataQuality={formatDataQuality}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
             minimumVisibleOptions={2}
             statusContent={
