@@ -2,12 +2,12 @@ interface ModListingMatches {
 	tags?: string[] | null;
 }
 
-import { resolveMapLocation } from './map-filter-values';
+import { resolveDataQualityTier, resolveMapLocation } from './map-filter-values';
 
 interface MapListingMatches {
 	location?: string | null;
 	sub_location?: string | null;
-	source_quality?: string | null;
+	data_quality?: { tier?: string | null } | null;
 	level_of_detail?: string | null;
 	special_demand?: string[] | null;
 }
@@ -60,7 +60,7 @@ export function buildAssetListingCounts(
 		dedupePerItem: false,
 	});
 	const mapSourceQualityCounts = buildListingCounts({
-		valuesByItem: maps.map((item) => [item.source_quality]),
+		valuesByItem: maps.map((item) => [resolveDataQualityTier(item)]),
 		dedupePerItem: false,
 	});
 	const mapLevelOfDetailCounts = buildListingCounts({

@@ -2,6 +2,7 @@ import {
   buildRegistryTagCategories,
   buildRegistryTagCounts,
   formatRegistryTagLabel,
+  resolveDataQualityTier,
   type RegistryTagCategory,
   type RegistryTagCategoryId,
 } from "@subway-builder-modded/config";
@@ -37,10 +38,11 @@ export function buildTagCategories(
     .filter((manifest): manifest is Record<string, unknown> =>
       Boolean(manifest && typeof manifest === "object"),
     );
-  const sourceQualityFromManifest = mapManifests
-    .map((manifest) => manifest.source_quality)
-    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-    .map((value) => value.trim());
+  const sourceQualityFromManifest = mapManifests.map((manifest) =>
+    resolveDataQualityTier(
+      manifest as { data_quality?: { tier?: string | null } | null },
+    ),
+  );
   const levelOfDetailFromManifest = mapManifests
     .map((manifest) => manifest.level_of_detail)
     .filter((value): value is string => typeof value === "string" && value.trim().length > 0)

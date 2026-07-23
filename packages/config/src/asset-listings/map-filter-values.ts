@@ -40,13 +40,8 @@ export const DATA_QUALITY_TIER_VALUES = [
 
 export type DataQualityTier = (typeof DATA_QUALITY_TIER_VALUES)[number];
 
+// Tiers display as their raw value; only unknown gets a friendlier label.
 const DATA_QUALITY_LABELS: Record<string, string> = {
-	'very-high': 'very-high-data-quality',
-	high: 'high-data-quality',
-	medium: 'medium-data-quality',
-	low: 'low-data-quality',
-	'very-low': 'very-low-data-quality',
-	absent: 'absent-data-quality',
 	unknown: 'unscored',
 };
 

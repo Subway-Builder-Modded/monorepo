@@ -53,10 +53,10 @@ describe('DATA_QUALITY_TIER_VALUES', () => {
 });
 
 describe('formatDataQuality', () => {
-  it('formats tiers with data-quality labels and unknown as unscored', () => {
-    expect(formatDataQuality('very-high')).toBe('very-high-data-quality');
-    expect(formatDataQuality('high')).toBe('high-data-quality');
-    expect(formatDataQuality('absent')).toBe('absent-data-quality');
+  it('displays tiers as their raw value and unknown as unscored', () => {
+    expect(formatDataQuality('very-high')).toBe('very-high');
+    expect(formatDataQuality('high')).toBe('high');
+    expect(formatDataQuality('absent')).toBe('absent');
     expect(formatDataQuality('unknown')).toBe('unscored');
   });
 

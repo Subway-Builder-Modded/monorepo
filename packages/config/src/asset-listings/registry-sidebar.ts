@@ -117,13 +117,8 @@ export function buildRegistryTagCounts(
 
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
-		if (tag === 'very-high') return 'Very High Data Quality';
-		if (tag === 'high') return 'High Data Quality';
-		if (tag === 'medium') return 'Medium Data Quality';
-		if (tag === 'low') return 'Low Data Quality';
-		if (tag === 'very-low') return 'Very Low Data Quality';
-		if (tag === 'absent') return 'Absent Data Quality';
-		if (tag === 'unknown') return 'Unscored';
+		// Tiers display as their raw value; only unknown gets a friendlier label.
+		if (tag === 'unknown') return 'unscored';
 		return tag;
 	}
 

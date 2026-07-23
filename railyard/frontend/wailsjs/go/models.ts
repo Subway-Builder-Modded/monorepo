@@ -144,26 +144,6 @@ export namespace types {
 	        this.bearing = source["bearing"];
 	    }
 	}
-	export class DataQuality {
-	    tier: string;
-	    raw_score?: number;
-	    weighted_score?: number;
-	    rubric_version: number;
-	    provenance?: string;
-
-	    static createFrom(source: any = {}) {
-	        return new DataQuality(source);
-	    }
-
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.tier = source["tier"];
-	        this.raw_score = source["raw_score"];
-	        this.weighted_score = source["weighted_score"];
-	        this.rubric_version = source["rubric_version"];
-	        this.provenance = source["provenance"];
-	    }
-	}
 	export class ConfigData {
 	    name: string;
 	    code: string;
@@ -410,6 +390,26 @@ export namespace types {
 		    }
 		    return a;
 		}
+	}
+	export class DataQuality {
+	    tier: string;
+	    raw_score?: number;
+	    weighted_score?: number;
+	    rubric_version: number;
+	    provenance?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DataQuality(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tier = source["tier"];
+	        this.raw_score = source["raw_score"];
+	        this.weighted_score = source["weighted_score"];
+	        this.rubric_version = source["rubric_version"];
+	        this.provenance = source["provenance"];
+	    }
 	}
 	export class DeepLinkTarget {
 	    type: string;
