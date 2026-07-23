@@ -325,7 +325,11 @@ export function Navbar() {
                 className="group bg-[color-mix(in_srgb,var(--install-primary)_14%,transparent)] text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_24%,transparent)] hover:!text-[var(--uninstall-primary)]"
               >
                 {/* Starting normally; on hover the button turns red and becomes an Abort control. */}
-                <Button variant="ghost" size="sm" onClick={() => cancelLaunch()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => cancelLaunch()}
+                >
                   <Play className="mr-1.5 h-[1.125rem] w-[1.125rem] animate-pulse group-hover:hidden" />
                   <Square className="mr-1.5 hidden h-[1.125rem] w-[1.125rem] group-hover:block" />
                   <span className="group-hover:hidden">Starting</span>

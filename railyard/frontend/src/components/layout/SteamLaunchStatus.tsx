@@ -95,7 +95,9 @@ export function SteamLaunchStatus() {
           cancelLaunch();
         }
       }}
-      title={steamNotRunning ? "Steam isn't running" : 'Still starting the game…'}
+      title={
+        steamNotRunning ? "Steam isn't running" : 'Still starting the game…'
+      }
       icon={AlertTriangle}
       description={launchBlock.message}
       tone="files"
