@@ -414,46 +414,46 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
     mapFields:
       data.item.type === "maps"
         ? {
-          rankings: data.mapRankings ?? {
-            population: null,
-            populationCount: null,
-            pointsCount: null,
-            playableAreaKm2: null,
-          },
-          cityCode: data.item.cityCode,
-          countryCode: data.item.countryCode,
-          country: data.item.countryName,
-          population: data.item.population,
-          populationCount:
-            typeof data.manifest.population_count === "number" &&
+            rankings: data.mapRankings ?? {
+              population: null,
+              populationCount: null,
+              pointsCount: null,
+              playableAreaKm2: null,
+            },
+            cityCode: data.item.cityCode,
+            countryCode: data.item.countryCode,
+            country: data.item.countryName,
+            population: data.item.population,
+            populationCount:
+              typeof data.manifest.population_count === "number" &&
               Number.isFinite(data.manifest.population_count)
-              ? data.manifest.population_count
-              : null,
-          pointsCount:
-            typeof data.manifest.points_count === "number" &&
+                ? data.manifest.population_count
+                : null,
+            pointsCount:
+              typeof data.manifest.points_count === "number" &&
               Number.isFinite(data.manifest.points_count)
-              ? data.manifest.points_count
-              : null,
-          playableAreaKm2:
-            typeof data.manifest.grid_statistics?.detail?.playableAreaKm2 === "number" &&
+                ? data.manifest.points_count
+                : null,
+            playableAreaKm2:
+              typeof data.manifest.grid_statistics?.detail?.playableAreaKm2 === "number" &&
               Number.isFinite(data.manifest.grid_statistics.detail.playableAreaKm2)
-              ? data.manifest.grid_statistics.detail.playableAreaKm2
-              : null,
-          dataQuality,
-          weightedScore:
-            typeof data.manifest.data_quality?.weighted_score === "number" &&
+                ? data.manifest.grid_statistics.detail.playableAreaKm2
+                : null,
+            dataQuality,
+            weightedScore:
+              typeof data.manifest.data_quality?.weighted_score === "number" &&
               Number.isFinite(data.manifest.data_quality.weighted_score)
-              ? data.manifest.data_quality.weighted_score
-              : null,
-          levelOfDetail,
-          fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
-        }
+                ? data.manifest.data_quality.weighted_score
+                : null,
+            levelOfDetail,
+            fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
+          }
         : null,
     versionSource: data.manifest.update
       ? {
-        updateType: data.manifest.update.type?.trim() || null,
-        updateUrl: data.manifest.update.url?.trim() || null,
-      }
+          updateType: data.manifest.update.type?.trim() || null,
+          updateUrl: data.manifest.update.url?.trim() || null,
+        }
       : null,
   };
 }
