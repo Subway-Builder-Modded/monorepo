@@ -39,8 +39,6 @@ export interface AssetSearchable {
   country?: string | null;
   location?: string | null;
   source_quality?: string | null;
-  // Seven-tier rubric block from the registry; overrides source_quality for
-  // display, filtering, and search when present (including tier "unknown").
   data_quality?: {
     tier?: string | null;
     weighted_score?: number | null;

@@ -117,7 +117,7 @@ export function buildRegistryTagCounts(
 
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
-		// Seven-tier rubric values.
+		// Data-quality tier values.
 		if (tag === 'very-high') return 'Very High Data Quality';
 		if (tag === 'high') return 'High Data Quality';
 		if (tag === 'medium') return 'Medium Data Quality';

@@ -51,7 +51,7 @@ function toExcerpt(input: string): string | null {
 }
 
 const DATA_QUALITY_DISPLAY_LABELS: Record<string, RegistryDataQualityLabel> = {
-  // Seven-tier rubric values from the manifest's data_quality block.
+  // Data-quality tier values from the manifest's data_quality block.
   "very-high": "Very High",
   high: "High",
   medium: "Medium",
@@ -105,7 +105,7 @@ function isMapDemandDataTag(
     "high-detail",
     "medium-detail",
     "low-detail",
-    // Seven-tier rubric values (injected as searchable tags by the cache loader).
+    // Data-quality tier values (injected as searchable tags by the cache loader).
     "very-high",
     "high",
     "medium",

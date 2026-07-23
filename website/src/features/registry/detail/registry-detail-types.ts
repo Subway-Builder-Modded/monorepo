@@ -52,7 +52,7 @@ export type RegistryDetailDownloadTrend = {
   rank: number | null;
 };
 
-/** Display label for the seven-tier data-quality vocabulary (legacy self-reports collapse to High/Medium/Low). */
+/** Display label for the data-quality tier vocabulary (legacy self-reported values collapse to High/Medium/Low). */
 export type RegistryDataQualityLabel =
   | "Very High"
   | "High"

@@ -22,10 +22,6 @@ type RawModManifest struct {
 	RawManifest
 }
 
-// DataQuality is the seven-tier rubric result precomputed registry-side
-// (registry docs/data-quality.md). Optional: absent on manifests predating the
-// registry's data-quality migration. When present it supersedes SourceQuality
-// for display and filtering — including tier "unknown" (shown as Unscored).
 type DataQuality struct {
 	Tier          string  `json:"tier"`
 	RawScore      float64 `json:"raw_score,omitempty"`

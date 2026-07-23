@@ -30,7 +30,7 @@ export const DATA_QUALITY_VALUES = [
 export const SOURCE_QUALITY_VALUES = DATA_QUALITY_VALUES;
 
 /**
- * Seven-tier data-quality vocabulary (registry rubric; see the registry's
+ * Data-quality tier vocabulary (registry rubric; see the registry's
  * schemas/src/data-quality-ladders.ts, the source of truth). Tiers arrive
  * precomputed on the manifest's `data_quality` block — the app only displays
  * them, so the vocabulary is intentionally re-declared here rather than
@@ -53,7 +53,7 @@ const DATA_QUALITY_LABELS: Record<string, string> = {
 	'low-quality': 'low-data-quality',
 	'medium-quality': 'medium-data-quality',
 	'high-quality': 'high-data-quality',
-	// Seven-tier rubric values.
+	// Data-quality tier values.
 	'very-high': 'very-high-data-quality',
 	high: 'high-data-quality',
 	medium: 'medium-data-quality',

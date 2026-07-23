@@ -74,7 +74,7 @@ describe('buildRegistryTagCounts', () => {
 
 describe('formatRegistryTagLabel', () => {
   it('formats known map quality and detail values', () => {
-    // Seven-tier rubric values.
+    // Data-quality tier values.
     expect(formatRegistryTagLabel('data-quality', 'very-high')).toBe('Very High Data Quality');
     expect(formatRegistryTagLabel('data-quality', 'high')).toBe('High Data Quality');
     expect(formatRegistryTagLabel('data-quality', 'unknown')).toBe('Unscored');
