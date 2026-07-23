@@ -3,6 +3,16 @@ import { create } from 'zustand';
 import { IsGameRunning, LaunchGame, StopGame } from '../../wailsjs/go/main/App';
 import { EventsOn } from '../../wailsjs/runtime/runtime';
 
+// Launch failures that warrant a guided dialog rather than a generic error toast. These mirror
+// the backend's GameLaunchErrorType codes (see types.GameLaunchErrorType).
+export const STEAM_NOT_RUNNING = 'steam_not_running';
+export const STEAM_DISCOVERY_TIMEOUT = 'steam_discovery_timeout';
+
+export interface LaunchBlock {
+  errorType: typeof STEAM_NOT_RUNNING | typeof STEAM_DISCOVERY_TIMEOUT;
+  message: string;
+}
+
 export interface LogEntry {
   stream: 'stdout' | 'stderr';
   line: string;
@@ -54,12 +64,25 @@ interface GameState {
   selectedSessionId: string | null;
   maxLogs: number;
   serverPort: number | null;
+  // Set when the launch-blocked modal should show (Steam not running, or the launch is blocked by
+  // a Steam dialog). Null when there is nothing to surface. Driven by the game:launch-blocked event.
+  launchBlock: LaunchBlock | null;
+  // True after "Keep Waiting": discovery keeps running in the background and the non-blocking
+  // indicator stays up until the game appears (running) or the hard cap is reached (gave up).
+  discoveryWaiting: boolean;
+  // Set when discovery hits the hard cap; a component shows a toast for it and clears it.
+  gaveUpMessage: string | null;
 
   initialize: () => void;
   launch: (skipIncompatibleMaps?: boolean) => Promise<void>;
   stop: () => Promise<void>;
   selectSession: (id: string) => void;
   clearLogs: () => void;
+  // Keep Waiting: dismiss the modal but keep discovering in the background (shows the indicator).
+  keepWaiting: () => void;
+  // Cancel/abort the in-flight launch (also the strict action for dialog dismissal/exit).
+  cancelLaunch: () => void;
+  clearGaveUp: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -69,6 +92,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   selectedSessionId: null,
   maxLogs: 5000,
   serverPort: null,
+  launchBlock: null,
+  discoveryWaiting: false,
+  gaveUpMessage: null,
 
   initialize: () => {
     const appendLogToSession = (stream: 'stdout' | 'stderr', line: string) => {
@@ -158,7 +184,12 @@ export const useGameStore = create<GameState>((set, get) => ({
             (session) => session.endedAt === null,
           );
           if (hasActiveSession) {
-            return { running: true, starting: false };
+            return {
+              running: true,
+              starting: false,
+              launchBlock: null,
+              discoveryWaiting: false,
+            };
           }
 
           const { sessionId, sessions } = createNewSessionPatch(
@@ -168,6 +199,8 @@ export const useGameStore = create<GameState>((set, get) => ({
           return {
             running: true,
             starting: false,
+            launchBlock: null,
+            discoveryWaiting: false,
             selectedSessionId: sessionId,
             sessions,
           };
@@ -180,7 +213,13 @@ export const useGameStore = create<GameState>((set, get) => ({
           (session) => session.endedAt === null,
         );
         if (activeIndex === -1) {
-          return { running: false, starting: false, serverPort: null };
+          return {
+            running: false,
+            starting: false,
+            serverPort: null,
+            launchBlock: null,
+            discoveryWaiting: false,
+          };
         }
 
         const nextSessions = [...state.sessions];
@@ -193,8 +232,37 @@ export const useGameStore = create<GameState>((set, get) => ({
           running: false,
           starting: false,
           serverPort: null,
+          launchBlock: null,
+          discoveryWaiting: false,
           sessions: nextSessions,
         };
+      });
+    });
+
+    // Discovery surfaced the blocked dialog (Steam not running, or blocked by a Steam dialog).
+    EventsOn(
+      'game:launch-blocked',
+      (data: { errorType: string; message: string }) => {
+        if (
+          data.errorType === STEAM_NOT_RUNNING ||
+          data.errorType === STEAM_DISCOVERY_TIMEOUT
+        ) {
+          set({
+            launchBlock: {
+              errorType: data.errorType,
+              message: data.message,
+            },
+          });
+        }
+      },
+    );
+
+    // Discovery hit the hard cap: drop the dialog/indicator and let a component toast the reason.
+    EventsOn('game:launch-gaveup', (data: { message: string }) => {
+      set({
+        launchBlock: null,
+        discoveryWaiting: false,
+        gaveUpMessage: data.message,
       });
     });
 
@@ -224,9 +292,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       return;
     }
 
-    set({ starting: true });
+    set({
+      starting: true,
+      launchBlock: null,
+      discoveryWaiting: false,
+      gaveUpMessage: null,
+    });
 
     try {
+      // For Steam this returns as soon as the launch is initiated; the discovery watcher then
+      // drives the outcome via game:status / game:launch-blocked / game:launch-gaveup events.
       const response = await LaunchGame(skipIncompatibleMaps);
       if (response.status === 'error') {
         throw new Error(response.message || 'Failed to launch game');
@@ -245,6 +320,20 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   selectSession: (id: string) => set({ selectedSessionId: id }),
+
+  // Keep the dialog's discovery going in the background, shown by the non-blocking indicator.
+  keepWaiting: () => set({ launchBlock: null, discoveryWaiting: true }),
+
+  // Abort the in-flight launch. StopGame cancels backend discovery (or kills a running game);
+  // errors are swallowed since a cancel racing the game's own exit is harmless.
+  cancelLaunch: () => {
+    set({ launchBlock: null, discoveryWaiting: false });
+    void get()
+      .stop()
+      .catch(() => {});
+  },
+
+  clearGaveUp: () => set({ gaveUpMessage: null }),
 
   clearLogs: () =>
     set((state) => {

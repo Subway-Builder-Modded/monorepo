@@ -593,6 +593,22 @@ export namespace types {
 	        this.assetIds = source["assetIds"];
 	    }
 	}
+	export class GameLaunchResponse {
+	    status: string;
+	    message: string;
+	    errorType?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new GameLaunchResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.message = source["message"];
+	        this.errorType = source["errorType"];
+	    }
+	}
 	export class GameRunningResponse {
 	    status: string;
 	    message: string;

@@ -5,36 +5,45 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
-	"time"
 
 	"railyard/internal/constants"
 	"railyard/internal/types"
 )
 
-func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
+// launchErr wraps a GenericResponse error as a GameLaunchResponse. The launch-blocked / gave-up
+// outcomes are delivered via events (the discovery watcher is async), not this return value.
+func launchErr(msg string) types.GameLaunchResponse {
+	return types.GameLaunchResponse{GenericResponse: types.ErrorResponse(msg)}
+}
+
+func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GameLaunchResponse {
 	a.gameMu.Lock()
-	if a.gameStarting {
+	if a.gameStarting || a.gameDiscovering {
 		a.gameMu.Unlock()
-		return types.ErrorResponse("game is already starting")
+		return launchErr("game is already starting")
 	}
 	if a.gameCmd != nil && a.gameCmd.ProcessState == nil {
 		a.gameMu.Unlock()
-		return types.ErrorResponse("game is already running")
+		return launchErr("game is already running")
 	}
 	// The session holds the exclusivity gate from here until the game exits, covering mod
 	// generation and launch; content operations cannot start or be in flight underneath it.
 	sessionToken, gateErr := a.contentGate.BeginGameSession()
 	if gateErr != nil {
 		a.gameMu.Unlock()
-		return types.ErrorResponse(fmt.Sprintf("cannot launch the game: %v", gateErr))
+		return launchErr(fmt.Sprintf("cannot launch the game: %v", gateErr))
 	}
 	a.gameStarting = true
+	// A per-launch generation, so a cancelled launch's kill-on-sight grace never targets a newer one.
+	a.gameLaunchGen++
+	gen := a.gameLaunchGen
 	a.gameMu.Unlock()
 
 	started := false
@@ -62,7 +71,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	cfg := a.Config.GetConfig()
 	if !cfg.Validation.GameSourceValid {
-		return types.ErrorResponse("game executable path is not configured or invalid")
+		return launchErr("game executable path is not configured or invalid")
 	}
 
 	extraSplitArgs := []string{}
@@ -79,7 +88,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	port, err := a.startPMTilesServer()
 	if err != nil {
 		a.Logger.Warn("Failed to start PMTiles server", "error", err)
-		return types.ErrorResponse(err.Error())
+		return launchErr(err.Error())
 	}
 
 	a.emitEvent("server:port", port)
@@ -89,7 +98,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	if err := a.generateMod(port, skipIncompatibleMaps); err != nil {
 		a.Logger.Warn("Failed to generate mod", "error", err)
-		return types.ErrorResponse(err.Error())
+		return launchErr(err.Error())
 	}
 
 	exePath := strings.TrimPrefix(cfg.Config.ExecutablePath, "/run/host") // Fix the paths when calling outside of sandbox
@@ -115,28 +124,40 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return types.ErrorResponse(fmt.Sprintf("failed to create stdout pipe: %v", err))
+		return launchErr(fmt.Sprintf("failed to create stdout pipe: %v", err))
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return types.ErrorResponse(fmt.Sprintf("failed to create stderr pipe: %v", err))
+		return launchErr(fmt.Sprintf("failed to create stderr pipe: %v", err))
 	}
 
 	if err := cmd.Start(); err != nil {
 		a.Logger.Error("Failed to launch game", err)
-		return types.ErrorResponse(fmt.Sprintf("failed to launch game: %v", err))
+		return launchErr(fmt.Sprintf("failed to launch game: %v", err))
 	}
 
-	// Steam launches only start the URL handler; discover the true game process.
+	// Steam launches only start the URL handler; the real game process is discovered in the
+	// background. Hand the session off to the discovery watcher and return - it emits "running"
+	// when the game appears, or the launch-blocked / gave-up events otherwise. The user can abort
+	// the wait via StopGame, which cancels this context.
 	if spec.useSteam {
-		deadline := time.Now().Add(steamLaunchDiscoveryTimeout)
-		found := pollSteamGameProcess(steamProcessLookup(runtime.GOOS, a.Logger), deadline, a.Logger)
-		if found == nil {
-			return types.ErrorResponse("could not find the Steam-launched game process; the launch may have been cancelled")
-		}
-		cmd = found
+		ctx, cancel := context.WithCancel(context.Background())
+		a.gameMu.Lock()
+		a.gameStarting = false
+		a.gameDiscovering = true
+		a.gameLaunchCancel = cancel
+		a.gameMu.Unlock()
+		started = true // the discovery watcher owns the session from here
+
+		a.emitEvent("game:log", map[string]string{
+			"stream": "stdout",
+			"line":   fmt.Sprintf("> %s %s", constants.STEAM_URL, "(discovering Steam-launched game...)"),
+		})
+		go a.runSteamDiscovery(ctx, sessionToken, gen, spec)
+		return types.GameLaunchResponse{GenericResponse: types.SuccessResponse("Steam launch initiated")}
 	}
 
+	// Vanilla launch: cmd is the game process itself, so it is running immediately.
 	a.gameMu.Lock()
 	a.gameCmd = cmd
 	a.gameStarting = false
@@ -144,46 +165,16 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GenericResponse {
 	started = true
 
 	a.emitEvent("game:status", "running")
+	a.emitEvent("game:log", map[string]string{
+		"stream": "stdout",
+		"line":   fmt.Sprintf("> %s %s", strings.Split(cmd.Path, string(os.PathSeparator))[len(strings.Split(cmd.Path, string(os.PathSeparator)))-1], strings.Join(cmd.Args[1:], " ")),
+	})
 
-	if !spec.useSteam {
-		a.emitEvent("game:log", map[string]string{
-			"stream": "stdout",
-			"line":   fmt.Sprintf("> %s %s", strings.Split(cmd.Path, string(os.PathSeparator))[len(strings.Split(cmd.Path, string(os.PathSeparator)))-1], strings.Join(cmd.Args[1:], " ")),
-		})
-	} else {
-		a.emitEvent("game:log", map[string]string{
-			"stream": "stdout",
-			"line":   fmt.Sprintf("> %s %s", constants.STEAM_URL, "(cannot get logs when using Steam launch)"),
-		})
-	}
-
-	// Stream stdout/stderr to frontend
 	go a.streamGameOutput(stdout, "stdout")
 	go a.streamGameOutput(stderr, "stderr")
+	go a.watchGameExit(sessionToken, cmd, false)
 
-	// Wait for process exit in background
-	go func() {
-		err := waitForGameExit(runtime.GOOS, spec.useSteam, cmd, a.Logger)
-		a.gameMu.Lock()
-		a.gameCmd = nil
-		a.gameStarting = false
-		a.gameMu.Unlock()
-		a.contentGate.EndGameSession(sessionToken)
-
-		exitCode := 0
-		if err != nil {
-			if exitErr, ok := err.(*exec.ExitError); ok {
-				exitCode = exitErr.ExitCode()
-			}
-			a.Logger.Warn("Game exited with error", "error", err)
-		} else {
-			a.Logger.Info("Game exited normally")
-		}
-		a.emitEvent("game:exit", exitCode)
-		a.emitEvent("game:status", "stopped")
-	}()
-
-	return types.SuccessResponse("Game launched")
+	return types.GameLaunchResponse{GenericResponse: types.SuccessResponse("Game launched")}
 }
 
 func (a *App) streamGameOutput(r io.Reader, stream string) {
@@ -207,12 +198,24 @@ func (a *App) IsGameRunning() types.GameRunningResponse {
 }
 
 func (a *App) StopGame() types.GenericResponse {
-	a.Logger.Info("Killing game process")
 	a.gameMu.Lock()
 	cmd := a.gameCmd
 	starting := a.gameStarting
+	discovering := a.gameDiscovering
+	cancel := a.gameLaunchCancel
 	a.gameMu.Unlock()
 
+	// Abort an in-flight Steam discovery: the game hasn't been found yet, so cancel the watcher.
+	// It releases the session, emits "stopped", and kills the game if it still appears (grace).
+	if discovering {
+		a.Logger.Info("Cancelling in-flight Steam launch discovery")
+		if cancel != nil {
+			cancel()
+		}
+		return types.SuccessResponse("Launch cancelled")
+	}
+
+	a.Logger.Info("Killing game process")
 	if starting && cmd == nil {
 		a.Logger.Warn("Game is still starting and cannot be stopped yet")
 		return types.ErrorResponse("game is still starting")
@@ -228,18 +231,11 @@ func (a *App) StopGame() types.GenericResponse {
 		a.pmtilesServer.Close()
 	}
 
-	if err := cmd.Process.Kill(); err != nil {
-		if a.Config.Cfg.UseSteamLaunch && runtime.GOOS == "linux" {
-			// The game runs on the host outside the Flatpak sandbox, so signal it via pkill.
-			command := exec.Command("flatpak-spawn", "--host", "pkill", "-9", linuxGameProcessName)
-			if err := command.Run(); err != nil {
-				a.Logger.Warn("Failed to kill Steam-launched game process on Linux", "error", err)
-				return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
-			}
-		} else {
-			a.Logger.Warn("Failed to kill game process", "error", err)
-			return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
-		}
+	// Kill the whole process tree so Electron's renderer children can't survive and leave a ghost
+	// window behind.
+	if err := killGameProcessTree(cmd.Process.Pid, runtime.GOOS, a.Config.Cfg.UseSteamLaunch, a.Logger); err != nil {
+		a.Logger.Warn("Failed to kill game process", "error", err)
+		return types.ErrorResponse(fmt.Sprintf("failed to stop game: %v", err))
 	}
 
 	a.Logger.Info("Game process killed successfully")

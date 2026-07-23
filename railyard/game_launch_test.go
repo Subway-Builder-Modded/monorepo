@@ -23,7 +23,7 @@ func TestLaunchGameRejectsConcurrentStartWhileStarting(t *testing.T) {
 	app.launchGameTestReady = ready
 	app.launchGameTestBlock = block
 
-	firstResult := make(chan types.GenericResponse, 1)
+	firstResult := make(chan types.GameLaunchResponse, 1)
 	go func() {
 		firstResult <- app.LaunchGame(false)
 	}()

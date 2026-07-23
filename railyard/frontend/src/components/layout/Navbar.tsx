@@ -115,6 +115,7 @@ export function Navbar() {
   const starting = useGameStore((s) => s.starting);
   const launch = useGameStore((s) => s.launch);
   const stop = useGameStore((s) => s.stop);
+  const cancelLaunch = useGameStore((s) => s.cancelLaunch);
   const installedMaps = useInstalledStore((s) => s.installedMaps);
   const installedMods = useInstalledStore((s) => s.installedMods);
   // Launching regenerates the mod bundle from installed content, so it must wait for
@@ -321,11 +322,14 @@ export function Navbar() {
             ) : starting ? (
               <NavbarItem
                 asChild
-                className="bg-[color-mix(in_srgb,var(--install-primary)_14%,transparent)] text-[var(--install-primary)]"
+                className="group bg-[color-mix(in_srgb,var(--install-primary)_14%,transparent)] text-[var(--install-primary)] hover:!bg-[color-mix(in_srgb,var(--uninstall-primary)_24%,transparent)] hover:!text-[var(--uninstall-primary)]"
               >
-                <Button variant="ghost" size="sm" disabled>
-                  <Play className="mr-1.5 h-[1.125rem] w-[1.125rem] animate-pulse" />
-                  Starting
+                {/* Starting normally; on hover the button turns red and becomes an Abort control. */}
+                <Button variant="ghost" size="sm" onClick={() => cancelLaunch()}>
+                  <Play className="mr-1.5 h-[1.125rem] w-[1.125rem] animate-pulse group-hover:hidden" />
+                  <Square className="mr-1.5 hidden h-[1.125rem] w-[1.125rem] group-hover:block" />
+                  <span className="group-hover:hidden">Starting</span>
+                  <span className="hidden group-hover:inline">Cancel</span>
                 </Button>
               </NavbarItem>
             ) : (
