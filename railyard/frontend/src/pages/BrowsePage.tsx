@@ -19,13 +19,13 @@ import {
   buildAssetListingCounts,
   buildSpecialDemandValues,
   DEFAULT_SORT_STATE,
+  EFFECTIVE_DATA_QUALITY_VALUES,
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
   SEARCH_FILTER_EMPTY_LABELS,
   type SortField,
-  SOURCE_QUALITY_VALUES,
   TEXT_SORT_FIELDS,
 } from '@subway-builder-modded/config';
 import { PER_PAGE_OPTIONS } from '@subway-builder-modded/config';
@@ -340,7 +340,7 @@ function BrowsePageContent({
             modCount={filteredDimCounts.modCount}
             mapCount={filteredDimCounts.mapCount}
             locationValues={LOCATION_TAGS}
-            sourceQualityValues={SOURCE_QUALITY_VALUES}
+            sourceQualityValues={EFFECTIVE_DATA_QUALITY_VALUES}
             levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
             formatSourceQuality={formatSourceQuality}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}

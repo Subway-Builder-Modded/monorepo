@@ -173,7 +173,11 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
         titleTooltipAriaLabel: "About Data Quality",
         getTitleTooltipContent: (detail) => getDemandDataTooltipContent(detail),
         icon: BadgeCheck,
-        getValue: (detail) => detail.mapFields?.sourceQuality ?? "\u2014",
+        getValue: (detail) => {
+          const label = detail.mapFields?.sourceQuality ?? "\u2014";
+          const score = detail.mapFields?.weightedScore;
+          return typeof score === "number" ? `${label} (${score.toFixed(2)})` : label;
+        },
       },
       {
         title: "Level of Detail",

@@ -52,7 +52,9 @@ describe('sort helpers', () => {
     expect(modOptions.map((option) => option.value)).toContain('last_updated:desc');
     expect(modOptions.map((option) => option.value)).toContain('random:asc');
     expect(modOptions.map((option) => option.value)).not.toContain('random:desc');
-    expect(mapOptions).toHaveLength(17);
+    expect(modOptions.map((option) => option.value)).not.toContain('weighted_score:desc');
+    expect(mapOptions).toHaveLength(19);
+    expect(mapOptions.map((option) => option.value)).toContain('weighted_score:desc');
     expect(mapOptions).toEqual(SORT_OPTIONS);
   });
 

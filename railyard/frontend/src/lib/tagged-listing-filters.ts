@@ -8,6 +8,7 @@ import {
 } from '@subway-builder-modded/asset-listings-state';
 import {
   ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+  resolveEffectiveDataQuality,
   resolveMapLocation,
 } from '@subway-builder-modded/config';
 
@@ -58,7 +59,8 @@ export function createTaggedListingAccessors<
         cardinality: 'single',
         getValue: (item) =>
           item.type === 'map'
-            ? ((item.item as types.MapManifest).source_quality ?? '')
+            ? (resolveEffectiveDataQuality(item.item as types.MapManifest) ??
+              '')
             : undefined,
         getSelected: (filters) => filters.map.sourceQuality ?? [],
         filterParent: 'map',

@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildSpecialDemandValues,
+  DATA_QUALITY_TIER_VALUES,
+  EFFECTIVE_DATA_QUALITY_VALUES,
+  formatDataQuality,
   formatSourceQuality,
   LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
+  resolveEffectiveDataQuality,
   SOURCE_QUALITY_VALUES,
 } from './map-filter-values';
 
@@ -53,7 +57,61 @@ describe('formatSourceQuality', () => {
   });
 
   it('returns the original value for unknown strings', () => {
-    expect(formatSourceQuality('unknown')).toBe('unknown');
+    expect(formatSourceQuality('mystery-quality')).toBe('mystery-quality');
+  });
+});
+
+describe('DATA_QUALITY_TIER_VALUES', () => {
+  it('contains the seven rubric tiers in best-to-unscored order', () => {
+    expect(DATA_QUALITY_TIER_VALUES).toEqual([
+      'very-high',
+      'high',
+      'medium',
+      'low',
+      'very-low',
+      'absent',
+      'unknown',
+    ]);
+  });
+
+  it('orders effective filter values tiers-first with legacy values last', () => {
+    expect(EFFECTIVE_DATA_QUALITY_VALUES.slice(0, 7)).toEqual([
+      ...DATA_QUALITY_TIER_VALUES,
+    ]);
+    expect(EFFECTIVE_DATA_QUALITY_VALUES).toContain('high-quality');
+  });
+
+  it('formats tiers with data-quality labels and unknown as unscored', () => {
+    expect(formatDataQuality('very-high')).toBe('very-high-data-quality');
+    expect(formatDataQuality('absent')).toBe('absent-data-quality');
+    expect(formatDataQuality('unknown')).toBe('unscored');
+  });
+});
+
+describe('resolveEffectiveDataQuality', () => {
+  it('prefers the data_quality tier when the block is present', () => {
+    expect(
+      resolveEffectiveDataQuality({
+        data_quality: { tier: 'high' },
+        source_quality: 'low-quality',
+      }),
+    ).toBe('high');
+  });
+
+  it('never falls back to the self-report for unscored maps', () => {
+    expect(
+      resolveEffectiveDataQuality({
+        data_quality: { tier: 'unknown' },
+        source_quality: 'high-quality',
+      }),
+    ).toBe('unknown');
+  });
+
+  it('uses the legacy source_quality only when the block is absent', () => {
+    expect(
+      resolveEffectiveDataQuality({ source_quality: 'medium-quality' }),
+    ).toBe('medium-quality');
+    expect(resolveEffectiveDataQuality({})).toBeUndefined();
   });
 });
 

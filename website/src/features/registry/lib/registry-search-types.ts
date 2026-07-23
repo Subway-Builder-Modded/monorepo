@@ -29,6 +29,8 @@ export type RegistrySearchItem = {
   countryName: string | null;
   countryEmoji: string | null;
   population: number | null;
+  /** Weighted data-quality composite from the manifest's data_quality block; null when unscored. */
+  weightedScore: number | null;
   isTest: boolean;
   /** Raw manifest for advanced consumers; do not depend on shape. */
   manifest: unknown;
@@ -46,6 +48,13 @@ export type RawRegistryManifest = {
   location?: string;
   sub_location?: string;
   source_quality?: string;
+  data_quality?: {
+    tier?: string;
+    raw_score?: number;
+    weighted_score?: number;
+    rubric_version?: number;
+    provenance?: string;
+  };
   level_of_detail?: string;
   special_demand?: string[];
   city_code?: string;

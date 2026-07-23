@@ -1,4 +1,7 @@
+import { resolveEffectiveDataQuality } from "@subway-builder-modded/config";
+
 import type {
+  RegistryDataQualityLabel,
   RegistryDetailIntegrityVersion,
   RegistryDetailLoadedData,
   RegistryDetailModel,
@@ -47,28 +50,49 @@ function toExcerpt(input: string): string | null {
   return `${normalized.slice(0, 177).trimEnd()}...`;
 }
 
-function normalizeDemandLevel(value: string | undefined): "High" | "Medium" | "Low" | null {
+const DATA_QUALITY_DISPLAY_LABELS: Record<string, RegistryDataQualityLabel> = {
+  // Seven-tier rubric values from the manifest's data_quality block.
+  "very-high": "Very High",
+  high: "High",
+  medium: "Medium",
+  low: "Low",
+  "very-low": "Very Low",
+  absent: "Absent",
+  unknown: "Unscored",
+  // Legacy self-reported values (manifests predating the registry backfill).
+  "high-quality": "High",
+  "medium-quality": "Medium",
+  "low-quality": "Low",
+};
+
+function normalizeDataQuality(value: string | undefined): RegistryDataQualityLabel | null {
   const normalized = value?.trim().toLowerCase();
   if (!normalized) {
     return null;
   }
+  return DATA_QUALITY_DISPLAY_LABELS[normalized] ?? null;
+}
 
-  if (normalized.startsWith("h")) {
+function normalizeDetailLevel(value: string | undefined): "High" | "Medium" | "Low" | null {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+  if (normalized === "high-detail" || normalized === "high") {
     return "High";
   }
-  if (normalized.startsWith("m")) {
+  if (normalized === "medium-detail" || normalized === "medium") {
     return "Medium";
   }
-  if (normalized.startsWith("l")) {
+  if (normalized === "low-detail" || normalized === "low") {
     return "Low";
   }
-
   return null;
 }
 
 function isMapDemandDataTag(
   normalizedTag: string,
-  sourceQuality: "High" | "Medium" | "Low" | null,
+  sourceQuality: RegistryDataQualityLabel | null,
   levelOfDetail: "High" | "Medium" | "Low" | null,
 ): boolean {
   const blocked = new Set([
@@ -81,6 +105,15 @@ function isMapDemandDataTag(
     "high-detail",
     "medium-detail",
     "low-detail",
+    // Seven-tier rubric values (injected as searchable tags by the cache loader).
+    "very-high",
+    "high",
+    "medium",
+    "low",
+    "very-low",
+    "absent",
+    "unknown",
+    "unscored",
   ]);
 
   if (sourceQuality) {
@@ -327,8 +360,10 @@ function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
 
 export function normalizeRegistryDetail(data: RegistryDetailLoadedData): RegistryDetailModel {
   const description = (data.manifest.description ?? data.item.description ?? "").trim();
-  const sourceQuality = normalizeDemandLevel(data.manifest.source_quality);
-  const levelOfDetail = normalizeDemandLevel(data.manifest.level_of_detail);
+  const sourceQuality = normalizeDataQuality(
+    resolveEffectiveDataQuality(data.manifest) ?? undefined,
+  );
+  const levelOfDetail = normalizeDetailLevel(data.manifest.level_of_detail);
   const tags = Array.from(
     new Set([...(data.manifest.tags ?? []), ...(data.item.tags ?? [])]),
   ).filter((tag) => {
@@ -414,6 +449,11 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
                 ? data.manifest.grid_statistics.detail.playableAreaKm2
                 : null,
             sourceQuality,
+            weightedScore:
+              typeof data.manifest.data_quality?.weighted_score === "number" &&
+              Number.isFinite(data.manifest.data_quality.weighted_score)
+                ? data.manifest.data_quality.weighted_score
+                : null,
             levelOfDetail,
             fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
           }

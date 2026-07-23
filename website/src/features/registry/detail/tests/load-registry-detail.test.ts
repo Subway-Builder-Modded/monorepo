@@ -32,6 +32,7 @@ function makeItem(id: string, manifest: unknown): RegistrySearchItem {
     countryName: null,
     countryEmoji: null,
     population: null,
+    weightedScore: null,
     isTest: false,
     manifest,
   };

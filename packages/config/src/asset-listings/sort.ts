@@ -11,6 +11,7 @@ export type SortField =
   | 'size'
   | 'status'
   | 'population'
+  | 'weighted_score'
   | 'downloads'
   | 'last_updated'
   | 'first_released'
@@ -36,6 +37,7 @@ const SORT_FIELDS = [
   'first_released',
   'downloads',
   'population',
+  'weighted_score',
   'name',
   'city_code',
   'country',
@@ -70,6 +72,8 @@ function sortOptionLabel(field: SortField): string {
       return 'Author';
     case 'population':
       return 'Population';
+    case 'weighted_score':
+      return 'Data Quality';
     case 'downloads':
       return 'Downloads';
     case 'last_updated':
@@ -96,7 +100,10 @@ export const SORT_OPTIONS = SORT_FIELDS.flatMap((field) =>
     label: sortOptionLabel(field),
     sort: { field, direction },
     mapOnly:
-      field === 'population' || field === 'city_code' || field === 'country',
+      field === 'population' ||
+      field === 'weighted_score' ||
+      field === 'city_code' ||
+      field === 'country',
   })),
 ) satisfies SortOption[];
 

@@ -5,6 +5,8 @@ import {
 import type { AssetType } from '@subway-builder-modded/config';
 import {
   assetTypeToListingPath,
+  formatDataQuality,
+  resolveEffectiveDataQuality,
   resolveMapLocation,
 } from '@subway-builder-modded/config';
 import {
@@ -93,7 +95,11 @@ function ItemCardComponent({
         CountryFlag && <CountryFlag className="h-3.5 w-5 rounded-[1px]" />
       }
       location={mapItem ? resolveMapLocation(mapItem) : undefined}
-      source_quality={mapItem?.source_quality}
+      source_quality={
+        mapItem
+          ? formatDataQuality(resolveEffectiveDataQuality(mapItem) ?? '')
+          : undefined
+      }
       level_of_detail={mapItem?.level_of_detail}
       special_demand={mapItem?.special_demand}
       tags={!isMap ? (item as types.ModManifest).tags : undefined}

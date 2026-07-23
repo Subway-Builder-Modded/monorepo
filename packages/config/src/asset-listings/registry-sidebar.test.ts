@@ -74,7 +74,14 @@ describe('buildRegistryTagCounts', () => {
 
 describe('formatRegistryTagLabel', () => {
   it('formats known map quality and detail values', () => {
-    expect(formatRegistryTagLabel('data-quality', 'low-quality')).toBe('Low Data Quality');
+    // Seven-tier rubric values.
+    expect(formatRegistryTagLabel('data-quality', 'very-high')).toBe('Very High Data Quality');
+    expect(formatRegistryTagLabel('data-quality', 'high')).toBe('High Data Quality');
+    expect(formatRegistryTagLabel('data-quality', 'unknown')).toBe('Unscored');
+    // Legacy self-reported values are marked to distinguish them from tiers.
+    expect(formatRegistryTagLabel('data-quality', 'low-quality')).toBe(
+      'Low Data Quality (self-reported)',
+    );
     expect(formatRegistryTagLabel('level-of-detail', 'high-detail')).toBe('High Detail');
     expect(formatRegistryTagLabel('other', 'custom')).toBe('custom');
   });

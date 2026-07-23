@@ -5,7 +5,7 @@ import type {
   RegistrySearchItem,
 } from "./registry-search-types";
 import { normalizeMapCountry } from "@subway-builder-modded/asset-listings-state";
-import { LOCATION_TAGS } from "@subway-builder-modded/config";
+import { LOCATION_TAGS, resolveEffectiveDataQuality } from "@subway-builder-modded/config";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 import {
   getRegistryAuthorsIndexPath,
@@ -207,8 +207,9 @@ function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): s
       tagSet.add(locationTag);
     }
 
-    if (manifest.source_quality?.trim()) {
-      tagSet.add(manifest.source_quality.trim());
+    const effectiveQuality = resolveEffectiveDataQuality(manifest)?.trim();
+    if (effectiveQuality) {
+      tagSet.add(effectiveQuality);
     }
     if (manifest.level_of_detail?.trim()) {
       tagSet.add(manifest.level_of_detail.trim());
@@ -457,6 +458,12 @@ export async function loadRegistryItemsForType(
             ? manifest.residents_total
             : null
         : null,
+      weightedScore:
+        typeUiRules.hasMapMetadata &&
+        typeof manifest.data_quality?.weighted_score === "number" &&
+        Number.isFinite(manifest.data_quality.weighted_score)
+          ? manifest.data_quality.weighted_score
+          : null,
       isTest: false,
       manifest,
     });

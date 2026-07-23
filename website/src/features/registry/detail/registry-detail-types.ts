@@ -52,6 +52,16 @@ export type RegistryDetailDownloadTrend = {
   rank: number | null;
 };
 
+/** Display label for the seven-tier data-quality vocabulary (legacy self-reports collapse to High/Medium/Low). */
+export type RegistryDataQualityLabel =
+  | "Very High"
+  | "High"
+  | "Medium"
+  | "Low"
+  | "Very Low"
+  | "Absent"
+  | "Unscored";
+
 export type RegistryDetailMapFields = {
   rankings: {
     population: number | null;
@@ -66,7 +76,9 @@ export type RegistryDetailMapFields = {
   populationCount: number | null;
   pointsCount: number | null;
   playableAreaKm2: number | null;
-  sourceQuality: "High" | "Medium" | "Low" | null;
+  sourceQuality: RegistryDataQualityLabel | null;
+  /** Weighted data-quality composite in [0, 1]; null when the map is unscored. */
+  weightedScore: number | null;
   levelOfDetail: "High" | "Medium" | "Low" | null;
   fileSizes: {
     pmtiles: number | null;
@@ -138,6 +150,13 @@ export type RegistryDetailLoadedData = {
     gallery?: string[];
     source?: string;
     source_quality?: string;
+    data_quality?: {
+      tier?: string;
+      raw_score?: number;
+      weighted_score?: number;
+      rubric_version?: number;
+      provenance?: string;
+    };
     level_of_detail?: string;
     population_count?: number;
     points_count?: number;

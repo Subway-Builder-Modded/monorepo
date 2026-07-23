@@ -34,6 +34,14 @@ export function getLastUpdated(item: AbstractTaggedItem): number {
     : 0;
 }
 
+// Weighted data-quality composite from the manifest's data_quality block.
+// Null (not 0) when unscored/absent so those items sort last in BOTH directions.
+export function getWeightedScore(item: AbstractTaggedItem): number | null {
+  if (item.type !== 'map') return null;
+  const score = item.item.data_quality?.weighted_score;
+  return typeof score === 'number' && Number.isFinite(score) ? score : null;
+}
+
 // Asset debut (earliest complete integrity version). 0 when unresolvable, so it sorts last under desc.
 export function getFirstReleased(item: AbstractTaggedItem): number {
   const timestamp = item.item.first_released;
@@ -117,6 +125,14 @@ export function compareItems<T extends AbstractTaggedItem>(
         mapDownloadTotals,
       );
       return compareByDirection(downloadsA, downloadsB, sort.direction);
+    }
+    case 'weighted_score': {
+      const scoreA = getWeightedScore(a);
+      const scoreB = getWeightedScore(b);
+      if (scoreA === null && scoreB === null) return 0;
+      if (scoreA === null) return 1;
+      if (scoreB === null) return -1;
+      return compareByDirection(scoreA, scoreB, sort.direction);
     }
     case 'last_updated': {
       const updatedA = getLastUpdated(a);

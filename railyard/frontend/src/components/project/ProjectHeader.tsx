@@ -4,6 +4,7 @@ import {
 } from '@subway-builder-modded/config';
 import {
   formatSourceQuality,
+  resolveEffectiveDataQuality,
   resolveMapLocation,
 } from '@subway-builder-modded/config';
 import { Badge, Button } from '@subway-builder-modded/shared-ui';
@@ -476,7 +477,7 @@ export function ProjectHeader({
   const badges = mapItem
     ? [
         resolveMapLocation(mapItem),
-        formatSourceQuality(mapItem.source_quality),
+        formatSourceQuality(resolveEffectiveDataQuality(mapItem) ?? ''),
         mapItem.level_of_detail,
         ...(mapItem.special_demand ?? []),
       ].filter((v): v is string => Boolean(v))
