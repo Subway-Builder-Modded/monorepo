@@ -39,9 +39,7 @@ export function buildTagCategories(
       Boolean(manifest && typeof manifest === "object"),
     );
   const dataQualityFromManifest = mapManifests.map((manifest) =>
-    resolveDataQualityTier(
-      manifest as { data_quality?: { tier?: string | null } | null },
-    ),
+    resolveDataQualityTier(manifest as { data_quality?: { tier?: string | null } | null }),
   );
   const levelOfDetailFromManifest = mapManifests
     .map((manifest) => manifest.level_of_detail)
