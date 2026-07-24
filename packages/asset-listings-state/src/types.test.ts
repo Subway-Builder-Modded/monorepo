@@ -12,7 +12,7 @@ describe('createDefaultSourceFilters', () => {
     expect(filters.sort).toEqual({ field: 'last_updated', direction: 'desc' });
     expect(filters.perPage).toBe(12);
     expect(filters.mod.tags).toEqual([]);
-    expect(filters.map.sourceQuality).toEqual([]);
+    expect(filters.map.dataQuality).toEqual([]);
   });
 
   it('supports overriding type and per-page', () => {

@@ -28,7 +28,7 @@ export interface SidebarFilterState {
   };
   map: {
     locations: string[];
-    sourceQuality: string[];
+    dataQuality: string[];
     levelOfDetail: string[];
     specialDemand: string[];
   };
@@ -49,16 +49,16 @@ export interface SidebarFiltersProps {
   modCount: number;
   mapCount: number;
   locationValues: readonly string[];
-  sourceQualityValues: readonly string[];
+  dataQualityValues: readonly string[];
   levelOfDetailValues: readonly string[];
-  formatSourceQuality: (value: string) => string;
+  formatDataQuality: (value: string) => string;
   emptyLabels?: {
     generic?: string;
     tags?: string;
     specialDemand?: string;
   };
   collapsibleSections?: boolean;
-  sourceQualityTitle?: string;
+  dataQualityTitle?: string;
   minimumVisibleOptions?: number;
   statusContent?: ReactNode;
 }
@@ -82,12 +82,12 @@ export function SidebarFilters({
   modCount,
   mapCount,
   locationValues,
-  sourceQualityValues,
+  dataQualityValues,
   levelOfDetailValues,
-  formatSourceQuality,
+  formatDataQuality,
   emptyLabels,
   collapsibleSections = true,
-  sourceQualityTitle = "Source Quality",
+  dataQualityTitle = "Data Quality",
   minimumVisibleOptions = 1,
   statusContent: statusContent,
 }: SidebarFiltersProps) {
@@ -218,17 +218,17 @@ export function SidebarFilters({
             minimumVisibleOptions={minimumVisibleOptions}
           />
           <ChecklistFilterSection
-            title={sourceQualityTitle}
+            title={dataQualityTitle}
             icon={BadgeCheck}
-            values={sourceQualityValues}
-            counts={dimCounts.current.mapSourceQualityCounts}
-            availableCounts={availableCounts.mapSourceQualityCounts}
-            formatValue={formatSourceQuality}
-            selected={filters.map.sourceQuality}
+            values={dataQualityValues}
+            counts={dimCounts.current.mapDataQualityCounts}
+            availableCounts={availableCounts.mapDataQualityCounts}
+            formatValue={formatDataQuality}
+            selected={filters.map.dataQuality}
             onChange={(values) =>
               onFiltersChange((prev) => ({
                 ...prev,
-                map: { ...prev.map, sourceQuality: values },
+                map: { ...prev.map, dataQuality: values },
               }))
             }
             collapsible={collapsibleSections}

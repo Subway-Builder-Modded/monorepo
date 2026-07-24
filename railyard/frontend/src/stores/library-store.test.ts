@@ -14,7 +14,7 @@ describe('useLibraryStore per-asset-type state', () => {
         mod: { tags: [] },
         map: {
           locations: [],
-          sourceQuality: [],
+          dataQuality: [],
           levelOfDetail: [],
           specialDemand: [],
         },
@@ -27,7 +27,7 @@ describe('useLibraryStore per-asset-type state', () => {
           mod: { tags: [] },
           map: {
             locations: [],
-            sourceQuality: [],
+            dataQuality: [],
             levelOfDetail: [],
             specialDemand: [],
           },
@@ -39,7 +39,7 @@ describe('useLibraryStore per-asset-type state', () => {
           mod: { tags: [] },
           map: {
             locations: [],
-            sourceQuality: [],
+            dataQuality: [],
             levelOfDetail: [],
             specialDemand: [],
           },

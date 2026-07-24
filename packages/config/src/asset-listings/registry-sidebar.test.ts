@@ -14,7 +14,7 @@ describe('buildRegistryTagCategories', () => {
         'schools',
         'west-europe',
         'medium-detail',
-        'high-quality',
+        'high',
         'custom-tag',
       ],
     });
@@ -27,7 +27,7 @@ describe('buildRegistryTagCategories', () => {
       'other',
     ]);
     expect(categories[0]?.tags).toEqual(['west-europe']);
-    expect(categories[1]?.tags).toEqual(['high-quality']);
+    expect(categories[1]?.tags).toEqual(['high']);
     expect(categories[2]?.tags).toEqual(['medium-detail']);
     expect(categories[3]?.tags).toEqual(['schools']);
     expect(categories[4]?.tags).toEqual(['custom-tag']);
@@ -37,14 +37,14 @@ describe('buildRegistryTagCategories', () => {
     const categories = buildRegistryTagCategories({
       typeId: 'maps',
       availableTags: ['north-america'],
-      mapSourceQualityValues: ['medium-quality'],
+      mapDataQualityValues: ['medium'],
       mapLevelOfDetailValues: ['high-detail'],
     });
 
     const qualityCategory = categories.find((category) => category.id === 'data-quality');
     const detailCategory = categories.find((category) => category.id === 'level-of-detail');
 
-    expect(qualityCategory?.tags).toEqual(['medium-quality']);
+    expect(qualityCategory?.tags).toEqual(['medium']);
     expect(detailCategory?.tags).toEqual(['high-detail']);
   });
 
@@ -74,7 +74,9 @@ describe('buildRegistryTagCounts', () => {
 
 describe('formatRegistryTagLabel', () => {
   it('formats known map quality and detail values', () => {
-    expect(formatRegistryTagLabel('data-quality', 'low-quality')).toBe('Low Data Quality');
+    expect(formatRegistryTagLabel('data-quality', 'very-high')).toBe('very-high-quality');
+    expect(formatRegistryTagLabel('data-quality', 'high')).toBe('high-quality');
+    expect(formatRegistryTagLabel('data-quality', 'unknown')).toBe('unknown-quality');
     expect(formatRegistryTagLabel('level-of-detail', 'high-detail')).toBe('High Detail');
     expect(formatRegistryTagLabel('other', 'custom')).toBe('custom');
   });

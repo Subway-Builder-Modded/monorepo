@@ -25,14 +25,14 @@ export {
 	SEARCH_FILTER_EMPTY_LABELS,
 } from './asset-listings/search-constants';
 export {
-	DATA_QUALITY_VALUES,
+	DATA_QUALITY_TIER_VALUES,
 	LEVEL_OF_DETAIL_VALUES,
 	LOCATION_TAGS,
-	SOURCE_QUALITY_VALUES,
 	buildSpecialDemandValues,
 	formatDataQuality,
-	formatSourceQuality,
+	resolveDataQualityTier,
 	resolveMapLocation,
+	type DataQualityTier,
 } from './asset-listings/map-filter-values';
 export {
 	buildAssetListingCounts,

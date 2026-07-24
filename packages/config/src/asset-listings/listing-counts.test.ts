@@ -55,20 +55,20 @@ describe('buildAssetListingCounts', () => {
     const result = buildAssetListingCounts([], [
       {
         location: 'europe',
-        source_quality: 'high-quality',
+        data_quality: { tier: 'high' },
         level_of_detail: 'high-detail',
       },
       {
         location: 'europe',
-        source_quality: 'low-quality',
         level_of_detail: 'low-detail',
       },
     ]);
 
     expect(result.mapLocationCounts).toEqual({ europe: 2 });
-    expect(result.mapSourceQualityCounts).toEqual({
-      'high-quality': 1,
-      'low-quality': 1,
+    // A map without a data_quality block counts as unknown (Unscored).
+    expect(result.mapDataQualityCounts).toEqual({
+      high: 1,
+      unknown: 1,
     });
     expect(result.mapLevelOfDetailCounts).toEqual({
       'high-detail': 1,

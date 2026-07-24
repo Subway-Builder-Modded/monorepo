@@ -1,3 +1,10 @@
+import {
+  DATA_QUALITY_TIER_VALUES,
+  formatDataQuality,
+  resolveDataQualityTier,
+  type DataQualityTier,
+} from "@subway-builder-modded/config";
+
 import type {
   RegistryDetailIntegrityVersion,
   RegistryDetailLoadedData,
@@ -47,28 +54,38 @@ function toExcerpt(input: string): string | null {
   return `${normalized.slice(0, 177).trimEnd()}...`;
 }
 
-function normalizeDemandLevel(value: string | undefined): "High" | "Medium" | "Low" | null {
+// The detail model carries the RAW tier; formatDataQuality is applied at the
+// render edge so display labels have a single source in the config package.
+function normalizeDataQuality(value: string | undefined): DataQualityTier | null {
   const normalized = value?.trim().toLowerCase();
   if (!normalized) {
     return null;
   }
+  return (DATA_QUALITY_TIER_VALUES as readonly string[]).includes(normalized)
+    ? (normalized as DataQualityTier)
+    : null;
+}
 
-  if (normalized.startsWith("h")) {
+function normalizeDetailLevel(value: string | undefined): "High" | "Medium" | "Low" | null {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+  if (normalized === "high-detail" || normalized === "high") {
     return "High";
   }
-  if (normalized.startsWith("m")) {
+  if (normalized === "medium-detail" || normalized === "medium") {
     return "Medium";
   }
-  if (normalized.startsWith("l")) {
+  if (normalized === "low-detail" || normalized === "low") {
     return "Low";
   }
-
   return null;
 }
 
 function isMapDemandDataTag(
   normalizedTag: string,
-  sourceQuality: "High" | "Medium" | "Low" | null,
+  dataQuality: DataQualityTier | null,
   levelOfDetail: "High" | "Medium" | "Low" | null,
 ): boolean {
   const blocked = new Set([
@@ -81,12 +98,21 @@ function isMapDemandDataTag(
     "high-detail",
     "medium-detail",
     "low-detail",
+    // Data-quality tier values (injected as searchable tags by the cache loader).
+    "very-high",
+    "high",
+    "medium",
+    "low",
+    "very-low",
+    "absent",
+    "unknown",
+    "unscored",
+    "unknown-quality",
   ]);
 
-  if (sourceQuality) {
-    const qualityBase = sourceQuality.toLowerCase();
-    blocked.add(qualityBase);
-    blocked.add(`${qualityBase}-quality`);
+  if (dataQuality) {
+    blocked.add(dataQuality);
+    blocked.add(formatDataQuality(dataQuality));
   }
 
   if (levelOfDetail) {
@@ -327,8 +353,8 @@ function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
 
 export function normalizeRegistryDetail(data: RegistryDetailLoadedData): RegistryDetailModel {
   const description = (data.manifest.description ?? data.item.description ?? "").trim();
-  const sourceQuality = normalizeDemandLevel(data.manifest.source_quality);
-  const levelOfDetail = normalizeDemandLevel(data.manifest.level_of_detail);
+  const dataQuality = normalizeDataQuality(resolveDataQualityTier(data.manifest));
+  const levelOfDetail = normalizeDetailLevel(data.manifest.level_of_detail);
   const tags = Array.from(
     new Set([...(data.manifest.tags ?? []), ...(data.item.tags ?? [])]),
   ).filter((tag) => {
@@ -336,7 +362,7 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
       return true;
     }
     const normalizedTag = tag.trim().toLowerCase();
-    return !isMapDemandDataTag(normalizedTag, sourceQuality, levelOfDetail);
+    return !isMapDemandDataTag(normalizedTag, dataQuality, levelOfDetail);
   });
   const listingUpdatedDate = resolveListingUpdatedDate(data);
   const versions = resolveVersions(
@@ -413,7 +439,12 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
               Number.isFinite(data.manifest.grid_statistics.detail.playableAreaKm2)
                 ? data.manifest.grid_statistics.detail.playableAreaKm2
                 : null,
-            sourceQuality,
+            dataQuality,
+            weightedScore:
+              typeof data.manifest.data_quality?.weighted_score === "number" &&
+              Number.isFinite(data.manifest.data_quality.weighted_score)
+                ? data.manifest.data_quality.weighted_score
+                : null,
             levelOfDetail,
             fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
           }

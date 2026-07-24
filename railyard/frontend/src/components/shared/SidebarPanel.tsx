@@ -11,7 +11,7 @@ interface RailyardSidebarFilterShape {
   };
   map: {
     locations: string[];
-    sourceQuality: string[];
+    dataQuality: string[];
     levelOfDetail: string[];
     specialDemand: string[];
   };
