@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "id": "barcelona",
+  "name": "Barcelona",
+  "author": "Maximilian284",
+  "github_id": 61289731,
+  "description": "Custom map of the Barcelona metropolitan area with highly realistic, procedurally generated demand data.",
+  "tags": [
+    "europe",
+    "airports",
+    "hospitals",
+    "schools",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/barcelona/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/barcelona/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/barcelona/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/Maximilian284/subwaybuilder-es-maps",
+  "update": {
+    "type": "custom",
+    "url": "https://maximilian284.github.io/subwaybuilder-es-maps/ESBC.json"
+  },
+  "city_code": "ESBC",
+  "country": "ES",
+  "population": 2634600,
+  "residents_total": 2634600,
+  "points_count": 5727,
+  "population_count": 11866,
+  "initial_view_state": {
+    "latitude": 41.3887,
+    "longitude": 2.1688,
+    "zoom": 13,
+    "bearing": 0
+  },
+  "data_source": "OSM",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "schools",
+    "universities"
+  ],
+  "file_sizes": {
+    "ESBC.pmtiles": 122.63,
+    "buildings_index.json": 94.78,
+    "config.json": 0,
+    "demand_data.json": 2.21,
+    "roads.geojson": 43.94,
+    "runways_taxiways.geojson": 1.31
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.1331992124558783,
+      "p25": 0.15431567264016124,
+      "p50": 0.18035622484691022,
+      "p75": 0.20977285312606395,
+      "p90": 0.23942222480213307,
+      "mean": 0.1995633457272598
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.055204946984025074,
+      "p25": 0.1139475623197994,
+      "p50": 0.17738205621339778,
+      "p75": 0.21344897398293325,
+      "p90": 0.2992819205473457,
+      "mean": 0.21168168992666864
+    },
+    "commuteDistanceKm": {
+      "p10": 2503.2,
+      "p25": 4241.2,
+      "p50": 8542.8,
+      "p75": 24873,
+      "p90": 30112.2,
+      "mean": 13995.578990392682
+    },
+    "residentCellDensity": {
+      "p10": 241,
+      "p25": 260,
+      "p50": 765,
+      "p75": 2174,
+      "p90": 6780,
+      "mean": 2585.615913555992
+    },
+    "workerCellDensity": {
+      "p10": 177,
+      "p25": 244,
+      "p50": 351,
+      "p75": 905,
+      "p90": 3305,
+      "mean": 2732.801867219917
+    },
+    "detail": {
+      "radiusKm": 0.17886295875398808,
+      "expectedPointSpacingKm": 0.4982946296901051,
+      "normalizedRadius": 0.35895020354769813,
+      "activityPerPoint": 460.0314300680985,
+      "playableAreaKm2": 2972,
+      "playableAreaPerPointKm2": 0.5189453466038065,
+      "playableCatchmentRadiusKm": 0.40643010987507494,
+      "localityScore": 0.9732646458397901,
+      "deaggregationScore": 1,
+      "score": 0.9865417608189682
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.8494325553706741,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 2.1296940555434483,
+            "latitude": 41.435645806430735,
+            "massShare": 1,
+            "assignedMass": 5269200,
+            "assignedPointCount": 5727,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1775779200,
+  "search_aliases": [
+    "Bartzelona",
+    "برشلونة",
+    "Барселона",
+    "Βαρκελώνη",
+    "Barcelone",
+    "ברצלונה",
+    "Barcellona",
+    "バルセロナ",
+    "ბარსელონა",
+    "바르셀로나",
+    "Barselona",
+    "บาร์เซโลนา",
+    "Բարսելոնա",
+    "बार्सिलोना",
+    "বার্সেলোনা",
+    "巴塞罗那"
+  ],
+  "sub_location": "south-europe",
+  "data_quality": {
+    "tier": "unknown",
+    "rubric_version": 1
+  }
+}

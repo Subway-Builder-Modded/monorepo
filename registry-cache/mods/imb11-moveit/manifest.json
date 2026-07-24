@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "imb11-moveit",
+  "name": "Move It!",
+  "author": "IMB11",
+  "github_id": 93472213,
+  "description": "A port of the popular Cities: Skylines mod for Subway Builder.\n\n- Easily move blueprint nodes about\n- Snapping to other nodes, angles and roads.\n- Modify track curves using the curve subnodes",
+  "tags": [
+    "gameplay",
+    "qol",
+    "tracks"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/mods/imb11-moveit/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/mods/imb11-moveit/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/IMB11/move-it",
+  "update": {
+    "type": "github",
+    "repo": "IMB11/move-it"
+  },
+  "last_updated": 1784394734
+}

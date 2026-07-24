@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "id": "bilbao",
+  "name": "Bilbao",
+  "author": "Maximilian284",
+  "github_id": 61289731,
+  "description": "Custom map of the Bilbao metropolitan area with highly realistic, procedurally generated demand data.",
+  "tags": [
+    "europe",
+    "airports",
+    "hospitals",
+    "schools",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/bilbao/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/bilbao/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/bilbao/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/Maximilian284/subwaybuilder-es-maps",
+  "update": {
+    "type": "custom",
+    "url": "https://maximilian284.github.io/subwaybuilder-es-maps/ESBI.json"
+  },
+  "city_code": "ESBI",
+  "country": "ES",
+  "population": 627288,
+  "residents_total": 627288,
+  "points_count": 2981,
+  "population_count": 4933,
+  "initial_view_state": {
+    "latitude": 43.263,
+    "longitude": -2.935,
+    "zoom": 13,
+    "bearing": 0
+  },
+  "data_source": "OSM",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "schools",
+    "universities"
+  ],
+  "file_sizes": {
+    "ESBI.pmtiles": 41.75,
+    "buildings_index.json": 20.5,
+    "buildings_index.zip": 49.92,
+    "config.json": 0,
+    "demand_data.json": 0.98,
+    "roads.geojson": 13.07,
+    "runways_taxiways.geojson": 0.12
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.13797272934316596,
+      "p25": 0.16191357030522407,
+      "p50": 0.19446688516827254,
+      "p75": 0.22996936651756966,
+      "p90": 0.3192742811125623,
+      "mean": 0.23638584886580732
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.03900266608079502,
+      "p25": 0.12564834445416195,
+      "p50": 0.15058810136970577,
+      "p75": 0.21203863222259103,
+      "p90": 0.25201938009480096,
+      "mean": 0.1686901485738706
+    },
+    "commuteDistanceKm": {
+      "p10": 3097.3,
+      "p25": 6346.8,
+      "p50": 12803.9,
+      "p75": 26302.9,
+      "p90": 33672.5,
+      "mean": 16388.03869856068
+    },
+    "residentCellDensity": {
+      "p10": 131,
+      "p25": 163,
+      "p50": 275,
+      "p75": 591,
+      "p90": 1625,
+      "mean": 719.2436781609196
+    },
+    "workerCellDensity": {
+      "p10": 128,
+      "p25": 163,
+      "p50": 213,
+      "p75": 613,
+      "p90": 2253,
+      "mean": 1527.7951219512195
+    },
+    "detail": {
+      "radiusKm": 0.1711268506598855,
+      "expectedPointSpacingKm": 0.5707272736890826,
+      "normalizedRadius": 0.2998399735722302,
+      "activityPerPoint": 210.42871519624288,
+      "playableAreaKm2": 1788,
+      "playableAreaPerPointKm2": 0.5997987252599799,
+      "playableCatchmentRadiusKm": 0.43694606528802493,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.9734259218180137,
+        "continuousScore": 0.6809622049346401,
+        "detectedCenterCount": 3,
+        "effectiveCenterCount": 2.8486020526851563,
+        "largestCenterShare": 0.4345555789366288,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -2.9155818866357692,
+            "latitude": 43.265885034303146,
+            "massShare": 0.4345555789366288,
+            "assignedMass": 545183,
+            "assignedPointCount": 1041,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": -3.0160208747779045,
+            "latitude": 43.31750868333398,
+            "massShare": 0.31697960107637957,
+            "assignedMass": 397675,
+            "assignedPointCount": 1039,
+            "prominenceRatio": 0.9999999999808653
+          },
+          {
+            "longitude": -2.6707545953608935,
+            "latitude": 43.25977181042886,
+            "massShare": 0.24846481998699163,
+            "assignedMass": 311718,
+            "assignedPointCount": 901,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1775779200,
+  "search_aliases": [
+    "Bilbo",
+    "El Bocho",
+    "Bilbau",
+    "Бильбао",
+    "ビルバオ",
+    "Билбао",
+    "Більбао",
+    "Μπιλμπάο",
+    "빌바오",
+    "בילבאו",
+    "Більбаа",
+    "ბილბაო",
+    "บิลบาโอ",
+    "毕尔巴鄂",
+    "بلباو",
+    "Բիլբաո"
+  ],
+  "sub_location": "south-europe",
+  "data_quality": {
+    "tier": "unknown",
+    "rubric_version": 1
+  }
+}

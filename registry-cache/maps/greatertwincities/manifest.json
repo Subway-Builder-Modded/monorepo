@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "id": "greatertwincities",
+  "name": "Greater Twin Cities",
+  "author": "DanielD1909",
+  "github_id": 112905459,
+  "description": "Minneapolis-St. Paul and St. Cloud generated using slurry's LODES generator",
+  "tags": [
+    "north-america",
+    "airports",
+    "entertainment",
+    "parks",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/greatertwincities/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/greatertwincities/gallery/screenshot2.webp"
+  ],
+  "source": "https://github.com/DanielD1909/improvedTwinCities/",
+  "update": {
+    "type": "github",
+    "repo": "DanielD1909/improvedTwinCities"
+  },
+  "city_code": "KMSP",
+  "country": "US",
+  "population": 2003945,
+  "residents_total": 2003945,
+  "points_count": 5866,
+  "population_count": 304108,
+  "data_source": "LODES",
+  "source_quality": "high-quality",
+  "level_of_detail": "high-detail",
+  "location": "north-america",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "parks",
+    "universities"
+  ],
+  "initial_view_state": {
+    "latitude": 44.976483121819996,
+    "longitude": -93.26652870436673,
+    "zoom": 14,
+    "bearing": 0
+  },
+  "file_sizes": {
+    "KMSP.pmtiles": 118.27,
+    "buildings_index.json": 207.42,
+    "config.json": 0,
+    "demand_data.json": 90.02,
+    "roads.geojson": 56.01,
+    "runways_taxiways.geojson": 2.32
+  },
+  "is_test": false,
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.3446890486583258,
+      "p25": 0.48559928696227467,
+      "p50": 0.6836287205979643,
+      "p75": 0.9448616480748141,
+      "p90": 1.3008101600920239,
+      "mean": 0.7557590685861417
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.10974573204592059,
+      "p25": 0.25506836307150976,
+      "p50": 0.4095199532170857,
+      "p75": 0.6264546182016795,
+      "p90": 0.815151048014673,
+      "mean": 0.46439351541440976
+    },
+    "commuteDistanceKm": {
+      "p10": 9049,
+      "p25": 17490,
+      "p50": 30014,
+      "p75": 46602,
+      "p90": 66410,
+      "mean": 34856.80570389467
+    },
+    "residentCellDensity": {
+      "p10": 17,
+      "p25": 49,
+      "p50": 203,
+      "p75": 618,
+      "p90": 1155,
+      "mean": 438.8635567236093
+    },
+    "workerCellDensity": {
+      "p10": 4,
+      "p25": 21,
+      "p50": 127,
+      "p75": 366,
+      "p90": 952,
+      "mean": 487.10111813320367
+    },
+    "detail": {
+      "radiusKm": 0.5291120880088968,
+      "expectedPointSpacingKm": 0.8905305520679133,
+      "normalizedRadius": 0.5941537735906289,
+      "activityPerPoint": 341.6203545857484,
+      "playableAreaKm2": 11111,
+      "playableAreaPerPointKm2": 1.8941356972383225,
+      "playableCatchmentRadiusKm": 0.7764805974424509,
+      "localityScore": 0.43967546746105013,
+      "deaggregationScore": 0.49524458471035054,
+      "score": 0.4666335760423558
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.46610544996933845,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -93.29040699471888,
+            "latitude": 44.990984361669135,
+            "massShare": 1,
+            "assignedMass": 4007890,
+            "assignedPointCount": 5816,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1773468546,
+  "search_aliases": [
+    "Minneapolis",
+    "Mineápolis",
+    "Минеаполис",
+    "מיניאפוליס",
+    "ミネアポリス",
+    "Миннеаполис",
+    "明尼阿波利斯",
+    "مينيابولس",
+    "미니애폴리스",
+    "मिनियापोलिस",
+    "Мінеапаліс",
+    "Mineapolisa",
+    "Mineapolis",
+    "მინეაპოლისი",
+    "มินนีแอโพลิส",
+    "Міннеаполіс",
+    "Մինեապոլիս",
+    "Μινεάπολη",
+    "মিনিয়াপোলিস"
+  ],
+  "data_quality": {
+    "tier": "very-high",
+    "raw_score": 0.81,
+    "weighted_score": 0.87,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  }
+}

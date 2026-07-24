@@ -1,0 +1,802 @@
+{
+  "schema_version": 1,
+  "repo": "Subway-Builder-Modded/railyard",
+  "generated_at": "2026-07-24T14:23:49.679Z",
+  "latest_snapshot": "2026-07-24T14:00:00.000Z",
+  "versions": {
+    "0.2.8": {
+      "total_downloads": 3312,
+      "last_1d_downloads": 266,
+      "last_3d_downloads": 879,
+      "last_7d_downloads": 3312,
+      "assets": {
+        "railyard-v0.2.8-current-linux-amd64.flatpak": {
+          "total_downloads": 153,
+          "last_1d_downloads": 10,
+          "last_3d_downloads": 33,
+          "last_7d_downloads": 153
+        },
+        "railyard-v0.2.8-macos-universal.dmg": {
+          "total_downloads": 796,
+          "last_1d_downloads": 64,
+          "last_3d_downloads": 237,
+          "last_7d_downloads": 796
+        },
+        "railyard-v0.2.8-macos-universal.zip": {
+          "total_downloads": 84,
+          "last_1d_downloads": 10,
+          "last_3d_downloads": 27,
+          "last_7d_downloads": 84
+        },
+        "railyard-v0.2.8-windows-amd64-installer.exe": {
+          "total_downloads": 2110,
+          "last_1d_downloads": 166,
+          "last_3d_downloads": 529,
+          "last_7d_downloads": 2110
+        },
+        "railyard-v0.2.8-windows-amd64-portable.zip": {
+          "total_downloads": 128,
+          "last_1d_downloads": 12,
+          "last_3d_downloads": 40,
+          "last_7d_downloads": 128
+        },
+        "railyard-v0.2.8-windows-arm64-installer.exe": {
+          "total_downloads": 37,
+          "last_1d_downloads": 2,
+          "last_3d_downloads": 9,
+          "last_7d_downloads": 37
+        },
+        "railyard-v0.2.8-windows-arm64-portable.zip": {
+          "total_downloads": 4,
+          "last_1d_downloads": 2,
+          "last_3d_downloads": 4,
+          "last_7d_downloads": 4
+        }
+      }
+    },
+    "0.2.7": {
+      "total_downloads": 1929,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 73,
+      "assets": {
+        "railyard-v0.2.7-current-linux-amd64.flatpak": {
+          "total_downloads": 49,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 4
+        },
+        "railyard-v0.2.7-macos-universal.dmg": {
+          "total_downloads": 572,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 19
+        },
+        "railyard-v0.2.7-macos-universal.zip": {
+          "total_downloads": 40,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.2.7-windows-amd64-installer.exe": {
+          "total_downloads": 1205,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 43
+        },
+        "railyard-v0.2.7-windows-amd64-portable.zip": {
+          "total_downloads": 35,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 5
+        },
+        "railyard-v0.2.7-windows-arm64-installer.exe": {
+          "total_downloads": 26,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.2.7-windows-arm64-portable.zip": {
+          "total_downloads": 2,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.2.6": {
+      "total_downloads": 1269,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 1,
+      "assets": {
+        "railyard-v0.2.6-current-linux-amd64.flatpak": {
+          "total_downloads": 39,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.6-macos-universal.dmg": {
+          "total_downloads": 369,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.6-macos-universal.zip": {
+          "total_downloads": 14,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.6-windows-amd64-installer.exe": {
+          "total_downloads": 812,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.2.6-windows-amd64-portable.zip": {
+          "total_downloads": 14,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.6-windows-arm64-installer.exe": {
+          "total_downloads": 17,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.6-windows-arm64-portable.zip": {
+          "total_downloads": 4,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.2.5": {
+      "total_downloads": 1499,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 0,
+      "assets": {
+        "railyard-v0.2.5-current-linux-amd64.flatpak": {
+          "total_downloads": 46,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.5-macos-universal.dmg": {
+          "total_downloads": 441,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.5-macos-universal.zip": {
+          "total_downloads": 35,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.5-windows-amd64-installer.exe": {
+          "total_downloads": 949,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.5-windows-amd64-portable.zip": {
+          "total_downloads": 12,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.5-windows-arm64-installer.exe": {
+          "total_downloads": 15,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.5-windows-arm64-portable.zip": {
+          "total_downloads": 1,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.2.4": {
+      "total_downloads": 971,
+      "last_1d_downloads": 1,
+      "last_3d_downloads": 4,
+      "last_7d_downloads": 9,
+      "assets": {
+        "railyard-v0.2.4-current-linux-amd64.flatpak": {
+          "total_downloads": 21,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.4-macos-universal.dmg": {
+          "total_downloads": 273,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.4-macos-universal.zip": {
+          "total_downloads": 13,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.4-windows-amd64-installer.exe": {
+          "total_downloads": 634,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 2,
+          "last_7d_downloads": 6
+        },
+        "railyard-v0.2.4-windows-amd64-portable.zip": {
+          "total_downloads": 15,
+          "last_1d_downloads": 1,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.2.4-windows-arm64-installer.exe": {
+          "total_downloads": 13,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 2
+        },
+        "railyard-v0.2.4-windows-arm64-portable.zip": {
+          "total_downloads": 2,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.2.3": {
+      "total_downloads": 7754,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 2,
+      "last_7d_downloads": 6,
+      "assets": {
+        "railyard-v0.2.3-current-linux-amd64.flatpak": {
+          "total_downloads": 185,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.2.3-macos-universal.dmg": {
+          "total_downloads": 2538,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 2
+        },
+        "railyard-v0.2.3-macos-universal.zip": {
+          "total_downloads": 212,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.3-windows-amd64-installer.exe": {
+          "total_downloads": 4441,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 3
+        },
+        "railyard-v0.2.3-windows-amd64-portable.zip": {
+          "total_downloads": 233,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.3-windows-arm64-installer.exe": {
+          "total_downloads": 118,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.3-windows-arm64-portable.zip": {
+          "total_downloads": 27,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.2.2": {
+      "total_downloads": 2763,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 1,
+      "assets": {
+        "railyard-v0.2.2-current-linux-amd64.flatpak": {
+          "total_downloads": 74,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.2-macos-universal.dmg": {
+          "total_downloads": 736,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.2.2-macos-universal.zip": {
+          "total_downloads": 58,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.2-windows-amd64-installer.exe": {
+          "total_downloads": 1771,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.2-windows-amd64-portable.zip": {
+          "total_downloads": 83,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.2-windows-arm64-installer.exe": {
+          "total_downloads": 36,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.2-windows-arm64-portable.zip": {
+          "total_downloads": 5,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.2.1": {
+      "total_downloads": 1138,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 0,
+      "assets": {
+        "railyard-v0.2.1-current-linux-amd64.flatpak": {
+          "total_downloads": 19,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.1-macos-universal.dmg": {
+          "total_downloads": 236,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.1-macos-universal.zip": {
+          "total_downloads": 25,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.1-windows-amd64-installer.exe": {
+          "total_downloads": 820,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.1-windows-amd64-portable.zip": {
+          "total_downloads": 20,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.1-windows-arm64-installer.exe": {
+          "total_downloads": 16,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.1-windows-arm64-portable.zip": {
+          "total_downloads": 2,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.2.0": {
+      "total_downloads": 1777,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 1,
+      "assets": {
+        "railyard-v0.2.0-current-linux-amd64.flatpak": {
+          "total_downloads": 54,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.0-macos-universal.dmg": {
+          "total_downloads": 642,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.0-macos-universal.zip": {
+          "total_downloads": 35,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.0-windows-amd64-installer.exe": {
+          "total_downloads": 1006,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.2.0-windows-amd64-portable.zip": {
+          "total_downloads": 20,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.0-windows-arm64-installer.exe": {
+          "total_downloads": 16,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.2.0-windows-arm64-portable.zip": {
+          "total_downloads": 4,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.1.6": {
+      "total_downloads": 786,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 0,
+      "assets": {
+        "railyard-v0.1.6-current-linux-amd64.flatpak": {
+          "total_downloads": 25,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.6-macos-universal.dmg": {
+          "total_downloads": 218,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.6-macos-universal.zip": {
+          "total_downloads": 26,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.6-windows-amd64-installer.exe": {
+          "total_downloads": 477,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.6-windows-amd64-portable.zip": {
+          "total_downloads": 21,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.6-windows-arm64-installer.exe": {
+          "total_downloads": 18,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.6-windows-arm64-portable.zip": {
+          "total_downloads": 1,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.1.5": {
+      "total_downloads": 247,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 1,
+      "last_7d_downloads": 1,
+      "assets": {
+        "railyard-v0.1.5-current-linux-amd64.flatpak": {
+          "total_downloads": 19,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.5-macos-universal.dmg": {
+          "total_downloads": 75,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.5-macos-universal.zip": {
+          "total_downloads": 12,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.5-windows-amd64-installer.exe": {
+          "total_downloads": 133,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.5-windows-amd64-portable.zip": {
+          "total_downloads": 4,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.5-windows-arm64-installer.exe": {
+          "total_downloads": 4,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.5-windows-arm64-portable.zip": {
+          "total_downloads": 0,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.1.4": {
+      "total_downloads": 72,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 0,
+      "assets": {
+        "railyard-v0.1.4-current-linux-amd64.flatpak": {
+          "total_downloads": 3,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.4-macos-universal.dmg": {
+          "total_downloads": 11,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.4-macos-universal.zip": {
+          "total_downloads": 3,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.4-windows-amd64-installer.exe": {
+          "total_downloads": 50,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.4-windows-amd64-portable.zip": {
+          "total_downloads": 2,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.4-windows-arm64-installer.exe": {
+          "total_downloads": 3,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.4-windows-arm64-portable.zip": {
+          "total_downloads": 0,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.1.3": {
+      "total_downloads": 372,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 2,
+      "last_7d_downloads": 3,
+      "assets": {
+        "railyard-v0.1.3-current-linux-amd64.AppImage": {
+          "total_downloads": 13,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.3-legacy-linux-amd64.AppImage": {
+          "total_downloads": 6,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.3-macos-universal.dmg": {
+          "total_downloads": 108,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.3-macos-universal.zip": {
+          "total_downloads": 26,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.3-windows-amd64-installer.exe": {
+          "total_downloads": 203,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.3-windows-amd64-portable.zip": {
+          "total_downloads": 4,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.3-windows-arm64-installer.exe": {
+          "total_downloads": 11,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.3-windows-arm64-portable.zip": {
+          "total_downloads": 1,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.1.2": {
+      "total_downloads": 378,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 2,
+      "assets": {
+        "railyard-v0.1.2-linux-amd64.AppImage": {
+          "total_downloads": 18,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.2-macos-universal.dmg": {
+          "total_downloads": 112,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.2-macos-universal.zip": {
+          "total_downloads": 19,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.2-windows-amd64-installer.exe": {
+          "total_downloads": 198,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.2-windows-amd64-portable.zip": {
+          "total_downloads": 15,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.2-windows-arm64-installer.exe": {
+          "total_downloads": 11,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.2-windows-arm64-portable.zip": {
+          "total_downloads": 5,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.1.1": {
+      "total_downloads": 103,
+      "last_1d_downloads": 2,
+      "last_3d_downloads": 2,
+      "last_7d_downloads": 2,
+      "assets": {
+        "railyard-v0.1.1-linux-amd64.AppImage": {
+          "total_downloads": 4,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.1-macos-universal.dmg": {
+          "total_downloads": 24,
+          "last_1d_downloads": 1,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.1-macos-universal.zip": {
+          "total_downloads": 4,
+          "last_1d_downloads": 1,
+          "last_3d_downloads": 1,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.1-windows-amd64-installer.exe": {
+          "total_downloads": 61,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.1-windows-amd64-portable.zip": {
+          "total_downloads": 2,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.1-windows-arm64-installer.exe": {
+          "total_downloads": 6,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.1-windows-arm64-portable.zip": {
+          "total_downloads": 2,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    },
+    "0.1.0": {
+      "total_downloads": 11,
+      "last_1d_downloads": 0,
+      "last_3d_downloads": 0,
+      "last_7d_downloads": 4,
+      "assets": {
+        "railyard-v0.1.0-linux-amd64.AppImage": {
+          "total_downloads": 1,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 1
+        },
+        "railyard-v0.1.0-macos-universal.dmg": {
+          "total_downloads": 2,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.0-macos-universal.zip": {
+          "total_downloads": 1,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        },
+        "railyard-v0.1.0-windows-amd64-installer.exe": {
+          "total_downloads": 6,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 3
+        },
+        "railyard-v0.1.0-windows-amd64-portable.zip": {
+          "total_downloads": 1,
+          "last_1d_downloads": 0,
+          "last_3d_downloads": 0,
+          "last_7d_downloads": 0
+        }
+      }
+    }
+  }
+}

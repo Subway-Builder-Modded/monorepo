@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "id": "madrid",
+  "name": "Madrid",
+  "author": "Maximilian284",
+  "github_id": 61289731,
+  "description": "Custom map of the Madrid metropolitan area with highly realistic, procedurally generated demand data.",
+  "tags": [
+    "europe",
+    "airports",
+    "hospitals",
+    "schools",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/madrid/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/madrid/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/madrid/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/Maximilian284/subwaybuilder-es-maps",
+  "update": {
+    "type": "custom",
+    "url": "https://maximilian284.github.io/subwaybuilder-es-maps/ESMD.json"
+  },
+  "city_code": "ESMD",
+  "country": "ES",
+  "population": 3283483,
+  "residents_total": 3283483,
+  "points_count": 11989,
+  "population_count": 23715,
+  "initial_view_state": {
+    "latitude": 40.4167,
+    "longitude": -3.7042,
+    "zoom": 13,
+    "bearing": 0
+  },
+  "data_source": "OSM",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "schools",
+    "universities"
+  ],
+  "file_sizes": {
+    "ESMD.pmtiles": 78.49,
+    "buildings_index.json": 113.24,
+    "config.json": 0,
+    "demand_data.json": 4.49,
+    "roads.geojson": 39.98,
+    "runways_taxiways.geojson": 2.09
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.13189401969322442,
+      "p25": 0.15423413967744895,
+      "p50": 0.18188916995371826,
+      "p75": 0.20964050324497446,
+      "p90": 0.23931970905079644,
+      "mean": 0.19136175789866153
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.08716255158286457,
+      "p25": 0.14567891985714515,
+      "p50": 0.1799100300690314,
+      "p75": 0.20904112887749987,
+      "p90": 0.24662818815161275,
+      "mean": 0.18068409590419557
+    },
+    "commuteDistanceKm": {
+      "p10": 2942.6,
+      "p25": 4935.1,
+      "p50": 10344.5,
+      "p75": 24170.2,
+      "p90": 28762.4,
+      "mean": 14280.8108918406
+    },
+    "residentCellDensity": {
+      "p10": 157,
+      "p25": 267,
+      "p50": 703,
+      "p75": 1875,
+      "p90": 4194,
+      "mean": 1707.6409989594172
+    },
+    "workerCellDensity": {
+      "p10": 125,
+      "p25": 158,
+      "p50": 372,
+      "p75": 1052,
+      "p90": 4043,
+      "mean": 2601.8090332805073
+    },
+    "detail": {
+      "radiusKm": 0.18089689338295617,
+      "expectedPointSpacingKm": 0.41722444385506824,
+      "normalizedRadius": 0.43357213616610285,
+      "activityPerPoint": 273.87463508215865,
+      "playableAreaKm2": 3364,
+      "playableAreaPerPointKm2": 0.2805905413295521,
+      "playableCatchmentRadiusKm": 0.29885572317567877,
+      "localityScore": 0.7732834982775338,
+      "deaggregationScore": 1,
+      "score": 0.8793653952012973
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.7880164131458839,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -3.7069636905044008,
+            "latitude": 40.42835287407477,
+            "massShare": 1,
+            "assignedMass": 6566966,
+            "assignedPointCount": 11989,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1775779200,
+  "search_aliases": [
+    "Madril",
+    "مدريد",
+    "Мадрыд",
+    "Мадрид",
+    "Μαδρίτη",
+    "מדריד",
+    "मद्रिद",
+    "マドリード",
+    "마드리드",
+    "Madridas",
+    "Madride",
+    "Madryt",
+    "มาดริด",
+    "马德里",
+    "馬德里",
+    "マドリード市",
+    "მადრიდი",
+    "Madridi",
+    "Մադրիդ",
+    "মাদ্রিদ"
+  ],
+  "sub_location": "south-europe",
+  "data_quality": {
+    "tier": "unknown",
+    "rubric_version": 1
+  }
+}

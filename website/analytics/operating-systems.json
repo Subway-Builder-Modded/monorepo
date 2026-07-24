@@ -1,0 +1,65 @@
+[
+  {
+    "operatingSystem": "Unknown",
+    "visits": {
+      "1d": 45,
+      "7d": 553,
+      "30d": 2706,
+      "all": 8282
+    }
+  },
+  {
+    "operatingSystem": "Windows",
+    "visits": {
+      "1d": 50,
+      "7d": 1152,
+      "30d": 2802,
+      "all": 7510
+    }
+  },
+  {
+    "operatingSystem": "MacOSX",
+    "visits": {
+      "1d": 41,
+      "7d": 628,
+      "30d": 1831,
+      "all": 4834
+    }
+  },
+  {
+    "operatingSystem": "Android",
+    "visits": {
+      "1d": 24,
+      "7d": 336,
+      "30d": 895,
+      "all": 2633
+    }
+  },
+  {
+    "operatingSystem": "iOS",
+    "visits": {
+      "1d": 9,
+      "7d": 203,
+      "30d": 538,
+      "all": 1717
+    }
+  },
+  {
+    "operatingSystem": "Linux",
+    "visits": {
+      "1d": 2,
+      "7d": 94,
+      "30d": 260,
+      "all": 564
+    }
+  },
+  {
+    "operatingSystem": "ChromeOS",
+    "visits": {
+      "1d": 0,
+      "7d": 3,
+      "30d": 10,
+      "all": 35
+    }
+  }
+]

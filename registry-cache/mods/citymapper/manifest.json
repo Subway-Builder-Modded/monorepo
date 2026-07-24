@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "citymapper",
+  "name": "Citymapper",
+  "author": "Gio1112",
+  "github_id": 93438125,
+  "description": "Adds the ability to import OSM data ingame to see real life track constructions in your city, great for realism/realistic builds!",
+  "tags": [
+    "cosmetic",
+    "gameplay",
+    "tracks",
+    "ui"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/mods/citymapper/gallery/screenshot1.webp"
+  ],
+  "source": "https://github.com/Gio1112/subway-builder-citymapper",
+  "update": {
+    "type": "github",
+    "repo": "Gio1112/subway-builder-citymapper"
+  },
+  "is_test": false,
+  "last_updated": 1781915357
+}

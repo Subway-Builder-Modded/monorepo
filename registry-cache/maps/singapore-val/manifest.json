@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "id": "singapore-val",
+  "name": "Singapore",
+  "author": "Valdotorium",
+  "github_id": 116170877,
+  "description": "Custom map of Singapore (with a bit of Malaysia in it). Demand Data was procedurally generated using generation scripts from the patcher. Data quality: Good (for generated data standards)\nNOTE: population counts on Railyard probably differ from the values in game. This map has a population of 3.5 Million in game.",
+  "tags": [
+    "southeast-asia",
+    "airports",
+    "schools",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/singapore-val/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a703144000dc79ce1103f8aacb23ff81820770ab/maps/singapore-val/gallery/screenshot2.webp"
+  ],
+  "source": "https://github.com/Valdotorium/Railyard-Maps-2",
+  "update": {
+    "type": "custom",
+    "url": "https://valdotorium.github.io/Railyard-Maps-2/updates/SIN.json"
+  },
+  "city_code": "SIN",
+  "country": "SG",
+  "population": 3529424,
+  "residents_total": 3529424,
+  "points_count": 1095,
+  "population_count": 31692,
+  "data_source": "OSM",
+  "source_quality": "low-quality",
+  "level_of_detail": "medium-detail",
+  "location": "southeast-asia",
+  "special_demand": [
+    "airports",
+    "schools",
+    "universities"
+  ],
+  "initial_view_state": {
+    "latitude": 1.29,
+    "longitude": 103.8,
+    "zoom": 13.5,
+    "bearing": 0
+  },
+  "file_sizes": {
+    "SIN.pmtiles": 21.78,
+    "buildings_index.json": 43.39,
+    "config.json": 0,
+    "demand_data.json": 4.1,
+    "roads.geojson": 18.83,
+    "runways_taxiways.geojson": 2.58
+  },
+  "is_test": false,
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.030907000910111698,
+      "p25": 0.0689350982228152,
+      "p50": 0.12051703320259984,
+      "p75": 0.24319055953096733,
+      "p90": 0.4640219478210116,
+      "mean": 0.21525575313026615
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.029653816492735626,
+      "p25": 0.06081161909402551,
+      "p50": 0.1326634126681528,
+      "p75": 0.33909132377796086,
+      "p90": 0.6977577513669861,
+      "mean": 0.27510878415126205
+    },
+    "commuteDistanceKm": {
+      "p10": 4535,
+      "p25": 8288,
+      "p50": 13731,
+      "p75": 19081,
+      "p90": 24578,
+      "mean": 14272.178404644705
+    },
+    "residentCellDensity": {
+      "p10": 1660,
+      "p25": 5339,
+      "p50": 14124,
+      "p75": 26837,
+      "p90": 39678,
+      "mean": 18703.158024691358
+    },
+    "workerCellDensity": {
+      "p10": 255,
+      "p25": 962,
+      "p50": 3641,
+      "p75": 11149,
+      "p90": 22530,
+      "mean": 8967.908333333333
+    },
+    "detail": {
+      "radiusKm": 0.126444457803804,
+      "expectedPointSpacingKm": 0.6104119426469533,
+      "normalizedRadius": 0.20714610735743133,
+      "activityPerPoint": 4518.498873514595,
+      "playableAreaKm2": 662,
+      "playableAreaPerPointKm2": 0.6045662100456621,
+      "playableCatchmentRadiusKm": 0.43867915554559966,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.8814978831468088,
+        "continuousScore": 0.44057563967554053,
+        "detectedCenterCount": 2,
+        "effectiveCenterCount": 1.7881056905165513,
+        "largestCenterShare": 0.672120682119546,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 103.78837696747047,
+            "latitude": 1.338313276151583,
+            "massShare": 0.672120682119546,
+            "assignedMass": 7264568,
+            "assignedPointCount": 794,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": 103.918647737976,
+            "latitude": 1.370012825899781,
+            "massShare": 0.32787931788045405,
+            "assignedMass": 3543860,
+            "assignedPointCount": 282,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1773532800,
+  "search_aliases": [
+    "싱가포르",
+    "Singapur",
+    "Singapour",
+    "Σιγκαπούρη",
+    "Singapura",
+    "สิงค์โปร",
+    "Сингапур",
+    "싱가폴",
+    "シンガポール",
+    "סינגפור",
+    "सिंगापुर",
+    "سنغافورة",
+    "新加坡",
+    "Сінгапур",
+    "ประเทศสิงคโปร์"
+  ],
+  "data_quality": {
+    "tier": "unknown",
+    "rubric_version": 1
+  }
+}
