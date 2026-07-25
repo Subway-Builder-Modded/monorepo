@@ -45,10 +45,7 @@ func (a *App) runSteamDiscovery(ctx context.Context, sessionToken int, gen uint6
 		if now.After(hardCapDeadline) {
 			a.finishDiscovery(sessionToken)
 			a.emitEvent("game:launch-gaveup", map[string]string{
-				"message": fmt.Sprintf(
-					"Railyard stopped waiting for the game after %s. If Steam is still busy, try launching again.",
-					steamLaunchDiscoveryTimeout,
-				),
+				"message": "Railyard stopped waiting for the game to start. If Steam is still busy, try launching again.",
 			})
 			a.emitEvent("game:status", "stopped")
 			return
@@ -102,10 +99,10 @@ func (a *App) finishDiscovery(sessionToken int) {
 // from "Steam is running but the launch is blocked" so the dialog can guide the user.
 func (a *App) emitSteamLaunchBlocked() {
 	errType := types.GameLaunchErrorSteamDiscoveryTimeout
-	message := "Railyard hasn't detected the game starting yet. Steam may be waiting on a dialog - for example your account is in use on another device, an update is downloading, or the launch was cancelled."
+	message := "Railyard hasn't detected the game starting. Steam may be waiting on a prompt, such as an account in use on another device or a pending update."
 	if !steamClientRunning(runtime.GOOS, a.Logger) {
 		errType = types.GameLaunchErrorSteamNotRunning
-		message = "Steam isn't running, so the game hasn't started. Open Steam to continue the launch, or cancel it."
+		message = "Steam isn't running, so the game can't start. Open Steam to continue, or cancel the launch."
 	}
 	a.emitEvent("game:launch-blocked", map[string]string{
 		"errorType": string(errType),

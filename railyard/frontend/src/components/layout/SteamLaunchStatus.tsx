@@ -1,5 +1,5 @@
 import { AppDialog } from '@subway-builder-modded/shared-ui';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -45,8 +45,9 @@ export function SteamLaunchStatus() {
         <button
           type="button"
           onClick={() => cancelLaunch()}
-          className="self-start text-xs font-medium text-destructive hover:underline"
+          className="flex items-center gap-1 self-start text-xs font-medium text-destructive hover:underline"
         >
+          <X className="h-3.5 w-3.5 shrink-0" />
           Cancel launch
         </button>
       </div>,
@@ -95,9 +96,7 @@ export function SteamLaunchStatus() {
           cancelLaunch();
         }
       }}
-      title={
-        steamNotRunning ? "Steam isn't running" : 'Still starting the game…'
-      }
+      title={steamNotRunning ? "Steam Isn't Running" : 'Waiting for Steam'}
       icon={AlertTriangle}
       description={launchBlock.message}
       tone="files"
