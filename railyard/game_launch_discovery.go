@@ -1,10 +1,8 @@
 package main
 
-// Background discovery of a Steam-launched game process. Firing steam:// is fire-and-forget: the
-// game may appear immediately, after the user clears a Steam dialog (account in use elsewhere, an
-// update, a cancelled prompt), or never. Discovery therefore runs as a watcher that keeps polling
-// past the surface delay (which only raises the launch-blocked dialog) until one terminal outcome:
-// the game is found and attached, the user cancels, or the hard cap is reached.
+// Background discovery of a Steam-launched game process. steam:// is fire-and-forget, so the watcher
+// keeps polling past the surface delay (which only raises the blocked dialog) until one terminal
+// outcome: the game is found and attached, the user cancels, or the hard cap is reached.
 
 import (
 	"context"
@@ -110,8 +108,7 @@ func (a *App) emitSteamLaunchBlocked() {
 	})
 }
 
-// killGameOnSight kills the game if it appears within the grace window after a cancel, skipping if
-// a newer launch (different generation) has taken over so we never kill a valid launch's game.
+// killGameOnSight kills the game if it appears within the grace window after a cancel.
 func (a *App) killGameOnSight(gen uint64, spec launchSpec) {
 	lookup := steamProcessLookup(runtime.GOOS, a.Logger)
 	deadline := time.Now().Add(steamCancelKillGrace)
@@ -122,6 +119,7 @@ func (a *App) killGameOnSight(gen uint64, spec launchSpec) {
 		a.game.mu.Lock()
 		superseded := a.game.gen != gen
 		a.game.mu.Unlock()
+		// A newer launch has taken over; its game is not ours to kill.
 		if superseded {
 			return
 		}

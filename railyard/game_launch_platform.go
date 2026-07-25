@@ -213,9 +213,8 @@ const (
 	darwinSteamClientProcess  = "steam_osx"
 )
 
-// steamClientRunning reports whether the Steam client process is running. It is best-effort:
-// when the scan can't be performed or fails ambiguously it returns true, so we never falsely
-// claim Steam is down. A false result means we positively found no Steam process.
+// steamClientRunning reports whether the Steam client is running. Best-effort: a false result means
+// no Steam process was found; any uncertainty returns true, so we never falsely claim Steam is down.
 func steamClientRunning(goos string, log logger.Logger) bool {
 	switch goos {
 	case "windows":
@@ -239,9 +238,8 @@ func steamClientRunning(goos string, log logger.Logger) bool {
 	return true
 }
 
-// pgrepMatches runs a pgrep-style command and reports whether it matched a process. pgrep exits
-// 1 for a clean no-match; any other error leaves us uncertain, so we return true rather than
-// claiming nothing is running.
+// pgrepMatches reports whether a pgrep-style command matched a process. Exit 1 is a clean no-match;
+// any other error returns true, staying uncertain rather than claiming nothing is running.
 func pgrepMatches(cmd *exec.Cmd, log logger.Logger) bool {
 	err := cmd.Run()
 	if err == nil {
@@ -255,22 +253,20 @@ func pgrepMatches(cmd *exec.Cmd, log logger.Logger) bool {
 	return true
 }
 
-// killGameProcessTree terminates the game process at pid together with its children. The game is
-// Electron (multi-process): killing only the main process orphans its renderer children and leaves
-// a "ghost" window (present on Alt+Tab, absent from Task Manager). Windows kills the whole tree via
-// taskkill /T; Linux pkills the host process for Steam launches (the game runs outside the Flatpak
-// sandbox); elsewhere a direct kill of the resolved process suffices.
+// killGameProcessTree terminates the game process at pid together with its children.
 func killGameProcessTree(pid int, goos string, useSteam bool, log logger.Logger) error {
 	switch goos {
 	case "windows":
-		// /T kills the process tree, /F forces it - a hung game won't honour a graceful close, and
-		// killing the whole tree at once leaves no child alive to keep a ghost window.
+		// The game is Electron (multi-process): killing only the main process orphans its renderer
+		// children and leaves a "ghost" window (on Alt+Tab, gone from Task Manager). /T kills the
+		// whole tree; /F forces it since a hung game won't honour a graceful close.
 		out, err := exec.Command("taskkill", "/PID", strconv.Itoa(pid), "/T", "/F").CombinedOutput()
 		if err != nil {
 			log.Warn("taskkill failed", "pid", pid, "output", strings.TrimSpace(string(out)), "error", err)
 		}
 		return err
 	case "linux":
+		// The game runs on the host outside the Flatpak sandbox, so pkill it there for Steam launches.
 		if useSteam {
 			return exec.Command("flatpak-spawn", "--host", "pkill", "-9", linuxGameProcessName).Run()
 		}
