@@ -142,34 +142,31 @@ export function DownloadNotification() {
 
     // Guaranteed terminal signal from the backend, so a progress toast is always cleared even when
     // the byte-based completion heuristic can't fire (download error, or unknown Content-Length).
-    const finished = EventsOn(
-      'download:finished',
-      (data: DownloadFinished) => {
-        if (!data?.itemId) {
-          return;
-        }
-        const existingId = toastIds.current.get(data.itemId);
-        // No toast (already completed by the progress handler, or never shown) -> nothing to do.
-        if (!existingId) {
-          return;
-        }
-        if (data.ok) {
-          toast(
-            <div className="flex items-center gap-2 min-w-0">
-              <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
-              <span className="text-sm font-medium truncate">
-                Downloaded {data.itemId}
-              </span>
-            </div>,
-            { id: existingId, duration: 2000 },
-          );
-        } else {
-          // The failure itself is surfaced by the install flow; just clear the stuck progress toast.
-          toast.dismiss(existingId);
-        }
-        toastIds.current.delete(data.itemId);
-      },
-    );
+    const finished = EventsOn('download:finished', (data: DownloadFinished) => {
+      if (!data?.itemId) {
+        return;
+      }
+      const existingId = toastIds.current.get(data.itemId);
+      // No toast (already completed by the progress handler, or never shown) -> nothing to do.
+      if (!existingId) {
+        return;
+      }
+      if (data.ok) {
+        toast(
+          <div className="flex items-center gap-2 min-w-0">
+            <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
+            <span className="text-sm font-medium truncate">
+              Downloaded {data.itemId}
+            </span>
+          </div>,
+          { id: existingId, duration: 2000 },
+        );
+      } else {
+        // The failure itself is surfaced by the install flow; just clear the stuck progress toast.
+        toast.dismiss(existingId);
+      }
+      toastIds.current.delete(data.itemId);
+    });
 
     return () => {
       cancelDownload();
