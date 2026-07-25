@@ -134,9 +134,29 @@ describe("normalizeRegistryDetail", () => {
       country: "Country A",
       population: 14_000,
       playableAreaKm2: 5617,
-      dataQuality: "high",
+      dataQuality: "High",
       levelOfDetail: "Medium",
     });
+  });
+
+  it.each([
+    ["very-high", "Very High"],
+    ["high", "High"],
+    ["medium", "Medium"],
+    ["low", "Low"],
+    ["very-low", "Very Low"],
+    ["absent", "Absent"],
+    ["unknown", "Unknown"],
+  ] as const)("normalizes the %s data-quality tier for display", (tier, expected) => {
+    const model = normalizeRegistryDetail({
+      ...BASE,
+      manifest: {
+        ...BASE.manifest,
+        data_quality: { ...BASE.manifest.data_quality!, tier },
+      },
+    });
+
+    expect(model.mapFields?.dataQuality).toBe(expected);
   });
 
   it("normalizes missing optional fields for non-map items", () => {

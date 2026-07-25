@@ -664,12 +664,31 @@ function RegistryContentTab({
       ),
     );
   }, [rankingQuery, sortedRows]);
-  const contentColumns = useMemo<RegistryRankingColumn<RegistryAnalyticsContentRanking>[]>(
-    () => [
+  const contentColumns = useMemo<RegistryRankingColumn<RegistryAnalyticsContentRanking>[]>(() => {
+    const isMapRanking = assetTypeId === "maps";
+    const mapColumns: RegistryRankingColumn<RegistryAnalyticsContentRanking>[] = isMapRanking
+      ? [
+          {
+            id: "country",
+            label: "Country",
+            width: "10%",
+            render: (row) => <CountryCell countryCode={row.countryCode} />,
+          },
+          {
+            id: "cityCode",
+            label: "City Code",
+            width: "10%",
+            cellClassName: "font-mono text-sm uppercase text-muted-foreground",
+            render: (row) => row.cityCode || "--",
+          },
+        ]
+      : [];
+
+    return [
       {
         id: "name",
         label: "Name",
-        width: "32%",
+        width: isMapRanking ? "32%" : "42%",
         cellClassName: "font-medium text-foreground",
         render: (row) => (
           <Link
@@ -681,23 +700,11 @@ function RegistryContentTab({
           </Link>
         ),
       },
-      {
-        id: "country",
-        label: "Country",
-        width: "10%",
-        render: (row) => <CountryCell countryCode={row.countryCode} />,
-      },
-      {
-        id: "cityCode",
-        label: "City Code",
-        width: "10%",
-        cellClassName: "font-mono text-sm uppercase text-muted-foreground",
-        render: (row) => row.cityCode || "--",
-      },
+      ...mapColumns,
       {
         id: "author",
         label: "Author",
-        width: "28%",
+        width: isMapRanking ? "28%" : "38%",
         cellClassName: "text-foreground",
         render: (row) => (
           <AnalyticsAuthorCell authorId={row.authorId} authorName={row.authorName} />
@@ -710,14 +717,13 @@ function RegistryContentTab({
         sortable: true,
         active: true,
         direction: sortDirection,
-        align: "right",
+        align: "right" as const,
         onSort: () => setSortDirection((current) => (current === "asc" ? "desc" : "asc")),
         cellClassName: "font-semibold tabular-nums text-[var(--registry-type-accent)]",
         render: (row) => formatNumber(row.downloads),
       },
-    ],
-    [sortDirection],
-  );
+    ];
+  }, [assetTypeId, sortDirection]);
 
   useEffect(() => {
     setVisibleCount(CONTENT_ASSET_INCREMENT);

@@ -233,6 +233,8 @@ describe("RegistryAnalyticsPage", () => {
     );
     expect(screen.getByText("84")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Downloads/i })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Country" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "City Code" })).not.toBeInTheDocument();
 
     const searchInput = screen.getByPlaceholderText("Search mods...");
     fireEvent.change(searchInput, {
@@ -255,6 +257,9 @@ describe("RegistryAnalyticsPage", () => {
     await waitFor(() => {
       expect(screen.getByText("Map Alpha")).toBeInTheDocument();
     });
+
+    expect(screen.getByRole("columnheader", { name: "Country" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "City Code" })).toBeInTheDocument();
 
     const searchInput = screen.getByPlaceholderText("Search maps...");
     fireEvent.change(searchInput, {
