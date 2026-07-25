@@ -253,9 +253,9 @@ func pgrepMatches(cmd *exec.Cmd, log logger.Logger) bool {
 func killGameProcessTree(pid int, goos string, useSteam bool, log logger.Logger) error {
 	switch goos {
 	case "windows":
-		// The game is Electron (multi-process): killing only the main process orphans its renderer
-		// children and leaves a "ghost" window (on Alt+Tab, gone from Task Manager). /T kills the
-		// whole tree; /F forces it since a hung game won't honour a graceful close.
+		// The game is Electron (multi-process); killing only the main process orphans its renderer
+		// children and can leave a "ghost" window . /T kills the whole tree and /F forces it since 
+		// a hung game won't honor a graceful close.
 		out, err := exec.Command("taskkill", "/PID", strconv.Itoa(pid), "/T", "/F").CombinedOutput()
 		if err != nil {
 			log.Warn("taskkill failed", "pid", pid, "output", strings.TrimSpace(string(out)), "error", err)
