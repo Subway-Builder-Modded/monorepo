@@ -254,7 +254,7 @@ func killGameProcessTree(pid int, goos string, useSteam bool, log logger.Logger)
 	switch goos {
 	case "windows":
 		// The game is Electron (multi-process); killing only the main process orphans its renderer
-		// children and can leave a "ghost" window . /T kills the whole tree and /F forces it since 
+		// children and can leave a "ghost" window . /T kills the whole tree and /F forces it since
 		// a hung game won't honor a graceful close.
 		out, err := exec.Command("taskkill", "/PID", strconv.Itoa(pid), "/T", "/F").CombinedOutput()
 		if err != nil {

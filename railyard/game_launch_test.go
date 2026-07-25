@@ -70,7 +70,12 @@ func TestIsGameRunning(t *testing.T) {
 	app.game.cmd = &exec.Cmd{} // started, not yet waited on
 	require.True(t, app.IsGameRunning().Running)
 
+	// A process that exits immediately, so ProcessState is set after Run. `true` isn't a Windows
+	// executable, so use `cmd /c exit` there.
 	finished := exec.Command("true")
+	if runtime.GOOS == "windows" {
+		finished = exec.Command("cmd", "/c", "exit")
+	}
 	require.NoError(t, finished.Run())
 	app.game.cmd = finished // ProcessState set after Wait
 	require.False(t, app.IsGameRunning().Running)
