@@ -6,6 +6,7 @@ import { Route, Switch, useLocation } from 'wouter';
 import { DownloadNotification } from '@/components/layout/DownloadNotification';
 import { Layout } from '@/components/layout/Layout';
 import { RequestErrorDialog } from '@/components/layout/RequestErrorDialog';
+import { SteamLaunchStatus } from '@/components/layout/SteamLaunchStatus';
 import { SetupScreen } from '@/components/setup/SetupScreen';
 import { Toaster } from '@/components/ui/sonner';
 import { GameVersionProvider } from '@/hooks/use-game-version';
@@ -325,6 +326,7 @@ function App() {
             <ExtractNotification />
             <RegistryRefreshNotification />
             <RequestErrorDialog />
+            <SteamLaunchStatus />
             <Toaster />
           </IncompatibleAssetKeysProvider>
         </GameVersionProvider>

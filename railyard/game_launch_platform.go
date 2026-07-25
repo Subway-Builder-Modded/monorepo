@@ -27,8 +27,13 @@ import (
 // Steam launches return before the game starts, so the real game process is discovered by
 // polling; discovery is bounded so a cancelled Steam prompt cannot hang the launch.
 const (
-	steamPollInterval           = time.Second
-	steamLaunchDiscoveryTimeout = 2 * time.Minute
+	steamPollInterval = time.Second
+	// Time after launch to raise the launch-blocked dialog; the watcher keeps polling after.
+	steamDiscoverySurfaceDelay = 10 * time.Second
+	// Time after launch when discovery gives up entirely.
+	steamLaunchDiscoveryTimeout = 1 * time.Minute
+	// Time after a cancel we keep killing a game that still appears.
+	steamCancelKillGrace = 10 * time.Second
 )
 
 // Process names of the Steam-launched game binary per OS (macOS uses constants.GameMacProcessName).
@@ -194,6 +199,83 @@ func windowsSteamProcessLookup(log logger.Logger) (*os.Process, error) {
 		return gameProcess, nil
 	}
 	return nil, nil
+}
+
+// Process names of the Steam client itself per OS, used to tell "Steam isn't running" apart
+// from "Steam is running but the game never appeared" when discovery times out.
+const (
+	windowsSteamClientProcess = "steam.exe"
+	linuxSteamClientProcess   = "steam"
+	darwinSteamClientProcess  = "steam_osx"
+)
+
+// steamClientRunning reports whether the Steam client is running. Best-effort: a false result means
+// no Steam process was found; any uncertainty returns true, so we never falsely claim Steam is down.
+func steamClientRunning(goos string, log logger.Logger) bool {
+	switch goos {
+	case "windows":
+		processes, err := ps.Processes()
+		if err != nil {
+			log.Warn("Failed to list processes for Steam client check", "error", err)
+			return true
+		}
+		for _, proc := range processes {
+			if strings.EqualFold(proc.Executable(), windowsSteamClientProcess) {
+				return true
+			}
+		}
+		return false
+	case "darwin":
+		return pgrepMatches(exec.Command("pgrep", "-x", darwinSteamClientProcess), log)
+	case "linux":
+		// The Flatpak sandbox hides host processes, so scan the host like the game lookup does.
+		return pgrepMatches(exec.Command("flatpak-spawn", "--host", "pgrep", "-x", linuxSteamClientProcess), log)
+	}
+	return true
+}
+
+// pgrepMatches reports whether a pgrep-style command matched a process. Exit 1 is a clean no-match;
+// any other error returns true, staying uncertain rather than claiming nothing is running.
+func pgrepMatches(cmd *exec.Cmd, log logger.Logger) bool {
+	err := cmd.Run()
+	if err == nil {
+		return true
+	}
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		return false
+	}
+	log.Warn("Steam client check command failed", "error", err)
+	return true
+}
+
+// killGameProcessTree terminates the game process at pid together with its children.
+func killGameProcessTree(pid int, goos string, useSteam bool, log logger.Logger) error {
+	switch goos {
+	case "windows":
+		// The game is Electron (multi-process); killing only the main process orphans its renderer
+		// children and can leave a "ghost" window . /T kills the whole tree and /F forces it since
+		// a hung game won't honor a graceful close.
+		out, err := exec.Command("taskkill", "/PID", strconv.Itoa(pid), "/T", "/F").CombinedOutput()
+		if err != nil {
+			log.Warn("taskkill failed", "pid", pid, "output", strings.TrimSpace(string(out)), "error", err)
+		}
+		return err
+	case "linux":
+		// The game runs on the host outside the Flatpak sandbox, so pkill it there for Steam launches.
+		if useSteam {
+			return exec.Command("flatpak-spawn", "--host", "pkill", "-9", linuxGameProcessName).Run()
+		}
+		if proc, err := os.FindProcess(pid); err == nil {
+			return proc.Kill()
+		}
+		return nil
+	default:
+		if proc, err := os.FindProcess(pid); err == nil {
+			return proc.Kill()
+		}
+		return nil
+	}
 }
 
 // steamProcessFromPgrep runs a pgrep-style listing command and resolves the first line

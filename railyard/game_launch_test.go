@@ -23,7 +23,7 @@ func TestLaunchGameRejectsConcurrentStartWhileStarting(t *testing.T) {
 	app.launchGameTestReady = ready
 	app.launchGameTestBlock = block
 
-	firstResult := make(chan types.GenericResponse, 1)
+	firstResult := make(chan types.GameLaunchResponse, 1)
 	go func() {
 		firstResult <- app.LaunchGame(false)
 	}()
@@ -39,7 +39,7 @@ func TestLaunchGameRejectsConcurrentStartWhileStarting(t *testing.T) {
 	first := <-firstResult
 	require.Equal(t, types.ResponseError, first.Status)
 	require.Equal(t, "game executable path is not configured or invalid", first.Message)
-	require.False(t, app.gameStarting)
+	require.False(t, app.game.starting)
 }
 
 func TestLaunchGameRejectedWhileContentOpsHoldGate(t *testing.T) {
@@ -52,7 +52,7 @@ func TestLaunchGameRejectedWhileContentOpsHoldGate(t *testing.T) {
 	result := app.LaunchGame(false)
 	require.Equal(t, types.ResponseError, result.Status)
 	require.Contains(t, result.Message, "content is being installed")
-	require.False(t, app.gameStarting)
+	require.False(t, app.game.starting)
 
 	app.contentGate.EndContentOp()
 	// With the gate free, the launch proceeds past exclusivity and fails on config instead,
@@ -67,12 +67,17 @@ func TestIsGameRunning(t *testing.T) {
 	app := newTestApp()
 	require.False(t, app.IsGameRunning().Running)
 
-	app.gameCmd = &exec.Cmd{} // started, not yet waited on
+	app.game.cmd = &exec.Cmd{} // started, not yet waited on
 	require.True(t, app.IsGameRunning().Running)
 
+	// A process that exits immediately, so ProcessState is set after Run. `true` isn't a Windows
+	// executable, so use `cmd /c exit` there.
 	finished := exec.Command("true")
+	if runtime.GOOS == "windows" {
+		finished = exec.Command("cmd", "/c", "exit")
+	}
 	require.NoError(t, finished.Run())
-	app.gameCmd = finished // ProcessState set after Wait
+	app.game.cmd = finished // ProcessState set after Wait
 	require.False(t, app.IsGameRunning().Running)
 }
 
@@ -80,12 +85,12 @@ func TestStopGameStateGuards(t *testing.T) {
 	app := newTestApp()
 	app.Config = config.NewConfig(app.Logger)
 
-	app.gameStarting = true
+	app.game.starting = true
 	res := app.StopGame()
 	require.Equal(t, types.ResponseError, res.Status)
 	require.Equal(t, "game is still starting", res.Message)
 
-	app.gameStarting = false
+	app.game.starting = false
 	res = app.StopGame()
 	require.Equal(t, types.ResponseError, res.Status)
 	require.Equal(t, "game is not running", res.Message)
@@ -100,12 +105,12 @@ func TestStopGameKillsRunningProcess(t *testing.T) {
 
 	cmd := exec.Command("sleep", "60")
 	require.NoError(t, cmd.Start())
-	app.gameCmd = cmd
+	app.game.cmd = cmd
 
 	res := app.StopGame()
 	require.Equal(t, types.ResponseSuccess, res.Status)
-	require.Nil(t, app.gameCmd)
-	require.False(t, app.gameStarting)
+	require.Nil(t, app.game.cmd)
+	require.False(t, app.game.starting)
 	_ = cmd.Wait() // reap the killed fixture
 }
 

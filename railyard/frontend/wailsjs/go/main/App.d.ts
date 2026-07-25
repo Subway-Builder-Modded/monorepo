@@ -25,7 +25,7 @@ export function IsGameRunning():Promise<types.GameRunningResponse>;
 
 export function IsStartupReady():Promise<types.StartupReadyResponse>;
 
-export function LaunchGame(arg1:boolean):Promise<types.GenericResponse>;
+export function LaunchGame(arg1:boolean):Promise<types.GameLaunchResponse>;
 
 export function LogFrontend(arg1:string,arg2:string):Promise<void>;
 

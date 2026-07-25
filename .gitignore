@@ -25,3 +25,4 @@ node_modules/
 
 # Compiled app binary from `go build .` in the module directory
 /railyard/railyard
+/railyard/railyard.exe

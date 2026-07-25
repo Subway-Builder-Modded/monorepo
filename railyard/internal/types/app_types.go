@@ -82,6 +82,20 @@ type GameRunningResponse struct {
 	Running bool `json:"running"`
 }
 
+// GameLaunchErrorType is a machine-readable reason a launch failed, so the frontend can react
+// specifically (e.g. show a Steam-blocked dialog) rather than string-matching the message.
+type GameLaunchErrorType string
+
+const (
+	GameLaunchErrorSteamNotRunning       GameLaunchErrorType = "steam_not_running"
+	GameLaunchErrorSteamDiscoveryTimeout GameLaunchErrorType = "steam_discovery_timeout"
+)
+
+type GameLaunchResponse struct {
+	GenericResponse
+	ErrorType GameLaunchErrorType `json:"errorType,omitempty"`
+}
+
 type MetroMakerModConfig struct {
 	TileZoomLevel int                          `json:"tileZoomLevel"`
 	Places        []MetroMakerPlace            `json:"places"`
