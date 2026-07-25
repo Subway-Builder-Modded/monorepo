@@ -72,6 +72,12 @@ func (a *App) startup(ctx context.Context) {
 			"phase":     phase,
 		})
 	}
+	a.Downloader.OnDownloadFinished = func(itemId string, ok bool) {
+		a.emitEvent("download:finished", map[string]interface{}{
+			"itemId": itemId,
+			"ok":     ok,
+		})
+	}
 	a.Downloader.GetGameVersion = func() types.GameVersionResponse {
 		return a.GetGameVersion()
 	}
