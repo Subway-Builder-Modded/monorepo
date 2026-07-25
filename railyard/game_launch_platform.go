@@ -28,16 +28,12 @@ import (
 // polling; discovery is bounded so a cancelled Steam prompt cannot hang the launch.
 const (
 	steamPollInterval = time.Second
-	// Steam discovery timing. steam:// is fire-and-forget, so the watcher keeps polling: the
-	// surface delay only decides when to raise the launch-blocked dialog, the hard cap is when we
-	// truly give up, and the kill grace is how long after a cancel we keep killing a game that
-	// still appears.
-	//
-	// TEMP(UI-validation): lowered so the full flow can be exercised in seconds. REVERT to the
-	// production values in the trailing comments before shipping.
-	steamDiscoverySurfaceDelay  = 3 * time.Second  // REAL: 30 * time.Second
-	steamLaunchDiscoveryTimeout = 30 * time.Second // REAL: 5 * time.Minute
-	steamCancelKillGrace        = 10 * time.Second // REAL: 30 * time.Second
+	// Time after launch to raise the launch-blocked dialog; the watcher keeps polling after.
+	steamDiscoverySurfaceDelay = 10 * time.Second
+	// Time after launch when discovery gives up entirely.
+	steamLaunchDiscoveryTimeout = 1 * time.Minute
+	// Time after a cancel we keep killing a game that still appears.
+	steamCancelKillGrace = 10 * time.Second
 )
 
 // Process names of the Steam-launched game binary per OS (macOS uses constants.GameMacProcessName).

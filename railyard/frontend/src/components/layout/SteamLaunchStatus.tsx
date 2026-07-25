@@ -7,8 +7,7 @@ import { STEAM_NOT_RUNNING, useGameStore } from '@/stores/game-store';
 
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 
-// Opening the Steam client so the user can clear whatever is blocking the launch. The game launch
-// itself was already requested via steam://, so discovery keeps running underneath.
+// Open the Steam client so the user can clear whatever is blocking the launch.
 const STEAM_OPEN_URL = 'steam://open/main';
 const DISCOVERY_TOAST_ID = 'steam-discovery-waiting';
 
@@ -52,7 +51,7 @@ export function SteamLaunchStatus() {
     };
   }, [discoveryWaiting, cancelLaunch]);
 
-  // Hard-cap notice.
+  // Hard-cap notice, after which discovery ceases.
   useEffect(() => {
     if (!gaveUpMessage) {
       return;
@@ -65,8 +64,8 @@ export function SteamLaunchStatus() {
     return null;
   }
 
-  // Blocked modal: the user chooses Open Steam / Keep Waiting, or Cancel Launch (dismissing the
-  // dialog counts as Cancel). Keep Waiting hands off to the background indicator above.
+  // Blocked modal: the user chooses Open Steam / Keep Waiting, or Cancel Launch.
+  // Keep Waiting hands off to the background indicator above
   const steamNotRunning = launchBlock.errorType === STEAM_NOT_RUNNING;
   const confirm = steamNotRunning
     ? {
@@ -87,7 +86,7 @@ export function SteamLaunchStatus() {
     <AppDialog
       open
       onOpenChange={(open) => {
-        // Dismissal (Cancel Launch button / Escape / click-away) is the strict action: abort.
+        // Dismissal (Cancel Launch button / Escape / click-away) is the strict action: abort launch.
         if (!open) {
           cancelLaunch();
         }

@@ -1,8 +1,10 @@
 package main
 
 // Background discovery of a Steam-launched game process. steam:// is fire-and-forget, so the watcher
-// keeps polling past the surface delay (which only raises the blocked dialog) until one terminal
-// outcome: the game is found and attached, the user cancels, or the hard cap is reached.
+// polls past the surface delay (which only raises the blocked dialog) until one terminal outcome:
+//  - the game is found and attached
+//  - the user cancels,
+//  - the hard cap is reached.
 
 import (
 	"context"
@@ -52,7 +54,7 @@ func (a *App) runSteamDiscovery(ctx context.Context, sessionToken int, gen uint6
 		select {
 		case <-ctx.Done():
 			// User cancelled. steam:// can't be un-fired, so release the session now (unblock the
-			// app) and, for a grace window, kill the game if it still appears - unless a newer
+			// app) and, for a grace period, kill the game if it still appears unless a newer
 			// launch has taken over.
 			a.finishDiscovery(sessionToken)
 			a.emitEvent("game:status", "stopped")
@@ -93,8 +95,7 @@ func (a *App) finishDiscovery(sessionToken int) {
 	a.contentGate.EndGameSession(sessionToken)
 }
 
-// emitSteamLaunchBlocked raises the launch-blocked dialog, distinguishing "Steam isn't running"
-// from "Steam is running but the launch is blocked" so the dialog can guide the user.
+// emitSteamLaunchBlocked raises the launch-blocked dialog
 func (a *App) emitSteamLaunchBlocked() {
 	errType := types.GameLaunchErrorSteamDiscoveryTimeout
 	message := "Railyard hasn't detected the game starting. Steam may be waiting on a prompt, such as an account in use on another device or a pending update."

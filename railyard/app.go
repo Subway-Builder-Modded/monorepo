@@ -20,21 +20,20 @@ import (
 	"railyard/internal/utils"
 )
 
-// App struct
-// gameLaunchState holds the mutable state of the current or most-recent game launch, guarded by mu.
+// gameLaunchState holds the mutable state of the current or most-recent game launch.
 type gameLaunchState struct {
 	mu       sync.Mutex
 	cmd      *exec.Cmd
 	starting bool
-	// discovering is true while a Steam launch's background watcher polls for the game process
-	// (steam:// is fire-and-forget, so the game can appear at any time or never).
+	// discovering is true while a Steam launch's background watcher polls for the game process.
 	discovering bool
-	// cancel aborts the in-flight discovery watcher; StopGame calls it. Nil when none is running.
+	// cancel aborts the in-flight discovery watcher, and is called by StopGame. It is Nil when no watcher is running.
 	cancel context.CancelFunc
-	// gen increments per launch so a cancelled launch's kill-on-sight grace never kills a newer one.
+	// gen increments per launch so a cancelled launch's kill-on-sight never kills a newer one.
 	gen uint64
 }
 
+// App struct
 type App struct {
 	Registry   *registry.Registry
 	Config     *config.Config

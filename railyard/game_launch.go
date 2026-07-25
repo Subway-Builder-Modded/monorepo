@@ -17,8 +17,8 @@ import (
 	"railyard/internal/types"
 )
 
-// launchErr wraps a GenericResponse error as a GameLaunchResponse. The launch-blocked / gave-up
-// outcomes are delivered via events (the discovery watcher is async), not this return value.
+// launchErr wraps a GenericResponse error as a GameLaunchResponse. Launch-blocked / gave-up
+// outcomes are delivered via events, not this return value.
 func launchErr(msg string) types.GameLaunchResponse {
 	return types.GameLaunchResponse{GenericResponse: types.ErrorResponse(msg)}
 }
@@ -137,9 +137,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GameLaunchResponse {
 	}
 
 	// Steam launches only start the URL handler; the real game process is discovered in the
-	// background. Hand the session off to the discovery watcher and return - it emits "running"
-	// when the game appears, or the launch-blocked / gave-up events otherwise. The user can abort
-	// the wait via StopGame, which cancels this context.
+	// background.
 	if spec.useSteam {
 		ctx, cancel := context.WithCancel(context.Background())
 		a.game.mu.Lock()
@@ -147,7 +145,7 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GameLaunchResponse {
 		a.game.discovering = true
 		a.game.cancel = cancel
 		a.game.mu.Unlock()
-		started = true // the discovery watcher owns the session from here
+		started = true // Hand off to the discovery watcher, which owns the session from here
 
 		a.emitEvent("game:log", map[string]string{
 			"stream": "stdout",
@@ -205,8 +203,9 @@ func (a *App) StopGame() types.GenericResponse {
 	cancel := a.game.cancel
 	a.game.mu.Unlock()
 
-	// Abort an in-flight Steam discovery: the game hasn't been found yet, so cancel the watcher.
-	// It releases the session, emits "stopped", and kills the game if it still appears (grace).
+	// Abort in-flight Steam discovery: the game hasn't been found yet, so cancel the watcher.
+	// This releases the session, emits "stopped", and kills the game if it still appears
+	// in the subsequent grace period.
 	if discovering {
 		a.Logger.Info("Cancelling in-flight Steam launch discovery")
 		if cancel != nil {

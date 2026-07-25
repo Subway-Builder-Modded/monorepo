@@ -87,12 +87,7 @@ type GameRunningResponse struct {
 type GameLaunchErrorType string
 
 const (
-	// GameLaunchErrorSteamNotRunning: a Steam launch timed out discovering the game process and
-	// the Steam client itself is not running.
-	GameLaunchErrorSteamNotRunning GameLaunchErrorType = "steam_not_running"
-	// GameLaunchErrorSteamDiscoveryTimeout: a Steam launch timed out discovering the game process
-	// while Steam is running - the launch was likely blocked by a Steam dialog (account in use on
-	// another device, an update download, or a cancelled launch).
+	GameLaunchErrorSteamNotRunning       GameLaunchErrorType = "steam_not_running"
 	GameLaunchErrorSteamDiscoveryTimeout GameLaunchErrorType = "steam_discovery_timeout"
 )
 
