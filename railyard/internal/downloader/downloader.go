@@ -33,6 +33,7 @@ import (
 
 type ExtractProgressFunc func(itemId string, extracted int64, total int64)
 type CancelledFunc func(itemID string, assetType types.AssetType, phase string)
+type DownloadFinishedFunc func(itemId string, ok bool)
 type DependencyInstalledFunc func(modID string, itemType types.AssetType, version types.Version)
 type RegistryUpdateFunc func()
 type GameVersionFunc func() types.GameVersionResponse
@@ -41,17 +42,18 @@ type GameVersionFunc func() types.GameVersionResponse
 var downloaderHTTPClient = requests.NewDownloadClient()
 
 type Downloader struct {
-	tempPath          string
-	mapTilePath       string
-	Registry          *registry.Registry
-	Config            *config.Config
-	Logger            logger.Logger
-	OnProgress        types.ProgressFunc
-	OnExtractProgress ExtractProgressFunc
-	OnCancelled       CancelledFunc
-	OnRegistryUpdate  RegistryUpdateFunc
-	InstallDependency DependencyInstalledFunc
-	GetGameVersion    GameVersionFunc
+	tempPath           string
+	mapTilePath        string
+	Registry           *registry.Registry
+	Config             *config.Config
+	Logger             logger.Logger
+	OnProgress         types.ProgressFunc
+	OnExtractProgress  ExtractProgressFunc
+	OnCancelled        CancelledFunc
+	OnDownloadFinished DownloadFinishedFunc
+	OnRegistryUpdate   RegistryUpdateFunc
+	InstallDependency  DependencyInstalledFunc
+	GetGameVersion     GameVersionFunc
 	// Gate enforces game-vs-content exclusivity; wired by App on startup (nil in tests).
 	Gate *gate.GameContentGate
 
@@ -1157,7 +1159,21 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 }
 
 // downloadTempZip downloads a zip file from the given URL and saves it to a temporary location, returning the path or an error message.
-func (d *Downloader) downloadTempZip(ctx context.Context, url string, itemId string) types.DownloadTempResponse {
+func (d *Downloader) downloadTempZip(ctx context.Context, url string, itemId string) (resp types.DownloadTempResponse) {
+	// Fire a guaranteed terminal event so the progress toast is dismissed on success or error;
+	// cancellation (a warn response) is left to OnCancelled.
+	defer func() {
+		if d.OnDownloadFinished == nil {
+			return
+		}
+		switch resp.Status {
+		case types.ResponseSuccess:
+			d.OnDownloadFinished(itemId, true)
+		case types.ResponseError:
+			d.OnDownloadFinished(itemId, false)
+		}
+	}()
+
 	if err := os.MkdirAll(d.tempPath, os.ModePerm); err != nil {
 		return d.throwDownloadError("Failed to create temp directory", err, "url", url)
 	}
