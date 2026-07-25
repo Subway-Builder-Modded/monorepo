@@ -21,6 +21,20 @@ import (
 )
 
 // App struct
+// gameLaunchState holds the mutable state of the current or most-recent game launch, guarded by mu.
+type gameLaunchState struct {
+	mu       sync.Mutex
+	cmd      *exec.Cmd
+	starting bool
+	// discovering is true while a Steam launch's background watcher polls for the game process
+	// (steam:// is fire-and-forget, so the game can appear at any time or never).
+	discovering bool
+	// cancel aborts the in-flight discovery watcher; StopGame calls it. Nil when none is running.
+	cancel context.CancelFunc
+	// gen increments per launch so a cancelled launch's kill-on-sight grace never kills a newer one.
+	gen uint64
+}
+
 type App struct {
 	Registry   *registry.Registry
 	Config     *config.Config
@@ -29,18 +43,7 @@ type App struct {
 	Profiles   *profiles.UserProfiles
 	Logger     *logger.AppLogger
 
-	gameMu       sync.Mutex
-	gameCmd      *exec.Cmd
-	gameStarting bool
-	// gameDiscovering is true while a Steam launch's background watcher is polling for the game
-	// process (steam:// is fire-and-forget, so the game can appear at any time or never).
-	gameDiscovering bool
-	// gameLaunchCancel cancels the in-flight discovery watcher; StopGame invokes it to abort a
-	// launch that is still discovering. Nil when no discovery is running.
-	gameLaunchCancel context.CancelFunc
-	// gameLaunchGen increments per launch so a cancelled launch's kill-on-sight grace never kills
-	// a newer launch's game process.
-	gameLaunchGen uint64
+	game          gameLaunchState
 	pmtilesServer *http.Server
 	// contentGate enforces mutual exclusion between the game session and content mutations.
 	contentGate *gate.GameContentGate

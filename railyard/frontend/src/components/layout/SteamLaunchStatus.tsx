@@ -12,14 +12,8 @@ import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 const STEAM_OPEN_URL = 'steam://open/main';
 const DISCOVERY_TOAST_ID = 'steam-discovery-waiting';
 
-// SteamLaunchStatus renders the full lifecycle of a Steam launch that hasn't produced a game
-// process yet:
-//   - launchBlock  -> a modal dialog (Steam not running / blocked by a Steam dialog) that demands a
-//                     decision: Open Steam / Keep Waiting, or Cancel Launch (also the dismiss action).
-//   - discoveryWaiting -> a non-blocking persistent toast ("still discovering") that stays until the
-//                     game appears or the hard cap is hit, so the app is usable in the meantime.
-//   - gaveUpMessage -> a one-off toast when discovery hits the hard cap.
-// Discovery itself runs in the backend; this component only surfaces and acts on its state.
+// SteamLaunchStatus surfaces a Steam launch that hasn't produced a game process yet. Discovery runs
+// in the backend; this component only reflects its state and forwards the user's choices.
 export function SteamLaunchStatus() {
   const launchBlock = useGameStore((s) => s.launchBlock);
   const discoveryWaiting = useGameStore((s) => s.discoveryWaiting);
@@ -71,6 +65,8 @@ export function SteamLaunchStatus() {
     return null;
   }
 
+  // Blocked modal: the user chooses Open Steam / Keep Waiting, or Cancel Launch (dismissing the
+  // dialog counts as Cancel). Keep Waiting hands off to the background indicator above.
   const steamNotRunning = launchBlock.errorType === STEAM_NOT_RUNNING;
   const confirm = steamNotRunning
     ? {

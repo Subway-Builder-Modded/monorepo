@@ -24,36 +24,36 @@ func launchErr(msg string) types.GameLaunchResponse {
 }
 
 func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GameLaunchResponse {
-	a.gameMu.Lock()
-	if a.gameStarting || a.gameDiscovering {
-		a.gameMu.Unlock()
+	a.game.mu.Lock()
+	if a.game.starting || a.game.discovering {
+		a.game.mu.Unlock()
 		return launchErr("game is already starting")
 	}
-	if a.gameCmd != nil && a.gameCmd.ProcessState == nil {
-		a.gameMu.Unlock()
+	if a.game.cmd != nil && a.game.cmd.ProcessState == nil {
+		a.game.mu.Unlock()
 		return launchErr("game is already running")
 	}
 	// The session holds the exclusivity gate from here until the game exits, covering mod
 	// generation and launch; content operations cannot start or be in flight underneath it.
 	sessionToken, gateErr := a.contentGate.BeginGameSession()
 	if gateErr != nil {
-		a.gameMu.Unlock()
+		a.game.mu.Unlock()
 		return launchErr(fmt.Sprintf("cannot launch the game: %v", gateErr))
 	}
-	a.gameStarting = true
+	a.game.starting = true
 	// A per-launch generation, so a cancelled launch's kill-on-sight grace never targets a newer one.
-	a.gameLaunchGen++
-	gen := a.gameLaunchGen
-	a.gameMu.Unlock()
+	a.game.gen++
+	gen := a.game.gen
+	a.game.mu.Unlock()
 
 	started := false
 	defer func() {
 		if started {
 			return
 		}
-		a.gameMu.Lock()
-		a.gameStarting = false
-		a.gameMu.Unlock()
+		a.game.mu.Lock()
+		a.game.starting = false
+		a.game.mu.Unlock()
 		a.contentGate.EndGameSession(sessionToken)
 		a.emitEvent("game:status", "stopped")
 	}()
@@ -142,11 +142,11 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GameLaunchResponse {
 	// the wait via StopGame, which cancels this context.
 	if spec.useSteam {
 		ctx, cancel := context.WithCancel(context.Background())
-		a.gameMu.Lock()
-		a.gameStarting = false
-		a.gameDiscovering = true
-		a.gameLaunchCancel = cancel
-		a.gameMu.Unlock()
+		a.game.mu.Lock()
+		a.game.starting = false
+		a.game.discovering = true
+		a.game.cancel = cancel
+		a.game.mu.Unlock()
 		started = true // the discovery watcher owns the session from here
 
 		a.emitEvent("game:log", map[string]string{
@@ -158,10 +158,10 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GameLaunchResponse {
 	}
 
 	// Vanilla launch: cmd is the game process itself, so it is running immediately.
-	a.gameMu.Lock()
-	a.gameCmd = cmd
-	a.gameStarting = false
-	a.gameMu.Unlock()
+	a.game.mu.Lock()
+	a.game.cmd = cmd
+	a.game.starting = false
+	a.game.mu.Unlock()
 	started = true
 
 	a.emitEvent("game:status", "running")
@@ -189,21 +189,21 @@ func (a *App) streamGameOutput(r io.Reader, stream string) {
 }
 
 func (a *App) IsGameRunning() types.GameRunningResponse {
-	a.gameMu.Lock()
-	defer a.gameMu.Unlock()
+	a.game.mu.Lock()
+	defer a.game.mu.Unlock()
 	return types.GameRunningResponse{
 		GenericResponse: types.SuccessResponse("Game running status resolved"),
-		Running:         a.gameCmd != nil && a.gameCmd.ProcessState == nil,
+		Running:         a.game.cmd != nil && a.game.cmd.ProcessState == nil,
 	}
 }
 
 func (a *App) StopGame() types.GenericResponse {
-	a.gameMu.Lock()
-	cmd := a.gameCmd
-	starting := a.gameStarting
-	discovering := a.gameDiscovering
-	cancel := a.gameLaunchCancel
-	a.gameMu.Unlock()
+	a.game.mu.Lock()
+	cmd := a.game.cmd
+	starting := a.game.starting
+	discovering := a.game.discovering
+	cancel := a.game.cancel
+	a.game.mu.Unlock()
 
 	// Abort an in-flight Steam discovery: the game hasn't been found yet, so cancel the watcher.
 	// It releases the session, emits "stopped", and kills the game if it still appears (grace).
@@ -239,9 +239,9 @@ func (a *App) StopGame() types.GenericResponse {
 	}
 
 	a.Logger.Info("Game process killed successfully")
-	a.gameMu.Lock()
-	a.gameCmd = nil
-	a.gameStarting = false
-	a.gameMu.Unlock()
+	a.game.mu.Lock()
+	a.game.cmd = nil
+	a.game.starting = false
+	a.game.mu.Unlock()
 	return types.SuccessResponse("Game stopped")
 }

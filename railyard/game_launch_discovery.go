@@ -68,12 +68,12 @@ func (a *App) runSteamDiscovery(ctx context.Context, sessionToken int, gen uint6
 // attachDiscoveredGame adopts the found process as the running game and starts the exit watcher.
 func (a *App) attachDiscoveredGame(sessionToken int, proc *os.Process) {
 	cmd := &exec.Cmd{Process: proc}
-	a.gameMu.Lock()
-	a.gameCmd = cmd
-	a.gameStarting = false
-	a.gameDiscovering = false
-	a.gameLaunchCancel = nil
-	a.gameMu.Unlock()
+	a.game.mu.Lock()
+	a.game.cmd = cmd
+	a.game.starting = false
+	a.game.discovering = false
+	a.game.cancel = nil
+	a.game.mu.Unlock()
 
 	a.emitEvent("game:status", "running")
 	a.emitEvent("game:log", map[string]string{
@@ -87,11 +87,11 @@ func (a *App) attachDiscoveredGame(sessionToken int, proc *os.Process) {
 // finishDiscovery clears the discovery flags and releases the session. Used by the give-up and
 // cancel paths (attach hands the session to watchGameExit instead).
 func (a *App) finishDiscovery(sessionToken int) {
-	a.gameMu.Lock()
-	a.gameStarting = false
-	a.gameDiscovering = false
-	a.gameLaunchCancel = nil
-	a.gameMu.Unlock()
+	a.game.mu.Lock()
+	a.game.starting = false
+	a.game.discovering = false
+	a.game.cancel = nil
+	a.game.mu.Unlock()
 	a.contentGate.EndGameSession(sessionToken)
 }
 
@@ -119,9 +119,9 @@ func (a *App) killGameOnSight(gen uint64, spec launchSpec) {
 	defer ticker.Stop()
 
 	for time.Now().Before(deadline) {
-		a.gameMu.Lock()
-		superseded := a.gameLaunchGen != gen
-		a.gameMu.Unlock()
+		a.game.mu.Lock()
+		superseded := a.game.gen != gen
+		a.game.mu.Unlock()
 		if superseded {
 			return
 		}
@@ -146,10 +146,10 @@ func (a *App) killSteamGameProcess(proc *os.Process) {
 // exit/stopped events. Shared by the vanilla launch path and the Steam attach path.
 func (a *App) watchGameExit(sessionToken int, cmd *exec.Cmd, useSteam bool) {
 	err := waitForGameExit(runtime.GOOS, useSteam, cmd, a.Logger)
-	a.gameMu.Lock()
-	a.gameCmd = nil
-	a.gameStarting = false
-	a.gameMu.Unlock()
+	a.game.mu.Lock()
+	a.game.cmd = nil
+	a.game.starting = false
+	a.game.mu.Unlock()
 	a.contentGate.EndGameSession(sessionToken)
 
 	exitCode := 0
