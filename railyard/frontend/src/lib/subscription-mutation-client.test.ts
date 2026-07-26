@@ -119,7 +119,7 @@ describe('subscription-mutation-client', () => {
     expect(subscribeRequest.profileId).toBe('profile-a');
     expect(subscribeRequest.action).toBe('subscribe');
     expect(subscribeRequest.applyMode).toBe('persist_and_sync');
-    expect(subscribeRequest.replaceOnConflict).toBe(true);
+    expect(subscribeRequest.replaceConflicts).toEqual(['map-1']);
     expect(unsubscribeRequest.action).toBe('unsubscribe');
     expect(unsubscribeRequest.applyMode).toBe('persist_and_sync');
     expect(persistRequest.action).toBe('subscribe');

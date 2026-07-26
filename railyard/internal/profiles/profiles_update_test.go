@@ -346,8 +346,8 @@ func TestUpdateSubscriptionsMapConflictWarnsThenReplaces(t *testing.T) {
 				Version: types.Version("1.0.0"),
 			},
 		},
-		ApplyMode:         types.UpdateSubscriptionsPersistAndSync,
-		ReplaceOnConflict: false,
+		ApplyMode:        types.UpdateSubscriptionsPersistAndSync,
+		ReplaceConflicts: nil,
 	})
 	require.Equal(t, types.ResponseWarn, warnResult.Status)
 	require.NotEmpty(t, warnResult.Conflicts)
@@ -364,8 +364,8 @@ func TestUpdateSubscriptionsMapConflictWarnsThenReplaces(t *testing.T) {
 				Version: types.Version("1.0.0"),
 			},
 		},
-		ApplyMode:         types.UpdateSubscriptionsPersistAndSync,
-		ReplaceOnConflict: true,
+		ApplyMode:        types.UpdateSubscriptionsPersistAndSync,
+		ReplaceConflicts: []string{"map-b"},
 	})
 	require.NotEqual(t, types.ResponseError, replaceResult.Status, replaceResult.Message)
 	require.Equal(t, "1.0.0", replaceResult.Profile.Subscriptions.Maps["map-b"])
@@ -417,8 +417,8 @@ func TestUpdateSubscriptionsMapConflictSyncFailureKeepsConflictingSubscription(t
 				Version: types.Version("9.9.9"),
 			},
 		},
-		ApplyMode:         types.UpdateSubscriptionsPersistAndSync,
-		ReplaceOnConflict: true,
+		ApplyMode:        types.UpdateSubscriptionsPersistAndSync,
+		ReplaceConflicts: []string{"map-b"},
 	})
 
 	require.Equal(t, types.ResponseError, replaceResult.Status)
