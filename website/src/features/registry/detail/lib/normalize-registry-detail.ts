@@ -66,38 +66,13 @@ function normalizeDataQuality(value: string | undefined): DataQualityTier | null
     : null;
 }
 
-function normalizeDetailLevel(value: string | undefined): "High" | "Medium" | "Low" | null {
-  const normalized = value?.trim().toLowerCase();
-  if (!normalized) {
-    return null;
-  }
-  if (normalized === "high-detail" || normalized === "high") {
-    return "High";
-  }
-  if (normalized === "medium-detail" || normalized === "medium") {
-    return "Medium";
-  }
-  if (normalized === "low-detail" || normalized === "low") {
-    return "Low";
-  }
-  return null;
-}
-
-function isMapDemandDataTag(
-  normalizedTag: string,
-  dataQuality: DataQualityTier | null,
-  levelOfDetail: "High" | "Medium" | "Low" | null,
-): boolean {
+function isMapDemandDataTag(normalizedTag: string, dataQuality: DataQualityTier | null): boolean {
   const blocked = new Set([
     "data-quality",
     "source-quality",
-    "level-of-detail",
     "high-quality",
     "medium-quality",
     "low-quality",
-    "high-detail",
-    "medium-detail",
-    "low-detail",
     // Data-quality tier values (injected as searchable tags by the cache loader).
     "very-high",
     "high",
@@ -113,12 +88,6 @@ function isMapDemandDataTag(
   if (dataQuality) {
     blocked.add(dataQuality);
     blocked.add(formatDataQuality(dataQuality));
-  }
-
-  if (levelOfDetail) {
-    const detailBase = levelOfDetail.toLowerCase();
-    blocked.add(detailBase);
-    blocked.add(`${detailBase}-detail`);
   }
 
   return blocked.has(normalizedTag);
@@ -354,7 +323,6 @@ function resolveMapFileSizes(fileSizes: Record<string, number> | undefined) {
 export function normalizeRegistryDetail(data: RegistryDetailLoadedData): RegistryDetailModel {
   const description = (data.manifest.description ?? data.item.description ?? "").trim();
   const dataQuality = normalizeDataQuality(resolveDataQualityTier(data.manifest));
-  const levelOfDetail = normalizeDetailLevel(data.manifest.level_of_detail);
   const tags = Array.from(
     new Set([...(data.manifest.tags ?? []), ...(data.item.tags ?? [])]),
   ).filter((tag) => {
@@ -362,7 +330,7 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
       return true;
     }
     const normalizedTag = tag.trim().toLowerCase();
-    return !isMapDemandDataTag(normalizedTag, dataQuality, levelOfDetail);
+    return !isMapDemandDataTag(normalizedTag, dataQuality);
   });
   const listingUpdatedDate = resolveListingUpdatedDate(data);
   const versions = resolveVersions(
@@ -445,7 +413,6 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
               Number.isFinite(data.manifest.data_quality.weighted_score)
                 ? data.manifest.data_quality.weighted_score
                 : null,
-            levelOfDetail,
             fileSizes: resolveMapFileSizes(data.manifest.file_sizes),
           }
         : null,

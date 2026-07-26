@@ -189,6 +189,7 @@ func enqueueOperation(d *Downloader, action operationAction, assetType types.Ass
 		run,
 		supersededSuccess("Operation superseded by newer queued request. No action taken."),
 		nil,
+		false,
 	)
 }
 
@@ -434,6 +435,61 @@ func TestEnqueueOperationPreservesPendingQueuePosition(t *testing.T) {
 	require.Equal(t, "other install", otherResult.genericResponse.Message)
 }
 
+// A user-approved replace install must not be clobbered by a concurrent non-approved install for the
+// same asset+version. Reproduces the series-install bug: a later resync would otherwise supersede the
+// approved op with a no-op success and then skip the conflicting install.
+func TestEnqueueOperationApprovedReplaceNotSupersededByWeaker(t *testing.T) {
+	d := newTestDownloader()
+
+	// Keep the single worker busy so the map-a ops sit pending.
+	blockerStarted := make(chan struct{})
+	releaseBlocker := make(chan struct{})
+	go func() {
+		_ = enqueueOperation(d, operationActionInstall, types.AssetTypeMod, "blocker-mod", "1.0.0", func() operationResult {
+			close(blockerStarted)
+			<-releaseBlocker
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "blocker complete"}}
+		})
+	}()
+	<-blockerStarted
+
+	assetKey := downloadQueueKey{assetType: types.AssetTypeMap, assetID: "map-a"}
+	key := d.operationKey(operationActionInstall, types.AssetTypeMap, "map-a", "1.0.0")
+
+	// Approved-replace install for map-a (pending).
+	approvedRan := make(chan struct{}, 1)
+	approvedCh := make(chan operationResult, 1)
+	go func() {
+		approvedCh <- d.enqueueOperation(operationActionInstall, assetKey, key, func() operationResult {
+			approvedRan <- struct{}{}
+			return operationResult{genericResponse: types.GenericResponse{Status: types.ResponseSuccess, Message: "approved replace ran"}}
+		}, supersededSuccess("superseded"), nil, true)
+	}()
+	waitForPendingOperation(t, d, assetKey)
+
+	// A concurrent non-approved install for the SAME asset+version must be turned away, not supersede
+	// the approved one.
+	weakerCh := make(chan operationResult, 1)
+	go func() {
+		weakerCh <- d.enqueueOperation(operationActionInstall, assetKey, key, func() operationResult {
+			t.Error("non-approved install should not run; the approved replace must be preserved")
+			return operationResult{}
+		}, supersededSuccess("superseded"), nil, false)
+	}()
+
+	// The weaker op returns the superseded (no-op) result immediately without running.
+	weakerResult := <-weakerCh
+	require.Equal(t, types.ResponseSuccess, weakerResult.genericResponse.Status)
+	require.Contains(t, weakerResult.genericResponse.Message, "superseded")
+
+	// The approved op still runs to completion.
+	close(releaseBlocker)
+	<-approvedRan
+	approvedResult := <-approvedCh
+	require.Equal(t, types.ResponseSuccess, approvedResult.genericResponse.Status)
+	require.Equal(t, "approved replace ran", approvedResult.genericResponse.Message)
+}
+
 func TestEnqueueOperationUsesLatestRequestForPendingAsset(t *testing.T) {
 	d := newTestDownloader()
 
@@ -536,6 +592,7 @@ func TestUninstallCancelsRunningInstall(t *testing.T) {
 				cancelCalled <- struct{}{}
 				close(releaseInstall)
 			},
+			false,
 		)
 	}()
 
@@ -635,6 +692,7 @@ func TestCancelInstallCancelsRunningInstallWithoutUninstall(t *testing.T) {
 				cancelCalled <- struct{}{}
 				close(releaseInstall)
 			},
+			false,
 		)
 	}()
 
@@ -1551,14 +1609,14 @@ func TestEnqueueOperationRejectedWhileGameSessionActive(t *testing.T) {
 	install := d.enqueueOperation(operationActionInstall, downloadQueueKey{assetType: types.AssetTypeMod, assetID: "x"}, "k1", func() operationResult {
 		t.Fatal("operation must not run while a game session holds the gate")
 		return operationResult{}
-	}, operationResult{}, nil)
+	}, operationResult{}, nil, false)
 	require.Equal(t, types.ResponseError, install.assetInstallResponse.Status)
 	require.Equal(t, types.InstallErrorGameRunning, install.assetInstallResponse.ErrorType)
 
 	uninstall := d.enqueueOperation(operationActionUninstall, downloadQueueKey{assetType: types.AssetTypeMap, assetID: "y"}, "k2", func() operationResult {
 		t.Fatal("operation must not run while a game session holds the gate")
 		return operationResult{}
-	}, operationResult{}, nil)
+	}, operationResult{}, nil, false)
 	require.Equal(t, types.ResponseError, uninstall.assetUninstallResponse.Status)
 }
 
@@ -1575,7 +1633,7 @@ func TestEnqueueOperationHoldsGateAgainstGameLaunch(t *testing.T) {
 			close(opRunning)
 			<-release
 			return operationResult{}
-		}, operationResult{}, nil)
+		}, operationResult{}, nil, false)
 	}()
 
 	<-opRunning

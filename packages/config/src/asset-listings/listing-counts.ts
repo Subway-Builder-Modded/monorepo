@@ -8,7 +8,6 @@ interface MapListingMatches {
 	location?: string | null;
 	sub_location?: string | null;
 	data_quality?: { tier?: string | null } | null;
-	level_of_detail?: string | null;
 	special_demand?: string[] | null;
 }
 
@@ -16,7 +15,6 @@ export interface AssetListingCounts {
 	modTagCounts: Record<string, number>;
 	mapLocationCounts: Record<string, number>;
 	mapDataQualityCounts: Record<string, number>;
-	mapLevelOfDetailCounts: Record<string, number>;
 	mapSpecialDemandCounts: Record<string, number>;
 }
 
@@ -63,10 +61,6 @@ export function buildAssetListingCounts(
 		valuesByItem: maps.map((item) => [resolveDataQualityTier(item)]),
 		dedupePerItem: false,
 	});
-	const mapLevelOfDetailCounts = buildListingCounts({
-		valuesByItem: maps.map((item) => [item.level_of_detail]),
-		dedupePerItem: false,
-	});
 	const mapSpecialDemandCounts = buildListingCounts({
 		valuesByItem: maps.map((item) => item.special_demand ?? []),
 	});
@@ -75,7 +69,6 @@ export function buildAssetListingCounts(
 		modTagCounts,
 		mapLocationCounts,
 		mapDataQualityCounts,
-		mapLevelOfDetailCounts,
 		mapSpecialDemandCounts,
 	};
 }

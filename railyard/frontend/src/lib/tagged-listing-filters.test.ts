@@ -50,7 +50,6 @@ function createMapManifest(
     population: 100,
     data_source: '',
     source_quality: 'official',
-    level_of_detail: 'full',
     special_demand: ['commuter'],
     initial_view_state: {
       latitude: 0,
@@ -96,7 +95,6 @@ describe('tagged-listing-filters', () => {
       type: 'map',
       item: createMapManifest({
         source_quality: '',
-        level_of_detail: '',
         special_demand: undefined,
       }),
     };
@@ -123,16 +121,10 @@ describe('tagged-listing-filters', () => {
       map: {} as Record<string, string[]>,
     };
     expect(mapQuality.getSelected(emptyFilters)).toEqual([]);
-    expect(findDim('mapLevelOfDetailCounts').getSelected(emptyFilters)).toEqual(
-      [],
-    );
     expect(findDim('mapSpecialDemandCounts').getSelected(emptyFilters)).toEqual(
       [],
     );
     expect(mapLocation.getSelected(emptyFilters)).toEqual([]);
-
-    const mapLod = findDim('mapLevelOfDetailCounts');
-    expect(mapLod.getValue(mapItem)).toBe('');
 
     const mapDemand = findDim('mapSpecialDemandCounts');
     expect(mapDemand.getValue(mapItem)).toEqual([]);
@@ -143,12 +135,6 @@ describe('tagged-listing-filters', () => {
         map: { dataQuality: ['official'] },
       }),
     ).toEqual(['official']);
-    expect(
-      mapLod.getSelected({
-        mod: { tags: [] },
-        map: { levelOfDetail: ['full'] },
-      }),
-    ).toEqual(['full']);
     expect(
       mapDemand.getSelected({
         mod: { tags: [] },
@@ -174,7 +160,6 @@ describe('tagged-listing-filters', () => {
             tier: 'very-high',
             rubric_version: 1,
           } as types.DataQuality,
-          level_of_detail: 'full',
           special_demand: ['commuter'],
         }),
       },
@@ -188,7 +173,6 @@ describe('tagged-listing-filters', () => {
             tier: 'medium',
             rubric_version: 1,
           } as types.DataQuality,
-          level_of_detail: 'basic',
           special_demand: ['tourist'],
         }),
       },
@@ -199,7 +183,6 @@ describe('tagged-listing-filters', () => {
           name: 'Paris',
           location: 'europe',
           source_quality: 'official',
-          level_of_detail: 'full',
           special_demand: ['tourist'],
         }),
       },
@@ -232,7 +215,6 @@ describe('tagged-listing-filters', () => {
         map: {
           locations: ['east-asia'],
           dataQuality: [],
-          levelOfDetail: [],
           specialDemand: [],
         },
       },
@@ -246,10 +228,6 @@ describe('tagged-listing-filters', () => {
     expect(mapCounts.mapDataQualityCounts).toEqual({
       'very-high': 1,
       medium: 1,
-    });
-    expect(mapCounts.mapLevelOfDetailCounts).toEqual({
-      full: 1,
-      basic: 1,
     });
     expect(mapCounts.mapSpecialDemandCounts).toEqual({
       commuter: 1,
@@ -268,7 +246,6 @@ describe('tagged-listing-filters', () => {
         map: {
           locations: [],
           dataQuality: [],
-          levelOfDetail: [],
           specialDemand: [],
         },
       },

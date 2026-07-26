@@ -80,6 +80,9 @@ type downloadOperation struct {
 	supersededResult operationResult
 	cancel           context.CancelFunc
 	completed        chan operationResult
+	// replaceConflict marks an install the user approved to replace a map-code conflict, so a
+	// weaker (non-approved) op can't supersede a pending approved one for the same target.
+	replaceConflict bool
 }
 
 type operationResult struct {
@@ -259,7 +262,7 @@ func (d *Downloader) gameRunningOperationResult(action operationAction, assetTyp
 // Only one queued operation per asset is retained; later requests supersede older pending requests.
 // The exclusivity gate is held from enqueue until the operation completes, so a game session can
 // neither start mid-operation nor have content change underneath it.
-func (d *Downloader) enqueueOperation(action operationAction, assetKey downloadQueueKey, key string, run func() operationResult, supersededResult operationResult, cancel context.CancelFunc) operationResult {
+func (d *Downloader) enqueueOperation(action operationAction, assetKey downloadQueueKey, key string, run func() operationResult, supersededResult operationResult, cancel context.CancelFunc, replaceConflict bool) operationResult {
 	if err := d.Gate.BeginContentOp(); err != nil {
 		return d.gameRunningOperationResult(action, assetKey.assetType, assetKey.assetID)
 	}
@@ -275,6 +278,7 @@ func (d *Downloader) enqueueOperation(action operationAction, assetKey downloadQ
 		supersededResult: supersededResult,
 		cancel:           cancel,
 		completed:        make(chan operationResult, 1),
+		replaceConflict:  replaceConflict,
 	}
 
 	d.downloadMu.Lock()
@@ -288,6 +292,15 @@ func (d *Downloader) enqueueOperation(action operationAction, assetKey downloadQ
 	// If there's an existing pending operation for the same asset, replace it in-place in the queue and mark it as superseded.
 	// Prefer in-place replacement so that any other callers waiting on the initial result no longer have to wait until all other pending requests are completed
 	if existingPending, ok := d.pending[assetKey]; ok {
+		// Don't let a weaker (non-approved) install supersede a pending approved-replace install for
+		// the same target: a concurrent unrelated resync could otherwise clobber the user's Replace
+		// with a no-op success and then skip the conflicting install. Keep the pending op and hand
+		// this caller the superseded result it would otherwise have received.
+		if op.action == operationActionInstall && existingPending.action == operationActionInstall &&
+			op.key == existingPending.key && existingPending.replaceConflict && !op.replaceConflict {
+			d.downloadMu.Unlock()
+			return op.supersededResult
+		}
 		replaced := d.replaceQueuedOperation(existingPending, op)
 		if !replaced {
 			// Fallback guard: if pending bookkeeping is ever out of sync, keep progress by appending.
@@ -672,7 +685,7 @@ func (d *Downloader) UninstallAsset(assetType types.AssetType, assetID string) t
 			return operationResult{assetUninstallResponse: d.uninstallModNow(assetID)}
 		}
 		panic(fmt.Sprintf("Unknown uninstall asset type: %q", assetType))
-	}, d.supersededOperationResult(operationActionUninstall, assetType, assetID, ""), nil)
+	}, d.supersededOperationResult(operationActionUninstall, assetType, assetID, ""), nil, false)
 	return result.assetUninstallResponse
 }
 
@@ -733,7 +746,7 @@ func (d *Downloader) ImportAsset(assetType types.AssetType, zipPath string, repl
 	result := d.enqueueOperation(operationActionInstall, assetKey, key, func() operationResult {
 		// TODO: Add support for local mods/other assets
 		return operationResult{assetInstallResponse: d.importMapNow(zipPath, replaceOnConflict)}
-	}, d.supersededOperationResult(operationActionInstall, assetType, zipPath, "import"), nil)
+	}, d.supersededOperationResult(operationActionInstall, assetType, zipPath, "import"), nil, replaceOnConflict)
 	return result.assetInstallResponse
 }
 
@@ -888,7 +901,7 @@ func (d *Downloader) InstallAsset(req types.InstallAssetRequest) types.AssetInst
 			return operationResult{assetInstallResponse: d.installModNow(opCtx, req.AssetID, req.Version, req.Mod)}
 		}
 		panic(fmt.Sprintf("unreachable install asset type: %q", req.AssetType))
-	}, d.supersededOperationResult(operationActionInstall, req.AssetType, req.AssetID, req.Version), cancel)
+	}, d.supersededOperationResult(operationActionInstall, req.AssetType, req.AssetID, req.Version), cancel, replaceOnConflict)
 	return result.assetInstallResponse
 }
 

@@ -4,7 +4,6 @@ import {
   buildSpecialDemandValues,
   DATA_QUALITY_TIER_VALUES,
   formatDataQuality,
-  LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   resolveDataQualityTier,
 } from './map-filter-values';
@@ -27,14 +26,6 @@ describe('LOCATION_TAGS', () => {
     expect(LOCATION_TAGS).toContain('south-europe');
     expect(LOCATION_TAGS).toContain('central-europe');
     expect(LOCATION_TAGS).toContain('east-europe');
-  });
-});
-
-describe('LEVEL_OF_DETAIL_VALUES', () => {
-  it('contains low, medium, and high detail options', () => {
-    expect(LEVEL_OF_DETAIL_VALUES).toContain('low-detail');
-    expect(LEVEL_OF_DETAIL_VALUES).toContain('medium-detail');
-    expect(LEVEL_OF_DETAIL_VALUES).toContain('high-detail');
   });
 });
 

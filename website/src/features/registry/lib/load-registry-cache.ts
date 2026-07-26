@@ -208,9 +208,6 @@ function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): s
     }
 
     tagSet.add(resolveDataQualityTier(manifest));
-    if (manifest.level_of_detail?.trim()) {
-      tagSet.add(manifest.level_of_detail.trim());
-    }
     if (Array.isArray(manifest.special_demand)) {
       for (const demandTag of manifest.special_demand) {
         if (typeof demandTag === "string" && demandTag.trim()) {

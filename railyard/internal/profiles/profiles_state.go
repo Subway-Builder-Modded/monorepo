@@ -663,7 +663,7 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 		swappedProfile = versionReconcileResult.Profile
 	}
 
-	syncResult := s.SyncSubscriptions(targetProfile.ID, false, false)
+	syncResult := s.SyncSubscriptions(targetProfile.ID, nil, false)
 	if syncResult.Status == types.ResponseError {
 		return profileStateErrorResult("Profile swapped, but failed to sync subscriptions", swappedProfile, syncResult.Errors...)
 	}
