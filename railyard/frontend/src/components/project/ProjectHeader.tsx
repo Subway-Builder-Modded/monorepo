@@ -478,7 +478,6 @@ export function ProjectHeader({
     ? [
         resolveMapLocation(mapItem),
         formatDataQuality(resolveDataQualityTier(mapItem)),
-        mapItem.level_of_detail,
         ...(mapItem.special_demand ?? []),
       ].filter((v): v is string => Boolean(v))
     : (item.tags ?? []);

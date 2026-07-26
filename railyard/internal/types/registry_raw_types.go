@@ -40,7 +40,6 @@ type RawMapManifest struct {
 	DataSource       string           `json:"data_source"`
 	SourceQuality    string           `json:"source_quality"`
 	DataQuality      *DataQuality     `json:"data_quality,omitempty"`
-	LevelOfDetail    string           `json:"level_of_detail"`
 	SpecialDemand    []string         `json:"special_demand"`
 	InitialViewState InitialViewState `json:"initial_view_state"`
 }

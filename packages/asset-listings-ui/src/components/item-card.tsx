@@ -45,7 +45,6 @@ export interface ItemCardProps<T = { author_alias: string; contributor_tier?: st
   countryFlag?: ReactNode;
   location?: string;
   source_quality?: string;
-  level_of_detail?: string;
   special_demand?: string[];
   tags?: string[];
   population?: number;
@@ -83,7 +82,6 @@ function buildItemCardPresentation(
   country?: string | null,
   location?: string,
   source_quality?: string,
-  level_of_detail?: string,
   special_demand?: string[],
   tags?: string[],
   population?: number,
@@ -91,7 +89,7 @@ function buildItemCardPresentation(
 ): ItemCardPresentation {
   const isMap = type === 'map';
   const mapBadges = isMap
-    ? [location, source_quality, level_of_detail, ...(special_demand ?? [])].filter(
+    ? [location, source_quality, ...(special_demand ?? [])].filter(
         (value): value is string => Boolean(value),
       )
     : tags ?? [];
@@ -375,7 +373,6 @@ export const ItemCard = memo(function ItemCard({
   countryFlag,
   location,
   source_quality,
-  level_of_detail,
   special_demand,
   tags,
   population,
@@ -397,7 +394,6 @@ export const ItemCard = memo(function ItemCard({
     country,
     location,
     source_quality,
-    level_of_detail,
     special_demand,
     tags,
     population,

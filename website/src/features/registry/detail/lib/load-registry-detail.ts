@@ -21,7 +21,6 @@ type RawManifest = {
   gallery?: string[];
   source?: string;
   source_quality?: string;
-  level_of_detail?: string;
   population_count?: number;
   points_count?: number;
   last_updated?: number;

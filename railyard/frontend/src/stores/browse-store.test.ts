@@ -15,7 +15,6 @@ describe('useBrowseStore per-asset-type state', () => {
         map: {
           locations: [],
           dataQuality: [],
-          levelOfDetail: [],
           specialDemand: [],
         },
       },
@@ -28,7 +27,6 @@ describe('useBrowseStore per-asset-type state', () => {
           map: {
             locations: [],
             dataQuality: [],
-            levelOfDetail: [],
             specialDemand: [],
           },
           page: 1,
@@ -40,7 +38,6 @@ describe('useBrowseStore per-asset-type state', () => {
           map: {
             locations: [],
             dataQuality: [],
-            levelOfDetail: [],
             specialDemand: [],
           },
           page: 1,

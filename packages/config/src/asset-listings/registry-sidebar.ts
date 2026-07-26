@@ -2,7 +2,6 @@ import { buildListingCounts } from './listing-counts';
 import {
 	DATA_QUALITY_TIER_VALUES,
 	formatDataQuality,
-	LEVEL_OF_DETAIL_VALUES,
 	LOCATION_TAGS,
 } from './map-filter-values';
 
@@ -31,13 +30,11 @@ const MOD_CONTENT_TAGS = [
 const MAP_SPECIAL_DEMAND_TAG_SET = new Set<string>(MAP_SPECIAL_DEMAND_TAGS);
 const MAP_REGION_TAG_SET = new Set<string>(LOCATION_TAGS);
 const MAP_DATA_QUALITY_TAG_SET = new Set<string>(DATA_QUALITY_TIER_VALUES);
-const MAP_LEVEL_OF_DETAIL_TAG_SET = new Set<string>(LEVEL_OF_DETAIL_VALUES);
 const MOD_CONTENT_TAG_SET = new Set<string>(MOD_CONTENT_TAGS);
 
 export type RegistryTagCategoryId =
 	| 'regions'
 	| 'data-quality'
-	| 'level-of-detail'
 	| 'special-demand'
 	| 'content'
 	| 'other';
@@ -52,7 +49,6 @@ interface BuildRegistryTagCategoriesArgs {
 	typeId: string;
 	availableTags: readonly string[];
 	mapDataQualityValues?: readonly string[];
-	mapLevelOfDetailValues?: readonly string[];
 }
 
 function inOrder(values: readonly string[], available: Set<string>): string[] {
@@ -63,35 +59,28 @@ export function buildRegistryTagCategories({
 	typeId,
 	availableTags,
 	mapDataQualityValues = [],
-	mapLevelOfDetailValues = [],
 }: BuildRegistryTagCategoriesArgs): RegistryTagCategory[] {
 	const sorted = [...new Set(availableTags)].sort((a, b) => a.localeCompare(b));
 
 	if (typeId === 'maps') {
 		const available = new Set(sorted);
 		const manifestDataQuality = new Set(mapDataQualityValues);
-		const manifestDetail = new Set(mapLevelOfDetailValues);
 
 		const regions = inOrder(LOCATION_TAGS, available);
 		const dataQuality = DATA_QUALITY_TIER_VALUES.filter(
 			(tag) => available.has(tag) || manifestDataQuality.has(tag),
-		);
-		const levelOfDetail = LEVEL_OF_DETAIL_VALUES.filter(
-			(tag) => available.has(tag) || manifestDetail.has(tag),
 		);
 		const specialDemand = sorted.filter((tag) => MAP_SPECIAL_DEMAND_TAG_SET.has(tag));
 		const other = sorted.filter(
 			(tag) =>
 				!MAP_REGION_TAG_SET.has(tag) &&
 				!MAP_DATA_QUALITY_TAG_SET.has(tag) &&
-				!MAP_LEVEL_OF_DETAIL_TAG_SET.has(tag) &&
 				!MAP_SPECIAL_DEMAND_TAG_SET.has(tag),
 		);
 
 		const categories: RegistryTagCategory[] = [
 			{ id: 'regions', label: 'Regions', tags: regions },
 			{ id: 'data-quality', label: 'Data Quality', tags: dataQuality },
-			{ id: 'level-of-detail', label: 'Level of Detail', tags: levelOfDetail },
 			{ id: 'special-demand', label: 'Special Demand', tags: specialDemand },
 			{ id: 'other', label: 'Other', tags: other },
 		];
@@ -119,13 +108,6 @@ export function buildRegistryTagCounts(
 export function formatRegistryTagLabel(categoryId: RegistryTagCategoryId, tag: string): string {
 	if (categoryId === 'data-quality') {
 		return formatDataQuality(tag);
-	}
-
-	if (categoryId === 'level-of-detail') {
-		if (tag === 'low-detail') return 'Low Detail';
-		if (tag === 'medium-detail') return 'Medium Detail';
-		if (tag === 'high-detail') return 'High Detail';
-		return tag;
 	}
 
 	return tag;

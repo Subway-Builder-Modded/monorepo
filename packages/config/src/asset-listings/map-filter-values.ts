@@ -65,12 +65,6 @@ export function resolveDataQualityTier(map: {
 	return map.data_quality?.tier ?? 'unknown';
 }
 
-export const LEVEL_OF_DETAIL_VALUES = [
-	'low-detail',
-	'medium-detail',
-	'high-detail',
-] as const;
-
 /**
  * Returns the most specific location tag available for a map manifest.
  * Prefers `sub_location` (e.g. "central-europe") over the `location` field ("europe") so that display and filtering automatically use sub-regions. Location is kept for backwards compatibility until the next app version.

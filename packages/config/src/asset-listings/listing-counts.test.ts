@@ -51,16 +51,14 @@ describe('buildAssetListingCounts', () => {
     expect(modTagCounts).toEqual({ ui: 2, gameplay: 1 });
   });
 
-  it('counts map location, source quality, and level of detail', () => {
+  it('counts map location and data quality', () => {
     const result = buildAssetListingCounts([], [
       {
         location: 'europe',
         data_quality: { tier: 'high' },
-        level_of_detail: 'high-detail',
       },
       {
         location: 'europe',
-        level_of_detail: 'low-detail',
       },
     ]);
 
@@ -69,10 +67,6 @@ describe('buildAssetListingCounts', () => {
     expect(result.mapDataQualityCounts).toEqual({
       high: 1,
       unknown: 1,
-    });
-    expect(result.mapLevelOfDetailCounts).toEqual({
-      'high-detail': 1,
-      'low-detail': 1,
     });
   });
 

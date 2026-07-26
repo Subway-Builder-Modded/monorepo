@@ -6,7 +6,6 @@ import {
   FileArchive,
   Road,
   History,
-  Layers,
   Earth,
   Plane,
   RefreshCcw,
@@ -112,25 +111,6 @@ function getDemandDataTooltipContent(detail: RegistryDetailModel): ReactNode {
   );
 }
 
-function getLevelOfDetailTooltipContent(detail: RegistryDetailModel): ReactNode {
-  return (
-    <>
-      Level of Detail measures how distributed and granular the map&apos;s demand points are.{" "}
-      <Link
-        to="/registry/docs/data-quality"
-        className="underline transition-colors hover:text-[var(--dd-accent)]"
-        style={
-          {
-            "--dd-accent": `light-dark(${detail.typeConfig.accentLight}, ${detail.typeConfig.accentDark})`,
-          } as CSSProperties
-        }
-      >
-        Learn more →
-      </Link>
-    </>
-  );
-}
-
 const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
   {
     title: "Version Info",
@@ -180,13 +160,6 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
           const score = detail.mapFields?.weightedScore;
           return typeof score === "number" ? `${label} (${score.toFixed(2)})` : label;
         },
-      },
-      {
-        title: "Level of Detail",
-        titleTooltipAriaLabel: "About Level of Detail",
-        getTitleTooltipContent: (detail) => getLevelOfDetailTooltipContent(detail),
-        icon: Layers,
-        getValue: (detail) => detail.mapFields?.levelOfDetail ?? "\u2014",
       },
       {
         title: "Demand",
