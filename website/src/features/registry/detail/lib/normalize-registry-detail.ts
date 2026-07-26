@@ -1,11 +1,7 @@
-import {
-  DATA_QUALITY_TIER_VALUES,
-  formatDataQuality,
-  resolveDataQualityTier,
-  type DataQualityTier,
-} from "@subway-builder-modded/config";
+import { DATA_QUALITY_TIER_VALUES, resolveDataQualityTier } from "@subway-builder-modded/config";
 
 import type {
+  RegistryDetailDataQuality,
   RegistryDetailIntegrityVersion,
   RegistryDetailLoadedData,
   RegistryDetailModel,
@@ -54,19 +50,32 @@ function toExcerpt(input: string): string | null {
   return `${normalized.slice(0, 177).trimEnd()}...`;
 }
 
-// The detail model carries the RAW tier; formatDataQuality is applied at the
-// render edge so display labels have a single source in the config package.
-function normalizeDataQuality(value: string | undefined): DataQualityTier | null {
+const DATA_QUALITY_LABELS: Record<
+  (typeof DATA_QUALITY_TIER_VALUES)[number],
+  RegistryDetailDataQuality
+> = {
+  "very-high": "Very High",
+  high: "High",
+  medium: "Medium",
+  low: "Low",
+  "very-low": "Very Low",
+  absent: "Absent",
+  unknown: "Unknown",
+};
+
+function normalizeDataQuality(value: string | undefined): RegistryDetailDataQuality | null {
   const normalized = value?.trim().toLowerCase();
   if (!normalized) {
     return null;
   }
-  return (DATA_QUALITY_TIER_VALUES as readonly string[]).includes(normalized)
-    ? (normalized as DataQualityTier)
-    : null;
+
+  return (DATA_QUALITY_LABELS as Record<string, RegistryDetailDataQuality>)[normalized] ?? null;
 }
 
-function isMapDemandDataTag(normalizedTag: string, dataQuality: DataQualityTier | null): boolean {
+function isMapDemandDataTag(
+  normalizedTag: string,
+  dataQuality: RegistryDetailDataQuality | null,
+): boolean {
   const blocked = new Set([
     "data-quality",
     "source-quality",
@@ -86,8 +95,9 @@ function isMapDemandDataTag(normalizedTag: string, dataQuality: DataQualityTier 
   ]);
 
   if (dataQuality) {
-    blocked.add(dataQuality);
-    blocked.add(formatDataQuality(dataQuality));
+    const qualitySlug = dataQuality.toLowerCase().replaceAll(" ", "-");
+    blocked.add(qualitySlug);
+    blocked.add(`${qualitySlug}-quality`);
   }
 
   return blocked.has(normalizedTag);

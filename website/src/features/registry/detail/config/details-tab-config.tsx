@@ -17,7 +17,6 @@ import {
   Waves,
   type LucideIcon,
 } from "lucide-react";
-import { formatDataQuality } from "@subway-builder-modded/config";
 import type { CSSProperties, ReactNode } from "react";
 import { Link } from "@/lib/router";
 import { formatRegistryDate } from "@/features/registry/detail/lib/format-registry-date";
@@ -155,8 +154,7 @@ const DETAILS_TAB_SECTIONS_CONFIG: DetailsTabSectionConfig[] = [
         getTitleTooltipContent: (detail) => getDemandDataTooltipContent(detail),
         icon: BadgeCheck,
         getValue: (detail) => {
-          const tier = detail.mapFields?.dataQuality;
-          const label = tier ? formatDataQuality(tier) : "\u2014";
+          const label = detail.mapFields?.dataQuality ?? "\u2014";
           const score = detail.mapFields?.weightedScore;
           return typeof score === "number" ? `${label} (${score.toFixed(2)})` : label;
         },
