@@ -1840,7 +1840,7 @@ export namespace types {
 	    assets: Record<string, SubscriptionUpdateItem>;
 	    action: string;
 	    applyMode: string;
-	    replaceOnConflict: boolean;
+	    replaceConflicts?: string[];
 	    skipDependencyInstall?: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -1853,7 +1853,7 @@ export namespace types {
 	        this.assets = this.convertValues(source["assets"], SubscriptionUpdateItem, true);
 	        this.action = source["action"];
 	        this.applyMode = source["applyMode"];
-	        this.replaceOnConflict = source["replaceOnConflict"];
+	        this.replaceConflicts = source["replaceConflicts"];
 	        this.skipDependencyInstall = source["skipDependencyInstall"];
 	    }
 	

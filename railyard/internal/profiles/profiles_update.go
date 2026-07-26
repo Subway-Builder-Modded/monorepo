@@ -28,6 +28,12 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 		return result
 	}
 
+	// A subscribe blocked by an unapproved map-code conflict was not applied or persisted; surface the
+	// conflict to the caller for confirmation instead of falling through to a redundant full resync.
+	if len(result.Conflicts) > 0 && !result.Applied {
+		return result
+	}
+
 	if shouldPersist(req.ApplyMode) {
 		cancelErrors := make([]types.UserProfilesError, 0)
 		cancelFailed := false
@@ -87,7 +93,7 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 
 		// TODO: Implement per-profile request coalescing so burst frontend updates reconcile once
 		// against the latest desired subscriptions state instead of running multiple stale snapshots.
-		syncResult := s.SyncSubscriptions(req.ProfileID, req.ReplaceOnConflict, req.SkipDependencyInstall)
+		syncResult := s.SyncSubscriptions(req.ProfileID, req.ReplaceConflicts, req.SkipDependencyInstall)
 		if syncResult.Status == types.ResponseError {
 			result.Status = types.ResponseError
 			result.Message = "Failed to sync subscriptions"
@@ -105,7 +111,7 @@ func (s *UserProfiles) UpdateSubscriptions(req types.UpdateSubscriptionsRequest)
 		}
 
 		// For replace-on-conflict subscribe operations, defer conflict subscription cleanup until after sync succeeds so cancellations/failures keep prior conflicting subscriptions.
-		if req.Action == types.SubscriptionActionSubscribe && req.ReplaceOnConflict && len(result.Conflicts) > 0 {
+		if req.Action == types.SubscriptionActionSubscribe && len(req.ReplaceConflicts) > 0 && len(result.Conflicts) > 0 {
 			// Defer conflict subscription removal until after sync succeeds so cancel/failure paths  preserve the pre-existing conflicting subscription state.
 			updatedProfile, conflictOps, conflictErr := s.applyAndPersistConflictReplacements(req.ProfileID, result.Conflicts)
 			if conflictErr != nil {
@@ -742,9 +748,11 @@ func (s *UserProfiles) updateProfileSubscriptions(req types.UpdateSubscriptionsR
 	operations := make([]types.SubscriptionOperation, 0, len(req.Assets))
 	conflicts := make([]types.MapCodeConflict, 0)
 	if req.Action == types.SubscriptionActionSubscribe && shouldPersist(req.ApplyMode) {
-		// Check for map code conflicts before applying any mutations to surface surface confirmation request to FE
-		mapCodeConflicts := s.checkMapCodeConflicts(req)
-		if len(mapCodeConflicts) > 0 && !req.ReplaceOnConflict {
+		// Check for map code conflicts before applying any mutations, to surface a confirmation
+		// request to the FE. Only block on conflicts the user has NOT approved to replace; approved
+		// ones fall through and are cleaned up after a successful sync.
+		mapCodeConflicts, hasUnapproved := s.checkMapCodeConflicts(req)
+		if hasUnapproved {
 			return conflictWarningResult(
 				types.UpdateSubscriptions,
 				"Map code conflict detected. Confirm replacement to continue.",
@@ -910,8 +918,17 @@ func (s *UserProfiles) ImportAsset(req types.ImportAssetRequest) types.UpdateSub
 }
 
 // checkMapCodeConflicts checks for potential map code conflicts between the maps in the update request and existing subscriptions.
-func (s *UserProfiles) checkMapCodeConflicts(req types.UpdateSubscriptionsRequest) []types.MapCodeConflict {
+// checkMapCodeConflicts returns every map-code conflict the request's assets would cause, plus
+// whether any of them is for an asset the user has NOT approved to replace (via ReplaceConflicts).
+// The full list is still needed to clean up the replaced subscriptions after a successful sync.
+func (s *UserProfiles) checkMapCodeConflicts(req types.UpdateSubscriptionsRequest) ([]types.MapCodeConflict, bool) {
+	approved := make(map[string]bool, len(req.ReplaceConflicts))
+	for _, id := range req.ReplaceConflicts {
+		approved[id] = true
+	}
+
 	conflicts := make([]types.MapCodeConflict, 0)
+	hasUnapproved := false
 
 	for assetID, item := range req.Assets {
 		if item.Type != types.AssetTypeMap || item.IsLocal {
@@ -927,9 +944,12 @@ func (s *UserProfiles) checkMapCodeConflicts(req types.UpdateSubscriptionsReques
 			continue
 		}
 		conflicts = append(conflicts, *conflict)
+		if !approved[assetID] {
+			hasUnapproved = true
+		}
 	}
 
-	return conflicts
+	return conflicts, hasUnapproved
 }
 
 // copyProfilesState is a helper to create a deep copy of the profiles state prior to mutation
