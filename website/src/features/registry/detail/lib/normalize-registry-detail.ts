@@ -66,10 +66,7 @@ function normalizeDataQuality(value: string | undefined): DataQualityTier | null
     : null;
 }
 
-function isMapDemandDataTag(
-  normalizedTag: string,
-  dataQuality: DataQualityTier | null,
-): boolean {
+function isMapDemandDataTag(normalizedTag: string, dataQuality: DataQualityTier | null): boolean {
   const blocked = new Set([
     "data-quality",
     "source-quality",
