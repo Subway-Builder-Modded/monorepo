@@ -15,7 +15,6 @@ import {
 export interface DataQualityMapFilters {
   locations: string[];
   dataQuality: string[];
-  levelOfDetail: string[];
   specialDemand: string[];
   [key: string]: string[];
 }
@@ -61,7 +60,6 @@ export function createDefaultSourceFilters(
     map: {
       locations: [],
       dataQuality: [],
-      levelOfDetail: [],
       specialDemand: [],
     },
   };

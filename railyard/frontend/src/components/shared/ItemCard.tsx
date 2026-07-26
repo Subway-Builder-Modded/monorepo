@@ -98,7 +98,6 @@ function ItemCardComponent({
       source_quality={
         mapItem ? formatDataQuality(resolveDataQualityTier(mapItem)) : undefined
       }
-      level_of_detail={mapItem?.level_of_detail}
       special_demand={mapItem?.special_demand}
       tags={!isMap ? (item as types.ModManifest).tags : undefined}
       population={mapItem?.population}

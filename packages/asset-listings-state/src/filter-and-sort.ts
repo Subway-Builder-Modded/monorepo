@@ -40,7 +40,6 @@ export interface AssetSearchable {
   location?: string | null;
   source_quality?: string | null;
   data_quality?: { tier?: string | null } | null;
-  level_of_detail?: string | null;
   special_demand?: string[] | null;
 }
 
@@ -64,7 +63,6 @@ export function buildAssetSearchText<TItem extends AssetSearchable>(
       ...buildCountryCodeSearchTerms(item.country),
       item.location ?? '',
       resolveDataQualityTier(item),
-      item.level_of_detail ?? '',
       ...(item.special_demand ?? []),
     );
   }

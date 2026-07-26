@@ -53,7 +53,6 @@ export type RawRegistryManifest = {
     rubric_version?: number;
     provenance?: string;
   };
-  level_of_detail?: string;
   special_demand?: string[];
   city_code?: string;
   country?: string;

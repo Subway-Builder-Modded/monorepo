@@ -22,7 +22,6 @@ export type TagCategory = {
 const CATEGORY_ICON_BY_ID: Record<RegistryTagCategoryId, typeof Tags> = {
   regions: Globe2,
   "data-quality": BadgeCheck,
-  "level-of-detail": Layers3,
   "special-demand": GraduationCap,
   content: Layers3,
   other: Tags,
@@ -41,16 +40,11 @@ export function buildTagCategories(
   const dataQualityFromManifest = mapManifests.map((manifest) =>
     resolveDataQualityTier(manifest as { data_quality?: { tier?: string | null } | null }),
   );
-  const levelOfDetailFromManifest = mapManifests
-    .map((manifest) => manifest.level_of_detail)
-    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-    .map((value) => value.trim());
 
   const categories: RegistryTagCategory[] = buildRegistryTagCategories({
     typeId,
     availableTags,
     mapDataQualityValues: dataQualityFromManifest,
-    mapLevelOfDetailValues: levelOfDetailFromManifest,
   });
 
   const categoriesWithIcons = categories.map((category) => ({
@@ -58,7 +52,7 @@ export function buildTagCategories(
     icon: CATEGORY_ICON_BY_ID[category.id],
   }));
 
-  const bottomCategoryIds: RegistryTagCategoryId[] = ["data-quality", "level-of-detail"];
+  const bottomCategoryIds: RegistryTagCategoryId[] = ["data-quality"];
 
   return categoriesWithIcons.sort((left, right) => {
     const leftBottomIndex = bottomCategoryIds.indexOf(left.id);

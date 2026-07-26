@@ -15,7 +15,6 @@ import {
   buildSpecialDemandValues,
   DATA_QUALITY_TIER_VALUES,
   formatDataQuality,
-  LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
   SEARCH_FILTER_EMPTY_LABELS,
@@ -114,7 +113,6 @@ function localMapManifestFromInstalled(
     population: config.population,
     data_source: '',
     source_quality: '',
-    level_of_detail: '',
     special_demand: [],
     initial_view_state: config.initialViewState ?? {
       latitude: 0,
@@ -441,7 +439,6 @@ export function LibraryPage() {
           map: {
             locations: prev.map.locations,
             dataQuality: prev.map.dataQuality,
-            levelOfDetail: prev.map.levelOfDetail,
             specialDemand: prev.map.specialDemand,
           },
         });
@@ -453,7 +450,6 @@ export function LibraryPage() {
             ...prev.map,
             locations: next.map.locations,
             dataQuality: next.map.dataQuality,
-            levelOfDetail: next.map.levelOfDetail,
             specialDemand: next.map.specialDemand,
           },
         };
@@ -504,7 +500,6 @@ export function LibraryPage() {
           mapCount={filteredDimCounts.mapCount}
           locationValues={LOCATION_TAGS}
           dataQualityValues={DATA_QUALITY_TIER_VALUES}
-          levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
           formatDataQuality={formatDataQuality}
           emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
           minimumVisibleOptions={2}

@@ -26,7 +26,6 @@ export {
 } from './asset-listings/search-constants';
 export {
 	DATA_QUALITY_TIER_VALUES,
-	LEVEL_OF_DETAIL_VALUES,
 	LOCATION_TAGS,
 	buildSpecialDemandValues,
 	formatDataQuality,

@@ -6,7 +6,6 @@ import {
   UserStar,
   ExternalLink,
   FolderGit2,
-  Layers,
   RefreshCcw,
   UserRound,
 } from "lucide-react";
@@ -299,24 +298,6 @@ export function RegistryDetailSidebar({
                   <>
                     Data Quality refers to the quality and granularity of the source of the
                     map&apos;s demand data.{" "}
-                    <Link
-                      to="/registry/docs/data-quality"
-                      className="underline transition-colors hover:text-[var(--dd-accent)]"
-                      style={{ "--dd-accent": accentColor } as React.CSSProperties}
-                    >
-                      Learn more →
-                    </Link>
-                  </>
-                }
-              />
-              <DemandDataRow
-                icon={<Layers className="size-4.5" aria-hidden={true} />}
-                label="Level of Detail"
-                value={detail.mapFields!.levelOfDetail ?? "—"}
-                tooltipContent={
-                  <>
-                    Level of Detail measures how distributed and granular the map&apos;s demand
-                    points are.{" "}
                     <Link
                       to="/registry/docs/data-quality"
                       className="underline transition-colors hover:text-[var(--dd-accent)]"

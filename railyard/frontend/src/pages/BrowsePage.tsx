@@ -21,7 +21,6 @@ import {
   DATA_QUALITY_TIER_VALUES,
   DEFAULT_SORT_STATE,
   formatDataQuality,
-  LEVEL_OF_DETAIL_VALUES,
   LOCATION_TAGS,
   SEARCH_BAR_PLACEHOLDER,
   SEARCH_FILTER_EMPTY_LABELS,
@@ -247,7 +246,6 @@ function BrowsePageContent({
           map: {
             locations: prev.map.locations,
             dataQuality: prev.map.dataQuality,
-            levelOfDetail: prev.map.levelOfDetail,
             specialDemand: prev.map.specialDemand,
           },
         });
@@ -259,7 +257,6 @@ function BrowsePageContent({
             ...prev.map,
             locations: next.map.locations,
             dataQuality: next.map.dataQuality,
-            levelOfDetail: next.map.levelOfDetail,
             specialDemand: next.map.specialDemand,
           },
         };
@@ -341,7 +338,6 @@ function BrowsePageContent({
             mapCount={filteredDimCounts.mapCount}
             locationValues={LOCATION_TAGS}
             dataQualityValues={DATA_QUALITY_TIER_VALUES}
-            levelOfDetailValues={LEVEL_OF_DETAIL_VALUES}
             formatDataQuality={formatDataQuality}
             emptyLabels={SEARCH_FILTER_EMPTY_LABELS}
             minimumVisibleOptions={2}
