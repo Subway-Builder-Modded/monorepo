@@ -72,7 +72,10 @@ function normalizeDataQuality(value: string | undefined): RegistryDetailDataQual
   return (DATA_QUALITY_LABELS as Record<string, RegistryDetailDataQuality>)[normalized] ?? null;
 }
 
-function isMapDemandDataTag(normalizedTag: string, dataQuality: DataQualityTier | null): boolean {
+function isMapDemandDataTag(
+  normalizedTag: string,
+  dataQuality: RegistryDetailDataQuality | null,
+): boolean {
   const blocked = new Set([
     "data-quality",
     "source-quality",
