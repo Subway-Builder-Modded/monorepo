@@ -133,7 +133,7 @@ describe("normalizeRegistryDetail", () => {
       country: "Country A",
       population: 14_000,
       playableAreaKm2: 5617,
-      dataQuality: "high",
+      dataQuality: "High",
     });
   });
 
