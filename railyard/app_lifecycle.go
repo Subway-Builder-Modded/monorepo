@@ -51,14 +51,22 @@ func (a *App) startup(ctx context.Context) {
 		}
 	}
 
+	extractThrottle := newProgressThrottle()
 	a.Downloader.OnExtractProgress = func(itemId string, extracted int64, total int64) {
+		if !extractThrottle.allow(itemId, extracted, total) {
+			return
+		}
 		a.emitEvent("extract:progress", map[string]interface{}{
 			"itemId":          itemId,
 			"amountExtracted": extracted,
 			"total":           total,
 		})
 	}
+	downloadThrottle := newProgressThrottle()
 	a.Downloader.OnProgress = func(itemId string, received int64, total int64) {
+		if !downloadThrottle.allow(itemId, received, total) {
+			return
+		}
 		a.emitEvent("download:progress", map[string]interface{}{
 			"itemId":   itemId,
 			"received": received,
@@ -252,7 +260,7 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 	}
 
 	// Sync subscriptions for active profile on startup
-	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, false, false)
+	syncResult := a.Profiles.SyncSubscriptions(activeProfile.ID, nil, false)
 	shouldRunAutoUpdate := activeProfile.SystemPreferences.AutoUpdateSubscriptions && syncResult.Status != types.ResponseError
 	switch syncResult.Status {
 	case types.ResponseError:

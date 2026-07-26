@@ -28,14 +28,12 @@ interface TestItem {
   tags?: string[];
   location?: string;
   quality?: string;
-  levelOfDetail?: string;
   specialDemand?: string[];
 }
 
 interface TestMapFilters {
   locations: string[];
   dataQuality: string[];
-  levelOfDetail: string[];
   specialDemand: string[];
 }
 
@@ -66,7 +64,6 @@ const items: TestTaggedItem[] = [
       name: 'Euro Hub',
       location: 'europe',
       quality: 'verified',
-      levelOfDetail: 'high',
       specialDemand: ['freight'],
     },
   },
@@ -77,7 +74,6 @@ const items: TestTaggedItem[] = [
       name: 'Asia Loop',
       location: 'asia',
       quality: 'draft',
-      levelOfDetail: 'medium',
       specialDemand: ['commuter'],
     },
   },
@@ -86,7 +82,6 @@ const items: TestTaggedItem[] = [
 const mapFilters: TestMapFilters = {
   locations: [],
   dataQuality: [],
-  levelOfDetail: [],
   specialDemand: [],
 };
 
@@ -117,15 +112,6 @@ const testDimensions: AssetDimension<TestTaggedItem, TestMapFilters>[] = [
     getSelected: (filters) => filters.map.dataQuality,
     filterParent: 'map',
     filterKey: 'dataQuality',
-  },
-  {
-    countKey: 'mapLevelOfDetailCounts',
-    assetType: 'map',
-    cardinality: 'single',
-    getValue: (item) => item.item.levelOfDetail,
-    getSelected: (filters) => filters.map.levelOfDetail,
-    filterParent: 'map',
-    filterKey: 'levelOfDetail',
   },
   {
     countKey: 'mapSpecialDemandCounts',
@@ -293,7 +279,6 @@ describe('filterAndSortTaggedItems', () => {
         map: {
           locations: ['europe'],
           dataQuality: ['verified'],
-          levelOfDetail: [],
           specialDemand: [],
         },
       },
@@ -410,7 +395,6 @@ describe('filterAndSortTaggedItems', () => {
             name: 'East Verified',
             location: 'east-asia',
             quality: 'verified',
-            levelOfDetail: 'high',
             specialDemand: ['tram'],
           },
         },
@@ -421,7 +405,6 @@ describe('filterAndSortTaggedItems', () => {
             name: 'East Draft',
             location: 'east-asia',
             quality: 'draft',
-            levelOfDetail: 'low',
             specialDemand: ['metro'],
           },
         },
@@ -436,7 +419,6 @@ describe('filterAndSortTaggedItems', () => {
         map: {
           locations: ['east-asia'],
           dataQuality: ['verified'],
-          levelOfDetail: [],
           specialDemand: [],
         },
       },
@@ -449,7 +431,6 @@ describe('filterAndSortTaggedItems', () => {
       verified: 1,
       draft: 1,
     });
-    expect(counts.mapLevelOfDetailCounts).toEqual({ high: 1 });
     expect(counts.mapSpecialDemandCounts).toEqual({ tram: 1 });
     expect(counts.mapLocationCounts).toEqual({ 'east-asia': 1 });
   });

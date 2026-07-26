@@ -176,12 +176,15 @@ func IsValidUpdateSubscriptionsApplyMode(mode UpdateSubscriptionsApplyMode) bool
 }
 
 type UpdateSubscriptionsRequest struct {
-	ProfileID             string                            `json:"profileId"`
-	Assets                map[string]SubscriptionUpdateItem `json:"assets"`
-	Action                SubscriptionAction                `json:"action"`
-	ApplyMode             UpdateSubscriptionsApplyMode      `json:"applyMode"`
-	ReplaceOnConflict     bool                              `json:"replaceOnConflict"`
-	SkipDependencyInstall bool                              `json:"skipDependencyInstall,omitempty"`
+	ProfileID string                            `json:"profileId"`
+	Assets    map[string]SubscriptionUpdateItem `json:"assets"`
+	Action    SubscriptionAction                `json:"action"`
+	ApplyMode UpdateSubscriptionsApplyMode      `json:"applyMode"`
+	// ReplaceConflicts lists the asset IDs the user approved to replace an existing map-code
+	// conflict.
+	// This is intentionally per-asset so a resync only replaces the assets the user actually approved, and a concurrent unrelated resync can't replace a conflicting map by accident.
+	ReplaceConflicts      []string `json:"replaceConflicts,omitempty"`
+	SkipDependencyInstall bool     `json:"skipDependencyInstall,omitempty"`
 }
 
 type ImportAssetRequest struct {

@@ -66,18 +66,6 @@ export function createTaggedListingAccessors<
         filterKey: 'dataQuality',
       },
       {
-        countKey: 'mapLevelOfDetailCounts',
-        assetType: 'map',
-        cardinality: 'single',
-        getValue: (item) =>
-          item.type === 'map'
-            ? ((item.item as types.MapManifest).level_of_detail ?? '')
-            : undefined,
-        getSelected: (filters) => filters.map.levelOfDetail ?? [],
-        filterParent: 'map',
-        filterKey: 'levelOfDetail',
-      },
-      {
         countKey: 'mapSpecialDemandCounts',
         assetType: 'map',
         cardinality: 'multi',

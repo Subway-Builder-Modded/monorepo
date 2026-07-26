@@ -10,42 +10,31 @@ describe('buildRegistryTagCategories', () => {
   it('groups map tags in canonical section order', () => {
     const categories = buildRegistryTagCategories({
       typeId: 'maps',
-      availableTags: [
-        'schools',
-        'west-europe',
-        'medium-detail',
-        'high',
-        'custom-tag',
-      ],
+      availableTags: ['schools', 'west-europe', 'high', 'custom-tag'],
     });
 
     expect(categories.map((category) => category.id)).toEqual([
       'regions',
       'data-quality',
-      'level-of-detail',
       'special-demand',
       'other',
     ]);
     expect(categories[0]?.tags).toEqual(['west-europe']);
     expect(categories[1]?.tags).toEqual(['high']);
-    expect(categories[2]?.tags).toEqual(['medium-detail']);
-    expect(categories[3]?.tags).toEqual(['schools']);
-    expect(categories[4]?.tags).toEqual(['custom-tag']);
+    expect(categories[2]?.tags).toEqual(['schools']);
+    expect(categories[3]?.tags).toEqual(['custom-tag']);
   });
 
-  it('includes map quality/detail values present in manifest fields', () => {
+  it('includes map quality values present in manifest fields', () => {
     const categories = buildRegistryTagCategories({
       typeId: 'maps',
       availableTags: ['north-america'],
       mapDataQualityValues: ['medium'],
-      mapLevelOfDetailValues: ['high-detail'],
     });
 
     const qualityCategory = categories.find((category) => category.id === 'data-quality');
-    const detailCategory = categories.find((category) => category.id === 'level-of-detail');
 
     expect(qualityCategory?.tags).toEqual(['medium']);
-    expect(detailCategory?.tags).toEqual(['high-detail']);
   });
 
   it('groups mod tags into content and other', () => {
@@ -73,11 +62,10 @@ describe('buildRegistryTagCounts', () => {
 });
 
 describe('formatRegistryTagLabel', () => {
-  it('formats known map quality and detail values', () => {
+  it('formats known map quality values', () => {
     expect(formatRegistryTagLabel('data-quality', 'very-high')).toBe('very-high-quality');
     expect(formatRegistryTagLabel('data-quality', 'high')).toBe('high-quality');
     expect(formatRegistryTagLabel('data-quality', 'unknown')).toBe('unknown-quality');
-    expect(formatRegistryTagLabel('level-of-detail', 'high-detail')).toBe('High Detail');
     expect(formatRegistryTagLabel('other', 'custom')).toBe('custom');
   });
 });

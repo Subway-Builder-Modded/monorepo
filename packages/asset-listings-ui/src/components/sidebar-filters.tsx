@@ -5,7 +5,6 @@ import {
   Check,
   ChevronDown,
   GraduationCap,
-  Layers3,
   MapPin,
   Package,
   Tag,
@@ -29,7 +28,6 @@ export interface SidebarFilterState {
   map: {
     locations: string[];
     dataQuality: string[];
-    levelOfDetail: string[];
     specialDemand: string[];
   };
 }
@@ -50,7 +48,6 @@ export interface SidebarFiltersProps {
   mapCount: number;
   locationValues: readonly string[];
   dataQualityValues: readonly string[];
-  levelOfDetailValues: readonly string[];
   formatDataQuality: (value: string) => string;
   emptyLabels?: {
     generic?: string;
@@ -83,7 +80,6 @@ export function SidebarFilters({
   mapCount,
   locationValues,
   dataQualityValues,
-  levelOfDetailValues,
   formatDataQuality,
   emptyLabels,
   collapsibleSections = true,
@@ -229,23 +225,6 @@ export function SidebarFilters({
               onFiltersChange((prev) => ({
                 ...prev,
                 map: { ...prev.map, dataQuality: values },
-              }))
-            }
-            collapsible={collapsibleSections}
-            renderCheckbox={checkboxRenderer}
-            minimumVisibleOptions={minimumVisibleOptions}
-          />
-          <ChecklistFilterSection
-            title="Level of Detail"
-            icon={Layers3}
-            values={levelOfDetailValues}
-            counts={dimCounts.current.mapLevelOfDetailCounts}
-            availableCounts={availableCounts.mapLevelOfDetailCounts}
-            selected={filters.map.levelOfDetail}
-            onChange={(values) =>
-              onFiltersChange((prev) => ({
-                ...prev,
-                map: { ...prev.map, levelOfDetail: values },
               }))
             }
             collapsible={collapsibleSections}

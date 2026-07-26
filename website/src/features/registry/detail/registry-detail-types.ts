@@ -78,7 +78,6 @@ export type RegistryDetailMapFields = {
   dataQuality: RegistryDetailDataQuality | null;
   /** Weighted data-quality composite in [0, 1]; null when the map is unscored. */
   weightedScore: number | null;
-  levelOfDetail: "High" | "Medium" | "Low" | null;
   fileSizes: {
     pmtiles: number | null;
     buildingsIndexJson: number | null;
@@ -156,7 +155,6 @@ export type RegistryDetailLoadedData = {
       rubric_version?: number;
       provenance?: string;
     };
-    level_of_detail?: string;
     population_count?: number;
     points_count?: number;
     grid_statistics?: {

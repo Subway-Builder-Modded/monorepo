@@ -9,7 +9,7 @@ import (
 )
 
 // SyncSubscriptions iterates through a profile's subscriptions and attempts to reconcile the state of asset installation on disk to the desired state in the profile by installing/uninstalling maps and mods as needed.
-func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict bool, skipDependencyInstall bool) types.SyncSubscriptionsResult {
+func (s *UserProfiles) SyncSubscriptions(profileID string, replaceConflicts []string, skipDependencyInstall bool) types.SyncSubscriptionsResult {
 	s.logRequest("SyncSubscriptions", "profile_id", profileID)
 
 	profile, snapshotVersion, profileErr := s.profileSnapshot(profileID)
@@ -20,7 +20,12 @@ func (s *UserProfiles) SyncSubscriptions(profileID string, replaceOnConflict boo
 		return result
 	}
 
-	mapArgs := s.buildMapSyncArgs(profile, func() bool { return s.isSnapshotStale(snapshotVersion) }, replaceOnConflict)
+	replaceSet := make(map[string]bool, len(replaceConflicts))
+	for _, id := range replaceConflicts {
+		replaceSet[id] = true
+	}
+
+	mapArgs := s.buildMapSyncArgs(profile, func() bool { return s.isSnapshotStale(snapshotVersion) }, replaceSet)
 	modArgs := s.buildModSyncArgs(profile, func() bool { return s.isSnapshotStale(snapshotVersion) }, skipDependencyInstall)
 
 	syncErrors := make([]types.UserProfilesError, 0)
@@ -119,7 +124,7 @@ type availableVersionArgs[U any] struct {
 }
 
 // TODO: Consolidate this into a generic argument builder using types.AssetType to reduce duplication
-func (s *UserProfiles) buildMapSyncArgs(profile types.UserProfile, isStale func() bool, replaceOnConflict bool) assetSyncArgs[types.InstalledMapInfo, types.MapManifest] {
+func (s *UserProfiles) buildMapSyncArgs(profile types.UserProfile, isStale func() bool, replaceConflicts map[string]bool) assetSyncArgs[types.InstalledMapInfo, types.MapManifest] {
 	return assetSyncArgs[types.InstalledMapInfo, types.MapManifest]{
 		assetType:     types.AssetTypeMap,
 		subscriptions: profile.Subscriptions.Maps,
@@ -140,7 +145,8 @@ func (s *UserProfiles) buildMapSyncArgs(profile types.UserProfile, isStale func(
 				AssetID:   assetID,
 				Version:   version,
 				Map: &types.MapInstallOptions{
-					ReplaceOnConflict: replaceOnConflict,
+					// Only replace this asset's conflict if the user explicitly approved it.
+					ReplaceOnConflict: replaceConflicts[assetID],
 				},
 			})
 		},
@@ -233,8 +239,19 @@ func syncAssetSubscriptions[T any, U any](log logger.Logger, profileID string, a
 		log.Info("Installing asset", "asset_type", args.assetType, "asset_id", assetID, "version", versionText)
 		response := args.install(assetID, versionText)
 		if response.Status == types.ResponseWarn {
-			// Occurs when installation skipped due to a newer subscription update (different version) or a cancellation (from a newer uninstall request).
-			// These should be treated as warnings, not errors, since this is an expected set of events.
+			// A map-code conflict warn means this subscribed map must replace an existing one and the
+			// user has not approved that. Surface it as an error instead of silently skipping, so the
+			// asset isn't quietly dropped.
+			if response.MapCodeConflict != nil {
+				log.Warn("Map code conflict during sync without replacement approval", "asset_type", args.assetType, "asset_id", assetID, "version", versionText, "existing_asset_id", response.MapCodeConflict.ExistingAssetID)
+				errs = append(errs, userProfilesError(
+					profileID, assetID, args.assetType, types.ErrorSyncFailed, "",
+					fmt.Sprintf("Install %s %q blocked by an unresolved map code conflict with %q", args.assetType, assetID, response.MapCodeConflict.ExistingAssetID),
+				))
+				continue
+			}
+			// Superseded by a newer subscription update, or cancelled by a newer uninstall - an
+			// expected event, so skip without erroring.
 			log.Warn("Install skipped during sync", "asset_type", args.assetType, "asset_id", assetID, "version", versionText, "message", response.Message)
 			continue
 		}

@@ -1240,7 +1240,6 @@ export namespace types {
 	    data_source: string;
 	    source_quality: string;
 	    data_quality?: DataQuality;
-	    level_of_detail: string;
 	    special_demand: string[];
 	    initial_view_state: InitialViewState;
 	
@@ -1272,7 +1271,6 @@ export namespace types {
 	        this.data_source = source["data_source"];
 	        this.source_quality = source["source_quality"];
 	        this.data_quality = this.convertValues(source["data_quality"], DataQuality);
-	        this.level_of_detail = source["level_of_detail"];
 	        this.special_demand = source["special_demand"];
 	        this.initial_view_state = this.convertValues(source["initial_view_state"], InitialViewState);
 	    }
@@ -1840,7 +1838,7 @@ export namespace types {
 	    assets: Record<string, SubscriptionUpdateItem>;
 	    action: string;
 	    applyMode: string;
-	    replaceOnConflict: boolean;
+	    replaceConflicts?: string[];
 	    skipDependencyInstall?: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -1853,7 +1851,7 @@ export namespace types {
 	        this.assets = this.convertValues(source["assets"], SubscriptionUpdateItem, true);
 	        this.action = source["action"];
 	        this.applyMode = source["applyMode"];
-	        this.replaceOnConflict = source["replaceOnConflict"];
+	        this.replaceConflicts = source["replaceConflicts"];
 	        this.skipDependencyInstall = source["skipDependencyInstall"];
 	    }
 	

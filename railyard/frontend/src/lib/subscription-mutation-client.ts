@@ -80,7 +80,9 @@ export async function mutateSubscriptionsForActiveProfile(args: {
       assets: args.assets,
       action: args.action,
       applyMode: args.applyMode,
-      replaceOnConflict: args.replaceOnConflict ?? false,
+      // Per-asset replace approval: when the user confirms replacement, approve exactly the assets in this request
+      // (so a concurrent resync can't replace an unrelated conflicting map).
+      replaceConflicts: args.replaceOnConflict ? Object.keys(args.assets) : [],
     }),
   );
 }

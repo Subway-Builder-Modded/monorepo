@@ -69,7 +69,6 @@ export function createBrowsePageCallbacks(
           map: {
             locations: prev.map.locations,
             dataQuality: prev.map.dataQuality,
-            levelOfDetail: prev.map.levelOfDetail,
             specialDemand: prev.map.specialDemand,
           },
         });
@@ -81,7 +80,6 @@ export function createBrowsePageCallbacks(
             ...prev.map,
             locations: next.map.locations,
             dataQuality: next.map.dataQuality,
-            levelOfDetail: next.map.levelOfDetail,
             specialDemand: next.map.specialDemand,
           },
         };

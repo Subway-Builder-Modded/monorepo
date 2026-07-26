@@ -30,7 +30,7 @@ export function RestoreProfileArchive(arg1:string):Promise<types.GenericResponse
 
 export function SwapProfile(arg1:types.SwapProfileRequest):Promise<types.UserProfileResult>;
 
-export function SyncSubscriptions(arg1:string,arg2:boolean,arg3:boolean):Promise<types.SyncSubscriptionsResult>;
+export function SyncSubscriptions(arg1:string,arg2:Array<string>,arg3:boolean):Promise<types.SyncSubscriptionsResult>;
 
 export function UpdateSubscriptions(arg1:types.UpdateSubscriptionsRequest):Promise<types.UpdateSubscriptionsResult>;
 

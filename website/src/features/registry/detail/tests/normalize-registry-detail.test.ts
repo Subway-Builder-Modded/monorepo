@@ -40,7 +40,6 @@ const BASE: RegistryDetailLoadedData = {
     source: "https://example.test/source",
     source_quality: "high-quality",
     data_quality: { tier: "high", weighted_score: 0.66, rubric_version: 1 },
-    level_of_detail: "medium-detail",
     tags: ["high-quality", "tag-b"],
     grid_statistics: {
       detail: {
@@ -134,8 +133,7 @@ describe("normalizeRegistryDetail", () => {
       country: "Country A",
       population: 14_000,
       playableAreaKm2: 5617,
-      dataQuality: "High",
-      levelOfDetail: "Medium",
+      dataQuality: "high",
     });
   });
 
