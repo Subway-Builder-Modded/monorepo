@@ -42,6 +42,8 @@ type RenderMarker = {
   items: RegistrySearchItem[];
   clusterSize: number;
   isRepresentative: boolean;
+  /** Longitude offset (deg) of the wrapped world copy this marker is drawn on. */
+  worldOffset: number;
 };
 
 const CLUSTER_DISTANCE_PX = 96;
@@ -52,6 +54,9 @@ const HOVER_HIDE_DELAY_MS = 180;
 const HOVER_CARD_MARGIN_PX = 12;
 const HOVER_CARD_GAP_PX = 14;
 const MARKER_SIZE_PX = 32;
+// With renderWorldCopies, markers must be drawn on every visible world copy;
+// at minZoom 1.1 at most one wrapped copy can enter the viewport on each side.
+const WORLD_COPY_OFFSETS = [-360, 0, 360];
 
 async function loadMaplibre() {
   const maplibre = await import("maplibre-gl");
@@ -68,6 +73,12 @@ function buildMarkerAnimation(modePulse: boolean): CSSProperties | undefined {
   return {
     animation: "marker-split-join 240ms cubic-bezier(0.22, 0.9, 0.35, 1)",
   };
+}
+
+// Stack and representative ordering: most recently updated first, matching the
+// browse page's "Last Updated" sort; id breaks ties deterministically.
+function compareByLastUpdated(a: RegistrySearchItem, b: RegistrySearchItem): number {
+  return b.lastActivityAt - a.lastActivityAt || a.id.localeCompare(b.id);
 }
 
 function markersOverlap(a: RenderMarker, b: RenderMarker, padding = 4): boolean {
@@ -94,6 +105,7 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
     x: marker.x,
     y: marker.y,
     items: [...marker.items],
+    worldOffset: marker.worldOffset,
   }));
 
   let changed = true;
@@ -109,6 +121,7 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
           items: groups[i].items,
           clusterSize: groups[i].items.length,
           isRepresentative: true,
+          worldOffset: groups[i].worldOffset,
         };
         const probeB: RenderMarker = {
           id: "",
@@ -118,6 +131,7 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
           items: groups[j].items,
           clusterSize: groups[j].items.length,
           isRepresentative: true,
+          worldOffset: groups[j].worldOffset,
         };
 
         if (!markersOverlap(probeA, probeB)) continue;
@@ -132,6 +146,7 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
             (groups[i].y * groups[i].items.length + groups[j].y * groups[j].items.length) /
             mergedCount,
           items: mergedItems,
+          worldOffset: groups[i].worldOffset,
         };
         groups.splice(j, 1);
         changed = true;
@@ -145,9 +160,9 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
     for (const item of group.items) {
       byId.set(item.id, item);
     }
-    const uniqueItems = [...byId.values()].sort((a, b) => a.id.localeCompare(b.id));
+    const uniqueItems = [...byId.values()].sort(compareByLastUpdated);
     const clusterSize = uniqueItems.length;
-    const clusterId = uniqueItems.map((item) => item.id).join("|");
+    const clusterId = `${uniqueItems.map((item) => item.id).join("|")}@${group.worldOffset}`;
 
     return {
       id: clusterId,
@@ -157,6 +172,7 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
       items: uniqueItems,
       clusterSize,
       isRepresentative: true,
+      worldOffset: group.worldOffset,
     };
   });
 }
@@ -240,7 +256,7 @@ function buildStaticClusters(
   }
 
   return working.map((cluster) => {
-    const sortedPoints = [...cluster.members].sort((a, b) => a.id.localeCompare(b.id));
+    const sortedPoints = [...cluster.members].sort((a, b) => compareByLastUpdated(a.item, b.item));
     const itemIds = sortedPoints.map((member) => member.id);
     return {
       id: itemIds.join("|"),
@@ -386,13 +402,13 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
           style,
           center: [0, 20],
           zoom: 1.2,
-          minZoom: 0.6,
+          minZoom: 1.1,
           maxZoom: 18,
           attributionControl: false,
           dragRotate: false,
           pitchWithRotate: false,
           touchPitch: false,
-          renderWorldCopies: false,
+          renderWorldCopies: true,
         });
 
         // Keep pan/drag gestures available across pointer, touch, and keyboard environments.
@@ -488,26 +504,30 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
         if (!assignment) continue;
 
         const targetCoordinates = nextCollapsedMode ? assignment.anchor : point.coordinates;
-        const projected = map.project(targetCoordinates);
 
-        if (
-          projected.x < -margin ||
-          projected.y < -margin ||
-          projected.x > width + margin ||
-          projected.y > height + margin
-        ) {
-          continue;
+        for (const worldOffset of WORLD_COPY_OFFSETS) {
+          const projected = map.project([targetCoordinates[0] + worldOffset, targetCoordinates[1]]);
+
+          if (
+            projected.x < -margin ||
+            projected.y < -margin ||
+            projected.x > width + margin ||
+            projected.y > height + margin
+          ) {
+            continue;
+          }
+
+          nextMarkers.push({
+            id: `${point.id}@${worldOffset}`,
+            item: point.item,
+            x: projected.x,
+            y: projected.y,
+            items: nextCollapsedMode ? assignment.items : [point.item],
+            clusterSize: nextCollapsedMode ? assignment.clusterSize : 1,
+            isRepresentative: assignment.representativeId === point.id,
+            worldOffset,
+          });
         }
-
-        nextMarkers.push({
-          id: point.id,
-          item: point.item,
-          x: projected.x,
-          y: projected.y,
-          items: nextCollapsedMode ? assignment.items : [point.item],
-          clusterSize: nextCollapsedMode ? assignment.clusterSize : 1,
-          isRepresentative: assignment.representativeId === point.id,
-        });
       }
 
       setRenderMarkers(nextMarkers);
