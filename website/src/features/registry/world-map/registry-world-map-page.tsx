@@ -62,7 +62,7 @@ export function RegistryWorldMapPage() {
                 </h1>
               </div>
               <p className="text-sm text-muted-foreground">
-                Interactively explore all of the user-submitted maps available in the Registry.
+                Interactively explore all of the user-submitted maps available on Railyard.
               </p>
             </div>
           </div>

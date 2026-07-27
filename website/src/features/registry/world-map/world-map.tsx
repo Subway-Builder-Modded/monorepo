@@ -5,9 +5,16 @@ import { getSuiteById } from "@/config/site-navigation";
 import { navigate } from "@/lib/router";
 import { useThemeMode } from "@/hooks/use-theme-mode";
 import { RegistryItemCard } from "@/shared/registry-card/registry-item-card";
-import type { RegistryCardData } from "@/shared/registry-card/registry-item-types";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
-import { buildThemedStyle, type ResolvedTheme } from "@/features/registry/lib/themed-map-style";
+import { MapAttribution } from "@/features/registry/components/shared/map-attribution";
+import { toRegistryCardData } from "@/features/registry/lib/registry-card-data";
+import { compareByLastUpdatedDesc } from "@/features/registry/lib/sort-registry-items";
+import {
+  buildThemedStyle,
+  loadMaplibre,
+  resolveMapTheme,
+  type ResolvedTheme,
+} from "@/features/registry/lib/themed-map-style";
 import type {
   RawRegistryManifest,
   RegistrySearchItem,
@@ -72,11 +79,6 @@ const MARKER_SIZE_PX = 32;
 // at minZoom 1.7 at most one wrapped copy can enter the viewport on each side.
 const WORLD_COPY_OFFSETS = [-360, 0, 360];
 
-async function loadMaplibre() {
-  const maplibre = await import("maplibre-gl");
-  return maplibre.default;
-}
-
 function clampNumber(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
@@ -87,12 +89,6 @@ function buildMarkerAnimation(modePulse: boolean): CSSProperties | undefined {
   return {
     animation: "marker-split-join 240ms cubic-bezier(0.22, 0.9, 0.35, 1)",
   };
-}
-
-// Stack and representative ordering: most recently updated first, matching the
-// browse page's "Last Updated" sort; id breaks ties deterministically.
-function compareByLastUpdated(a: RegistrySearchItem, b: RegistrySearchItem): number {
-  return b.lastActivityAt - a.lastActivityAt || a.id.localeCompare(b.id);
 }
 
 function markersOverlap(a: RenderMarker, b: RenderMarker, padding = 4): boolean {
@@ -174,7 +170,7 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
     for (const item of group.items) {
       byId.set(item.id, item);
     }
-    const uniqueItems = [...byId.values()].sort(compareByLastUpdated);
+    const uniqueItems = [...byId.values()].sort(compareByLastUpdatedDesc);
     const clusterSize = uniqueItems.length;
     const clusterId = `${uniqueItems.map((item) => item.id).join("|")}@${group.worldOffset}`;
 
@@ -189,10 +185,6 @@ function mergeOverlappingMarkers(markers: RenderMarker[]): RenderMarker[] {
       worldOffset: group.worldOffset,
     };
   });
-}
-
-function isMapTheme(value: string | undefined): value is ResolvedTheme {
-  return value === "light" || value === "dark";
 }
 
 function getMapCoordinates(item: RegistrySearchItem): [number, number] | null {
@@ -270,7 +262,9 @@ function buildStaticClusters(
   }
 
   return working.map((cluster) => {
-    const sortedPoints = [...cluster.members].sort((a, b) => compareByLastUpdated(a.item, b.item));
+    const sortedPoints = [...cluster.members].sort((a, b) =>
+      compareByLastUpdatedDesc(a.item, b.item),
+    );
     const itemIds = sortedPoints.map((member) => member.id);
     return {
       id: itemIds.join("|"),
@@ -280,25 +274,6 @@ function buildStaticClusters(
       anchor: getClusterAnchor(sortedPoints),
     };
   });
-}
-
-function toRegistryCardData(item: RegistrySearchItem): RegistryCardData {
-  return {
-    id: item.id,
-    href: item.href,
-    title: item.name,
-    author: item.author,
-    authorId: item.authorId,
-    description: item.description,
-    thumbnailSrc: item.thumbnailSrc,
-    totalDownloads: item.totalDownloads,
-    tags: item.tags,
-    cityCode: item.cityCode,
-    countryCode: item.countryCode,
-    countryName: item.countryName,
-    countryEmoji: item.countryEmoji,
-    population: item.population,
-  };
 }
 
 function MarkerBox({ clusterSize, animate }: { clusterSize: number; animate: boolean }) {
@@ -349,7 +324,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
   const clusterTierRef = useRef(0);
 
   const { resolvedTheme } = useThemeMode();
-  const mapTheme: ResolvedTheme = isMapTheme(resolvedTheme) ? resolvedTheme : "light";
+  const mapTheme: ResolvedTheme = resolveMapTheme(resolvedTheme, "light");
 
   const mapTypeConfig = getRegistryTypeConfigOrDefault("maps");
   const registryAccent = getSuiteById("registry").accent;
@@ -851,36 +826,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
         </div>
       ) : null}
 
-      <div className="absolute bottom-2 right-2 z-30 rounded-full border border-border/75 bg-card/90 px-3 py-1.5 text-[11px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
-        <div className="whitespace-nowrap leading-none">
-          <a
-            href="https://openfreemap.org"
-            target="_blank"
-            rel="noreferrer"
-            className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:underline dark:hover:text-[var(--suite-accent-dark)]"
-          >
-            OpenFreeMap
-          </a>
-          <span aria-hidden={true}>{" © "}</span>
-          <a
-            href="https://www.openmaptiles.org"
-            target="_blank"
-            rel="noreferrer"
-            className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:underline dark:hover:text-[var(--suite-accent-dark)]"
-          >
-            OpenMapTiles
-          </a>
-          <span>{" Data from "}</span>
-          <a
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noreferrer"
-            className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:underline dark:hover:text-[var(--suite-accent-dark)]"
-          >
-            OpenStreetMap
-          </a>
-        </div>
-      </div>
+      <MapAttribution linkHoverClassName="hover:text-(--suite-accent-light) dark:hover:text-(--suite-accent-dark)" />
     </div>
   );
 }

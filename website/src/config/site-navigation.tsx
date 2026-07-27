@@ -273,7 +273,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "registry-world-map",
     suiteId: "registry",
     title: "World Map",
-    description: "Interactively explore all of the user-submitted maps available in the Registry.",
+    description: "Interactively explore all of the user-submitted maps available on Railyard.",
     href: "/registry/world-map",
     icon: Globe,
     activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],

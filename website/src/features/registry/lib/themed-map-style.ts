@@ -20,6 +20,16 @@ export type SubwayThemeColors = {
 
 const BASE_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
+export async function loadMaplibre() {
+  const maplibre = await import("maplibre-gl");
+  return maplibre.default;
+}
+
+/** Narrow an arbitrary theme string to a map theme, falling back when unknown. */
+export function resolveMapTheme(value: string | undefined, fallback: ResolvedTheme): ResolvedTheme {
+  return value === "light" || value === "dark" ? value : fallback;
+}
+
 const THEME_COLORS: Record<ResolvedTheme, SubwayThemeColors> = {
   light: {
     roads: "#DCDCDC",

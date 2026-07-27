@@ -14,7 +14,13 @@ import {
   readNumericProperty,
 } from "./map-tab-metrics";
 import { expandBboxByFactor, normalizeMapGrid } from "./map-tab-grid";
-import { buildThemedStyle, type ResolvedTheme } from "@/features/registry/lib/themed-map-style";
+import { MapAttribution } from "@/features/registry/components/shared/map-attribution";
+import {
+  buildThemedStyle,
+  loadMaplibre,
+  resolveMapTheme,
+  type ResolvedTheme,
+} from "@/features/registry/lib/themed-map-style";
 import type { Bbox, GridSnapshot, HoverInfo, MapLibreBoundsLike, MetricId } from "./map-tab-types";
 const GRID_SOURCE_ID = "registry-grid-source";
 const HEAT_LAYER_PREFIX = "registry-grid-heat-";
@@ -22,15 +28,6 @@ const INITIAL_BOUNDS_EXPANSION_FACTOR = 1.16;
 const MAX_BOUNDS_EXPANSION_FACTOR = 1.9;
 // Dim the basemap so the heatmap overlay reads clearly on top of it.
 const BASEMAP_OPACITY_SCALE = 0.72;
-
-function isMapTheme(value: string | undefined): value is ResolvedTheme {
-  return value === "light" || value === "dark";
-}
-
-async function loadMaplibre() {
-  const maplibre = await import("maplibre-gl");
-  return maplibre.default;
-}
 
 export function MapTab({ mapId }: { mapId: string }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -47,7 +44,7 @@ export function MapTab({ mapId }: { mapId: string }) {
     activeMetricRef.current = activeMetric;
   }, [activeMetric]);
 
-  const mapTheme: ResolvedTheme = isMapTheme(resolvedTheme) ? resolvedTheme : "dark";
+  const mapTheme: ResolvedTheme = resolveMapTheme(resolvedTheme, "dark");
   const heatColors = HEAT_COLORS_BY_THEME[mapTheme];
 
   useEffect(() => {
@@ -383,36 +380,7 @@ export function MapTab({ mapId }: { mapId: string }) {
             </div>
           ) : null}
 
-          <div className="absolute bottom-2 right-2 z-30 rounded-full border border-border/75 bg-card/90 px-3 py-1.5 text-[11px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
-            <div className="whitespace-nowrap leading-none">
-              <a
-                href="https://openfreemap.org"
-                target="_blank"
-                rel="noreferrer"
-                className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:underline"
-              >
-                OpenFreeMap
-              </a>
-              <span aria-hidden={true}>{" © "}</span>
-              <a
-                href="https://www.openmaptiles.org"
-                target="_blank"
-                rel="noreferrer"
-                className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:underline"
-              >
-                OpenMapTiles
-              </a>
-              <span>{" Data from "}</span>
-              <a
-                href="https://www.openstreetmap.org/copyright"
-                target="_blank"
-                rel="noreferrer"
-                className="text-foreground/85 decoration-current underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:underline"
-              >
-                OpenStreetMap
-              </a>
-            </div>
-          </div>
+          <MapAttribution linkHoverClassName="hover:text-(--registry-type-accent)" />
         </div>
       </div>
 

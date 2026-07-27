@@ -132,7 +132,7 @@ const STATIC_NAV_METADATA: Record<string, { description: string; title: string }
   },
   "/registry/world-map": {
     title: "World Map",
-    description: "Interactively explore all of the user-submitted maps available in the Registry.",
+    description: "Interactively explore all of the user-submitted maps available on Railyard.",
   },
   "/registry/markdown-playground": {
     title: "Playground",
