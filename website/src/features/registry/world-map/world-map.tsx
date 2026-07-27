@@ -55,7 +55,7 @@ const HOVER_CARD_MARGIN_PX = 12;
 const HOVER_CARD_GAP_PX = 14;
 const MARKER_SIZE_PX = 32;
 // With renderWorldCopies, markers must be drawn on every visible world copy;
-// at minZoom 1.1 at most one wrapped copy can enter the viewport on each side.
+// at minZoom 1.5 at most one wrapped copy can enter the viewport on each side.
 const WORLD_COPY_OFFSETS = [-360, 0, 360];
 
 async function loadMaplibre() {
@@ -401,8 +401,8 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
           container: containerRef.current,
           style,
           center: [0, 20],
-          zoom: 1.2,
-          minZoom: 1.1,
+          zoom: 1.5,
+          minZoom: 1.5,
           maxZoom: 18,
           attributionControl: false,
           dragRotate: false,
@@ -471,7 +471,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
     const recomputeMarkers = () => {
       recomputeRafRef.current = null;
       const currentZoom = Number(map.getZoom());
-      const safeZoom = Number.isFinite(currentZoom) ? currentZoom : 1.2;
+      const safeZoom = Number.isFinite(currentZoom) ? currentZoom : 1.5;
 
       const nextCollapsedMode = collapsedModeRef.current
         ? safeZoom < CLUSTER_SPLIT_ZOOM
@@ -792,6 +792,11 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
             className="pointer-events-auto h-full overflow-auto rounded-xl border border-border/60 bg-card/95 p-2 shadow-xl backdrop-blur-sm"
             onMouseEnter={cancelHoverHide}
             onMouseLeave={clearHoverSoon}
+            // Clicking the marker (or tapping) moves focus into the card; the
+            // marker's onBlur schedules a hide, so the card must cancel it when
+            // focus lands here and only re-arm it when focus leaves entirely.
+            onFocus={cancelHoverHide}
+            onBlur={clearHoverSoon}
           >
             <RegistryItemCard
               data={toRegistryCardData(hoveredItem)}
@@ -804,6 +809,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
                 <button
                   type="button"
                   onClick={() => {
+                    cancelHoverHide();
                     setHoverIndex(
                       (current) => (current - 1 + hoveredItems.length) % hoveredItems.length,
                     );
@@ -818,6 +824,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
                 <button
                   type="button"
                   onClick={() => {
+                    cancelHoverHide();
                     setHoverIndex((current) => (current + 1) % hoveredItems.length);
                   }}
                   className="rounded-md border border-border bg-background/70 px-2 py-1 hover:bg-accent"
