@@ -55,7 +55,7 @@ const HOVER_CARD_MARGIN_PX = 12;
 const HOVER_CARD_GAP_PX = 14;
 const MARKER_SIZE_PX = 32;
 // With renderWorldCopies, markers must be drawn on every visible world copy;
-// at minZoom 1.5 at most one wrapped copy can enter the viewport on each side.
+// at minZoom 1.7 at most one wrapped copy can enter the viewport on each side.
 const WORLD_COPY_OFFSETS = [-360, 0, 360];
 
 async function loadMaplibre() {
@@ -401,8 +401,8 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
           container: containerRef.current,
           style,
           center: [0, 20],
-          zoom: 1.5,
-          minZoom: 1.5,
+          zoom: 1.7,
+          minZoom: 1.7,
           maxZoom: 18,
           attributionControl: false,
           dragRotate: false,
@@ -471,7 +471,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
     const recomputeMarkers = () => {
       recomputeRafRef.current = null;
       const currentZoom = Number(map.getZoom());
-      const safeZoom = Number.isFinite(currentZoom) ? currentZoom : 1.5;
+      const safeZoom = Number.isFinite(currentZoom) ? currentZoom : 1.7;
 
       const nextCollapsedMode = collapsedModeRef.current
         ? safeZoom < CLUSTER_SPLIT_ZOOM
