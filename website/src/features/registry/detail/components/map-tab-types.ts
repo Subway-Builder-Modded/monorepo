@@ -49,5 +49,3 @@ export type HoverInfo = {
   centroidLng: number | null;
   centroidLat: number | null;
 };
-
-export type { ResolvedTheme, SubwayThemeColors } from "@/features/registry/lib/themed-map-style";

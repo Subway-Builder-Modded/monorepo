@@ -14,19 +14,14 @@ import {
   readNumericProperty,
 } from "./map-tab-metrics";
 import { expandBboxByFactor, normalizeMapGrid } from "./map-tab-grid";
-import { buildThemedStyle } from "./map-tab-style";
-import type {
-  Bbox,
-  GridSnapshot,
-  HoverInfo,
-  MapLibreBoundsLike,
-  MetricId,
-  ResolvedTheme,
-} from "./map-tab-types";
+import { buildThemedStyle, type ResolvedTheme } from "@/features/registry/lib/themed-map-style";
+import type { Bbox, GridSnapshot, HoverInfo, MapLibreBoundsLike, MetricId } from "./map-tab-types";
 const GRID_SOURCE_ID = "registry-grid-source";
 const HEAT_LAYER_PREFIX = "registry-grid-heat-";
 const INITIAL_BOUNDS_EXPANSION_FACTOR = 1.16;
 const MAX_BOUNDS_EXPANSION_FACTOR = 1.9;
+// Dim the basemap so the heatmap overlay reads clearly on top of it.
+const BASEMAP_OPACITY_SCALE = 0.72;
 
 function isMapTheme(value: string | undefined): value is ResolvedTheme {
   return value === "light" || value === "dark";
@@ -101,7 +96,7 @@ export function MapTab({ mapId }: { mapId: string }) {
     void (async () => {
       try {
         const maplibregl = await loadMaplibre();
-        const style = await buildThemedStyle(mapTheme);
+        const style = await buildThemedStyle(mapTheme, { opacityScale: BASEMAP_OPACITY_SCALE });
         if (disposed || !containerRef.current) return;
 
         map = new maplibregl.Map({

@@ -1,5 +1,6 @@
 import { Briefcase, Building2, House, MapPin, Users } from "lucide-react";
-import type { MetricId, ResolvedTheme } from "./map-tab-types";
+import type { ResolvedTheme } from "@/features/registry/lib/themed-map-style";
+import type { MetricId } from "./map-tab-types";
 
 export const METRIC_CONFIG: Record<
   MetricId,
