@@ -47,9 +47,23 @@ type RenderMarker = {
 };
 
 const CLUSTER_DISTANCE_PX = 96;
-const CLUSTER_REFERENCE_ZOOM = 2.4;
-const CLUSTER_SPLIT_ZOOM = 5.15;
-const CLUSTER_JOIN_ZOOM = 4.7;
+// Cluster tiers from coarse to fine. Tier N collapses markers into the stacks
+// computed at its referenceZoom; zooming past splitZoom advances to the next
+// tier, with individual markers beyond the last. joinZoom sits below splitZoom
+// so each boundary has a hysteresis band and does not flicker at the threshold.
+const CLUSTER_TIERS = [
+  { referenceZoom: 2.4, splitZoom: 3.5, joinZoom: 3.05 },
+  { referenceZoom: 4, splitZoom: 5.15, joinZoom: 4.7 },
+];
+const INDIVIDUAL_TIER = CLUSTER_TIERS.length;
+
+function resolveClusterTier(currentTier: number, zoom: number): number {
+  let tier = currentTier;
+  while (tier < INDIVIDUAL_TIER && zoom >= CLUSTER_TIERS[tier].splitZoom) tier += 1;
+  while (tier > 0 && zoom <= CLUSTER_TIERS[tier - 1].joinZoom) tier -= 1;
+  return tier;
+}
+
 const HOVER_HIDE_DELAY_MS = 180;
 const HOVER_CARD_MARGIN_PX = 12;
 const HOVER_CARD_GAP_PX = 14;
@@ -332,7 +346,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
   const hoverHideTimerRef = useRef<number | null>(null);
   const recomputeRafRef = useRef<number | null>(null);
   const thresholdAnimTimerRef = useRef<number | null>(null);
-  const collapsedModeRef = useRef(true);
+  const clusterTierRef = useRef(0);
 
   const { resolvedTheme } = useThemeMode();
   const mapTheme: ResolvedTheme = isMapTheme(resolvedTheme) ? resolvedTheme : "light";
@@ -341,7 +355,6 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
   const registryAccent = getSuiteById("registry").accent;
 
   const [mapReady, setMapReady] = useState(false);
-  const [collapsedMode, setCollapsedMode] = useState(true);
   const [renderMarkers, setRenderMarkers] = useState<RenderMarker[]>([]);
   const [hoveredMarkerId, setHoveredMarkerId] = useState<string | null>(null);
   const [hoverIndex, setHoverIndex] = useState(0);
@@ -364,25 +377,32 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
     [items],
   );
 
-  const staticClusters = useMemo(
-    () => buildStaticClusters(mapPoints, CLUSTER_DISTANCE_PX, CLUSTER_REFERENCE_ZOOM),
+  const tierClusters = useMemo(
+    () =>
+      CLUSTER_TIERS.map((tier) =>
+        buildStaticClusters(mapPoints, CLUSTER_DISTANCE_PX, tier.referenceZoom),
+      ),
     [mapPoints],
   );
 
-  const clusterAssignments = useMemo(() => {
-    const byItemId = new Map<string, ClusterAssignment>();
-    for (const cluster of staticClusters) {
-      for (const itemId of cluster.itemIds) {
-        byItemId.set(itemId, {
-          clusterSize: cluster.itemIds.length,
-          items: cluster.items,
-          representativeId: cluster.representativeId,
-          anchor: cluster.anchor,
-        });
-      }
-    }
-    return byItemId;
-  }, [staticClusters]);
+  const tierAssignments = useMemo(
+    () =>
+      tierClusters.map((clusters) => {
+        const byItemId = new Map<string, ClusterAssignment>();
+        for (const cluster of clusters) {
+          for (const itemId of cluster.itemIds) {
+            byItemId.set(itemId, {
+              clusterSize: cluster.itemIds.length,
+              items: cluster.items,
+              representativeId: cluster.representativeId,
+              anchor: cluster.anchor,
+            });
+          }
+        }
+        return byItemId;
+      }),
+    [tierClusters],
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -427,9 +447,7 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
           setMapReady(true);
           const initialZoom = Number(map?.getZoom());
           if (Number.isFinite(initialZoom)) {
-            const initiallyCollapsed = initialZoom < CLUSTER_SPLIT_ZOOM;
-            collapsedModeRef.current = initiallyCollapsed;
-            setCollapsedMode(initiallyCollapsed);
+            clusterTierRef.current = resolveClusterTier(0, initialZoom);
           }
         };
         map.on("load", handleLoad);
@@ -473,13 +491,10 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
       const currentZoom = Number(map.getZoom());
       const safeZoom = Number.isFinite(currentZoom) ? currentZoom : 1.7;
 
-      const nextCollapsedMode = collapsedModeRef.current
-        ? safeZoom < CLUSTER_SPLIT_ZOOM
-        : safeZoom <= CLUSTER_JOIN_ZOOM;
+      const nextTier = resolveClusterTier(clusterTierRef.current, safeZoom);
 
-      if (nextCollapsedMode !== collapsedModeRef.current) {
-        collapsedModeRef.current = nextCollapsedMode;
-        setCollapsedMode(nextCollapsedMode);
+      if (nextTier !== clusterTierRef.current) {
+        clusterTierRef.current = nextTier;
         setModePulse(true);
         if (thresholdAnimTimerRef.current !== null) {
           window.clearTimeout(thresholdAnimTimerRef.current);
@@ -498,12 +513,13 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
       });
 
       const nextMarkers: RenderMarker[] = [];
+      const assignments = nextTier < INDIVIDUAL_TIER ? tierAssignments[nextTier] : null;
 
       for (const point of mapPoints) {
-        const assignment = clusterAssignments.get(point.id);
-        if (!assignment) continue;
+        const assignment = assignments?.get(point.id) ?? null;
+        if (assignments && !assignment) continue;
 
-        const targetCoordinates = nextCollapsedMode ? assignment.anchor : point.coordinates;
+        const targetCoordinates = assignment ? assignment.anchor : point.coordinates;
 
         for (const worldOffset of WORLD_COPY_OFFSETS) {
           const projected = map.project([targetCoordinates[0] + worldOffset, targetCoordinates[1]]);
@@ -522,9 +538,9 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
             item: point.item,
             x: projected.x,
             y: projected.y,
-            items: nextCollapsedMode ? assignment.items : [point.item],
-            clusterSize: nextCollapsedMode ? assignment.clusterSize : 1,
-            isRepresentative: assignment.representativeId === point.id,
+            items: assignment ? assignment.items : [point.item],
+            clusterSize: assignment ? assignment.clusterSize : 1,
+            isRepresentative: assignment ? assignment.representativeId === point.id : true,
             worldOffset,
           });
         }
@@ -558,14 +574,12 @@ export function WorldMap({ items }: { items: RegistrySearchItem[] }) {
       map.off("zoom", scheduleRecompute);
       map.off("resize", scheduleRecompute);
     };
-  }, [clusterAssignments, mapPoints, mapReady]);
+  }, [mapPoints, mapReady, tierAssignments]);
 
   const displayMarkers = useMemo(() => {
-    const visibleMarkers = renderMarkers.filter(
-      (marker) => !collapsedMode || marker.isRepresentative,
-    );
+    const visibleMarkers = renderMarkers.filter((marker) => marker.isRepresentative);
     return mergeOverlappingMarkers(visibleMarkers);
-  }, [collapsedMode, renderMarkers]);
+  }, [renderMarkers]);
 
   const hoveredMarker = useMemo(
     () => displayMarkers.find((marker) => marker.id === hoveredMarkerId) ?? null,
