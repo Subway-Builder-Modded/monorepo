@@ -54,7 +54,7 @@ export function RegistryWorldMapPage() {
             <div className="flex min-w-0 flex-col items-center gap-2">
               <div className="flex min-w-0 flex-col items-center gap-2 sm:flex-row sm:gap-3">
                 <Globe
-                  className="size-8 shrink-0 text-[var(--suite-accent-light)] sm:size-9"
+                  className="size-8 shrink-0 text-(--suite-accent-light) sm:size-9"
                   aria-hidden={true}
                 />
                 <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -62,13 +62,13 @@ export function RegistryWorldMapPage() {
                 </h1>
               </div>
               <p className="text-sm text-muted-foreground">
-                Explore a map of all of the user-submitted maps available in Registry.
+                Interactively explore all of the user-submitted maps available in the Registry.
               </p>
             </div>
           </div>
 
           <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/55 p-1.5 shadow-sm sm:p-2 lg:p-3">
-            <div className="h-[min(78svh,calc(100svh-12.5rem))] min-h-[20rem] w-full overflow-hidden rounded-xl sm:min-h-[24rem]">
+            <div className="h-[min(78svh,calc(100svh-12.5rem))] min-h-80 w-full overflow-hidden rounded-xl sm:min-h-96">
               <WorldMap items={items} />
             </div>
           </div>

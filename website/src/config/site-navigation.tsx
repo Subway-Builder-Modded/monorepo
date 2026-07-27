@@ -282,7 +282,7 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     id: "registry-world-map",
     suiteId: "registry",
     title: "World Map",
-    description: "Explore a map of all of the user-submitted maps available in Registry.",
+    description: "Interactively explore all of the user-submitted maps available in the Registry.",
     href: "/registry/world-map",
     icon: Globe,
     activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
