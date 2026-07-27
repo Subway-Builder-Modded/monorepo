@@ -270,15 +270,6 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "exact", path: "/registry" }],
   },
   {
-    id: "registry-creator-database",
-    suiteId: "registry",
-    title: "Creators",
-    description: "Search the Registry author and project database.",
-    href: "/registry/authors",
-    icon: Users,
-    activeMatchRules: [{ kind: "prefix", path: "/registry/authors" }],
-  },
-  {
     id: "registry-world-map",
     suiteId: "registry",
     title: "World Map",
@@ -286,6 +277,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     href: "/registry/world-map",
     icon: Globe,
     activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
+  },
+  {
+    id: "registry-creator-database",
+    suiteId: "registry",
+    title: "Creators",
+    description: "Search the Registry author and project database.",
+    href: "/registry/authors",
+    icon: Users,
+    activeMatchRules: [{ kind: "prefix", path: "/registry/authors" }],
   },
   {
     id: "registry-docs",
