@@ -1,6 +1,7 @@
 import { useLocation } from "@/lib/router";
 import { matchRegistryRoute } from "@/features/registry/lib/routing";
 import { RegistryPage } from "@/features/registry/registry-page";
+import { RegistryWorldMapPage } from "@/features/registry/world-map/registry-world-map-page";
 import { RegistryDetailPage } from "@/features/registry/detail/registry-detail-page";
 import {
   RegistryAuthorPage,
@@ -22,6 +23,10 @@ export function RegistryRoute() {
 
   if (match.kind === "page") {
     return <RegistryPage />;
+  }
+
+  if (match.kind === "worldMap") {
+    return <RegistryWorldMapPage />;
   }
 
   if (match.kind === "creatorDatabase") {

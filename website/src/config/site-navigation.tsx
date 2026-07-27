@@ -279,6 +279,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "prefix", path: "/registry/authors" }],
   },
   {
+    id: "registry-world-map",
+    suiteId: "registry",
+    title: "World Map",
+    description: "Explore a map of all of the user-submitted maps available in Registry.",
+    href: "/registry/world-map",
+    icon: Globe,
+    activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
+  },
+  {
     id: "registry-docs",
     suiteId: "registry",
     title: "Docs",

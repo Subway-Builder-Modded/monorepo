@@ -5,6 +5,7 @@ import {
   getRegistryPageUrl,
   getRegistryProjectUrl,
   getRegistryVersionUrl,
+  getRegistryWorldMapUrl,
   matchRegistryRoute,
 } from "@/features/registry/lib/routing";
 
@@ -127,6 +128,11 @@ describe("matchRegistryRoute", () => {
     });
   });
 
+  it("matches world map route before detail routes", () => {
+    expect(matchRegistryRoute("/registry/world-map")).toEqual({ kind: "worldMap" });
+    expect(matchRegistryRoute("/registry/world-map/")).toEqual({ kind: "worldMap" });
+  });
+
   it("returns none for unrelated route", () => {
     expect(matchRegistryRoute("/railyard")).toEqual({ kind: "none" });
   });
@@ -178,5 +184,11 @@ describe("getRegistryPageUrl", () => {
   it("builds canonical typed registry page URLs", () => {
     expect(getRegistryPageUrl()).toBe("/registry/maps");
     expect(getRegistryPageUrl("mods")).toBe("/registry/mods");
+  });
+});
+
+describe("getRegistryWorldMapUrl", () => {
+  it("builds the world map URL", () => {
+    expect(getRegistryWorldMapUrl()).toBe("/registry/world-map");
   });
 });
