@@ -3,6 +3,7 @@ import {
   CreditsModal,
   type CreditsModalProps,
 } from '@subway-builder-modded/shared-ui';
+import { useEffect, useState } from 'react';
 
 import {
   CONTRIBUTOR_TIER_STYLES,
@@ -10,6 +11,7 @@ import {
 } from '@/lib/contributor-tier';
 
 import type { types } from '../../../wailsjs/go/models';
+import { GetCreditedAuthors } from '../../../wailsjs/go/registry/Registry';
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 
 interface RailyardCreditsModalProps extends Omit<
@@ -65,7 +67,35 @@ export function RailyardCreditsModal({
   mods,
   ...props
 }: RailyardCreditsModalProps) {
+  // Credited people from the registry authors index (maintainers and ko-fi
+  // supporters, including those with no published listings) — merged with
+  // listing authors so asset-less supporters appear in the credits screen.
+  const [creditedAuthors, setCreditedAuthors] = useState<types.AuthorDetails[]>(
+    [],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    GetCreditedAuthors()
+      .then((entries) => {
+        if (!cancelled) setCreditedAuthors(entries ?? []);
+      })
+      .catch(() => {
+        // Credits stay listing-authors-only if the index is unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const authorsMap = extractUniqueAuthors(maps, mods);
+  for (const credited of creditedAuthors) {
+    if (!credited.author_id || authorsMap.has(credited.author_id)) continue;
+    authorsMap.set(credited.author_id, {
+      author: credited,
+      tier: (credited.contributor_tier as ContributorTier | null) || null,
+    });
+  }
 
   const creditAuthors: CreditAuthor[] = Array.from(authorsMap.values()).map(
     ({ author, tier }) => ({

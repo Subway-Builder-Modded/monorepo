@@ -47,10 +47,11 @@ func (u UpdateConfig) Source() string {
 }
 
 type AuthorDetails struct {
-	AuthorID        string  `json:"author_id"`
-	AuthorAlias     string  `json:"author_alias"`
-	AttributionLink string  `json:"attribution_link"`
-	ContributorTier *string `json:"contributor_tier,omitempty"`
+	AuthorID        string   `json:"author_id"`
+	AuthorAlias     string   `json:"author_alias"`
+	AttributionLink string   `json:"attribution_link"`
+	ContributorTier *string  `json:"contributor_tier,omitempty"`
+	CreditRoles     []string `json:"credit_roles,omitempty"`
 }
 
 type AssetManifest struct {

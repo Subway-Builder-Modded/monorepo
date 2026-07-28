@@ -380,10 +380,10 @@ func TestAreSparseSubtreesUnchanged(t *testing.T) {
 	modsChanged := commitAll(t, repo, "change mods")
 
 	// Sparse dir added where it was previously absent: exactly one side missing.
-	require.NoError(t, files.WriteJSON(filepath.Join(sourceDir, "supporters", "index.json"), "supporters index", map[string]int{"schema_version": 1}))
-	supportersAdded := commitAll(t, repo, "add supporters")
+	require.NoError(t, files.WriteJSON(filepath.Join(sourceDir, "authors", "index.json"), "authors index", map[string]int{"schema_version": 1}))
+	authorsAdded := commitAll(t, repo, "add authors")
 
-	// HEAD is now supportersAdded; reset back through the history via comparisons against HEAD.
+	// HEAD is now authorsAdded; reset back through the history via comparisons against HEAD.
 	tests := []struct {
 		name string
 		head plumbing.Hash
@@ -393,7 +393,7 @@ func TestAreSparseSubtreesUnchanged(t *testing.T) {
 		{"identical commits", first, first, true},
 		{"non-sparse change only", first, analyticsOnly, true},
 		{"sparse subtree changed", analyticsOnly, modsChanged, false},
-		{"sparse dir added on one side", modsChanged, supportersAdded, false},
+		{"sparse dir added on one side", modsChanged, authorsAdded, false},
 		{"unresolvable commit", first, plumbing.NewHash("0000000000000000000000000000000000000001"), false},
 	}
 	wt, err := repo.Worktree()

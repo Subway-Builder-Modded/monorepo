@@ -26,7 +26,6 @@ const MAP_DATA_MATERIALIZED_FILE_NAMES = new Set(["grid.geojson"]);
 const REGISTRY_COLLECTIONS = ["maps", "mods"];
 const REGISTRY_COLLECTION_FILES = ["index.json", "downloads.json", "integrity.json"];
 const AUTHOR_CACHE_FILES = ["index.json"];
-const CREDIT_CACHE_FILES = ["maintainers.json", "supporters.json"];
 
 const WEBSITE_PERIODS = ["1d", "7d", "30d", "all"];
 const WEBSITE_PERIOD_DAYS = {
@@ -556,7 +555,7 @@ function copyMappedFiles(snapshotRoot, workspaceRoot, materializedFiles, progres
 
 function removeGeneratedRegistryCache(workspaceRoot) {
   const cacheRoot = path.join(workspaceRoot, "public", "registry-cache");
-  const ownedRoots = ["authors", "credits", "docs", "maps", "mods"].map((dirName) =>
+  const ownedRoots = ["authors", "docs", "maps", "mods"].map((dirName) =>
     path.join(cacheRoot, dirName),
   );
   let removedCount = 0;
@@ -680,16 +679,6 @@ function materializeRegistryMetadata(
     );
   }
 
-  for (const fileName of CREDIT_CACHE_FILES) {
-    copyMaterializedFile(
-      path.join(snapshotRoot, "credits", fileName),
-      path.posix.join("public/registry-cache/credits", fileName),
-      workspaceRoot,
-      materializedFiles,
-      stats,
-    );
-  }
-
   for (const routeSegment of REGISTRY_COLLECTIONS) {
     manifestCounts[routeSegment] = materializeRegistryCollection(
       snapshotRoot,
@@ -797,9 +786,6 @@ function validateGeneratedRegistryCache(workspaceRoot) {
     ),
     ...AUTHOR_CACHE_FILES.map((fileName) =>
       path.posix.join("public/registry-cache/authors", fileName),
-    ),
-    ...CREDIT_CACHE_FILES.map((fileName) =>
-      path.posix.join("public/registry-cache/credits", fileName),
     ),
   ];
 

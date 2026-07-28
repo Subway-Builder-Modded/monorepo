@@ -5,13 +5,9 @@ import type {
   CreditsSection,
   CreditsSubsection,
   CreditsSubsectionId,
-  RegistryMaintainersIndex,
-  RegistrySupportersIndex,
+  RegistryAuthorsIndex,
 } from "./types";
-import { getRegistryCreditsCachePath } from "@/features/registry/lib/registry-asset-paths";
-
-const MAINTAINERS_INDEX_PATH = getRegistryCreditsCachePath("maintainers.json");
-const SUPPORTERS_INDEX_PATH = getRegistryCreditsCachePath("supporters.json");
+import { getRegistryAuthorsIndexPath } from "@/features/registry/lib/registry-asset-paths";
 
 const TIER_TITLE_BY_ID: Record<CreditsSubsectionId, string> = {
   developer: "Developer",
@@ -95,62 +91,42 @@ async function fetchRegistryJson<T>(path: string, fetchImpl: typeof fetch): Prom
   }
 }
 
+/**
+ * Builds the credits directory from the unified registry authors index.
+ * Entries carrying a `credit_roles` marker are credited people — maintainers
+ * and ko-fi supporters — including credit-only entries with no listings.
+ * The maintainer role takes precedence when an entry carries both.
+ */
 export function buildCreditsDirectory(
-  maintainersIndex: RegistryMaintainersIndex | null | undefined,
-  supportersIndex: RegistrySupportersIndex | null | undefined,
+  authorsIndex: RegistryAuthorsIndex | null | undefined,
 ): CreditsDirectory {
   const peopleByTier = createTierBuckets();
-  const maintainerIds = new Set<string>();
 
-  for (const entry of maintainersIndex?.maintainers ?? []) {
-    const maintainerId = trimToUndefined(entry.sbm_id);
-    if (maintainerId) {
-      maintainerIds.add(maintainerId.toLowerCase());
-    }
+  for (const entry of authorsIndex?.authors ?? []) {
+    const roles = entry.credit_roles ?? [];
+    const isMaintainer = roles.includes("maintainer");
+    const isSupporter = roles.includes("supporter");
+    if (!isMaintainer && !isSupporter) continue;
 
     const tier = normalizeTier(entry.contributor_tier);
     if (!tier) continue;
 
-    const displayName = trimToUndefined(entry.maintainer_alias) ?? trimToUndefined(entry.sbm_id);
-    if (!displayName) continue;
-
-    const link = trimToUndefined(entry.attribution_link);
-    const key = maintainerId ? `m:${maintainerId.toLowerCase()}` : `m:${displayName.toLowerCase()}`;
-
-    peopleByTier[tier].push({
-      key,
-      displayName,
-      tier,
-      source: "maintainers",
-      link,
-    });
-  }
-
-  for (const supporter of supportersIndex?.ko_fi ?? []) {
-    const supporterMaintainerId = trimToUndefined(supporter.sbm_id);
-    if (supporterMaintainerId && maintainerIds.has(supporterMaintainerId.toLowerCase())) {
-      continue;
-    }
-
-    const tier = normalizeTier(supporter.contributor_tier);
-    if (!tier) continue;
-
     const displayName =
-      trimToUndefined(supporter.supporter_alias) ??
-      trimToUndefined(supporter.ko_fi_username) ??
-      trimToUndefined(supporter.sbm_id);
+      trimToUndefined(entry.author_alias) ??
+      trimToUndefined(entry.author_id) ??
+      trimToUndefined(entry.ko_fi_username);
     if (!displayName) continue;
 
-    const link = trimToUndefined(supporter.attribution_link);
-    const supporterId =
-      trimToUndefined(supporter.sbm_id) ?? trimToUndefined(supporter.ko_fi_username) ?? displayName;
+    const source = isMaintainer ? "maintainers" : "supporters";
+    const personId =
+      trimToUndefined(entry.author_id) ?? trimToUndefined(entry.ko_fi_username) ?? displayName;
 
     peopleByTier[tier].push({
-      key: `s:${supporterId.toLowerCase()}`,
+      key: `${isMaintainer ? "m" : "s"}:${personId.toLowerCase()}`,
       displayName,
       tier,
-      source: "supporters",
-      link,
+      source,
+      link: trimToUndefined(entry.attribution_link),
     });
   }
 
@@ -179,12 +155,12 @@ export function buildCreditsDirectory(
 export async function loadCreditsDirectory(
   fetchImpl: typeof fetch = fetch,
 ): Promise<CreditsDirectory> {
-  const [maintainersIndex, supportersIndex] = await Promise.all([
-    fetchRegistryJson<RegistryMaintainersIndex>(MAINTAINERS_INDEX_PATH, fetchImpl),
-    fetchRegistryJson<RegistrySupportersIndex>(SUPPORTERS_INDEX_PATH, fetchImpl),
-  ]);
+  const authorsIndex = await fetchRegistryJson<RegistryAuthorsIndex>(
+    getRegistryAuthorsIndexPath(),
+    fetchImpl,
+  );
 
-  return buildCreditsDirectory(maintainersIndex, supportersIndex);
+  return buildCreditsDirectory(authorsIndex);
 }
 
 export function isExternalHref(href: string): boolean {
