@@ -49,21 +49,3 @@ export type HoverInfo = {
   centroidLng: number | null;
   centroidLat: number | null;
 };
-
-export type ResolvedTheme = "light" | "dark";
-
-export type SubwayThemeColors = {
-  roads: string;
-  buildings: string;
-  water: string;
-  background: string;
-  parks: string;
-  airports: string;
-  runways: string;
-  roadLabel: string;
-  roadLabelHalo: string;
-  neighborhoodLabel: string;
-  neighborhoodLabelHalo: string;
-  cityLabel: string;
-  cityLabelHalo: string;
-};

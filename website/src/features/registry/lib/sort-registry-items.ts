@@ -3,6 +3,12 @@ import type { RegistrySortId } from "./types";
 
 const collator = new Intl.Collator("en", { sensitivity: "base" });
 
+/** Most recently updated first (the "lastUpdated" sort's descending order);
+ *  id breaks ties deterministically for consumers that need a stable order. */
+export function compareByLastUpdatedDesc(a: RegistrySearchItem, b: RegistrySearchItem): number {
+  return b.lastActivityAt - a.lastActivityAt || a.id.localeCompare(b.id);
+}
+
 function compareStrings(a: string | null, b: string | null): number {
   if (a === null && b === null) return 0;
   if (a === null) return 1;

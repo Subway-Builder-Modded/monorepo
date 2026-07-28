@@ -54,6 +54,13 @@ export type RawRegistryManifest = {
     provenance?: string;
   };
   special_demand?: string[];
+  initial_view_state?: {
+    latitude?: number;
+    longitude?: number;
+    zoom?: number;
+    bearing?: number;
+    pitch?: number | null;
+  };
   city_code?: string;
   country?: string;
   population?: number;

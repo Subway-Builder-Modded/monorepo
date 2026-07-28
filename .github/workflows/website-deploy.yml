@@ -39,16 +39,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Restore build cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ${{ github.workspace }}/website/build
-          key: ${{ runner.os }}-website-vite-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('website/**/*.js', 'website/**/*.jsx', 'website/**/*.ts', 'website/**/*.tsx') }}
-          restore-keys: |
-            ${{ runner.os }}-website-vite-${{ hashFiles('pnpm-lock.yaml') }}-
-
       - name: Install dependencies
         working-directory: .
         run: pnpm install --frozen-lockfile

@@ -1,11 +1,15 @@
 import { useCallback } from "react";
-import { Database, ChevronDown } from "lucide-react";
+import { ArrowRight, Database, ChevronDown, Globe } from "lucide-react";
+import { Link } from "@/lib/router";
+import { cn } from "@/lib/utils";
+import { getRegistryWorldMapUrl } from "@/features/registry/lib/routing";
 import { RegistrySearch } from "./registry-search";
 import { RegistryTypeToggle } from "./registry-type-toggle";
 import {
   REGISTRY_PAGE_TITLE,
   REGISTRY_HERO_DESCRIPTION,
   REGISTRY_BROWSE_INDICATOR_LABEL,
+  REGISTRY_WORLD_MAP_CTA_LABEL,
 } from "@/features/registry/registry-content";
 
 type RegistryHeroProps = {
@@ -88,6 +92,32 @@ export function RegistryHero({
                 counts={counts}
                 className="border-white/68 bg-white/86 shadow-[0_14px_32px_rgba(88,28,135,0.1)] ring-1 ring-white/50 backdrop-blur-xl dark:border-white/18 dark:bg-black/46 dark:shadow-[0_16px_36px_rgba(10,8,20,0.5)] dark:ring-white/12"
               />
+            </div>
+
+            {/* World map link for the maps tab. The slot keeps its height on
+                the mods tab so switching types does not shift the hero. */}
+            <div className="relative z-10 flex h-10 items-center justify-center">
+              <Link
+                to={getRegistryWorldMapUrl()}
+                aria-hidden={typeId !== "maps"}
+                tabIndex={typeId === "maps" ? undefined : -1}
+                className={cn(
+                  "group inline-flex items-center gap-2 rounded-full border border-white/68 bg-white/86 px-4 py-2 text-sm font-medium text-foreground/85 shadow-[0_14px_32px_rgba(88,28,135,0.1)] ring-1 ring-white/50 backdrop-blur-xl transition-all duration-200 hover:scale-[1.03] hover:text-foreground dark:border-white/18 dark:bg-black/46 dark:shadow-[0_16px_36px_rgba(10,8,20,0.5)] dark:ring-white/12 motion-reduce:transition-none motion-reduce:hover:scale-100",
+                  typeId === "maps"
+                    ? "translate-y-0 opacity-100"
+                    : "pointer-events-none translate-y-1 opacity-0",
+                )}
+              >
+                <Globe
+                  className="size-4 text-(--suite-accent-light) dark:text-(--suite-accent-dark)"
+                  aria-hidden={true}
+                />
+                <span>{REGISTRY_WORLD_MAP_CTA_LABEL}</span>
+                <ArrowRight
+                  className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none"
+                  aria-hidden={true}
+                />
+              </Link>
             </div>
           </div>
         </div>

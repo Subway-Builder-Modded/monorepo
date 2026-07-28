@@ -1,8 +1,34 @@
 import type { StyleSpecification } from "maplibre-gl";
-import type { ResolvedTheme, SubwayThemeColors } from "./map-tab-types";
+
+export type ResolvedTheme = "light" | "dark";
+
+export type SubwayThemeColors = {
+  roads: string;
+  buildings: string;
+  water: string;
+  background: string;
+  parks: string;
+  airports: string;
+  runways: string;
+  roadLabel: string;
+  roadLabelHalo: string;
+  neighborhoodLabel: string;
+  neighborhoodLabelHalo: string;
+  cityLabel: string;
+  cityLabelHalo: string;
+};
 
 const BASE_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
-const BASEMAP_OPACITY_SCALE = 0.72;
+
+export async function loadMaplibre() {
+  const maplibre = await import("maplibre-gl");
+  return maplibre.default;
+}
+
+/** Narrow an arbitrary theme string to a map theme, falling back when unknown. */
+export function resolveMapTheme(value: string | undefined, fallback: ResolvedTheme): ResolvedTheme {
+  return value === "light" || value === "dark" ? value : fallback;
+}
 
 const THEME_COLORS: Record<ResolvedTheme, SubwayThemeColors> = {
   light: {
@@ -81,7 +107,16 @@ function scaledOpacity(value: unknown, scale: number) {
   return scale;
 }
 
-export async function buildThemedStyle(theme: ResolvedTheme): Promise<StyleSpecification> {
+export type ThemedStyleOptions = {
+  /** Uniform opacity multiplier for basemap layers; 1 leaves base opacities untouched. */
+  opacityScale?: number;
+};
+
+export async function buildThemedStyle(
+  theme: ResolvedTheme,
+  options?: ThemedStyleOptions,
+): Promise<StyleSpecification> {
+  const opacityScale = options?.opacityScale ?? 1;
   const styleResponse = await fetch(BASE_STYLE_URL);
   if (!styleResponse.ok) {
     throw new Error(`Failed to fetch base map style (${styleResponse.status})`);
@@ -131,15 +166,16 @@ export async function buildThemedStyle(theme: ResolvedTheme): Promise<StyleSpeci
 
       if (layerType === "background") {
         paint["background-color"] = palette.background;
-        paint["background-opacity"] = scaledOpacity(
-          paint["background-opacity"],
-          BASEMAP_OPACITY_SCALE,
-        );
+        if (opacityScale !== 1) {
+          paint["background-opacity"] = scaledOpacity(paint["background-opacity"], opacityScale);
+        }
       }
 
       if (layerType === "fill") {
         if ("fill-pattern" in paint) delete paint["fill-pattern"];
-        paint["fill-opacity"] = scaledOpacity(paint["fill-opacity"], BASEMAP_OPACITY_SCALE);
+        if (opacityScale !== 1) {
+          paint["fill-opacity"] = scaledOpacity(paint["fill-opacity"], opacityScale);
+        }
 
         if (layerId.includes("water")) {
           paint["fill-color"] = palette.water;
@@ -174,7 +210,9 @@ export async function buildThemedStyle(theme: ResolvedTheme): Promise<StyleSpeci
       }
 
       if (layerType === "line") {
-        paint["line-opacity"] = scaledOpacity(paint["line-opacity"], BASEMAP_OPACITY_SCALE);
+        if (opacityScale !== 1) {
+          paint["line-opacity"] = scaledOpacity(paint["line-opacity"], opacityScale);
+        }
 
         if (layerId.includes("water")) {
           paint["line-color"] = palette.water;

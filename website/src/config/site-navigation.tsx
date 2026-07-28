@@ -270,6 +270,15 @@ export const SITE_NAV_ITEMS: SiteNavItem[] = [
     activeMatchRules: [{ kind: "exact", path: "/registry" }],
   },
   {
+    id: "registry-world-map",
+    suiteId: "registry",
+    title: "World Map",
+    description: "Interactively explore all of the user-submitted maps available on Railyard.",
+    href: "/registry/world-map",
+    icon: Globe,
+    activeMatchRules: [{ kind: "exact", path: "/registry/world-map" }],
+  },
+  {
     id: "registry-creator-database",
     suiteId: "registry",
     title: "Creators",

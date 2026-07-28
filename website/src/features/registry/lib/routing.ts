@@ -25,6 +25,7 @@ const REGISTRY_ANALYTICS_ASSET_TYPES = new Set(["maps", "mods"]);
 export type RegistryRouteMatch =
   | { kind: "none" }
   | { kind: "page"; pageId: "registry" }
+  | { kind: "worldMap" }
   | { kind: "analytics"; tabId?: string; periodId?: string; assetTypeId?: string }
   | { kind: "creatorDatabase"; tabId?: "authors" | "projects" }
   | { kind: "author"; authorId: string; tabId?: string }
@@ -55,6 +56,10 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
 
     if (routeSegment === "analytics") {
       return { kind: "analytics", tabId: "overview", periodId: "all-time" };
+    }
+
+    if (routeSegment === "world-map") {
+      return { kind: "worldMap" };
     }
 
     if (routeSegment === "maps" || routeSegment === "mods") {
@@ -199,6 +204,10 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
 
 export function getRegistryPageUrl(typeId: string = DEFAULT_REGISTRY_TYPE_ID): string {
   return `${REGISTRY_ROUTE}/${encodeURIComponent(typeId)}`;
+}
+
+export function getRegistryWorldMapUrl(): string {
+  return `${REGISTRY_ROUTE}/world-map`;
 }
 
 export function getRegistryTagBrowseUrl(typeId: string, tag: string): string {

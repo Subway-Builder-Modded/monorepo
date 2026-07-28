@@ -1,5 +1,6 @@
 import { RegistryItemCard } from "@/shared/registry-card/registry-item-card";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
+import { toRegistryCardData } from "@/features/registry/lib/registry-card-data";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type { RegistryCardVariant } from "@/shared/registry-card/registry-item-types";
 
@@ -12,29 +13,6 @@ type RegistryGridProps = {
     item: RegistrySearchItem,
   ) => Array<{ authorId: string; authorLabel: string }> | undefined;
 };
-
-function toCardData(
-  item: RegistrySearchItem,
-  contributors?: Array<{ authorId: string; authorLabel: string }>,
-) {
-  return {
-    id: item.id,
-    href: item.href,
-    title: item.name,
-    author: item.author,
-    authorId: item.authorId,
-    contributors,
-    description: item.description,
-    thumbnailSrc: item.thumbnailSrc,
-    totalDownloads: item.totalDownloads,
-    tags: item.tags,
-    cityCode: item.cityCode,
-    countryCode: item.countryCode,
-    countryName: item.countryName,
-    countryEmoji: item.countryEmoji,
-    population: item.population,
-  };
-}
 
 export function RegistryGrid({
   items,
@@ -51,7 +29,7 @@ export function RegistryGrid({
           return (
             <li key={`${cardVariant}-${item.id}`}>
               <RegistryItemCard
-                data={toCardData(item, getContributors?.(item))}
+                data={toRegistryCardData(item, getContributors?.(item))}
                 typeConfig={typeConfig}
                 variant="list"
                 hideAuthor={hideAuthor}
@@ -71,7 +49,7 @@ export function RegistryGrid({
           return (
             <li key={`${cardVariant}-${item.id}`} className="h-full">
               <RegistryItemCard
-                data={toCardData(item, getContributors?.(item))}
+                data={toRegistryCardData(item, getContributors?.(item))}
                 typeConfig={typeConfig}
                 variant="full"
                 hideAuthor={hideAuthor}
@@ -91,7 +69,7 @@ export function RegistryGrid({
         return (
           <li key={`${cardVariant}-${item.id}`} className="h-full">
             <RegistryItemCard
-              data={toCardData(item, getContributors?.(item))}
+              data={toRegistryCardData(item, getContributors?.(item))}
               typeConfig={typeConfig}
               variant="grid"
               hideAuthor={hideAuthor}
