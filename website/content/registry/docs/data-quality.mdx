@@ -1,10 +1,14 @@
 ---
-title: Data Quality
+title: Understanding Data Quality
 description: How Railyard measures and displays the quality of a map's underlying data.
 icon: ShieldCheck
 ---
 
 Every map in the Registry models real commutes from real census and official statistics — and how good that underlying data is varies enormously. Railyard measures it with a single **data-quality tier**, assigned by reviewers using an objective scoring rubric and displayed on every map's card, filters, and detail page.
+
+:::note
+This page is for **players** deciding what a map's quality tier means. If you are a **map author or maintainer**, the pages in this section cover the [submission questions](/registry/docs/data-quality/questions), the full [scoring rubric](/registry/docs/data-quality/scoring), and the [quality floor](/registry/docs/data-quality/quality-floor) policy.
+:::
 
 ## The tiers {#tiers}
 
@@ -18,11 +22,11 @@ Every map in the Registry models real commutes from real census and official sta
 | `absent-quality`    |   F   | No census or official statistics at all                                                      |
 | `unknown-quality`   |   U   | Not yet reviewed                                                                             |
 
-Alongside the tier, scored maps carry a **weighted composite score** in [0, 1] — the number shown in parentheses on a map's detail page (e.g. `high-quality (0.65)`). The tier is a bucketing of that score; the [scoring rubric](/registry/docs/data-quality-scoring#composite-score) defines exactly how it is computed from three weighted pillars: **workplace data** (0.50), **residence data** (0.35), and **commute flows** (0.15).
+Alongside the tier, scored maps carry a **weighted composite score** in [0, 1] — the number shown in parentheses on a map's detail page (e.g. `high-quality (0.65)`). The tier is a bucketing of that score; the [scoring rubric](/registry/docs/data-quality/scoring#composite-score) defines exactly how it is computed from three weighted pillars: **workplace data** (0.50), **residence data** (0.35), and **commute flows** (0.15).
 
 ## How a map gets its tier {#how-a-map-gets-its-tier}
 
-1. **The author answers the data-quality questions** — a short set of plain-language dropdowns about where the map's job numbers, population numbers, and commute-flow data come from. The [Data Quality Questions guide](/registry/docs/data-quality-questions) explains every question with examples; "Not sure" is always a safe answer.
+1. **The author answers the data-quality questions** — a short set of plain-language dropdowns about where the map's job numbers, population numbers, and commute-flow data come from. The [Data Quality Questions guide](/registry/docs/data-quality/questions) explains every question with examples; "Not sure" is always a safe answer.
 2. **A provisional score is computed automatically** from the answers and posted on the submission.
 3. **A reviewer confirms it** — sometimes adjusting a classification or asking a clarifying question — and the map receives its tier.
 
@@ -35,7 +39,7 @@ If a new map was generated with the same methodology as your already-scored maps
 ## Deprecated: level of detail {#level-of-detail}
 
 :::deprecated[Level of Detail]
-The `level_of_detail` tag (`high-detail` / `medium-detail` / `low-detail`) is **deprecated**. It described how finely a map renders its demand points — which is a performance and UX choice, not a measure of data quality (see the rubric's note on [point-placement detail](/registry/docs/data-quality-scoring#point-placement-detail)). The tag is still displayed for now, but it is no longer part of the quality methodology and will be removed in the future. The rubric's granularity and placement questions capture what it was trying to approximate.
+The `level_of_detail` tag (`high-detail` / `medium-detail` / `low-detail`) is **deprecated**. It described how finely a map renders its demand points — which is a performance and UX choice, not a measure of data quality (see the rubric's note on [point-placement detail](/registry/docs/data-quality/scoring#point-placement-detail)). The tag is still displayed for now, but it is no longer part of the quality methodology and will be removed in the future. The rubric's granularity and placement questions capture what it was trying to approximate.
 :::
 
 ## Legacy self-reported tags {#legacy-tags}
@@ -44,6 +48,6 @@ Before the tier system, quality was recorded as a single author-declared `source
 
 ## Related pages {#related}
 
-- [Data Quality Questions](/registry/docs/data-quality-questions) — the plain-language submission guide.
-- [Data Quality Scoring](/registry/docs/data-quality-scoring) — the full reviewer rubric: ladders, weights, and worked examples.
-- [Quality Floor](/registry/docs/quality-floor) — submission quality requirements for countries with existing maps.
+- [Submission Questions](/registry/docs/data-quality/questions) — the plain-language guide for map authors answering the data-quality questions.
+- [Scoring Rubric](/registry/docs/data-quality/scoring) — the full reviewer rubric: ladders, weights, and worked examples.
+- [Quality Floor](/registry/docs/data-quality/quality-floor) — submission quality requirements for countries with existing maps.

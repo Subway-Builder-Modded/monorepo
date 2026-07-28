@@ -1,6 +1,6 @@
 ---
-title: Data Quality Questions
-description: A plain-language guide to the data-quality submission questions.
+title: Submission Questions
+description: A plain-language guide to the data-quality submission questions, for map authors.
 icon: ClipboardList
 ---
 
@@ -24,7 +24,7 @@ Your answers are used to produce a provisional data-quality score. A reviewer fr
 
 Until a reviewer confirms a score, your map will show as **Unscored**. Answering nothing or answering "Not sure" to everything is not penalized, so there is no downside to filling in what you can.
 
-The full scoring methodology used by reviewers is documented in the [Data Quality Scoring Guidelines](/registry/docs/data-quality-scoring). It should not be necessary to read it to submit a map, but it is linked throughout this guide if you want the details behind any question.
+The full scoring methodology used by reviewers is documented in the [Data Quality Scoring Guidelines](/registry/docs/data-quality/scoring). It should not be necessary to read it to submit a map, but it is linked throughout this guide if you want the details behind any question.
 
 ---
 
@@ -40,7 +40,7 @@ The statistics office publishes one employment total per municipality. You sprea
 
 ### Rule 2 — The area-size table {#rule-2}
 
-Statistics are published at wildly different area sizes, and the form describes them in plain words. Here is how those words line up with the administrative levels ("ADM") the [full rubric](/registry/docs/data-quality-scoring#granularity) uses, with examples:
+Statistics are published at wildly different area sizes, and the form describes them in plain words. Here is how those words line up with the administrative levels ("ADM") the [full rubric](/registry/docs/data-quality/scoring#granularity) uses, with examples:
 
 | Form wording                             | Level | Examples                                         |
 | :--------------------------------------- | :---- | :----------------------------------------------- |
@@ -60,7 +60,7 @@ Statistics are published at wildly different area sizes, and the form describes 
 
 ## Workplace data {#workplace-data}
 
-Where people **work** is the destination side of every commute, and it counts the most toward the map's final score. The submission asks three questions, covering in broad terms: where the numbers come from, how finely they are published, and how you placed them. (Full details: [rubric §4 — Workplace](/registry/docs/data-quality-scoring#workplace).)
+Where people **work** is the destination side of every commute, and it counts the most toward the map's final score. The submission asks three questions, covering in broad terms: where the numbers come from, how finely they are published, and how you placed them. (Full details: [rubric §4 — Workplace](/registry/docs/data-quality/scoring#workplace).)
 
 ### 1. Where do your job numbers come from? {#q1}
 
@@ -107,14 +107,14 @@ Open the source table and look at what one row covers. When two grains are plaus
 | Spread evenly across each area                                                                      | No building information used                                                                                                                      |
 
 :::tip[If unsure]
-Describe the placement approach in Methodology; this is the question where a brief description helps reviewers most. The [worked country examples](/registry/docs/data-quality-scoring#example-countries) in the rubric show how existing pipelines answered.
+Describe the placement approach in Methodology; this is the question where a brief description helps reviewers most. The [worked country examples](/registry/docs/data-quality/scoring#example-countries) in the rubric show how existing pipelines answered.
 :::
 
 ---
 
 ## Residence data {#residence-data}
 
-Where people **live** is the origin side of the commute. The submission asks the same three questions as for the workplace side. (Full details: [rubric §5 — Resident](/registry/docs/data-quality-scoring#resident).)
+Where people **live** is the origin side of the commute. The submission asks the same three questions as for the workplace side. (Full details: [rubric §5 — Resident](/registry/docs/data-quality/scoring#resident).)
 
 ### 4. What do your population numbers count? {#q4}
 
@@ -152,7 +152,7 @@ The residence equivalent of question 3; the main difference is that high-fidelit
 
 ## Commute flows {#commute-flows}
 
-The pairing of who commutes **from** where **to** where. This data is often hard to find, and its absence is acceptable; a gravity model can estimate flows. What is scored is whether real flow data (or real totals) constrain those estimates. (Full details: [rubric §6 — O/D Shaping](/registry/docs/data-quality-scoring#od-shaping).)
+The pairing of who commutes **from** where **to** where. This data is often hard to find, and its absence is acceptable; a gravity model can estimate flows. What is scored is whether real flow data (or real totals) constrain those estimates. (Full details: [rubric §6 — O/D Shaping](/registry/docs/data-quality/scoring#od-shaping).)
 
 ### 7. Does the census publish data about where people commute from and to? {#q7}
 
