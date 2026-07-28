@@ -1,17 +1,13 @@
 import type {
   CreditsContributorTier,
-  RegistryMaintainersIndex,
-  RegistrySupportersIndex,
+  RegistryAuthorsIndex,
 } from "@/features/credits/lib/types";
-import { getRegistryCreditsCachePath } from "@/features/registry/lib/registry-asset-paths";
+import { getRegistryAuthorsIndexPath } from "@/features/registry/lib/registry-asset-paths";
 
 export type RegistryAuthorRole = {
   kind: "maintainer" | "contributor";
   tier: CreditsContributorTier;
 };
-
-const MAINTAINERS_INDEX_PATH = getRegistryCreditsCachePath("maintainers.json");
-const SUPPORTERS_INDEX_PATH = getRegistryCreditsCachePath("supporters.json");
 
 let roleMapPromise: Promise<Map<string, RegistryAuthorRole>> | null = null;
 
@@ -47,33 +43,25 @@ async function fetchRegistryJson<T>(path: string): Promise<T | null> {
 }
 
 async function loadRoleMap(): Promise<Map<string, RegistryAuthorRole>> {
-  const [maintainersIndex, supportersIndex] = await Promise.all([
-    fetchRegistryJson<RegistryMaintainersIndex>(MAINTAINERS_INDEX_PATH),
-    fetchRegistryJson<RegistrySupportersIndex>(SUPPORTERS_INDEX_PATH),
-  ]);
+  const authorsIndex = await fetchRegistryJson<RegistryAuthorsIndex>(
+    getRegistryAuthorsIndexPath(),
+  );
 
   const map = new Map<string, RegistryAuthorRole>();
 
-  for (const maintainer of maintainersIndex?.maintainers ?? []) {
-    const sbmId = trimToUndefined(maintainer.sbm_id)?.toLowerCase();
-    const tier = normalizeTier(maintainer.contributor_tier);
-    if (!sbmId || !tier) {
+  for (const entry of authorsIndex?.authors ?? []) {
+    const authorId = trimToUndefined(entry.author_id)?.toLowerCase();
+    const tier = normalizeTier(entry.contributor_tier);
+    const roles = entry.credit_roles ?? [];
+    if (!authorId || !tier) {
       continue;
     }
 
-    map.set(sbmId, { kind: "maintainer", tier });
-  }
-
-  for (const supporter of supportersIndex?.ko_fi ?? []) {
-    const sbmId = trimToUndefined(supporter.sbm_id)?.toLowerCase();
-    const tier = normalizeTier(supporter.contributor_tier);
-    if (!sbmId || !tier) {
-      continue;
-    }
-
-    // Maintainer roles take precedence when both records exist.
-    if (!map.has(sbmId)) {
-      map.set(sbmId, { kind: "contributor", tier });
+    // Maintainer roles take precedence when an entry carries both.
+    if (roles.includes("maintainer")) {
+      map.set(authorId, { kind: "maintainer", tier });
+    } else if (roles.includes("supporter")) {
+      map.set(authorId, { kind: "contributor", tier });
     }
   }
 

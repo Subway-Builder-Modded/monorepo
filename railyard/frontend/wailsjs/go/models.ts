@@ -266,6 +266,26 @@ export namespace types {
 	        this.errorType = source["errorType"];
 	    }
 	}
+	export class AuthorDetails {
+	    author_id: string;
+	    author_alias: string;
+	    attribution_link: string;
+	    contributor_tier?: string;
+	    credit_roles?: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new AuthorDetails(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.author_id = source["author_id"];
+	        this.author_alias = source["author_alias"];
+	        this.attribution_link = source["attribution_link"];
+	        this.contributor_tier = source["contributor_tier"];
+	        this.credit_roles = source["credit_roles"];
+	    }
+	}
 	
 	export class ConfigPathValidation {
 	    isConfigured: boolean;
@@ -1197,30 +1217,11 @@ export namespace types {
 	        this.url = source["url"];
 	    }
 	}
-	export class AuthorDetails {
-	    author_id: string;
-	    author_alias: string;
-	    attribution_link: string;
-	    contributor_tier?: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new AuthorDetails(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.author_id = source["author_id"];
-	        this.author_alias = source["author_alias"];
-	        this.attribution_link = source["attribution_link"];
-	        this.contributor_tier = source["contributor_tier"];
-	    }
-	}
 	export class MapManifest {
 	    schema_version: number;
 	    id: string;
 	    name: string;
-	    // Go type: AuthorDetails
-	    author: any;
+	    author: AuthorDetails;
 	    github_id: number;
 	    last_updated: number;
 	    first_released?: number;
@@ -1251,7 +1252,7 @@ export namespace types {
 	        this.schema_version = source["schema_version"];
 	        this.id = source["id"];
 	        this.name = source["name"];
-	        this.author = this.convertValues(source["author"], null);
+	        this.author = this.convertValues(source["author"], AuthorDetails);
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
 	        this.first_released = source["first_released"];
@@ -1331,8 +1332,7 @@ export namespace types {
 	    schema_version: number;
 	    id: string;
 	    name: string;
-	    // Go type: AuthorDetails
-	    author: any;
+	    author: AuthorDetails;
 	    github_id: number;
 	    last_updated: number;
 	    first_released?: number;
@@ -1354,7 +1354,7 @@ export namespace types {
 	        this.schema_version = source["schema_version"];
 	        this.id = source["id"];
 	        this.name = source["name"];
-	        this.author = this.convertValues(source["author"], null);
+	        this.author = this.convertValues(source["author"], AuthorDetails);
 	        this.github_id = source["github_id"];
 	        this.last_updated = source["last_updated"];
 	        this.first_released = source["first_released"];

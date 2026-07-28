@@ -26,6 +26,10 @@ export function GetAssetDownloadCounts(arg1, arg2) {
   return window['go']['registry']['Registry']['GetAssetDownloadCounts'](arg1, arg2);
 }
 
+export function GetCreditedAuthors() {
+  return window['go']['registry']['Registry']['GetCreditedAuthors']();
+}
+
 export function GetDownloadCountsByAssetType(arg1) {
   return window['go']['registry']['Registry']['GetDownloadCountsByAssetType'](arg1);
 }
