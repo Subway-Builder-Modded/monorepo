@@ -202,7 +202,7 @@ function resolveNormalizedTags(typeId: string, manifest: RawRegistryManifest): s
   const tagSet = new Set<string>(normalizedManifestTags);
 
   if (typeUiRules.hasMapMetadata) {
-    const locationTag = (manifest.sub_location ?? manifest.location)?.trim().toLowerCase();
+    const locationTag = manifest.location?.trim().toLowerCase();
     if (locationTag) {
       tagSet.add(locationTag);
     }
