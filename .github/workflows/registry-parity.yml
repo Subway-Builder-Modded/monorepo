@@ -1,0 +1,62 @@
+name: Registry Parity
+
+# Guards the vocabulary this repo re-declares from the registry (location
+# tags, data-quality tiers, the website's country→region reference) against
+# the published @subway-builder-modded/registry-schemas package. The weekly
+# run catches registry-side changes; the path triggers catch local edits.
+
+on:
+  pull_request:
+    branches:
+      - main
+      - website-dev
+    paths:
+      - "packages/config/src/asset-listings/map-filter-values.ts"
+      - "website/src/features/docs/mdx/region-tags-data.ts"
+      - "testing/registry-parity/**"
+      - ".github/workflows/registry-parity.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/config/src/asset-listings/map-filter-values.ts"
+      - "website/src/features/docs/mdx/region-tags-data.ts"
+      - "testing/registry-parity/**"
+      - ".github/workflows/registry-parity.yml"
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  parity:
+    name: Registry Vocabulary Parity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # No lockfile on purpose: the schemas dependency tracks `latest`, so the
+      # scheduled run always compares against the current registry vocabulary.
+      - name: Install parity package
+        run: pnpm install --ignore-workspace
+        working-directory: testing/registry-parity
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run parity tests
+        run: pnpm test
+        working-directory: testing/registry-parity
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

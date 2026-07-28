@@ -1,0 +1,14 @@
+{
+  "name": "@subway-builder-modded/registry-parity",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Parity checks between vocabulary re-declared in this repo and the published registry schemas package. Standalone on purpose: not part of the pnpm workspace, so the main install never needs GitHub Packages auth.",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@subway-builder-modded/registry-schemas": "*",
+    "vitest": "^4.1.4"
+  }
+}
