@@ -1,7 +1,4 @@
-import type {
-  CreditsContributorTier,
-  RegistryAuthorsIndex,
-} from "@/features/credits/lib/types";
+import type { CreditsContributorTier, RegistryAuthorsIndex } from "@/features/credits/lib/types";
 import { getRegistryAuthorsIndexPath } from "@/features/registry/lib/registry-asset-paths";
 
 export type RegistryAuthorRole = {
@@ -43,9 +40,7 @@ async function fetchRegistryJson<T>(path: string): Promise<T | null> {
 }
 
 async function loadRoleMap(): Promise<Map<string, RegistryAuthorRole>> {
-  const authorsIndex = await fetchRegistryJson<RegistryAuthorsIndex>(
-    getRegistryAuthorsIndexPath(),
-  );
+  const authorsIndex = await fetchRegistryJson<RegistryAuthorsIndex>(getRegistryAuthorsIndexPath());
 
   const map = new Map<string, RegistryAuthorRole>();
 
