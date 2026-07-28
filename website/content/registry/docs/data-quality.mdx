@@ -1,57 +1,49 @@
 ---
 title: Data Quality
-description: Learn how to categorize your map's data quality.
+description: How Railyard measures and displays the quality of a map's underlying data.
 icon: ShieldCheck
 ---
 
-To determine your map's data quality, you must first determine the source of your data. As per Railyard's guidelines, 2 dimensions of data quality are considered: source quality and level of detail.
+Every map in the Registry models real commutes from real census and official statistics — and how good that underlying data is varies enormously. Railyard measures it with a single **data-quality tier**, assigned by reviewers using an objective scoring rubric and displayed on every map's card, filters, and detail page.
 
-## Data Quality {#data-quality}
+## The tiers {#tiers}
 
-### Data Source {#data-source}
+| Tier displayed      | Grade | Meaning                                                                                      |
+| :------------------ | :---: | :------------------------------------------------------------------------------------------- |
+| `very-high-quality` |   A   | Measured, government data on both sides of the commute (residence/workplace), at fine detail |
+| `high-quality`      |   B   | Strong official data with minor gaps in coverage or at somewhat coarse granularity           |
+| `medium-quality`    |   C   | Real official data, but potentially coarse or partial (e.g. residence side only)             |
+| `low-quality`       |   D   | Weak or indirect anchoring in official data                                                  |
+| `very-low-quality`  |   E   | Mostly estimated, loosely anchored to real statistics                                        |
+| `absent-quality`    |   F   | No census or official statistics at all                                                      |
+| `unknown-quality`   |   U   | Not yet reviewed                                                                             |
 
-Data source refers to where you got your data from. For example, if you are making a map of the US, you could get your data from official US Census data, or you could get it from OpenStreetMap (OSM). The source of your data will determine the quality of the data in your map.
+Alongside the tier, scored maps carry a **weighted composite score** in [0, 1] — the number shown in parentheses on a map's detail page (e.g. `high-quality (0.65)`). The tier is a bucketing of that score; the [scoring rubric](/registry/docs/data-quality-scoring#composite-score) defines exactly how it is computed from three weighted pillars: **workplace data** (0.50), **residence data** (0.35), and **commute flows** (0.15).
 
-### Methodology {#methodology}
+## How a map gets its tier {#how-a-map-gets-its-tier}
 
-Methodology refers to how you processed your data. For example, if you are using OSM data, did you use the population counts/positions as is, or did you augment that data with government data to distribute the population more accurately? The methodology you used will also help determine the quality of the data in your map.
+1. **The author answers the data-quality questions** — a short set of plain-language dropdowns about where the map's job numbers, population numbers, and commute-flow data come from. The [Data Quality Questions guide](/registry/docs/data-quality-questions) explains every question with examples; "Not sure" is always a safe answer.
+2. **A provisional score is computed automatically** from the answers and posted on the submission.
+3. **A reviewer confirms it** — sometimes adjusting a classification or asking a clarifying question — and the map receives its tier.
 
-### Source Quality {#source-quality}
+Until confirmation, a map displays as `unknown-quality`. The answers behind every score are stored in the registry alongside the map (`maps/<map-id>/data-quality.json`), so tiers are auditable and can be revisited when better data is found.
 
-The standard for quality of data sources is that of the vanilla Subway Builder game. Subway Builder uses real US Census data from 2023. The classifications for source quality are as follows:
-
-| **Source Quality**    | **Description**                                        | **Examples**                                                                                       |
-| --------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `high-data-quality`   | Official government sources (on par with vanilla maps) | LODES, INSEE                                                                                       |
-| `medium-data-quality` | OSM data augmented by government or official data      | Using municipal level government data but augmenting that with OSM density to distribute residents |
-| `low-data-quality`    | Pure OSM unvetted source data                          | Using OSM population counts/positions as is                                                        |
-
-:::success[Examples of Government Sources]
-
-- **LODES** (USA) (https://lehd.ces.census.gov/)
-- **INSEE** (France) (https://www.insee.fr/)
-- **ONS** (UK) (https://www.ons.gov.uk/)
-- **統計局** (Japan) (https://www.stat.go.jp/)
-- **국가데이터처** (South Korea) (https://www.mods.go.kr/)
-
+:::note[Authors with existing scored maps]
+If a new map was generated with the same methodology as your already-scored maps in the same country, answering **Yes** to the first question inherits their reviewed answers automatically — no need to re-answer the rest.
 :::
 
-:::note
+## Deprecated: level of detail {#level-of-detail}
 
-If you are using a tool that pulls from real government sources such as [rslurry's US Demand Data Generator](https://github.com/rslurry/subwaybuilder-US-demand-data), your data will be considered `high-quality` as the tool uses official US LODES data.
-
-Any data generated via the Subway Builder Modded Patcher is considered `low-quality`.
-
+:::deprecated[Level of Detail]
+The `level_of_detail` tag (`high-detail` / `medium-detail` / `low-detail`) is **deprecated**. It described how finely a map renders its demand points — which is a performance and UX choice, not a measure of data quality (see the rubric's note on [point-placement detail](/registry/docs/data-quality-scoring#point-placement-detail)). The tag is still displayed for now, but it is no longer part of the quality methodology and will be removed in the future. The rubric's granularity and placement questions capture what it was trying to approximate.
 :::
 
----
+## Legacy self-reported tags {#legacy-tags}
 
-## Level of Detail {#level-of-detail}
+Before the tier system, quality was recorded as a single author-declared `source_quality` tag (`high-quality` / `medium-quality` / `low-quality`). Those self-reported tags are frozen for legacy compatibility and are superseded by reviewed tiers — a map showing `unknown-quality` simply has not been through review yet, which is not a judgment of its data.
 
-The level of detail of your data is determined by the density of the dots on your map (how spread out they are). The classifications for level of detail are as follows:
+## Related pages {#related}
 
-| **Level of Detail** | **Description**                                              | **Examples**                |
-| ------------------- | ------------------------------------------------------------ | --------------------------- |
-| `high-detail`       | Dots at the density of the minimal official statistical area | Census blocks               |
-| `medium-detail`     | Dots at the density of higher level statistical areas        | Census tracts, broad meshes |
-| `low-detail`        | Dots at the density of entire neighborhoods/municipalities   | Low-resolution OSM data     |
+- [Data Quality Questions](/registry/docs/data-quality-questions) — the plain-language submission guide.
+- [Data Quality Scoring](/registry/docs/data-quality-scoring) — the full reviewer rubric: ladders, weights, and worked examples.
+- [Quality Floor](/registry/docs/quality-floor) — submission quality requirements for countries with existing maps.

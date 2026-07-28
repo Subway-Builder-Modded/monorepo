@@ -1,0 +1,35 @@
+---
+title: Quality Floor
+description: Submission quality requirements for countries with existing maps.
+icon: TrendingUp
+---
+
+The Registry maintains a **quality floor**: once maps of a certain data quality exist for a country, new submissions for that country are expected to meet or exceed it. The goal is a one-way ratchet — as better data sources and pipelines are proven for a country, the registry's coverage of that country only improves.
+
+## The policy {#policy}
+
+1. **Country floor.** A new map for a country must reach a data-quality tier **at or above the country's established floor** — the tier its existing maps demonstrate is achievable with country-wide data. If a `high-quality` pipeline covers a country, a new `low-quality` map of another city in that country will not be accepted.
+2. **City-specific exception.** Where a city's higher tier comes from **city-specific data** that is not available countrywide, that city's tier floors only that city — not the whole country.
+3. **Same-city rule (absolute).** A new map of a city is never accepted below the best existing tier for that same city, regardless of how that tier was achieved.
+4. **Unscored maps set no floor.** Legacy maps still showing `unknown-quality` do not establish a floor; only reviewed tiers count.
+
+:::example[Istanbul and Ankara]
+Suppose Istanbul has a `medium-quality` map built on city-specific data (say, a municipal transport survey that exists only for Istanbul), and no country-wide Turkish pipeline of that quality exists.
+
+- A new **Ankara** map at `low-quality` is **allowed** — Istanbul's tier came from city-specific data, so it does not set the floor for the rest of Turkey.
+- A new **Istanbul** map at `low-quality` is **not allowed** — Istanbul itself has demonstrated `medium-quality` is achievable, so new Istanbul maps must meet it.
+:::
+
+## How the floor is applied {#how-applied}
+
+The floor is evaluated during **data-quality review** — the step every new submission goes through before it can be published (see [Data Quality](/registry/docs/data-quality#how-a-map-gets-its-tier)). When a reviewer confirms a new map's tier, they see the country's existing maps and tiers side by side; a submission below the applicable floor is flagged and will not be accepted unless an exception applies.
+
+Whether a higher-tier map's data is "city-specific" is a reviewer judgment, made from the scored answers and methodology on record for the existing maps. If you believe an exception applies to your submission, say so in the **Methodology** field — reviewers read it first.
+
+:::tip[Raising your own floor]
+The floor is about the country's demonstrated potential, not about gatekeeping authors. If your pipeline falls below the floor, the [Data Quality Questions guide](/registry/docs/data-quality-questions) and the [scoring rubric](/registry/docs/data-quality-scoring) show exactly which factors cost the most — often a single change (a better population table, or forcing estimated flows to add up to real totals) moves a map up a tier.
+:::
+
+## Appeals and questions {#appeals}
+
+If you think a floor decision is wrong — or that your map's data situation is genuinely exceptional — raise it on the submission issue or in the community [Discord Server](https://discord.gg/syG9YHMyeG). Floors follow the registry's reviewed tiers, and tiers can be revisited when new information appears.
