@@ -14,10 +14,7 @@ export const registryDocsConfig: DocsSuiteConfig = {
     "dependencies",
     "author-attribution",
     "tagging",
-    {
-      key: "data-quality",
-      children: ["questions", "scoring", "quality-floor"],
-    },
+    "data-quality",
     "markdown-playground",
   ],
   homepage: {
