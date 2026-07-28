@@ -12,6 +12,7 @@ import (
 	"railyard/internal/logger"
 	"railyard/internal/paths"
 	"railyard/internal/registry"
+	"railyard/internal/testutil/registrytest"
 	"railyard/internal/types"
 
 	"github.com/stretchr/testify/require"
@@ -193,6 +194,35 @@ func TestGenerateMod(t *testing.T) {
 		}
 		require.Contains(t, codes, compatCode)
 		require.NotContains(t, codes, incompatCode)
+	})
+
+	t.Run("difficulty is sourced from the registry manifest", func(t *testing.T) {
+		dir := t.TempDir()
+		maps := setupMaps(t, dir)
+		app := newModTestApp(t, dir, maps)
+
+		manifest := registrytest.MockMapManifestWithIDAndCode(compatCode, compatCode)
+		manifest.Difficulty = "very_hard"
+		registrytest.SetManifestsForTest(t, app.Registry, nil, []types.MapManifest{manifest})
+
+		require.NoError(t, app.generateMod(0, true))
+
+		cfg := readGeneratedModConfig(t, indexPath(dir))
+		require.Len(t, cfg.Places, 1)
+		require.Equal(t, compatCode, cfg.Places[0].ConfigData.Code)
+		require.Equal(t, "very_hard", cfg.Places[0].Difficulty)
+	})
+
+	t.Run("maps without a registry manifest have no difficulty", func(t *testing.T) {
+		dir := t.TempDir()
+		maps := setupMaps(t, dir)
+		app := newModTestApp(t, dir, maps)
+
+		require.NoError(t, app.generateMod(0, true))
+
+		cfg := readGeneratedModConfig(t, indexPath(dir))
+		require.Len(t, cfg.Places, 1)
+		require.Empty(t, cfg.Places[0].Difficulty)
 	})
 
 	t.Run("skipIncompatibleMaps=false includes binary-only map with JSON fallback", func(t *testing.T) {

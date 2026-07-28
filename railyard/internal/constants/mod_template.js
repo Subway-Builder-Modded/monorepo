@@ -100,6 +100,32 @@
     window.fetch = shim;
   }
 
+  // src/utils.js
+  function getFlagEmoji(countryCode) {
+    const codePoints = countryCode.toUpperCase().split("").map((char) => 127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
+  }
+  function capitalizeString(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+  function semverCompare(v1, v2) {
+    const v1Parts = v1.split(".").map(Number);
+    const v2Parts = v2.split(".").map(Number);
+    if (v1Parts[0] > v2Parts[0]) return true;
+    if (v1Parts[0] == v2Parts[0] && v1Parts[1] > v2Parts[1]) return true;
+    if (v1Parts[0] == v2Parts[0] && v1Parts[1] == v2Parts[1] && v1Parts[2] > v2Parts[2])
+      return true;
+    return false;
+  }
+  function getCountryName(countryCode) {
+    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    return regionNames.of(countryCode.toUpperCase());
+  }
+  function formatPopulation(population) {
+    if (!Number.isFinite(population) || population <= 0) return null;
+    return String(Math.trunc(population)).replace(/\B(?=(\d{3})+(?!\d))/g, "_");
+  }
+
   // src/cities.js
   async function registerCities(config2, api2, baseURL2) {
     await Promise.all(
@@ -109,10 +135,16 @@
         const newPlace = {
           code: place.code,
           name: place.name,
-          population: place.population,
           description: place.description,
           mapImageUrl: mapImageURL
         };
+        const population = formatPopulation(place.population);
+        if (population !== null) {
+          newPlace.population = population;
+        }
+        if (place.difficulty) {
+          newPlace.difficulty = place.difficulty;
+        }
         if (place.initialViewState) {
           newPlace.initialViewState = place.initialViewState;
         } else {
@@ -160,28 +192,6 @@
         api2.cities.setCityDataFiles(place.code, dataFiles);
       })
     );
-  }
-
-  // src/utils.js
-  function getFlagEmoji(countryCode) {
-    const codePoints = countryCode.toUpperCase().split("").map((char) => 127397 + char.charCodeAt());
-    return String.fromCodePoint(...codePoints);
-  }
-  function capitalizeString(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  }
-  function semverCompare(v1, v2) {
-    const v1Parts = v1.split(".").map(Number);
-    const v2Parts = v2.split(".").map(Number);
-    if (v1Parts[0] > v2Parts[0]) return true;
-    if (v1Parts[0] == v2Parts[0] && v1Parts[1] > v2Parts[1]) return true;
-    if (v1Parts[0] == v2Parts[0] && v1Parts[1] == v2Parts[1] && v1Parts[2] > v2Parts[2])
-      return true;
-    return false;
-  }
-  function getCountryName(countryCode) {
-    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-    return regionNames.of(countryCode.toUpperCase());
   }
 
   // src/tabs.js

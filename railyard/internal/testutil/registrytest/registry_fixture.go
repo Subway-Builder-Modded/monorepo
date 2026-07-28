@@ -97,6 +97,7 @@ func WriteFixture(t *testing.T, fixture RepositoryFixture) {
 			DataSource:       m.DataSource,
 			SourceQuality:    m.SourceQuality,
 			SpecialDemand:    m.SpecialDemand,
+			Difficulty:       m.Difficulty,
 			InitialViewState: m.InitialViewState,
 		}))
 	}

@@ -31,3 +31,11 @@ export function getCountryName(countryCode) {
   const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
   return regionNames.of(countryCode.toUpperCase());
 }
+
+// Formats a population count as an underscore-separated string, the form the
+// game's registerCity API expects (e.g. 4300000 -> "4_300_000"). Returns null
+// for missing/zero/invalid values so callers can omit the field entirely.
+export function formatPopulation(population) {
+  if (!Number.isFinite(population) || population <= 0) return null;
+  return String(Math.trunc(population)).replace(/\B(?=(\d{3})+(?!\d))/g, "_");
+}

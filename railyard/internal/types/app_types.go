@@ -108,6 +108,10 @@ type MetroMakerModConfig struct {
 type MetroMakerPlace struct {
 	ConfigData
 	BuildingsIndexFile string `json:"buildingsIndexFile"`
+	// Difficulty is the city-select difficulty badge sourced from the map's
+	// registry manifest (not the map archive's config.json); empty when the
+	// manifest does not declare one or the map is not a registry install.
+	Difficulty string `json:"difficulty,omitempty"`
 }
 
 type MetroMakerModManifest struct {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   capitalizeString,
+  formatPopulation,
   getCountryName,
   getFlagEmoji,
   semverCompare,
@@ -35,5 +36,21 @@ describe("getCountryName", () => {
   it("resolves a country code to its English display name", () => {
     expect(getCountryName("JP")).toBe("Japan");
     expect(getCountryName("fr")).toBe("France");
+  });
+});
+
+describe("formatPopulation", () => {
+  it("groups thousands with underscores", () => {
+    expect(formatPopulation(4300000)).toBe("4_300_000");
+    expect(formatPopulation(702689)).toBe("702_689");
+    expect(formatPopulation(61031)).toBe("61_031");
+    expect(formatPopulation(999)).toBe("999");
+  });
+
+  it("returns null for missing or unusable values", () => {
+    expect(formatPopulation(0)).toBeNull();
+    expect(formatPopulation(-5)).toBeNull();
+    expect(formatPopulation(undefined)).toBeNull();
+    expect(formatPopulation(NaN)).toBeNull();
   });
 });

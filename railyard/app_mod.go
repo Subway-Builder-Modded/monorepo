@@ -41,10 +41,16 @@ func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
 			}
 			stem = files.MapBuildingsFileName
 		}
-		places = append(places, types.MetroMakerPlace{
+		place := types.MetroMakerPlace{
 			ConfigData:         m.MapConfig,
 			BuildingsIndexFile: stem,
-		})
+		}
+		// Difficulty lives in the registry manifest, not the map archive's
+		// config.json; local-only installs simply have no badge.
+		if manifest, err := a.Registry.GetMap(m.ID); err == nil {
+			place.Difficulty = manifest.Difficulty
+		}
+		places = append(places, place)
 	}
 	config := types.MetroMakerModConfig{
 		Port:          port,

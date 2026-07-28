@@ -188,6 +188,7 @@ func (r *Registry) convertMapManifests(
 			SourceQuality:    raw.SourceQuality,
 			DataQuality:      raw.DataQuality,
 			SpecialDemand:    raw.SpecialDemand,
+			Difficulty:       raw.Difficulty,
 			InitialViewState: raw.InitialViewState,
 		}
 	})
