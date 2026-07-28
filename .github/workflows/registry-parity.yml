@@ -18,6 +18,7 @@ on:
   push:
     branches:
       - main
+      - website-dev
     paths:
       - "packages/config/src/asset-listings/map-filter-values.ts"
       - "website/src/features/docs/mdx/region-tags-data.ts"
