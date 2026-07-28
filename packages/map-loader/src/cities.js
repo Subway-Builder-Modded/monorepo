@@ -1,6 +1,6 @@
 // City registration logic for the app-bundled mapLoader mod.
 
-import { formatPopulation } from "./utils.js";
+import { normalizePopulation } from "./utils.js";
 
 // registerCities invokes the game's API to register each modded city, and sets up the tile URLs and data file settings the game needs to properly load custom maps.
 export async function registerCities(config, api, baseURL) {
@@ -17,7 +17,7 @@ export async function registerCities(config, api, baseURL) {
 
       // Population renders on the city select screen; omit it entirely when
       // the map's config does not carry a usable value.
-      const population = formatPopulation(place.population);
+      const population = normalizePopulation(place.population);
       if (population !== null) {
         newPlace.population = population;
       }

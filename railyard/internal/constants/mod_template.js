@@ -121,9 +121,9 @@
     const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
     return regionNames.of(countryCode.toUpperCase());
   }
-  function formatPopulation(population) {
+  function normalizePopulation(population) {
     if (!Number.isFinite(population) || population <= 0) return null;
-    return String(Math.trunc(population)).replace(/\B(?=(\d{3})+(?!\d))/g, "_");
+    return Math.trunc(population);
   }
 
   // src/cities.js
@@ -138,7 +138,7 @@
           description: place.description,
           mapImageUrl: mapImageURL
         };
-        const population = formatPopulation(place.population);
+        const population = normalizePopulation(place.population);
         if (population !== null) {
           newPlace.population = population;
         }

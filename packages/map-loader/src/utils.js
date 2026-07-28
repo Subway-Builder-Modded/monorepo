@@ -32,10 +32,11 @@ export function getCountryName(countryCode) {
   return regionNames.of(countryCode.toUpperCase());
 }
 
-// Formats a population count as an underscore-separated string, the form the
-// game's registerCity API expects (e.g. 4300000 -> "4_300_000"). Returns null
-// for missing/zero/invalid values so callers can omit the field entirely.
-export function formatPopulation(population) {
+// Normalizes a population count for the game's registerCity API: a plain
+// positive integer (the docs' 4_300_000 form is a JS numeric literal, i.e. a
+// number). Returns null for missing/zero/invalid values so callers can omit
+// the field entirely.
+export function normalizePopulation(population) {
   if (!Number.isFinite(population) || population <= 0) return null;
-  return String(Math.trunc(population)).replace(/\B(?=(\d{3})+(?!\d))/g, "_");
+  return Math.trunc(population);
 }

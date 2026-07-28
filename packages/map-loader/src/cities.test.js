@@ -39,9 +39,9 @@ async function registerOne(place) {
 }
 
 describe("registerCities", () => {
-  it("formats population as an underscore-separated string", async () => {
+  it("passes population through as an integer", async () => {
     const registered = await registerOne(makePlace());
-    expect(registered.population).toBe("702_689");
+    expect(registered.population).toBe(702689);
   });
 
   it("omits population when the config has no usable value", async () => {

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   capitalizeString,
-  formatPopulation,
   getCountryName,
   getFlagEmoji,
+  normalizePopulation,
   semverCompare,
 } from "./utils.js";
 
@@ -39,18 +39,17 @@ describe("getCountryName", () => {
   });
 });
 
-describe("formatPopulation", () => {
-  it("groups thousands with underscores", () => {
-    expect(formatPopulation(4300000)).toBe("4_300_000");
-    expect(formatPopulation(702689)).toBe("702_689");
-    expect(formatPopulation(61031)).toBe("61_031");
-    expect(formatPopulation(999)).toBe("999");
+describe("normalizePopulation", () => {
+  it("passes positive counts through as integers", () => {
+    expect(normalizePopulation(4300000)).toBe(4300000);
+    expect(normalizePopulation(702689)).toBe(702689);
+    expect(normalizePopulation(61031.7)).toBe(61031);
   });
 
   it("returns null for missing or unusable values", () => {
-    expect(formatPopulation(0)).toBeNull();
-    expect(formatPopulation(-5)).toBeNull();
-    expect(formatPopulation(undefined)).toBeNull();
-    expect(formatPopulation(NaN)).toBeNull();
+    expect(normalizePopulation(0)).toBeNull();
+    expect(normalizePopulation(-5)).toBeNull();
+    expect(normalizePopulation(undefined)).toBeNull();
+    expect(normalizePopulation(NaN)).toBeNull();
   });
 });
