@@ -138,7 +138,10 @@ describe("getSidebarOrder", () => {
       "dependencies",
       "author-attribution",
       "tagging",
-      "data-quality",
+      {
+        key: "data-quality",
+        children: ["questions", "scoring", "quality-floor"],
+      },
       "markdown-playground",
     ]);
   });
