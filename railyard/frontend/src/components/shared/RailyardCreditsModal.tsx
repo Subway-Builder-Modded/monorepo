@@ -1,18 +1,17 @@
-import { useEffect, useState } from 'react';
-
 import {
   type CreditAuthor,
   CreditsModal,
   type CreditsModalProps,
 } from '@subway-builder-modded/shared-ui';
+import { useEffect, useState } from 'react';
 
 import {
   CONTRIBUTOR_TIER_STYLES,
   type ContributorTier,
 } from '@/lib/contributor-tier';
 
-import { GetCreditedAuthors } from '../../../wailsjs/go/registry/Registry';
 import type { types } from '../../../wailsjs/go/models';
+import { GetCreditedAuthors } from '../../../wailsjs/go/registry/Registry';
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 
 interface RailyardCreditsModalProps extends Omit<
@@ -71,7 +70,9 @@ export function RailyardCreditsModal({
   // Credited people from the registry authors index (maintainers and ko-fi
   // supporters, including those with no published listings) — merged with
   // listing authors so asset-less supporters appear in the credits screen.
-  const [creditedAuthors, setCreditedAuthors] = useState<types.AuthorDetails[]>([]);
+  const [creditedAuthors, setCreditedAuthors] = useState<types.AuthorDetails[]>(
+    [],
+  );
 
   useEffect(() => {
     let cancelled = false;
