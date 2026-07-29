@@ -3,6 +3,7 @@ import {
   capitalizeString,
   getCountryName,
   getFlagEmoji,
+  normalizeDifficulty,
   normalizePopulation,
   semverCompare,
 } from "./utils.js";
@@ -51,5 +52,19 @@ describe("normalizePopulation", () => {
     expect(normalizePopulation(-5)).toBeNull();
     expect(normalizePopulation(undefined)).toBeNull();
     expect(normalizePopulation(NaN)).toBeNull();
+  });
+});
+
+describe("normalizeDifficulty", () => {
+  it("passes kebab-case labels through and kebab-cases snake_case ones", () => {
+    expect(normalizeDifficulty("very-hard")).toBe("very-hard");
+    expect(normalizeDifficulty("very_easy")).toBe("very-easy");
+    expect(normalizeDifficulty(" Medium ")).toBe("medium");
+  });
+
+  it("returns null for missing or blank values", () => {
+    expect(normalizeDifficulty(undefined)).toBeNull();
+    expect(normalizeDifficulty("")).toBeNull();
+    expect(normalizeDifficulty("   ")).toBeNull();
   });
 });

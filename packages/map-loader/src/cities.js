@@ -1,6 +1,6 @@
 // City registration logic for the app-bundled mapLoader mod.
 
-import { normalizePopulation } from "./utils.js";
+import { normalizeDifficulty, normalizePopulation } from "./utils.js";
 
 // registerCities invokes the game's API to register each modded city, and sets up the tile URLs and data file settings the game needs to properly load custom maps.
 export async function registerCities(config, api, baseURL) {
@@ -23,8 +23,9 @@ export async function registerCities(config, api, baseURL) {
       }
 
       // Difficulty badge, sourced from the map's registry manifest. Optional.
-      if (place.difficulty) {
-        newPlace.difficulty = place.difficulty;
+      const difficulty = normalizeDifficulty(place.difficulty);
+      if (difficulty !== null) {
+        newPlace.difficulty = difficulty;
       }
 
       // If the map's config reveals an initial view state, use it; otherwise, calculate a default view state based on the bounding box.

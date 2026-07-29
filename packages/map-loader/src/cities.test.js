@@ -49,9 +49,14 @@ describe("registerCities", () => {
     expect("population" in registered).toBe(false);
   });
 
-  it("passes the registry difficulty through when present", async () => {
+  it("passes kebab-case difficulty through verbatim", async () => {
+    const registered = await registerOne(makePlace({ difficulty: "very-hard" }));
+    expect(registered.difficulty).toBe("very-hard");
+  });
+
+  it("normalizes snake_case difficulty to the kebab-case the game expects", async () => {
     const registered = await registerOne(makePlace({ difficulty: "very_hard" }));
-    expect(registered.difficulty).toBe("very_hard");
+    expect(registered.difficulty).toBe("very-hard");
   });
 
   it("omits difficulty when the manifest declares none", async () => {

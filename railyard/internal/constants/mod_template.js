@@ -125,6 +125,11 @@
     if (!Number.isFinite(population) || population <= 0) return null;
     return Math.trunc(population);
   }
+  function normalizeDifficulty(difficulty) {
+    if (typeof difficulty !== "string") return null;
+    const normalized = difficulty.trim().toLowerCase().replace(/_/g, "-");
+    return normalized || null;
+  }
 
   // src/cities.js
   async function registerCities(config2, api2, baseURL2) {
@@ -142,8 +147,9 @@
         if (population !== null) {
           newPlace.population = population;
         }
-        if (place.difficulty) {
-          newPlace.difficulty = place.difficulty;
+        const difficulty = normalizeDifficulty(place.difficulty);
+        if (difficulty !== null) {
+          newPlace.difficulty = difficulty;
         }
         if (place.initialViewState) {
           newPlace.initialViewState = place.initialViewState;

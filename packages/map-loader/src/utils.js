@@ -40,3 +40,13 @@ export function normalizePopulation(population) {
   if (!Number.isFinite(population) || population <= 0) return null;
   return Math.trunc(population);
 }
+
+// Normalizes a difficulty label to the kebab-case form the game's registerCity
+// API expects (e.g. "very_hard" -> "very-hard"). The registry stores
+// kebab-case already; this is a defensive pass for hand-edited manifests.
+// Returns null for missing/blank values so callers can omit the field.
+export function normalizeDifficulty(difficulty) {
+  if (typeof difficulty !== "string") return null;
+  const normalized = difficulty.trim().toLowerCase().replace(/_/g, "-");
+  return normalized || null;
+}
