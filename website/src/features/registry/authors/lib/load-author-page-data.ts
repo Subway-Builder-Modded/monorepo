@@ -3,6 +3,13 @@ import {
   REGISTRY_CACHE_PUBLIC_BASE,
   getRegistryAuthorsIndexPath,
 } from "@/features/registry/lib/registry-asset-paths";
+import {
+  ADMIN_AUTHOR_ID,
+  computeCreditedTotalsByAuthor,
+  getCurrentCreditedByListing,
+  loadVersionDownloadsByTypeId,
+  type AuthorDownloadTotals,
+} from "@/features/registry/lib/credited-downloads";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import {
   getListingVersionCreditsKey,
@@ -68,6 +75,10 @@ export type RegistryAuthorDownloadHistoryPoint = {
   total: number;
   maps: number;
   mods: number;
+  /** Downloads of listings this person caretakes (does not own). */
+  caretakenTotal: number;
+  caretakenMaps: number;
+  caretakenMods: number;
 };
 
 export type RegistryAuthorDownloadTrend = {
@@ -287,10 +298,6 @@ function getAuthorTotals(itemsByType: Record<string, RegistrySearchItem[]>) {
   return { total: maps + mods, maps, mods };
 }
 
-type AuthorDownloadTotals = { total: number; maps: number; mods: number };
-
-type VersionDownloadsByTypeId = Record<string, Record<string, Record<string, number>>>;
-
 function computeItemTotalsByAuthor(allItemsByType: Record<string, RegistrySearchItem[]>) {
   const totalsByAuthor = new Map<string, AuthorDownloadTotals>();
 
@@ -307,48 +314,6 @@ function computeItemTotalsByAuthor(allItemsByType: Record<string, RegistrySearch
   }
 
   return totalsByAuthor;
-}
-
-/**
- * Sums per-version downloads for every credited person: a person's total is
- * the sum of downloads of the exact (listing, version) pairs credited to them.
- * Returns null when nothing could be summed (e.g. downloads.json unavailable)
- * so callers can fall back to primary-author totals.
- */
-function computeCreditedTotalsByAuthor(
-  credits: ListingVersionCredits,
-  versionDownloadsByTypeId: VersionDownloadsByTypeId,
-): Map<string, AuthorDownloadTotals> | null {
-  const totalsByAuthor = new Map<string, AuthorDownloadTotals>();
-  let hasDownloads = false;
-
-  for (const [listingKey, versionCredits] of credits.creditsByListing) {
-    const separatorIndex = listingKey.indexOf(":");
-    const listingType = listingKey.slice(0, separatorIndex);
-    const listingId = listingKey.slice(separatorIndex + 1);
-    const typeId = getTypeIdForAnalyticsListingType(listingType);
-    if (!typeId) continue;
-
-    const listingDownloads = versionDownloadsByTypeId[typeId]?.[listingId];
-    if (!listingDownloads) continue;
-
-    for (const [version, creditedAuthorId] of versionCredits) {
-      const downloads = listingDownloads[version];
-      if (typeof downloads !== "number" || !Number.isFinite(downloads) || downloads <= 0) {
-        continue;
-      }
-
-      hasDownloads = true;
-      const normalizedId = normalizeAuthorId(creditedAuthorId);
-      const current = totalsByAuthor.get(normalizedId) ?? { total: 0, maps: 0, mods: 0 };
-      current.total += downloads;
-      if (typeId === "maps") current.maps += downloads;
-      if (typeId === "mods") current.mods += downloads;
-      totalsByAuthor.set(normalizedId, current);
-    }
-  }
-
-  return hasDownloads ? totalsByAuthor : null;
 }
 
 function computeAuthorDownloadRanks(
@@ -452,19 +417,38 @@ function computeAuthorHistory(
   normalizedAuthorId: string,
   dailyRows: Array<Record<string, string>>,
   itemAuthorByTypeAndId: Map<string, string>,
+  caretakenListingKeys: Set<string>,
 ): RegistryAuthorDownloadHistoryPoint[] {
   const byDate = new Map<string, RegistryAuthorDownloadHistoryPoint>();
 
   for (const row of dailyRows) {
     const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
     const id = row["id"] ?? "";
-    if (!typeId || itemAuthorByTypeAndId.get(`${typeId}:${id}`) !== normalizedAuthorId) continue;
+    if (!typeId) continue;
+    const isAuthored = itemAuthorByTypeAndId.get(`${typeId}:${id}`) === normalizedAuthorId;
+    const isCaretaken =
+      !isAuthored && caretakenListingKeys.has(`${getListingTypeForTypeId(typeId)}:${id}`);
+    if (!isAuthored && !isCaretaken) continue;
 
     for (const point of extractDailyDownloadHistory(row)) {
-      const current = byDate.get(point.date) ?? { date: point.date, total: 0, maps: 0, mods: 0 };
-      current.total += point.downloads;
-      if (typeId === "maps") current.maps += point.downloads;
-      if (typeId === "mods") current.mods += point.downloads;
+      const current = byDate.get(point.date) ?? {
+        date: point.date,
+        total: 0,
+        maps: 0,
+        mods: 0,
+        caretakenTotal: 0,
+        caretakenMaps: 0,
+        caretakenMods: 0,
+      };
+      if (isAuthored) {
+        current.total += point.downloads;
+        if (typeId === "maps") current.maps += point.downloads;
+        if (typeId === "mods") current.mods += point.downloads;
+      } else {
+        current.caretakenTotal += point.downloads;
+        if (typeId === "maps") current.caretakenMaps += point.downloads;
+        if (typeId === "mods") current.caretakenMods += point.downloads;
+      }
       byDate.set(point.date, current);
     }
   }
@@ -472,7 +456,7 @@ function computeAuthorHistory(
   const history = Array.from(byDate.values()).sort((left, right) =>
     left.date.localeCompare(right.date),
   );
-  const firstNonZeroIndex = history.findIndex((point) => point.total > 0);
+  const firstNonZeroIndex = history.findIndex((point) => point.total + point.caretakenTotal > 0);
   return firstNonZeroIndex <= 0 ? history : history.slice(firstNonZeroIndex);
 }
 
@@ -480,6 +464,7 @@ function computeAuthorTrends(
   normalizedAuthorId: string,
   dailyRows: Array<Record<string, string>>,
   itemAuthorByTypeAndId: Map<string, string>,
+  currentCreditedByListing: Map<string, string>,
 ): RegistryAuthorDownloadTrend[] {
   const periods = [
     { period: "1d" as const, label: "Last 24 Hours", days: 1 },
@@ -495,8 +480,13 @@ function computeAuthorTrends(
       const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
       const id = row["id"] ?? "";
       if (!typeId) continue;
-      const authorId = itemAuthorByTypeAndId.get(`${typeId}:${id}`);
-      if (!authorId) continue;
+      // Recent downloads land on the listing's latest version, so they are
+      // attributed to whoever is credited for it (the active caretaker when
+      // one exists, the primary author otherwise).
+      const authorId =
+        currentCreditedByListing.get(`${getListingTypeForTypeId(typeId)}:${id}`) ??
+        itemAuthorByTypeAndId.get(`${typeId}:${id}`);
+      if (!authorId || authorId === ADMIN_AUTHOR_ID) continue;
       const downloads = sumLatestDailyDownloads(extractDailyDownloadHistory(row), days);
       if (downloads === null || downloads <= 0) continue;
       totalsByAuthor.set(authorId, (totalsByAuthor.get(authorId) ?? 0) + downloads);
@@ -725,22 +715,6 @@ function computeCaretakenItems(
   );
 }
 
-async function loadVersionDownloadsByTypeId(): Promise<VersionDownloadsByTypeId> {
-  const entries = await Promise.all(
-    REGISTRY_TYPES.map(async (typeConfig) => {
-      const raw = await safeFetchText(
-        `${REGISTRY_CACHE_PUBLIC_BASE}/${typeConfig.routeSegment}/downloads.json`,
-      );
-      return [
-        typeConfig.id,
-        safeJson<Record<string, Record<string, number>>>(raw ?? "{}", {}),
-      ] as const;
-    }),
-  );
-
-  return Object.fromEntries(entries);
-}
-
 export async function loadAuthorPageData(authorId: string): Promise<RegistryAuthorPageData | null> {
   const authorsIndex = await loadAuthorsIndex().catch((): RawAuthorsIndex => ({}));
   const credits = await loadListingVersionCredits();
@@ -761,8 +735,16 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
       items.filter((item) => normalizeAuthorId(item.authorId ?? "") === normalizedAuthorId),
     ]),
   );
-  const collaborations = getAuthorCollaborations(author, normalizedAuthorId, allItemsByType);
   const caretakenItems = computeCaretakenItems(normalizedAuthorId, credits, allItemsByType);
+  // Caretaken listings are collaborations too (a caretaker is always added to
+  // the listing's collaborators), so the page shows a single Collaborations
+  // browser; the union is defensive in case a caretaker was never listed.
+  const directCollaborations = getAuthorCollaborations(author, normalizedAuthorId, allItemsByType);
+  const collaborationKeys = new Set(directCollaborations.map(getItemKey));
+  const collaborations = [
+    ...directCollaborations,
+    ...caretakenItems.filter((item) => !collaborationKeys.has(getItemKey(item))),
+  ];
   const projects = computeAuthorProjects(itemsByType, allItemsByType);
   const contributorsByItemKey = buildContributorsByItemKey(itemsByType, authorsIndex);
   const hasAssets = Object.values(itemsByType).some((items) => items.length > 0);
@@ -793,18 +775,54 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
     ? computeCreditedTotalsByAuthor(credits, await loadVersionDownloadsByTypeId())
     : null;
   const totalsByAuthor = creditedTotalsByAuthor ?? computeItemTotalsByAuthor(allItemsByType);
-  const downloads = creditedTotalsByAuthor
+  // The admin account is a holding entity, not a creator — it never competes
+  // for ranks.
+  totalsByAuthor.delete(ADMIN_AUTHOR_ID);
+  const downloads: AuthorDownloadTotals = creditedTotalsByAuthor
     ? (creditedTotalsByAuthor.get(normalizedAuthorId) ?? { total: 0, maps: 0, mods: 0 })
     : getAuthorTotals(itemsByType);
+  const caretakenListingKeys = new Set(
+    caretakenItems.map((item) =>
+      getListingVersionCreditsKey(getListingTypeForTypeId(item.type), item.id),
+    ),
+  );
+  const currentCreditedByListing = credits
+    ? getCurrentCreditedByListing(credits)
+    : new Map<string, string>();
+  const caretakenItemsByType = Object.fromEntries(
+    REGISTRY_TYPES.map((typeConfig) => [
+      typeConfig.id,
+      caretakenItems.filter((item) => item.type === typeConfig.id),
+    ]),
+  );
+  const itemsWithCaretakenByType = Object.fromEntries(
+    REGISTRY_TYPES.map((typeConfig) => [
+      typeConfig.id,
+      [...(itemsByType[typeConfig.id] ?? []), ...(caretakenItemsByType[typeConfig.id] ?? [])],
+    ]),
+  );
   const analytics: RegistryAuthorAnalytics = {
     downloads,
     ranks: computeAuthorDownloadRanks(normalizedAuthorId, totalsByAuthor),
-    history: computeAuthorHistory(normalizedAuthorId, dailyRows, itemAuthorByTypeAndId),
-    trends: computeAuthorTrends(normalizedAuthorId, dailyRows, itemAuthorByTypeAndId),
+    history: computeAuthorHistory(
+      normalizedAuthorId,
+      dailyRows,
+      itemAuthorByTypeAndId,
+      caretakenListingKeys,
+    ),
+    trends: computeAuthorTrends(
+      normalizedAuthorId,
+      dailyRows,
+      itemAuthorByTypeAndId,
+      currentCreditedByListing,
+    ),
     rankingsByType: Object.fromEntries(
       REGISTRY_TYPES.map((typeConfig) => [
         typeConfig.id,
-        computeRankingRows(itemsByType[typeConfig.id] ?? [], allItemsByType[typeConfig.id] ?? []),
+        computeRankingRows(
+          itemsWithCaretakenByType[typeConfig.id] ?? [],
+          allItemsByType[typeConfig.id] ?? [],
+        ),
       ]),
     ),
   };
@@ -816,7 +834,7 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
     caretakenItems,
     projects,
     contributorsByItemKey,
-    overview: computeAuthorOverview(itemsByType, releaseCache),
+    overview: computeAuthorOverview(itemsWithCaretakenByType, releaseCache),
     analytics,
   };
 }

@@ -24,7 +24,6 @@ import {
   FolderGit2,
   Trophy,
   User,
-  UserPen,
   Users,
 } from "lucide-react";
 import {
@@ -114,7 +113,7 @@ type AuthorTrendSortKey = "label" | "downloads";
 type AuthorRankingSortKey = "name" | "downloads";
 type AuthorHistoryMode = "total" | "maps" | "mods";
 type AuthorAssetRankingMode = "maps" | "mods";
-type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations" | "caretaken";
+type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations";
 type RegistryEntityPageData = Pick<
   RegistryAuthorPageData,
   "analytics" | "collaborations" | "contributorsByItemKey" | "itemsByType" | "overview"
@@ -355,17 +354,7 @@ function AuthorAssetSection({
           accentLight: registrySuite.accent.light,
           accentDark: registrySuite.accent.dark,
         }
-      : typeId === "caretaken"
-        ? {
-            id: "caretaken",
-            label: "Caretaken Asset",
-            pluralLabel: "Caretaken Assets",
-            icon: UserPen,
-            routeSegment: "caretaken",
-            accentLight: registrySuite.accent.light,
-            accentDark: registrySuite.accent.dark,
-          }
-        : getRegistryTypeConfigOrDefault(typeId);
+      : getRegistryTypeConfigOrDefault(typeId);
   const [query, setQuery] = useState("");
   const [sortId, setSortId] = useState<RegistrySortId>(DEFAULT_SORT_ID);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(DEFAULT_SORT_DIR);
@@ -509,11 +498,9 @@ function AuthorPublishedAssets({
   const mapsItems = data.itemsByType.maps ?? [];
   const modsItems = data.itemsByType.mods ?? [];
   const collaborationItems = data.collaborations;
-  const caretakenItems = data.caretakenItems ?? [];
   const hasMaps = mapsItems.length > 0;
   const hasMods = modsItems.length > 0;
   const hasCollaborations = collaborationItems.length > 0;
-  const hasCaretakenItems = caretakenItems.length > 0;
   const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(hasMaps ? "maps" : "mods");
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
@@ -543,34 +530,18 @@ function AuthorPublishedAssets({
       accentDark: registrySuite.accent.dark,
       enabled: hasCollaborations,
     },
-    {
-      id: "caretaken" as const,
-      label: "Caretaken",
-      icon: UserPen,
-      accentLight: registrySuite.accent.light,
-      accentDark: registrySuite.accent.dark,
-      enabled: hasCaretakenItems,
-    },
   ].filter((option) => option.enabled);
   const activeTypeId = typeOptions.some((option) => option.id === typeId)
     ? typeId
     : (typeOptions[0]?.id ?? "maps");
   const activeItems =
-    activeTypeId === "collaborations"
-      ? collaborationItems
-      : activeTypeId === "caretaken"
-        ? caretakenItems
-        : (data.itemsByType[activeTypeId] ?? []);
+    activeTypeId === "collaborations" ? collaborationItems : (data.itemsByType[activeTypeId] ?? []);
   const activeTypeConfig =
-    activeTypeId === "collaborations" || activeTypeId === "caretaken"
-      ? null
-      : getRegistryTypeConfigOrDefault(activeTypeId);
+    activeTypeId === "collaborations" ? null : getRegistryTypeConfigOrDefault(activeTypeId);
   const activeHeadingLabel =
     activeTypeId === "collaborations"
       ? "Collaborations"
-      : activeTypeId === "caretaken"
-        ? "Caretaken Assets"
-        : `${headingPrefix}${activeTypeConfig?.pluralLabel ?? ""}`;
+      : `${headingPrefix}${activeTypeConfig?.pluralLabel ?? ""}`;
 
   useEffect(() => {
     if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
@@ -601,9 +572,7 @@ function AuthorPublishedAssets({
                   option.id,
                   option.id === "collaborations"
                     ? collaborationItems.length
-                    : option.id === "caretaken"
-                      ? caretakenItems.length
-                      : (data.itemsByType[option.id] ?? []).length,
+                    : (data.itemsByType[option.id] ?? []).length,
                 ]),
               )}
               onChange={(nextTypeId) => setTypeId(nextTypeId as AuthorAssetBrowserMode)}
@@ -615,12 +584,10 @@ function AuthorPublishedAssets({
         <AuthorAssetSection
           typeId={activeTypeId}
           items={activeItems}
-          hideAuthor={activeTypeId !== "collaborations" && activeTypeId !== "caretaken"}
-          excludedSortIds={
-            activeTypeId === "collaborations" || activeTypeId === "caretaken" ? [] : ["author"]
-          }
+          hideAuthor={activeTypeId !== "collaborations"}
+          excludedSortIds={activeTypeId === "collaborations" ? [] : ["author"]}
           getContributors={
-            activeTypeId === "collaborations" || activeTypeId === "caretaken"
+            activeTypeId === "collaborations"
               ? undefined
               : (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
           }
@@ -822,9 +789,18 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
   );
 }
 
+const CARETAKEN_HISTORY_KEY_BY_MODE = {
+  total: "caretakenTotal",
+  maps: "caretakenMaps",
+  mods: "caretakenMods",
+} as const;
+
 function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
-  const hasMaps = (data.itemsByType.maps ?? []).length > 0;
-  const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  const caretakenItems = data.caretakenItems ?? [];
+  const hasAuthoredMaps = (data.itemsByType.maps ?? []).length > 0;
+  const hasAuthoredMods = (data.itemsByType.mods ?? []).length > 0;
+  const hasMaps = hasAuthoredMaps || caretakenItems.some((item) => item.type === "maps");
+  const hasMods = hasAuthoredMods || caretakenItems.some((item) => item.type === "mods");
   const hasMultipleAssetTypes = hasMaps && hasMods;
   const [mode, setMode] = useState<AuthorHistoryMode>("total");
   const activeMode: AuthorHistoryMode = hasMultipleAssetTypes
@@ -866,10 +842,23 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
     },
   ].filter((option) => option.enabled);
   const activeOption = modeOptions.find((option) => option.id === activeMode) ?? modeOptions[0];
+  const caretakenKey = CARETAKEN_HISTORY_KEY_BY_MODE[activeMode];
   const chartData = data.analytics.history.map((point) => ({
     date: point.date,
-    Downloads: point[activeMode],
+    Published: point[activeMode],
+    Caretaken: point[caretakenKey] ?? 0,
   }));
+  const hasPublishedSeries = chartData.some((point) => point.Published > 0);
+  const hasCaretakenSeries = chartData.some((point) => point.Caretaken > 0);
+  // Caretaken downloads render as a washed-out companion line so they read as
+  // credited-but-not-authored next to the person's own releases.
+  const caretakenColor = `color-mix(in srgb, ${activeOption.color} 40%, transparent)`;
+  const lines = [
+    ...(hasPublishedSeries || !hasCaretakenSeries
+      ? [{ key: "Published", name: "Published", color: activeOption.color }]
+      : []),
+    ...(hasCaretakenSeries ? [{ key: "Caretaken", name: "Caretaken", color: caretakenColor }] : []),
+  ];
 
   useEffect(() => {
     if (!modeOptions.some((option) => option.id === mode)) {
@@ -898,10 +887,11 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
         ) : null}
         <AnalyticsLineChart
           data={chartData}
-          lines={[{ key: "Downloads", name: activeOption.label, color: activeOption.color }]}
+          lines={lines}
           xAxisKey="date"
           height={220}
           startAtZero={true}
+          hideZeroTooltipEntries={true}
         />
       </article>
     </div>
@@ -909,8 +899,9 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
 }
 
 function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
-  const hasMaps = (data.itemsByType.maps ?? []).length > 0;
-  const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  // Rankings include caretaken assets, so gate on the rows themselves.
+  const hasMaps = (data.analytics.rankingsByType.maps ?? []).length > 0;
+  const hasMods = (data.analytics.rankingsByType.mods ?? []).length > 0;
   const hasMultipleAssetTypes = hasMaps && hasMods;
   const [typeId, setTypeId] = useState<AuthorAssetRankingMode>(hasMaps ? "maps" : "mods");
   const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
@@ -1059,8 +1050,11 @@ function AuthorAnalytics({
   data: RegistryEntityPageData;
   emptyMessage?: string;
 }) {
-  const hasMaps = (data.itemsByType.maps ?? []).length > 0;
-  const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  const caretakenItems = data.caretakenItems ?? [];
+  const hasMaps =
+    (data.itemsByType.maps ?? []).length > 0 || caretakenItems.some((item) => item.type === "maps");
+  const hasMods =
+    (data.itemsByType.mods ?? []).length > 0 || caretakenItems.some((item) => item.type === "mods");
   const hasPublishedAssets = hasMaps || hasMods;
   const hasMultipleAssetTypes = hasMaps && hasMods;
   const cards: DetailMetric[] = hasMultipleAssetTypes
@@ -1145,17 +1139,24 @@ function AuthorOverview({
   assetHeadingPrefix?: string;
 }) {
   const allItems = Object.values(data.itemsByType).flat();
+  const caretakenCount = (data.caretakenItems ?? []).length;
   // Credit-aware: matches the analytics totals (per-version credited downloads
   // when the credits artifact is available, listing totals otherwise).
   const totalDownloads = data.analytics.downloads.total;
-  const hasPublishedAssets = allItems.length > 0;
+  const hasPublishedAssets = allItems.length > 0 || caretakenCount > 0;
 
   const metrics: DetailMetric[] = [
-    {
-      title: assetMetricTitle,
-      value: formatNumber(allItems.length),
-      icon: LayoutDashboard,
-    },
+    allItems.length === 0 && caretakenCount > 0
+      ? {
+          title: "Caretaken Assets",
+          value: formatNumber(caretakenCount),
+          icon: LayoutDashboard,
+        }
+      : {
+          title: assetMetricTitle,
+          value: formatNumber(allItems.length),
+          icon: LayoutDashboard,
+        },
     {
       title: "Downloads",
       value: formatNumber(totalDownloads),
@@ -1257,13 +1258,14 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
 
   const attributionLink = data.author.attributionLink;
   const hasPublishedAssets = Object.values(data.itemsByType).some((items) => items.length > 0);
+  // Pure caretakers publish nothing themselves but still have credited
+  // downloads worth an analytics tab.
+  const hasAnalytics = hasPublishedAssets || data.caretakenItems.length > 0;
   const hasProjects = data.projects.length > 0;
   const authorTabOptions: AuthorTabOption[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     ...(hasProjects ? [{ id: "projects" as const, label: "Projects", icon: FolderGit2 }] : []),
-    ...(hasPublishedAssets
-      ? [{ id: "analytics" as const, label: "Analytics", icon: BarChart3 }]
-      : []),
+    ...(hasAnalytics ? [{ id: "analytics" as const, label: "Analytics", icon: BarChart3 }] : []),
   ];
   const requestedTab: AuthorTabId =
     tabId === "projects" || tabId === "analytics" ? tabId : "overview";
@@ -1355,7 +1357,7 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
                   <AuthorProjects projects={data.projects} />
                 </div>
               ) : null}
-              {hasPublishedAssets ? (
+              {hasAnalytics ? (
                 <div hidden={activeTab !== "analytics"}>
                   <AuthorAnalytics data={data} />
                 </div>

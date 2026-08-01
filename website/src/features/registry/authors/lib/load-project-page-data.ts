@@ -285,7 +285,15 @@ function computeProjectHistory(
     if (!typeId || itemProjectByTypeAndId.get(`${typeId}:${id}`) !== normalizedProjectId) continue;
 
     for (const point of extractDailyDownloadHistory(row)) {
-      const current = byDate.get(point.date) ?? { date: point.date, total: 0, maps: 0, mods: 0 };
+      const current = byDate.get(point.date) ?? {
+        date: point.date,
+        total: 0,
+        maps: 0,
+        mods: 0,
+        caretakenTotal: 0,
+        caretakenMaps: 0,
+        caretakenMods: 0,
+      };
       current.total += point.downloads;
       if (typeId === "maps") current.maps += point.downloads;
       if (typeId === "mods") current.mods += point.downloads;

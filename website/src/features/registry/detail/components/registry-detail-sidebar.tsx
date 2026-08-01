@@ -44,6 +44,27 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
+function AuthorRoleIcon({
+  role,
+  icon,
+}: {
+  role: "Author" | "Collaborator" | "Caretaker";
+  icon: ReactNode;
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center" aria-label={role}>
+            {icon}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top">{role}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 function DetailRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-3 py-1.5 text-base text-foreground">
@@ -151,7 +172,10 @@ export function RegistryDetailSidebar({
       <SidebarSection title="Authors">
         <div className="space-y-0.5" style={authorLinkAccentVars}>
           <div className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground">
-            <UserStar className="size-4.5 text-foreground" aria-hidden={true} />
+            <AuthorRoleIcon
+              role="Author"
+              icon={<UserStar className="size-4.5 text-foreground" aria-hidden={true} />}
+            />
             <span className="inline-flex items-center gap-1.5">
               {detail.authorId ? (
                 <Link
@@ -176,9 +200,15 @@ export function RegistryDetailSidebar({
               className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground"
             >
               {collaborator.isActiveCaretaker ? (
-                <UserPen className="size-4.5 text-foreground" aria-hidden={true} />
+                <AuthorRoleIcon
+                  role="Caretaker"
+                  icon={<UserPen className="size-4.5 text-foreground" aria-hidden={true} />}
+                />
               ) : (
-                <UserRound className="size-4.5 text-foreground" aria-hidden={true} />
+                <AuthorRoleIcon
+                  role="Collaborator"
+                  icon={<UserRound className="size-4.5 text-foreground" aria-hidden={true} />}
+                />
               )}
               <Link
                 to={`/registry/authors/${encodeURIComponent(collaborator.authorId)}`}
@@ -186,9 +216,6 @@ export function RegistryDetailSidebar({
               >
                 {collaborator.authorLabel}
               </Link>
-              {collaborator.isActiveCaretaker ? (
-                <span className="text-sm font-medium text-muted-foreground">Caretaker</span>
-              ) : null}
               <AuthorRoleBadge authorId={collaborator.authorId} className="cursor-pointer" />
               <Link
                 to={`/registry/authors/${encodeURIComponent(collaborator.authorId)}`}
