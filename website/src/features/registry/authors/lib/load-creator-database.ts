@@ -1,6 +1,11 @@
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 import { getRegistryAuthorsIndexPath } from "@/features/registry/lib/registry-asset-paths";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
+import {
+  getListingVersionCreditsKey,
+  loadListingVersionCredits,
+  type ListingVersionCredits,
+} from "@/features/registry/lib/load-listing-version-credits";
 import { buildRegistryItemSearchValues } from "@/features/registry/lib/registry-search";
 import { getRegistryAuthorUrl, getRegistryProjectUrl } from "@/features/registry/lib/routing";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
@@ -14,6 +19,8 @@ export type RegistryCreatorDatabaseAuthor = {
   maps: number;
   mods: number;
   collaborations: number;
+  /** Listings this person does not own but is credited for as caretaker (0 when credits are unavailable). */
+  caretakenAssets: number;
   assets: number;
   downloads: number;
   searchTerms: string[];
@@ -101,6 +108,7 @@ function buildAuthorLabels(authorsIndex: RawAuthorsIndex) {
 function buildAuthors(
   authorsIndex: RawAuthorsIndex,
   allItems: RegistrySearchItem[],
+  credits: ListingVersionCredits | null,
 ): RegistryCreatorDatabaseAuthor[] {
   const authorsById = new Map<
     string,
@@ -112,6 +120,7 @@ function buildAuthors(
       maps: number;
       mods: number;
       collaborations: number;
+      caretakenAssets: number;
       assets: number;
       downloads: number;
       searchTerms: Set<string>;
@@ -130,6 +139,7 @@ function buildAuthors(
       maps: 0,
       mods: 0,
       collaborations: 0,
+      caretakenAssets: 0,
       assets: 0,
       downloads: 0,
       searchTerms: new Set<string>(),
@@ -148,6 +158,7 @@ function buildAuthors(
       maps: 0,
       mods: 0,
       collaborations: 0,
+      caretakenAssets: 0,
       assets: 0,
       downloads: 0,
       searchTerms: new Set<string>(),
@@ -186,8 +197,35 @@ function buildAuthors(
     }
   }
 
+  if (credits) {
+    const primaryAuthorByListingKey = new Map<string, string>();
+    for (const item of allItems) {
+      const listingType = item.type === "maps" ? "map" : "mod";
+      primaryAuthorByListingKey.set(
+        getListingVersionCreditsKey(listingType, item.id),
+        normalizeId(item.authorId ?? item.author),
+      );
+    }
+
+    for (const [normalizedAuthorId, authorCredits] of credits.creditsByAuthor) {
+      const author = authorsById.get(normalizedAuthorId);
+      if (!author) continue;
+
+      let caretakenAssets = 0;
+      for (const listingKey of authorCredits.keys()) {
+        const primaryAuthorId = primaryAuthorByListingKey.get(listingKey);
+        if (primaryAuthorId !== undefined && primaryAuthorId !== normalizedAuthorId) {
+          caretakenAssets += 1;
+        }
+      }
+      author.caretakenAssets = caretakenAssets;
+    }
+  }
+
   return Array.from(authorsById.values())
-    .filter((author) => author.assets > 0 || author.collaborations > 0)
+    .filter(
+      (author) => author.assets > 0 || author.collaborations > 0 || author.caretakenAssets > 0,
+    )
     .map((author) => ({
       ...author,
       searchTerms: [...author.searchTerms],
@@ -249,7 +287,10 @@ function buildProjects(
 }
 
 export async function loadCreatorDatabaseData(): Promise<RegistryCreatorDatabaseData> {
-  const authorsIndexRaw = await safeFetchText(getRegistryAuthorsIndexPath());
+  const [authorsIndexRaw, credits] = await Promise.all([
+    safeFetchText(getRegistryAuthorsIndexPath()),
+    loadListingVersionCredits(),
+  ]);
   const authorsIndex = safeJson<RawAuthorsIndex>(authorsIndexRaw ?? "{}", {});
   const itemEntries = await Promise.all(
     REGISTRY_TYPES.map(async (typeConfig) =>
@@ -260,7 +301,7 @@ export async function loadCreatorDatabaseData(): Promise<RegistryCreatorDatabase
   const authorLabels = buildAuthorLabels(authorsIndex);
 
   return {
-    authors: buildAuthors(authorsIndex, allItems),
+    authors: buildAuthors(authorsIndex, allItems, credits),
     projects: buildProjects(allItems, authorLabels),
   };
 }

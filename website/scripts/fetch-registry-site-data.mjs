@@ -98,6 +98,10 @@ const COPY_MAPPINGS = [
     destination: "public/registry-cache/analytics/authors_by_day.csv",
   },
   {
+    source: "analytics/listing_version_credits.csv",
+    destination: "public/registry-cache/analytics/listing_version_credits.csv",
+  },
+  {
     source: "analytics/discord_server_by_day.csv",
     destination: "public/community/discord_server_by_day.csv",
   },

@@ -8,6 +8,8 @@ export type RegistryDetailSourceLink = {
 export type RegistryDetailCollaborator = {
   authorId: string;
   authorLabel: string;
+  /** True when this collaborator is the listing's active caretaker (caretakers entry without `until`). */
+  isActiveCaretaker: boolean;
 };
 
 export type RegistryDetailDataQuality =

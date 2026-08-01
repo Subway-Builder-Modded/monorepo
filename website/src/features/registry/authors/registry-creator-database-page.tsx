@@ -13,6 +13,7 @@ import {
   Shuffle,
   Trash2,
   User,
+  UserPen,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -326,6 +327,37 @@ function CollaborationCountPill({ count }: { count: number }) {
   );
 }
 
+function CaretakenCountPill({ count }: { count: number }) {
+  if (count <= 0) return null;
+
+  const registrySuite = getSuiteById("registry");
+
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold"
+      style={
+        {
+          color: `light-dark(${registrySuite.accent.light}, ${registrySuite.accent.dark})`,
+          borderColor: `color-mix(in srgb, ${registrySuite.accent.light} 34%, transparent)`,
+          background: `color-mix(in srgb, ${registrySuite.accent.light} 10%, transparent)`,
+        } as CSSProperties
+      }
+    >
+      <UserPen className="size-3.5" aria-hidden={true} />
+      <span>Caretaken</span>
+      <span
+        className="rounded border px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums"
+        style={{
+          borderColor: `color-mix(in srgb, ${registrySuite.accent.light} 38%, transparent)`,
+          background: `color-mix(in srgb, ${registrySuite.accent.light} 14%, transparent)`,
+        }}
+      >
+        {formatNumber(count)}
+      </span>
+    </span>
+  );
+}
+
 function MetadataDivider() {
   return <span style={{ color: "color-mix(in srgb, currentColor 35%, transparent)" }}>|</span>;
 }
@@ -378,6 +410,7 @@ function AuthorDatabaseCard({ author }: { author: RegistryCreatorDatabaseAuthor 
             href={getRegistryTypeSearchUrl("mods", author.id)}
           />
           <CollaborationCountPill count={author.collaborations} />
+          <CaretakenCountPill count={author.caretakenAssets} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <AssetMetric assets={author.assets} />
