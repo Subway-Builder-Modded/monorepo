@@ -26,6 +26,7 @@ import { RegistryTabs } from "@/features/registry/components/registry-tabs";
 import { RegistryToolbarDropdown } from "@/features/registry/components/registry-toolbar-dropdown";
 import { RegistryToolbarSearch } from "@/features/registry/components/registry-toolbar-search";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
+import { CARETAKER_ACCENT } from "@/features/registry/lib/caretaker-accent";
 import { matchesRegistrySearch } from "@/features/registry/lib/registry-search";
 import {
   loadCreatorDatabaseData,
@@ -330,16 +331,14 @@ function CollaborationCountPill({ count }: { count: number }) {
 function CaretakenCountPill({ count }: { count: number }) {
   if (count <= 0) return null;
 
-  const registrySuite = getSuiteById("registry");
-
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold"
       style={
         {
-          color: `light-dark(${registrySuite.accent.light}, ${registrySuite.accent.dark})`,
-          borderColor: `color-mix(in srgb, ${registrySuite.accent.light} 34%, transparent)`,
-          background: `color-mix(in srgb, ${registrySuite.accent.light} 10%, transparent)`,
+          color: `light-dark(${CARETAKER_ACCENT.light}, ${CARETAKER_ACCENT.dark})`,
+          borderColor: `color-mix(in srgb, ${CARETAKER_ACCENT.light} 34%, transparent)`,
+          background: `color-mix(in srgb, ${CARETAKER_ACCENT.light} 10%, transparent)`,
         } as CSSProperties
       }
     >
@@ -348,8 +347,8 @@ function CaretakenCountPill({ count }: { count: number }) {
       <span
         className="rounded border px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums"
         style={{
-          borderColor: `color-mix(in srgb, ${registrySuite.accent.light} 38%, transparent)`,
-          background: `color-mix(in srgb, ${registrySuite.accent.light} 14%, transparent)`,
+          borderColor: `color-mix(in srgb, ${CARETAKER_ACCENT.light} 38%, transparent)`,
+          background: `color-mix(in srgb, ${CARETAKER_ACCENT.light} 14%, transparent)`,
         }}
       >
         {formatNumber(count)}
