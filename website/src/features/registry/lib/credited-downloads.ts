@@ -135,25 +135,3 @@ export function computeCreditDeltasByAuthor(
 
   return deltasByAuthor;
 }
-
-/**
- * Resolves the person currently credited for each listing: the credit of the
- * listing's latest version. Relies on the registry artifact listing versions
- * in ascending order per listing (it sorts rows semver-ascending), which the
- * parser preserves via Map insertion order.
- */
-export function getCurrentCreditedByListing(credits: ListingVersionCredits): Map<string, string> {
-  const currentByListing = new Map<string, string>();
-
-  for (const [listingKey, versionCredits] of credits.creditsByListing) {
-    let latestCredited: string | null = null;
-    for (const creditedAuthorId of versionCredits.values()) {
-      latestCredited = creditedAuthorId;
-    }
-    if (latestCredited) {
-      currentByListing.set(listingKey, latestCredited.trim().toLowerCase());
-    }
-  }
-
-  return currentByListing;
-}
