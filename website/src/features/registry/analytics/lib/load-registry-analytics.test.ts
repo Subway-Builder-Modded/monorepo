@@ -18,6 +18,7 @@ vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
           mods: 1,
           assets: 3,
           collaborations: 0,
+          caretakenAssets: 0,
         },
         {
           id: "author-b",
@@ -28,6 +29,7 @@ vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
           mods: 1,
           assets: 1,
           collaborations: 0,
+          caretakenAssets: 0,
         },
       ],
       projects: [
@@ -184,9 +186,9 @@ describe("loadRegistryAnalyticsData", () => {
       id: "author-a",
       name: "Author A",
       downloads: 30,
-      maps: 2,
-      mods: 1,
-      assets: 3,
+      authored: 3,
+      collaborator: 0,
+      caretaker: 0,
     });
     expect(data.projects.rankings[0]).toMatchObject({
       id: "author-a/project-a",

@@ -93,6 +93,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           "3d": { maps: [], mods: [] },
           "7d": { maps: [], mods: [] },
           "14d": { maps: [], mods: [] },
+          "30d": { maps: [], mods: [] },
         },
         authors: {
           history: [
@@ -105,18 +106,18 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               name: "Author A",
               href: "/registry/authors/author-a",
               downloads: 120,
-              maps: 3,
-              mods: 1,
-              assets: 4,
+              authored: 4,
+              collaborator: 1,
+              caretaker: 0,
             },
             {
               id: "author-b",
               name: "Author B",
               href: "/registry/authors/author-b",
               downloads: 84,
-              maps: 0,
-              mods: 2,
-              assets: 2,
+              authored: 2,
+              collaborator: 0,
+              caretaker: 2,
             },
           ],
         },
@@ -278,9 +279,9 @@ describe("RegistryAnalyticsPage", () => {
 
     expect(screen.getByText("Timeline")).toBeInTheDocument();
     expect(screen.getByTestId("registry-download-chart")).toHaveTextContent("2 points · Authors");
-    expect(screen.getByText("Maps Published")).toBeInTheDocument();
-    expect(screen.getByText("Mods Published")).toBeInTheDocument();
-    expect(screen.getByText("Assets Published")).toBeInTheDocument();
+    expect(screen.getByText("Authored")).toBeInTheDocument();
+    expect(screen.getByText("Collaborator")).toBeInTheDocument();
+    expect(screen.getByText("Caretaker")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search authors...")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Author A/i })).toHaveAttribute(
       "href",

@@ -831,11 +831,18 @@ function RegistryContentTab({
   );
 }
 
-type AuthorRankingSortKey = "downloads" | "maps" | "mods" | "assets";
+type AuthorRankingSortKey = "downloads" | "authored" | "collaborator" | "caretaker";
 type ProjectRankingSortKey = "downloads" | "maps" | "mods" | "assets";
 type MapStatisticSortKey = "demand" | "pops" | "demandPoints" | "playableAreaKm2";
 
 const AUTHOR_SORT_DEFAULTS: Record<AuthorRankingSortKey, "asc" | "desc"> = {
+  downloads: "desc",
+  authored: "desc",
+  collaborator: "desc",
+  caretaker: "desc",
+};
+
+const PROJECT_SORT_DEFAULTS: Record<ProjectRankingSortKey, "asc" | "desc"> = {
   downloads: "desc",
   maps: "desc",
   mods: "desc",
@@ -963,49 +970,49 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         render: (row) => formatNumber(row.downloads),
       },
       {
-        id: "maps",
-        label: "Maps Published",
+        id: "authored",
+        label: "Authored",
         width: "16%",
         sortable: true,
-        active: sortKey === "maps",
-        direction: directions.maps,
-        align: "right",
-        accentColor: "var(--map-accent)",
-        onSort: () => handleSort("maps"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "maps" ? "text-[var(--map-accent)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.maps),
-      },
-      {
-        id: "mods",
-        label: "Mods Published",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "mods",
-        direction: directions.mods,
-        align: "right",
-        accentColor: "var(--mod-accent)",
-        onSort: () => handleSort("mods"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "mods" ? "text-[var(--mod-accent)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.mods),
-      },
-      {
-        id: "assets",
-        label: "Assets Published",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "assets",
-        direction: directions.assets,
+        active: sortKey === "authored",
+        direction: directions.authored,
         align: "right",
         accentColor: "var(--suite-accent-light)",
-        onSort: () => handleSort("assets"),
+        onSort: () => handleSort("authored"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "assets" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+          sortKey === "authored" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
         }`,
-        render: (row) => formatNumber(row.assets),
+        render: (row) => formatNumber(row.authored),
+      },
+      {
+        id: "collaborator",
+        label: "Collaborator",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "collaborator",
+        direction: directions.collaborator,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("collaborator"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "collaborator" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.collaborator),
+      },
+      {
+        id: "caretaker",
+        label: "Caretaker",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "caretaker",
+        direction: directions.caretaker,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("caretaker"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "caretaker" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.caretaker),
       },
     ],
     [directions, sortKey],
@@ -1083,7 +1090,7 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
 function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
   const [sortKey, setSortKey] = useState<ProjectRankingSortKey>("downloads");
   const [directions, setDirections] =
-    useState<Record<ProjectRankingSortKey, "asc" | "desc">>(AUTHOR_SORT_DEFAULTS);
+    useState<Record<ProjectRankingSortKey, "asc" | "desc">>(PROJECT_SORT_DEFAULTS);
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];

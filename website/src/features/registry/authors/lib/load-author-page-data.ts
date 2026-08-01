@@ -811,15 +811,13 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
     ]),
   );
   const caretakenItems = computeCaretakenItems(normalizedAuthorId, credits, allItemsByType);
-  // Caretaken listings are collaborations too (a caretaker is always added to
-  // the listing's collaborators), so the page shows a single Collaborations
-  // browser; the union is defensive in case a caretaker was never listed.
-  const directCollaborations = getAuthorCollaborations(author, normalizedAuthorId, allItemsByType);
-  const collaborationKeys = new Set(directCollaborations.map(getItemKey));
-  const collaborations = [
-    ...directCollaborations,
-    ...caretakenItems.filter((item) => !collaborationKeys.has(getItemKey(item))),
-  ];
+  // Role split: a caretaker is technically also a collaborator on the listing,
+  // but the page presents the roles disjointly, so caretaken listings are
+  // excluded from the Collaborator list.
+  const caretakenItemKeys = new Set(caretakenItems.map(getItemKey));
+  const collaborations = getAuthorCollaborations(author, normalizedAuthorId, allItemsByType).filter(
+    (item) => !caretakenItemKeys.has(getItemKey(item)),
+  );
   const projects = computeAuthorProjects(itemsByType, allItemsByType);
   const contributorsByItemKey = buildContributorsByItemKey(itemsByType, authorsIndex);
   const hasAssets = Object.values(itemsByType).some((items) => items.length > 0);

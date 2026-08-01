@@ -25,6 +25,8 @@ import {
   Trophy,
   User,
   UserPen,
+  UserRound,
+  UserStar,
   Users,
 } from "lucide-react";
 import {
@@ -114,7 +116,13 @@ type AuthorTrendSortKey = "label" | "downloads";
 type AuthorRankingSortKey = "name" | "downloads";
 type AuthorHistoryMode = "total" | "maps" | "mods";
 type AuthorAssetRankingMode = "maps" | "mods";
-type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations";
+type AuthorAssetBrowserMode =
+  | "maps"
+  | "mods"
+  | "collaborations"
+  | "author"
+  | "collaborator"
+  | "caretaker";
 type RegistryEntityPageData = Pick<
   RegistryAuthorPageData,
   "analytics" | "collaborations" | "contributorsByItemKey" | "itemsByType" | "overview"
@@ -344,18 +352,31 @@ function AuthorAssetSection({
   headingPrefix = "Published ",
 }: AuthorAssetSectionProps) {
   const registrySuite = getSuiteById("registry");
-  const typeConfig =
-    typeId === "collaborations"
-      ? {
-          id: "collaborations",
-          label: "Collaboration",
-          pluralLabel: "Collaborations",
-          icon: Users,
-          routeSegment: "collaborations",
-          accentLight: registrySuite.accent.light,
-          accentDark: registrySuite.accent.dark,
-        }
-      : getRegistryTypeConfigOrDefault(typeId);
+  const roleSectionConfigs: Record<
+    string,
+    { label: string; pluralLabel: string; icon: ComponentType<{ className?: string }> }
+  > = {
+    collaborations: { label: "Collaboration", pluralLabel: "Collaborations", icon: Users },
+    author: { label: "Authored Asset", pluralLabel: "Authored Assets", icon: UserStar },
+    collaborator: {
+      label: "Collaborator Asset",
+      pluralLabel: "Collaborator Assets",
+      icon: UserRound,
+    },
+    caretaker: { label: "Caretaker Asset", pluralLabel: "Caretaker Assets", icon: UserPen },
+  };
+  const roleSectionConfig = roleSectionConfigs[typeId];
+  const typeConfig = roleSectionConfig
+    ? {
+        id: typeId,
+        label: roleSectionConfig.label,
+        pluralLabel: roleSectionConfig.pluralLabel,
+        icon: roleSectionConfig.icon,
+        routeSegment: typeId,
+        accentLight: registrySuite.accent.light,
+        accentDark: registrySuite.accent.dark,
+      }
+    : getRegistryTypeConfigOrDefault(typeId);
   const [query, setQuery] = useState("");
   const [sortId, setSortId] = useState<RegistrySortId>(DEFAULT_SORT_ID);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(DEFAULT_SORT_DIR);
@@ -491,58 +512,106 @@ function AuthorPublishedAssets({
   data,
   sectionLabel = "Published Assets",
   headingPrefix = "Published ",
+  roleBrowser = false,
 }: {
   data: RegistryEntityPageData;
   sectionLabel?: string;
   headingPrefix?: string;
+  /** Person-centric pages browse by role (Author/Collaborator/Caretaker); asset-centric pages keep the maps/mods split. */
+  roleBrowser?: boolean;
 }) {
   const mapsItems = data.itemsByType.maps ?? [];
   const modsItems = data.itemsByType.mods ?? [];
+  const authoredItems = [...mapsItems, ...modsItems];
   const collaborationItems = data.collaborations;
+  const caretakerItems = data.caretakenItems ?? [];
   const hasMaps = mapsItems.length > 0;
   const hasMods = modsItems.length > 0;
   const hasCollaborations = collaborationItems.length > 0;
-  const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(hasMaps ? "maps" : "mods");
+  const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(
+    roleBrowser ? "author" : hasMaps ? "maps" : "mods",
+  );
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
   const registrySuite = getSuiteById("registry");
-  const typeOptions = [
-    {
-      id: "maps" as const,
-      label: "Maps",
-      icon: mapsConfig.icon ?? MapIcon,
-      accentLight: mapsConfig.accentLight,
-      accentDark: mapsConfig.accentDark,
-      enabled: hasMaps,
-    },
-    {
-      id: "mods" as const,
-      label: "Mods",
-      icon: modsConfig.icon ?? Package,
-      accentLight: modsConfig.accentLight,
-      accentDark: modsConfig.accentDark,
-      enabled: hasMods,
-    },
-    {
-      id: "collaborations" as const,
-      label: "Collaborations",
-      icon: Users,
-      accentLight: registrySuite.accent.light,
-      accentDark: registrySuite.accent.dark,
-      enabled: hasCollaborations,
-    },
-  ].filter((option) => option.enabled);
+  const typeOptions = (
+    roleBrowser
+      ? [
+          {
+            id: "author" as const,
+            label: "Author",
+            icon: UserStar,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: authoredItems.length > 0,
+          },
+          {
+            id: "collaborator" as const,
+            label: "Collaborator",
+            icon: UserRound,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: hasCollaborations,
+          },
+          {
+            id: "caretaker" as const,
+            label: "Caretaker",
+            icon: UserPen,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: caretakerItems.length > 0,
+          },
+        ]
+      : [
+          {
+            id: "maps" as const,
+            label: "Maps",
+            icon: mapsConfig.icon ?? MapIcon,
+            accentLight: mapsConfig.accentLight,
+            accentDark: mapsConfig.accentDark,
+            enabled: hasMaps,
+          },
+          {
+            id: "mods" as const,
+            label: "Mods",
+            icon: modsConfig.icon ?? Package,
+            accentLight: modsConfig.accentLight,
+            accentDark: modsConfig.accentDark,
+            enabled: hasMods,
+          },
+          {
+            id: "collaborations" as const,
+            label: "Collaborations",
+            icon: Users,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: hasCollaborations,
+          },
+        ]
+  ).filter((option) => option.enabled);
+  const itemsByBrowserMode: Partial<Record<AuthorAssetBrowserMode, RegistrySearchItem[]>> = {
+    maps: mapsItems,
+    mods: modsItems,
+    collaborations: collaborationItems,
+    author: authoredItems,
+    collaborator: collaborationItems,
+    caretaker: caretakerItems,
+  };
   const activeTypeId = typeOptions.some((option) => option.id === typeId)
     ? typeId
-    : (typeOptions[0]?.id ?? "maps");
-  const activeItems =
-    activeTypeId === "collaborations" ? collaborationItems : (data.itemsByType[activeTypeId] ?? []);
-  const activeTypeConfig =
-    activeTypeId === "collaborations" ? null : getRegistryTypeConfigOrDefault(activeTypeId);
+    : (typeOptions[0]?.id ?? (roleBrowser ? "author" : "maps"));
+  const activeItems = itemsByBrowserMode[activeTypeId] ?? [];
+  const isOwnAssetsMode =
+    activeTypeId === "maps" || activeTypeId === "mods" || activeTypeId === "author";
+  const headingLabelByRole: Partial<Record<AuthorAssetBrowserMode, string>> = {
+    collaborations: "Collaborations",
+    author: "Authored Assets",
+    collaborator: "Collaborator Assets",
+    caretaker: "Caretaker Assets",
+  };
   const activeHeadingLabel =
-    activeTypeId === "collaborations"
-      ? "Collaborations"
-      : `${headingPrefix}${activeTypeConfig?.pluralLabel ?? ""}`;
+    headingLabelByRole[activeTypeId] ??
+    `${headingPrefix}${getRegistryTypeConfigOrDefault(activeTypeId).pluralLabel ?? ""}`;
 
   useEffect(() => {
     if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
@@ -566,31 +635,29 @@ function AuthorPublishedAssets({
         {typeOptions.length > 1 ? (
           <div className="flex justify-center">
             <RegistryTypeToggle
-              activeTypeId={typeId}
+              activeTypeId={activeTypeId}
               options={getToggleOptions(typeOptions)}
               counts={Object.fromEntries(
                 typeOptions.map((option) => [
                   option.id,
-                  option.id === "collaborations"
-                    ? collaborationItems.length
-                    : (data.itemsByType[option.id] ?? []).length,
+                  (itemsByBrowserMode[option.id] ?? []).length,
                 ]),
               )}
               onChange={(nextTypeId) => setTypeId(nextTypeId as AuthorAssetBrowserMode)}
               className="border-border/50 bg-background/70 shadow-sm"
-              ariaLabel="Published asset type"
+              ariaLabel={roleBrowser ? "Asset role" : "Published asset type"}
             />
           </div>
         ) : null}
         <AuthorAssetSection
           typeId={activeTypeId}
           items={activeItems}
-          hideAuthor={activeTypeId !== "collaborations"}
-          excludedSortIds={activeTypeId === "collaborations" ? [] : ["author"]}
+          hideAuthor={isOwnAssetsMode}
+          excludedSortIds={isOwnAssetsMode ? ["author"] : []}
           getContributors={
-            activeTypeId === "collaborations"
-              ? undefined
-              : (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
+            isOwnAssetsMode
+              ? (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
+              : undefined
           }
           headingLabel={activeHeadingLabel}
           headingPrefix={headingPrefix}
@@ -851,14 +918,20 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
   }));
   const hasPublishedSeries = chartData.some((point) => point.Published > 0);
   const hasCaretakenSeries = chartData.some((point) => point.Caretaken > 0);
-  // Caretaken downloads render as a washed-out companion line so they read as
-  // credited-but-not-authored next to the person's own releases.
-  const caretakenColor = `color-mix(in srgb, ${activeOption.color} 60%, transparent)`;
+  // Caretaker-credited downloads render as a washed-out companion line so they
+  // read as credited-but-not-authored next to the person's own releases.
+  const caretakerColor = `color-mix(in srgb, ${activeOption.color} 60%, transparent)`;
   const lines = [
     ...(hasPublishedSeries || !hasCaretakenSeries
-      ? [{ key: "Published", name: "Published", color: activeOption.color }]
+      ? [
+          {
+            key: "Published",
+            name: hasCaretakenSeries ? "Author" : activeOption.label,
+            color: activeOption.color,
+          },
+        ]
       : []),
-    ...(hasCaretakenSeries ? [{ key: "Caretaken", name: "Caretaken", color: caretakenColor }] : []),
+    ...(hasCaretakenSeries ? [{ key: "Caretaken", name: "Caretaker", color: caretakerColor }] : []),
   ];
 
   useEffect(() => {
@@ -1130,33 +1203,46 @@ function AuthorAnalytics({
 
 function AuthorOverview({
   data,
-  assetMetricTitle = "Assets Published",
+  assetMetricTitle = "Authored Assets",
   assetSectionLabel = "Published Assets",
   assetHeadingPrefix = "Published ",
+  roleBrowser = false,
 }: {
   data: RegistryEntityPageData;
   assetMetricTitle?: string;
   assetSectionLabel?: string;
   assetHeadingPrefix?: string;
+  roleBrowser?: boolean;
 }) {
   const allItems = Object.values(data.itemsByType).flat();
-  const caretakenCount = (data.caretakenItems ?? []).length;
+  const collaboratorCount = data.collaborations.length;
+  const caretakerCount = (data.caretakenItems ?? []).length;
   // Credit-aware: matches the analytics totals (per-version credited downloads
   // when the credits artifact is available, listing totals otherwise).
   const totalDownloads = data.analytics.downloads.total;
-  const hasPublishedAssets = allItems.length > 0 || caretakenCount > 0;
+  const hasOverviewContent =
+    allItems.length > 0 || caretakerCount > 0 || (roleBrowser && collaboratorCount > 0);
 
   const metrics: DetailMetric[] = [
     {
       title: assetMetricTitle,
       value: formatNumber(allItems.length),
-      icon: LayoutDashboard,
+      icon: roleBrowser ? UserStar : LayoutDashboard,
     },
-    ...(caretakenCount > 0
+    ...(roleBrowser && collaboratorCount > 0
       ? [
           {
-            title: "Caretaken Assets",
-            value: formatNumber(caretakenCount),
+            title: "Collaborator Assets",
+            value: formatNumber(collaboratorCount),
+            icon: UserRound,
+          },
+        ]
+      : []),
+    ...(caretakerCount > 0
+      ? [
+          {
+            title: "Caretaker Assets",
+            value: formatNumber(caretakerCount),
             icon: UserPen,
           },
         ]
@@ -1177,10 +1263,16 @@ function AuthorOverview({
       icon: Clock,
     },
   ];
+  const metricGridColumns =
+    metrics.length === 6
+      ? "xl:grid-cols-3"
+      : metrics.length === 5
+        ? "xl:grid-cols-5"
+        : "xl:grid-cols-4";
 
   return (
     <div className="space-y-8">
-      {hasPublishedAssets ? (
+      {hasOverviewContent ? (
         <div>
           <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
           <section
@@ -1190,9 +1282,7 @@ function AuthorOverview({
             }}
           >
             <DetailsMetricGrid
-              className={`grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 ${
-                metrics.length === 5 ? "xl:grid-cols-5" : "xl:grid-cols-4"
-              }`}
+              className={`grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 ${metricGridColumns}`}
               items={metrics}
               accentLight="var(--suite-accent-light)"
               accentDark="var(--suite-accent-dark)"
@@ -1205,6 +1295,7 @@ function AuthorOverview({
         data={data}
         sectionLabel={assetSectionLabel}
         headingPrefix={assetHeadingPrefix}
+        roleBrowser={roleBrowser}
       />
     </div>
   );
@@ -1356,7 +1447,7 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
 
             <main className="min-w-0">
               <div hidden={activeTab !== "overview"}>
-                <AuthorOverview data={data} />
+                <AuthorOverview data={data} roleBrowser={true} assetSectionLabel="Assets" />
               </div>
               {hasProjects ? (
                 <div hidden={activeTab !== "projects"}>

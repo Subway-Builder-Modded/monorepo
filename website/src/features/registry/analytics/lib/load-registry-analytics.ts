@@ -34,9 +34,12 @@ export type RegistryAnalyticsAuthorRanking = {
   name: string;
   href: string;
   downloads: number;
-  maps: number;
-  mods: number;
-  assets: number;
+  /** Assets this person authors (their own listings). */
+  authored: number;
+  /** Assets where this person is a plain collaborator (caretaken excluded). */
+  collaborator: number;
+  /** Assets this person caretakes. */
+  caretaker: number;
 };
 
 export type RegistryAnalyticsProjectRanking = {
@@ -343,9 +346,9 @@ function buildAuthorRankings(
       name: author.label,
       href: author.href,
       downloads: author.downloads,
-      maps: author.maps,
-      mods: author.mods,
-      assets: author.assets,
+      authored: author.assets,
+      collaborator: author.collaborations,
+      caretaker: author.caretakenAssets,
     }))
     .sort((left, right) => right.downloads - left.downloads);
 }
