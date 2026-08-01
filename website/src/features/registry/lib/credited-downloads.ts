@@ -135,4 +135,3 @@ export function computeCreditDeltasByAuthor(
 
   return deltasByAuthor;
 }
-
