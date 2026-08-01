@@ -19,6 +19,7 @@ import {
   useState,
 } from "react";
 import { getSuiteById } from "@/config/site-navigation";
+import { CARETAKER_ACCENT } from "@/features/registry/lib/caretaker-accent";
 import { Link } from "@/lib/router";
 import { getRegistryTagBrowseUrl } from "@/features/registry/lib/routing";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
@@ -202,7 +203,15 @@ export function RegistryDetailSidebar({
               {collaborator.isActiveCaretaker ? (
                 <AuthorRoleIcon
                   role="Caretaker"
-                  icon={<UserPen className="size-4.5 text-foreground" aria-hidden={true} />}
+                  icon={
+                    <UserPen
+                      className="size-4.5"
+                      aria-hidden={true}
+                      style={{
+                        color: `light-dark(${CARETAKER_ACCENT.light}, ${CARETAKER_ACCENT.dark})`,
+                      }}
+                    />
+                  }
                 />
               ) : (
                 <AuthorRoleIcon

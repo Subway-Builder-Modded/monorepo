@@ -24,6 +24,7 @@ import {
   FolderGit2,
   Trophy,
   User,
+  UserPen,
   Users,
 } from "lucide-react";
 import {
@@ -852,7 +853,7 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
   const hasCaretakenSeries = chartData.some((point) => point.Caretaken > 0);
   // Caretaken downloads render as a washed-out companion line so they read as
   // credited-but-not-authored next to the person's own releases.
-  const caretakenColor = `color-mix(in srgb, ${activeOption.color} 40%, transparent)`;
+  const caretakenColor = `color-mix(in srgb, ${activeOption.color} 60%, transparent)`;
   const lines = [
     ...(hasPublishedSeries || !hasCaretakenSeries
       ? [{ key: "Published", name: "Published", color: activeOption.color }]
@@ -1146,17 +1147,20 @@ function AuthorOverview({
   const hasPublishedAssets = allItems.length > 0 || caretakenCount > 0;
 
   const metrics: DetailMetric[] = [
-    allItems.length === 0 && caretakenCount > 0
-      ? {
-          title: "Caretaken Assets",
-          value: formatNumber(caretakenCount),
-          icon: LayoutDashboard,
-        }
-      : {
-          title: assetMetricTitle,
-          value: formatNumber(allItems.length),
-          icon: LayoutDashboard,
-        },
+    {
+      title: assetMetricTitle,
+      value: formatNumber(allItems.length),
+      icon: LayoutDashboard,
+    },
+    ...(caretakenCount > 0
+      ? [
+          {
+            title: "Caretaken Assets",
+            value: formatNumber(caretakenCount),
+            icon: UserPen,
+          },
+        ]
+      : []),
     {
       title: "Downloads",
       value: formatNumber(totalDownloads),
@@ -1186,7 +1190,9 @@ function AuthorOverview({
             }}
           >
             <DetailsMetricGrid
-              className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+              className={`grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 ${
+                metrics.length === 5 ? "xl:grid-cols-5" : "xl:grid-cols-4"
+              }`}
               items={metrics}
               accentLight="var(--suite-accent-light)"
               accentDark="var(--suite-accent-dark)"

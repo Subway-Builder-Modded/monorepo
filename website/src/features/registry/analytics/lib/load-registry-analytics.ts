@@ -336,6 +336,7 @@ function buildAuthorRankings(
   authors: Awaited<ReturnType<typeof loadCreatorDatabaseData>>["authors"],
 ): RegistryAnalyticsAuthorRanking[] {
   return authors
+    .filter((author) => author.downloads > 0)
     .map((author) => ({
       id: author.id,
       name: author.label,
