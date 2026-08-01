@@ -84,13 +84,13 @@ describe('buildAssetListingCounts', () => {
     expect(result.mapLocationCounts).toEqual({});
   });
 
-  it('uses sub_location over location when present', () => {
+  it('counts each map under its location tag', () => {
     const { mapLocationCounts } = buildAssetListingCounts([], [
-      { location: 'europe', sub_location: 'central-europe' },
-      { location: 'europe', sub_location: 'south-europe' },
-      { location: 'europe' },
+      { location: 'central-europe' },
+      { location: 'south-europe' },
+      { location: 'central-europe' },
     ]);
-    expect(mapLocationCounts).toEqual({ 'central-europe': 1, 'south-europe': 1, europe: 1 });
+    expect(mapLocationCounts).toEqual({ 'central-europe': 2, 'south-europe': 1 });
   });
 });
 

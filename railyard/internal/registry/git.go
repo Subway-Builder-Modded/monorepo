@@ -16,7 +16,7 @@ import (
 )
 
 // registrySparseCheckoutDirs lists the only directories materialized on disk from the registry clone. Everything else (analytics, schemas, scripts, history etc.) stays compressed inside the git object store and is never written to disk.
-var registrySparseCheckoutDirs = []string{"mods", "maps", "authors", "supporters"}
+var registrySparseCheckoutDirs = []string{"mods", "maps", "authors"}
 
 // registryRepoPath is the "owner/repo" form used for GitHub API calls for the `registry` repository
 const registryRepoPath = "Subway-Builder-Modded/registry"
