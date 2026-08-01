@@ -6,7 +6,6 @@ import { resolveDataQualityTier, resolveMapLocation } from './map-filter-values'
 
 interface MapListingMatches {
 	location?: string | null;
-	sub_location?: string | null;
 	data_quality?: { tier?: string | null } | null;
 	special_demand?: string[] | null;
 }

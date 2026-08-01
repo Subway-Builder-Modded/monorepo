@@ -38,27 +38,17 @@ export type CreditsDirectory = {
   sections: CreditsSection[];
 };
 
-export type RegistryMaintainerEntry = {
-  sbm_id?: string;
-  maintainer_alias?: string;
+export type RegistryAuthorsIndexEntry = {
+  github_id?: number;
+  author_id?: string;
+  author_alias?: string;
   attribution_link?: string;
-  contributor_tier?: string | null;
-};
-
-export type RegistryMaintainersIndex = {
-  schema_version?: number;
-  maintainers?: RegistryMaintainerEntry[];
-};
-
-export type RegistrySupporterEntry = {
-  sbm_id?: string;
   ko_fi_username?: string;
-  supporter_alias?: string;
-  attribution_link?: string;
   contributor_tier?: string | null;
+  credit_roles?: string[];
 };
 
-export type RegistrySupportersIndex = {
+export type RegistryAuthorsIndex = {
   schema_version?: number;
-  ko_fi?: RegistrySupporterEntry[];
+  authors?: RegistryAuthorsIndexEntry[];
 };

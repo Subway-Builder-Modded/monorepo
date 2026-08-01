@@ -32,10 +32,6 @@ export function getRegistryAuthorsIndexPath(): string {
   return `${REGISTRY_CACHE_PUBLIC_BASE}/authors/index.json`;
 }
 
-export function getRegistryCreditsCachePath(fileName: string): string {
-  return `${REGISTRY_CACHE_PUBLIC_BASE}/credits/${fileName}`;
-}
-
 export function getRegistryMapBasemapUrl(mapId: string): string {
   return `${REGISTRY_MAP_DATA_RAW_BASE}/maps/${encodePathSegments(mapId, "basemap.svg")}`;
 }

@@ -66,15 +66,14 @@ export function resolveDataQualityTier(map: {
 }
 
 /**
- * Returns the most specific location tag available for a map manifest.
- * Prefers `sub_location` (e.g. "central-europe") over the `location` field ("europe") so that display and filtering automatically use sub-regions. Location is kept for backwards compatibility until the next app version.
+ * Returns the location tag for a map manifest. The registry derives
+ * `location` from the map's country code; the legacy `sub_location` bridge
+ * field was retired once every manifest carried a sub-region tag directly.
  */
 export function resolveMapLocation(map: {
 	location?: string | null;
-	sub_location?: string | null;
 }): string | undefined {
-	// TODO: this function can be simplified to just `location`.
-	return map.sub_location ?? map.location ?? undefined;
+	return map.location ?? undefined;
 }
 
 export function buildSpecialDemandValues(

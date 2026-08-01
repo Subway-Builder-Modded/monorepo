@@ -47,10 +47,11 @@ func (u UpdateConfig) Source() string {
 }
 
 type AuthorDetails struct {
-	AuthorID        string  `json:"author_id"`
-	AuthorAlias     string  `json:"author_alias"`
-	AttributionLink string  `json:"attribution_link"`
-	ContributorTier *string `json:"contributor_tier,omitempty"`
+	AuthorID        string   `json:"author_id"`
+	AuthorAlias     string   `json:"author_alias"`
+	AttributionLink string   `json:"attribution_link"`
+	ContributorTier *string  `json:"contributor_tier,omitempty"`
+	CreditRoles     []string `json:"credit_roles,omitempty"`
 }
 
 type AssetManifest struct {
@@ -122,7 +123,6 @@ type MapManifest struct {
 	CityCode         string           `json:"city_code"`
 	Country          string           `json:"country"`
 	Location         string           `json:"location"`
-	SubLocation      string           `json:"sub_location,omitempty"`
 	Population       int              `json:"population"`
 	DataSource       string           `json:"data_source"`
 	SourceQuality    string           `json:"source_quality"`
