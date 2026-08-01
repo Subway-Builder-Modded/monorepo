@@ -24,6 +24,7 @@ import {
   FolderGit2,
   Trophy,
   User,
+  UserPen,
   Users,
 } from "lucide-react";
 import {
@@ -113,11 +114,13 @@ type AuthorTrendSortKey = "label" | "downloads";
 type AuthorRankingSortKey = "name" | "downloads";
 type AuthorHistoryMode = "total" | "maps" | "mods";
 type AuthorAssetRankingMode = "maps" | "mods";
-type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations";
+type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations" | "caretaken";
 type RegistryEntityPageData = Pick<
   RegistryAuthorPageData,
   "analytics" | "collaborations" | "contributorsByItemKey" | "itemsByType" | "overview"
->;
+> & {
+  caretakenItems?: RegistrySearchItem[];
+};
 type AuthorTabOption = {
   id: AuthorTabId;
   label: string;
@@ -352,7 +355,17 @@ function AuthorAssetSection({
           accentLight: registrySuite.accent.light,
           accentDark: registrySuite.accent.dark,
         }
-      : getRegistryTypeConfigOrDefault(typeId);
+      : typeId === "caretaken"
+        ? {
+            id: "caretaken",
+            label: "Caretaken Asset",
+            pluralLabel: "Caretaken Assets",
+            icon: UserPen,
+            routeSegment: "caretaken",
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+          }
+        : getRegistryTypeConfigOrDefault(typeId);
   const [query, setQuery] = useState("");
   const [sortId, setSortId] = useState<RegistrySortId>(DEFAULT_SORT_ID);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(DEFAULT_SORT_DIR);
@@ -496,9 +509,11 @@ function AuthorPublishedAssets({
   const mapsItems = data.itemsByType.maps ?? [];
   const modsItems = data.itemsByType.mods ?? [];
   const collaborationItems = data.collaborations;
+  const caretakenItems = data.caretakenItems ?? [];
   const hasMaps = mapsItems.length > 0;
   const hasMods = modsItems.length > 0;
   const hasCollaborations = collaborationItems.length > 0;
+  const hasCaretakenItems = caretakenItems.length > 0;
   const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(hasMaps ? "maps" : "mods");
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
@@ -528,18 +543,34 @@ function AuthorPublishedAssets({
       accentDark: registrySuite.accent.dark,
       enabled: hasCollaborations,
     },
+    {
+      id: "caretaken" as const,
+      label: "Caretaken",
+      icon: UserPen,
+      accentLight: registrySuite.accent.light,
+      accentDark: registrySuite.accent.dark,
+      enabled: hasCaretakenItems,
+    },
   ].filter((option) => option.enabled);
   const activeTypeId = typeOptions.some((option) => option.id === typeId)
     ? typeId
     : (typeOptions[0]?.id ?? "maps");
   const activeItems =
-    activeTypeId === "collaborations" ? collaborationItems : (data.itemsByType[activeTypeId] ?? []);
+    activeTypeId === "collaborations"
+      ? collaborationItems
+      : activeTypeId === "caretaken"
+        ? caretakenItems
+        : (data.itemsByType[activeTypeId] ?? []);
   const activeTypeConfig =
-    activeTypeId === "collaborations" ? null : getRegistryTypeConfigOrDefault(activeTypeId);
+    activeTypeId === "collaborations" || activeTypeId === "caretaken"
+      ? null
+      : getRegistryTypeConfigOrDefault(activeTypeId);
   const activeHeadingLabel =
     activeTypeId === "collaborations"
       ? "Collaborations"
-      : `${headingPrefix}${activeTypeConfig?.pluralLabel ?? ""}`;
+      : activeTypeId === "caretaken"
+        ? "Caretaken Assets"
+        : `${headingPrefix}${activeTypeConfig?.pluralLabel ?? ""}`;
 
   useEffect(() => {
     if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
@@ -570,7 +601,9 @@ function AuthorPublishedAssets({
                   option.id,
                   option.id === "collaborations"
                     ? collaborationItems.length
-                    : (data.itemsByType[option.id] ?? []).length,
+                    : option.id === "caretaken"
+                      ? caretakenItems.length
+                      : (data.itemsByType[option.id] ?? []).length,
                 ]),
               )}
               onChange={(nextTypeId) => setTypeId(nextTypeId as AuthorAssetBrowserMode)}
@@ -582,10 +615,12 @@ function AuthorPublishedAssets({
         <AuthorAssetSection
           typeId={activeTypeId}
           items={activeItems}
-          hideAuthor={activeTypeId !== "collaborations"}
-          excludedSortIds={activeTypeId === "collaborations" ? [] : ["author"]}
+          hideAuthor={activeTypeId !== "collaborations" && activeTypeId !== "caretaken"}
+          excludedSortIds={
+            activeTypeId === "collaborations" || activeTypeId === "caretaken" ? [] : ["author"]
+          }
           getContributors={
-            activeTypeId === "collaborations"
+            activeTypeId === "collaborations" || activeTypeId === "caretaken"
               ? undefined
               : (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
           }
@@ -1110,7 +1145,9 @@ function AuthorOverview({
   assetHeadingPrefix?: string;
 }) {
   const allItems = Object.values(data.itemsByType).flat();
-  const totalDownloads = allItems.reduce((sum, item) => sum + item.totalDownloads, 0);
+  // Credit-aware: matches the analytics totals (per-version credited downloads
+  // when the credits artifact is available, listing totals otherwise).
+  const totalDownloads = data.analytics.downloads.total;
   const hasPublishedAssets = allItems.length > 0;
 
   const metrics: DetailMetric[] = [

@@ -35,6 +35,7 @@ type RawManifest = {
     url?: string;
   };
   collaborators?: unknown[];
+  caretakers?: unknown[];
 };
 
 type RawIntegrity = {
@@ -424,6 +425,36 @@ function resolveAuthorHref(authorId: string | null, authorsIndex: RawAuthorsInde
   return entry?.attribution_link?.trim() || null;
 }
 
+/**
+ * Resolves the github id of a listing's ACTIVE caretaker: the `caretakers`
+ * history entry without an `until` timestamp. Closed windows (entries with
+ * `until`) never yield an active caretaker.
+ */
+export function resolveActiveCaretakerGithubId(caretakers: unknown): number | null {
+  if (!Array.isArray(caretakers)) {
+    return null;
+  }
+
+  for (let index = caretakers.length - 1; index >= 0; index -= 1) {
+    const entry = caretakers[index];
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+
+    const { github_id: githubIdValue, until } = entry as { github_id?: unknown; until?: unknown };
+    if (typeof until === "string" && until.trim()) {
+      continue;
+    }
+
+    const githubId = toGithubId(githubIdValue);
+    if (githubId !== null) {
+      return githubId;
+    }
+  }
+
+  return null;
+}
+
 function resolveCollaborators(
   manifest: RawManifest,
   authorsIndex: RawAuthorsIndex,
@@ -433,6 +464,8 @@ function resolveCollaborators(
   if (collaboratorIds.length === 0) {
     return [];
   }
+
+  const activeCaretakerGithubId = resolveActiveCaretakerGithubId(manifest.caretakers);
 
   const authorByGithubId = new Map<number, { authorId: string; authorLabel: string }>();
   for (const author of authorsIndex.authors ?? []) {
@@ -471,7 +504,10 @@ function resolveCollaborators(
     }
 
     seenAuthorIds.add(normalizedAuthorId);
-    result.push(matchedAuthor);
+    result.push({
+      ...matchedAuthor,
+      isActiveCaretaker: activeCaretakerGithubId !== null && githubId === activeCaretakerGithubId,
+    });
   }
 
   return result;

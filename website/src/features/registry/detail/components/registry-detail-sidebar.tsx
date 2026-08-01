@@ -7,6 +7,7 @@ import {
   ExternalLink,
   FolderGit2,
   RefreshCcw,
+  UserPen,
   UserRound,
 } from "lucide-react";
 import {
@@ -174,13 +175,20 @@ export function RegistryDetailSidebar({
               key={collaborator.authorId}
               className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground"
             >
-              <UserRound className="size-4.5 text-foreground" aria-hidden={true} />
+              {collaborator.isActiveCaretaker ? (
+                <UserPen className="size-4.5 text-foreground" aria-hidden={true} />
+              ) : (
+                <UserRound className="size-4.5 text-foreground" aria-hidden={true} />
+              )}
               <Link
                 to={`/registry/authors/${encodeURIComponent(collaborator.authorId)}`}
                 className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-author-accent-light)] hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-light)_62%,transparent)] dark:hover:text-[var(--registry-author-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-dark)_62%,transparent)]"
               >
                 {collaborator.authorLabel}
               </Link>
+              {collaborator.isActiveCaretaker ? (
+                <span className="text-sm font-medium text-muted-foreground">Caretaker</span>
+              ) : null}
               <AuthorRoleBadge authorId={collaborator.authorId} className="cursor-pointer" />
               <Link
                 to={`/registry/authors/${encodeURIComponent(collaborator.authorId)}`}
