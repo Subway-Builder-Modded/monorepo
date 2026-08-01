@@ -6,7 +6,6 @@ import {
 import {
   ADMIN_AUTHOR_ID,
   computeCreditedTotalsByAuthor,
-  getCurrentCreditedByListing,
   loadVersionDownloadsByTypeId,
   type AuthorDownloadTotals,
 } from "@/features/registry/lib/credited-downloads";
@@ -243,11 +242,6 @@ function extractDailyDownloadHistory(row: Record<string, string>) {
     }));
 }
 
-function sumLatestDailyDownloads(history: Array<{ downloads: number }>, days: number) {
-  if (history.length === 0) return null;
-  return history.slice(-days).reduce((total, point) => total + point.downloads, 0);
-}
-
 function computeRank(id: string, rows: Array<{ id: string; value: number | null }>) {
   const sorted = rows
     .filter((row): row is { id: string; value: number } => row.value !== null)
@@ -413,11 +407,74 @@ function computeAuthorProjects(
     .sort((left, right) => right.totalDownloads - left.totalDownloads);
 }
 
+type ManifestCaretakerWindow = { github_id?: unknown; since?: string; until?: string };
+
+type ListingCreditWindow = { since: number; until: number | null; personId: string };
+
+/**
+ * Extracts caretaker windows from every listing manifest, resolving the
+ * caretaker github_id to an author login via the authors index. Keyed by
+ * `${typeId}:${listingId}` to match the daily-analytics lookups.
+ */
+function buildListingCreditWindows(
+  allItemsByType: Record<string, RegistrySearchItem[]>,
+  authorByGithubId: Map<number, RegistryAuthorContributor>,
+): Map<string, ListingCreditWindow[]> {
+  const windowsByListing = new Map<string, ListingCreditWindow[]>();
+
+  for (const typeConfig of REGISTRY_TYPES) {
+    for (const item of allItemsByType[typeConfig.id] ?? []) {
+      const caretakers = (item.manifest as { caretakers?: ManifestCaretakerWindow[] }).caretakers;
+      if (!Array.isArray(caretakers) || caretakers.length === 0) continue;
+
+      const windows: ListingCreditWindow[] = [];
+      for (const window of caretakers) {
+        const githubId = toGithubId(window.github_id);
+        const since = Date.parse(window.since ?? "");
+        if (githubId === null || !Number.isFinite(since)) continue;
+        const personId = authorByGithubId.get(githubId)?.authorId;
+        if (!personId) continue;
+        const until = Date.parse(window.until ?? "");
+        windows.push({
+          since,
+          until: Number.isFinite(until) ? until : null,
+          personId: normalizeAuthorId(personId),
+        });
+      }
+      if (windows.length > 0) {
+        windowsByListing.set(`${typeConfig.id}:${item.id}`, windows);
+      }
+    }
+  }
+
+  return windowsByListing;
+}
+
+/**
+ * The person credited for a listing's downloads on a given day: the caretaker
+ * whose [since, until) window contains the day, the primary author otherwise.
+ * Day-grain approximation of the per-version released_at crediting rule.
+ */
+function resolveCreditedPersonIdForDate(
+  dateTs: number,
+  windows: ListingCreditWindow[] | undefined,
+  primaryAuthorId: string,
+): string {
+  if (windows) {
+    for (const window of windows) {
+      if (dateTs >= window.since && (window.until === null || dateTs < window.until)) {
+        return window.personId;
+      }
+    }
+  }
+  return primaryAuthorId;
+}
+
 function computeAuthorHistory(
   normalizedAuthorId: string,
   dailyRows: Array<Record<string, string>>,
   itemAuthorByTypeAndId: Map<string, string>,
-  caretakenListingKeys: Set<string>,
+  creditWindowsByListing: Map<string, ListingCreditWindow[]>,
 ): RegistryAuthorDownloadHistoryPoint[] {
   const byDate = new Map<string, RegistryAuthorDownloadHistoryPoint>();
 
@@ -425,12 +482,22 @@ function computeAuthorHistory(
     const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
     const id = row["id"] ?? "";
     if (!typeId) continue;
-    const isAuthored = itemAuthorByTypeAndId.get(`${typeId}:${id}`) === normalizedAuthorId;
-    const isCaretaken =
-      !isAuthored && caretakenListingKeys.has(`${getListingTypeForTypeId(typeId)}:${id}`);
-    if (!isAuthored && !isCaretaken) continue;
+    const typeKey = `${typeId}:${id}`;
+    const listingAuthorId = itemAuthorByTypeAndId.get(typeKey) ?? "";
+    const windows = creditWindowsByListing.get(typeKey);
+    const isAuthor = listingAuthorId === normalizedAuthorId;
+    if (!isAuthor && !windows?.some((window) => window.personId === normalizedAuthorId)) {
+      continue;
+    }
 
     for (const point of extractDailyDownloadHistory(row)) {
+      const creditedId = resolveCreditedPersonIdForDate(
+        Date.parse(point.date),
+        windows,
+        listingAuthorId,
+      );
+      if (creditedId !== normalizedAuthorId) continue;
+
       const current = byDate.get(point.date) ?? {
         date: point.date,
         total: 0,
@@ -440,7 +507,7 @@ function computeAuthorHistory(
         caretakenMaps: 0,
         caretakenMods: 0,
       };
-      if (isAuthored) {
+      if (isAuthor) {
         current.total += point.downloads;
         if (typeId === "maps") current.maps += point.downloads;
         if (typeId === "mods") current.mods += point.downloads;
@@ -464,7 +531,7 @@ function computeAuthorTrends(
   normalizedAuthorId: string,
   dailyRows: Array<Record<string, string>>,
   itemAuthorByTypeAndId: Map<string, string>,
-  currentCreditedByListing: Map<string, string>,
+  creditWindowsByListing: Map<string, ListingCreditWindow[]>,
 ): RegistryAuthorDownloadTrend[] {
   const periods = [
     { period: "1d" as const, label: "Last 24 Hours", days: 1 },
@@ -480,16 +547,23 @@ function computeAuthorTrends(
       const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
       const id = row["id"] ?? "";
       if (!typeId) continue;
-      // Recent downloads land on the listing's latest version, so they are
-      // attributed to whoever is credited for it (the active caretaker when
-      // one exists, the primary author otherwise).
-      const authorId =
-        currentCreditedByListing.get(`${getListingTypeForTypeId(typeId)}:${id}`) ??
-        itemAuthorByTypeAndId.get(`${typeId}:${id}`);
-      if (!authorId || authorId === ADMIN_AUTHOR_ID) continue;
-      const downloads = sumLatestDailyDownloads(extractDailyDownloadHistory(row), days);
-      if (downloads === null || downloads <= 0) continue;
-      totalsByAuthor.set(authorId, (totalsByAuthor.get(authorId) ?? 0) + downloads);
+      const typeKey = `${typeId}:${id}`;
+      const listingAuthorId = itemAuthorByTypeAndId.get(typeKey);
+      if (!listingAuthorId) continue;
+      const windows = creditWindowsByListing.get(typeKey);
+
+      // Same day-grain crediting as the history chart: each day's downloads
+      // go to whoever held the credit window that day.
+      for (const point of extractDailyDownloadHistory(row).slice(-days)) {
+        if (point.downloads <= 0) continue;
+        const creditedId = resolveCreditedPersonIdForDate(
+          Date.parse(point.date),
+          windows,
+          listingAuthorId,
+        );
+        if (!creditedId || creditedId === ADMIN_AUTHOR_ID) continue;
+        totalsByAuthor.set(creditedId, (totalsByAuthor.get(creditedId) ?? 0) + point.downloads);
+      }
     }
 
     const downloads = totalsByAuthor.get(normalizedAuthorId) ?? null;
@@ -781,14 +855,10 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
   const downloads: AuthorDownloadTotals = creditedTotalsByAuthor
     ? (creditedTotalsByAuthor.get(normalizedAuthorId) ?? { total: 0, maps: 0, mods: 0 })
     : getAuthorTotals(itemsByType);
-  const caretakenListingKeys = new Set(
-    caretakenItems.map((item) =>
-      getListingVersionCreditsKey(getListingTypeForTypeId(item.type), item.id),
-    ),
+  const creditWindowsByListing = buildListingCreditWindows(
+    allItemsByType,
+    buildAuthorByGithubId(authorsIndex),
   );
-  const currentCreditedByListing = credits
-    ? getCurrentCreditedByListing(credits)
-    : new Map<string, string>();
   const caretakenItemsByType = Object.fromEntries(
     REGISTRY_TYPES.map((typeConfig) => [
       typeConfig.id,
@@ -808,13 +878,13 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
       normalizedAuthorId,
       dailyRows,
       itemAuthorByTypeAndId,
-      caretakenListingKeys,
+      creditWindowsByListing,
     ),
     trends: computeAuthorTrends(
       normalizedAuthorId,
       dailyRows,
       itemAuthorByTypeAndId,
-      currentCreditedByListing,
+      creditWindowsByListing,
     ),
     rankingsByType: Object.fromEntries(
       REGISTRY_TYPES.map((typeConfig) => [
