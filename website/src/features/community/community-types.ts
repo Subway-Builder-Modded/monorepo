@@ -1,4 +1,4 @@
-export type CommunityTimedPeriod = "3d" | "7d" | "14d";
+export type CommunityTimedPeriod = "3d" | "7d" | "14d" | "30d";
 export type CommunityPeriod = CommunityTimedPeriod | "all";
 
 export type DiscordServerDay = {

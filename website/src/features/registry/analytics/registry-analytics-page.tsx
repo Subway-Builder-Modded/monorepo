@@ -111,6 +111,7 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
   "3d": "/registry/analytics/overview/3d",
   "7d": "/registry/analytics/overview/7d",
   "14d": "/registry/analytics/overview/14d",
+  "30d": "/registry/analytics/overview/30d",
 };
 
 const CONTENT_ASSET_INCREMENT = 20;
@@ -121,6 +122,7 @@ const PERIODS = [
   { id: "3d" as const, label: "Last 3 Days" },
   { id: "7d" as const, label: "Last 7 Days" },
   { id: "14d" as const, label: "Last 14 Days" },
+  { id: "30d" as const, label: "Last 30 Days" },
 ];
 
 const numberFormatter = new Intl.NumberFormat("en-US");
@@ -187,7 +189,7 @@ function RegistryAnalyticsTabs({
 function PeriodToggle({
   value,
   onChange,
-  className = "grid-cols-2 sm:grid-cols-4",
+  className = "grid-cols-2 sm:grid-cols-5",
   style,
 }: {
   value: RegistryAnalyticsPeriodId;
@@ -755,7 +757,7 @@ function RegistryContentTab({
               preserveScroll: true,
             })
           }
-          className="grid-cols-2 sm:grid-cols-4"
+          className="grid-cols-2 sm:grid-cols-5"
           style={
             {
               "--registry-type-accent": "var(--suite-accent-light)",

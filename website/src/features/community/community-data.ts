@@ -15,6 +15,7 @@ const PERIOD_DAYS: Record<CommunityTimedPeriod, number> = {
   "3d": 3,
   "7d": 7,
   "14d": 14,
+  "30d": 30,
 };
 
 type DatasetState = "ready" | "missing" | "empty" | "malformed";
@@ -439,6 +440,7 @@ export function buildCommunityPageModel(
       "3d": buildPeriodModel("3d", serverRows, userRows),
       "7d": buildPeriodModel("7d", serverRows, userRows),
       "14d": buildPeriodModel("14d", serverRows, userRows),
+      "30d": buildPeriodModel("30d", serverRows, userRows),
     },
     allTime: buildAllTimeSummary(serverRows),
     allTimePoints: toPeriodPoints(serverRows),

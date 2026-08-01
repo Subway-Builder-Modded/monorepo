@@ -319,6 +319,7 @@ function computeProjectTrends(
     { period: "3d" as const, label: "Last 3 Days", days: 3 },
     { period: "7d" as const, label: "Last 7 Days", days: 7 },
     { period: "14d" as const, label: "Last 14 Days", days: 14 },
+    { period: "30d" as const, label: "Last 30 Days", days: 30 },
   ];
 
   return periods.map(({ period, label, days }) => {

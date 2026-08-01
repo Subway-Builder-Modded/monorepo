@@ -1,6 +1,6 @@
 export type RailyardPageId = "railyard" | "analytics";
 export type RailyardAnalyticsTabId = "overview" | "timeline" | "versions" | "operating-systems";
-export type RailyardAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d";
+export type RailyardAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d" | "30d";
 
 export type RailyardRouteMatch =
   | {

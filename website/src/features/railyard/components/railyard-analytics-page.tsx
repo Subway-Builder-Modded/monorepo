@@ -104,18 +104,21 @@ const PERIOD_TAB_PATHS: Record<
     "3d": "/railyard/analytics/timeline/3d",
     "7d": "/railyard/analytics/timeline/7d",
     "14d": "/railyard/analytics/timeline/14d",
+    "30d": "/railyard/analytics/timeline/30d",
   },
   versions: {
     "all-time": "/railyard/analytics/versions/all-time",
     "3d": "/railyard/analytics/versions/3d",
     "7d": "/railyard/analytics/versions/7d",
     "14d": "/railyard/analytics/versions/14d",
+    "30d": "/railyard/analytics/versions/30d",
   },
   "operating-systems": {
     "all-time": "/railyard/analytics/operating-systems/all-time",
     "3d": "/railyard/analytics/operating-systems/3d",
     "7d": "/railyard/analytics/operating-systems/7d",
     "14d": "/railyard/analytics/operating-systems/14d",
+    "30d": "/railyard/analytics/operating-systems/30d",
   },
 };
 
@@ -124,6 +127,7 @@ const TIMELINE_PERIODS = [
   { id: "3d" as const, label: "Last 3 Days", days: 3 },
   { id: "7d" as const, label: "Last 7 Days", days: 7 },
   { id: "14d" as const, label: "Last 14 Days", days: 14 },
+  { id: "30d" as const, label: "Last 30 Days", days: 30 },
 ];
 const GRAPH_EXCLUDED_DATES = new Set(["2026-03-30"]);
 

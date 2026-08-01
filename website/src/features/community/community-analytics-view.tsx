@@ -15,7 +15,7 @@ import type {
   CommunityTimedPeriod,
 } from "@/features/community/community-types";
 
-const ALL_PERIODS: CommunityPeriod[] = ["3d", "7d", "14d", "all"];
+const ALL_PERIODS: CommunityPeriod[] = ["3d", "7d", "14d", "30d", "all"];
 
 function periodLabel(period: CommunityPeriod): string {
   return period === "all" ? "All Time" : period;

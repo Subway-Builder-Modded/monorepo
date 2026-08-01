@@ -2,7 +2,7 @@ import { loadCreatorDatabaseData } from "@/features/registry/authors/lib/load-cr
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
-export type RegistryAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d";
+export type RegistryAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d" | "30d";
 export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
 
 export type RegistryAnalyticsHistoryPoint = {
@@ -119,6 +119,7 @@ const RANKING_URLS = {
   "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
   "3d": "/registry-cache/analytics/most_popular_last_3d.csv",
   "7d": "/registry-cache/analytics/most_popular_last_7d.csv",
+  "30d": "/registry-cache/analytics/most_popular_last_30d.csv",
 } as const;
 
 function safeFetchText(url: string): Promise<string> {
@@ -423,6 +424,7 @@ function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
     "3d": { maps: [], mods: [] },
     "7d": { maps: [], mods: [] },
     "14d": { maps: [], mods: [] },
+    "30d": { maps: [], mods: [] },
   };
 }
 
@@ -513,6 +515,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     allTimeRaw,
     last3Raw,
     last7Raw,
+    last30Raw,
   ] = await Promise.all([
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
@@ -526,6 +529,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(RANKING_URLS["all-time"]),
     safeFetchText(RANKING_URLS["3d"]),
     safeFetchText(RANKING_URLS["7d"]),
+    safeFetchText(RANKING_URLS["30d"]),
   ]);
 
   const authorRows = parseCsv(authorDayRaw);
@@ -550,6 +554,11 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     validItemsById,
   );
   contentRankings["14d"] = buildFourteenDayRankings(byDayRows, validItemsById);
+  contentRankings["30d"] = normalizeRankingRows(
+    parseCsv(last30Raw),
+    (row) => getNumber(row.adjusted_download_change || row.download_change),
+    validItemsById,
+  );
   const history = normalizeHistory(byDayRows, allItems);
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
