@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   BookText,
   ChartLine,
@@ -9,7 +16,7 @@ import {
   FileStack,
   FolderGit2,
   LayoutDashboard,
-  Map,
+  Map as MapAreaIcon,
   Plus,
   Search,
   Trophy,
@@ -39,8 +46,13 @@ import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { RegistryAnalyticsPeriodToggle as PeriodToggle } from "@/features/registry/analytics/components/analytics-period-toggle";
-import { CHART_CARD_CLASS, CHART_CARD_FLUSH_CLASS, ChartCard } from "@/shared/styles/panels";
-import { TopAuthorsChart } from "@/features/registry/analytics/components/top-authors-chart";
+import {
+  CHART_CARD_CLASS,
+  CHART_CARD_FLUSH_CLASS,
+  ChartCard,
+  ChartEmptyState,
+} from "@/shared/styles/panels";
+import { TopEntitiesChart } from "@/features/registry/analytics/components/top-entities-chart";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { RegistryEmptyState } from "@/features/registry/components/browse/registry-empty-state";
@@ -95,7 +107,7 @@ const TABS: RegistryAnalyticsTabItem[] = [
   { id: "content", label: "Content", icon: FileStack },
   { id: "authors", label: "Authors", icon: Users },
   { id: "projects", label: "Projects", icon: FolderGit2 },
-  { id: "map-statistics", label: "Map Statistics", icon: Map },
+  { id: "map-statistics", label: "Map Statistics", icon: MapAreaIcon },
 ];
 
 const TAB_PATHS: Record<RegistryAnalyticsTabId, string> = {
@@ -576,11 +588,47 @@ function RegistryContentTab({
     () => getGraphHistory(data.history, period).filter((row) => row.date !== "2026-03-11"),
     [data.history, period],
   );
+  // The chart lags a keystroke behind the table via useDeferredValue so typing
+  // stays smooth while recharts re-renders.
+  const deferredRankingQuery = useDeferredValue(rankingQuery);
+  const isChartFiltered = deferredRankingQuery.trim().length > 0;
+  const filteredListingSeries = useMemo(() => {
+    const normalizedQuery = deferredRankingQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return data.listings.dailyDownloads;
+    }
+    return {
+      dates: data.listings.dailyDownloads.dates,
+      entities: data.listings.dailyDownloads.entities.filter((entity) =>
+        matchesRegistrySearch(entity.searchValues ?? [entity.name, entity.id], normalizedQuery),
+      ),
+    };
+  }, [data.listings.dailyDownloads, deferredRankingQuery]);
+  // While a search is active the aggregate chart sums only the matching
+  // listings, so the whole tab below the search bar reflects the filter.
+  const filteredAggregateByDate = useMemo(() => {
+    if (!isChartFiltered) {
+      return null;
+    }
+    const byDate = new Map<string, number>();
+    for (const entity of filteredListingSeries.entities) {
+      for (const [date, point] of entity.byDate) {
+        const downloads = assetTypeId === "maps" ? point.maps : point.mods;
+        if (downloads > 0) {
+          byDate.set(date, (byDate.get(date) ?? 0) + downloads);
+        }
+      }
+    }
+    return byDate;
+  }, [assetTypeId, filteredListingSeries, isChartFiltered]);
   const chartData = graphRows.map((row) => ({
     date: row.date,
-    Downloads: row.downloads[assetTypeId],
+    Downloads: filteredAggregateByDate
+      ? (filteredAggregateByDate.get(row.date) ?? 0)
+      : row.downloads[assetTypeId],
   }));
   const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const hasFilterMatches = !isChartFiltered || filteredListingSeries.entities.length > 0;
   const baseRows = data.contentRankings[period][assetTypeId];
   const sortedRows = useMemo(
     () => [...baseRows].sort((left, right) => compareDownloads(left, right, sortDirection)),
@@ -732,37 +780,64 @@ function RegistryContentTab({
         />
       </div>
 
+      {/* Filters everything below it: the aggregate chart, the Top chart, and the rankings. */}
+      <RegistryToolbarSearch
+        query={rankingQuery}
+        onChange={setRankingQuery}
+        placeholder={`Search ${typeConfig.pluralLabel.toLowerCase()}...`}
+        inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+        id={`registry-content-rankings-search-${assetTypeId}`}
+      />
+
       <section className="space-y-3">
-        <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
+        <SectionSeparator
+          label={isChartFiltered ? "Filtered Downloads" : "Downloads"}
+          icon={Download}
+          className="mb-4"
+        />
         <article className={CHART_CARD_CLASS}>
-          <AnalyticsLineChart
-            key={`registry-content-${assetTypeId}-${period}`}
-            data={chartData}
-            lines={[
-              {
-                key: "Downloads",
-                name: "Downloads",
-                color: "var(--registry-type-accent)",
-              },
-            ]}
-            xAxisKey="date"
-            xAxisTicks={chartTicks}
-            height={280}
-            startAtZero={true}
-          />
+          {hasFilterMatches ? (
+            <AnalyticsLineChart
+              key={`registry-content-${assetTypeId}-${period}-${isChartFiltered ? "filtered" : "all"}`}
+              data={chartData}
+              lines={[
+                {
+                  key: "Downloads",
+                  name: "Downloads",
+                  color: "var(--registry-type-accent)",
+                },
+              ]}
+              xAxisKey="date"
+              xAxisTicks={chartTicks}
+              height={280}
+              startAtZero={true}
+            />
+          ) : (
+            <ChartEmptyState
+              label={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
+            />
+          )}
         </article>
       </section>
 
       <section>
-        <SectionSeparator label="Rankings" icon={FileStack} className="mb-4" />
-        <RegistryToolbarSearch
-          query={rankingQuery}
-          onChange={setRankingQuery}
-          placeholder={`Search ${typeConfig.pluralLabel.toLowerCase()}...`}
+        <SectionSeparator
+          label={`Top ${typeConfig.pluralLabel}`}
+          icon={typeConfig.icon ?? FileStack}
           className="mb-4"
-          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
-          id={`registry-content-rankings-search-${assetTypeId}`}
         />
+        <TopEntitiesChart
+          series={filteredListingSeries}
+          entityKey={assetTypeId}
+          period={period}
+          assetType={assetTypeId}
+          filtered={isChartFiltered}
+          emptyLabel={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
+        />
+      </section>
+
+      <section>
+        <SectionSeparator label="Rankings" icon={FileStack} className="mb-4" />
         <RegistryRankingsTable
           rows={filteredRows}
           rankByRowKey={rankByRowKey}
@@ -883,6 +958,23 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     if (!trimmedQuery) return sortedRows;
     return sortedRows.filter((row) => matchesRegistrySearch([row.name, row.id], trimmedQuery));
   }, [query, sortedRows]);
+  // Authors filter by name/id only: matching by their assets' vocabulary would
+  // show total downloads under an asset-scoped query, which misleads. The
+  // chart lags a keystroke behind the table via useDeferredValue.
+  const deferredQuery = useDeferredValue(query);
+  const isChartFiltered = deferredQuery.trim().length > 0;
+  const filteredAuthorSeries = useMemo(() => {
+    const trimmedQuery = deferredQuery.trim();
+    if (!trimmedQuery) {
+      return data.authors.dailyDownloads;
+    }
+    return {
+      dates: data.authors.dailyDownloads.dates,
+      entities: data.authors.dailyDownloads.entities.filter((entity) =>
+        matchesRegistrySearch(entity.searchValues ?? [entity.name, entity.id], trimmedQuery),
+      ),
+    };
+  }, [data.authors.dailyDownloads, deferredQuery]);
 
   const handleSort = (nextSortKey: AuthorRankingSortKey) => {
     setDirections((current) => ({
@@ -1009,21 +1101,28 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         </article>
       </section>
 
+      {/* The Timeline above counts all authors; everything below the search
+          (Top chart, pie, rankings) reflects the name/id filter. */}
+      <RegistryToolbarSearch
+        query={query}
+        onChange={setQuery}
+        placeholder="Search authors..."
+        inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+        id="registry-author-rankings-search"
+      />
+
       <section>
         <SectionSeparator label="Top Authors" icon={Users} className="mb-4" />
-        <TopAuthorsChart series={data.authors.dailyDownloads} />
+        <TopEntitiesChart
+          series={filteredAuthorSeries}
+          entityKey="authors"
+          filtered={isChartFiltered}
+          emptyLabel="No authors match the current filters."
+        />
       </section>
 
       <section>
         <SectionSeparator label="Rankings" icon={Trophy} className="mb-4" />
-        <RegistryToolbarSearch
-          query={query}
-          onChange={setQuery}
-          placeholder="Search authors..."
-          className="mb-4"
-          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
-          id="registry-author-rankings-search"
-        />
         <RegistryRankingsTable
           rows={filteredRows}
           rankByRowKey={rankByRowKey}
@@ -1075,6 +1174,22 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
       matchesRegistrySearch([row.name, row.id, row.authorName, row.authorId], trimmedQuery),
     );
   }, [query, sortedRows]);
+  // The chart lags a keystroke behind the table via useDeferredValue so typing
+  // stays smooth while recharts re-renders.
+  const deferredQuery = useDeferredValue(query);
+  const isChartFiltered = deferredQuery.trim().length > 0;
+  const filteredProjectSeries = useMemo(() => {
+    const trimmedQuery = deferredQuery.trim();
+    if (!trimmedQuery) {
+      return data.projects.dailyDownloads;
+    }
+    return {
+      dates: data.projects.dailyDownloads.dates,
+      entities: data.projects.dailyDownloads.entities.filter((entity) =>
+        matchesRegistrySearch(entity.searchValues ?? [entity.name, entity.id], trimmedQuery),
+      ),
+    };
+  }, [data.projects.dailyDownloads, deferredQuery]);
 
   const handleSort = (nextSortKey: ProjectRankingSortKey) => {
     setDirections((current) => ({
@@ -1210,16 +1325,27 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         } as CSSProperties
       }
     >
+      {/* Filters everything below it: the Top chart, the pie, and the rankings. */}
+      <RegistryToolbarSearch
+        query={query}
+        onChange={setQuery}
+        placeholder="Search projects..."
+        inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+        id="registry-project-rankings-search"
+      />
+
+      <section>
+        <SectionSeparator label="Top Projects" icon={FolderGit2} className="mb-4" />
+        <TopEntitiesChart
+          series={filteredProjectSeries}
+          entityKey="projects"
+          filtered={isChartFiltered}
+          emptyLabel="No projects match the current filters."
+        />
+      </section>
+
       <section>
         <SectionSeparator label="Rankings" icon={Trophy} className="mb-4" />
-        <RegistryToolbarSearch
-          query={query}
-          onChange={setQuery}
-          placeholder="Search projects..."
-          className="mb-4"
-          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
-          id="registry-project-rankings-search"
-        />
         <RegistryRankingsTable
           rows={filteredRows}
           rankByRowKey={rankByRowKey}

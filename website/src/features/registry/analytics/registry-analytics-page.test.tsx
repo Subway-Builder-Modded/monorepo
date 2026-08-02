@@ -122,7 +122,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           ],
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
-            authors: [
+            entities: [
               {
                 id: "author-a",
                 name: "Author A",
@@ -135,6 +135,28 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
                 id: "author-b",
                 name: "Author B",
                 byDate: new Map([["2026-03-12", { maps: 0, mods: 2 }]]),
+              },
+            ],
+          },
+        },
+        listings: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "map-a",
+                name: "Map Alpha",
+                searchValues: ["Map Alpha", "map-a", "Tokyo", "Toukyou"],
+                byDate: new Map([
+                  ["2026-03-11", { maps: 4, mods: 0 }],
+                  ["2026-03-12", { maps: 2, mods: 0 }],
+                ]),
+              },
+              {
+                id: "mod-a",
+                name: "Mod Alpha",
+                searchValues: ["Mod Alpha", "mod-a", "Alternate Mod"],
+                byDate: new Map([["2026-03-12", { maps: 0, mods: 3 }]]),
               },
             ],
           },
@@ -166,6 +188,24 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               assets: 1,
             },
           ],
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "author-a/project-a",
+                name: "Project A",
+                byDate: new Map([
+                  ["2026-03-11", { maps: 6, mods: 0 }],
+                  ["2026-03-12", { maps: 4, mods: 0 }],
+                ]),
+              },
+              {
+                id: "author-b/project-b",
+                name: "Project B",
+                byDate: new Map([["2026-03-12", { maps: 2, mods: 0 }]]),
+              },
+            ],
+          },
         },
         mapStatistics: {
           rankings: [
@@ -239,7 +279,11 @@ describe("RegistryAnalyticsPage", () => {
       expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
     });
 
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent("1 points · Downloads");
+    const contentLineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(contentLineCharts[0]).toHaveTextContent("1 points · Downloads");
+    // Top Mods chart: only mod listings chart in the mods cut.
+    expect(screen.getByText("Top Mods")).toBeInTheDocument();
+    expect(contentLineCharts[1]).toHaveTextContent("2 points · Mod Alpha");
     expect(screen.getByText("Rankings")).toBeInTheDocument();
     expect(screen.getByText("Author B")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Mod Alpha/i })).toHaveAttribute(
@@ -261,6 +305,11 @@ describe("RegistryAnalyticsPage", () => {
     });
 
     expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
+    // The Top chart follows the search filter and flags it in its titles.
+    await waitFor(() => {
+      expect(screen.getByText("Filtered Daily Downloads")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Filtered Download Share")).toBeInTheDocument();
 
     fireEvent.change(searchInput, {
       target: { value: "missing asset" },
@@ -268,6 +317,11 @@ describe("RegistryAnalyticsPage", () => {
 
     expect(screen.getByText("No items match your search.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Clear Filters" })).toBeInTheDocument();
+    // Nothing left to chart: both the aggregate and Top cards show the
+    // placeholder, keeping their spacing.
+    await waitFor(() => {
+      expect(screen.getAllByText("No mods match the current filters.")).toHaveLength(2);
+    });
   });
 
   it("searches content analytics maps by country aliases", async () => {
@@ -320,11 +374,12 @@ describe("RegistryAnalyticsPage", () => {
       expect(screen.getByText("Project A")).toBeInTheDocument();
     });
 
+    expect(screen.getByText("Top Projects")).toBeInTheDocument();
     expect(screen.getByText("Rankings")).toBeInTheDocument();
-    expect(screen.getByText("Author")).toBeInTheDocument();
-    expect(screen.getByText("Maps")).toBeInTheDocument();
-    expect(screen.queryByText("Mods")).not.toBeInTheDocument();
-    expect(screen.getByText("Assets")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Author" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Maps" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Mods" })).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Assets" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search projects...")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Project A/i })).toHaveAttribute(
       "href",
