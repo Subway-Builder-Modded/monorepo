@@ -50,6 +50,13 @@ import {
 import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
 import { getSuiteById } from "@/config/site-navigation";
 import { AnalyticsModeToggle } from "@/shared/analytics/analytics-mode-toggle";
+import {
+  CHART_CARD_CLASS,
+  CHART_CARD_FLUSH_CLASS,
+  SECTION_CARD_STYLE,
+  accentChipBadgeStyle,
+  accentChipStyle,
+} from "@/shared/styles/panels";
 import { Link, navigate } from "@/lib/router";
 import { NotFoundPage } from "@/features/not-found";
 import { AuthorRoleBadge } from "@/features/registry/components/author-role-badge";
@@ -382,11 +389,7 @@ function AuthorAssetSection({
           </h3>
           <span
             className="rounded-lg border px-3 py-1 text-lg font-semibold tabular-nums sm:text-xl"
-            style={{
-              color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
-              borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 34%, transparent)`,
-              background: `color-mix(in srgb, ${typeConfig.accentLight} 10%, transparent)`,
-            }}
+            style={accentChipStyle(typeConfig.accentLight, typeConfig.accentDark)}
           >
             {formatNumber(items.length)}
           </span>
@@ -579,9 +582,7 @@ function AuthorPublishedAssets({
       <SectionSeparator label={sectionLabel} icon={Package} className="mb-4" />
       <section
         className="space-y-5 rounded-xl border border-border/70 p-4 sm:p-5"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-        }}
+        style={SECTION_CARD_STYLE}
       >
         {typeOptions.length > 1 ? (
           <div className="flex justify-center">
@@ -633,22 +634,13 @@ function ProjectTypeCountPill({ typeId, count }: { typeId: "maps" | "mods"; coun
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold"
-      style={
-        {
-          color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
-          borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 34%, transparent)`,
-          background: `color-mix(in srgb, ${typeConfig.accentLight} 10%, transparent)`,
-        } as CSSProperties
-      }
+      style={accentChipStyle(typeConfig.accentLight, typeConfig.accentDark)}
     >
       <Icon className="size-3.5" aria-hidden={true} />
       <span>{typeConfig.pluralLabel}</span>
       <span
         className="rounded border px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums"
-        style={{
-          borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 38%, transparent)`,
-          background: `color-mix(in srgb, ${typeConfig.accentLight} 14%, transparent)`,
-        }}
+        style={accentChipBadgeStyle(typeConfig.accentLight)}
       >
         {formatNumber(count)}
       </span>
@@ -710,9 +702,7 @@ function AuthorProjects({ projects }: { projects: RegistryAuthorProjectSummary[]
       <SectionSeparator label="Published Projects" icon={FolderGit2} className="mb-4" />
       <div
         className="space-y-4 rounded-xl border border-border/70 p-4 sm:p-5"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-        }}
+        style={SECTION_CARD_STYLE}
       >
         <RegistryToolbarSearch
           query={query}
@@ -759,7 +749,7 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
   return (
     <div>
       <SectionSeparator label="Recent Trends" icon={TrendingUp} className="mb-4 mt-7" />
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+      <div className={CHART_CARD_FLUSH_CLASS}>
         <ScrollArea scrollbars="horizontal" className="w-full">
           <div className="min-w-[40rem] xl:min-w-0">
             <Table>
@@ -897,7 +887,7 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
     <div>
       <SectionSeparator label="Download History" icon={History} className="mb-4 mt-7" />
       <article
-        className="space-y-4 rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5"
+        className={`space-y-4 ${CHART_CARD_CLASS}`}
         style={{ "--registry-type-accent": activeOption.color } as CSSProperties}
       >
         {hasMultipleAssetTypes ? (
@@ -996,7 +986,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
       }
     >
       <SectionSeparator label="Asset Rankings" icon={Trophy} className="mb-4 mt-7" />
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+      <div className={CHART_CARD_FLUSH_CLASS}>
         {hasMultipleAssetTypes ? (
           <div className="flex justify-center border-b border-border/70 bg-muted/20 p-3">
             <RegistryTypeToggle
@@ -1119,9 +1109,7 @@ function AuthorAnalytics({
           <SectionSeparator label="Analytics" icon={BarChart3} className="mb-4" />
           <div
             className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-xl border border-border/70 p-6 text-center"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-            }}
+            style={SECTION_CARD_STYLE}
           >
             <StickyNoteX className="size-9 text-muted-foreground" aria-hidden={true} />
             <p className="max-w-md text-sm font-medium text-muted-foreground">{emptyMessage}</p>
@@ -1228,9 +1216,7 @@ function AuthorOverview({
           <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
           <section
             className="rounded-xl border border-border/70 p-4 sm:p-5"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-            }}
+            style={SECTION_CARD_STYLE}
           >
             <DetailsMetricGrid
               className={`grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 ${metricGridColumns}`}

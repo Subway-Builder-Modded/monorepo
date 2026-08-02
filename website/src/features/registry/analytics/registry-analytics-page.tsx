@@ -39,6 +39,7 @@ import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { RegistryAnalyticsPeriodToggle as PeriodToggle } from "@/features/registry/analytics/components/analytics-period-toggle";
+import { CHART_CARD_CLASS, CHART_CARD_FLUSH_CLASS, ChartCard } from "@/shared/styles/panels";
 import { TopAuthorsChart } from "@/features/registry/analytics/components/top-authors-chart";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
@@ -179,7 +180,7 @@ function RegistryAnalyticsTabs({
 
 function RegistryPieChartCard({
   title,
-  icon: Icon,
+  icon,
   data,
 }: {
   title: string;
@@ -187,15 +188,9 @@ function RegistryPieChartCard({
   data: PieSlice[];
 }) {
   return (
-    <article className="min-h-[22rem] rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-      <div className="mb-4 flex items-center gap-2">
-        <Icon className="size-4 text-muted-foreground" aria-hidden={true} />
-        <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          {title}
-        </h3>
-      </div>
+    <ChartCard title={title} icon={icon} className="min-h-[22rem]">
       <AnalyticsPieChart data={data} height={250} />
-    </article>
+    </ChartCard>
   );
 }
 
@@ -306,7 +301,7 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Cumulative Downloads" icon={ChartLine} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsStackedBarChart
             key="registry-cumulative-downloads-all-time"
             data={cumulativeChartData}
@@ -341,7 +336,7 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Downloads Timeline" icon={Clock} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsLineChart
             key={`registry-downloads-${period}`}
             data={chartData}
@@ -487,7 +482,7 @@ function RegistryRankingsTable<TRow>({
             </div>
           ))}
         </div>
-        <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+        <div className={CHART_CARD_FLUSH_CLASS}>
           <ScrollArea scrollbars="horizontal" className="w-full">
             <div
               className="min-w-[var(--registry-rankings-table-min-width)] xl:min-w-0"
@@ -739,7 +734,7 @@ function RegistryContentTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsLineChart
             key={`registry-content-${assetTypeId}-${period}`}
             data={chartData}
@@ -996,7 +991,7 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     >
       <section>
         <SectionSeparator label="Timeline" icon={ChartLine} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsLineChart
             key="registry-authors-timeline"
             data={chartData}

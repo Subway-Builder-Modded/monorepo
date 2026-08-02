@@ -17,6 +17,7 @@ import {
   type AnalyticsToggleOption,
 } from "@/shared/analytics/analytics-mode-toggle";
 import { buildTopSeriesWithOthers } from "@/shared/analytics/multi-series";
+import { ChartCard } from "@/shared/styles/panels";
 import {
   REGISTRY_ANALYTICS_PERIOD_OPTIONS,
   RegistryAnalyticsPeriodToggle,
@@ -152,14 +153,10 @@ export function TopAuthorsChart({ series }: { series: RegistryAnalyticsAuthorDai
         />
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <article className="space-y-3 rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <ChartLine className="size-4 text-muted-foreground" aria-hidden={true} />
-              <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Daily Downloads
-              </h3>
-            </div>
+        <ChartCard
+          title="Daily Downloads"
+          icon={ChartLine}
+          actions={
             <AnalyticsModeToggle
               value={chartStyle}
               options={chartStyleOptions}
@@ -167,7 +164,8 @@ export function TopAuthorsChart({ series }: { series: RegistryAnalyticsAuthorDai
               ariaLabel="Top authors chart style"
               compact={true}
             />
-          </div>
+          }
+        >
           {chartStyle === "line" ? (
             <AnalyticsLineChart
               key={`top-authors-line-${period}-${assetType}`}
@@ -189,15 +187,8 @@ export function TopAuthorsChart({ series }: { series: RegistryAnalyticsAuthorDai
               height={280}
             />
           )}
-        </article>
-        <article className="space-y-3 rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-          {/* h-9 matches the chart-style switch row so both card titles align. */}
-          <div className="flex h-9 items-center gap-2">
-            <ChartPie className="size-4 text-muted-foreground" aria-hidden={true} />
-            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-              Download Share
-            </h3>
-          </div>
+        </ChartCard>
+        <ChartCard title="Download Share" icon={ChartPie}>
           <AnalyticsPieChart
             key={`top-authors-pie-${period}-${assetType}`}
             data={chartModel.series.map((entry) => ({
@@ -208,7 +199,7 @@ export function TopAuthorsChart({ series }: { series: RegistryAnalyticsAuthorDai
             }))}
             height={280}
           />
-        </article>
+        </ChartCard>
       </div>
     </div>
   );
