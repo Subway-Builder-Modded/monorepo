@@ -120,6 +120,24 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               caretaker: 2,
             },
           ],
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            authors: [
+              {
+                id: "author-a",
+                name: "Author A",
+                byDate: new Map([
+                  ["2026-03-11", { maps: 5, mods: 0 }],
+                  ["2026-03-12", { maps: 3, mods: 1 }],
+                ]),
+              },
+              {
+                id: "author-b",
+                name: "Author B",
+                byDate: new Map([["2026-03-12", { maps: 0, mods: 2 }]]),
+              },
+            ],
+          },
         },
         projects: {
           rankings: [
@@ -278,7 +296,11 @@ describe("RegistryAnalyticsPage", () => {
     });
 
     expect(screen.getByText("Timeline")).toBeInTheDocument();
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent("2 points · Authors");
+    const lineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(lineCharts[0]).toHaveTextContent("2 points · Authors");
+    // Top Authors chart: both fixture authors drawn as their own series.
+    expect(screen.getByText("Top Authors")).toBeInTheDocument();
+    expect(lineCharts[1]).toHaveTextContent("2 points · Author A, Author B");
     expect(screen.getByText("Authored")).toBeInTheDocument();
     expect(screen.getByText("Collaborator")).toBeInTheDocument();
     expect(screen.getByText("Caretaker")).toBeInTheDocument();

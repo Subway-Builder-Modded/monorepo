@@ -30,9 +30,9 @@ import {
 } from "@subway-builder-modded/shared-ui";
 import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
+import { MULTI_SERIES_PALETTE } from "@/shared/analytics/multi-series";
 import { navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
-import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { railyardDownloadOptions } from "@/features/railyard/railyard-downloads";
 import {
   DetailsMetricGrid,
@@ -160,15 +160,7 @@ function getNextDirection<T extends string>(
     : directions[nextKey];
 }
 
-const VERSION_GRAPH_PALETTE = [
-  getSuiteById("registry").accent.light,
-  getRegistryTypeConfigOrDefault("mods").accentLight,
-  getSuiteById("template-mod").accent.light,
-  getSuiteById("depot").accent.light,
-  getSuiteById("railyard").accent.light,
-  getRegistryTypeConfigOrDefault("maps").accentLight,
-  getSuiteById("website").accent.light,
-];
+const VERSION_GRAPH_PALETTE = MULTI_SERIES_PALETTE;
 const OPERATING_SYSTEM_LINES = [
   { id: "windows" as const, key: "Windows", label: "Windows", color: "#dc2626" },
   { id: "macos" as const, key: "macOS", label: "macOS", color: "#eab308" },

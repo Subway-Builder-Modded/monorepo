@@ -68,7 +68,7 @@ function AnalyticsPieLegend({ data }: { data: PieSlice[] }) {
               }}
               aria-hidden={true}
             />
-            <span style={{ color, fontWeight: 700 }}>{slice.name}</span>
+            <span>{slice.name}</span>
             <span style={{ fontFamily: 'var(--font-mono, ui-monospace, SFMono-Regular, monospace)' }}>
               {formatNumber(slice.value)}
             </span>
@@ -93,16 +93,23 @@ function AnalyticsPieTooltip({
   const color = slice.color ?? 'var(--accent)';
   const share = total > 0 ? (slice.value / total) * 100 : 0;
 
+  // Mirrors AnalyticsTooltip's card + row conventions (colored dot, muted
+  // name, bold value) so pie hovers read like every other chart's.
   return (
-    <div className="rounded-lg border border-border/60 bg-popover px-3 py-2 text-sm shadow-lg">
-      <p className="font-semibold" style={{ color }}>
-        {slice.name}
-      </p>
-      <p className="text-foreground">
-        <span className="font-semibold">{formatNumber(slice.value)}</span>
-        <span aria-hidden={true}> • </span>
-        <span className="font-semibold">{formatPercent(share)}</span>
-      </p>
+    <div className="min-w-[140px] rounded-xl border border-border/70 bg-card/95 px-3 py-2 shadow-lg backdrop-blur-sm">
+      <div className="flex items-center gap-2 text-sm">
+        <span
+          className="size-2 shrink-0 rounded-full"
+          style={{ background: color }}
+          aria-hidden="true"
+        />
+        <span className="text-muted-foreground">{slice.name}</span>
+        <span className="ml-auto pl-3 font-semibold tabular-nums text-foreground">
+          {formatNumber(slice.value)}
+          <span aria-hidden={true}> • </span>
+          {formatPercent(share)}
+        </span>
+      </div>
     </div>
   );
 }

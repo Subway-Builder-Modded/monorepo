@@ -49,6 +49,7 @@ import {
 } from "@subway-builder-modded/shared-ui";
 import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
 import { getSuiteById } from "@/config/site-navigation";
+import { AnalyticsModeToggle } from "@/shared/analytics/analytics-mode-toggle";
 import { Link, navigate } from "@/lib/router";
 import { NotFoundPage } from "@/features/not-found";
 import { AuthorRoleBadge } from "@/features/registry/components/author-role-badge";
@@ -190,56 +191,6 @@ function getNextDirection<T extends string>(
       ? "desc"
       : "asc"
     : directions[nextKey];
-}
-
-function AuthorAnalyticsModeToggle<T extends string>({
-  value,
-  options,
-  onChange,
-  ariaLabel,
-}: {
-  value: T;
-  options: AuthorToggleOption<T>[];
-  onChange: (value: T) => void;
-  ariaLabel: string;
-}) {
-  return (
-    <div
-      role="group"
-      aria-label={ariaLabel}
-      className="isolate inline-flex items-center gap-1 rounded-xl border border-border/50 bg-background/70 p-1 shadow-sm"
-    >
-      {options.map((option) => {
-        const Icon = option.icon;
-        const isActive = value === option.id;
-        return (
-          <button
-            key={option.id}
-            type="button"
-            role="radio"
-            aria-checked={isActive}
-            onClick={() => onChange(option.id)}
-            style={
-              {
-                "--type-accent-light": option.accentLight,
-                "--type-accent-dark": option.accentDark,
-              } as CSSProperties
-            }
-            className={`group relative flex h-9 min-w-[7.25rem] items-center justify-center gap-1.5 rounded-lg border px-2.5 text-sm font-medium transition-[background-color,color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              isActive
-                ? "border-[color-mix(in_srgb,var(--type-accent-light)_44%,transparent)] bg-[color-mix(in_srgb,var(--type-accent-light)_18%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_44%,transparent)] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_18%,var(--background))] dark:text-[var(--type-accent-dark)]"
-                : "border-[color-mix(in_srgb,var(--type-accent-light)_20%,transparent)] bg-transparent text-[var(--type-accent-light)] hover:border-[color-mix(in_srgb,var(--type-accent-light)_36%,transparent)] hover:bg-[color-mix(in_srgb,var(--type-accent-light)_10%,var(--background))] dark:text-[var(--type-accent-dark)] dark:hover:border-[color-mix(in_srgb,var(--type-accent-dark)_36%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_10%,var(--background))]"
-            }`}
-          >
-            <span className="inline-flex flex-1 items-center justify-center gap-1.5">
-              <Icon className="size-4 shrink-0" aria-hidden={true} />
-              <span>{option.label}</span>
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
 }
 
 function getCardVariant(viewMode: RegistryViewMode) {
@@ -951,7 +902,7 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
       >
         {hasMultipleAssetTypes ? (
           <div className="flex justify-center">
-            <AuthorAnalyticsModeToggle
+            <AnalyticsModeToggle
               value={mode}
               options={modeOptions}
               onChange={setMode}

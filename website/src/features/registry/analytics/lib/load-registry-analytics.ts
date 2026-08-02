@@ -1,4 +1,9 @@
 import { loadCreatorDatabaseData } from "@/features/registry/authors/lib/load-creator-database";
+import { ADMIN_AUTHOR_ID } from "@/features/registry/lib/credited-downloads";
+import {
+  buildAuthorDailyDownloadSeries,
+  buildListingCreditWindows,
+} from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
@@ -27,6 +32,17 @@ export type RegistryAnalyticsHistoryPoint = {
 export type RegistryAnalyticsAuthorHistoryPoint = {
   date: string;
   authors: number;
+};
+
+export type RegistryAnalyticsAuthorDailySeries = {
+  /** Ascending date universe (YYYY-MM-DD) of the daily analytics window. */
+  dates: string[];
+  /** One series per credited person (admin excluded), day-grain credit-attributed. */
+  authors: Array<{
+    id: string;
+    name: string;
+    byDate: Map<string, { maps: number; mods: number }>;
+  }>;
 };
 
 export type RegistryAnalyticsAuthorRanking = {
@@ -91,6 +107,7 @@ export type RegistryAnalyticsData = {
   authors: {
     history: RegistryAnalyticsAuthorHistoryPoint[];
     rankings: RegistryAnalyticsAuthorRanking[];
+    dailyDownloads: RegistryAnalyticsAuthorDailySeries;
   };
   projects: {
     rankings: RegistryAnalyticsProjectRanking[];
@@ -563,6 +580,32 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     validItemsById,
   );
   const history = normalizeHistory(byDayRows, allItems);
+  const itemsByTypeRecord = Object.fromEntries(
+    REGISTRY_TYPES.map((typeConfig, index) => [typeConfig.id, itemEntries[index] ?? []]),
+  );
+  const authorLoginByGithubId = new Map<number, string>();
+  for (const author of creatorData.authors) {
+    if (typeof author.githubId === "number") {
+      authorLoginByGithubId.set(author.githubId, author.id);
+    }
+  }
+  const authorDaily = buildAuthorDailyDownloadSeries({
+    dailyRows: byDayRows,
+    items: allItems,
+    creditWindowsByListing: buildListingCreditWindows(itemsByTypeRecord, authorLoginByGithubId),
+    excludedPersonIds: [ADMIN_AUTHOR_ID],
+  });
+  const authorLabelById = new Map(
+    creatorData.authors.map((author) => [author.id.trim().toLowerCase(), author.label]),
+  );
+  const authorDailyDownloads: RegistryAnalyticsAuthorDailySeries = {
+    dates: authorDaily.dates,
+    authors: authorDaily.authors.map((series) => ({
+      id: series.id,
+      name: authorLabelById.get(series.id) ?? series.id,
+      byDate: series.byDate,
+    })),
+  };
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
   const validMapIds = new Set(maps.map((item) => item.id));
@@ -589,6 +632,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     authors: {
       history: buildAuthorHistory(authorRows, allItems),
       rankings: buildAuthorRankings(creatorData.authors),
+      dailyDownloads: authorDailyDownloads,
     },
     projects: {
       rankings: buildProjectRankings(creatorData.projects),
