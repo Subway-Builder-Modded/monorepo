@@ -26,9 +26,6 @@ import {
   TableCell,
   TableHeader,
   TableRow,
-  Tabs,
-  TabsList,
-  TabsTrigger,
   RankBadge,
   ScrollArea,
   getSortedRankSlotMap,
@@ -41,6 +38,9 @@ import {
 import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
+import { RegistryAnalyticsPeriodToggle as PeriodToggle } from "@/features/registry/analytics/components/analytics-period-toggle";
+import { CHART_CARD_CLASS, CHART_CARD_FLUSH_CLASS, ChartCard } from "@/shared/styles/panels";
+import { TopAuthorsChart } from "@/features/registry/analytics/components/top-authors-chart";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { RegistryEmptyState } from "@/features/registry/components/browse/registry-empty-state";
@@ -117,14 +117,6 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
 const CONTENT_ASSET_INCREMENT = 20;
 const AUTHOR_RANKING_INCREMENT = 20;
 
-const PERIODS = [
-  { id: "all-time" as const, label: "All Time" },
-  { id: "3d" as const, label: "Last 3 Days" },
-  { id: "7d" as const, label: "Last 7 Days" },
-  { id: "14d" as const, label: "Last 14 Days" },
-  { id: "30d" as const, label: "Last 30 Days" },
-];
-
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 function formatNumber(value: number) {
@@ -186,43 +178,9 @@ function RegistryAnalyticsTabs({
   );
 }
 
-function PeriodToggle({
-  value,
-  onChange,
-  className = "grid-cols-2 sm:grid-cols-5",
-  style,
-}: {
-  value: RegistryAnalyticsPeriodId;
-  onChange: (period: RegistryAnalyticsPeriodId) => void;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  return (
-    <Tabs
-      value={value}
-      onValueChange={(nextValue) => onChange(nextValue as RegistryAnalyticsPeriodId)}
-      style={style}
-    >
-      <TabsList
-        className={`grid !h-auto gap-1 rounded-xl border border-border/60 bg-card/70 p-1 ${className}`}
-      >
-        {PERIODS.map((period) => (
-          <TabsTrigger
-            key={period.id}
-            value={period.id}
-            className="!h-10 min-w-0 justify-center rounded-lg border border-transparent px-3 text-sm font-semibold text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--registry-type-accent)_45%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-type-accent)_12%,var(--card))] hover:!text-[var(--registry-type-accent)] data-[state=active]:!border-[color-mix(in_srgb,var(--registry-type-accent)_62%,var(--border))] data-[state=active]:!bg-[color-mix(in_srgb,var(--registry-type-accent)_18%,var(--card))] data-[state=active]:!text-[var(--registry-type-accent)]"
-          >
-            {period.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
-  );
-}
-
 function RegistryPieChartCard({
   title,
-  icon: Icon,
+  icon,
   data,
 }: {
   title: string;
@@ -230,15 +188,9 @@ function RegistryPieChartCard({
   data: PieSlice[];
 }) {
   return (
-    <article className="min-h-[22rem] rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-      <div className="mb-4 flex items-center gap-2">
-        <Icon className="size-4 text-muted-foreground" aria-hidden={true} />
-        <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          {title}
-        </h3>
-      </div>
+    <ChartCard title={title} icon={icon} className="min-h-[22rem]">
       <AnalyticsPieChart data={data} height={250} />
-    </article>
+    </ChartCard>
   );
 }
 
@@ -349,7 +301,7 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Cumulative Downloads" icon={ChartLine} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsStackedBarChart
             key="registry-cumulative-downloads-all-time"
             data={cumulativeChartData}
@@ -384,7 +336,7 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Downloads Timeline" icon={Clock} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsLineChart
             key={`registry-downloads-${period}`}
             data={chartData}
@@ -530,7 +482,7 @@ function RegistryRankingsTable<TRow>({
             </div>
           ))}
         </div>
-        <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+        <div className={CHART_CARD_FLUSH_CLASS}>
           <ScrollArea scrollbars="horizontal" className="w-full">
             <div
               className="min-w-[var(--registry-rankings-table-min-width)] xl:min-w-0"
@@ -782,7 +734,7 @@ function RegistryContentTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsLineChart
             key={`registry-content-${assetTypeId}-${period}`}
             data={chartData}
@@ -1039,7 +991,7 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     >
       <section>
         <SectionSeparator label="Timeline" icon={ChartLine} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
+        <article className={CHART_CARD_CLASS}>
           <AnalyticsLineChart
             key="registry-authors-timeline"
             data={chartData}
@@ -1055,6 +1007,11 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
             startAtZero={true}
           />
         </article>
+      </section>
+
+      <section>
+        <SectionSeparator label="Top Authors" icon={Users} className="mb-4" />
+        <TopAuthorsChart series={data.authors.dailyDownloads} />
       </section>
 
       <section>

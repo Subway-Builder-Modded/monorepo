@@ -9,6 +9,11 @@ import {
   loadVersionDownloadsByTypeId,
   type AuthorDownloadTotals,
 } from "@/features/registry/lib/credited-downloads";
+import {
+  buildListingCreditWindows,
+  resolveCreditedPersonIdForDate,
+  type ListingCreditWindow,
+} from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import {
   getListingVersionCreditsKey,
@@ -407,69 +412,6 @@ function computeAuthorProjects(
     .sort((left, right) => right.totalDownloads - left.totalDownloads);
 }
 
-type ManifestCaretakerWindow = { github_id?: unknown; since?: string; until?: string };
-
-type ListingCreditWindow = { since: number; until: number | null; personId: string };
-
-/**
- * Extracts caretaker windows from every listing manifest, resolving the
- * caretaker github_id to an author login via the authors index. Keyed by
- * `${typeId}:${listingId}` to match the daily-analytics lookups.
- */
-function buildListingCreditWindows(
-  allItemsByType: Record<string, RegistrySearchItem[]>,
-  authorByGithubId: Map<number, RegistryAuthorContributor>,
-): Map<string, ListingCreditWindow[]> {
-  const windowsByListing = new Map<string, ListingCreditWindow[]>();
-
-  for (const typeConfig of REGISTRY_TYPES) {
-    for (const item of allItemsByType[typeConfig.id] ?? []) {
-      const caretakers = (item.manifest as { caretakers?: ManifestCaretakerWindow[] }).caretakers;
-      if (!Array.isArray(caretakers) || caretakers.length === 0) continue;
-
-      const windows: ListingCreditWindow[] = [];
-      for (const window of caretakers) {
-        const githubId = toGithubId(window.github_id);
-        const since = Date.parse(window.since ?? "");
-        if (githubId === null || !Number.isFinite(since)) continue;
-        const personId = authorByGithubId.get(githubId)?.authorId;
-        if (!personId) continue;
-        const until = Date.parse(window.until ?? "");
-        windows.push({
-          since,
-          until: Number.isFinite(until) ? until : null,
-          personId: normalizeAuthorId(personId),
-        });
-      }
-      if (windows.length > 0) {
-        windowsByListing.set(`${typeConfig.id}:${item.id}`, windows);
-      }
-    }
-  }
-
-  return windowsByListing;
-}
-
-/**
- * The person credited for a listing's downloads on a given day: the caretaker
- * whose [since, until) window contains the day, the primary author otherwise.
- * Day-grain approximation of the per-version released_at crediting rule.
- */
-function resolveCreditedPersonIdForDate(
-  dateTs: number,
-  windows: ListingCreditWindow[] | undefined,
-  primaryAuthorId: string,
-): string {
-  if (windows) {
-    for (const window of windows) {
-      if (dateTs >= window.since && (window.until === null || dateTs < window.until)) {
-        return window.personId;
-      }
-    }
-  }
-  return primaryAuthorId;
-}
-
 function computeAuthorHistory(
   normalizedAuthorId: string,
   dailyRows: Array<Record<string, string>>,
@@ -856,7 +798,12 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
     : getAuthorTotals(itemsByType);
   const creditWindowsByListing = buildListingCreditWindows(
     allItemsByType,
-    buildAuthorByGithubId(authorsIndex),
+    new Map(
+      [...buildAuthorByGithubId(authorsIndex)].map(([githubId, contributor]) => [
+        githubId,
+        contributor.authorId,
+      ]),
+    ),
   );
   const caretakenItemsByType = Object.fromEntries(
     REGISTRY_TYPES.map((typeConfig) => [
