@@ -23,6 +23,7 @@ function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchIt
     countryEmoji: "🇺🇸",
     population: 1_000_000,
     isTest: false,
+    isDeprecated: false,
     manifest: {},
     ...overrides,
   };
@@ -147,5 +148,31 @@ describe("sortRegistryItems", () => {
     const desc = sortRegistryItems(items, "downloads", "desc", SEED);
     expect(asc[0]?.id).toBe("a");
     expect(desc[0]?.id).toBe("b");
+  });
+
+  it("sorts deprecated items last regardless of the selected sort", () => {
+    const items = [
+      makeItem({ id: "old-popular", totalDownloads: 9_999, isDeprecated: true }),
+      makeItem({ id: "active-small", totalDownloads: 10 }),
+      makeItem({ id: "active-big", totalDownloads: 100 }),
+      makeItem({ id: "old-tiny", totalDownloads: 1, isDeprecated: true }),
+    ];
+    const result = sortRegistryItems(items, "downloads", "desc", SEED);
+    // Active items first (sorted), then deprecated (sorted within partition).
+    expect(result.map((i) => i.id)).toEqual([
+      "active-big",
+      "active-small",
+      "old-popular",
+      "old-tiny",
+    ]);
+  });
+
+  it("keeps deprecated items last under random sort", () => {
+    const items = [
+      ...Array.from({ length: 5 }, (_, i) => makeItem({ id: `active-${i}` })),
+      makeItem({ id: "old-item", isDeprecated: true }),
+    ];
+    const result = sortRegistryItems(items, "random", "desc", SEED);
+    expect(result[result.length - 1]?.id).toBe("old-item");
   });
 });

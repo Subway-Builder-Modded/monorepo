@@ -432,5 +432,11 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
           updateUrl: data.manifest.update.url?.trim() || null,
         }
       : null,
+    deprecation: data.manifest.deprecation
+      ? {
+          since: data.manifest.deprecation.since?.trim() || null,
+          reason: data.manifest.deprecation.reason?.trim() || null,
+        }
+      : null,
   };
 }

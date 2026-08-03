@@ -376,11 +376,14 @@ export async function loadRegistryItemsForType(
   const idsFromIntegrity = Object.keys(integrity.listings ?? {});
 
   const allIds = idsFromIndex.length > 0 ? idsFromIndex : idsFromIntegrity;
-  const eligibleIds = allIds.filter((id) => hasCompleteVersion(integrity.listings?.[id]));
 
-  // Load all manifests in parallel
+  // Load all manifests in parallel. Eligibility is decided per item below:
+  // a listing qualifies when it has an integrity-complete version OR is
+  // author-deprecated (the registry pipeline reports deprecated listings with
+  // zero complete versions, but they must stay visible for attribution and
+  // behind the browse "Show Deprecated" toggle).
   const manifestEntries = await Promise.all(
-    eligibleIds.map(async (id) => {
+    allIds.map(async (id) => {
       try {
         const raw = await safeFetchText(
           getRegistryItemCachePath(typeRouteSegment, id, "manifest.json"),
@@ -406,6 +409,8 @@ export async function loadRegistryItemsForType(
 
   for (const { id, manifest } of validEntries) {
     if (manifest.is_test === true) continue;
+    const isDeprecated = manifest.deprecation !== undefined;
+    if (!isDeprecated && !hasCompleteVersion(integrity.listings?.[id])) continue;
     const authorId = manifest.author?.trim() || null;
 
     const normalizedCountryCode = normalizeMapCountry(manifest.country);
@@ -453,6 +458,7 @@ export async function loadRegistryItemsForType(
             : null
         : null,
       isTest: false,
+      isDeprecated,
       manifest,
     });
   }

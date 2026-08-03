@@ -22,6 +22,7 @@ function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchIt
     countryEmoji: null,
     population: 500000,
     isTest: false,
+    isDeprecated: false,
     manifest: {},
     ...overrides,
   };
@@ -125,5 +126,33 @@ describe("collectTags", () => {
   it("returns empty array when no tags", () => {
     const items = [makeItem({ tags: [] })];
     expect(collectTags(items)).toHaveLength(0);
+  });
+});
+
+describe("filterRegistryItems deprecated visibility", () => {
+  it("hides deprecated items by default", () => {
+    const items = [makeItem(), makeItem({ id: "old-item", isDeprecated: true })];
+    const result = filterRegistryItems(items, "", []);
+    expect(result.map((i) => i.id)).toEqual(["item-a"]);
+  });
+
+  it("hides deprecated items from query results by default", () => {
+    const items = [makeItem({ id: "old-item", name: "Alpha Legacy", isDeprecated: true })];
+    expect(filterRegistryItems(items, "alpha", [])).toHaveLength(0);
+  });
+
+  it("includes deprecated items when showDeprecated is on", () => {
+    const items = [makeItem(), makeItem({ id: "old-item", isDeprecated: true })];
+    const result = filterRegistryItems(items, "", [], true);
+    expect(result.map((i) => i.id).sort()).toEqual(["item-a", "old-item"]);
+  });
+
+  it("applies query and tag filters to deprecated items when shown", () => {
+    const items = [
+      makeItem({ id: "old-match", name: "Alpha Legacy", isDeprecated: true }),
+      makeItem({ id: "old-miss", name: "Beta Legacy", isDeprecated: true }),
+    ];
+    const result = filterRegistryItems(items, "alpha", [], true);
+    expect(result.map((i) => i.id)).toEqual(["old-match"]);
   });
 });

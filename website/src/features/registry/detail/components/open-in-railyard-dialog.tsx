@@ -4,8 +4,16 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
+  cn,
 } from "@subway-builder-modded/shared-ui";
 import { Download, ExternalLink, TrainTrack } from "lucide-react";
+
+// Secondary action row shared by every non-primary choice in this dialog.
+const DIALOG_ACTION_ROW_CLASS =
+  "inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border px-4 text-sm font-medium";
+const DIALOG_ACTION_ROW_ENABLED_CLASS =
+  "border-border/70 bg-muted/20 text-foreground transition-colors hover:bg-muted/35";
+const DIALOG_ACTION_ROW_DISABLED_CLASS = "border-border/60 bg-muted/15 text-muted-foreground";
 
 type OpenInRailyardDialogProps = {
   open: boolean;
@@ -81,7 +89,7 @@ export function OpenInRailyardDialog({
               href="/railyard"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border/70 bg-muted/20 px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/35"
+              className={cn(DIALOG_ACTION_ROW_CLASS, DIALOG_ACTION_ROW_ENABLED_CLASS)}
             >
               <ExternalLink className="size-4" aria-hidden={true} />
               Download Railyard
@@ -96,13 +104,13 @@ export function OpenInRailyardDialog({
                 href={latestDownloadUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border/70 bg-muted/20 px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/35"
+                className={cn(DIALOG_ACTION_ROW_CLASS, DIALOG_ACTION_ROW_ENABLED_CLASS)}
               >
                 <Download className="size-4" aria-hidden={true} />
                 Download
               </a>
             ) : (
-              <div className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border/60 bg-muted/15 px-4 text-sm font-medium text-muted-foreground">
+              <div className={cn(DIALOG_ACTION_ROW_CLASS, DIALOG_ACTION_ROW_DISABLED_CLASS)}>
                 <Download className="size-4" aria-hidden={true} />
                 Download unavailable
               </div>

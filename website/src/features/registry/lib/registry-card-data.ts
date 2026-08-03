@@ -22,5 +22,6 @@ export function toRegistryCardData(
     countryName: item.countryName,
     countryEmoji: item.countryEmoji,
     population: item.population,
+    isDeprecated: item.isDeprecated,
   };
 }

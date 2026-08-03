@@ -70,6 +70,7 @@ function makeMapItem(id: string) {
     countryEmoji: null,
     population: null,
     isTest: false,
+    isDeprecated: false,
     manifest: {},
   };
 }

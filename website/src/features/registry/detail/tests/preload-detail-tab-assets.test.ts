@@ -37,6 +37,7 @@ function makeDetail(overrides: Partial<RegistryDetailModel> = {}): RegistryDetai
     versionSource: null,
     latestVersion: null,
     latestDownloadUrl: null,
+    deprecation: null,
     publishedDate: null,
     updatedDate: null,
     integrityVersionCount: 0,

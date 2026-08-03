@@ -1,9 +1,11 @@
-import { Button, NeutralFadedUnderline } from "@subway-builder-modded/shared-ui";
-import { ArrowDownToLine, Download, Users } from "lucide-react";
+import { Button, NeutralFadedUnderline, cn } from "@subway-builder-modded/shared-ui";
+import { Archive, ArrowDownToLine, Download, Users } from "lucide-react";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link } from "@/lib/router";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
+import { formatRegistryDate } from "@/features/registry/detail/lib/format-registry-date";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
+import { MUTED_ACTION_CLASS, MUTED_PANEL_CLASS } from "@/features/registry/lib/registry-styles";
 
 type RegistryDetailHeaderProps = {
   detail: RegistryDetailModel;
@@ -126,19 +128,51 @@ export function RegistryDetailHeader({
             </div>
           </div>
 
-          <Button
-            type="button"
-            className="col-span-2 w-full shrink-0 gap-2 text-base text-[var(--suite-text-inverted-light)] lg:col-span-1 lg:w-auto lg:self-start"
-            style={{
-              background: "var(--registry-type-accent)",
-            }}
-            onClick={onOpenInRailyard}
-          >
-            <Download className="size-4" aria-hidden={true} />
-            Download
-          </Button>
+          {detail.deprecation ? (
+            <div
+              className={cn(
+                MUTED_ACTION_CLASS,
+                "col-span-2 w-full shrink-0 px-4 py-2 text-base lg:col-span-1 lg:w-auto lg:self-start",
+              )}
+            >
+              <Archive className="size-4" aria-hidden={true} />
+              Deprecated
+            </div>
+          ) : (
+            <Button
+              type="button"
+              className="col-span-2 w-full shrink-0 gap-2 text-base text-[var(--suite-text-inverted-light)] lg:col-span-1 lg:w-auto lg:self-start"
+              style={{
+                background: "var(--registry-type-accent)",
+              }}
+              onClick={onOpenInRailyard}
+            >
+              <Download className="size-4" aria-hidden={true} />
+              Download
+            </Button>
+          )}
         </div>
       </div>
+
+      {detail.deprecation ? (
+        <div className={cn(MUTED_PANEL_CLASS, "px-4 py-3 text-sm leading-relaxed")}>
+          <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Archive className="size-4 shrink-0" aria-hidden={true} />
+            <span>
+              <span className="font-semibold text-foreground">
+                This {detail.typeConfig.label.toLowerCase()} was deprecated by its author
+              </span>
+              {detail.deprecation.since
+                ? ` on ${formatRegistryDate(detail.deprecation.since)}`
+                : null}
+              {" — it is no longer downloadable, but its history and credits remain."}
+            </span>
+          </p>
+          {detail.deprecation.reason ? (
+            <p className="m-0 mt-1.5 pl-6">{detail.deprecation.reason}</p>
+          ) : null}
+        </div>
+      ) : null}
     </header>
   );
 }

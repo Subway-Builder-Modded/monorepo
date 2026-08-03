@@ -50,8 +50,28 @@ function shuffleWithSeed<T>(items: T[], seed: number): T[] {
 
 /** Sort registry items by the given sort id and direction.
  *  Pass `randomSeed` to get a stable shuffle for the "random" sort.
+ *  Deprecated items always sort last, regardless of the selected sort
+ *  (including random) — within each partition the selected sort applies.
  */
 export function sortRegistryItems(
+  items: RegistrySearchItem[],
+  sortId: RegistrySortId,
+  direction: "asc" | "desc",
+  randomSeed: number,
+): RegistrySearchItem[] {
+  const deprecated = items.filter((item) => item.isDeprecated);
+  if (deprecated.length > 0) {
+    const active = items.filter((item) => !item.isDeprecated);
+    return [
+      ...sortItemsBy(active, sortId, direction, randomSeed),
+      ...sortItemsBy(deprecated, sortId, direction, randomSeed),
+    ];
+  }
+
+  return sortItemsBy(items, sortId, direction, randomSeed);
+}
+
+function sortItemsBy(
   items: RegistrySearchItem[],
   sortId: RegistrySortId,
   direction: "asc" | "desc",
