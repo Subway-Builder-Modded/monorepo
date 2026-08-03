@@ -921,6 +921,12 @@ func (d *Downloader) installModNow(ctx context.Context, modId string, version st
 	if err != nil {
 		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, types.InstallErrorRegistryLookup, "Failed to get mod info from registry", err, "mod_id", modId)
 	}
+	// Deprecated assets are never installable, regardless of what the cached
+	// integrity/version data claims (belt-and-braces beyond the registry
+	// pipeline's published-integrity overlay).
+	if modInfo.Deprecation != nil {
+		return d.installError(types.AssetTypeMod, modId, version, types.ConfigData{}, types.InstallErrorAssetDeprecated, "This mod was deprecated by its author and can no longer be installed", nil, "mod_id", modId)
+	}
 
 	source := modInfo.Update.URL
 	if modInfo.Update.Type == "github" {
@@ -1074,6 +1080,10 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 	mapInfo, err := d.Registry.GetMap(mapId)
 	if err != nil {
 		return d.installError(types.AssetTypeMap, mapId, version, types.ConfigData{}, types.InstallErrorRegistryLookup, "Failed to get map info from registry", err, "map_id", mapId)
+	}
+	// Deprecated assets are never installable — see the mod install gate.
+	if mapInfo.Deprecation != nil {
+		return d.installError(types.AssetTypeMap, mapId, version, types.ConfigData{}, types.InstallErrorAssetDeprecated, "This map was deprecated by its author and can no longer be installed", nil, "map_id", mapId)
 	}
 
 	source := mapInfo.Update.URL

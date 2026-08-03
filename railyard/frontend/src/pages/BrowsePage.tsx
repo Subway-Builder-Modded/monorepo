@@ -421,6 +421,7 @@ function BrowsePageContent({
                 )}
                 gameVersion={gameVersion}
                 test={item.is_test === true}
+                deprecated={item.deprecation != null}
                 totalDownloads={
                   itemType === 'mod'
                     ? (modDownloadTotals[item.id] ?? 0)

@@ -83,6 +83,8 @@ export function countInstalledStatuses(
     test: 0,
     local: 0,
     incompatible: 0,
+    // Library items are already installed; the deprecated facet never applies.
+    deprecated: 0,
   };
   for (const item of items) {
     for (const status of STATUS_FILTER_VALUES) {

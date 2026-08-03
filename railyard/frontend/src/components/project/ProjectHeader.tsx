@@ -19,6 +19,7 @@ import {
 } from '@subway-builder-modded/shared-ui';
 import {
   AlertTriangle,
+  Archive,
   ChartLine,
   Check,
   CircleFadingArrowUp,
@@ -143,6 +144,10 @@ export function ProjectHeader({
   const noCompatibleVersion = Boolean(
     gameVersion && latestVersion && !latestCompatibleVersion,
   );
+  // Author/caretaker deprecation record from the registry manifest: the asset
+  // is never installable and the header explains why instead of the generic
+  // "no version available" state.
+  const deprecation = item.deprecation ?? null;
   const effectiveVersion = noCompatibleVersion
     ? undefined
     : (latestCompatibleVersion ?? latestVersion);
@@ -301,8 +306,13 @@ export function ProjectHeader({
     const installUpdateDisabled = installing
       ? false // cancel is always enabled
       : isInstalled
-        ? !hasUpdate || mutationLocked || uninstalling || versionsLoading
+        ? !hasUpdate ||
+          !!deprecation ||
+          mutationLocked ||
+          uninstalling ||
+          versionsLoading
         : !effectiveVersion ||
+          !!deprecation ||
           !!noCompatibleVersion ||
           mutationLocked ||
           uninstalling ||
@@ -312,6 +322,9 @@ export function ProjectHeader({
     switch (true) {
       case installing:
         installUpdateTooltip = 'Cancel';
+        break;
+      case !!deprecation:
+        installUpdateTooltip = `This ${type === 'map' ? 'map' : 'mod'} was deprecated by its author and can no longer be installed`;
         break;
       case mutationLocked:
         installUpdateTooltip = (
@@ -544,6 +557,22 @@ export function ProjectHeader({
                 )}
               </p>
             </div>
+
+            {deprecation && (
+              <div className="flex max-w-xl flex-col gap-1 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5 font-medium text-foreground">
+                  <Archive className="h-3.5 w-3.5 shrink-0" />
+                  Deprecated by the author
+                  {deprecation.since &&
+                    ` on ${new Date(deprecation.since).toLocaleDateString()}`}
+                </span>
+                <span>
+                  This {type === 'map' ? 'map' : 'mod'} can no longer be
+                  downloaded; its history and credits remain.
+                </span>
+                {deprecation.reason && <span>{deprecation.reason}</span>}
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
               {typeof totalDownloads === 'number' && (

@@ -69,6 +69,7 @@ type AssetManifest struct {
 	Update        UpdateConfig  `json:"update"`
 	IsTest        bool          `json:"is_test,omitempty"` // Indicates whether this asset is a test asset that should only be shown when "View Test Mods" is enabled in settings
 	SearchAliases []string      `json:"search_aliases,omitempty"`
+	Deprecation   *Deprecation  `json:"deprecation,omitempty"` // Present iff the asset was deprecated by its author/caretaker — never installable, shown only behind the Deprecated facet
 }
 
 // ModManifest is the manifest schema for a mod entry in the registry.

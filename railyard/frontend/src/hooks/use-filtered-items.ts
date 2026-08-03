@@ -54,9 +54,14 @@ function matchesBrowseStatus(
 ): boolean {
   const isIncompatible =
     incompatibleItemKeys?.has(assetKey(entry.type, entry.item.id)) ?? false;
-  if (status === 'compatible') return !isIncompatible;
+  const isDeprecated = entry.item.deprecation != null;
+  // Deprecated is excluded from 'compatible' so selecting only Compatible can
+  // never pull deprecated items in; statuses otherwise compose (an item may
+  // match test + incompatible + deprecated simultaneously).
+  if (status === 'compatible') return !isIncompatible && !isDeprecated;
   if (status === 'incompatible') return isIncompatible;
   if (status === 'test') return entry.item.is_test === true;
+  if (status === 'deprecated') return isDeprecated;
   // 'local' never applies to registry listings.
   return false;
 }
@@ -83,19 +88,32 @@ export function useFilteredItems({
     [mods, maps],
   );
 
+  // The one asymmetric status: deprecated items are HIDDEN by default (an
+  // empty status facet means "everything except deprecated") and only surface
+  // for the browsed type while the Deprecated facet is selected. Other-type
+  // deprecated items are always excluded so the type-count badges match what
+  // a type switch (which clears the status facet) will actually show.
+  const visibleItems = useMemo(() => {
+    const showDeprecated = statusFilters.includes('deprecated');
+    return registryItems.filter((entry) => {
+      if (entry.item.deprecation == null) return true;
+      return entry.type === filters.type && showDeprecated;
+    });
+  }, [filters.type, registryItems, statusFilters]);
+
   // Status is a type-scoped facet: it only constrains the browsed type. Items of the
   // other type pass through so its type/dim counts stay independent of the status
   // selection (which setType clears on switch anyway).
   const allItems = useMemo(() => {
-    if (statusFilters.length === 0) return registryItems;
-    return registryItems.filter(
+    if (statusFilters.length === 0) return visibleItems;
+    return visibleItems.filter(
       (entry) =>
         entry.type !== filters.type ||
         statusFilters.some((sf) =>
           matchesBrowseStatus(entry, sf, incompatibleItemKeys),
         ),
     );
-  }, [filters.type, incompatibleItemKeys, registryItems, statusFilters]);
+  }, [filters.type, incompatibleItemKeys, visibleItems, statusFilters]);
   const accessors = useMemo(
     () => createTaggedListingAccessors<TaggedItem>(),
     [],
@@ -133,9 +151,15 @@ export function useFilteredItems({
           test: 0,
           local: 0,
           incompatible: 0,
+          deprecated: 0,
         };
         for (const entry of facetItems) {
+          const isDeprecated = entry.item.deprecation != null;
           for (const status of STATUS_FILTER_VALUES) {
+            // Each count reflects what selecting that facet alone would show:
+            // deprecated items only ever surface under the Deprecated facet,
+            // so they don't inflate the other status counts.
+            if (isDeprecated && status !== 'deprecated') continue;
             if (matchesBrowseStatus(entry, status, incompatibleItemKeys)) {
               counts[status] += 1;
             }

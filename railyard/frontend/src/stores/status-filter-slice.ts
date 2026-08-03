@@ -1,10 +1,16 @@
-export type StatusFilter = 'compatible' | 'local' | 'incompatible' | 'test';
+export type StatusFilter =
+  | 'compatible'
+  | 'local'
+  | 'incompatible'
+  | 'test'
+  | 'deprecated';
 
 export const STATUS_FILTER_VALUES: readonly StatusFilter[] = [
   'compatible',
   'local',
   'incompatible',
   'test',
+  'deprecated',
 ];
 
 export interface StatusFilterSlice {

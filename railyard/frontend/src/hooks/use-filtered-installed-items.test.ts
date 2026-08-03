@@ -142,6 +142,7 @@ describe('isInstalledItemVisibleByStatus', () => {
     ];
     expect(countInstalledStatuses(items, gameVersion)).toEqual({
       compatible: 3,
+      deprecated: 0,
       local: 1,
       test: 1,
       incompatible: 1,
