@@ -93,7 +93,7 @@ function DeprecatedVisibilitySection({
           )}
         >
           <Archive className="size-4 shrink-0" aria-hidden={true} />
-          <span className="flex-1">Show Deprecated</span>
+          <span className="flex-1">Deprecated</span>
           <RegistryTypeCountBadge count={deprecatedCount} isActive={showDeprecated} />
         </button>
       </section>
