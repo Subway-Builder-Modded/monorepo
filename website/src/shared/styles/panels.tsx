@@ -1,4 +1,5 @@
 import type { ComponentType, CSSProperties, ReactNode } from "react";
+import { SearchX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -44,6 +45,19 @@ export function accentChipBadgeStyle(accentLight: string): CSSProperties {
     borderColor: `color-mix(in srgb, ${accentLight} 38%, transparent)`,
     background: `color-mix(in srgb, ${accentLight} 14%, transparent)`,
   };
+}
+
+/**
+ * Centered no-match placeholder sized like a chart, so a filtered-to-empty
+ * card keeps its footprint instead of collapsing.
+ */
+export function ChartEmptyState({ label, height = 280 }: { label: string; height?: number }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 text-center" style={{ height }}>
+      <SearchX className="size-9 text-muted-foreground" aria-hidden={true} />
+      <p className="max-w-md text-sm font-medium text-muted-foreground">{label}</p>
+    </div>
+  );
 }
 
 /**

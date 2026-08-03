@@ -1,4 +1,5 @@
 import { loadCreatorDatabaseData } from "@/features/registry/authors/lib/load-creator-database";
+import { buildRegistryCountrySearchValues } from "@/features/registry/lib/registry-search";
 import { ADMIN_AUTHOR_ID } from "@/features/registry/lib/credited-downloads";
 import {
   buildAuthorDailyDownloadSeries,
@@ -34,14 +35,20 @@ export type RegistryAnalyticsAuthorHistoryPoint = {
   authors: number;
 };
 
-export type RegistryAnalyticsAuthorDailySeries = {
+export type RegistryAnalyticsEntityDailySeries = {
   /** Ascending date universe (YYYY-MM-DD) of the daily analytics window. */
   dates: string[];
-  /** One series per credited person (admin excluded), day-grain credit-attributed. */
-  authors: Array<{
+  /** One daily series per charted entity (author, listing, project, ...). */
+  entities: Array<{
     id: string;
     name: string;
     byDate: Map<string, { maps: number; mods: number }>;
+    /** Fixed color for synthetic categories (e.g. "No Project"); palette otherwise. */
+    color?: string;
+    /** Synthetic catch-all categories don't count toward the series-count floor. */
+    synthetic?: boolean;
+    /** Vocabulary for filter-by-search, mirroring the tab's rankings search. */
+    searchValues?: string[];
   }>;
 };
 
@@ -107,10 +114,17 @@ export type RegistryAnalyticsData = {
   authors: {
     history: RegistryAnalyticsAuthorHistoryPoint[];
     rankings: RegistryAnalyticsAuthorRanking[];
-    dailyDownloads: RegistryAnalyticsAuthorDailySeries;
+    /** Per-author (day-grain credit-attributed, admin excluded). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
+  };
+  listings: {
+    /** Per-listing. */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
   };
   projects: {
     rankings: RegistryAnalyticsProjectRanking[];
+    /** Per-project (multi-asset projects only, matching the rankings). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
   };
   mapStatistics: {
     rankings: RegistryAnalyticsMapStatisticRanking[];
@@ -351,6 +365,100 @@ function buildAuthorHistory(
       ).length,
     };
   });
+}
+
+/** One daily series per listing, straight from the by-day rows (no attribution). */
+function buildListingDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entities: RegistryAnalyticsEntityDailySeries["entities"] = [];
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    const isMap = item.type === "maps";
+    const byDate = new Map<string, { maps: number; mods: number }>();
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      byDate.set(normalizeDate(dateHeader), {
+        maps: isMap ? downloads : 0,
+        mods: isMap ? 0 : downloads,
+      });
+    }
+    if (byDate.size > 0) {
+      entities.push({
+        id: item.id,
+        name: row.name?.trim() || item.name || item.id,
+        byDate,
+        searchValues: [
+          item.name,
+          item.id,
+          item.author ?? "",
+          item.authorId ?? "",
+          item.countryCode ?? "",
+          item.countryName ?? "",
+          ...buildRegistryCountrySearchValues(item.countryCode ?? ""),
+          ...(item.searchAliases ?? []),
+        ],
+      });
+    }
+  }
+
+  return { dates, entities };
+}
+
+/** Distinct slate for the synthetic "No Project" series (Others stays lighter grey). */
+const NO_PROJECT_SERIES_COLOR = "#64748b";
+const NO_PROJECT_SERIES_ID = "__no_project__";
+
+/**
+ * One daily series per project, aggregated over the project's listings.
+ * Projects match the tab's definition (multi-asset); every listing outside
+ * one — including single-asset repos — rolls into a synthetic "No Project"
+ * series so the chart still accounts for the whole registry.
+ */
+function buildProjectDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+  projectMetaById: Map<string, { name: string; searchValues: string[] }>,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entitiesById = new Map<string, RegistryAnalyticsEntityDailySeries["entities"][number]>();
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    const projectId = item.projectId?.trim().toLowerCase();
+    const projectMeta = projectId ? projectMetaById.get(projectId) : undefined;
+    const isProjectListing = Boolean(projectId && projectMeta);
+    const isMap = item.type === "maps";
+
+    const entity = entitiesById.get(isProjectListing ? projectId! : NO_PROJECT_SERIES_ID) ?? {
+      id: isProjectListing ? projectId! : NO_PROJECT_SERIES_ID,
+      name: isProjectListing ? projectMeta!.name : "No Project",
+      byDate: new Map<string, { maps: number; mods: number }>(),
+      ...(isProjectListing
+        ? { searchValues: projectMeta!.searchValues }
+        : { color: NO_PROJECT_SERIES_COLOR, synthetic: true, searchValues: ["No Project"] }),
+    };
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      const date = normalizeDate(dateHeader);
+      const current = entity.byDate.get(date) ?? { maps: 0, mods: 0 };
+      if (isMap) current.maps += downloads;
+      else current.mods += downloads;
+      entity.byDate.set(date, current);
+    }
+    entitiesById.set(entity.id, entity);
+  }
+
+  return { dates, entities: [...entitiesById.values()] };
 }
 
 function buildAuthorRankings(
@@ -598,14 +706,23 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   const authorLabelById = new Map(
     creatorData.authors.map((author) => [author.id.trim().toLowerCase(), author.label]),
   );
-  const authorDailyDownloads: RegistryAnalyticsAuthorDailySeries = {
+  const authorDailyDownloads: RegistryAnalyticsEntityDailySeries = {
     dates: authorDaily.dates,
-    authors: authorDaily.authors.map((series) => ({
+    entities: authorDaily.authors.map((series) => ({
       id: series.id,
       name: authorLabelById.get(series.id) ?? series.id,
       byDate: series.byDate,
     })),
   };
+  const projectMetaById = new Map(
+    creatorData.projects.map((project) => [
+      project.id.trim().toLowerCase(),
+      {
+        name: project.name,
+        searchValues: [project.name, project.id, project.authorLabel, project.authorId],
+      },
+    ]),
+  );
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
   const validMapIds = new Set(maps.map((item) => item.id));
@@ -634,8 +751,12 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       rankings: buildAuthorRankings(creatorData.authors),
       dailyDownloads: authorDailyDownloads,
     },
+    listings: {
+      dailyDownloads: buildListingDailySeries(byDayRows, validItemsById),
+    },
     projects: {
       rankings: buildProjectRankings(creatorData.projects),
+      dailyDownloads: buildProjectDailySeries(byDayRows, validItemsById, projectMetaById),
     },
     mapStatistics: {
       rankings: buildMapStatisticRankings(

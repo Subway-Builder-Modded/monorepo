@@ -27,6 +27,10 @@ export type NamedDailySeries = {
   name: string;
   /** date (YYYY-MM-DD) -> value; absent dates count as 0. */
   valueByDate: ReadonlyMap<string, number>;
+  /** Fixed color for synthetic categories (e.g. "No Project"); palette otherwise. */
+  color?: string;
+  /** Synthetic catch-all categories don't count toward the `minCount` floor. */
+  synthetic?: boolean;
 };
 
 export type MultiSeriesChartModel = {
@@ -48,20 +52,23 @@ export type MultiSeriesChartModel = {
  *
  * Selection: with `minShare`, every entity whose share of the window total is
  * at least that fraction gets its own series (responsive to individual
- * spikes); `topCount` acts as a hard cap (and as the selector when `minShare`
- * is omitted).
+ * spikes); `minCount` guarantees a floor even on flat distributions, and
+ * `topCount` acts as a hard cap (and as the selector when `minShare` is
+ * omitted).
  */
 export function buildTopSeriesWithOthers({
   series,
   dates,
   topCount,
   minShare,
+  minCount = 0,
   othersName = "Others",
 }: {
   series: NamedDailySeries[];
   dates: string[];
   topCount: number;
   minShare?: number;
+  minCount?: number;
   othersName?: string;
 }): MultiSeriesChartModel {
   const totals = series
@@ -73,17 +80,31 @@ export function buildTopSeriesWithOthers({
     .sort((left, right) => right.total - left.total);
 
   const grandTotal = totals.reduce((sum, { total }) => sum + total, 0);
-  const drawnCount =
-    minShare === undefined || grandTotal === 0
-      ? topCount
-      : Math.min(topCount, totals.filter(({ total }) => total / grandTotal >= minShare).length);
+  let drawnCount: number;
+  if (minShare === undefined || grandTotal === 0) {
+    drawnCount = topCount;
+  } else {
+    drawnCount = Math.min(
+      topCount,
+      totals.filter(({ total }) => total / grandTotal >= minShare).length,
+    );
+    // The floor counts real entities only: a synthetic catch-all (e.g.
+    // "No Project") must not satisfy the minimum on its own.
+    const availableReal = totals.filter(({ entry }) => !entry.synthetic).length;
+    const targetReal = Math.min(minCount, availableReal);
+    let drawnReal = totals.slice(0, drawnCount).filter(({ entry }) => !entry.synthetic).length;
+    while (drawnReal < targetReal && drawnCount < Math.min(topCount, totals.length)) {
+      if (!totals[drawnCount].entry.synthetic) drawnReal += 1;
+      drawnCount += 1;
+    }
+  }
   const top = totals.slice(0, drawnCount);
   const rest = totals.slice(drawnCount);
 
   const seriesConfigs = top.map(({ entry, total }, index) => ({
     key: entry.id,
     name: entry.name,
-    color: MULTI_SERIES_PALETTE[index % MULTI_SERIES_PALETTE.length],
+    color: entry.color ?? MULTI_SERIES_PALETTE[index % MULTI_SERIES_PALETTE.length],
     total,
   }));
   const hasOthers = rest.length > 0;
