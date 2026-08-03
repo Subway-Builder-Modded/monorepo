@@ -30,6 +30,8 @@ export type RegistrySearchItem = {
   countryEmoji: string | null;
   population: number | null;
   isTest: boolean;
+  /** Author-deprecated listing: hidden from browse by default, never downloadable. */
+  isDeprecated: boolean;
   /** Raw manifest for advanced consumers; do not depend on shape. */
   manifest: unknown;
 };
@@ -68,6 +70,12 @@ export type RawRegistryManifest = {
   last_updated?: number;
   first_released?: number;
   source?: string;
+  /** Present iff the listing was deprecated by its author/caretaker. */
+  deprecation?: {
+    since?: string;
+    by_github_id?: number;
+    reason?: string;
+  };
 };
 
 /** Shape of the index.json file in each type folder. */

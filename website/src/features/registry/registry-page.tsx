@@ -105,10 +105,12 @@ export function RegistryPage() {
       });
   }, []);
 
+  // Hero counts reflect the default browse view: deprecated listings are
+  // hidden behind the sidebar toggle and excluded from the headline numbers.
   const counts = useMemo(() => {
     const result: Record<string, number> = {};
     for (const [tid, items] of Object.entries(allItemsByType)) {
-      result[tid] = items.length;
+      result[tid] = items.filter((item) => !item.isDeprecated).length;
     }
     return result;
   }, [allItemsByType]);
@@ -169,6 +171,11 @@ export function RegistryPage() {
 
   const handlePageChange = useCallback((page: number) => setParams({ page }), [setParams]);
 
+  const handleShowDeprecatedChange = useCallback(
+    (showDeprecated: boolean) => setParams({ showDeprecated, page: 1 }),
+    [setParams],
+  );
+
   const handlePageSizeChange = useCallback(
     (pageSize: number) => setParams({ pageSize, page: 1 }),
     [setParams],
@@ -205,6 +212,8 @@ export function RegistryPage() {
         viewMode={params.viewMode}
         page={params.page}
         pageSize={params.pageSize}
+        showDeprecated={params.showDeprecated}
+        onShowDeprecatedChange={handleShowDeprecatedChange}
         onTypeChange={handleTypeChange}
         onQueryChange={handleQueryChange}
         onTagToggle={handleTagToggle}

@@ -37,6 +37,7 @@ export async function fetchRailyardLatestRegistryItems(): Promise<RailyardLatest
 
   return itemsByType
     .flat()
+    .filter((item) => !item.isDeprecated)
     .map(toLatestItem)
     .sort((a, b) => b.lastActivityAt - a.lastActivityAt)
     .slice(0, 5);

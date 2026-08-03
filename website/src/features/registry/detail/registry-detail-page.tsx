@@ -310,25 +310,27 @@ export function RegistryDetailPage({
                         );
                       })}
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            aria-label="Download"
-                            className="relative inline-flex h-8 items-center justify-center px-1.5 text-muted-foreground transition-colors hover:text-[var(--registry-type-accent-strong)] sm:h-8 sm:px-2"
-                            onClick={() => setDialogOpen(true)}
-                          >
-                            <Download className="size-5" aria-hidden={true} />
-                            <ArrowUpRight
-                              className="absolute right-0.5 top-1.5 size-2.5"
-                              aria-hidden={true}
-                            />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="z-[140]">
-                          Download
-                        </TooltipContent>
-                      </Tooltip>
+                      {detail.deprecation ? null : (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              aria-label="Download"
+                              className="relative inline-flex h-8 items-center justify-center px-1.5 text-muted-foreground transition-colors hover:text-[var(--registry-type-accent-strong)] sm:h-8 sm:px-2"
+                              onClick={() => setDialogOpen(true)}
+                            >
+                              <Download className="size-5" aria-hidden={true} />
+                              <ArrowUpRight
+                                className="absolute right-0.5 top-1.5 size-2.5"
+                                aria-hidden={true}
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="z-[140]">
+                            Download
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </div>
                   </TooltipProvider>
                 </div>

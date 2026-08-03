@@ -123,6 +123,12 @@ export type RegistryDetailModel = {
   updatedDate: string | null;
   integrityVersionCount: number;
   mapFields: RegistryDetailMapFields | null;
+  /** Author-deprecation record; null for active listings. Deprecated listings
+   * render a notice and never offer downloads. */
+  deprecation: {
+    since: string | null;
+    reason: string | null;
+  } | null;
 };
 
 export type RegistryDetailLoadedData = {
@@ -170,6 +176,11 @@ export type RegistryDetailLoadedData = {
       type?: string;
       repo?: string;
       url?: string;
+    };
+    deprecation?: {
+      since?: string;
+      by_github_id?: number;
+      reason?: string;
     };
   };
   listingLastUpdated: number | null;

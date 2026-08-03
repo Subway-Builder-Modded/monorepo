@@ -21,6 +21,8 @@ export type RegistryBrowseParams = {
   viewMode: RegistryViewMode;
   page: number;
   pageSize: number;
+  /** Include author-deprecated listings in browse results (default off). */
+  showDeprecated: boolean;
 };
 
 type PersistedRegistryBrowseState = Omit<RegistryBrowseParams, "typeId">;
@@ -130,6 +132,9 @@ function serializeBrowseState(state: PersistedRegistryBrowseState): string {
   if (state.pageSize !== DEFAULT_PAGE_SIZE) {
     p.set("pageSize", String(state.pageSize));
   }
+  if (state.showDeprecated) {
+    p.set("deprecated", "1");
+  }
 
   const search = p.toString();
   return search ? `?${search}` : "";
@@ -163,6 +168,8 @@ export function useRegistryParams() {
     const viewMode = cachedViewMode;
     const page = parsePage(p.get("page"));
     const pageSize = parsePageSize(p.get("pageSize"));
+    const rawDeprecated = p.get("deprecated");
+    const showDeprecated = rawDeprecated === "1" || rawDeprecated === "true";
 
     return {
       query,
@@ -172,6 +179,7 @@ export function useRegistryParams() {
       viewMode,
       page,
       pageSize,
+      showDeprecated,
     };
   }, [search, cachedViewMode]);
 
@@ -186,6 +194,7 @@ export function useRegistryParams() {
       viewMode: persistedState.viewMode,
       page: persistedState.page,
       pageSize: persistedState.pageSize,
+      showDeprecated: persistedState.showDeprecated,
     };
   }, [typeId, persistedState]);
 
@@ -200,6 +209,7 @@ export function useRegistryParams() {
         viewMode: updates.viewMode ?? params.viewMode,
         page: updates.page ?? params.page,
         pageSize: updates.pageSize ?? params.pageSize,
+        showDeprecated: updates.showDeprecated ?? params.showDeprecated,
       };
 
       writeCachedViewMode(nextPersisted.viewMode);

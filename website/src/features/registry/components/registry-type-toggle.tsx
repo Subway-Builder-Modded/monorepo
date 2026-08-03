@@ -68,6 +68,10 @@ function TypeButton({ type, isActive, count, showCount, onClick }: TypeButtonPro
   const accentStyle = {
     "--type-accent-light": type.accentLight,
     "--type-accent-dark": type.accentDark,
+    // Generic interactive-accent vars consumed by RegistryTypeCountBadge
+    // (see lib/registry-styles.ts).
+    "--ui-accent-light": type.accentLight,
+    "--ui-accent-dark": type.accentDark,
   } as React.CSSProperties;
 
   return (

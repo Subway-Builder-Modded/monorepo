@@ -36,6 +36,11 @@ type RawManifest = {
   };
   collaborators?: unknown[];
   caretakers?: unknown[];
+  deprecation?: {
+    since?: string;
+    by_github_id?: number;
+    reason?: string;
+  };
 };
 
 type RawIntegrity = {
