@@ -381,7 +381,7 @@ export async function loadRegistryItemsForType(
   // a listing qualifies when it has an integrity-complete version OR is
   // author-deprecated (the registry pipeline reports deprecated listings with
   // zero complete versions, but they must stay visible for attribution and
-  // behind the browse "Show Deprecated" toggle).
+  // behind the browse Visibility → Deprecated toggle).
   const manifestEntries = await Promise.all(
     allIds.map(async (id) => {
       try {
