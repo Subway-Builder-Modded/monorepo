@@ -47,11 +47,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
 import { getSuiteById } from "@/config/site-navigation";
 import { AnalyticsModeToggle } from "@/shared/analytics/analytics-mode-toggle";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
 import {
-  CHART_CARD_CLASS,
   CHART_CARD_FLUSH_CLASS,
   SECTION_CARD_STYLE,
   accentChipBadgeStyle,
@@ -886,8 +885,8 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
   return (
     <div>
       <SectionSeparator label="Download History" icon={History} className="mb-4 mt-7" />
-      <article
-        className={`space-y-4 ${CHART_CARD_CLASS}`}
+      <div
+        className="space-y-4"
         style={{ "--registry-type-accent": activeOption.color } as CSSProperties}
       >
         {hasMultipleAssetTypes ? (
@@ -900,15 +899,15 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
             />
           </div>
         ) : null}
-        <AnalyticsLineChart
+        <MultiSeriesChartCard
+          chartKey={`author-history-${activeMode}`}
           data={chartData}
-          lines={lines}
-          xAxisKey="date"
+          series={lines}
           height={220}
-          startAtZero={true}
-          hideZeroTooltipEntries={true}
+          stackId="author-history"
+          ariaLabelPrefix="Download history chart"
         />
-      </article>
+      </div>
     </div>
   );
 }

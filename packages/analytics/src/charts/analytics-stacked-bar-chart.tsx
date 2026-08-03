@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -8,6 +9,7 @@ import {
   YAxis,
 } from "recharts";
 import type { BarConfig, ChartMargin, MultiSeriesPoint } from "./chart-types";
+import { AnalyticsChartLegend, toggleLegendKey } from "./chart-legend";
 import { AnalyticsTooltip, type AnalyticsTooltipPayload } from "./chart-tooltip";
 import {
   CHART_AXIS_LINE_COLOR,
@@ -41,56 +43,6 @@ function getStackTotals(data: MultiSeriesPoint[], bars: BarConfig[]) {
   );
 }
 
-function AnalyticsStackedBarLegend({ bars }: { bars: BarConfig[] }) {
-  if (bars.length <= 1) return null;
-
-  return (
-    <ul
-      style={{
-        alignItems: "center",
-        color: "hsl(var(--foreground))",
-        columnGap: "0.9rem",
-        display: "flex",
-        flexWrap: "wrap",
-        fontSize: CHART_FONT_SIZE,
-        justifyContent: "center",
-        listStyle: "none",
-        margin: "0.75rem 0 0",
-        padding: 0,
-        rowGap: "0.5rem",
-      }}
-    >
-      {bars.map((bar, index) => {
-        const color = bar.color ?? `var(--chart-${index + 1}, var(--accent))`;
-        return (
-          <li
-            key={bar.key}
-            style={{
-              alignItems: "center",
-              display: "inline-flex",
-              gap: "0.4rem",
-              lineHeight: 1,
-            }}
-          >
-            <span
-              style={{
-                backgroundColor: color,
-                borderRadius: "9999px",
-                display: "block",
-                flexShrink: 0,
-                height: "0.5rem",
-                width: "0.5rem",
-              }}
-              aria-hidden={true}
-            />
-            <span>{bar.name}</span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 export function AnalyticsStackedBarChart({
   data,
   bars,
@@ -99,7 +51,15 @@ export function AnalyticsStackedBarChart({
   height = 260,
   margin = DEFAULT_CHART_MARGIN,
 }: AnalyticsStackedBarChartProps) {
-  const stackTotals = getStackTotals(data, bars);
+  const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(new Set());
+  // Fallback colors come from the bar's ORIGINAL index so they stay stable
+  // while series are hidden.
+  const resolvedBars = bars.map((bar, index) => ({
+    ...bar,
+    resolvedColor: bar.color ?? `var(--chart-${index + 1}, var(--accent))`,
+  }));
+  const visibleBars = resolvedBars.filter((bar) => !hiddenKeys.has(bar.key));
+  const stackTotals = getStackTotals(data, visibleBars);
   const { domain: yDomain, ticks: yTicks } = createLineChartTicks(stackTotals, {
     startAtZero: true,
   });
@@ -152,15 +112,14 @@ export function AnalyticsStackedBarChart({
             )}
             cursor={{ fill: "currentColor", fillOpacity: 0.1 }}
           />
-          {bars.map((bar, index) => {
-            const color = bar.color ?? `var(--chart-${index + 1}, var(--accent))`;
-            const isLast = index === bars.length - 1;
+          {visibleBars.map((bar, index) => {
+            const isLast = index === visibleBars.length - 1;
             return (
               <Bar
                 key={bar.key}
                 dataKey={bar.key}
                 name={bar.name}
-                fill={color}
+                fill={bar.resolvedColor}
                 fillOpacity={0.9}
                 stackId={bar.stackId ?? "stack"}
                 radius={isLast ? [3, 3, 0, 0] : [0, 0, 0, 0]}
@@ -172,7 +131,17 @@ export function AnalyticsStackedBarChart({
           })}
         </BarChart>
       </ResponsiveContainer>
-      <AnalyticsStackedBarLegend bars={bars} />
+      <AnalyticsChartLegend
+        entries={resolvedBars.map((bar) => ({
+          key: bar.key,
+          name: bar.name,
+          color: bar.resolvedColor,
+        }))}
+        hiddenKeys={hiddenKeys}
+        onToggle={(key) =>
+          setHiddenKeys((current) => toggleLegendKey(current, key, resolvedBars.length))
+        }
+      />
     </div>
   );
 }

@@ -121,6 +121,14 @@ export type RegistryAnalyticsData = {
     /** Per-listing. */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
   };
+  countries: {
+    /** Per-country, aggregated over the country's listings (country-less listings excluded). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
+  };
+  regions: {
+    /** Per registry location tag (manifest `location`, derived from country). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
+  };
   projects: {
     rankings: RegistryAnalyticsProjectRanking[];
     /** Per-project (multi-asset projects only, matching the rankings). */
@@ -409,6 +417,104 @@ function buildListingDailySeries(
   }
 
   return { dates, entities };
+}
+
+/**
+ * One daily series per country, aggregated over that country's listings.
+ * Listings without a country (mods today; any future country-less asset type)
+ * are excluded rather than bucketed, so the chart stays a geography view.
+ */
+function buildCountryDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entitiesById = new Map<string, RegistryAnalyticsEntityDailySeries["entities"][number]>();
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    const countryCode = item?.countryCode?.trim().toUpperCase();
+    if (!item || !countryCode) continue;
+    const isMap = item.type === "maps";
+
+    const entity = entitiesById.get(countryCode) ?? {
+      id: countryCode,
+      name: item.countryName?.trim() || countryCode,
+      byDate: new Map<string, { maps: number; mods: number }>(),
+      searchValues: [
+        item.countryName ?? "",
+        countryCode,
+        ...buildRegistryCountrySearchValues(countryCode),
+      ],
+    };
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      const date = normalizeDate(dateHeader);
+      const current = entity.byDate.get(date) ?? { maps: 0, mods: 0 };
+      if (isMap) current.maps += downloads;
+      else current.mods += downloads;
+      entity.byDate.set(date, current);
+    }
+    entitiesById.set(countryCode, entity);
+  }
+
+  return { dates, entities: [...entitiesById.values()] };
+}
+
+/** "north-america" -> "North America", "very-high" -> "Very High". */
+function titleCaseSlug(slug: string): string {
+  return slug
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+type EntityGroup = { id: string; name: string; color?: string };
+
+/** Generic daily-series builder grouping listings by an item-derived key. */
+function buildGroupedDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+  getGroup: (item: RegistryAnalyticsItem) => EntityGroup | null,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entitiesById = new Map<string, RegistryAnalyticsEntityDailySeries["entities"][number]>();
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    const group = getGroup(item);
+    if (!group) continue;
+    const isMap = item.type === "maps";
+
+    const entity = entitiesById.get(group.id) ?? {
+      id: group.id,
+      name: group.name,
+      byDate: new Map<string, { maps: number; mods: number }>(),
+      ...(group.color ? { color: group.color } : {}),
+    };
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      const date = normalizeDate(dateHeader);
+      const current = entity.byDate.get(date) ?? { maps: 0, mods: 0 };
+      if (isMap) current.maps += downloads;
+      else current.mods += downloads;
+      entity.byDate.set(date, current);
+    }
+    entitiesById.set(group.id, entity);
+  }
+
+  return { dates, entities: [...entitiesById.values()] };
+}
+
+function getItemLocation(item: RegistryAnalyticsItem): string {
+  const manifest = item.manifest as { location?: string };
+  return manifest.location?.trim().toLowerCase() ?? "";
 }
 
 /** Distinct slate for the synthetic "No Project" series (Others stays lighter grey). */
@@ -753,6 +859,15 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     },
     listings: {
       dailyDownloads: buildListingDailySeries(byDayRows, validItemsById),
+    },
+    countries: {
+      dailyDownloads: buildCountryDailySeries(byDayRows, validItemsById),
+    },
+    regions: {
+      dailyDownloads: buildGroupedDailySeries(byDayRows, validItemsById, (item) => {
+        const location = getItemLocation(item);
+        return location ? { id: location, name: titleCaseSlug(location) } : null;
+      }),
     },
     projects: {
       rankings: buildProjectRankings(creatorData.projects),

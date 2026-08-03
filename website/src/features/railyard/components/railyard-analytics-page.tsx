@@ -31,6 +31,7 @@ import {
 import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { MULTI_SERIES_PALETTE } from "@/shared/analytics/multi-series";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
 import { CHART_CARD_CLASS, CHART_CARD_FLUSH_CLASS } from "@/shared/styles/panels";
 import { navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
@@ -638,18 +639,14 @@ function RailyardVersionsTab({
           onChange={(nextPeriod) => navigate(PERIOD_TAB_PATHS.versions[nextPeriod])}
         />
       </div>
-      <article className={CHART_CARD_CLASS}>
-        <AnalyticsLineChart
-          key={`railyard-versions-${period}`}
-          data={chartData}
-          lines={versionGraphLines}
-          xAxisKey="date"
-          xAxisTicks={chartTicks}
-          height={280}
-          startAtZero={true}
-          hideZeroTooltipEntries={true}
-        />
-      </article>
+      <MultiSeriesChartCard
+        chartKey={`railyard-versions-${period}`}
+        data={chartData}
+        series={versionGraphLines}
+        xAxisTicks={chartTicks}
+        stackId="versions"
+        ariaLabelPrefix="Versions chart"
+      />
       <RailyardVersionsBreakdown data={data} />
     </section>
   );

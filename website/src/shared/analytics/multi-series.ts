@@ -44,6 +44,56 @@ export type MultiSeriesChartModel = {
   data: MultiSeriesPoint[];
 };
 
+/** Monday (UTC) of the week containing the given YYYY-MM-DD date. */
+export function getWeekStartDate(date: string): string {
+  const parsed = new Date(`${date}T00:00:00Z`);
+  const daysSinceMonday = (parsed.getUTCDay() + 6) % 7;
+  parsed.setUTCDate(parsed.getUTCDate() - daysSinceMonday);
+  return parsed.toISOString().slice(0, 10);
+}
+
+export type BucketedMultiSeries = {
+  data: MultiSeriesPoint[];
+  grain: "daily" | "weekly" | "monthly";
+};
+
+/**
+ * Caps a daily multi-series chart at `maxPoints` x-entries by summing days
+ * into weekly buckets (labeled by the week's Monday), falling back to monthly
+ * buckets if even the weeks overflow. Under the cap, data passes through
+ * untouched — so short windows stay daily and long windows stay readable.
+ * Only meaningful for flow data (sums); do not use on cumulative series.
+ */
+export function bucketMultiSeriesData(
+  data: MultiSeriesPoint[],
+  { xAxisKey = "date", maxPoints = 60 }: { xAxisKey?: string; maxPoints?: number } = {},
+): BucketedMultiSeries {
+  const bucketBy = (getBucket: (date: string) => string): MultiSeriesPoint[] => {
+    const buckets = new Map<string, MultiSeriesPoint>();
+    for (const point of data) {
+      const bucketKey = getBucket(String(point[xAxisKey]));
+      const bucket = buckets.get(bucketKey) ?? { [xAxisKey]: bucketKey };
+      for (const [key, value] of Object.entries(point)) {
+        if (key === xAxisKey || typeof value !== "number") continue;
+        bucket[key] = ((bucket[key] as number) ?? 0) + value;
+      }
+      buckets.set(bucketKey, bucket);
+    }
+    return [...buckets.values()].sort((left, right) =>
+      String(left[xAxisKey]).localeCompare(String(right[xAxisKey])),
+    );
+  };
+
+  if (data.length <= maxPoints) {
+    return { data, grain: "daily" };
+  }
+  const weekly = bucketBy(getWeekStartDate);
+  if (weekly.length <= maxPoints) {
+    return { data: weekly, grain: "weekly" };
+  }
+  return { data: bucketBy((date) => `${date.slice(0, 7)}-01`), grain: "monthly" };
+}
+
 /**
  * Reduces many per-entity daily series to the leading few over `dates`,
  * aggregating everything else into a single trailing "Others" series. The same

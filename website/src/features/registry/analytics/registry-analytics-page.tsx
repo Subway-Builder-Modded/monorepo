@@ -7,14 +7,16 @@ import {
   type ReactNode,
 } from "react";
 import {
+  Activity,
   BookText,
+  CalendarRange,
   ChartLine,
   ChartPie,
-  Clock,
   Download,
   ExternalLink,
   FileStack,
   FolderGit2,
+  Globe,
   LayoutDashboard,
   Map as MapAreaIcon,
   Plus,
@@ -37,14 +39,16 @@ import {
   ScrollArea,
   getSortedRankSlotMap,
 } from "@subway-builder-modded/shared-ui";
-import {
-  AnalyticsLineChart,
-  AnalyticsPieChart,
-  AnalyticsStackedBarChart,
-} from "@subway-builder-modded/analytics";
+import { AnalyticsLineChart, AnalyticsPieChart } from "@subway-builder-modded/analytics";
 import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
+import {
+  MULTI_SERIES_PALETTE,
+  OTHERS_SERIES_COLOR,
+  bucketMultiSeriesData,
+} from "@/shared/analytics/multi-series";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
 import { RegistryAnalyticsPeriodToggle as PeriodToggle } from "@/features/registry/analytics/components/analytics-period-toggle";
 import {
   CHART_CARD_CLASS,
@@ -64,7 +68,10 @@ import {
   DetailsMetricGrid,
   type DetailMetric,
 } from "@/features/registry/detail/components/details-tab";
-import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
+import {
+  REGISTRY_TYPES,
+  getRegistryTypeConfigOrDefault,
+} from "@/features/registry/registry-type-config";
 import { getRegistryAuthorUrl, getRegistryDetailUrl } from "@/features/registry/lib/routing";
 import {
   buildRegistryCountrySearchValues,
@@ -78,6 +85,7 @@ import {
   type RegistryAnalyticsAuthorRanking,
   type RegistryAnalyticsContentRanking,
   type RegistryAnalyticsData,
+  type RegistryAnalyticsEntityDailySeries,
   type RegistryAnalyticsMapStatisticRanking,
   type RegistryAnalyticsPeriodId,
   type RegistryAnalyticsProjectRanking,
@@ -128,6 +136,7 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
 
 const CONTENT_ASSET_INCREMENT = 20;
 const AUTHOR_RANKING_INCREMENT = 20;
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
@@ -249,47 +258,148 @@ function RegistryOverviewTab({
       ),
     [data.history, period],
   );
+  // One series per asset type, derived from the registry config so a future
+  // asset type extends every Overview chart without edits here.
+  const typeSeries = REGISTRY_TYPES.map((typeConfig) => {
+    const config = getRegistryTypeConfigOrDefault(typeConfig.id);
+    return {
+      id: typeConfig.id,
+      key: config.pluralLabel,
+      name: config.pluralLabel,
+      color: config.accentLight,
+    };
+  });
+  const readTypeValue = (record: Record<string, number>, typeId: string) => record[typeId] ?? 0;
   const chartData = graphRows.map((row) => ({
     date: row.date,
-    Total: row.downloads.total,
-    Maps: row.downloads.maps,
-    Mods: row.downloads.mods,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [series.key, readTypeValue(row.downloads, series.id)]),
+    ),
   }));
   const cumulativeChartData = data.history.map((row) => ({
     date: row.date,
-    Maps: row.cumulativeDownloads.maps,
-    Mods: row.cumulativeDownloads.mods,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [series.key, readTypeValue(row.cumulativeDownloads, series.id)]),
+    ),
   }));
+  // Releases are sparse at day grain; the shared bucketing collapses the
+  // all-time cut to weeks while short cuts show recent uptake day by day.
+  const newListingsBucketed = bucketMultiSeriesData(
+    graphRows.map((row) => ({
+      date: row.date,
+      ...Object.fromEntries(
+        typeSeries.map((series) => [series.key, readTypeValue(row.listings, series.id)]),
+      ),
+    })),
+  );
+  const newListingsGrainLabel =
+    newListingsBucketed.grain === "weekly"
+      ? "Weekly"
+      : newListingsBucketed.grain === "monthly"
+        ? "Monthly"
+        : "Daily";
   const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  // Average downloads per weekday over the full history — the registry's
+  // weekly activity rhythm (all-time, so it sits above the period break).
+  const weekdaySums = WEEKDAY_LABELS.map(() => ({
+    days: 0,
+    byType: {} as Record<string, number>,
+  }));
+  for (const row of data.history) {
+    if (row.date === "2026-03-11") continue;
+    const weekdayIndex = (new Date(`${row.date}T00:00:00Z`).getUTCDay() + 6) % 7;
+    const bucket = weekdaySums[weekdayIndex];
+    bucket.days += 1;
+    for (const series of typeSeries) {
+      bucket.byType[series.key] =
+        (bucket.byType[series.key] ?? 0) + readTypeValue(row.downloads, series.id);
+    }
+  }
+  const weekdayChartData = WEEKDAY_LABELS.map((day, index) => ({
+    day,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [
+        series.key,
+        weekdaySums[index].days > 0
+          ? Math.round((weekdaySums[index].byType[series.key] ?? 0) / weekdaySums[index].days)
+          : 0,
+      ]),
+    ),
+  }));
+  // Period-scoped share pies from grouped entity series.
+  const buildEntityPeriodSlices = (
+    series: RegistryAnalyticsEntityDailySeries | undefined,
+    {
+      value = "total",
+      limit,
+      minShare,
+    }: { value?: "total" | "maps" | "mods"; limit?: number; minShare?: number } = {},
+  ): PieSlice[] => {
+    const allDates = series?.dates ?? [];
+    const periodDays = period === "all-time" ? null : Number.parseInt(period, 10);
+    const dates = periodDays === null ? allDates : allDates.slice(-periodDays);
+    const sorted = (series?.entities ?? [])
+      .map((entity) => ({
+        entity,
+        total: dates.reduce((sum, date) => {
+          const point = entity.byDate.get(date);
+          if (!point) return sum;
+          const pointValue =
+            value === "maps" ? point.maps : value === "mods" ? point.mods : point.maps + point.mods;
+          return sum + pointValue;
+        }, 0),
+      }))
+      .filter(({ total }) => total > 0)
+      .sort((left, right) => right.total - left.total);
+    const grandTotal = sorted.reduce((sum, { total }) => sum + total, 0);
+    let drawnCount = sorted.length;
+    if (minShare !== undefined && grandTotal > 0) {
+      drawnCount = sorted.filter(({ total }) => total / grandTotal >= minShare).length;
+    }
+    if (limit && drawnCount > limit) {
+      drawnCount = limit - 1;
+    }
+    const top = sorted.slice(0, drawnCount);
+    const rest = sorted.slice(top.length);
+    const slices: PieSlice[] = top.map(({ entity, total }, index) => ({
+      key: entity.id,
+      name: entity.name,
+      value: total,
+      color: entity.color ?? MULTI_SERIES_PALETTE[index % MULTI_SERIES_PALETTE.length],
+    }));
+    if (rest.length > 0) {
+      slices.push({
+        key: "__others__",
+        name: "Others",
+        value: rest.reduce((sum, { total }) => sum + total, 0),
+        color: OTHERS_SERIES_COLOR,
+      });
+    }
+    return slices;
+  };
+  // Same 2.5% share threshold as the Top Countries chart (regions are the
+  // same geographic measure), so the long tail folds into Others.
+  const regionSlices = buildEntityPeriodSlices(data.regions?.dailyDownloads, {
+    minShare: 0.025,
+    limit: 10,
+  });
+  const authorMapSlices = buildEntityPeriodSlices(data.authors?.dailyDownloads, {
+    value: "maps",
+    limit: 8,
+  });
   const breakdown = buildPeriodBreakdown(data, period);
-  const listingSlices: PieSlice[] = [
-    {
-      key: "maps",
-      name: "Maps",
-      value: breakdown.listings.maps,
-      color: "var(--registry-maps-accent)",
-    },
-    {
-      key: "mods",
-      name: "Mods",
-      value: breakdown.listings.mods,
-      color: "var(--registry-mods-accent)",
-    },
-  ];
-  const downloadSlices: PieSlice[] = [
-    {
-      key: "maps",
-      name: "Maps",
-      value: breakdown.downloads.maps,
-      color: "var(--registry-maps-accent)",
-    },
-    {
-      key: "mods",
-      name: "Mods",
-      value: breakdown.downloads.mods,
-      color: "var(--registry-mods-accent)",
-    },
-  ];
+  const listingSlices: PieSlice[] = typeSeries.map((series) => ({
+    key: series.id,
+    name: series.name,
+    value: readTypeValue(breakdown.listings, series.id),
+    color: series.color,
+  }));
+  const downloadSlices: PieSlice[] = typeSeries.map((series) => ({
+    key: series.id,
+    name: series.name,
+    value: readTypeValue(breakdown.downloads, series.id),
+    color: series.color,
+  }));
 
   return (
     <section
@@ -313,79 +423,111 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Cumulative Downloads" icon={ChartLine} className="mb-4" />
-        <article className={CHART_CARD_CLASS}>
-          <AnalyticsStackedBarChart
-            key="registry-cumulative-downloads-all-time"
-            data={cumulativeChartData}
-            bars={[
-              {
-                key: "Maps",
-                name: "Maps",
-                color: "var(--registry-maps-accent)",
-              },
-              {
-                key: "Mods",
-                name: "Mods",
-                color: "var(--registry-mods-accent)",
-              },
-            ]}
-            xAxisKey="date"
-            height={280}
-          />
-        </article>
-      </section>
-
-      <div className="flex justify-center">
-        <PeriodToggle
-          value={period}
-          onChange={(nextPeriod) =>
-            navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], {
-              preserveScroll: true,
-            })
-          }
+        <MultiSeriesChartCard
+          title="All Time"
+          chartKey="registry-cumulative-downloads"
+          data={cumulativeChartData}
+          series={typeSeries}
+          height={280}
+          stackId="cumulative"
+          defaultStyle="bar"
+          ariaLabelPrefix="Cumulative downloads chart"
         />
-      </div>
+      </section>
 
       <section className="space-y-3">
-        <SectionSeparator label="Downloads Timeline" icon={Clock} className="mb-4" />
-        <article className={CHART_CARD_CLASS}>
-          <AnalyticsLineChart
-            key={`registry-downloads-${period}`}
-            data={chartData}
-            lines={[
-              {
-                key: "Maps",
-                name: "Maps",
-                color: "var(--registry-maps-accent)",
-              },
-              {
-                key: "Mods",
-                name: "Mods",
-                color: "var(--registry-mods-accent)",
-              },
-              {
-                key: "Total",
-                name: "Total",
-                color: "var(--registry-type-accent)",
-              },
-            ]}
-            xAxisKey="date"
-            xAxisTicks={chartTicks}
-            height={280}
-            startAtZero={true}
-          />
-        </article>
+        <SectionSeparator label="Seasonality" icon={Activity} className="mb-4" />
+        <MultiSeriesChartCard
+          title="Average Daily Downloads"
+          chartKey="registry-weekday-rhythm"
+          data={weekdayChartData}
+          series={typeSeries}
+          xAxisKey="day"
+          xAxisTicks={WEEKDAY_LABELS}
+          height={280}
+          stackId="weekday"
+          defaultStyle="bar"
+          ariaLabelPrefix="Weekly rhythm chart"
+        />
       </section>
 
-      <section>
-        <SectionSeparator label="Breakdown" icon={ChartPie} className="mb-4" />
+      {/* Everything above is all-time; everything below follows the selected
+          period. The labeled break + attached toggle make that scope visible. */}
+      <section className="space-y-4 pt-4">
+        <SectionSeparator label="By Period" icon={CalendarRange} className="mb-4" />
+        <div className="flex justify-center">
+          <PeriodToggle
+            value={period}
+            onChange={(nextPeriod) =>
+              navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], {
+                preserveScroll: true,
+              })
+            }
+          />
+        </div>
+      </section>
+
+      {/* One measure per section: Downloads and Maps chart downloads, Listings
+          counts listings — every card title names its measure, and each pie
+          sits beside the chart whose numbers it decomposes. */}
+      <section className="space-y-3">
+        <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <MultiSeriesChartCard
+            title="Daily Downloads"
+            chartKey={`registry-downloads-${period}`}
+            data={chartData}
+            series={typeSeries}
+            xAxisTicks={chartTicks}
+            height={280}
+            stackId="downloads"
+            ariaLabelPrefix="Downloads timeline chart"
+          />
+          <RegistryPieChartCard title="Download Share" icon={ChartPie} data={downloadSlices} />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <SectionSeparator label="Maps" icon={mapsConfig.icon ?? MapAreaIcon} className="mb-4" />
+        {/* Country downloads run much flatter than authors (only 4-6 of 42
+            active countries clear 5%), so this chart uses a 2.5% share
+            threshold — typically 10+ countries, bound by the series cap. */}
+        <TopEntitiesChart
+          series={data.countries.dailyDownloads}
+          entityKey="countries"
+          period={period}
+          assetType="total"
+          minShare={0.025}
+          titleSuffix=" by Country"
+        />
         <div className="grid gap-4 lg:grid-cols-2">
+          <RegistryPieChartCard title="Map Downloads by Region" icon={Globe} data={regionSlices} />
           <RegistryPieChartCard
-            title={period === "all-time" ? "Listings" : "New Listings"}
+            title="Map Downloads by Author"
+            icon={Users}
+            data={authorMapSlices}
+          />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <SectionSeparator label="Listings" icon={FileStack} className="mb-4" />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <MultiSeriesChartCard
+            title={`${newListingsGrainLabel} Releases`}
+            chartKey={`registry-new-listings-${period}-${newListingsBucketed.grain}`}
+            data={newListingsBucketed.data}
+            series={typeSeries}
+            height={280}
+            stackId="new-listings"
+            defaultStyle="bar"
+            ariaLabelPrefix="New listings chart"
+          />
+          <RegistryPieChartCard
+            title={`${period === "all-time" ? "Listings" : "New Listings"} by Type`}
             icon={FileStack}
             data={listingSlices}
           />
-          <RegistryPieChartCard title="Downloads" icon={ChartPie} data={downloadSlices} />
         </div>
       </section>
     </section>
@@ -826,11 +968,15 @@ function RegistryContentTab({
           icon={typeConfig.icon ?? FileStack}
           className="mb-4"
         />
+        {/* Per-listing downloads are the flattest distribution on the site
+            (the top map holds only 3-6% of its type), so share thresholds are
+            meaningless here — minShare 0 selects a plain top 10. */}
         <TopEntitiesChart
           series={filteredListingSeries}
           entityKey={assetTypeId}
           period={period}
           assetType={assetTypeId}
+          minShare={0}
           filtered={isChartFiltered}
           emptyLabel={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
         />
@@ -1336,9 +1482,13 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
 
       <section>
         <SectionSeparator label="Top Projects" icon={FolderGit2} className="mb-4" />
+        {/* "No Project" holds most downloads, leaving real projects tiny
+            shares of the total — minShare 0 selects a plain top 10 so up to
+            nine actual projects chart alongside it. */}
         <TopEntitiesChart
           series={filteredProjectSeries}
           entityKey="projects"
+          minShare={0}
           filtered={isChartFiltered}
           emptyLabel="No projects match the current filters."
         />
