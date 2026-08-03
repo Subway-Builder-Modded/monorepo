@@ -21,7 +21,7 @@ import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import { RegistryTypeCountBadge } from "@/features/registry/components/registry-type-count-badge";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
-import { PanelLeftOpen, PanelLeftClose, Trash2, ArrowUpToLine } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, Trash2, ArrowUpToLine, Archive } from "lucide-react";
 import { RegistryTagCategorySection } from "@/features/registry/components/registry-tag-category-section";
 
 const REGISTRY_SIDEBAR_COLLAPSED_KEY = "sbm:registry-sidebar-collapsed";
@@ -37,8 +37,56 @@ type RegistryFilterSidebarProps = {
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
   onTagsClear: () => void;
+  showDeprecated: boolean;
+  deprecatedCount: number;
+  onShowDeprecatedChange: (show: boolean) => void;
   onCollapsedChange?: (collapsed: boolean) => void;
 };
+
+/** Visibility section: author-deprecated listings are hidden by default and
+ * only surface while this toggle is on. Rendered only when the current type
+ * actually has deprecated listings (or the toggle is already on via URL). */
+function DeprecatedVisibilitySection({
+  showDeprecated,
+  deprecatedCount,
+  onShowDeprecatedChange,
+}: {
+  showDeprecated: boolean;
+  deprecatedCount: number;
+  onShowDeprecatedChange: (show: boolean) => void;
+}) {
+  if (deprecatedCount === 0 && !showDeprecated) {
+    return null;
+  }
+
+  return (
+    <>
+      <SideRailDivider className="my-2 opacity-50" />
+
+      <section className="space-y-2" aria-label="Visibility">
+        <p className="px-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
+          Visibility
+        </p>
+
+        <button
+          type="button"
+          onClick={() => onShowDeprecatedChange(!showDeprecated)}
+          aria-pressed={showDeprecated}
+          className={cn(
+            "group relative flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm font-medium transition-colors",
+            showDeprecated
+              ? "border-[color-mix(in_srgb,var(--asset-accent-light)_45%,var(--border))] bg-[color-mix(in_srgb,var(--asset-accent-light)_22%,var(--background))] text-[var(--asset-accent-light)] dark:border-[color-mix(in_srgb,var(--asset-accent-dark)_45%,var(--border))] dark:bg-[color-mix(in_srgb,var(--asset-accent-dark)_22%,var(--background))] dark:text-[var(--asset-accent-dark)]"
+              : "border-border/30 text-muted-foreground hover:border-[color-mix(in_srgb,var(--asset-accent-light)_35%,var(--border))] hover:bg-[color-mix(in_srgb,var(--asset-accent-light)_12%,var(--background))] dark:hover:border-[color-mix(in_srgb,var(--asset-accent-dark)_35%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--asset-accent-dark)_12%,var(--background))]",
+          )}
+        >
+          <Archive className="size-4 shrink-0" aria-hidden={true} />
+          <span className="flex-1">Show Deprecated</span>
+          <RegistryTypeCountBadge count={deprecatedCount} isActive={showDeprecated} />
+        </button>
+      </section>
+    </>
+  );
+}
 
 function RegistryToolbarIconButton({
   label,
@@ -102,6 +150,9 @@ export function RegistryFilterSidebar({
   selectedTags,
   onTagToggle,
   onTagsClear,
+  showDeprecated,
+  deprecatedCount,
+  onShowDeprecatedChange,
   onCollapsedChange,
 }: RegistryFilterSidebarProps) {
   const categories = buildTagCategories(typeId, availableTags, typeItems);
@@ -303,6 +354,12 @@ export function RegistryFilterSidebar({
                       </div>
                     )}
                   </section>
+
+                  <DeprecatedVisibilitySection
+                    showDeprecated={showDeprecated}
+                    deprecatedCount={deprecatedCount}
+                    onShowDeprecatedChange={onShowDeprecatedChange}
+                  />
                 </div>
               </ScrollArea>
             ) : (
@@ -376,6 +433,12 @@ export function RegistryFilterSidebar({
                     </div>
                   )}
                 </section>
+
+                <DeprecatedVisibilitySection
+                  showDeprecated={showDeprecated}
+                  deprecatedCount={deprecatedCount}
+                  onShowDeprecatedChange={onShowDeprecatedChange}
+                />
               </div>
             )}
           </div>

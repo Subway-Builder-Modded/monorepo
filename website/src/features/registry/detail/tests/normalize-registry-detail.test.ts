@@ -282,3 +282,32 @@ describe("normalizeRegistryDetail", () => {
     );
   });
 });
+
+describe("normalizeRegistryDetail deprecation", () => {
+  it("maps a manifest deprecation record onto the model", () => {
+    const data = structuredClone(BASE);
+    data.manifest.deprecation = {
+      since: "2026-08-03T00:00:00Z",
+      by_github_id: 100,
+      reason: "  Superseded by asset-b  ",
+    };
+
+    const model = normalizeRegistryDetail(data);
+    expect(model.deprecation).toEqual({
+      since: "2026-08-03T00:00:00Z",
+      reason: "Superseded by asset-b",
+    });
+  });
+
+  it("normalizes a reason-less deprecation record", () => {
+    const data = structuredClone(BASE);
+    data.manifest.deprecation = { since: "2026-08-03T00:00:00Z", by_github_id: 100 };
+
+    const model = normalizeRegistryDetail(data);
+    expect(model.deprecation).toEqual({ since: "2026-08-03T00:00:00Z", reason: null });
+  });
+
+  it("returns null deprecation for active listings", () => {
+    expect(normalizeRegistryDetail(structuredClone(BASE)).deprecation).toBeNull();
+  });
+});

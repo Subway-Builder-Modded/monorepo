@@ -108,6 +108,7 @@ function makeDetail(): RegistryDetailModel {
     updatedDate: null,
     integrityVersionCount: 0,
     mapFields: null,
+    deprecation: null,
   };
 }
 

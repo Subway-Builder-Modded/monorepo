@@ -43,6 +43,8 @@ export type RegistryCardData = {
   countryName: string | null;
   countryEmoji: string | null;
   population: number | null;
+  /** Author-deprecated listing: renders a Deprecated badge on the card. */
+  isDeprecated?: boolean;
 };
 
 /** View variant for the card. */

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { Badge } from "@subway-builder-modded/shared-ui";
-import { ArrowDownToLine, ExternalLink, Users } from "lucide-react";
+import { Archive, ArrowDownToLine, ExternalLink, Users } from "lucide-react";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
@@ -136,6 +136,25 @@ function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
         {typeConfig.label}
       </Badge>
     </Link>
+  );
+}
+
+/** Muted gray badge marking an author-deprecated listing. Deliberately
+ * neutral (not red) — deprecation is an author decision, not a defect. */
+function DeprecatedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
+  return (
+    <Badge
+      variant="secondary"
+      size={size}
+      className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold text-muted-foreground"
+      style={{
+        background: "color-mix(in srgb, var(--muted-foreground) 10%, transparent)",
+        border: "1px solid color-mix(in srgb, var(--muted-foreground) 22%, transparent)",
+      }}
+    >
+      <Archive className="size-3.5" aria-hidden={true} />
+      Deprecated
+    </Badge>
   );
 }
 
@@ -416,7 +435,10 @@ function RegistryCardGrid({
           )}
         >
           <div className="flex items-center justify-between gap-2">
-            <TypeBadge typeConfig={typeConfig} />
+            <div className="flex items-center gap-1.5">
+              <TypeBadge typeConfig={typeConfig} />
+              {data.isDeprecated ? <DeprecatedBadge /> : null}
+            </div>
             <div className="flex items-center gap-3">
               {data.population !== null && <PopulationCount count={data.population} />}
               <DownloadCount count={data.totalDownloads} />
@@ -552,7 +574,10 @@ function RegistryCardFull({
           )}
         >
           <div className="flex items-center justify-between gap-2">
-            <TypeBadge typeConfig={typeConfig} size="md" />
+            <div className="flex items-center gap-1.5">
+              <TypeBadge typeConfig={typeConfig} size="md" />
+              {data.isDeprecated ? <DeprecatedBadge size="md" /> : null}
+            </div>
             <div className="flex items-center gap-3">
               {data.population !== null && <PopulationCount count={data.population} />}
               <DownloadCount count={data.totalDownloads} />
@@ -650,6 +675,7 @@ function RegistryCardList({
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-2.5">
               <TypeBadge typeConfig={typeConfig} size="sm" />
+              {data.isDeprecated ? <DeprecatedBadge /> : null}
               <div className="hidden items-center gap-3 sm:flex">
                 {data.population !== null && <PopulationCount count={data.population} />}
                 <DownloadCount count={data.totalDownloads} />

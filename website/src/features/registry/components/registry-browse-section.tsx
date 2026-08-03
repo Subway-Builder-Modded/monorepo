@@ -35,6 +35,8 @@ type RegistryBrowseSectionProps = {
   viewMode: RegistryViewMode;
   page: number;
   pageSize: number;
+  showDeprecated: boolean;
+  onShowDeprecatedChange: (show: boolean) => void;
   onTypeChange: (id: string) => void;
   onQueryChange: (q: string) => void;
   onTagToggle: (tag: string) => void;
@@ -59,6 +61,8 @@ export function RegistryBrowseSection({
   viewMode,
   page,
   pageSize,
+  showDeprecated,
+  onShowDeprecatedChange,
   onTypeChange,
   onQueryChange,
   onTagToggle,
@@ -118,6 +122,7 @@ export function RegistryBrowseSection({
     typeItems,
     counts,
     availableTags,
+    deprecatedCount,
     sortedItems,
     totalPages,
     visibleItems,
@@ -131,6 +136,7 @@ export function RegistryBrowseSection({
     sortDir,
     page,
     pageSize,
+    showDeprecated,
     isLoading,
     onPageChange,
   });
@@ -168,6 +174,9 @@ export function RegistryBrowseSection({
           selectedTags={selectedTags}
           onTagToggle={onTagToggle}
           onTagsClear={onTagsClear}
+          showDeprecated={showDeprecated}
+          deprecatedCount={deprecatedCount}
+          onShowDeprecatedChange={onShowDeprecatedChange}
           onCollapsedChange={setSidebarCollapsed}
         />
 

@@ -232,4 +232,56 @@ describe("loadRegistryItemsForType", () => {
     expect(items).toHaveLength(1);
     expect(items[0]?.id).toBe("good-mod");
   });
+
+  it("includes deprecated listings despite zero complete versions and flags them", async () => {
+    const base = "/registry-cache/mods";
+
+    mockFetchWithMap({
+      // The registry pipeline's deprecation overlay reports deprecated
+      // listings with every version incomplete — they must still load.
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: {
+          "sunset-mod": {
+            has_complete_version: false,
+            versions: {
+              v1: { is_complete: false, checked_at: "2025-02-02T00:00:00.000Z" },
+            },
+          },
+          "active-mod": {
+            has_complete_version: true,
+            versions: {
+              v1: { is_complete: true, checked_at: "2025-02-02T00:00:00.000Z" },
+            },
+          },
+          "delisted-mod": {
+            has_complete_version: false,
+            versions: {
+              v1: { is_complete: false, checked_at: "2025-02-02T00:00:00.000Z" },
+            },
+          },
+        },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({ "sunset-mod": { v1: 41 } }),
+      [`${base}/index.json`]: JSON.stringify({
+        mods: ["sunset-mod", "active-mod", "delisted-mod"],
+      }),
+      [`${base}/sunset-mod/manifest.json`]: JSON.stringify({
+        name: "Sunset Mod",
+        deprecation: { since: "2026-08-03T00:00:00Z", by_github_id: 1, reason: "Superseded" },
+      }),
+      [`${base}/active-mod/manifest.json`]: JSON.stringify({ name: "Active Mod" }),
+      [`${base}/delisted-mod/manifest.json`]: JSON.stringify({ name: "Delisted Mod" }),
+    });
+
+    const items = await loadRegistryItemsForType("mods", "mods");
+    const ids = items.map((item) => item.id).sort();
+
+    // Deprecated listing stays (with flag + downloads intact for attribution);
+    // an incomplete listing WITHOUT a deprecation record stays delisted.
+    expect(ids).toEqual(["active-mod", "sunset-mod"]);
+    const sunset = items.find((item) => item.id === "sunset-mod");
+    expect(sunset?.isDeprecated).toBe(true);
+    expect(sunset?.totalDownloads).toBe(41);
+    expect(items.find((item) => item.id === "active-mod")?.isDeprecated).toBe(false);
+  });
 });

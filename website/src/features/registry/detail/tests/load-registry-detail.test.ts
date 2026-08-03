@@ -33,6 +33,7 @@ function makeItem(id: string, manifest: unknown): RegistrySearchItem {
     countryEmoji: null,
     population: null,
     isTest: false,
+    isDeprecated: false,
     manifest,
   };
 }

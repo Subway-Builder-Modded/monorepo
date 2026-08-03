@@ -13,6 +13,7 @@ type UseRegistryBrowseDataProps = {
   sortDir: "asc" | "desc";
   page: number;
   pageSize: number;
+  showDeprecated: boolean;
   isLoading: boolean;
   onPageChange: (page: number) => void;
 };
@@ -26,6 +27,7 @@ export function useRegistryBrowseData({
   sortDir,
   page,
   pageSize,
+  showDeprecated,
   isLoading,
   onPageChange,
 }: UseRegistryBrowseDataProps) {
@@ -40,19 +42,31 @@ export function useRegistryBrowseData({
 
   const typeItems = allItemsByType[typeId] ?? [];
 
+  // Sidebar type counts follow the toggle: deprecated listings only count
+  // toward the totals when they are being shown.
   const counts = useMemo(() => {
     const result: Record<string, number> = {};
     for (const [tid, items] of Object.entries(allItemsByType)) {
-      result[tid] = items.length;
+      result[tid] = showDeprecated
+        ? items.length
+        : items.filter((item) => !item.isDeprecated).length;
     }
     return result;
-  }, [allItemsByType]);
+  }, [allItemsByType, showDeprecated]);
 
-  const availableTags = useMemo(() => collectTags(typeItems), [typeItems]);
+  const deprecatedCount = useMemo(
+    () => typeItems.filter((item) => item.isDeprecated).length,
+    [typeItems],
+  );
+
+  const availableTags = useMemo(
+    () => collectTags(showDeprecated ? typeItems : typeItems.filter((item) => !item.isDeprecated)),
+    [typeItems, showDeprecated],
+  );
 
   const filteredItems = useMemo(
-    () => filterRegistryItems(typeItems, deferredQuery, selectedTags),
-    [typeItems, deferredQuery, selectedTags],
+    () => filterRegistryItems(typeItems, deferredQuery, selectedTags, showDeprecated),
+    [typeItems, deferredQuery, selectedTags, showDeprecated],
   );
 
   const sortedItems = useMemo(
@@ -100,6 +114,7 @@ export function useRegistryBrowseData({
     typeItems,
     counts,
     availableTags,
+    deprecatedCount,
     sortedItems,
     totalPages,
     visibleItems,

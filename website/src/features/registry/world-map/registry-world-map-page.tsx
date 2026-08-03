@@ -16,7 +16,7 @@ export function RegistryWorldMapPage() {
 
     loadRegistryItemsForType("maps", "maps")
       .then((loadedItems) => {
-        if (!cancelled) setItems(loadedItems);
+        if (!cancelled) setItems(loadedItems.filter((item) => !item.isDeprecated));
       })
       .catch(() => {
         if (!cancelled) setItems([]);
