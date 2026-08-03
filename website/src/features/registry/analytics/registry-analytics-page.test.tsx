@@ -139,6 +139,51 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
             ],
           },
         },
+        countries: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "JP",
+                name: "Japan",
+                byDate: new Map([
+                  ["2026-03-11", { maps: 4, mods: 0 }],
+                  ["2026-03-12", { maps: 2, mods: 0 }],
+                ]),
+              },
+              {
+                id: "GB",
+                name: "United Kingdom",
+                byDate: new Map([["2026-03-12", { maps: 3, mods: 0 }]]),
+              },
+            ],
+          },
+        },
+        regions: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "asia",
+                name: "Asia",
+                byDate: new Map([["2026-03-12", { maps: 6, mods: 0 }]]),
+              },
+            ],
+          },
+        },
+        quality: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "very-high",
+                name: "Very High",
+                color: "#0f8f68",
+                byDate: new Map([["2026-03-12", { maps: 5, mods: 0 }]]),
+              },
+            ],
+          },
+        },
         listings: {
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
@@ -263,13 +308,27 @@ describe("RegistryAnalyticsPage", () => {
     expect(screen.getByRole("tab", { name: /Overview/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Content/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Projects/i })).toBeInTheDocument();
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
-      "1 points · Maps, Mods, Total",
-    );
-    expect(screen.getByTestId("registry-stacked-chart")).toHaveTextContent("2 points · Maps, Mods");
+    // Downloads timeline (type series only) + the Maps section's country chart.
+    const overviewLineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(overviewLineCharts[0]).toHaveTextContent("1 points · Maps, Mods");
+    expect(screen.getByText("Maps")).toBeInTheDocument();
+    expect(overviewLineCharts[1]).toHaveTextContent("2 points · Japan, United Kingdom");
+    // Cumulative Downloads, Seasonality, and the Listings releases chart
+    // default to stacked bars.
+    const overviewStackedCharts = screen.getAllByTestId("registry-stacked-chart");
+    expect(overviewStackedCharts[0]).toHaveTextContent("2 points · Maps, Mods");
+    expect(screen.getByText("Seasonality")).toBeInTheDocument();
+    expect(overviewStackedCharts[1]).toHaveTextContent("7 points · Maps, Mods");
+    expect(screen.getByText("Listings by Type")).toBeInTheDocument();
+    expect(overviewStackedCharts[2]).toHaveTextContent("1 points · Maps, Mods");
+    // Every pie sits beside its measure: Download Share, then the Maps
+    // section's three pies, then Listings by Type.
     const pieCharts = screen.getAllByTestId("registry-pie-chart");
-    expect(pieCharts[0]).toHaveTextContent("Maps: 8");
-    expect(pieCharts[1]).toHaveTextContent("Maps: 240");
+    expect(pieCharts[0]).toHaveTextContent("Maps: 240");
+    expect(pieCharts[1]).toHaveTextContent("Japan: 6, United Kingdom: 3");
+    expect(pieCharts[2]).toHaveTextContent("Asia: 6");
+    expect(pieCharts[3]).toHaveTextContent("Author A: 8");
+    expect(pieCharts[4]).toHaveTextContent("Maps: 8");
   });
 
   it("renders content analytics for the selected asset type", async () => {

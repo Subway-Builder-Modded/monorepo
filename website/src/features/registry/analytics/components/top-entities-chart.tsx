@@ -1,22 +1,8 @@
 import { useMemo, useState, type CSSProperties } from "react";
-import {
-  BarChart3,
-  ChartColumnBig,
-  ChartLine,
-  ChartPie,
-  Map as MapIcon,
-  Package,
-} from "lucide-react";
-import {
-  AnalyticsLineChart,
-  AnalyticsPieChart,
-  AnalyticsStackedBarChart,
-} from "@subway-builder-modded/analytics";
-import {
-  AnalyticsModeToggle,
-  type AnalyticsToggleOption,
-} from "@/shared/analytics/analytics-mode-toggle";
-import { buildTopSeriesWithOthers } from "@/shared/analytics/multi-series";
+import { BarChart3, ChartPie, Map as MapIcon, Package } from "lucide-react";
+import { AnalyticsPieChart } from "@subway-builder-modded/analytics";
+import { bucketMultiSeriesData, buildTopSeriesWithOthers } from "@/shared/analytics/multi-series";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
 import { ChartCard, ChartEmptyState } from "@/shared/styles/panels";
 import {
   REGISTRY_ANALYTICS_PERIOD_OPTIONS,
@@ -30,7 +16,6 @@ import type {
 } from "@/features/registry/analytics/lib/load-registry-analytics";
 
 export type TopEntitiesAssetType = "total" | "maps" | "mods";
-type TopEntitiesChartStyle = "line" | "bar";
 
 /** Every entity holding at least this share of the window total gets a series. */
 const DEFAULT_MIN_SHARE = 0.05;
@@ -71,6 +56,7 @@ export function TopEntitiesChart({
   seriesCap = DEFAULT_SERIES_CAP,
   filtered = false,
   emptyLabel = "No entries match the current filters.",
+  titleSuffix = "",
 }: {
   series: RegistryAnalyticsEntityDailySeries;
   /** Stable slug for aria labels and chart keys, e.g. "authors", "projects". */
@@ -87,10 +73,11 @@ export function TopEntitiesChart({
   filtered?: boolean;
   /** Placeholder copy when the filter leaves nothing to chart. */
   emptyLabel?: string;
+  /** Appended to both card titles, e.g. " by Country" when the section needs the noun. */
+  titleSuffix?: string;
 }) {
   const [internalPeriod, setInternalPeriod] = useState<RegistryAnalyticsPeriodId>(defaultPeriod);
   const [internalAssetType, setInternalAssetType] = useState<TopEntitiesAssetType>("total");
-  const [chartStyle, setChartStyle] = useState<TopEntitiesChartStyle>("line");
   const period = controlledPeriod ?? internalPeriod;
   const assetType = controlledAssetType ?? internalAssetType;
   const showPeriodToggle = controlledPeriod === undefined;
@@ -124,23 +111,6 @@ export function TopEntitiesChart({
       accentDark: modsConfig.accentDark,
     },
   ];
-  const chartStyleOptions: Array<AnalyticsToggleOption<TopEntitiesChartStyle>> = [
-    {
-      id: "line",
-      label: "Line chart",
-      icon: ChartLine,
-      accentLight: "var(--suite-accent-light)",
-      accentDark: "var(--suite-accent-dark)",
-    },
-    {
-      id: "bar",
-      label: "Stacked bar chart",
-      icon: ChartColumnBig,
-      accentLight: "var(--suite-accent-light)",
-      accentDark: "var(--suite-accent-dark)",
-    },
-  ];
-
   const chartModel = useMemo(() => {
     const periodDays =
       REGISTRY_ANALYTICS_PERIOD_OPTIONS.find((option) => option.id === period)?.days ?? null;
@@ -161,8 +131,14 @@ export function TopEntitiesChart({
     });
   }, [assetType, minCount, minShare, period, series, seriesCap]);
 
+  // Long windows collapse into weekly (or monthly) buckets so the all-time
+  // cut stays readable; short windows pass through daily. The pie keeps the
+  // exact same totals either way.
+  const bucketed = useMemo(() => bucketMultiSeriesData(chartModel.data), [chartModel.data]);
+  const grainLabel =
+    bucketed.grain === "weekly" ? "Weekly" : bucketed.grain === "monthly" ? "Monthly" : "Daily";
   const chartTicks =
-    period === "all-time" ? undefined : chartModel.data.map((point) => String(point.date));
+    period === "all-time" ? undefined : bucketed.data.map((point) => String(point.date));
 
   if (!series || series.dates.length === 0 || (series.entities.length === 0 && !filtered)) {
     return null;
@@ -204,42 +180,16 @@ export function TopEntitiesChart({
         </ChartCard>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-          <ChartCard
-            title={`${titlePrefix}Daily Downloads`}
-            icon={ChartLine}
-            actions={
-              <AnalyticsModeToggle
-                value={chartStyle}
-                options={chartStyleOptions}
-                onChange={setChartStyle}
-                ariaLabel={`Top ${entityKey} chart style`}
-                compact={true}
-              />
-            }
-          >
-            {chartStyle === "line" ? (
-              <AnalyticsLineChart
-                key={`top-${entityKey}-line-${period}-${assetType}`}
-                data={chartModel.data}
-                lines={chartModel.series}
-                xAxisKey="date"
-                xAxisTicks={chartTicks}
-                height={280}
-                startAtZero={true}
-                hideZeroTooltipEntries={true}
-              />
-            ) : (
-              <AnalyticsStackedBarChart
-                key={`top-${entityKey}-bar-${period}-${assetType}`}
-                data={chartModel.data}
-                bars={chartModel.series.map((entry) => ({ ...entry, stackId: entityKey }))}
-                xAxisKey="date"
-                xAxisTicks={chartTicks}
-                height={280}
-              />
-            )}
-          </ChartCard>
-          <ChartCard title={`${titlePrefix}Download Share`} icon={ChartPie}>
+          <MultiSeriesChartCard
+            title={`${titlePrefix}${grainLabel} Downloads${titleSuffix}`}
+            chartKey={`top-${entityKey}-${period}-${assetType}-${bucketed.grain}`}
+            data={bucketed.data}
+            series={chartModel.series}
+            xAxisTicks={chartTicks}
+            stackId={entityKey}
+            ariaLabelPrefix={`Top ${entityKey} chart`}
+          />
+          <ChartCard title={`${titlePrefix}Download Share${titleSuffix}`} icon={ChartPie}>
             <AnalyticsPieChart
               key={`top-${entityKey}-pie-${period}-${assetType}`}
               data={chartModel.series.map((entry) => ({
