@@ -1,10 +1,11 @@
-import { Button, NeutralFadedUnderline } from "@subway-builder-modded/shared-ui";
+import { Button, NeutralFadedUnderline, cn } from "@subway-builder-modded/shared-ui";
 import { Archive, ArrowDownToLine, Download, Users } from "lucide-react";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link } from "@/lib/router";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 import { formatRegistryDate } from "@/features/registry/detail/lib/format-registry-date";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
+import { MUTED_ACTION_CLASS, MUTED_PANEL_CLASS } from "@/features/registry/lib/registry-styles";
 
 type RegistryDetailHeaderProps = {
   detail: RegistryDetailModel;
@@ -128,7 +129,12 @@ export function RegistryDetailHeader({
           </div>
 
           {detail.deprecation ? (
-            <div className="col-span-2 inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-border/60 bg-muted/25 px-4 py-2 text-base font-medium text-muted-foreground lg:col-span-1 lg:w-auto lg:self-start">
+            <div
+              className={cn(
+                MUTED_ACTION_CLASS,
+                "col-span-2 w-full shrink-0 px-4 py-2 text-base lg:col-span-1 lg:w-auto lg:self-start",
+              )}
+            >
               <Archive className="size-4" aria-hidden={true} />
               Deprecated
             </div>
@@ -149,7 +155,7 @@ export function RegistryDetailHeader({
       </div>
 
       {detail.deprecation ? (
-        <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+        <div className={cn(MUTED_PANEL_CLASS, "px-4 py-3 text-sm leading-relaxed")}>
           <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1">
             <Archive className="size-4 shrink-0" aria-hidden={true} />
             <span>

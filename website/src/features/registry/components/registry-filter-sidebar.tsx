@@ -20,6 +20,16 @@ import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import { RegistryTypeCountBadge } from "@/features/registry/components/registry-type-count-badge";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
+import {
+  ACCENT_HOVER_SURFACE_CLASS,
+  ACCENT_ICON_BUTTON_CLASS,
+  ACCENT_TOGGLE_ACTIVE_CLASS,
+  ACCENT_TOGGLE_BASE_CLASS,
+  ACCENT_TOGGLE_IDLE_MUTED_CLASS,
+  ACCENT_TOGGLE_IDLE_TINTED_CLASS,
+  SECTION_LABEL_CLASS,
+  uiAccentStyle,
+} from "@/features/registry/lib/registry-styles";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
 import { PanelLeftOpen, PanelLeftClose, Trash2, ArrowUpToLine, Archive } from "lucide-react";
 import { RegistryTagCategorySection } from "@/features/registry/components/registry-tag-category-section";
@@ -27,6 +37,12 @@ import { RegistryTagCategorySection } from "@/features/registry/components/regis
 const REGISTRY_SIDEBAR_COLLAPSED_KEY = "sbm:registry-sidebar-collapsed";
 const SIDEBAR_LAYOUT_SHIFT_MS = 200;
 const SIDEBAR_SCROLL_HEIGHT_OFFSET_PX = 192;
+
+/** The sidebar-level accent follows the active asset type. */
+const SIDEBAR_UI_ACCENT_STYLE = uiAccentStyle(
+  "var(--asset-accent-light)",
+  "var(--asset-accent-dark)",
+);
 
 type RegistryFilterSidebarProps = {
   typeId: string;
@@ -64,19 +80,16 @@ function DeprecatedVisibilitySection({
       <SideRailDivider className="my-2 opacity-50" />
 
       <section className="space-y-2" aria-label="Visibility">
-        <p className="px-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
-          Visibility
-        </p>
+        <p className={cn("px-1", SECTION_LABEL_CLASS)}>Visibility</p>
 
         <button
           type="button"
           onClick={() => onShowDeprecatedChange(!showDeprecated)}
           aria-pressed={showDeprecated}
+          style={SIDEBAR_UI_ACCENT_STYLE}
           className={cn(
-            "group relative flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm font-medium transition-colors",
-            showDeprecated
-              ? "border-[color-mix(in_srgb,var(--asset-accent-light)_45%,var(--border))] bg-[color-mix(in_srgb,var(--asset-accent-light)_22%,var(--background))] text-[var(--asset-accent-light)] dark:border-[color-mix(in_srgb,var(--asset-accent-dark)_45%,var(--border))] dark:bg-[color-mix(in_srgb,var(--asset-accent-dark)_22%,var(--background))] dark:text-[var(--asset-accent-dark)]"
-              : "border-border/30 text-muted-foreground hover:border-[color-mix(in_srgb,var(--asset-accent-light)_35%,var(--border))] hover:bg-[color-mix(in_srgb,var(--asset-accent-light)_12%,var(--background))] dark:hover:border-[color-mix(in_srgb,var(--asset-accent-dark)_35%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--asset-accent-dark)_12%,var(--background))]",
+            ACCENT_TOGGLE_BASE_CLASS,
+            showDeprecated ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
           )}
         >
           <Archive className="size-4 shrink-0" aria-hidden={true} />
@@ -105,12 +118,11 @@ function RegistryToolbarIconButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
+      style={uiAccentStyle("var(--suite-accent-light)", "var(--suite-accent-dark)")}
       className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-background transition-colors",
-        "border-border/30 text-muted-foreground",
-        !disabled &&
-          "hover:border-[color-mix(in_srgb,var(--suite-accent-light)_35%,var(--border))] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_10%,var(--background))] hover:text-[var(--suite-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_35%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_10%,var(--background))] dark:hover:text-[var(--suite-accent-dark)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        ACCENT_ICON_BUTTON_CLASS,
+        "h-8 w-8",
+        !disabled && ACCENT_HOVER_SURFACE_CLASS,
         disabled &&
           "cursor-not-allowed border-border/50 text-muted-foreground opacity-55 dark:text-muted-foreground",
       )}
@@ -130,6 +142,106 @@ function RegistryToolbarIconButton({
         <TooltipContent>{label}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+}
+
+type SidebarFilterContentProps = {
+  typeId: string;
+  counts?: Record<string, number>;
+  onTypeChange: (typeId: string) => void;
+  categories: ReturnType<typeof buildTagCategories>;
+  selectedTags: string[];
+  tagCounts: Record<string, number>;
+  onTagToggle: (tag: string) => void;
+  collapsedCategories: Set<string>;
+  onToggleCategory: (categoryId: string) => void;
+  showDeprecated: boolean;
+  deprecatedCount: number;
+  onShowDeprecatedChange: (show: boolean) => void;
+};
+
+/** The sidebar's filter sections, shared between the scroll-area and plain
+ * layouts so the two render paths cannot drift apart. */
+function SidebarFilterContent({
+  typeId,
+  counts,
+  onTypeChange,
+  categories,
+  selectedTags,
+  tagCounts,
+  onTagToggle,
+  collapsedCategories,
+  onToggleCategory,
+  showDeprecated,
+  deprecatedCount,
+  onShowDeprecatedChange,
+}: SidebarFilterContentProps) {
+  return (
+    <>
+      <section className="space-y-2" aria-label="Registry type">
+        <p className={cn("px-1", SECTION_LABEL_CLASS)}>Asset Type</p>
+
+        <div className="space-y-1">
+          {REGISTRY_TYPES.map((type) => {
+            const isActive = typeId === type.id;
+            const Icon = getRegistryTypeIcon(type.id);
+            const count = counts?.[type.id];
+
+            return (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => onTypeChange(type.id)}
+                aria-current={isActive ? "true" : undefined}
+                style={uiAccentStyle(type.accentLight, type.accentDark)}
+                className={cn(
+                  ACCENT_TOGGLE_BASE_CLASS,
+                  isActive ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_TINTED_CLASS,
+                )}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden={true} />
+                <span className="flex-1">{type.pluralLabel}</span>
+                {count !== undefined ? (
+                  <RegistryTypeCountBadge count={count} isActive={isActive} />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <SideRailDivider className="my-2 opacity-50" />
+
+      <section className="space-y-3" aria-label="Tag filters">
+        <div className="flex items-center justify-between gap-2 px-1">
+          <p className={SECTION_LABEL_CLASS}>Tags</p>
+        </div>
+
+        {categories.length === 0 ? (
+          <p className="px-1 text-xs text-muted-foreground">No tags available.</p>
+        ) : (
+          <div className="space-y-3">
+            {categories.map((category) => (
+              <RegistryTagCategorySection
+                key={category.id}
+                category={category}
+                selectedTags={selectedTags}
+                tagCounts={tagCounts}
+                onTagToggle={onTagToggle}
+                isCollapsed={collapsedCategories.has(category.id)}
+                onToggleCategory={onToggleCategory}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <DeprecatedVisibilitySection
+        showDeprecated={showDeprecated}
+        deprecatedCount={deprecatedCount}
+        onShowDeprecatedChange={onShowDeprecatedChange}
+      />
+    </>
   );
 }
 
@@ -252,6 +364,23 @@ export function RegistryFilterSidebar({
     };
   }, [collapsed]);
 
+  const filterContent = (
+    <SidebarFilterContent
+      typeId={typeId}
+      counts={counts}
+      onTypeChange={onTypeChange}
+      categories={categories}
+      selectedTags={selectedTags}
+      tagCounts={tagCounts}
+      onTagToggle={onTagToggle}
+      collapsedCategories={collapsedCategories}
+      onToggleCategory={toggleCategory}
+      showDeprecated={showDeprecated}
+      deprecatedCount={deprecatedCount}
+      onShowDeprecatedChange={onShowDeprecatedChange}
+    />
+  );
+
   return (
     <aside
       className={cn("lg:shrink-0", collapsed ? "hidden lg:block lg:w-11" : "w-full lg:w-[17.5rem]")}
@@ -262,10 +391,8 @@ export function RegistryFilterSidebar({
           <button
             type="button"
             onClick={handleExpand}
-            className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/30 bg-background p-0 text-muted-foreground transition-colors",
-              "hover:border-[color-mix(in_srgb,var(--asset-accent-light)_35%,var(--border))] hover:bg-[color-mix(in_srgb,var(--asset-accent-light)_10%,var(--background))] hover:text-[var(--asset-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--asset-accent-dark)_35%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--asset-accent-dark)_10%,var(--background))] dark:hover:text-[var(--asset-accent-dark)]",
-            )}
+            style={SIDEBAR_UI_ACCENT_STYLE}
+            className={cn(ACCENT_ICON_BUTTON_CLASS, "h-9 w-9 p-0", ACCENT_HOVER_SURFACE_CLASS)}
           >
             <PanelLeftOpen className="size-4" aria-hidden="true" />
             <span className="sr-only">Expand sidebar</span>
@@ -285,160 +412,12 @@ export function RegistryFilterSidebar({
             {needsScrollArea ? (
               <ScrollArea className="h-[calc(100vh-12rem)]">
                 <div ref={scrollAreaContentRef} className="space-y-4 px-2.5 py-3">
-                  <section className="space-y-2" aria-label="Registry type">
-                    <p className="px-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Asset Type
-                    </p>
-
-                    <div className="space-y-1">
-                      {REGISTRY_TYPES.map((type) => {
-                        const isActive = typeId === type.id;
-                        const Icon = getRegistryTypeIcon(type.id);
-                        const count = counts?.[type.id];
-                        const accentLight = type.accentLight;
-                        const accentDark = type.accentDark;
-                        const accentStyle = {
-                          "--type-accent-light": accentLight,
-                          "--type-accent-dark": accentDark,
-                        } as React.CSSProperties;
-
-                        return (
-                          <button
-                            key={type.id}
-                            type="button"
-                            onClick={() => onTypeChange(type.id)}
-                            aria-current={isActive ? "true" : undefined}
-                            style={accentStyle}
-                            className={cn(
-                              "group relative flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm font-medium transition-colors",
-                              isActive
-                                ? "border-[color-mix(in_srgb,var(--type-accent-light)_45%,var(--border))] bg-[color-mix(in_srgb,var(--type-accent-light)_22%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_45%,var(--border))] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_22%,var(--background))] dark:text-[var(--type-accent-dark)]"
-                                : "border-[color-mix(in_srgb,var(--type-accent-light)_25%,var(--border))] text-[color-mix(in_srgb,var(--type-accent-light)_75%,var(--foreground))] hover:border-[color-mix(in_srgb,var(--type-accent-light)_35%,var(--border))] hover:bg-[color-mix(in_srgb,var(--type-accent-light)_12%,var(--background))] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_25%,var(--border))] dark:text-[color-mix(in_srgb,var(--type-accent-dark)_75%,var(--foreground))] dark:hover:border-[color-mix(in_srgb,var(--type-accent-dark)_35%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_12%,var(--background))]",
-                            )}
-                          >
-                            <Icon className="size-4 shrink-0" aria-hidden={true} />
-                            <span className="flex-1">{type.pluralLabel}</span>
-                            {count !== undefined ? (
-                              <RegistryTypeCountBadge count={count} isActive={isActive} />
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </section>
-
-                  <SideRailDivider className="my-2 opacity-50" />
-
-                  <section className="space-y-3" aria-label="Tag filters">
-                    <div className="flex items-center justify-between gap-2 px-1">
-                      <p className="text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
-                        Tags
-                      </p>
-                    </div>
-
-                    {categories.length === 0 ? (
-                      <p className="px-1 text-xs text-muted-foreground">No tags available.</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {categories.map((category) => (
-                          <RegistryTagCategorySection
-                            key={category.id}
-                            category={category}
-                            selectedTags={selectedTags}
-                            tagCounts={tagCounts}
-                            onTagToggle={onTagToggle}
-                            isCollapsed={collapsedCategories.has(category.id)}
-                            onToggleCategory={toggleCategory}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </section>
-
-                  <DeprecatedVisibilitySection
-                    showDeprecated={showDeprecated}
-                    deprecatedCount={deprecatedCount}
-                    onShowDeprecatedChange={onShowDeprecatedChange}
-                  />
+                  {filterContent}
                 </div>
               </ScrollArea>
             ) : (
               <div ref={scrollAreaContentRef} className="space-y-4 px-2.5 py-3">
-                <section className="space-y-2" aria-label="Registry type">
-                  <p className="px-1 text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Asset Type
-                  </p>
-
-                  <div className="space-y-1">
-                    {REGISTRY_TYPES.map((type) => {
-                      const isActive = typeId === type.id;
-                      const Icon = getRegistryTypeIcon(type.id);
-                      const count = counts?.[type.id];
-                      const accentLight = type.accentLight;
-                      const accentDark = type.accentDark;
-                      const accentStyle = {
-                        "--type-accent-light": accentLight,
-                        "--type-accent-dark": accentDark,
-                      } as React.CSSProperties;
-
-                      return (
-                        <button
-                          key={type.id}
-                          type="button"
-                          onClick={() => onTypeChange(type.id)}
-                          aria-current={isActive ? "true" : undefined}
-                          style={accentStyle}
-                          className={cn(
-                            "group relative flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm font-medium transition-colors",
-                            isActive
-                              ? "border-[color-mix(in_srgb,var(--type-accent-light)_45%,var(--border))] bg-[color-mix(in_srgb,var(--type-accent-light)_22%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_45%,var(--border))] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_22%,var(--background))] dark:text-[var(--type-accent-dark)]"
-                              : "border-[color-mix(in_srgb,var(--type-accent-light)_25%,var(--border))] text-[color-mix(in_srgb,var(--type-accent-light)_75%,var(--foreground))] hover:border-[color-mix(in_srgb,var(--type-accent-light)_35%,var(--border))] hover:bg-[color-mix(in_srgb,var(--type-accent-light)_12%,var(--background))] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_25%,var(--border))] dark:text-[color-mix(in_srgb,var(--type-accent-dark)_75%,var(--foreground))] dark:hover:border-[color-mix(in_srgb,var(--type-accent-dark)_35%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_12%,var(--background))]",
-                          )}
-                        >
-                          <Icon className="size-4 shrink-0" aria-hidden={true} />
-                          <span className="flex-1">{type.pluralLabel}</span>
-                          {count !== undefined ? (
-                            <RegistryTypeCountBadge count={count} isActive={isActive} />
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                <SideRailDivider className="my-2 opacity-50" />
-
-                <section className="space-y-3" aria-label="Tag filters">
-                  <div className="flex items-center justify-between gap-2 px-1">
-                    <p className="text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Tags
-                    </p>
-                  </div>
-
-                  {categories.length === 0 ? (
-                    <p className="px-1 text-xs text-muted-foreground">No tags available.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {categories.map((category) => (
-                        <RegistryTagCategorySection
-                          key={category.id}
-                          category={category}
-                          selectedTags={selectedTags}
-                          tagCounts={tagCounts}
-                          onTagToggle={onTagToggle}
-                          isCollapsed={collapsedCategories.has(category.id)}
-                          onToggleCategory={toggleCategory}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
-
-                <DeprecatedVisibilitySection
-                  showDeprecated={showDeprecated}
-                  deprecatedCount={deprecatedCount}
-                  onShowDeprecatedChange={onShowDeprecatedChange}
-                />
+                {filterContent}
               </div>
             )}
           </div>

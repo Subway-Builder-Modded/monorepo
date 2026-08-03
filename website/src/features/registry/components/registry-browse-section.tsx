@@ -11,7 +11,13 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  cn,
 } from "@subway-builder-modded/shared-ui";
+import {
+  ACCENT_HOVER_SURFACE_CLASS,
+  ACCENT_ICON_BUTTON_CLASS,
+  uiAccentStyle,
+} from "@/features/registry/lib/registry-styles";
 import { getRegistryTypeIcon } from "@/features/registry/registry-type-ui";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type { RegistrySortId, RegistryViewMode } from "@/features/registry/lib/types";
@@ -252,7 +258,15 @@ export function RegistryBrowseSection({
                               type="button"
                               onClick={handleClearAll}
                               aria-label="Clear all filters"
-                              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border/30 bg-background text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--suite-accent-light)_30%,var(--border))] hover:bg-[color-mix(in_srgb,var(--suite-accent-light)_8%,var(--background))] hover:text-[var(--suite-accent-light)] dark:hover:border-[color-mix(in_srgb,var(--suite-accent-dark)_30%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--suite-accent-dark)_8%,var(--background))] dark:hover:text-[var(--suite-accent-dark)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              style={uiAccentStyle(
+                                "var(--suite-accent-light)",
+                                "var(--suite-accent-dark)",
+                              )}
+                              className={cn(
+                                ACCENT_ICON_BUTTON_CLASS,
+                                "h-9 w-9",
+                                ACCENT_HOVER_SURFACE_CLASS,
+                              )}
                             >
                               <Trash2 className="size-4" aria-hidden={true} />
                             </button>
@@ -267,7 +281,10 @@ export function RegistryBrowseSection({
                         type="button"
                         disabled
                         aria-label="Clear all filters"
-                        className="inline-flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-lg border border-border/30 bg-background text-muted-foreground opacity-45"
+                        className={cn(
+                          ACCENT_ICON_BUTTON_CLASS,
+                          "h-9 w-9 cursor-not-allowed opacity-45",
+                        )}
                       >
                         <Trash2 className="size-4" aria-hidden={true} />
                       </button>
