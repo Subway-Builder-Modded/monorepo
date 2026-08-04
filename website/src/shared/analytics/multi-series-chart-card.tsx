@@ -45,7 +45,12 @@ export function MultiSeriesChartCard({
   /** Remount key fragment so animations replay when the underlying cut changes. */
   chartKey: string;
   data: Array<Record<string, string | number>>;
-  series: Array<{ key: string; name: string; color?: string }>;
+  /**
+   * `barOnly` series render in the stacked-bar view but not the line view —
+   * an aggregate like "Others" stacks fine as a bar segment but flattens the
+   * individual lines when drawn alongside them.
+   */
+  series: Array<{ key: string; name: string; color?: string; barOnly?: boolean }>;
   xAxisKey?: string;
   xAxisTicks?: Array<string | number>;
   height?: number;
@@ -75,7 +80,7 @@ export function MultiSeriesChartCard({
         <AnalyticsLineChart
           key={`${chartKey}-line`}
           data={data}
-          lines={series}
+          lines={series.filter((entry) => !entry.barOnly)}
           xAxisKey={xAxisKey}
           xAxisTicks={xAxisTicks}
           height={height}
