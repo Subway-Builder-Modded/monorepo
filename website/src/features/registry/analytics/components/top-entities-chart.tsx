@@ -89,10 +89,11 @@ export function TopEntitiesChart({
    */
   measureLabel?: string;
   /**
-   * False drops the aggregated "Others" series from the CHART only (the pie
-   * keeps it for full context). Use on flat distributions — per-listing
-   * charts, where Others dwarfs every individual series and flattens the
-   * top entries into illegibility.
+   * False renders the aggregated "Others" series only in the stacked-bar
+   * view (and the pie) — never as a line. Use on flat distributions —
+   * per-listing charts, where the Others line dwarfs every individual
+   * series and flattens the top entries into illegibility. Pair with a
+   * seriesCap of 8 so the drawn series map 1:1 onto the palette.
    */
   chartOthers?: boolean;
 }) {
@@ -164,15 +165,18 @@ export function TopEntitiesChart({
   }
 
   const titlePrefix = filtered ? "Filtered " : "";
+  // Flat distributions keep Others as a BAR-ONLY series: it stacks fine as a
+  // segment but would flatten the individual lines. The line view is then a
+  // top slice, and the title owns up to it ("Top 8 Weekly Downloads").
   const chartSeries = chartOthers
     ? chartModel.series
-    : chartModel.series.filter((entry) => entry.key !== "__others__");
-  // When Others is cut from the chart, the title owns up to showing a top
-  // slice ("Top 10 Weekly Downloads"); with nothing cut it stays the plain
-  // measure title.
-  const isTopSlice = chartSeries.length < chartModel.series.length;
+    : chartModel.series.map((entry) =>
+        entry.key === "__others__" ? { ...entry, barOnly: true } : entry,
+      );
+  const realCount = chartModel.series.filter((entry) => entry.key !== "__others__").length;
+  const isTopSlice = !chartOthers && realCount < chartModel.series.length;
   const chartTitle = isTopSlice
-    ? `${titlePrefix}Top ${chartSeries.length} ${grainLabel} ${measureLabel}${titleSuffix}`
+    ? `${titlePrefix}Top ${realCount} ${grainLabel} ${measureLabel}${titleSuffix}`
     : `${titlePrefix}${grainLabel} ${measureLabel}${titleSuffix}`;
 
   return (

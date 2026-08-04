@@ -960,15 +960,17 @@ function RegistryContentTab({
         {/* Per-listing downloads are the flattest distribution on the site
             (the top map holds only 3-6% of its type), so share thresholds are
             meaningless here — minShare 0 selects a plain top 10. */}
-        {/* Per-listing distributions are so flat that "Others" dwarfs the top
-            ten and flattens them into a band — the chart shows the top ten
-            alone, while the pie keeps Others for the full split. */}
+        {/* Per-listing distributions are so flat that an "Others" line dwarfs
+            the top entries into a band — Others renders only in the bar view
+            and the pie, and the top slice caps at 8 to map 1:1 onto the
+            palette. */}
         <TopEntitiesChart
           series={filteredListingSeries}
           entityKey={assetTypeId}
           period={period}
           assetType={assetTypeId}
           minShare={0}
+          seriesCap={8}
           filtered={isChartFiltered}
           emptyLabel={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
           chartOthers={false}

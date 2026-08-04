@@ -970,16 +970,20 @@ function AuthorTopAssets({
       name: entry.name,
       valueByDate: new Map(entry.history.map((point) => [point.date, point.downloads])),
     }));
-    // Per-listing distributions are flat — plain top 10, like the other
-    // per-listing charts; "Others" would dwarf them, so it stays out of the
-    // chart and lives only in the pie.
-    const top = buildTopSeriesWithOthers({ series: named, dates, topCount: 10 });
-    const chartSeries = top.series.filter((entry) => entry.key !== "__others__");
+    // Per-listing distributions are flat: top 8 (1:1 with the palette), with
+    // "Others" rendered only in the bar view and the pie — as a line it would
+    // dwarf the individual assets.
+    const top = buildTopSeriesWithOthers({ series: named, dates, topCount: 8 });
+    const chartSeries = top.series.map((entry) =>
+      entry.key === "__others__" ? { ...entry, barOnly: true } : entry,
+    );
+    const realCount = top.series.filter((entry) => entry.key !== "__others__").length;
     const bucketed = bucketMultiSeriesData(top.data);
     return {
       series: chartSeries,
-      // "Top N" only when Others was actually cut from the chart.
-      isTopSlice: chartSeries.length < top.series.length,
+      realCount,
+      // "Top N" only when Others exists (something was actually cut).
+      isTopSlice: realCount < top.series.length,
       bucketed,
       chartTicks: periodDays ? bucketed.data.map((point) => String(point.date)) : undefined,
       slices: top.series.map((entry) => ({
@@ -1005,7 +1009,7 @@ function AuthorTopAssets({
       >
         <MultiSeriesChartCard
           title={`${
-            model.isTopSlice ? `Top ${model.series.length} ` : ""
+            model.isTopSlice ? `Top ${model.realCount} ` : ""
           }${getGrainLabel(model.bucketed.grain)} Downloads by Asset`}
           chartKey={`author-top-assets-${period}-${model.bucketed.grain}`}
           data={model.bucketed.data}
