@@ -33,7 +33,7 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 :::important
 
-You must expose your map's `manifest.json` outside the archive so Railyard can validate it without downloading the full ZIP. Specifically, Railyard checks that the `dependencies` field is present and includes `subway-builder`. This is required for all maps.
+You must expose your map's `manifest.json` outside the archive so Railyard can validate it without downloading the full ZIP. For maps this file needs _only_ a `dependencies` field with a valid `subway-builder` semver range — see [Manifest Requirements](/registry/docs/manifest-requirements) for the full contract.
 
 - **GitHub Releases**: Upload `manifest.json` as a **separate release asset** alongside the ZIP file.
 - **Custom URL**: Your [Update JSON](/registry/docs/using-custom-url) serves as your manifest.
@@ -114,7 +114,7 @@ This will automatically deploy your Update JSON files to GitHub Pages. Once you 
 
 If you input a field incorrectly, the validation will fail. If this happens, you can edit the message above automatically created by the fields you set earlier. Once you edit that message, send a new comment simply reading `revalidate`.
 
-As soon as the form is completed, it will be submitted to be reviewed by a maintainer. Once it is approved, it will be automatically published to the Registry. Please allow up to 24 hours after approval for your map to appear on any Registry-powered services (like Railyard or the website), as it must first pass an integrity check. Join the [Discord server](https://discord.gg/syG9YHMyeG) for more details.
+As soon as the form is completed, it will be submitted to be reviewed by a maintainer. Once it is approved, it will be automatically published to the Registry. Please allow a few hours after approval for your map to appear on any Registry-powered services (like Railyard or the website), as it must first pass an integrity check. Join the [Discord server](https://discord.gg/syG9YHMyeG) for more details.
 
 </TabItem>
 <TabItem value="mods" label="Mods" default>
@@ -136,7 +136,7 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 ::::important
 
-You must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Specifically, Railyard checks that the `dependencies` field is present and includes `subway-builder`. This is required for all mods.
+You must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Validation checks the full mod manifest contract — see [Manifest Requirements](/registry/docs/manifest-requirements) for the required fields, including that `id` must match your Registry mod ID.
 
 - **GitHub Releases**: Upload `manifest.json` as a **separate release asset** alongside the ZIP file.
 - **Custom URL**: Provide a **Manifest URL** in the submission form pointing to the `manifest.json` for the current release.
@@ -211,7 +211,7 @@ This will automatically deploy your Update JSON files to GitHub Pages. Once you 
 
 If you input a field incorrectly, the validation will fail. If this happens, you can edit the message above automatically created by the fields you set earlier. Once you edit that message, send a new comment simply reading `revalidate`.
 
-As soon as the form is completed, it will be submitted to be reviewed by a maintainer. Once it is approved, it will be automatically published to the Registry. Please allow up to 24 hours after approval for your mod to appear on any Registry-powered services (like Railyard or the website), as it must first pass an integrity check. Join the [Discord server](https://discord.gg/syG9YHMyeG) for more details.
+As soon as the form is completed, it will be submitted to be reviewed by a maintainer. Once it is approved, it will be automatically published to the Registry. Please allow a few hours after approval for your mod to appear on any Registry-powered services (like Railyard or the website), as it must first pass an integrity check. Join the [Discord server](https://discord.gg/syG9YHMyeG) for more details.
 
 </TabItem>
 </Tabs>

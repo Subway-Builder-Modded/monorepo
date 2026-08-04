@@ -9,8 +9,11 @@ export const registryDocsConfig: DocsSuiteConfig = {
   sidebarOrder: [
     "publishing-content",
     "updating-content",
+    "deprecation",
     "using-custom-url",
+    "manifest-requirements",
     "collaborators",
+    "caretakers",
     "dependencies",
     "author-attribution",
     "tagging",

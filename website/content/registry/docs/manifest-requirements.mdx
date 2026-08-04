@@ -1,0 +1,74 @@
+---
+title: Manifest Requirements
+description: What a release's manifest.json must contain, per asset type, and how to change game compatibility retroactively.
+icon: FileJson
+---
+
+Every GitHub-hosted asset (anything not using a [Custom URL](/registry/docs/using-custom-url)) must ship a `manifest.json` _as a separate release asset_ alongside its ZIP file. The Registry reads it to validate submissions and to publish per-version game compatibility, so Railyard never has to download the ZIP just to answer "can this be installed for the user?".
+
+This page is the authoritative reference for what that file must contain.
+
+## Shared requirement: the `subway-builder` dependency {#subway-builder-dependency}
+
+For _both mods and maps_, `manifest.json` must declare a game-version compatibility range under `dependencies`:
+
+```json
+{
+  "dependencies": {
+    "subway-builder": "<=1.4.0"
+  }
+}
+```
+
+The value must be a valid [semver range](https://github.com/npm/node-semver#ranges). Single-comparator ranges (`">=1.2.0"`, `"<=1.3.0"`) are recommended — Railyard displays them as friendly text like "1.3.0 or older", while compound ranges are shown verbatim.
+
+:::important
+
+Since _June 23, 2026_, every newly published version is required to carry a valid `subway-builder` range. A release published after that date with a missing or invalid range fails the integrity check: it will not be installable and its downloads will not be counted. Versions published before the cutoff are grandfathered.
+
+:::
+
+## Mods {#mods}
+
+A mod's `manifest.json` (the same file bundled inside the ZIP, uploaded standalone) must contain:
+
+| Field | Requirement |
+| --- | --- |
+| `id` | Must exactly match the Registry mod ID |
+| `name` | Display name |
+| `version` | The release's version |
+| `main` | The mod's JavaScript entry point (always `index.js` when using the [mod template](/template-mod/docs/getting-started)) |
+| `author.name` | Author display name |
+| `dependencies` | Must include `subway-builder` with a valid range; may also declare [mod dependencies](/registry/docs/dependencies) |
+
+A mismatched `id` is the most common validation failure. This value must be the mod ID submitted to the Registry, not a reverse-domain identifier from elsewhere.
+
+## Maps {#maps}
+
+A map's `manifest.json` needs _only_ the `subway-builder` dependency range shown above.
+
+:::tip
+
+Maps are data bundles, not code — they have _no JavaScript entry point_. Fields like `main`, `id`, `name`, or `version` in a map's `manifest.json` are ignored by the Registry and Railyard; only `dependencies["subway-builder"]` is read.
+
+:::
+
+## Changing compatibility retroactively {#retroactive}
+
+If older versions of an asset stopped working on newer game versions (for example, everything before the latest release only supports game `1.3.0` and below), they can be capped after the fact without creating new releases:
+
+1. For each affected release, find its `manifest.json` asset, update the range (e.g. `"subway-builder": "<=1.3.0"`), and re-upload it in place:
+
+   ```bash
+   gh release upload <tag> manifest.json --clobber
+   ```
+
+2. The Registry then detects replaced `manifest.json` assets automatically and republishes the new range within a few hours. Railyard clients pick it up on their next registry refresh. Capped versions appear dimmed with an explanatory tooltip in the version list and can no longer be installed on incompatible game versions, while compatible versions are unaffected.
+
+Capping old versions never hides assets from Browse. An asset is only flagged incompatible when _no_ version at all supports the player's game version.
+
+:::caution
+
+Replace only the `manifest.json` asset, not the ZIP. Replacing a ZIP resets its GitHub download counter and can distort the asset's download statistics.
+
+:::

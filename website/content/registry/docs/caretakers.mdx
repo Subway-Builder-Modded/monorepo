@@ -1,0 +1,35 @@
+---
+title: Caretakers
+description: Hand over active maintenance of an asset to a caretaker.
+icon: UserPen
+---
+
+A _caretaker_ is the person actively maintaining an asset on the original author's behalf. Authorship is permanent; however, the caretaker receives _download credit_ for the versions released during their tenure, and their role is shown on the listing page with a distinct icon.
+
+Caretakers are useful when an author steps back and someone else takes over releases, or when content is published under the Subway Builder Modded admin account on behalf of an author without a GitHub account.
+
+## How caretaking works {#how-it-works}
+
+- An asset has at most _one active caretaker_ at a time. Past caretakers are kept as history.
+- Every caretaker is automatically also a [collaborator](/registry/docs/collaborators), so they can submit metadata updates for the asset.
+- _Download credit follows releases_: downloads of a version are credited to whoever was caretaker when that version was released; versions released outside any caretaker's tenure stay credited to the author. Author pages and the analytics rankings reflect this split.
+
+## Assigning or changing a caretaker {#assigning}
+
+Caretakers are set through the publish and update issue forms on the [Registry's GitHub repository](https://github.com/Subway-Builder-Modded/registry) via the **Caretaker (GitHub user ID)** field:
+
+- _Leave blank_ to keep the current caretaker.
+- Enter _`None`_ to end the current caretakership (the asset returns to author-only maintenance).
+- Enter a _GitHub user ID_ to hand over caretakership. The previous caretaker's tenure is closed and the new caretaker is added as a collaborator automatically.
+
+As with collaborators, the field takes numeric [GitHub user IDs](/registry/docs/collaborators#finding-github-ids), not usernames.
+
+## Caretakers vs collaborators {#vs-collaborators}
+
+| | Collaborator | Caretaker |
+| --- | --- | --- |
+| Shown on the listing page | Yes | Yes, with a distinct icon |
+| Can update the asset's metadata | Yes | Yes |
+| Receives download credit | No | Yes, for versions released during their tenure |
+| Can [deprecate](/registry/docs/deprecation) the asset | No | Yes (active caretaker only) |
+| Multiple at once | Yes | No — at most one active |
