@@ -33,7 +33,7 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 :::important
 
-You must expose your map's `manifest.json` outside the archive so Railyard can validate it without downloading the full ZIP. For maps this file needs **only** a `dependencies` field with a valid `subway-builder` semver range — maps are data bundles and require no other manifest fields (and no JavaScript entry point). See [Manifest Requirements](/registry/docs/manifest-requirements) for the full contract.
+You must expose your map's `manifest.json` outside the archive so Railyard can validate it without downloading the full ZIP. For maps this file needs _only_ a `dependencies` field with a valid `subway-builder` semver range — see [Manifest Requirements](/registry/docs/manifest-requirements) for the full contract.
 
 - **GitHub Releases**: Upload `manifest.json` as a **separate release asset** alongside the ZIP file.
 - **Custom URL**: Your [Update JSON](/registry/docs/using-custom-url) serves as your manifest.
@@ -136,7 +136,7 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 ::::important
 
-You must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Validation checks the full mod manifest contract — `id` (which must match your Registry mod ID), `name`, `version`, `main`, `author.name`, and a `dependencies` field including a valid `subway-builder` semver range. See [Manifest Requirements](/registry/docs/manifest-requirements) for details.
+You must expose your mod's `manifest.json` (the same file already inside the ZIP) outside the archive so Railyard can validate it without downloading the full ZIP. Validation checks the full mod manifest contract — see [Manifest Requirements](/registry/docs/manifest-requirements) for the required fields, including that `id` must match your Registry mod ID.
 
 - **GitHub Releases**: Upload `manifest.json` as a **separate release asset** alongside the ZIP file.
 - **Custom URL**: Provide a **Manifest URL** in the submission form pointing to the `manifest.json` for the current release.
