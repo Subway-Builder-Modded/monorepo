@@ -10,7 +10,7 @@ This document describes the criterion that will be used to judge the data qualit
 
 The intent for this system is to both measure the objective quality of the raw data bounding the demand modeled within a map (for internal review) and then distill that quality into a single, usable metric for non-technical users (players)
 
-## Criterion {#criterion}
+## Scoring Criteria {#scoring-criteria}
 
 A Subway Builder map is a closed-system model of how residents within a city normally commute. The provenance of the underlying census / official data bounds how realistic that model can be, and the quality of that data is what this rubric is intended to measure.
 
@@ -35,7 +35,7 @@ This rubric thus scores data quality along **three pillars**, weighted by how mu
 
 Within the Workplace and Resident pillars, quality further splits into a **count** (the ground-truth magnitude and the grain it is measured at) and a **dasymetric** (how that count is placed in space within the ground truth grain), as discussed in the following sections.
 
-### Relationship to the self-reported quality tag {#self-reported-tag}
+### Relationship to the Self-Reported Quality Tag {#self-reported-quality-tag}
 
 [Registry](https://github.com/Subway-Builder-Modded/registry) currently records data quality as a single author-declared `source_quality` tag — `high` / `medium` / `low`. That tag is a useful first cut to distinguish map quality, but is limited in several ways this rubric is built to address:
 
@@ -68,7 +68,7 @@ When reporting these values, please use the highest granularity data that you ha
 
 _Some countries will refuse to provide data points that contain only a handful of residents; therefore it is important to cross-check the total metric counts for a particular administrative boundary level against a known unsuppressed ground truth total of a coarser granularity. If the totals mismatch greatly, it is likely the artifact of data suppression._
 
-### Choosing the grain for hybrid or ambiguous sources {#hybrid-grain}
+### Choosing the Grain for Hybrid or Ambiguous Sources {#hybrid-grain}
 
 Granularity scores the grain at which a count's **magnitude** is measured — not the finer grain it may ultimately be placed at (that finer placement is credited in the [Dasymetric](#dasymetric) section). Some sources blur the two: a total measured at a coarse unit is redistributed to finer units that carry their own partial signal. To resolve which grain to score:
 
@@ -94,7 +94,7 @@ A dasymetric is important when the base ground truth grain is coarser than the e
 
 When properly applied, a dasymetric can also help mitigate the effects of data suppression. If a census mesh cell is suppressed, but the dasymetric has a building footprint overlay, an approximate mass can still be placed in the "correct" location.
 
-### Spatial Resolution (R) — where mass can land {#spatial-resolution}
+### Spatial Resolution (R) — Where Mass Can Land {#spatial-resolution}
 
 | Resolution                                              | Weight | Description                                                                                                                                                                                                                        | Examples                                                                   |
 | :------------------------------------------------------ | :----- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------- |
@@ -107,7 +107,7 @@ When properly applied, a dasymetric can also help mitigate the effects of data s
 | Census mesh ≤ 1 km                                      | 0.5    | A coarse published grid cell                                                                                                                                                                                                       | EE INSPIRE 1km (before building refinement)                                |
 | Admin polygon only                                      | 0.3    | No sub-admin geometry; mass spread across the whole unit                                                                                                                                                                           | —                                                                          |
 
-### Intensity Fidelity (I) — how the total is shared among those locations {#intensity-fidelity}
+### Intensity Fidelity (I) — How the Total Is Shared Among Those Locations {#intensity-fidelity}
 
 | Fidelity                                                    | Weight | Description                                                                                                                                                                                                                                                                                                                    | Illustration                                                                                                                                                                | Example Sources                                                                                       |
 | :---------------------------------------------------------- | :----- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
@@ -159,7 +159,7 @@ Scored via the shared **[Dasymetric](#dasymetric)** ladders (R × I). Resident-s
 
 ## O/D Shaping {#od-shaping}
 
-_The lightest pillar (weight 0.15) — see [Criterion](#criterion) for why._
+_The lightest pillar (weight 0.15) — see [Scoring Criteria](#scoring-criteria) for why._
 
 Origin-Destination pairs, or O/D matrices of any granularity help shape the map's fidelity to real-world commute flows.
 
@@ -176,7 +176,7 @@ In the absence of O/D data pairs, a pure gravity-bound model can be used, but th
 
 _Note that a pipeline at the **0.0 rung that has measured marginals** (real resident + job totals per area) is 0.0 **as-built, but 0.25-capable**. With an IPF / doubly-constrained pass over its existing marginals, the pipeline can be lifted to 0.25 with no new data, meaning the gap is a modeling choice, not a data limitation. A pipeline whose marginals are **fabricated** (such as UA) cannot reach 0.25 without acquiring real marginals; one with **no marginals at all** (e.g. MA) cannot reach 0.1 without acquiring a prior._
 
-## Example Countries {#example-countries}
+## Example Pipelines {#example-pipelines}
 
 _Granularity columns record the finest grain at which the count metric is **measured** (not the grain it is modeled onto)._
 
@@ -223,7 +223,7 @@ _The **unknown** tier (grade U) is reserved for pipelines that have not been sco
 
 _Tiers are heterogeneous — a given tier can arise from different strength/weakness profiles across the three pillars. The **grade** letter alias (A–F) is kept for brevity._
 
-The **raw composite score** combines the three scored pillars from the tables above. Each pillar multiplies its **count ground truth**, its **dasymetric** (`R × I`, [Dasymetric](#dasymetric)), and a **granularity multiplier** `G` for the grain at which that pillar's count is measured. The pillars are then weighted with **workplace > resident > O/D** as described in [Criterion](#criterion). The raw score is a number in [0, 1].
+The **raw composite score** combines the three scored pillars from the tables above. Each pillar multiplies its **count ground truth**, its **dasymetric** (`R × I`, [Dasymetric](#dasymetric)), and a **granularity multiplier** `G` for the grain at which that pillar's count is measured. The pillars are then weighted with **workplace > resident > O/D** as described in [Scoring Criteria](#scoring-criteria). The raw score is a number in [0, 1].
 
 ```text
 workplace_raw = count_w × (R_w × I_w) × G(gran_w)
@@ -287,7 +287,7 @@ _OSM (patcher): the `Subway-Builder-Modded/map-manager` pipeline (an early commu
 
 _Initially, all pipelines are **unscored** (grade U) until a reviewer has worked with teh submitter to define the three pillars and the O/D metric. The unscored tier is a placeholder and is not at all a judgment of the map's data quality._
 
-### Worked examples — one per tier {#worked-examples}
+### Worked Examples by Tier {#worked-examples}
 
 Each country is shown with both composites: **raw** (weakest-link `count × (R·I) × G`) and **weighted** (half-and-half `(0.5·count + 0.5·R·I) × G`, the graded number). O/D has no split — it is `score_od × G` in both. Pillars combine as `0.50 · workplace + 0.35 · resident + 0.15 · od`.
 
@@ -322,7 +322,7 @@ The absolute anchor of the map is which total (employed residents / workplaces) 
 
 Choosing to model only those persons who both live and work within the map boundary is a design choice, but it should be noted that this will reduce the relative magnitude of modeled commute flows and may skew against nodes located at the periphery.
 
-### Special Demand — a separate layer, outside the normal modeled flow {#special-demand}
+### Special Demand — A Separate Layer Outside the Normal Modeled Flow {#special-demand}
 
 The three scored pillars cover **commute** demand — the normal home → work flow the map models. Most pipelines also inject **special-demand** points that are deliberately **not** part of that normal modeled flow: attractions (museums, temples, stadiums, ski resorts, etc.), hospitals, airports, ports and other generators of unique trips.
 
@@ -344,7 +344,7 @@ Some census data attempts to capture the full breadth of employment within a cou
 
 This rubric does not attempt to score informal employment, as modeling it explicitly is a design choice, but it is worth noting that a map that does not model informal employment may be less realistic than one that does.
 
-### Point-Placement Detail — distinct from input quality {#point-placement-detail}
+### Point-Placement Detail — Distinct from Input Quality {#point-placement-detail}
 
 How finely a map ultimately places demand points is a performance / UX choice, **not** a measure of input-data quality, and the two must not be conflated. A generator may agglomerate, cull, or merge fine-grained input into fewer rendered points for engine performance without lowering its score as the ground-truth input is unchanged.
 
