@@ -12,6 +12,7 @@ import type {
   RegistryDetailDownloadHistoryPoint,
   RegistryDetailDownloadTrend,
   RegistryDetailLoadedData,
+  RegistryDetailVersionDailySeries,
 } from "@/features/registry/detail/registry-detail-types";
 
 type RawManifest = {
@@ -216,6 +217,25 @@ function resolveListingDownloadDailyData(
 
 function getListingTypeForAnalytics(typeId: string): "map" | "mod" {
   return typeId === "maps" ? "map" : "mod";
+}
+
+// Per-version rows arrive semver-sorted from the registry CSV. Histories are
+// left untrimmed so every version shares the same date axis; the analytics tab
+// aligns them to the listing's own (trimmed) history window.
+function resolveListingVersionDailySeries(
+  id: string,
+  typeId: string,
+  versionRows: Array<Record<string, string>>,
+): RegistryDetailVersionDailySeries[] {
+  const listingType = getListingTypeForAnalytics(typeId);
+  return versionRows
+    .filter((row) => row["listing_type"] === listingType && row["id"] === id)
+    .map((row) => ({
+      version: row["version"] ?? "",
+      totalDownloads: Number(row["total_downloads"]) || 0,
+      history: extractDailyDownloadHistory(row),
+    }))
+    .filter((entry) => entry.version !== "" && entry.totalDownloads > 0);
 }
 
 function resolveListingDailyDownloadTrend(
@@ -639,6 +659,7 @@ export async function loadRegistryDetail(
     downloadsRaw,
     authorsRaw,
     dailyAnalyticsRaw,
+    versionAnalyticsRaw,
     trend1dRaw,
     trend3dRaw,
     trend7dRaw,
@@ -649,6 +670,7 @@ export async function loadRegistryDetail(
     safeFetchText(`${baseUrl}/downloads.json`),
     safeFetchText(getRegistryAuthorsIndexPath()),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
+    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/asset_versions_by_day.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_1d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_3d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_7d.csv`),
@@ -720,6 +742,11 @@ export async function loadRegistryDetail(
     },
     downloadAnalytics,
     downloadHistory: dailyDownloads.history,
+    versionDownloadHistory: resolveListingVersionDailySeries(
+      id,
+      typeConfig.id,
+      resolveDailyDownloadRows(versionAnalyticsRaw),
+    ),
     downloadTrends,
     mapRankings,
     manifest,

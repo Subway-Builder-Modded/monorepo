@@ -28,6 +28,12 @@ export type RegistryAnalyticsHistoryPoint = {
     maps: number;
     mods: number;
   };
+  /** Listings deprecated on this date (manifest deprecation.since). */
+  deprecations: {
+    total: number;
+    maps: number;
+    mods: number;
+  };
 };
 
 export type RegistryAnalyticsAuthorHistoryPoint = {
@@ -248,6 +254,14 @@ function getPublishedDate(item: RegistryAnalyticsItem): string | null {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
+function getDeprecationDate(item: RegistryAnalyticsItem): string | null {
+  const manifest = item.manifest as { deprecation?: { since?: string } };
+  const since = manifest?.deprecation?.since;
+  if (typeof since !== "string") return null;
+  const date = since.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+}
+
 function getFirstActivityDate(row: CsvRow, dateHeaders: string[]): string | null {
   for (const dateHeader of dateHeaders) {
     if (getNumber(row[dateHeader]) > 0) {
@@ -280,24 +294,32 @@ function normalizeHistory(
   const validItemsById = buildValidItemsById(items);
   const downloadsByDate = new Map<
     string,
-    Pick<RegistryAnalyticsHistoryPoint, "downloads" | "listings">
+    Pick<RegistryAnalyticsHistoryPoint, "downloads" | "listings" | "deprecations">
   >();
 
   for (const dateHeader of dateHeaders) {
     downloadsByDate.set(normalizeDate(dateHeader), {
       downloads: { total: 0, maps: 0, mods: 0 },
       listings: { total: 0, maps: 0, mods: 0 },
+      deprecations: { total: 0, maps: 0, mods: 0 },
     });
   }
 
   for (const item of items) {
+    const typeKey = item.type === "maps" ? "maps" : "mods";
     const publishedDate = getPublishedDate(item);
     const day = publishedDate ? downloadsByDate.get(publishedDate) : undefined;
-    if (!day) continue;
+    if (day) {
+      day.listings.total += 1;
+      day.listings[typeKey] += 1;
+    }
 
-    const typeKey = item.type === "maps" ? "maps" : "mods";
-    day.listings.total += 1;
-    day.listings[typeKey] += 1;
+    const deprecationDate = getDeprecationDate(item);
+    const deprecationDay = deprecationDate ? downloadsByDate.get(deprecationDate) : undefined;
+    if (deprecationDay) {
+      deprecationDay.deprecations.total += 1;
+      deprecationDay.deprecations[typeKey] += 1;
+    }
   }
 
   for (const row of rows) {
@@ -335,6 +357,7 @@ function normalizeHistory(
           mods: cumulativeMods,
         },
         listings: day.listings,
+        deprecations: day.deprecations,
       };
     })
     .sort((left, right) => left.date.localeCompare(right.date));

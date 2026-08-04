@@ -44,34 +44,43 @@ export type MultiSeriesChartModel = {
   data: MultiSeriesPoint[];
 };
 
-/** Monday (UTC) of the week containing the given YYYY-MM-DD date. */
-export function getWeekStartDate(date: string): string {
-  const parsed = new Date(`${date}T00:00:00Z`);
-  const daysSinceMonday = (parsed.getUTCDay() + 6) % 7;
-  parsed.setUTCDate(parsed.getUTCDate() - daysSinceMonday);
-  return parsed.toISOString().slice(0, 10);
-}
-
 export type BucketedMultiSeries = {
   data: MultiSeriesPoint[];
   grain: "daily" | "weekly" | "monthly";
 };
 
+/** Measure-leading title prefix for a bucketed grain ("Weekly Downloads"). */
+export function getGrainLabel(grain: BucketedMultiSeries["grain"]): string {
+  return grain === "weekly" ? "Weekly" : grain === "monthly" ? "Monthly" : "Daily";
+}
+
+const DAY_MS = 86_400_000;
+
 /**
  * Caps a daily multi-series chart at `maxPoints` x-entries by summing days
- * into weekly buckets (labeled by the week's Monday), falling back to monthly
- * buckets if even the weeks overflow. Under the cap, data passes through
- * untouched — so short windows stay daily and long windows stay readable.
- * Only meaningful for flow data (sums); do not use on cumulative series.
+ * into trailing 7-day windows (falling back to 30-day windows if even those
+ * overflow). Windows are anchored at the MOST RECENT day and labeled by each
+ * window's start date, so the newest bucket is always a complete week/month —
+ * only the oldest bucket can be partial. Under the cap, data passes through
+ * untouched: short windows stay daily and long windows stay readable. Only
+ * meaningful for flow data (sums); do not use on cumulative series.
  */
 export function bucketMultiSeriesData(
   data: MultiSeriesPoint[],
   { xAxisKey = "date", maxPoints = 60 }: { xAxisKey?: string; maxPoints?: number } = {},
 ): BucketedMultiSeries {
-  const bucketBy = (getBucket: (date: string) => string): MultiSeriesPoint[] => {
+  if (data.length <= maxPoints) {
+    return { data, grain: "daily" };
+  }
+
+  const latestMs = Date.parse(`${String(data[data.length - 1][xAxisKey])}T00:00:00Z`);
+  const bucketBy = (windowDays: number): MultiSeriesPoint[] => {
     const buckets = new Map<string, MultiSeriesPoint>();
     for (const point of data) {
-      const bucketKey = getBucket(String(point[xAxisKey]));
+      const pointMs = Date.parse(`${String(point[xAxisKey])}T00:00:00Z`);
+      const windowIndex = Math.floor((latestMs - pointMs) / DAY_MS / windowDays);
+      const windowStartMs = latestMs - ((windowIndex + 1) * windowDays - 1) * DAY_MS;
+      const bucketKey = new Date(windowStartMs).toISOString().slice(0, 10);
       const bucket = buckets.get(bucketKey) ?? { [xAxisKey]: bucketKey };
       for (const [key, value] of Object.entries(point)) {
         if (key === xAxisKey || typeof value !== "number") continue;
@@ -84,14 +93,11 @@ export function bucketMultiSeriesData(
     );
   };
 
-  if (data.length <= maxPoints) {
-    return { data, grain: "daily" };
-  }
-  const weekly = bucketBy(getWeekStartDate);
+  const weekly = bucketBy(7);
   if (weekly.length <= maxPoints) {
     return { data: weekly, grain: "weekly" };
   }
-  return { data: bucketBy((date) => `${date.slice(0, 7)}-01`), grain: "monthly" };
+  return { data: bucketBy(30), grain: "monthly" };
 }
 
 /**

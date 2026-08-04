@@ -24,6 +24,9 @@ export const CHART_CARD_FLUSH_CLASS =
 export const PANEL_TITLE_CLASS =
   "text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground";
 
+/** Header row of an in-card data table (muted band, hover kept inert). */
+export const TABLE_HEADER_ROW_CLASS = "border-border/70 bg-muted/35 hover:bg-muted/35";
+
 export const SECTION_CARD_CLASS = "rounded-xl border border-border/70 p-4 sm:p-5";
 
 export const SECTION_CARD_STYLE: CSSProperties = {

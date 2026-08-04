@@ -17,11 +17,12 @@ import {
   CHART_FONT_SIZE,
   CHART_GRID_STROKE,
   DEFAULT_CHART_MARGIN,
-  createCategoryTicks,
+  createFittedCategoryTicks,
   createLineChartTicks,
   formatXAxisLabel,
   formatYAxisTick,
 } from "./chart-theme";
+import { useContainerWidth } from "./use-container-width";
 
 export type AnalyticsStackedBarChartProps = {
   data: MultiSeriesPoint[];
@@ -37,10 +38,19 @@ function getNumericValue(point: MultiSeriesPoint, key: string) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+// Recharts stacks positive and negative values on opposite sides of the axis,
+// so the domain needs each point's positive sum AND negative sum, not the net.
 function getStackTotals(data: MultiSeriesPoint[], bars: BarConfig[]) {
-  return data.map((point) =>
-    bars.reduce((total, bar) => total + getNumericValue(point, bar.key), 0),
-  );
+  return data.flatMap((point) => {
+    let positive = 0;
+    let negative = 0;
+    for (const bar of bars) {
+      const value = getNumericValue(point, bar.key);
+      if (value >= 0) positive += value;
+      else negative += value;
+    }
+    return [positive, negative];
+  });
 }
 
 export function AnalyticsStackedBarChart({
@@ -52,6 +62,7 @@ export function AnalyticsStackedBarChart({
   margin = DEFAULT_CHART_MARGIN,
 }: AnalyticsStackedBarChartProps) {
   const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(new Set());
+  const { ref: containerRef, width: containerWidth } = useContainerWidth();
   // Fallback colors come from the bar's ORIGINAL index so they stay stable
   // while series are hidden.
   const resolvedBars = bars.map((bar, index) => ({
@@ -63,15 +74,26 @@ export function AnalyticsStackedBarChart({
   const { domain: yDomain, ticks: yTicks } = createLineChartTicks(stackTotals, {
     startAtZero: true,
   });
-  const xTicks = xAxisTicks ?? createCategoryTicks(data.map((point) => point[xAxisKey]), 8);
+  const xTicks = xAxisTicks
+    ? createFittedCategoryTicks(xAxisTicks, containerWidth)
+    : createFittedCategoryTicks(
+        data.map((point) => point[xAxisKey]),
+        containerWidth,
+        { cap: 8 },
+      );
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={containerRef}>
       <ResponsiveContainer width="100%" height={height}>
         <BarChart
           data={data}
           margin={margin}
           barCategoryGap="18%"
+          // Sign-partitioned stacking: positive segments stack above zero,
+          // negative ones (e.g. deprecations) below. The default "none"
+          // offset would draw a negative segment hanging from the positive
+          // stack's top, above the axis.
+          stackOffset="sign"
           style={{ color: "hsl(var(--muted-foreground))" }}
         >
           <CartesianGrid
