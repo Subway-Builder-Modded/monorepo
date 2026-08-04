@@ -18,11 +18,12 @@ import {
   CHART_FONT_SIZE,
   CHART_GRID_STROKE,
   DEFAULT_CHART_MARGIN,
-  createCategoryTicks,
+  createFittedCategoryTicks,
   createLineChartTicks,
   formatXAxisLabel,
   formatYAxisTick,
 } from "./chart-theme";
+import { useContainerWidth } from "./use-container-width";
 
 export type AnalyticsLineChartProps = {
   data: MultiSeriesPoint[];
@@ -90,6 +91,7 @@ export function AnalyticsLineChart({
   hideZeroTooltipEntries = false,
 }: AnalyticsLineChartProps) {
   const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(new Set());
+  const { ref: containerRef, width: containerWidth } = useContainerWidth();
   const resolvedLines = resolveLines(lines);
   const visibleLines = resolvedLines.filter((line) => !hiddenKeys.has(line.key));
   const yValues = visibleLines.flatMap((line) =>
@@ -98,14 +100,20 @@ export function AnalyticsLineChart({
       .filter((value): value is number => typeof value === "number" && Number.isFinite(value)),
   );
   const { domain: yDomain, ticks: yTicks } = createLineChartTicks(yValues, { startAtZero });
-  const xTicks = xAxisTicks ?? createCategoryTicks(data.map((point) => point[xAxisKey]), 8);
+  const xTicks = xAxisTicks
+    ? createFittedCategoryTicks(xAxisTicks, containerWidth)
+    : createFittedCategoryTicks(
+        data.map((point) => point[xAxisKey]),
+        containerWidth,
+        { cap: 8 },
+      );
   const isMultiSeries = visibleLines.length > 1;
   const gradientStartOpacity = isMultiSeries ? 0.16 : 0.25;
   const gradientEndOpacity = isMultiSeries ? 0.025 : 0.025;
   const chartData = isMultiSeries ? buildRangeBandData(data, visibleLines) : data;
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={containerRef}>
       <ResponsiveContainer width="100%" height={height}>
         <ComposedChart
           data={chartData}

@@ -222,6 +222,54 @@ describe("loadRegistryDetail", () => {
     ]);
   });
 
+  it("loads per-version daily download series, dropping zero-total versions", async () => {
+    const id = "akron-oh";
+    const manifest = { name: "Akron" };
+
+    mockRegistryItems(makeItem(id, manifest));
+    mockFetchWithMap({
+      [`/registry-cache/maps/${id}/manifest.json`]: JSON.stringify(manifest),
+      "/registry-cache/maps/integrity.json": JSON.stringify({
+        listings: { [id]: { versions: {} } },
+      }),
+      "/registry-cache/maps/downloads.json": JSON.stringify({}),
+      "/registry-cache/authors/index.json": JSON.stringify({ authors: [] }),
+      "/registry-cache/analytics/most_popular_by_day.csv":
+        "id,listing_type,2026_01_01,2026_01_02,2026_01_03\nakron-oh,map,0,5,7\n",
+      "/registry-cache/analytics/asset_versions_by_day.csv": [
+        "listing_type,id,version,total_downloads,2026_01_01,2026_01_02,2026_01_03",
+        "map,akron-oh,1.0.0,9,0,5,4",
+        "map,akron-oh,1.1.0,3,0,0,3",
+        "map,akron-oh,0.9.0,0,0,0,0",
+        "map,other-map,1.0.0,8,0,4,4",
+        "mod,akron-oh,1.0.0,6,0,3,3",
+        "",
+      ].join("\n"),
+      "/registry-cache/github-releases-cache.json": JSON.stringify({}),
+    });
+
+    const detail = await loadRegistryDetail("maps", id);
+
+    expect(detail?.versionDownloadHistory).toEqual([
+      {
+        version: "1.0.0",
+        totalDownloads: 9,
+        history: [
+          { date: "2026-01-02", downloads: 5 },
+          { date: "2026-01-03", downloads: 4 },
+        ],
+      },
+      {
+        version: "1.1.0",
+        totalDownloads: 3,
+        history: [
+          { date: "2026-01-02", downloads: 0 },
+          { date: "2026-01-03", downloads: 3 },
+        ],
+      },
+    ]);
+  });
+
   it("marks the active caretaker among resolved collaborators", async () => {
     const id = "opo-pt-metropolitan";
     const manifest = {

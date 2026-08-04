@@ -30,6 +30,10 @@ import { RegistryToolbarSearch } from "@/features/registry/components/registry-t
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { matchesRegistrySearch } from "@/features/registry/lib/registry-search";
 import {
+  ACCENT_NAME_LINK_CLASS,
+  EMPTY_STATE_PANEL_CLASS,
+} from "@/features/registry/lib/registry-styles";
+import {
   loadCreatorDatabaseData,
   type RegistryCreatorDatabaseAuthor,
   type RegistryCreatorDatabaseData,
@@ -374,7 +378,7 @@ function AuthorDatabaseCard({ author }: { author: RegistryCreatorDatabaseAuthor 
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={author.href}
-            className="relative z-20 min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={`relative z-20 min-w-0 truncate text-lg font-semibold text-foreground [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
           >
             {author.label}
           </Link>
@@ -405,7 +409,7 @@ function ProjectDatabaseCard({ project }: { project: RegistryCreatorDatabaseProj
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={project.href}
-            className="relative z-20 min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={`relative z-20 min-w-0 truncate text-lg font-semibold text-foreground [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
           >
             {project.name}
           </Link>
@@ -425,7 +429,7 @@ function ProjectDatabaseCard({ project }: { project: RegistryCreatorDatabaseProj
             <User className="size-3.5 shrink-0" aria-hidden={true} />
             <Link
               to={project.authorHref}
-              className="relative z-20 min-w-0 truncate underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={`relative z-20 min-w-0 truncate [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
             >
               {project.authorLabel}
             </Link>
@@ -737,14 +741,16 @@ export function RegistryCreatorDatabasePage({
             </div>
 
             {isLoading ? (
-              <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/15">
+              <div className={EMPTY_STATE_PANEL_CLASS}>
                 <Loader2
                   className="size-9 animate-spin text-muted-foreground motion-reduce:animate-none"
                   aria-hidden={true}
                 />
               </div>
             ) : activeRows.length === 0 ? (
-              <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/15 px-4 text-center text-sm text-muted-foreground">
+              <div
+                className={`${EMPTY_STATE_PANEL_CLASS} px-4 text-center text-sm text-muted-foreground`}
+              >
                 No {activeTab} match your search.
               </div>
             ) : (

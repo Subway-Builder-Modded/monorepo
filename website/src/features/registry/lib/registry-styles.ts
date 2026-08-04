@@ -37,6 +37,24 @@ export const ACCENT_TOGGLE_IDLE_TINTED_CLASS =
 export const ACCENT_TOGGLE_IDLE_MUTED_CLASS =
   "border-border/30 text-muted-foreground hover:border-[color-mix(in_srgb,var(--ui-accent-light)_35%,var(--border))] hover:bg-[color-mix(in_srgb,var(--ui-accent-light)_12%,var(--background))] dark:hover:border-[color-mix(in_srgb,var(--ui-accent-dark)_35%,var(--border))] dark:hover:bg-[color-mix(in_srgb,var(--ui-accent-dark)_12%,var(--background))]";
 
+// Link constants read the single generic var --ui-link-accent (a
+// theme-resolved accent color, not a light/dark pair). Call sites alias it
+// with a bracket utility, e.g. `[--ui-link-accent:var(--suite-accent-light)]`,
+// and append layout-only utilities (flex, gaps, truncation, focus rings).
+
+/** Inline accent link: inherits color until hovered, then accent text + solid underline. */
+export const ACCENT_TEXT_LINK_CLASS =
+  "transition-colors hover:text-[var(--ui-link-accent)] hover:underline hover:decoration-current hover:underline-offset-4";
+
+/** Name link (author/creator headings): underline stays reserved via a
+ *  transparent decoration, hovering fills accent text + a soft accent underline. */
+export const ACCENT_NAME_LINK_CLASS =
+  "underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--ui-link-accent)] hover:decoration-[color-mix(in_srgb,var(--ui-link-accent)_62%,transparent)]";
+
+/** Dashed placeholder panel that keeps a section's footprint when it has no rows. */
+export const EMPTY_STATE_PANEL_CLASS =
+  "flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/15";
+
 /** Uppercase micro-label above sidebar/filter sections. */
 export const SECTION_LABEL_CLASS =
   "text-[0.7rem] font-semibold uppercase tracking-widest text-muted-foreground";

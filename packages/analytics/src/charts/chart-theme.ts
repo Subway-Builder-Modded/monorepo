@@ -61,12 +61,17 @@ export function createLineChartTicks(
   if (!Number.isFinite(dataMin) || !Number.isFinite(dataMax)) return fallback;
 
   if (startAtZero) {
-    if (dataMax <= 0) return fallback;
-    const step = niceStep(dataMax / (tickCount - 1));
-    const niceMax = Math.ceil(dataMax / step) * step;
+    // "Start at zero" pins zero inside the domain; negative values (e.g. the
+    // deprecations series below the axis) extend it downward with nice steps.
+    const upper = Math.max(dataMax, 0);
+    const lower = Math.min(dataMin, 0);
+    if (upper <= 0 && lower >= 0) return fallback;
+    const step = niceStep((upper - lower) / (tickCount - 1));
+    const niceMax = Math.ceil(upper / step) * step;
+    const niceMin = Math.floor(lower / step) * step;
     const ticks: number[] = [];
-    for (let t = 0; t <= niceMax; t += step) ticks.push(t);
-    return { domain: [0, niceMax], ticks };
+    for (let t = niceMin; t <= niceMax; t += step) ticks.push(t);
+    return { domain: [niceMin, niceMax], ticks };
   }
 
   // Fit to data: pick a nice step from the span, floor min and ceil max to that step.
@@ -115,6 +120,31 @@ export function createCategoryTicks<T>(values: T[], maxTickCount = 8): T[] {
   }
 
   return ticks;
+}
+
+// Horizontal budget per x-label ("Jun 30" at 11px plus breathing room) and the
+// non-plot width a chart spends on its y-axis + margins.
+const X_TICK_MIN_PX = 52;
+const X_AXIS_RESERVED_PX = 72;
+
+/**
+ * X-axis ticks that fit the measured container width. Candidates are thinned
+ * (via createCategoryTicks) to what the plot area can hold, so labels never
+ * crush on narrow viewports. `cap` bounds wide-screen tick counts for
+ * auto-derived candidates; explicit caller ticks pass no cap and keep their
+ * density wherever it fits. An unmeasured width (0 — first paint, jsdom)
+ * preserves the unthinned behavior.
+ */
+export function createFittedCategoryTicks<T>(
+  candidates: T[],
+  containerWidth: number,
+  { cap }: { cap?: number } = {},
+): T[] {
+  if (containerWidth <= 0) {
+    return cap === undefined ? candidates : createCategoryTicks(candidates, cap);
+  }
+  const fit = Math.max(2, Math.floor((containerWidth - X_AXIS_RESERVED_PX) / X_TICK_MIN_PX));
+  return createCategoryTicks(candidates, cap === undefined ? fit : Math.min(cap, fit));
 }
 
 export function formatXAxisLabel(value: string | number): string {

@@ -39,7 +39,6 @@ import {
   ScrollArea,
   getSortedRankSlotMap,
 } from "@subway-builder-modded/shared-ui";
-import { AnalyticsLineChart, AnalyticsPieChart } from "@subway-builder-modded/analytics";
 import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
@@ -47,15 +46,18 @@ import {
   MULTI_SERIES_PALETTE,
   OTHERS_SERIES_COLOR,
   bucketMultiSeriesData,
+  getGrainLabel,
 } from "@/shared/analytics/multi-series";
 import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
+import { PieChartCard } from "@/shared/analytics/pie-chart-card";
 import { RegistryAnalyticsPeriodToggle as PeriodToggle } from "@/features/registry/analytics/components/analytics-period-toggle";
 import {
   CHART_CARD_CLASS,
   CHART_CARD_FLUSH_CLASS,
-  ChartCard,
   ChartEmptyState,
+  TABLE_HEADER_ROW_CLASS,
 } from "@/shared/styles/panels";
+import { ACCENT_TEXT_LINK_CLASS } from "@/features/registry/lib/registry-styles";
 import { TopEntitiesChart } from "@/features/registry/analytics/components/top-entities-chart";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
@@ -199,22 +201,6 @@ function RegistryAnalyticsTabs({
   );
 }
 
-function RegistryPieChartCard({
-  title,
-  icon,
-  data,
-}: {
-  title: string;
-  icon: LucideIcon;
-  data: PieSlice[];
-}) {
-  return (
-    <ChartCard title={title} icon={icon} className="min-h-[22rem]">
-      <AnalyticsPieChart data={data} height={250} />
-    </ChartCard>
-  );
-}
-
 function buildPeriodBreakdown(data: RegistryAnalyticsData, period: RegistryAnalyticsPeriodId) {
   if (period === "all-time") {
     return {
@@ -284,20 +270,22 @@ function RegistryOverviewTab({
   }));
   // Releases are sparse at day grain; the shared bucketing collapses the
   // all-time cut to weeks while short cuts show recent uptake day by day.
+  // Deprecations chart as a NEGATIVE series below the axis: a listing that
+  // arrives and is later deprecated nets to zero instead of counting twice.
+  const hasDeprecations = graphRows.some((row) => row.deprecations.total > 0);
   const newListingsBucketed = bucketMultiSeriesData(
     graphRows.map((row) => ({
       date: row.date,
       ...Object.fromEntries(
         typeSeries.map((series) => [series.key, readTypeValue(row.listings, series.id)]),
       ),
+      ...(hasDeprecations ? { Deprecated: -row.deprecations.total } : {}),
     })),
   );
-  const newListingsGrainLabel =
-    newListingsBucketed.grain === "weekly"
-      ? "Weekly"
-      : newListingsBucketed.grain === "monthly"
-        ? "Monthly"
-        : "Daily";
+  const newListingsSeries = hasDeprecations
+    ? [...typeSeries, { key: "Deprecated", name: "Deprecated", color: OTHERS_SERIES_COLOR }]
+    : typeSeries;
+  const newListingsGrainLabel = getGrainLabel(newListingsBucketed.grain);
   const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
   // Average downloads per weekday over the full history — the registry's
   // weekly activity rhythm (all-time, so it sits above the period break).
@@ -424,7 +412,7 @@ function RegistryOverviewTab({
       <section className="space-y-3">
         <SectionSeparator label="Cumulative Downloads" icon={ChartLine} className="mb-4" />
         <MultiSeriesChartCard
-          title="All Time"
+          title="Cumulative Downloads"
           chartKey="registry-cumulative-downloads"
           data={cumulativeChartData}
           series={typeSeries}
@@ -483,7 +471,7 @@ function RegistryOverviewTab({
             stackId="downloads"
             ariaLabelPrefix="Downloads timeline chart"
           />
-          <RegistryPieChartCard title="Download Share" icon={ChartPie} data={downloadSlices} />
+          <PieChartCard title="Download Share" icon={ChartPie} data={downloadSlices} />
         </div>
       </section>
 
@@ -499,14 +487,11 @@ function RegistryOverviewTab({
           assetType="total"
           minShare={0.025}
           titleSuffix=" by Country"
+          measureLabel="Map Downloads"
         />
         <div className="grid gap-4 lg:grid-cols-2">
-          <RegistryPieChartCard title="Map Downloads by Region" icon={Globe} data={regionSlices} />
-          <RegistryPieChartCard
-            title="Map Downloads by Author"
-            icon={Users}
-            data={authorMapSlices}
-          />
+          <PieChartCard title="Map Downloads by Region" icon={Globe} data={regionSlices} />
+          <PieChartCard title="Map Downloads by Author" icon={Users} data={authorMapSlices} />
         </div>
       </section>
 
@@ -514,16 +499,16 @@ function RegistryOverviewTab({
         <SectionSeparator label="Listings" icon={FileStack} className="mb-4" />
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <MultiSeriesChartCard
-            title={`${newListingsGrainLabel} Releases`}
+            title={`${newListingsGrainLabel} New Listings`}
             chartKey={`registry-new-listings-${period}-${newListingsBucketed.grain}`}
             data={newListingsBucketed.data}
-            series={typeSeries}
+            series={newListingsSeries}
             height={280}
             stackId="new-listings"
             defaultStyle="bar"
             ariaLabelPrefix="New listings chart"
           />
-          <RegistryPieChartCard
+          <PieChartCard
             title={`${period === "all-time" ? "Listings" : "New Listings"} by Type`}
             icon={FileStack}
             data={listingSlices}
@@ -576,7 +561,7 @@ function AnalyticsAuthorCell({
     >
       <Link
         to={getRegistryAuthorUrl(authorId, "analytics")}
-        className="inline-flex min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--analytics-author-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+        className={`inline-flex min-w-0 max-w-full items-center gap-1.5 [--ui-link-accent:var(--analytics-author-accent)] ${ACCENT_TEXT_LINK_CLASS}`}
         title={authorName}
       >
         <span className="truncate">{authorName}</span>
@@ -653,7 +638,7 @@ function RegistryRankingsTable<TRow>({
                   ))}
                 </colgroup>
                 <TableHeader>
-                  <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                  <TableRow className={TABLE_HEADER_ROW_CLASS}>
                     {columns.map((column) =>
                       column.sortable ? (
                         <SortableTableHead
@@ -763,13 +748,16 @@ function RegistryContentTab({
     }
     return byDate;
   }, [assetTypeId, filteredListingSeries, isChartFiltered]);
-  const chartData = graphRows.map((row) => ({
-    date: row.date,
-    Downloads: filteredAggregateByDate
-      ? (filteredAggregateByDate.get(row.date) ?? 0)
-      : row.downloads[assetTypeId],
-  }));
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const chartBucketed = bucketMultiSeriesData(
+    graphRows.map((row) => ({
+      date: row.date,
+      Downloads: filteredAggregateByDate
+        ? (filteredAggregateByDate.get(row.date) ?? 0)
+        : row.downloads[assetTypeId],
+    })),
+  );
+  const chartTicks =
+    period === "all-time" ? undefined : chartBucketed.data.map((point) => String(point.date));
   const hasFilterMatches = !isChartFiltered || filteredListingSeries.entities.length > 0;
   const baseRows = data.contentRankings[period][assetTypeId];
   const sortedRows = useMemo(
@@ -837,7 +825,7 @@ function RegistryContentTab({
         render: (row) => (
           <Link
             to={getRegistryDetailUrl(row.type, row.id, "analytics")}
-            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+            className={`inline-flex max-w-full items-center gap-1.5 [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_TEXT_LINK_CLASS}`}
           >
             <span className="truncate">{row.name}</span>
             <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
@@ -937,29 +925,30 @@ function RegistryContentTab({
           icon={Download}
           className="mb-4"
         />
-        <article className={CHART_CARD_CLASS}>
-          {hasFilterMatches ? (
-            <AnalyticsLineChart
-              key={`registry-content-${assetTypeId}-${period}-${isChartFiltered ? "filtered" : "all"}`}
-              data={chartData}
-              lines={[
-                {
-                  key: "Downloads",
-                  name: "Downloads",
-                  color: "var(--registry-type-accent)",
-                },
-              ]}
-              xAxisKey="date"
-              xAxisTicks={chartTicks}
-              height={280}
-              startAtZero={true}
-            />
-          ) : (
+        {hasFilterMatches ? (
+          <MultiSeriesChartCard
+            title={`${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`}
+            chartKey={`registry-content-${assetTypeId}-${period}-${chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
+            data={chartBucketed.data}
+            series={[
+              {
+                key: "Downloads",
+                name: "Downloads",
+                color: "var(--registry-type-accent)",
+              },
+            ]}
+            xAxisTicks={chartTicks}
+            height={280}
+            stackId="content-downloads"
+            ariaLabelPrefix="Content downloads chart"
+          />
+        ) : (
+          <article className={CHART_CARD_CLASS}>
             <ChartEmptyState
               label={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
             />
-          )}
-        </article>
+          </article>
+        )}
       </section>
 
       <section>
@@ -971,6 +960,9 @@ function RegistryContentTab({
         {/* Per-listing downloads are the flattest distribution on the site
             (the top map holds only 3-6% of its type), so share thresholds are
             meaningless here — minShare 0 selects a plain top 10. */}
+        {/* Per-listing distributions are so flat that "Others" dwarfs the top
+            ten and flattens them into a band — the chart shows the top ten
+            alone, while the pie keeps Others for the full split. */}
         <TopEntitiesChart
           series={filteredListingSeries}
           entityKey={assetTypeId}
@@ -979,6 +971,7 @@ function RegistryContentTab({
           minShare={0}
           filtered={isChartFiltered}
           emptyLabel={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
+          chartOthers={false}
         />
       </section>
 
@@ -1229,22 +1222,22 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     >
       <section>
         <SectionSeparator label="Timeline" icon={ChartLine} className="mb-4" />
-        <article className={CHART_CARD_CLASS}>
-          <AnalyticsLineChart
-            key="registry-authors-timeline"
-            data={chartData}
-            lines={[
-              {
-                key: "Authors",
-                name: "Authors",
-                color: "var(--suite-accent-light)",
-              },
-            ]}
-            xAxisKey="date"
-            height={280}
-            startAtZero={true}
-          />
-        </article>
+        {/* Cumulative level, so the shared bucketing never applies here. */}
+        <MultiSeriesChartCard
+          title="Cumulative Authors"
+          chartKey="registry-authors-timeline"
+          data={chartData}
+          series={[
+            {
+              key: "Authors",
+              name: "Authors",
+              color: "var(--suite-accent-light)",
+            },
+          ]}
+          height={280}
+          stackId="authors-timeline"
+          ariaLabelPrefix="Authors timeline chart"
+        />
       </section>
 
       {/* The Timeline above counts all authors; everything below the search
@@ -1365,7 +1358,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         render: (row) => (
           <Link
             to={`${row.href}/analytics`}
-            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+            className={`inline-flex max-w-full items-center gap-1.5 [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_TEXT_LINK_CLASS}`}
           >
             <span className="truncate">{row.name}</span>
             <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
@@ -1595,7 +1588,7 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
         render: (row) => (
           <Link
             to={getRegistryDetailUrl("maps", row.id, "analytics")}
-            className="inline-flex w-full min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+            className={`inline-flex w-full min-w-0 max-w-full items-center gap-1.5 [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_TEXT_LINK_CLASS}`}
           >
             <span className="truncate">{row.name}</span>
             <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />

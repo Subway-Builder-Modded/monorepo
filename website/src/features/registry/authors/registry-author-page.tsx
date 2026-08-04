@@ -10,8 +10,10 @@ import {
   ArrowDownToLine,
   BarChart3,
   CalendarDays,
+  ChartPie,
   Clock,
   ExternalLink,
+  FileStack,
   History,
   LayoutDashboard,
   Loader2,
@@ -49,13 +51,27 @@ import {
 } from "@subway-builder-modded/shared-ui";
 import { getSuiteById } from "@/config/site-navigation";
 import { AnalyticsModeToggle } from "@/shared/analytics/analytics-mode-toggle";
+import {
+  bucketMultiSeriesData,
+  buildTopSeriesWithOthers,
+  getGrainLabel,
+  type NamedDailySeries,
+} from "@/shared/analytics/multi-series";
 import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
+import { PieChartCard } from "@/shared/analytics/pie-chart-card";
+import {
+  REGISTRY_ANALYTICS_PERIOD_OPTIONS,
+  RegistryAnalyticsPeriodToggle,
+} from "@/features/registry/analytics/components/analytics-period-toggle";
+import type { RegistryAnalyticsPeriodId } from "@/features/registry/analytics/lib/load-registry-analytics";
 import {
   CHART_CARD_FLUSH_CLASS,
   SECTION_CARD_STYLE,
+  TABLE_HEADER_ROW_CLASS,
   accentChipBadgeStyle,
   accentChipStyle,
 } from "@/shared/styles/panels";
+import { ACCENT_NAME_LINK_CLASS } from "@/features/registry/lib/registry-styles";
 import { Link, navigate } from "@/lib/router";
 import { NotFoundPage } from "@/features/not-found";
 import { AuthorRoleBadge } from "@/features/registry/components/author-role-badge";
@@ -236,7 +252,7 @@ function AssetMetricLink({
           <TooltipTrigger asChild>
             <Link
               to={item.href}
-              className="truncate text-base font-semibold leading-tight underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+              className={`truncate text-base font-semibold leading-tight [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_NAME_LINK_CLASS}`}
             >
               {item.name}
             </Link>
@@ -654,7 +670,7 @@ function AuthorProjectCard({ project }: { project: RegistryAuthorProjectSummary 
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={project.href}
-            className="min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+            className={`min-w-0 truncate text-lg font-semibold text-foreground [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS}`}
           >
             {project.projectName}
           </Link>
@@ -758,7 +774,7 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
                 <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
               </colgroup>
               <TableHeader>
-                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                <TableRow className={TABLE_HEADER_ROW_CLASS}>
                   <SortableTableHead
                     label="Period"
                     active={sortKey === "label"}
@@ -803,7 +819,15 @@ const CARETAKEN_HISTORY_KEY_BY_MODE = {
   mods: "caretakenMods",
 } as const;
 
-function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
+function AuthorDownloadHistory({
+  data,
+  period,
+  onPeriodChange,
+}: {
+  data: RegistryEntityPageData;
+  period: RegistryAnalyticsPeriodId;
+  onPeriodChange: (period: RegistryAnalyticsPeriodId) => void;
+}) {
   const caretakenItems = data.caretakenItems ?? [];
   const hasAuthoredMaps = (data.itemsByType.maps ?? []).length > 0;
   const hasAuthoredMods = (data.itemsByType.mods ?? []).length > 0;
@@ -851,11 +875,17 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
   ].filter((option) => option.enabled);
   const activeOption = modeOptions.find((option) => option.id === activeMode) ?? modeOptions[0];
   const caretakenKey = CARETAKEN_HISTORY_KEY_BY_MODE[activeMode];
-  const chartData = data.analytics.history.map((point) => ({
+  const periodDays = REGISTRY_ANALYTICS_PERIOD_OPTIONS.find((option) => option.id === period)?.days;
+  const windowHistory = periodDays
+    ? data.analytics.history.slice(-periodDays)
+    : data.analytics.history;
+  const chartData = windowHistory.map((point) => ({
     date: point.date,
     Published: point[activeMode],
     Caretaken: point[caretakenKey] ?? 0,
   }));
+  const bucketed = bucketMultiSeriesData(chartData);
+  const chartTicks = periodDays ? bucketed.data.map((point) => String(point.date)) : undefined;
   const hasPublishedSeries = chartData.some((point) => point.Published > 0);
   const hasCaretakenSeries = chartData.some((point) => point.Caretaken > 0);
   // Caretaker-credited downloads render as a washed-out companion line so they
@@ -889,6 +919,10 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
         className="space-y-4"
         style={{ "--registry-type-accent": activeOption.color } as CSSProperties}
       >
+        {/* Governs this chart and the Top Assets section below it. */}
+        <div className="flex justify-center">
+          <RegistryAnalyticsPeriodToggle value={period} onChange={onPeriodChange} />
+        </div>
         {hasMultipleAssetTypes ? (
           <div className="flex justify-center">
             <AnalyticsModeToggle
@@ -900,13 +934,90 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
           </div>
         ) : null}
         <MultiSeriesChartCard
-          chartKey={`author-history-${activeMode}`}
-          data={chartData}
+          title={`${getGrainLabel(bucketed.grain)} Downloads`}
+          chartKey={`author-history-${activeMode}-${period}-${bucketed.grain}`}
+          data={bucketed.data}
           series={lines}
+          xAxisTicks={chartTicks}
           height={220}
           stackId="author-history"
           ariaLabelPrefix="Download history chart"
         />
+      </div>
+    </div>
+  );
+}
+
+// Top-10 + Others across the person's credited assets (day-grain credited, so
+// caretaken listings only count their windows), with the share pie of the same
+// period window beside it. Follows the shared period toggle rendered above.
+function AuthorTopAssets({
+  data,
+  period,
+}: {
+  data: RegistryEntityPageData;
+  period: RegistryAnalyticsPeriodId;
+}) {
+  const listingSeries = data.analytics.listingSeries ?? [];
+  const model = useMemo(() => {
+    const periodDays = REGISTRY_ANALYTICS_PERIOD_OPTIONS.find(
+      (option) => option.id === period,
+    )?.days;
+    const historyDates = data.analytics.history.map((point) => point.date);
+    const dates = periodDays ? historyDates.slice(-periodDays) : historyDates;
+    const named: NamedDailySeries[] = listingSeries.map((entry) => ({
+      id: `${entry.typeId}:${entry.id}`,
+      name: entry.name,
+      valueByDate: new Map(entry.history.map((point) => [point.date, point.downloads])),
+    }));
+    // Per-listing distributions are flat — plain top 10, like the other
+    // per-listing charts; "Others" would dwarf them, so it stays out of the
+    // chart and lives only in the pie.
+    const top = buildTopSeriesWithOthers({ series: named, dates, topCount: 10 });
+    const chartSeries = top.series.filter((entry) => entry.key !== "__others__");
+    const bucketed = bucketMultiSeriesData(top.data);
+    return {
+      series: chartSeries,
+      // "Top N" only when Others was actually cut from the chart.
+      isTopSlice: chartSeries.length < top.series.length,
+      bucketed,
+      chartTicks: periodDays ? bucketed.data.map((point) => String(point.date)) : undefined,
+      slices: top.series.map((entry) => ({
+        key: entry.key,
+        name: entry.name,
+        value: entry.total,
+        color: entry.color,
+      })),
+    };
+  }, [data.analytics.history, listingSeries, period]);
+
+  if (model.series.length === 0) return null;
+
+  return (
+    <div>
+      <SectionSeparator label="Top Assets" icon={FileStack} className="mb-4 mt-7" />
+      <div
+        className={
+          model.slices.length > 1
+            ? "grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+            : undefined
+        }
+      >
+        <MultiSeriesChartCard
+          title={`${
+            model.isTopSlice ? `Top ${model.series.length} ` : ""
+          }${getGrainLabel(model.bucketed.grain)} Downloads by Asset`}
+          chartKey={`author-top-assets-${period}-${model.bucketed.grain}`}
+          data={model.bucketed.data}
+          series={model.series}
+          xAxisTicks={model.chartTicks}
+          height={280}
+          stackId="author-top-assets"
+          ariaLabelPrefix="Top assets chart"
+        />
+        {model.slices.length > 1 ? (
+          <PieChartCard title="Download Share by Asset" icon={ChartPie} data={model.slices} />
+        ) : null}
       </div>
     </div>
   );
@@ -1007,7 +1118,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
                 <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
               </colgroup>
               <TableHeader>
-                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                <TableRow className={TABLE_HEADER_ROW_CLASS}>
                   <SortableTableHead
                     label={`${activeTypeConfig.label} Name`}
                     active={sortKey === "name"}
@@ -1030,7 +1141,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
                       <span className="inline-flex max-w-full items-center gap-1.5">
                         <Link
                           to={row.href}
-                          className="truncate text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                          className={`truncate text-foreground [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_NAME_LINK_CLASS}`}
                         >
                           {row.name}
                         </Link>
@@ -1064,6 +1175,8 @@ function AuthorAnalytics({
   data: RegistryEntityPageData;
   emptyMessage?: string;
 }) {
+  // One period window for the whole charts band (Download History + Top Assets).
+  const [period, setPeriod] = useState<RegistryAnalyticsPeriodId>("all-time");
   const caretakenItems = data.caretakenItems ?? [];
   const hasMaps =
     (data.itemsByType.maps ?? []).length > 0 || caretakenItems.some((item) => item.type === "maps");
@@ -1133,7 +1246,8 @@ function AuthorAnalytics({
         />
       </div>
       <AuthorRecentTrendsTable data={data} />
-      <AuthorDownloadHistory data={data} />
+      <AuthorDownloadHistory data={data} period={period} onPeriodChange={setPeriod} />
+      <AuthorTopAssets data={data} period={period} />
       {hasMaps || hasMods ? <AuthorAssetRankingsTable data={data} /> : null}
     </section>
   );
@@ -1500,7 +1614,7 @@ export function RegistryProjectPage({ authorId, projectName, tabId }: RegistryPr
                       <p className="m-0 mt-3 flex items-center gap-1.5 text-base font-medium leading-[1.1] tracking-normal text-muted-foreground">
                         <Link
                           to={getRegistryAuthorUrl(data.project.authorId)}
-                          className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+                          className={`[--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS}`}
                         >
                           {data.project.authorLabel}
                         </Link>

@@ -56,6 +56,13 @@ export type RegistryDetailDownloadHistoryPoint = {
   downloads: number;
 };
 
+/** One release version's daily download series (registry version-grain CSV). */
+export type RegistryDetailVersionDailySeries = {
+  version: string;
+  totalDownloads: number;
+  history: RegistryDetailDownloadHistoryPoint[];
+};
+
 export type RegistryDetailDownloadTrend = {
   period: "1d" | "3d" | "7d" | "14d";
   label: string;
@@ -110,6 +117,7 @@ export type RegistryDetailModel = {
   downloads: number | null;
   downloadAnalytics: RegistryDetailDownloadAnalytics;
   downloadHistory: RegistryDetailDownloadHistoryPoint[];
+  versionDownloadHistory: RegistryDetailVersionDailySeries[];
   downloadTrends: RegistryDetailDownloadTrend[];
   galleryImages: string[];
   versions: RegistryDetailVersion[];
@@ -195,6 +203,7 @@ export type RegistryDetailLoadedData = {
   projectId: string | null;
   downloadAnalytics: RegistryDetailDownloadAnalytics;
   downloadHistory?: RegistryDetailDownloadHistoryPoint[];
+  versionDownloadHistory?: RegistryDetailVersionDailySeries[];
   downloadTrends?: RegistryDetailDownloadTrend[];
   mapRankings: {
     population: number | null;

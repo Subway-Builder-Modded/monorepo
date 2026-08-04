@@ -97,6 +97,10 @@ const COPY_MAPPINGS = [
     destination: "public/registry-cache/analytics/most_popular_by_day.csv",
   },
   {
+    source: "analytics/asset_versions_by_day.csv",
+    destination: "public/registry-cache/analytics/asset_versions_by_day.csv",
+  },
+  {
     source: "analytics/authors_by_day.csv",
     destination: "public/registry-cache/analytics/authors_by_day.csv",
   },
@@ -629,10 +633,6 @@ function materializeRegistryCollection(
   let manifestCount = 0;
 
   for (const id of ids) {
-    if (!hasCompleteVersion(integrity?.listings?.[id])) {
-      continue;
-    }
-
     const sourcePath = path.join(sourceRootPath, id, "manifest.json");
     if (!existsSync(sourcePath)) {
       continue;
@@ -640,6 +640,13 @@ function materializeRegistryCollection(
 
     const manifest = readJson(sourcePath);
     if (manifest?.is_test === true) {
+      continue;
+    }
+    // Mirror the runtime loader's eligibility rule: deprecated listings
+    // routinely have zero integrity-complete versions, but must stay
+    // materialized for attribution, the browse Deprecated toggle, and the
+    // analytics deprecation series.
+    if (manifest?.deprecation === undefined && !hasCompleteVersion(integrity?.listings?.[id])) {
       continue;
     }
 

@@ -377,6 +377,7 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
       last7Days: null,
     },
     downloadHistory: data.downloadHistory ?? [],
+    versionDownloadHistory: data.versionDownloadHistory ?? [],
     downloadTrends: data.downloadTrends ?? [],
     galleryImages: resolveGalleryImages(
       data.item.routeSegment,

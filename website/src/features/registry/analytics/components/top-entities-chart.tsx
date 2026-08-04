@@ -1,7 +1,11 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { BarChart3, ChartPie, Map as MapIcon, Package } from "lucide-react";
 import { AnalyticsPieChart } from "@subway-builder-modded/analytics";
-import { bucketMultiSeriesData, buildTopSeriesWithOthers } from "@/shared/analytics/multi-series";
+import {
+  bucketMultiSeriesData,
+  buildTopSeriesWithOthers,
+  getGrainLabel,
+} from "@/shared/analytics/multi-series";
 import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
 import { ChartCard, ChartEmptyState } from "@/shared/styles/panels";
 import {
@@ -57,6 +61,8 @@ export function TopEntitiesChart({
   filtered = false,
   emptyLabel = "No entries match the current filters.",
   titleSuffix = "",
+  measureLabel = "Downloads",
+  chartOthers = true,
 }: {
   series: RegistryAnalyticsEntityDailySeries;
   /** Stable slug for aria labels and chart keys, e.g. "authors", "projects". */
@@ -75,6 +81,20 @@ export function TopEntitiesChart({
   emptyLabel?: string;
   /** Appended to both card titles, e.g. " by Country" when the section needs the noun. */
   titleSuffix?: string;
+  /**
+   * The measure both card titles name. The default keeps the generic pair
+   * ("Daily Downloads" / "Download Share"); an override like "Map Downloads"
+   * names the measure verbatim in both ("Weekly Map Downloads by Country" /
+   * "Map Downloads by Country") to match sibling pies.
+   */
+  measureLabel?: string;
+  /**
+   * False drops the aggregated "Others" series from the CHART only (the pie
+   * keeps it for full context). Use on flat distributions — per-listing
+   * charts, where Others dwarfs every individual series and flattens the
+   * top entries into illegibility.
+   */
+  chartOthers?: boolean;
 }) {
   const [internalPeriod, setInternalPeriod] = useState<RegistryAnalyticsPeriodId>(defaultPeriod);
   const [internalAssetType, setInternalAssetType] = useState<TopEntitiesAssetType>("total");
@@ -135,8 +155,7 @@ export function TopEntitiesChart({
   // cut stays readable; short windows pass through daily. The pie keeps the
   // exact same totals either way.
   const bucketed = useMemo(() => bucketMultiSeriesData(chartModel.data), [chartModel.data]);
-  const grainLabel =
-    bucketed.grain === "weekly" ? "Weekly" : bucketed.grain === "monthly" ? "Monthly" : "Daily";
+  const grainLabel = getGrainLabel(bucketed.grain);
   const chartTicks =
     period === "all-time" ? undefined : bucketed.data.map((point) => String(point.date));
 
@@ -145,6 +164,16 @@ export function TopEntitiesChart({
   }
 
   const titlePrefix = filtered ? "Filtered " : "";
+  const chartSeries = chartOthers
+    ? chartModel.series
+    : chartModel.series.filter((entry) => entry.key !== "__others__");
+  // When Others is cut from the chart, the title owns up to showing a top
+  // slice ("Top 10 Weekly Downloads"); with nothing cut it stays the plain
+  // measure title.
+  const isTopSlice = chartSeries.length < chartModel.series.length;
+  const chartTitle = isTopSlice
+    ? `${titlePrefix}Top ${chartSeries.length} ${grainLabel} ${measureLabel}${titleSuffix}`
+    : `${titlePrefix}${grainLabel} ${measureLabel}${titleSuffix}`;
 
   return (
     <div className="space-y-4">
@@ -181,15 +210,22 @@ export function TopEntitiesChart({
       ) : (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <MultiSeriesChartCard
-            title={`${titlePrefix}${grainLabel} Downloads${titleSuffix}`}
+            title={chartTitle}
             chartKey={`top-${entityKey}-${period}-${assetType}-${bucketed.grain}`}
             data={bucketed.data}
-            series={chartModel.series}
+            series={chartSeries}
             xAxisTicks={chartTicks}
             stackId={entityKey}
             ariaLabelPrefix={`Top ${entityKey} chart`}
           />
-          <ChartCard title={`${titlePrefix}Download Share${titleSuffix}`} icon={ChartPie}>
+          <ChartCard
+            title={
+              measureLabel === "Downloads"
+                ? `${titlePrefix}Download Share${titleSuffix}`
+                : `${titlePrefix}${measureLabel}${titleSuffix}`
+            }
+            icon={ChartPie}
+          >
             <AnalyticsPieChart
               key={`top-${entityKey}-pie-${period}-${assetType}`}
               data={chartModel.series.map((entry) => ({

@@ -275,12 +275,14 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
             downloads: { total: 100, maps: 80, mods: 20 },
             cumulativeDownloads: { total: 100, maps: 80, mods: 20 },
             listings: { total: 8, maps: 6, mods: 2 },
+            deprecations: { total: 0, maps: 0, mods: 0 },
           },
           {
             date: "2026-03-12",
             downloads: { total: 200, maps: 160, mods: 40 },
             cumulativeDownloads: { total: 300, maps: 240, mods: 60 },
             listings: { total: 4, maps: 2, mods: 2 },
+            deprecations: { total: 1, maps: 0, mods: 1 },
           },
         ],
       }),
@@ -320,7 +322,8 @@ describe("RegistryAnalyticsPage", () => {
     expect(screen.getByText("Seasonality")).toBeInTheDocument();
     expect(overviewStackedCharts[1]).toHaveTextContent("7 points · Maps, Mods");
     expect(screen.getByText("Listings by Type")).toBeInTheDocument();
-    expect(overviewStackedCharts[2]).toHaveTextContent("1 points · Maps, Mods");
+    // Deprecations join the New Listings chart as a negative series.
+    expect(overviewStackedCharts[2]).toHaveTextContent("1 points · Maps, Mods, Deprecated");
     // Every pie sits beside its measure: Download Share, then the Maps
     // section's three pies, then Listings by Type.
     const pieCharts = screen.getAllByTestId("registry-pie-chart");
@@ -364,9 +367,10 @@ describe("RegistryAnalyticsPage", () => {
     });
 
     expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
-    // The Top chart follows the search filter and flags it in its titles.
+    // Both the aggregate card and the Top chart follow the search filter and
+    // flag it in their titles.
     await waitFor(() => {
-      expect(screen.getByText("Filtered Daily Downloads")).toBeInTheDocument();
+      expect(screen.getAllByText("Filtered Daily Downloads")).toHaveLength(2);
     });
     expect(screen.getByText("Filtered Download Share")).toBeInTheDocument();
 

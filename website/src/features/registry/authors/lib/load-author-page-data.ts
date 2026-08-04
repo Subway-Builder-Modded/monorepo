@@ -100,6 +100,14 @@ export type RegistryAuthorRankingRow = {
   rank: number | null;
 };
 
+/** One credited listing's daily downloads, day-grain credited to this person. */
+export type RegistryAuthorListingDailySeries = {
+  id: string;
+  typeId: string;
+  name: string;
+  history: Array<{ date: string; downloads: number }>;
+};
+
 export type RegistryAuthorAnalytics = {
   downloads: {
     total: number;
@@ -114,6 +122,8 @@ export type RegistryAuthorAnalytics = {
   history: RegistryAuthorDownloadHistoryPoint[];
   trends: RegistryAuthorDownloadTrend[];
   rankingsByType: Record<string, RegistryAuthorRankingRow[]>;
+  /** Absent on entity pages that don't chart per-asset splits (projects). */
+  listingSeries?: RegistryAuthorListingDailySeries[];
 };
 
 type RawAuthorsIndex = {
@@ -469,6 +479,51 @@ function computeAuthorHistory(
   return firstNonZeroIndex <= 0 ? history : history.slice(firstNonZeroIndex);
 }
 
+// Per-listing companion to computeAuthorHistory: the same day-grain credit
+// rule, but each credited listing keeps its own series (days credited to
+// someone else count as 0). Feeds the Top Assets chart.
+function computeAuthorListingSeries(
+  normalizedAuthorId: string,
+  dailyRows: Array<Record<string, string>>,
+  itemAuthorByTypeAndId: Map<string, string>,
+  creditWindowsByListing: Map<string, ListingCreditWindow[]>,
+  nameByTypeAndId: Map<string, string>,
+): RegistryAuthorListingDailySeries[] {
+  const series: RegistryAuthorListingDailySeries[] = [];
+
+  for (const row of dailyRows) {
+    const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
+    const id = row["id"] ?? "";
+    if (!typeId) continue;
+    const typeKey = `${typeId}:${id}`;
+    const listingAuthorId = itemAuthorByTypeAndId.get(typeKey) ?? "";
+    const windows = creditWindowsByListing.get(typeKey);
+    const isAuthor = listingAuthorId === normalizedAuthorId;
+    if (!isAuthor && !windows?.some((window) => window.personId === normalizedAuthorId)) {
+      continue;
+    }
+
+    const history = extractDailyDownloadHistory(row).map((point) => ({
+      date: point.date,
+      downloads:
+        resolveCreditedPersonIdForDate(Date.parse(point.date), windows, listingAuthorId) ===
+        normalizedAuthorId
+          ? point.downloads
+          : 0,
+    }));
+    if (!history.some((point) => point.downloads > 0)) continue;
+
+    series.push({
+      id,
+      typeId,
+      name: nameByTypeAndId.get(typeKey) ?? id,
+      history,
+    });
+  }
+
+  return series;
+}
+
 function computeAuthorTrends(
   normalizedAuthorId: string,
   dailyRows: Array<Record<string, string>>,
@@ -817,6 +872,12 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
       [...(itemsByType[typeConfig.id] ?? []), ...(caretakenItemsByType[typeConfig.id] ?? [])],
     ]),
   );
+  const nameByTypeAndId = new Map<string, string>();
+  for (const typeConfig of REGISTRY_TYPES) {
+    for (const item of allItemsByType[typeConfig.id] ?? []) {
+      nameByTypeAndId.set(`${typeConfig.id}:${item.id}`, item.name);
+    }
+  }
   const analytics: RegistryAuthorAnalytics = {
     downloads,
     ranks: computeAuthorDownloadRanks(normalizedAuthorId, totalsByAuthor),
@@ -825,6 +886,13 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
       dailyRows,
       itemAuthorByTypeAndId,
       creditWindowsByListing,
+    ),
+    listingSeries: computeAuthorListingSeries(
+      normalizedAuthorId,
+      dailyRows,
+      itemAuthorByTypeAndId,
+      creditWindowsByListing,
+      nameByTypeAndId,
     ),
     trends: computeAuthorTrends(
       normalizedAuthorId,
