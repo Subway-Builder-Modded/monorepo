@@ -32,14 +32,14 @@ Since _June 23, 2026_, every newly published version is required to carry a vali
 
 A mod's `manifest.json` (the same file bundled inside the ZIP, uploaded standalone) must contain:
 
-| Field | Requirement |
-| --- | --- |
-| `id` | Must exactly match the Registry mod ID |
-| `name` | Display name |
-| `version` | The release's version |
-| `main` | The mod's JavaScript entry point (always `index.js` when using the [mod template](/template-mod/docs/getting-started)) |
-| `author.name` | Author display name |
-| `dependencies` | Must include `subway-builder` with a valid range; may also declare [mod dependencies](/registry/docs/dependencies) |
+| Field          | Requirement                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `id`           | Must exactly match the Registry mod ID                                                                                 |
+| `name`         | Display name                                                                                                           |
+| `version`      | The release's version                                                                                                  |
+| `main`         | The mod's JavaScript entry point (always `index.js` when using the [mod template](/template-mod/docs/getting-started)) |
+| `author.name`  | Author display name                                                                                                    |
+| `dependencies` | Must include `subway-builder` with a valid range; may also declare [mod dependencies](/registry/docs/dependencies)     |
 
 A mismatched `id` is the most common validation failure. This value must be the mod ID submitted to the Registry, not a reverse-domain identifier from elsewhere.
 
