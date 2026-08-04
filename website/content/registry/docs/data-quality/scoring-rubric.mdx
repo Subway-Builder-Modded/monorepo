@@ -26,12 +26,12 @@ This rubric thus scores data quality along **three pillars**, weighted by how mu
 
 **Why these weights?**
 
-- **Workplace — 0.50.** *Workplace data is scored the highest. Workplaces are more concentrated than resident demand, and the nodes they produce within a modeled map are therefore the most load bearing. A concentrated set of destination points is more sensitive to misplacement than origin points, which are more diffuse. And during simulation, destination nodes provide a user with clear structure to work around.*
-  - *In addition, workplace data is often more difficult to obtain than resident data, and is more likely to be suppressed or estimated. A map that can accurately model workplace demand is therefore more likely to be a high-quality map overall.*
+- **Workplace — 0.50.** _Workplace data is scored the highest. Workplaces are more concentrated than resident demand, and the nodes they produce within a modeled map are therefore the most load bearing. A concentrated set of destination points is more sensitive to misplacement than origin points, which are more diffuse. And during simulation, destination nodes provide a user with clear structure to work around._
+  - _In addition, workplace data is often more difficult to obtain than resident data, and is more likely to be suppressed or estimated. A map that can accurately model workplace demand is therefore more likely to be a high-quality map overall._
 
-- **Resident — 0.35.** *Resident data is scored the second highest; it represents the origin side of every commute and is generally more uniformly distributed than workplace data. While less load-bearing than workplace nodes, residential density provides a solid foundation for modeling commute flows.*
+- **Resident — 0.35.** _Resident data is scored the second highest; it represents the origin side of every commute and is generally more uniformly distributed than workplace data. While less load-bearing than workplace nodes, residential density provides a solid foundation for modeling commute flows._
 
-- **O/D — 0.15.** *O/D data is scored the lowest; a gravity model can provide approximate (if unrealistic) flows from the origin/destination sides alone, so a measured O/D refines rather than creates demand. However, O/D data is still valuable for macro-flow fidelity which a gravity model would otherwise smooth over.*
+- **O/D — 0.15.** _O/D data is scored the lowest; a gravity model can provide approximate (if unrealistic) flows from the origin/destination sides alone, so a measured O/D refines rather than creates demand. However, O/D data is still valuable for macro-flow fidelity which a gravity model would otherwise smooth over._
 
 Within the Workplace and Resident pillars, quality further splits into a **count** (the ground-truth magnitude and the grain it is measured at) and a **dasymetric** (how that count is placed in space within the ground truth grain), as discussed in the following sections.
 
@@ -39,10 +39,10 @@ Within the Workplace and Resident pillars, quality further splits into a **count
 
 [Registry](https://github.com/Subway-Builder-Modded/registry) currently records data quality as a single author-declared `source_quality` tag — `high` / `medium` / `low`. That tag is a useful first cut to distinguish map quality, but is limited in several ways this rubric is built to address:
 
-- **Single-axis.** It grades only whether the *source* is official; it does not ask what was measured, at what grain, how it was placed, or whether any commute flow data was observed. Two `high` maps can differ enormously in actual data quality: a government total at provincial (ADM1) grain and a government block-level (ADM5) census are both "official," yet are wholly different levels of data quality.
+- **Single-axis.** It grades only whether the _source_ is official; it does not ask what was measured, at what grain, how it was placed, or whether any commute flow data was observed. Two `high` maps can differ enormously in actual data quality: a government total at provincial (ADM1) grain and a government block-level (ADM5) census are both "official," yet are wholly different levels of data quality.
 - **Self-reported.** Authors grade their own work, so the tag is not comparable across authors and biases the value upwards. This rubric applies objectively the same named tiers to every pipeline, so a map's score is auditable and comparable.
 - **Coarse.** The three buckets encompass the full range of scores; this rubric resolves a continuous [0, 1] score for internal use, which can then be mapped to a coarse tier system as needed.
-- **Opaque.** A tag says *how good*, never *why*. This rubric is especially userful for map reviewers; the author would now be required to report more granular detail on their source data.
+- **Opaque.** A tag says _how good_, never _why_. This rubric is especially userful for map reviewers; the author would now be required to report more granular detail on their source data.
 
 The metric should then be used as a refinement over the existing tag. A `high` / `medium` / `low` split is useful for the end-user (the person using the simulation), and they likely do not need to or want to know the exact methodology or source data the map draws from.
 
@@ -66,22 +66,22 @@ The quality of the metric being measured by the census/official statistics is se
 
 When reporting these values, please use the highest granularity data that you have available that does NOT suffer from significant (>5%) privacy-based suppression.
 
-*Some countries will refuse to provide data points that contain only a handful of residents; therefore it is important to cross-check the total metric counts for a particular administrative boundary level against a known unsuppressed ground truth total of a coarser granularity. If the totals mismatch greatly, it is likely the artifact of data suppression.*
+_Some countries will refuse to provide data points that contain only a handful of residents; therefore it is important to cross-check the total metric counts for a particular administrative boundary level against a known unsuppressed ground truth total of a coarser granularity. If the totals mismatch greatly, it is likely the artifact of data suppression._
 
 ### Choosing the grain for hybrid or ambiguous sources {#hybrid-grain}
 
 Granularity scores the grain at which a count's **magnitude** is measured — not the finer grain it may ultimately be placed at (that finer placement is credited in the [Dasymetric](#dasymetric) section). Some sources blur the two: a total measured at a coarse unit is redistributed to finer units that carry their own partial signal. To resolve which grain to score:
 
-1. **Find where the magnitude is actually measured.** A total published per municipality and then spread across buildings by a model is *measured* at the municipality — score that grain; the finer placement earns its credit only in the dasymetric (R × I).
+1. **Find where the magnitude is actually measured.** A total published per municipality and then spread across buildings by a model is _measured_ at the municipality — score that grain; the finer placement earns its credit only in the dasymetric (R × I).
 2. **Determine whether the finer units carry independent magnitude information of their own.** If they do (e.g. establishment employee-size bands, per-building dwelling counts), the finer grain is partly measured, not pure interpolation, and the effective grain sits **between** the coarse anchor and the fine unit; for example:
    - Exact per-unit counts (e.g. block-level headcounts) => score the **fine** grain.
-   - A partial per-unit signal (e.g. size *bands* constrained to a coarse total) => score a **middle** grain.
+   - A partial per-unit signal (e.g. size _bands_ constrained to a coarse total) => score a **middle** grain.
    - No independent finer signal (a coarse total spread by geometry alone) => score the **coarse** grain.
-3. **When it remains ambiguous, take the middle and record the bounds** so the call is auditable. *Example:* Mexico's workplace magnitude is measurable at varying granularities: ~ADM2 (municipal) as a floor, with some industry counts available at ~ADM3/4 level. In addition, the establishment directory carries real employee-size bands at address level (ADM5). Within the rubric, it is thus scored at **~ADM4**, between the coarser ADM2 (total-only resolution floor) and the finer ADM5 (treat the establishments as measured units).
+3. **When it remains ambiguous, take the middle and record the bounds** so the call is auditable. _Example:_ Mexico's workplace magnitude is measurable at varying granularities: ~ADM2 (municipal) as a floor, with some industry counts available at ~ADM3/4 level. In addition, the establishment directory carries real employee-size bands at address level (ADM5). Within the rubric, it is thus scored at **~ADM4**, between the coarser ADM2 (total-only resolution floor) and the finer ADM5 (treat the establishments as measured units).
 
 ## Dasymetric {#dasymetric}
 
-A **dasymetric** distributes a count in space *below* the grain at which it is measured ([Granularity](#granularity)). It is shared by the Workplace and Resident pillars — scored identically for both — as the product of two independent factors:
+A **dasymetric** distributes a count in space _below_ the grain at which it is measured ([Granularity](#granularity)). It is shared by the Workplace and Resident pillars — scored identically for both — as the product of two independent factors:
 
 `dasymetric_score = R × I`
 
@@ -121,7 +121,7 @@ When properly applied, a dasymetric can also help mitigate the effects of data s
 
 ## Workplace {#workplace}
 
-*The most important pillar, accounting for half of the weighted score. Scored as **count** (below) × **dasymetric** (the shared [Dasymetric](#dasymetric) R × I ladders).*
+_The most important pillar, accounting for half of the weighted score. Scored as **count** (below) × **dasymetric** (the shared [Dasymetric](#dasymetric) R × I ladders)._
 
 ### Workplace Count Ground Truth {#workplace-count}
 
@@ -138,11 +138,11 @@ The physical/registered split is not binary. Census place-of-work questions and 
 
 ### Workplace Dasymetric {#workplace-dasymetric}
 
-Scored via the shared **[Dasymetric](#dasymetric)** ladders (R × I). Workplace-specific: intensity is a per-NACE-class **worker** density fit to the workplace ground truth total — see the *Workplace* rows in [Dasymetric](#dasymetric).
+Scored via the shared **[Dasymetric](#dasymetric)** ladders (R × I). Workplace-specific: intensity is a per-NACE-class **worker** density fit to the workplace ground truth total — see the _Workplace_ rows in [Dasymetric](#dasymetric).
 
 ## Resident {#resident}
 
-*Second most important pillar, with a weight of 0.35 — same **count** × **dasymetric** ([Dasymetric](#dasymetric)) structure as Workplace.*
+_Second most important pillar, with a weight of 0.35 — same **count** × **dasymetric** ([Dasymetric](#dasymetric)) structure as Workplace._
 
 ### Resident Count Ground Truth {#resident-count}
 
@@ -155,11 +155,11 @@ Scored via the shared **[Dasymetric](#dasymetric)** ladders (R × I). Workplace-
 
 ### Resident Dasymetric {#resident-dasymetric}
 
-Scored via the shared **[Dasymetric](#dasymetric)** ladders (R × I). Resident-specific: intensity is per-building **dwelling** counts or residential floor area (not per-class NACE) — see the *Resident* rows in [Dasymetric](#dasymetric).
+Scored via the shared **[Dasymetric](#dasymetric)** ladders (R × I). Resident-specific: intensity is per-building **dwelling** counts or residential floor area (not per-class NACE) — see the _Resident_ rows in [Dasymetric](#dasymetric).
 
 ## O/D Shaping {#od-shaping}
 
-*The lightest pillar (weight 0.15) — see [Criterion](#criterion) for why.*
+_The lightest pillar (weight 0.15) — see [Criterion](#criterion) for why._
 
 Origin-Destination pairs, or O/D matrices of any granularity help shape the map's fidelity to real-world commute flows.
 
@@ -174,11 +174,11 @@ In the absence of O/D data pairs, a pure gravity-bound model can be used, but th
 | Prior-informed synthetic          | 0.1    | No commute flow data and the marginals themselves are synthetic, but the flows are **IPF-bounded to those targets with an informed prior** — a distance-decay and containment kernel calibrated from real commute data in analogue countries — not an unconstrained gravity default model | Here even each town's job and resident totals are estimated, not measured. A gravity model guesses the flows, tuned with real commute patterns from similar countries — how fast commuting falls off with distance, and how many people work in their own town — so the invented flows behave realistically, and are still nudged to add up to those estimated town totals     | UA (synthetic-GIPF; priors calibrated on PL / JP / TW measured OD)                                                  |
 | None / unbounded gravity          | 0.0    | No commute flow data and no bounding — a pure, unconstrained gravity model whose flows are bound by no marginal (even when the input masses are real), or flows from a coarse estimate, or nothing at all                                                                                 | No commute information is available at all. A plain gravity model assumes only that more jobs and shorter distance mean more commuters; the guessed flows are never checked against any town's real worker or job total, so a town's flows can add up to more (or fewer) people than actually live or work there                                                               | MA (no marginal)                                                                                                    |
 
-*Note that a pipeline at the **0.0 rung that has measured marginals** (real resident + job totals per area) is 0.0 **as-built, but 0.25-capable**. With an IPF / doubly-constrained pass over its existing marginals, the pipeline can be lifted to 0.25 with no new data, meaning the gap is a modeling choice, not a data limitation. A pipeline whose marginals are **fabricated** (such as UA) cannot reach 0.25 without acquiring real marginals; one with **no marginals at all** (e.g. MA) cannot reach 0.1 without acquiring a prior.*
+_Note that a pipeline at the **0.0 rung that has measured marginals** (real resident + job totals per area) is 0.0 **as-built, but 0.25-capable**. With an IPF / doubly-constrained pass over its existing marginals, the pipeline can be lifted to 0.25 with no new data, meaning the gap is a modeling choice, not a data limitation. A pipeline whose marginals are **fabricated** (such as UA) cannot reach 0.25 without acquiring real marginals; one with **no marginals at all** (e.g. MA) cannot reach 0.1 without acquiring a prior._
 
 ## Example Countries {#example-countries}
 
-*Granularity columns record the finest grain at which the count metric is **measured** (not the grain it is modeled onto).*
+_Granularity columns record the finest grain at which the count metric is **measured** (not the grain it is modeled onto)._
 
 | CC            | Author   | w_count                                     | w_dasymetric                                                     | w_granularity                             | r_count                                    | r_dasymetric                                       | r_granularity                            | od_metric                                           | od_granularity      |
 | :------------ | :------- | :------------------------------------------ | :--------------------------------------------------------------- | :---------------------------------------- | :----------------------------------------- | :------------------------------------------------- | :--------------------------------------- | :-------------------------------------------------- | :------------------ |
@@ -215,13 +215,13 @@ Every pipeline resolves to a single **weighted score** in [0, 1] and a named qua
 | **Absent**    |   F   | < 0.15         |
 | **Unknown**   |   U   | N/A            |
 
-*Tiers apply to the **weighted** (player-facing) score, and refine the current three-level tag system: **very high** and **high** map to `high`, **medium** to `medium`, and **low** / **very low** / **absent** to `low`.*
+_Tiers apply to the **weighted** (player-facing) score, and refine the current three-level tag system: **very high** and **high** map to `high`, **medium** to `medium`, and **low** / **very low** / **absent** to `low`._
 
-*The **absent** tier (grade F) is reserved for pipelines with no usable census anchor — the granularity multiplier floors the score at ~0 by construction, categorically apart from a map that is weakly grounded in census data.*
+_The **absent** tier (grade F) is reserved for pipelines with no usable census anchor — the granularity multiplier floors the score at ~0 by construction, categorically apart from a map that is weakly grounded in census data._
 
-*The **unknown** tier (grade U) is reserved for pipelines that have not been scored yet, to enable backwards compatibility for pipelines/maps that have yet to be scored.*
+_The **unknown** tier (grade U) is reserved for pipelines that have not been scored yet, to enable backwards compatibility for pipelines/maps that have yet to be scored._
 
-*Tiers are heterogeneous — a given tier can arise from different strength/weakness profiles across the three pillars. The **grade** letter alias (A–F) is kept for brevity.*
+_Tiers are heterogeneous — a given tier can arise from different strength/weakness profiles across the three pillars. The **grade** letter alias (A–F) is kept for brevity._
 
 The **raw composite score** combines the three scored pillars from the tables above. Each pillar multiplies its **count ground truth**, its **dasymetric** (`R × I`, [Dasymetric](#dasymetric)), and a **granularity multiplier** `G` for the grain at which that pillar's count is measured. The pillars are then weighted with **workplace > resident > O/D** as described in [Criterion](#criterion). The raw score is a number in [0, 1].
 
@@ -233,7 +233,7 @@ od_raw       = score_od           × G(gran_od)
 raw_score = 0.50 · workplace_raw  +  0.35 · resident_raw  +  0.15 · od_raw
 ```
 
-Given that factors are in [0, 1], the *raw score* is in [0, 1]. The product form inside each pillar is **weakest-link**: a strong count spread by a weak dasymetric — or any pillar anchored at a coarse grain — is penalized, which is the intent for an internal-review metric.
+Given that factors are in [0, 1], the _raw score_ is in [0, 1]. The product form inside each pillar is **weakest-link**: a strong count spread by a weak dasymetric — or any pillar anchored at a coarse grain — is penalized, which is the intent for an internal-review metric.
 
 A second score, the **weighted composite score**, replaces the product inside each pillar with a half-and-half average — `pillar_weighted = (0.5 · count + 0.5 · R·I) × G` — which is more forgiving of a single weak sub-factor and yields a more spread-out, player-facing scale. Note that O/D has no split, so it stays `score_od × G` in both.
 
@@ -255,7 +255,7 @@ Both composite scores combine pillars with the same `0.50 · workplace + 0.35 ·
 | Provincial (ADM1)                              | 0.30 |
 | None                                           | 0.00 |
 
-*Mesh tiers are graded by **cell size in meters** — a uniform grid gives consistent resolution everywhere (especially in rural areas). Admin tiers are rated by their **typical** size, which varies widely and is usually far larger than the tier name implies: gminy are often 100+ km², obce / city-districts routinely > 1 km². So a uniform 1 km grid (0.85) outscores a municipality (ADM3, 0.70), and the two ladders are **not** equivalent. A measured-population ADM5 unit (census block, sub-里) is the exception: it is small and measured, so it sits with the fine-mesh tier.*
+_Mesh tiers are graded by **cell size in meters** — a uniform grid gives consistent resolution everywhere (especially in rural areas). Admin tiers are rated by their **typical** size, which varies widely and is usually far larger than the tier name implies: gminy are often 100+ km², obce / city-districts routinely > 1 km². So a uniform 1 km grid (0.85) outscores a municipality (ADM3, 0.70), and the two ladders are **not** equivalent. A measured-population ADM5 unit (census block, sub-里) is the exception: it is small and measured, so it sits with the fine-mesh tier._
 
 **Sample scores from known pipelines:**
 
@@ -279,36 +279,36 @@ Both composite scores combine pillars with the same `0.50 · workplace + 0.35 ·
 | ES            | Max02    | 0.09      | 0.21     | 0.00 | 0.12          | **0.26**           | Very low  |
 | UA            | Yukina-  | 0.04      | 0.12     | 0.10 | 0.08          | **0.17**           | Very low  |
 | OSM (patcher) | —        | 0.00      | 0.00     | 0.00 | 0.00          | **0.00**           | Absent    |
-| *Unscored*    | —        | —         | —        | —    | —             | N/A                | Unknown   |
+| _Unscored_    | —        | —         | —        | —    | —             | N/A                | Unknown   |
 
 The raw (weakest-link product) column is retained as the sterner internal view.
 
-*OSM (patcher): the `Subway-Builder-Modded/map-manager` pipeline (an early community OSM patcher), scored as the true floor of the scale. It uses **no census or official statistics at all** — resident and job counts are derived entirely from OSM building footprints × `building:levels`, multiplied by hardcoded square-feet-per-person / square-feet-per-job constants (the source comments call it "all vibes"). Neighborhoods are Voronoi cells around OSM place-nodes, and the O/D "matrix" is a synthetic jobs-share × population product with no distance decay. Because no count magnitude is ever **measured**, the granularity multiplier is **None (G = 0)**, which zeroes every pillar regardless of how the OSM footprints are placed — so it scores **0.00**. It is the concrete illustration of what "no census bounding" costs: with no real magnitude to place, spatial detail is worthless.*
+_OSM (patcher): the `Subway-Builder-Modded/map-manager` pipeline (an early community OSM patcher), scored as the true floor of the scale. It uses **no census or official statistics at all** — resident and job counts are derived entirely from OSM building footprints × `building:levels`, multiplied by hardcoded square-feet-per-person / square-feet-per-job constants (the source comments call it "all vibes"). Neighborhoods are Voronoi cells around OSM place-nodes, and the O/D "matrix" is a synthetic jobs-share × population product with no distance decay. Because no count magnitude is ever **measured**, the granularity multiplier is **None (G = 0)**, which zeroes every pillar regardless of how the OSM footprints are placed — so it scores **0.00**. It is the concrete illustration of what "no census bounding" costs: with no real magnitude to place, spatial detail is worthless._
 
-*Initially, all pipelines are **unscored** (grade U) until a reviewer has worked with teh submitter to define the three pillars and the O/D metric. The unscored tier is a placeholder and is not at all a judgment of the map's data quality.*
+_Initially, all pipelines are **unscored** (grade U) until a reviewer has worked with teh submitter to define the three pillars and the O/D metric. The unscored tier is a placeholder and is not at all a judgment of the map's data quality._
 
 ### Worked examples — one per tier {#worked-examples}
 
 Each country is shown with both composites: **raw** (weakest-link `count × (R·I) × G`) and **weighted** (half-and-half `(0.5·count + 0.5·R·I) × G`, the graded number). O/D has no split — it is `score_od × G` in both. Pillars combine as `0.50 · workplace + 0.35 · resident + 0.15 · od`.
 
 - **Very high — JP.** Physical 経済センサス worker mesh (500 m) · employed residents (250 m mesh, ADM4) · full municipal O/D matrix (ADM3).
-  - *Raw* — workplace `1.0 × (0.85×1.0) × 0.90 = 0.765`, resident `= 0.765`, od `1.0 × 0.70 = 0.70` → `0.50·0.765 + 0.35·0.765 + 0.15·0.70` = **0.76**.
-  - *Weighted* — workplace `0.925 × 0.90 = 0.83`, resident `= 0.83`, od `0.70` → `0.50·0.83 + 0.35·0.83 + 0.15·0.70` = **0.81**.
+  - _Raw_ — workplace `1.0 × (0.85×1.0) × 0.90 = 0.765`, resident `= 0.765`, od `1.0 × 0.70 = 0.70` → `0.50·0.765 + 0.35·0.765 + 0.15·0.70` = **0.76**.
+  - _Weighted_ — workplace `0.925 × 0.90 = 0.83`, resident `= 0.83`, od `0.70` → `0.50·0.83 + 0.35·0.83 + 0.15·0.70` = **0.81**.
 - **High — TW.** Physical count on NLSC cadastre + calibrated fit (municipal) · working-age on MSA sub-里 measured-pop blocks · structured marginals (ADM3).
-  - *Raw* — workplace `1.0 × (1.0×0.85) × 0.70 = 0.595`, resident `0.7 × (0.9×1.0) × 0.90 = 0.567`, od `0.75 × 0.70 = 0.525` → **0.57**.
-  - *Weighted* — workplace `0.925 × 0.70 = 0.648`, resident `0.80 × 0.90 = 0.720`, od `0.525` → **0.65**.
+  - _Raw_ — workplace `1.0 × (1.0×0.85) × 0.70 = 0.595`, resident `0.7 × (0.9×1.0) × 0.90 = 0.567`, od `0.75 × 0.70 = 0.525` → **0.57**.
+  - _Weighted_ — workplace `0.925 × 0.70 = 0.648`, resident `0.80 × 0.90 = 0.720`, od `0.525` → **0.65**.
 - **Medium — LT.** Physical on GRPK cadastre · employed residents (250 m mesh) · synthetic O/D from two measured marginals (no grain multiplier).
-  - *Raw* — workplace `1.0 × (1.0×0.85) × 0.70 = 0.595`, resident `1.0 × (0.85×1.0) × 0.70 = 0.595`, od `0.25` → **0.54**.
-  - *Weighted* — workplace `0.925 × 0.70 = 0.648`, resident `= 0.648`, od `0.25` → **0.59**.
+  - _Raw_ — workplace `1.0 × (1.0×0.85) × 0.70 = 0.595`, resident `1.0 × (0.85×1.0) × 0.70 = 0.595`, od `0.25` → **0.54**.
+  - _Weighted_ — workplace `0.925 × 0.70 = 0.648`, resident `= 0.648`, od `0.25` → **0.59**.
 - **Low — CN.** Physical 5th Economic Census count on ML footprints (binary commercial/residential split, 街道 / ADM4) · total population (same footprints & grain) · no O/D (unbounded gravity).
-  - *Raw* — workplace `1.0 × (0.7×0.4) × 0.90 = 0.252`, resident `0.4 × (0.7×0.4) × 0.90 = 0.101`, od `0.00` → **0.16**.
-  - *Weighted* — workplace `0.64 × 0.90 = 0.576`, resident `0.34 × 0.90 = 0.306`, od `0.00` → **0.40**.
+  - _Raw_ — workplace `1.0 × (0.7×0.4) × 0.90 = 0.252`, resident `0.4 × (0.7×0.4) × 0.90 = 0.101`, od `0.00` → **0.16**.
+  - _Weighted_ — workplace `0.64 × 0.90 = 0.576`, resident `0.34 × 0.90 = 0.306`, od `0.00` → **0.40**.
 - **Very low — UA.** Estimated proxy on ML footprints (oblast grain) · total population (hromada grain) · prior-informed synthetic O/D (GIPF calibrated on analogue flows).
-  - *Raw* — workplace `0.3 × (0.7×0.6) × 0.30 = 0.038`, resident `0.4 × (0.7×0.6) × 0.70 = 0.118`, od `0.10` → **0.08**.
-  - *Weighted* — workplace `0.36 × 0.30 = 0.108`, resident `0.41 × 0.70 = 0.287`, od `0.10` → **0.17**.
+  - _Raw_ — workplace `0.3 × (0.7×0.6) × 0.30 = 0.038`, resident `0.4 × (0.7×0.6) × 0.70 = 0.118`, od `0.10` → **0.08**.
+  - _Weighted_ — workplace `0.36 × 0.30 = 0.108`, resident `0.41 × 0.70 = 0.287`, od `0.10` → **0.17**.
 - **Absent — OSM patcher.** No census anchor anywhere, so `G = 0` zeroes every pillar regardless of footprint placement.
-  - *Raw* — workplace `0.0 × (0.6×0.2) × 0 = 0.00`, resident `= 0.00`, od `0.00` → **0.00**.
-  - *Weighted* — workplace `(0.5·0.0 + 0.5·0.13) × 0 = 0.00`, resident `= 0.00`, od `0.00` → **0.00**.
+  - _Raw_ — workplace `0.0 × (0.6×0.2) × 0 = 0.00`, resident `= 0.00`, od `0.00` → **0.00**.
+  - _Weighted_ — workplace `(0.5·0.0 + 0.5·0.13) × 0 = 0.00`, resident `= 0.00`, od `0.00` → **0.00**.
 
 ## Unscored Metrics {#unscored-metrics}
 
@@ -352,4 +352,4 @@ Two examples of this include the US demand generator's agglomeration mechanic, w
 
 ## Credits {#credits}
 
-This scoring system was developed by *Yukina-* for the Subway Builder Modded organization, and is a living document. Input from the community will be incorporated into this system as the map ecosystem and modeling practices evolve.
+This scoring system was developed by _Yukina-_ for the Subway Builder Modded organization, and is a living document. Input from the community will be incorporated into this system as the map ecosystem and modeling practices evolve.
