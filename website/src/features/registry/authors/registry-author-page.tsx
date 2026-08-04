@@ -10,8 +10,10 @@ import {
   ArrowDownToLine,
   BarChart3,
   CalendarDays,
+  ChartPie,
   Clock,
   ExternalLink,
+  FileStack,
   History,
   LayoutDashboard,
   Loader2,
@@ -24,6 +26,9 @@ import {
   FolderGit2,
   Trophy,
   User,
+  UserPen,
+  UserRound,
+  UserStar,
   Users,
 } from "lucide-react";
 import {
@@ -44,8 +49,29 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
 import { getSuiteById } from "@/config/site-navigation";
+import { AnalyticsModeToggle } from "@/shared/analytics/analytics-mode-toggle";
+import {
+  bucketMultiSeriesData,
+  buildTopSeriesWithOthers,
+  getGrainLabel,
+  type NamedDailySeries,
+} from "@/shared/analytics/multi-series";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
+import { PieChartCard } from "@/shared/analytics/pie-chart-card";
+import {
+  REGISTRY_ANALYTICS_PERIOD_OPTIONS,
+  RegistryAnalyticsPeriodToggle,
+} from "@/features/registry/analytics/components/analytics-period-toggle";
+import type { RegistryAnalyticsPeriodId } from "@/features/registry/analytics/lib/load-registry-analytics";
+import {
+  CHART_CARD_FLUSH_CLASS,
+  SECTION_CARD_STYLE,
+  TABLE_HEADER_ROW_CLASS,
+  accentChipBadgeStyle,
+  accentChipStyle,
+} from "@/shared/styles/panels";
+import { ACCENT_NAME_LINK_CLASS } from "@/features/registry/lib/registry-styles";
 import { Link, navigate } from "@/lib/router";
 import { NotFoundPage } from "@/features/not-found";
 import { AuthorRoleBadge } from "@/features/registry/components/author-role-badge";
@@ -113,11 +139,19 @@ type AuthorTrendSortKey = "label" | "downloads";
 type AuthorRankingSortKey = "name" | "downloads";
 type AuthorHistoryMode = "total" | "maps" | "mods";
 type AuthorAssetRankingMode = "maps" | "mods";
-type AuthorAssetBrowserMode = "maps" | "mods" | "collaborations";
+type AuthorAssetBrowserMode =
+  | "maps"
+  | "mods"
+  | "collaborations"
+  | "author"
+  | "collaborator"
+  | "caretaker";
 type RegistryEntityPageData = Pick<
   RegistryAuthorPageData,
   "analytics" | "collaborations" | "contributorsByItemKey" | "itemsByType" | "overview"
->;
+> & {
+  caretakenItems?: RegistrySearchItem[];
+};
 type AuthorTabOption = {
   id: AuthorTabId;
   label: string;
@@ -181,56 +215,6 @@ function getNextDirection<T extends string>(
     : directions[nextKey];
 }
 
-function AuthorAnalyticsModeToggle<T extends string>({
-  value,
-  options,
-  onChange,
-  ariaLabel,
-}: {
-  value: T;
-  options: AuthorToggleOption<T>[];
-  onChange: (value: T) => void;
-  ariaLabel: string;
-}) {
-  return (
-    <div
-      role="group"
-      aria-label={ariaLabel}
-      className="isolate inline-flex items-center gap-1 rounded-xl border border-border/50 bg-background/70 p-1 shadow-sm"
-    >
-      {options.map((option) => {
-        const Icon = option.icon;
-        const isActive = value === option.id;
-        return (
-          <button
-            key={option.id}
-            type="button"
-            role="radio"
-            aria-checked={isActive}
-            onClick={() => onChange(option.id)}
-            style={
-              {
-                "--type-accent-light": option.accentLight,
-                "--type-accent-dark": option.accentDark,
-              } as CSSProperties
-            }
-            className={`group relative flex h-9 min-w-[7.25rem] items-center justify-center gap-1.5 rounded-lg border px-2.5 text-sm font-medium transition-[background-color,color,border-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              isActive
-                ? "border-[color-mix(in_srgb,var(--type-accent-light)_44%,transparent)] bg-[color-mix(in_srgb,var(--type-accent-light)_18%,var(--background))] text-[var(--type-accent-light)] dark:border-[color-mix(in_srgb,var(--type-accent-dark)_44%,transparent)] dark:bg-[color-mix(in_srgb,var(--type-accent-dark)_18%,var(--background))] dark:text-[var(--type-accent-dark)]"
-                : "border-[color-mix(in_srgb,var(--type-accent-light)_20%,transparent)] bg-transparent text-[var(--type-accent-light)] hover:border-[color-mix(in_srgb,var(--type-accent-light)_36%,transparent)] hover:bg-[color-mix(in_srgb,var(--type-accent-light)_10%,var(--background))] dark:text-[var(--type-accent-dark)] dark:hover:border-[color-mix(in_srgb,var(--type-accent-dark)_36%,transparent)] dark:hover:bg-[color-mix(in_srgb,var(--type-accent-dark)_10%,var(--background))]"
-            }`}
-          >
-            <span className="inline-flex flex-1 items-center justify-center gap-1.5">
-              <Icon className="size-4 shrink-0" aria-hidden={true} />
-              <span>{option.label}</span>
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function getCardVariant(viewMode: RegistryViewMode) {
   return viewMode === "list" ? "list" : viewMode === "full" ? "full" : "grid";
 }
@@ -268,7 +252,7 @@ function AssetMetricLink({
           <TooltipTrigger asChild>
             <Link
               to={item.href}
-              className="truncate text-base font-semibold leading-tight underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+              className={`truncate text-base font-semibold leading-tight [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_NAME_LINK_CLASS}`}
             >
               {item.name}
             </Link>
@@ -341,18 +325,31 @@ function AuthorAssetSection({
   headingPrefix = "Published ",
 }: AuthorAssetSectionProps) {
   const registrySuite = getSuiteById("registry");
-  const typeConfig =
-    typeId === "collaborations"
-      ? {
-          id: "collaborations",
-          label: "Collaboration",
-          pluralLabel: "Collaborations",
-          icon: Users,
-          routeSegment: "collaborations",
-          accentLight: registrySuite.accent.light,
-          accentDark: registrySuite.accent.dark,
-        }
-      : getRegistryTypeConfigOrDefault(typeId);
+  const roleSectionConfigs: Record<
+    string,
+    { label: string; pluralLabel: string; icon: ComponentType<{ className?: string }> }
+  > = {
+    collaborations: { label: "Collaboration", pluralLabel: "Collaborations", icon: Users },
+    author: { label: "Authored Asset", pluralLabel: "Authored Assets", icon: UserStar },
+    collaborator: {
+      label: "Collaborator Asset",
+      pluralLabel: "Collaborator Assets",
+      icon: UserRound,
+    },
+    caretaker: { label: "Caretaker Asset", pluralLabel: "Caretaker Assets", icon: UserPen },
+  };
+  const roleSectionConfig = roleSectionConfigs[typeId];
+  const typeConfig = roleSectionConfig
+    ? {
+        id: typeId,
+        label: roleSectionConfig.label,
+        pluralLabel: roleSectionConfig.pluralLabel,
+        icon: roleSectionConfig.icon,
+        routeSegment: typeId,
+        accentLight: registrySuite.accent.light,
+        accentDark: registrySuite.accent.dark,
+      }
+    : getRegistryTypeConfigOrDefault(typeId);
   const [query, setQuery] = useState("");
   const [sortId, setSortId] = useState<RegistrySortId>(DEFAULT_SORT_ID);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(DEFAULT_SORT_DIR);
@@ -407,11 +404,7 @@ function AuthorAssetSection({
           </h3>
           <span
             className="rounded-lg border px-3 py-1 text-lg font-semibold tabular-nums sm:text-xl"
-            style={{
-              color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
-              borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 34%, transparent)`,
-              background: `color-mix(in srgb, ${typeConfig.accentLight} 10%, transparent)`,
-            }}
+            style={accentChipStyle(typeConfig.accentLight, typeConfig.accentDark)}
           >
             {formatNumber(items.length)}
           </span>
@@ -488,58 +481,106 @@ function AuthorPublishedAssets({
   data,
   sectionLabel = "Published Assets",
   headingPrefix = "Published ",
+  roleBrowser = false,
 }: {
   data: RegistryEntityPageData;
   sectionLabel?: string;
   headingPrefix?: string;
+  /** Person-centric pages browse by role (Author/Collaborator/Caretaker); asset-centric pages keep the maps/mods split. */
+  roleBrowser?: boolean;
 }) {
   const mapsItems = data.itemsByType.maps ?? [];
   const modsItems = data.itemsByType.mods ?? [];
+  const authoredItems = [...mapsItems, ...modsItems];
   const collaborationItems = data.collaborations;
+  const caretakerItems = data.caretakenItems ?? [];
   const hasMaps = mapsItems.length > 0;
   const hasMods = modsItems.length > 0;
   const hasCollaborations = collaborationItems.length > 0;
-  const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(hasMaps ? "maps" : "mods");
+  const [typeId, setTypeId] = useState<AuthorAssetBrowserMode>(
+    roleBrowser ? "author" : hasMaps ? "maps" : "mods",
+  );
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
   const registrySuite = getSuiteById("registry");
-  const typeOptions = [
-    {
-      id: "maps" as const,
-      label: "Maps",
-      icon: mapsConfig.icon ?? MapIcon,
-      accentLight: mapsConfig.accentLight,
-      accentDark: mapsConfig.accentDark,
-      enabled: hasMaps,
-    },
-    {
-      id: "mods" as const,
-      label: "Mods",
-      icon: modsConfig.icon ?? Package,
-      accentLight: modsConfig.accentLight,
-      accentDark: modsConfig.accentDark,
-      enabled: hasMods,
-    },
-    {
-      id: "collaborations" as const,
-      label: "Collaborations",
-      icon: Users,
-      accentLight: registrySuite.accent.light,
-      accentDark: registrySuite.accent.dark,
-      enabled: hasCollaborations,
-    },
-  ].filter((option) => option.enabled);
+  const typeOptions = (
+    roleBrowser
+      ? [
+          {
+            id: "author" as const,
+            label: "Author",
+            icon: UserStar,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: authoredItems.length > 0,
+          },
+          {
+            id: "collaborator" as const,
+            label: "Collaborator",
+            icon: UserRound,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: hasCollaborations,
+          },
+          {
+            id: "caretaker" as const,
+            label: "Caretaker",
+            icon: UserPen,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: caretakerItems.length > 0,
+          },
+        ]
+      : [
+          {
+            id: "maps" as const,
+            label: "Maps",
+            icon: mapsConfig.icon ?? MapIcon,
+            accentLight: mapsConfig.accentLight,
+            accentDark: mapsConfig.accentDark,
+            enabled: hasMaps,
+          },
+          {
+            id: "mods" as const,
+            label: "Mods",
+            icon: modsConfig.icon ?? Package,
+            accentLight: modsConfig.accentLight,
+            accentDark: modsConfig.accentDark,
+            enabled: hasMods,
+          },
+          {
+            id: "collaborations" as const,
+            label: "Collaborations",
+            icon: Users,
+            accentLight: registrySuite.accent.light,
+            accentDark: registrySuite.accent.dark,
+            enabled: hasCollaborations,
+          },
+        ]
+  ).filter((option) => option.enabled);
+  const itemsByBrowserMode: Partial<Record<AuthorAssetBrowserMode, RegistrySearchItem[]>> = {
+    maps: mapsItems,
+    mods: modsItems,
+    collaborations: collaborationItems,
+    author: authoredItems,
+    collaborator: collaborationItems,
+    caretaker: caretakerItems,
+  };
   const activeTypeId = typeOptions.some((option) => option.id === typeId)
     ? typeId
-    : (typeOptions[0]?.id ?? "maps");
-  const activeItems =
-    activeTypeId === "collaborations" ? collaborationItems : (data.itemsByType[activeTypeId] ?? []);
-  const activeTypeConfig =
-    activeTypeId === "collaborations" ? null : getRegistryTypeConfigOrDefault(activeTypeId);
+    : (typeOptions[0]?.id ?? (roleBrowser ? "author" : "maps"));
+  const activeItems = itemsByBrowserMode[activeTypeId] ?? [];
+  const isOwnAssetsMode =
+    activeTypeId === "maps" || activeTypeId === "mods" || activeTypeId === "author";
+  const headingLabelByRole: Partial<Record<AuthorAssetBrowserMode, string>> = {
+    collaborations: "Collaborations",
+    author: "Authored Assets",
+    collaborator: "Collaborator Assets",
+    caretaker: "Caretaker Assets",
+  };
   const activeHeadingLabel =
-    activeTypeId === "collaborations"
-      ? "Collaborations"
-      : `${headingPrefix}${activeTypeConfig?.pluralLabel ?? ""}`;
+    headingLabelByRole[activeTypeId] ??
+    `${headingPrefix}${getRegistryTypeConfigOrDefault(activeTypeId).pluralLabel ?? ""}`;
 
   useEffect(() => {
     if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
@@ -556,38 +597,34 @@ function AuthorPublishedAssets({
       <SectionSeparator label={sectionLabel} icon={Package} className="mb-4" />
       <section
         className="space-y-5 rounded-xl border border-border/70 p-4 sm:p-5"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-        }}
+        style={SECTION_CARD_STYLE}
       >
         {typeOptions.length > 1 ? (
           <div className="flex justify-center">
             <RegistryTypeToggle
-              activeTypeId={typeId}
+              activeTypeId={activeTypeId}
               options={getToggleOptions(typeOptions)}
               counts={Object.fromEntries(
                 typeOptions.map((option) => [
                   option.id,
-                  option.id === "collaborations"
-                    ? collaborationItems.length
-                    : (data.itemsByType[option.id] ?? []).length,
+                  (itemsByBrowserMode[option.id] ?? []).length,
                 ]),
               )}
               onChange={(nextTypeId) => setTypeId(nextTypeId as AuthorAssetBrowserMode)}
               className="border-border/50 bg-background/70 shadow-sm"
-              ariaLabel="Published asset type"
+              ariaLabel={roleBrowser ? "Asset role" : "Published asset type"}
             />
           </div>
         ) : null}
         <AuthorAssetSection
           typeId={activeTypeId}
           items={activeItems}
-          hideAuthor={activeTypeId !== "collaborations"}
-          excludedSortIds={activeTypeId === "collaborations" ? [] : ["author"]}
+          hideAuthor={isOwnAssetsMode}
+          excludedSortIds={isOwnAssetsMode ? ["author"] : []}
           getContributors={
-            activeTypeId === "collaborations"
-              ? undefined
-              : (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
+            isOwnAssetsMode
+              ? (item) => data.contributorsByItemKey[getRegistryItemKey(item)]
+              : undefined
           }
           headingLabel={activeHeadingLabel}
           headingPrefix={headingPrefix}
@@ -612,22 +649,13 @@ function ProjectTypeCountPill({ typeId, count }: { typeId: "maps" | "mods"; coun
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold"
-      style={
-        {
-          color: `light-dark(${typeConfig.accentLight}, ${typeConfig.accentDark})`,
-          borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 34%, transparent)`,
-          background: `color-mix(in srgb, ${typeConfig.accentLight} 10%, transparent)`,
-        } as CSSProperties
-      }
+      style={accentChipStyle(typeConfig.accentLight, typeConfig.accentDark)}
     >
       <Icon className="size-3.5" aria-hidden={true} />
       <span>{typeConfig.pluralLabel}</span>
       <span
         className="rounded border px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums"
-        style={{
-          borderColor: `color-mix(in srgb, ${typeConfig.accentLight} 38%, transparent)`,
-          background: `color-mix(in srgb, ${typeConfig.accentLight} 14%, transparent)`,
-        }}
+        style={accentChipBadgeStyle(typeConfig.accentLight)}
       >
         {formatNumber(count)}
       </span>
@@ -642,7 +670,7 @@ function AuthorProjectCard({ project }: { project: RegistryAuthorProjectSummary 
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={project.href}
-            className="min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+            className={`min-w-0 truncate text-lg font-semibold text-foreground [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS}`}
           >
             {project.projectName}
           </Link>
@@ -689,9 +717,7 @@ function AuthorProjects({ projects }: { projects: RegistryAuthorProjectSummary[]
       <SectionSeparator label="Published Projects" icon={FolderGit2} className="mb-4" />
       <div
         className="space-y-4 rounded-xl border border-border/70 p-4 sm:p-5"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-        }}
+        style={SECTION_CARD_STYLE}
       >
         <RegistryToolbarSearch
           query={query}
@@ -738,7 +764,7 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
   return (
     <div>
       <SectionSeparator label="Recent Trends" icon={TrendingUp} className="mb-4 mt-7" />
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+      <div className={CHART_CARD_FLUSH_CLASS}>
         <ScrollArea scrollbars="horizontal" className="w-full">
           <div className="min-w-[40rem] xl:min-w-0">
             <Table>
@@ -748,7 +774,7 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
                 <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
               </colgroup>
               <TableHeader>
-                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                <TableRow className={TABLE_HEADER_ROW_CLASS}>
                   <SortableTableHead
                     label="Period"
                     active={sortKey === "label"}
@@ -787,9 +813,26 @@ function AuthorRecentTrendsTable({ data }: { data: RegistryEntityPageData }) {
   );
 }
 
-function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
-  const hasMaps = (data.itemsByType.maps ?? []).length > 0;
-  const hasMods = (data.itemsByType.mods ?? []).length > 0;
+const CARETAKEN_HISTORY_KEY_BY_MODE = {
+  total: "caretakenTotal",
+  maps: "caretakenMaps",
+  mods: "caretakenMods",
+} as const;
+
+function AuthorDownloadHistory({
+  data,
+  period,
+  onPeriodChange,
+}: {
+  data: RegistryEntityPageData;
+  period: RegistryAnalyticsPeriodId;
+  onPeriodChange: (period: RegistryAnalyticsPeriodId) => void;
+}) {
+  const caretakenItems = data.caretakenItems ?? [];
+  const hasAuthoredMaps = (data.itemsByType.maps ?? []).length > 0;
+  const hasAuthoredMods = (data.itemsByType.mods ?? []).length > 0;
+  const hasMaps = hasAuthoredMaps || caretakenItems.some((item) => item.type === "maps");
+  const hasMods = hasAuthoredMods || caretakenItems.some((item) => item.type === "mods");
   const hasMultipleAssetTypes = hasMaps && hasMods;
   const [mode, setMode] = useState<AuthorHistoryMode>("total");
   const activeMode: AuthorHistoryMode = hasMultipleAssetTypes
@@ -831,10 +874,35 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
     },
   ].filter((option) => option.enabled);
   const activeOption = modeOptions.find((option) => option.id === activeMode) ?? modeOptions[0];
-  const chartData = data.analytics.history.map((point) => ({
+  const caretakenKey = CARETAKEN_HISTORY_KEY_BY_MODE[activeMode];
+  const periodDays = REGISTRY_ANALYTICS_PERIOD_OPTIONS.find((option) => option.id === period)?.days;
+  const windowHistory = periodDays
+    ? data.analytics.history.slice(-periodDays)
+    : data.analytics.history;
+  const chartData = windowHistory.map((point) => ({
     date: point.date,
-    Downloads: point[activeMode],
+    Published: point[activeMode],
+    Caretaken: point[caretakenKey] ?? 0,
   }));
+  const bucketed = bucketMultiSeriesData(chartData);
+  const chartTicks = periodDays ? bucketed.data.map((point) => String(point.date)) : undefined;
+  const hasPublishedSeries = chartData.some((point) => point.Published > 0);
+  const hasCaretakenSeries = chartData.some((point) => point.Caretaken > 0);
+  // Caretaker-credited downloads render as a washed-out companion line so they
+  // read as credited-but-not-authored next to the person's own releases.
+  const caretakerColor = `color-mix(in srgb, ${activeOption.color} 60%, transparent)`;
+  const lines = [
+    ...(hasPublishedSeries || !hasCaretakenSeries
+      ? [
+          {
+            key: "Published",
+            name: hasCaretakenSeries ? "Author" : activeOption.label,
+            color: activeOption.color,
+          },
+        ]
+      : []),
+    ...(hasCaretakenSeries ? [{ key: "Caretaken", name: "Caretaker", color: caretakerColor }] : []),
+  ];
 
   useEffect(() => {
     if (!modeOptions.some((option) => option.id === mode)) {
@@ -847,13 +915,17 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
   return (
     <div>
       <SectionSeparator label="Download History" icon={History} className="mb-4 mt-7" />
-      <article
-        className="space-y-4 rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5"
+      <div
+        className="space-y-4"
         style={{ "--registry-type-accent": activeOption.color } as CSSProperties}
       >
+        {/* Governs this chart and the Top Assets section below it. */}
+        <div className="flex justify-center">
+          <RegistryAnalyticsPeriodToggle value={period} onChange={onPeriodChange} />
+        </div>
         {hasMultipleAssetTypes ? (
           <div className="flex justify-center">
-            <AuthorAnalyticsModeToggle
+            <AnalyticsModeToggle
               value={mode}
               options={modeOptions}
               onChange={setMode}
@@ -861,21 +933,104 @@ function AuthorDownloadHistory({ data }: { data: RegistryEntityPageData }) {
             />
           </div>
         ) : null}
-        <AnalyticsLineChart
-          data={chartData}
-          lines={[{ key: "Downloads", name: activeOption.label, color: activeOption.color }]}
-          xAxisKey="date"
+        <MultiSeriesChartCard
+          title={`${getGrainLabel(bucketed.grain)} Downloads`}
+          chartKey={`author-history-${activeMode}-${period}-${bucketed.grain}`}
+          data={bucketed.data}
+          series={lines}
+          xAxisTicks={chartTicks}
           height={220}
-          startAtZero={true}
+          stackId="author-history"
+          ariaLabelPrefix="Download history chart"
         />
-      </article>
+      </div>
+    </div>
+  );
+}
+
+// Top-10 + Others across the person's credited assets (day-grain credited, so
+// caretaken listings only count their windows), with the share pie of the same
+// period window beside it. Follows the shared period toggle rendered above.
+function AuthorTopAssets({
+  data,
+  period,
+}: {
+  data: RegistryEntityPageData;
+  period: RegistryAnalyticsPeriodId;
+}) {
+  const listingSeries = data.analytics.listingSeries ?? [];
+  const model = useMemo(() => {
+    const periodDays = REGISTRY_ANALYTICS_PERIOD_OPTIONS.find(
+      (option) => option.id === period,
+    )?.days;
+    const historyDates = data.analytics.history.map((point) => point.date);
+    const dates = periodDays ? historyDates.slice(-periodDays) : historyDates;
+    const named: NamedDailySeries[] = listingSeries.map((entry) => ({
+      id: `${entry.typeId}:${entry.id}`,
+      name: entry.name,
+      valueByDate: new Map(entry.history.map((point) => [point.date, point.downloads])),
+    }));
+    // Per-listing distributions are flat: top 8 (1:1 with the palette), with
+    // "Others" rendered only in the bar view and the pie — as a line it would
+    // dwarf the individual assets.
+    const top = buildTopSeriesWithOthers({ series: named, dates, topCount: 8 });
+    const chartSeries = top.series.map((entry) =>
+      entry.key === "__others__" ? { ...entry, barOnly: true } : entry,
+    );
+    const realCount = top.series.filter((entry) => entry.key !== "__others__").length;
+    const bucketed = bucketMultiSeriesData(top.data);
+    return {
+      series: chartSeries,
+      realCount,
+      // "Top N" only when Others exists (something was actually cut).
+      isTopSlice: realCount < top.series.length,
+      bucketed,
+      chartTicks: periodDays ? bucketed.data.map((point) => String(point.date)) : undefined,
+      slices: top.series.map((entry) => ({
+        key: entry.key,
+        name: entry.name,
+        value: entry.total,
+        color: entry.color,
+      })),
+    };
+  }, [data.analytics.history, listingSeries, period]);
+
+  if (model.series.length === 0) return null;
+
+  return (
+    <div>
+      <SectionSeparator label="Top Assets" icon={FileStack} className="mb-4 mt-7" />
+      <div
+        className={
+          model.slices.length > 1
+            ? "grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+            : undefined
+        }
+      >
+        <MultiSeriesChartCard
+          title={`${
+            model.isTopSlice ? `Top ${model.realCount} ` : ""
+          }${getGrainLabel(model.bucketed.grain)} Downloads by Asset`}
+          chartKey={`author-top-assets-${period}-${model.bucketed.grain}`}
+          data={model.bucketed.data}
+          series={model.series}
+          xAxisTicks={model.chartTicks}
+          height={280}
+          stackId="author-top-assets"
+          ariaLabelPrefix="Top assets chart"
+        />
+        {model.slices.length > 1 ? (
+          <PieChartCard title="Download Share by Asset" icon={ChartPie} data={model.slices} />
+        ) : null}
+      </div>
     </div>
   );
 }
 
 function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
-  const hasMaps = (data.itemsByType.maps ?? []).length > 0;
-  const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  // Rankings include caretaken assets, so gate on the rows themselves.
+  const hasMaps = (data.analytics.rankingsByType.maps ?? []).length > 0;
+  const hasMods = (data.analytics.rankingsByType.mods ?? []).length > 0;
   const hasMultipleAssetTypes = hasMaps && hasMods;
   const [typeId, setTypeId] = useState<AuthorAssetRankingMode>(hasMaps ? "maps" : "mods");
   const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
@@ -945,7 +1100,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
       }
     >
       <SectionSeparator label="Asset Rankings" icon={Trophy} className="mb-4 mt-7" />
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+      <div className={CHART_CARD_FLUSH_CLASS}>
         {hasMultipleAssetTypes ? (
           <div className="flex justify-center border-b border-border/70 bg-muted/20 p-3">
             <RegistryTypeToggle
@@ -967,7 +1122,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
                 <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
               </colgroup>
               <TableHeader>
-                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                <TableRow className={TABLE_HEADER_ROW_CLASS}>
                   <SortableTableHead
                     label={`${activeTypeConfig.label} Name`}
                     active={sortKey === "name"}
@@ -990,7 +1145,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
                       <span className="inline-flex max-w-full items-center gap-1.5">
                         <Link
                           to={row.href}
-                          className="truncate text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-type-accent)] hover:decoration-[color-mix(in_srgb,var(--registry-type-accent)_62%,transparent)]"
+                          className={`truncate text-foreground [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_NAME_LINK_CLASS}`}
                         >
                           {row.name}
                         </Link>
@@ -1024,8 +1179,13 @@ function AuthorAnalytics({
   data: RegistryEntityPageData;
   emptyMessage?: string;
 }) {
-  const hasMaps = (data.itemsByType.maps ?? []).length > 0;
-  const hasMods = (data.itemsByType.mods ?? []).length > 0;
+  // One period window for the whole charts band (Download History + Top Assets).
+  const [period, setPeriod] = useState<RegistryAnalyticsPeriodId>("all-time");
+  const caretakenItems = data.caretakenItems ?? [];
+  const hasMaps =
+    (data.itemsByType.maps ?? []).length > 0 || caretakenItems.some((item) => item.type === "maps");
+  const hasMods =
+    (data.itemsByType.mods ?? []).length > 0 || caretakenItems.some((item) => item.type === "mods");
   const hasPublishedAssets = hasMaps || hasMods;
   const hasMultipleAssetTypes = hasMaps && hasMods;
   const cards: DetailMetric[] = hasMultipleAssetTypes
@@ -1065,9 +1225,7 @@ function AuthorAnalytics({
           <SectionSeparator label="Analytics" icon={BarChart3} className="mb-4" />
           <div
             className="flex min-h-44 flex-col items-center justify-center gap-3 rounded-xl border border-border/70 p-6 text-center"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-            }}
+            style={SECTION_CARD_STYLE}
           >
             <StickyNoteX className="size-9 text-muted-foreground" aria-hidden={true} />
             <p className="max-w-md text-sm font-medium text-muted-foreground">{emptyMessage}</p>
@@ -1092,7 +1250,8 @@ function AuthorAnalytics({
         />
       </div>
       <AuthorRecentTrendsTable data={data} />
-      <AuthorDownloadHistory data={data} />
+      <AuthorDownloadHistory data={data} period={period} onPeriodChange={setPeriod} />
+      <AuthorTopAssets data={data} period={period} />
       {hasMaps || hasMods ? <AuthorAssetRankingsTable data={data} /> : null}
     </section>
   );
@@ -1100,25 +1259,50 @@ function AuthorAnalytics({
 
 function AuthorOverview({
   data,
-  assetMetricTitle = "Assets Published",
+  assetMetricTitle = "Authored Assets",
   assetSectionLabel = "Published Assets",
   assetHeadingPrefix = "Published ",
+  roleBrowser = false,
 }: {
   data: RegistryEntityPageData;
   assetMetricTitle?: string;
   assetSectionLabel?: string;
   assetHeadingPrefix?: string;
+  roleBrowser?: boolean;
 }) {
   const allItems = Object.values(data.itemsByType).flat();
-  const totalDownloads = allItems.reduce((sum, item) => sum + item.totalDownloads, 0);
-  const hasPublishedAssets = allItems.length > 0;
+  const collaboratorCount = data.collaborations.length;
+  const caretakerCount = (data.caretakenItems ?? []).length;
+  // Credit-aware: matches the analytics totals (per-version credited downloads
+  // when the credits artifact is available, listing totals otherwise).
+  const totalDownloads = data.analytics.downloads.total;
+  const hasOverviewContent =
+    allItems.length > 0 || caretakerCount > 0 || (roleBrowser && collaboratorCount > 0);
 
   const metrics: DetailMetric[] = [
     {
       title: assetMetricTitle,
       value: formatNumber(allItems.length),
-      icon: LayoutDashboard,
+      icon: roleBrowser ? UserStar : LayoutDashboard,
     },
+    ...(roleBrowser && collaboratorCount > 0
+      ? [
+          {
+            title: "Collaborator Assets",
+            value: formatNumber(collaboratorCount),
+            icon: UserRound,
+          },
+        ]
+      : []),
+    ...(caretakerCount > 0
+      ? [
+          {
+            title: "Caretaker Assets",
+            value: formatNumber(caretakerCount),
+            icon: UserPen,
+          },
+        ]
+      : []),
     {
       title: "Downloads",
       value: formatNumber(totalDownloads),
@@ -1135,20 +1319,24 @@ function AuthorOverview({
       icon: Clock,
     },
   ];
+  const metricGridColumns =
+    metrics.length === 6
+      ? "xl:grid-cols-3"
+      : metrics.length === 5
+        ? "xl:grid-cols-5"
+        : "xl:grid-cols-4";
 
   return (
     <div className="space-y-8">
-      {hasPublishedAssets ? (
+      {hasOverviewContent ? (
         <div>
           <SectionSeparator label="Overview" icon={LayoutDashboard} className="mb-4" />
           <section
             className="rounded-xl border border-border/70 p-4 sm:p-5"
-            style={{
-              backgroundColor: "color-mix(in srgb, var(--card) 92%, transparent)",
-            }}
+            style={SECTION_CARD_STYLE}
           >
             <DetailsMetricGrid
-              className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+              className={`grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 ${metricGridColumns}`}
               items={metrics}
               accentLight="var(--suite-accent-light)"
               accentDark="var(--suite-accent-dark)"
@@ -1161,6 +1349,7 @@ function AuthorOverview({
         data={data}
         sectionLabel={assetSectionLabel}
         headingPrefix={assetHeadingPrefix}
+        roleBrowser={roleBrowser}
       />
     </div>
   );
@@ -1220,13 +1409,14 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
 
   const attributionLink = data.author.attributionLink;
   const hasPublishedAssets = Object.values(data.itemsByType).some((items) => items.length > 0);
+  // Pure caretakers publish nothing themselves but still have credited
+  // downloads worth an analytics tab.
+  const hasAnalytics = hasPublishedAssets || data.caretakenItems.length > 0;
   const hasProjects = data.projects.length > 0;
   const authorTabOptions: AuthorTabOption[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     ...(hasProjects ? [{ id: "projects" as const, label: "Projects", icon: FolderGit2 }] : []),
-    ...(hasPublishedAssets
-      ? [{ id: "analytics" as const, label: "Analytics", icon: BarChart3 }]
-      : []),
+    ...(hasAnalytics ? [{ id: "analytics" as const, label: "Analytics", icon: BarChart3 }] : []),
   ];
   const requestedTab: AuthorTabId =
     tabId === "projects" || tabId === "analytics" ? tabId : "overview";
@@ -1311,14 +1501,14 @@ export function RegistryAuthorPage({ authorId, tabId }: RegistryAuthorPageProps)
 
             <main className="min-w-0">
               <div hidden={activeTab !== "overview"}>
-                <AuthorOverview data={data} />
+                <AuthorOverview data={data} roleBrowser={true} assetSectionLabel="Assets" />
               </div>
               {hasProjects ? (
                 <div hidden={activeTab !== "projects"}>
                   <AuthorProjects projects={data.projects} />
                 </div>
               ) : null}
-              {hasPublishedAssets ? (
+              {hasAnalytics ? (
                 <div hidden={activeTab !== "analytics"}>
                   <AuthorAnalytics data={data} />
                 </div>
@@ -1428,7 +1618,7 @@ export function RegistryProjectPage({ authorId, projectName, tabId }: RegistryPr
                       <p className="m-0 mt-3 flex items-center gap-1.5 text-base font-medium leading-[1.1] tracking-normal text-muted-foreground">
                         <Link
                           to={getRegistryAuthorUrl(data.project.authorId)}
-                          className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)]"
+                          className={`[--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS}`}
                         >
                           {data.project.authorLabel}
                         </Link>

@@ -93,6 +93,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           "3d": { maps: [], mods: [] },
           "7d": { maps: [], mods: [] },
           "14d": { maps: [], mods: [] },
+          "30d": { maps: [], mods: [] },
         },
         authors: {
           history: [
@@ -105,20 +106,105 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               name: "Author A",
               href: "/registry/authors/author-a",
               downloads: 120,
-              maps: 3,
-              mods: 1,
-              assets: 4,
+              authored: 4,
+              collaborator: 1,
+              caretaker: 0,
             },
             {
               id: "author-b",
               name: "Author B",
               href: "/registry/authors/author-b",
               downloads: 84,
-              maps: 0,
-              mods: 2,
-              assets: 2,
+              authored: 2,
+              collaborator: 0,
+              caretaker: 2,
             },
           ],
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "author-a",
+                name: "Author A",
+                byDate: new Map([
+                  ["2026-03-11", { maps: 5, mods: 0 }],
+                  ["2026-03-12", { maps: 3, mods: 1 }],
+                ]),
+              },
+              {
+                id: "author-b",
+                name: "Author B",
+                byDate: new Map([["2026-03-12", { maps: 0, mods: 2 }]]),
+              },
+            ],
+          },
+        },
+        countries: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "JP",
+                name: "Japan",
+                byDate: new Map([
+                  ["2026-03-11", { maps: 4, mods: 0 }],
+                  ["2026-03-12", { maps: 2, mods: 0 }],
+                ]),
+              },
+              {
+                id: "GB",
+                name: "United Kingdom",
+                byDate: new Map([["2026-03-12", { maps: 3, mods: 0 }]]),
+              },
+            ],
+          },
+        },
+        regions: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "asia",
+                name: "Asia",
+                byDate: new Map([["2026-03-12", { maps: 6, mods: 0 }]]),
+              },
+            ],
+          },
+        },
+        quality: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "very-high",
+                name: "Very High",
+                color: "#0f8f68",
+                byDate: new Map([["2026-03-12", { maps: 5, mods: 0 }]]),
+              },
+            ],
+          },
+        },
+        listings: {
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "map-a",
+                name: "Map Alpha",
+                searchValues: ["Map Alpha", "map-a", "Tokyo", "Toukyou"],
+                byDate: new Map([
+                  ["2026-03-11", { maps: 4, mods: 0 }],
+                  ["2026-03-12", { maps: 2, mods: 0 }],
+                ]),
+              },
+              {
+                id: "mod-a",
+                name: "Mod Alpha",
+                searchValues: ["Mod Alpha", "mod-a", "Alternate Mod"],
+                byDate: new Map([["2026-03-12", { maps: 0, mods: 3 }]]),
+              },
+            ],
+          },
         },
         projects: {
           rankings: [
@@ -147,6 +233,24 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               assets: 1,
             },
           ],
+          dailyDownloads: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "author-a/project-a",
+                name: "Project A",
+                byDate: new Map([
+                  ["2026-03-11", { maps: 6, mods: 0 }],
+                  ["2026-03-12", { maps: 4, mods: 0 }],
+                ]),
+              },
+              {
+                id: "author-b/project-b",
+                name: "Project B",
+                byDate: new Map([["2026-03-12", { maps: 2, mods: 0 }]]),
+              },
+            ],
+          },
         },
         mapStatistics: {
           rankings: [
@@ -171,12 +275,14 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
             downloads: { total: 100, maps: 80, mods: 20 },
             cumulativeDownloads: { total: 100, maps: 80, mods: 20 },
             listings: { total: 8, maps: 6, mods: 2 },
+            deprecations: { total: 0, maps: 0, mods: 0 },
           },
           {
             date: "2026-03-12",
             downloads: { total: 200, maps: 160, mods: 40 },
             cumulativeDownloads: { total: 300, maps: 240, mods: 60 },
             listings: { total: 4, maps: 2, mods: 2 },
+            deprecations: { total: 1, maps: 0, mods: 1 },
           },
         ],
       }),
@@ -204,13 +310,28 @@ describe("RegistryAnalyticsPage", () => {
     expect(screen.getByRole("tab", { name: /Overview/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Content/i })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Projects/i })).toBeInTheDocument();
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent(
-      "1 points · Maps, Mods, Total",
-    );
-    expect(screen.getByTestId("registry-stacked-chart")).toHaveTextContent("2 points · Maps, Mods");
+    // Downloads timeline (type series only) + the Maps section's country chart.
+    const overviewLineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(overviewLineCharts[0]).toHaveTextContent("1 points · Maps, Mods");
+    expect(screen.getByText("Maps")).toBeInTheDocument();
+    expect(overviewLineCharts[1]).toHaveTextContent("2 points · Japan, United Kingdom");
+    // Cumulative Downloads, Seasonality, and the Listings releases chart
+    // default to stacked bars.
+    const overviewStackedCharts = screen.getAllByTestId("registry-stacked-chart");
+    expect(overviewStackedCharts[0]).toHaveTextContent("2 points · Maps, Mods");
+    expect(screen.getByText("Seasonality")).toBeInTheDocument();
+    expect(overviewStackedCharts[1]).toHaveTextContent("7 points · Maps, Mods");
+    expect(screen.getByText("Listings by Type")).toBeInTheDocument();
+    // Deprecations join the New Listings chart as a negative series.
+    expect(overviewStackedCharts[2]).toHaveTextContent("1 points · Maps, Mods, Deprecated");
+    // Every pie sits beside its measure: Download Share, then the Maps
+    // section's three pies, then Listings by Type.
     const pieCharts = screen.getAllByTestId("registry-pie-chart");
-    expect(pieCharts[0]).toHaveTextContent("Maps: 8");
-    expect(pieCharts[1]).toHaveTextContent("Maps: 240");
+    expect(pieCharts[0]).toHaveTextContent("Maps: 240");
+    expect(pieCharts[1]).toHaveTextContent("Japan: 6, United Kingdom: 3");
+    expect(pieCharts[2]).toHaveTextContent("Asia: 6");
+    expect(pieCharts[3]).toHaveTextContent("Author A: 8");
+    expect(pieCharts[4]).toHaveTextContent("Maps: 8");
   });
 
   it("renders content analytics for the selected asset type", async () => {
@@ -220,7 +341,11 @@ describe("RegistryAnalyticsPage", () => {
       expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
     });
 
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent("1 points · Downloads");
+    const contentLineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(contentLineCharts[0]).toHaveTextContent("1 points · Downloads");
+    // Top Mods chart: only mod listings chart in the mods cut.
+    expect(screen.getByText("Top Mods")).toBeInTheDocument();
+    expect(contentLineCharts[1]).toHaveTextContent("2 points · Mod Alpha");
     expect(screen.getByText("Rankings")).toBeInTheDocument();
     expect(screen.getByText("Author B")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Mod Alpha/i })).toHaveAttribute(
@@ -242,6 +367,12 @@ describe("RegistryAnalyticsPage", () => {
     });
 
     expect(screen.getByText("Mod Alpha")).toBeInTheDocument();
+    // Both the aggregate card and the Top chart follow the search filter and
+    // flag it in their titles.
+    await waitFor(() => {
+      expect(screen.getAllByText("Filtered Daily Downloads")).toHaveLength(2);
+    });
+    expect(screen.getByText("Filtered Download Share")).toBeInTheDocument();
 
     fireEvent.change(searchInput, {
       target: { value: "missing asset" },
@@ -249,6 +380,11 @@ describe("RegistryAnalyticsPage", () => {
 
     expect(screen.getByText("No items match your search.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Clear Filters" })).toBeInTheDocument();
+    // Nothing left to chart: both the aggregate and Top cards show the
+    // placeholder, keeping their spacing.
+    await waitFor(() => {
+      expect(screen.getAllByText("No mods match the current filters.")).toHaveLength(2);
+    });
   });
 
   it("searches content analytics maps by country aliases", async () => {
@@ -277,10 +413,14 @@ describe("RegistryAnalyticsPage", () => {
     });
 
     expect(screen.getByText("Timeline")).toBeInTheDocument();
-    expect(screen.getByTestId("registry-download-chart")).toHaveTextContent("2 points · Authors");
-    expect(screen.getByText("Maps Published")).toBeInTheDocument();
-    expect(screen.getByText("Mods Published")).toBeInTheDocument();
-    expect(screen.getByText("Assets Published")).toBeInTheDocument();
+    const lineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(lineCharts[0]).toHaveTextContent("2 points · Authors");
+    // Top Authors chart: both fixture authors drawn as their own series.
+    expect(screen.getByText("Top Authors")).toBeInTheDocument();
+    expect(lineCharts[1]).toHaveTextContent("2 points · Author A, Author B");
+    expect(screen.getByText("Authored")).toBeInTheDocument();
+    expect(screen.getByText("Collaborator")).toBeInTheDocument();
+    expect(screen.getByText("Caretaker")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search authors...")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Author A/i })).toHaveAttribute(
       "href",
@@ -297,11 +437,12 @@ describe("RegistryAnalyticsPage", () => {
       expect(screen.getByText("Project A")).toBeInTheDocument();
     });
 
+    expect(screen.getByText("Top Projects")).toBeInTheDocument();
     expect(screen.getByText("Rankings")).toBeInTheDocument();
-    expect(screen.getByText("Author")).toBeInTheDocument();
-    expect(screen.getByText("Maps")).toBeInTheDocument();
-    expect(screen.queryByText("Mods")).not.toBeInTheDocument();
-    expect(screen.getByText("Assets")).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Author" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Maps" })).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Mods" })).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "Assets" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Search projects...")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Project A/i })).toHaveAttribute(
       "href",

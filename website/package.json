@@ -36,6 +36,7 @@
     "country-flag-emoji": "^1.0.3",
     "country-flag-icons": "^1.6.17",
     "embla-carousel-react": "^8.6.0",
+    "fuse.js": "^7.1.0",
     "gray-matter": "^4.0.3",
     "hast-util-to-string": "^3.0.1",
     "lucide-react": "^1.16.0",

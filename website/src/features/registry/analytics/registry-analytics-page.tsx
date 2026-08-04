@@ -1,15 +1,24 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
+import {
+  Activity,
   BookText,
+  CalendarRange,
   ChartLine,
   ChartPie,
-  Clock,
   Download,
   ExternalLink,
   FileStack,
   FolderGit2,
+  Globe,
   LayoutDashboard,
-  Map,
+  Map as MapAreaIcon,
   Plus,
   Search,
   Trophy,
@@ -26,21 +35,30 @@ import {
   TableCell,
   TableHeader,
   TableRow,
-  Tabs,
-  TabsList,
-  TabsTrigger,
   RankBadge,
   ScrollArea,
   getSortedRankSlotMap,
 } from "@subway-builder-modded/shared-ui";
-import {
-  AnalyticsLineChart,
-  AnalyticsPieChart,
-  AnalyticsStackedBarChart,
-} from "@subway-builder-modded/analytics";
 import type { PieSlice } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
 import { getCountryFlagIcon } from "@/lib/country-flags";
+import {
+  MULTI_SERIES_PALETTE,
+  OTHERS_SERIES_COLOR,
+  bucketMultiSeriesData,
+  getGrainLabel,
+} from "@/shared/analytics/multi-series";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
+import { PieChartCard } from "@/shared/analytics/pie-chart-card";
+import { RegistryAnalyticsPeriodToggle as PeriodToggle } from "@/features/registry/analytics/components/analytics-period-toggle";
+import {
+  CHART_CARD_CLASS,
+  CHART_CARD_FLUSH_CLASS,
+  ChartEmptyState,
+  TABLE_HEADER_ROW_CLASS,
+} from "@/shared/styles/panels";
+import { ACCENT_TEXT_LINK_CLASS } from "@/features/registry/lib/registry-styles";
+import { TopEntitiesChart } from "@/features/registry/analytics/components/top-entities-chart";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { RegistryEmptyState } from "@/features/registry/components/browse/registry-empty-state";
@@ -52,7 +70,10 @@ import {
   DetailsMetricGrid,
   type DetailMetric,
 } from "@/features/registry/detail/components/details-tab";
-import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
+import {
+  REGISTRY_TYPES,
+  getRegistryTypeConfigOrDefault,
+} from "@/features/registry/registry-type-config";
 import { getRegistryAuthorUrl, getRegistryDetailUrl } from "@/features/registry/lib/routing";
 import {
   buildRegistryCountrySearchValues,
@@ -66,6 +87,7 @@ import {
   type RegistryAnalyticsAuthorRanking,
   type RegistryAnalyticsContentRanking,
   type RegistryAnalyticsData,
+  type RegistryAnalyticsEntityDailySeries,
   type RegistryAnalyticsMapStatisticRanking,
   type RegistryAnalyticsPeriodId,
   type RegistryAnalyticsProjectRanking,
@@ -95,7 +117,7 @@ const TABS: RegistryAnalyticsTabItem[] = [
   { id: "content", label: "Content", icon: FileStack },
   { id: "authors", label: "Authors", icon: Users },
   { id: "projects", label: "Projects", icon: FolderGit2 },
-  { id: "map-statistics", label: "Map Statistics", icon: Map },
+  { id: "map-statistics", label: "Map Statistics", icon: MapAreaIcon },
 ];
 
 const TAB_PATHS: Record<RegistryAnalyticsTabId, string> = {
@@ -111,17 +133,12 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
   "3d": "/registry/analytics/overview/3d",
   "7d": "/registry/analytics/overview/7d",
   "14d": "/registry/analytics/overview/14d",
+  "30d": "/registry/analytics/overview/30d",
 };
 
 const CONTENT_ASSET_INCREMENT = 20;
 const AUTHOR_RANKING_INCREMENT = 20;
-
-const PERIODS = [
-  { id: "all-time" as const, label: "All Time" },
-  { id: "3d" as const, label: "Last 3 Days" },
-  { id: "7d" as const, label: "Last 7 Days" },
-  { id: "14d" as const, label: "Last 14 Days" },
-];
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
@@ -184,62 +201,6 @@ function RegistryAnalyticsTabs({
   );
 }
 
-function PeriodToggle({
-  value,
-  onChange,
-  className = "grid-cols-2 sm:grid-cols-4",
-  style,
-}: {
-  value: RegistryAnalyticsPeriodId;
-  onChange: (period: RegistryAnalyticsPeriodId) => void;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  return (
-    <Tabs
-      value={value}
-      onValueChange={(nextValue) => onChange(nextValue as RegistryAnalyticsPeriodId)}
-      style={style}
-    >
-      <TabsList
-        className={`grid !h-auto gap-1 rounded-xl border border-border/60 bg-card/70 p-1 ${className}`}
-      >
-        {PERIODS.map((period) => (
-          <TabsTrigger
-            key={period.id}
-            value={period.id}
-            className="!h-10 min-w-0 justify-center rounded-lg border border-transparent px-3 text-sm font-semibold text-muted-foreground transition-colors hover:border-[color-mix(in_srgb,var(--registry-type-accent)_45%,var(--border))] hover:bg-[color-mix(in_srgb,var(--registry-type-accent)_12%,var(--card))] hover:!text-[var(--registry-type-accent)] data-[state=active]:!border-[color-mix(in_srgb,var(--registry-type-accent)_62%,var(--border))] data-[state=active]:!bg-[color-mix(in_srgb,var(--registry-type-accent)_18%,var(--card))] data-[state=active]:!text-[var(--registry-type-accent)]"
-          >
-            {period.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
-  );
-}
-
-function RegistryPieChartCard({
-  title,
-  icon: Icon,
-  data,
-}: {
-  title: string;
-  icon: LucideIcon;
-  data: PieSlice[];
-}) {
-  return (
-    <article className="min-h-[22rem] rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-      <div className="mb-4 flex items-center gap-2">
-        <Icon className="size-4 text-muted-foreground" aria-hidden={true} />
-        <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          {title}
-        </h3>
-      </div>
-      <AnalyticsPieChart data={data} height={250} />
-    </article>
-  );
-}
-
 function buildPeriodBreakdown(data: RegistryAnalyticsData, period: RegistryAnalyticsPeriodId) {
   if (period === "all-time") {
     return {
@@ -283,47 +244,150 @@ function RegistryOverviewTab({
       ),
     [data.history, period],
   );
+  // One series per asset type, derived from the registry config so a future
+  // asset type extends every Overview chart without edits here.
+  const typeSeries = REGISTRY_TYPES.map((typeConfig) => {
+    const config = getRegistryTypeConfigOrDefault(typeConfig.id);
+    return {
+      id: typeConfig.id,
+      key: config.pluralLabel,
+      name: config.pluralLabel,
+      color: config.accentLight,
+    };
+  });
+  const readTypeValue = (record: Record<string, number>, typeId: string) => record[typeId] ?? 0;
   const chartData = graphRows.map((row) => ({
     date: row.date,
-    Total: row.downloads.total,
-    Maps: row.downloads.maps,
-    Mods: row.downloads.mods,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [series.key, readTypeValue(row.downloads, series.id)]),
+    ),
   }));
   const cumulativeChartData = data.history.map((row) => ({
     date: row.date,
-    Maps: row.cumulativeDownloads.maps,
-    Mods: row.cumulativeDownloads.mods,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [series.key, readTypeValue(row.cumulativeDownloads, series.id)]),
+    ),
   }));
+  // Releases are sparse at day grain; the shared bucketing collapses the
+  // all-time cut to weeks while short cuts show recent uptake day by day.
+  // Deprecations chart as a NEGATIVE series below the axis: a listing that
+  // arrives and is later deprecated nets to zero instead of counting twice.
+  const hasDeprecations = graphRows.some((row) => row.deprecations.total > 0);
+  const newListingsBucketed = bucketMultiSeriesData(
+    graphRows.map((row) => ({
+      date: row.date,
+      ...Object.fromEntries(
+        typeSeries.map((series) => [series.key, readTypeValue(row.listings, series.id)]),
+      ),
+      ...(hasDeprecations ? { Deprecated: -row.deprecations.total } : {}),
+    })),
+  );
+  const newListingsSeries = hasDeprecations
+    ? [...typeSeries, { key: "Deprecated", name: "Deprecated", color: OTHERS_SERIES_COLOR }]
+    : typeSeries;
+  const newListingsGrainLabel = getGrainLabel(newListingsBucketed.grain);
   const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  // Average downloads per weekday over the full history — the registry's
+  // weekly activity rhythm (all-time, so it sits above the period break).
+  const weekdaySums = WEEKDAY_LABELS.map(() => ({
+    days: 0,
+    byType: {} as Record<string, number>,
+  }));
+  for (const row of data.history) {
+    if (row.date === "2026-03-11") continue;
+    const weekdayIndex = (new Date(`${row.date}T00:00:00Z`).getUTCDay() + 6) % 7;
+    const bucket = weekdaySums[weekdayIndex];
+    bucket.days += 1;
+    for (const series of typeSeries) {
+      bucket.byType[series.key] =
+        (bucket.byType[series.key] ?? 0) + readTypeValue(row.downloads, series.id);
+    }
+  }
+  const weekdayChartData = WEEKDAY_LABELS.map((day, index) => ({
+    day,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [
+        series.key,
+        weekdaySums[index].days > 0
+          ? Math.round((weekdaySums[index].byType[series.key] ?? 0) / weekdaySums[index].days)
+          : 0,
+      ]),
+    ),
+  }));
+  // Period-scoped share pies from grouped entity series.
+  const buildEntityPeriodSlices = (
+    series: RegistryAnalyticsEntityDailySeries | undefined,
+    {
+      value = "total",
+      limit,
+      minShare,
+    }: { value?: "total" | "maps" | "mods"; limit?: number; minShare?: number } = {},
+  ): PieSlice[] => {
+    const allDates = series?.dates ?? [];
+    const periodDays = period === "all-time" ? null : Number.parseInt(period, 10);
+    const dates = periodDays === null ? allDates : allDates.slice(-periodDays);
+    const sorted = (series?.entities ?? [])
+      .map((entity) => ({
+        entity,
+        total: dates.reduce((sum, date) => {
+          const point = entity.byDate.get(date);
+          if (!point) return sum;
+          const pointValue =
+            value === "maps" ? point.maps : value === "mods" ? point.mods : point.maps + point.mods;
+          return sum + pointValue;
+        }, 0),
+      }))
+      .filter(({ total }) => total > 0)
+      .sort((left, right) => right.total - left.total);
+    const grandTotal = sorted.reduce((sum, { total }) => sum + total, 0);
+    let drawnCount = sorted.length;
+    if (minShare !== undefined && grandTotal > 0) {
+      drawnCount = sorted.filter(({ total }) => total / grandTotal >= minShare).length;
+    }
+    if (limit && drawnCount > limit) {
+      drawnCount = limit - 1;
+    }
+    const top = sorted.slice(0, drawnCount);
+    const rest = sorted.slice(top.length);
+    const slices: PieSlice[] = top.map(({ entity, total }, index) => ({
+      key: entity.id,
+      name: entity.name,
+      value: total,
+      color: entity.color ?? MULTI_SERIES_PALETTE[index % MULTI_SERIES_PALETTE.length],
+    }));
+    if (rest.length > 0) {
+      slices.push({
+        key: "__others__",
+        name: "Others",
+        value: rest.reduce((sum, { total }) => sum + total, 0),
+        color: OTHERS_SERIES_COLOR,
+      });
+    }
+    return slices;
+  };
+  // Same 2.5% share threshold as the Top Countries chart (regions are the
+  // same geographic measure), so the long tail folds into Others.
+  const regionSlices = buildEntityPeriodSlices(data.regions?.dailyDownloads, {
+    minShare: 0.025,
+    limit: 10,
+  });
+  const authorMapSlices = buildEntityPeriodSlices(data.authors?.dailyDownloads, {
+    value: "maps",
+    limit: 8,
+  });
   const breakdown = buildPeriodBreakdown(data, period);
-  const listingSlices: PieSlice[] = [
-    {
-      key: "maps",
-      name: "Maps",
-      value: breakdown.listings.maps,
-      color: "var(--registry-maps-accent)",
-    },
-    {
-      key: "mods",
-      name: "Mods",
-      value: breakdown.listings.mods,
-      color: "var(--registry-mods-accent)",
-    },
-  ];
-  const downloadSlices: PieSlice[] = [
-    {
-      key: "maps",
-      name: "Maps",
-      value: breakdown.downloads.maps,
-      color: "var(--registry-maps-accent)",
-    },
-    {
-      key: "mods",
-      name: "Mods",
-      value: breakdown.downloads.mods,
-      color: "var(--registry-mods-accent)",
-    },
-  ];
+  const listingSlices: PieSlice[] = typeSeries.map((series) => ({
+    key: series.id,
+    name: series.name,
+    value: readTypeValue(breakdown.listings, series.id),
+    color: series.color,
+  }));
+  const downloadSlices: PieSlice[] = typeSeries.map((series) => ({
+    key: series.id,
+    name: series.name,
+    value: readTypeValue(breakdown.downloads, series.id),
+    color: series.color,
+  }));
 
   return (
     <section
@@ -347,79 +411,108 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Cumulative Downloads" icon={ChartLine} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-          <AnalyticsStackedBarChart
-            key="registry-cumulative-downloads-all-time"
-            data={cumulativeChartData}
-            bars={[
-              {
-                key: "Maps",
-                name: "Maps",
-                color: "var(--registry-maps-accent)",
-              },
-              {
-                key: "Mods",
-                name: "Mods",
-                color: "var(--registry-mods-accent)",
-              },
-            ]}
-            xAxisKey="date"
-            height={280}
-          />
-        </article>
-      </section>
-
-      <div className="flex justify-center">
-        <PeriodToggle
-          value={period}
-          onChange={(nextPeriod) =>
-            navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], {
-              preserveScroll: true,
-            })
-          }
+        <MultiSeriesChartCard
+          title="Cumulative Downloads"
+          chartKey="registry-cumulative-downloads"
+          data={cumulativeChartData}
+          series={typeSeries}
+          height={280}
+          stackId="cumulative"
+          defaultStyle="bar"
+          ariaLabelPrefix="Cumulative downloads chart"
         />
-      </div>
+      </section>
 
       <section className="space-y-3">
-        <SectionSeparator label="Downloads Timeline" icon={Clock} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-          <AnalyticsLineChart
-            key={`registry-downloads-${period}`}
-            data={chartData}
-            lines={[
-              {
-                key: "Maps",
-                name: "Maps",
-                color: "var(--registry-maps-accent)",
-              },
-              {
-                key: "Mods",
-                name: "Mods",
-                color: "var(--registry-mods-accent)",
-              },
-              {
-                key: "Total",
-                name: "Total",
-                color: "var(--registry-type-accent)",
-              },
-            ]}
-            xAxisKey="date"
-            xAxisTicks={chartTicks}
-            height={280}
-            startAtZero={true}
-          />
-        </article>
+        <SectionSeparator label="Seasonality" icon={Activity} className="mb-4" />
+        <MultiSeriesChartCard
+          title="Average Daily Downloads"
+          chartKey="registry-weekday-rhythm"
+          data={weekdayChartData}
+          series={typeSeries}
+          xAxisKey="day"
+          xAxisTicks={WEEKDAY_LABELS}
+          height={280}
+          stackId="weekday"
+          defaultStyle="bar"
+          ariaLabelPrefix="Weekly rhythm chart"
+        />
       </section>
 
-      <section>
-        <SectionSeparator label="Breakdown" icon={ChartPie} className="mb-4" />
+      {/* Everything above is all-time; everything below follows the selected
+          period. The labeled break + attached toggle make that scope visible. */}
+      <section className="space-y-4 pt-4">
+        <SectionSeparator label="By Period" icon={CalendarRange} className="mb-4" />
+        <div className="flex justify-center">
+          <PeriodToggle
+            value={period}
+            onChange={(nextPeriod) =>
+              navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], {
+                preserveScroll: true,
+              })
+            }
+          />
+        </div>
+      </section>
+
+      {/* One measure per section: Downloads and Maps chart downloads, Listings
+          counts listings — every card title names its measure, and each pie
+          sits beside the chart whose numbers it decomposes. */}
+      <section className="space-y-3">
+        <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <MultiSeriesChartCard
+            title="Daily Downloads"
+            chartKey={`registry-downloads-${period}`}
+            data={chartData}
+            series={typeSeries}
+            xAxisTicks={chartTicks}
+            height={280}
+            stackId="downloads"
+            ariaLabelPrefix="Downloads timeline chart"
+          />
+          <PieChartCard title="Download Share" icon={ChartPie} data={downloadSlices} />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <SectionSeparator label="Maps" icon={mapsConfig.icon ?? MapAreaIcon} className="mb-4" />
+        {/* Country downloads run much flatter than authors (only 4-6 of 42
+            active countries clear 5%), so this chart uses a 2.5% share
+            threshold — typically 10+ countries, bound by the series cap. */}
+        <TopEntitiesChart
+          series={data.countries.dailyDownloads}
+          entityKey="countries"
+          period={period}
+          assetType="total"
+          minShare={0.025}
+          titleSuffix=" by Country"
+          measureLabel="Map Downloads"
+        />
         <div className="grid gap-4 lg:grid-cols-2">
-          <RegistryPieChartCard
-            title={period === "all-time" ? "Listings" : "New Listings"}
+          <PieChartCard title="Map Downloads by Region" icon={Globe} data={regionSlices} />
+          <PieChartCard title="Map Downloads by Author" icon={Users} data={authorMapSlices} />
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <SectionSeparator label="Listings" icon={FileStack} className="mb-4" />
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <MultiSeriesChartCard
+            title={`${newListingsGrainLabel} New Listings`}
+            chartKey={`registry-new-listings-${period}-${newListingsBucketed.grain}`}
+            data={newListingsBucketed.data}
+            series={newListingsSeries}
+            height={280}
+            stackId="new-listings"
+            defaultStyle="bar"
+            ariaLabelPrefix="New listings chart"
+          />
+          <PieChartCard
+            title={`${period === "all-time" ? "Listings" : "New Listings"} by Type`}
             icon={FileStack}
             data={listingSlices}
           />
-          <RegistryPieChartCard title="Downloads" icon={ChartPie} data={downloadSlices} />
         </div>
       </section>
     </section>
@@ -468,7 +561,7 @@ function AnalyticsAuthorCell({
     >
       <Link
         to={getRegistryAuthorUrl(authorId, "analytics")}
-        className="inline-flex min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--analytics-author-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+        className={`inline-flex min-w-0 max-w-full items-center gap-1.5 [--ui-link-accent:var(--analytics-author-accent)] ${ACCENT_TEXT_LINK_CLASS}`}
         title={authorName}
       >
         <span className="truncate">{authorName}</span>
@@ -528,7 +621,7 @@ function RegistryRankingsTable<TRow>({
             </div>
           ))}
         </div>
-        <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+        <div className={CHART_CARD_FLUSH_CLASS}>
           <ScrollArea scrollbars="horizontal" className="w-full">
             <div
               className="min-w-[var(--registry-rankings-table-min-width)] xl:min-w-0"
@@ -545,7 +638,7 @@ function RegistryRankingsTable<TRow>({
                   ))}
                 </colgroup>
                 <TableHeader>
-                  <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                  <TableRow className={TABLE_HEADER_ROW_CLASS}>
                     {columns.map((column) =>
                       column.sortable ? (
                         <SortableTableHead
@@ -622,11 +715,50 @@ function RegistryContentTab({
     () => getGraphHistory(data.history, period).filter((row) => row.date !== "2026-03-11"),
     [data.history, period],
   );
-  const chartData = graphRows.map((row) => ({
-    date: row.date,
-    Downloads: row.downloads[assetTypeId],
-  }));
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  // The chart lags a keystroke behind the table via useDeferredValue so typing
+  // stays smooth while recharts re-renders.
+  const deferredRankingQuery = useDeferredValue(rankingQuery);
+  const isChartFiltered = deferredRankingQuery.trim().length > 0;
+  const filteredListingSeries = useMemo(() => {
+    const normalizedQuery = deferredRankingQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return data.listings.dailyDownloads;
+    }
+    return {
+      dates: data.listings.dailyDownloads.dates,
+      entities: data.listings.dailyDownloads.entities.filter((entity) =>
+        matchesRegistrySearch(entity.searchValues ?? [entity.name, entity.id], normalizedQuery),
+      ),
+    };
+  }, [data.listings.dailyDownloads, deferredRankingQuery]);
+  // While a search is active the aggregate chart sums only the matching
+  // listings, so the whole tab below the search bar reflects the filter.
+  const filteredAggregateByDate = useMemo(() => {
+    if (!isChartFiltered) {
+      return null;
+    }
+    const byDate = new Map<string, number>();
+    for (const entity of filteredListingSeries.entities) {
+      for (const [date, point] of entity.byDate) {
+        const downloads = assetTypeId === "maps" ? point.maps : point.mods;
+        if (downloads > 0) {
+          byDate.set(date, (byDate.get(date) ?? 0) + downloads);
+        }
+      }
+    }
+    return byDate;
+  }, [assetTypeId, filteredListingSeries, isChartFiltered]);
+  const chartBucketed = bucketMultiSeriesData(
+    graphRows.map((row) => ({
+      date: row.date,
+      Downloads: filteredAggregateByDate
+        ? (filteredAggregateByDate.get(row.date) ?? 0)
+        : row.downloads[assetTypeId],
+    })),
+  );
+  const chartTicks =
+    period === "all-time" ? undefined : chartBucketed.data.map((point) => String(point.date));
+  const hasFilterMatches = !isChartFiltered || filteredListingSeries.entities.length > 0;
   const baseRows = data.contentRankings[period][assetTypeId];
   const sortedRows = useMemo(
     () => [...baseRows].sort((left, right) => compareDownloads(left, right, sortDirection)),
@@ -693,7 +825,7 @@ function RegistryContentTab({
         render: (row) => (
           <Link
             to={getRegistryDetailUrl(row.type, row.id, "analytics")}
-            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+            className={`inline-flex max-w-full items-center gap-1.5 [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_TEXT_LINK_CLASS}`}
           >
             <span className="truncate">{row.name}</span>
             <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
@@ -755,7 +887,7 @@ function RegistryContentTab({
               preserveScroll: true,
             })
           }
-          className="grid-cols-2 sm:grid-cols-4"
+          className="grid-cols-2 sm:grid-cols-5"
           style={
             {
               "--registry-type-accent": "var(--suite-accent-light)",
@@ -778,37 +910,75 @@ function RegistryContentTab({
         />
       </div>
 
+      {/* Filters everything below it: the aggregate chart, the Top chart, and the rankings. */}
+      <RegistryToolbarSearch
+        query={rankingQuery}
+        onChange={setRankingQuery}
+        placeholder={`Search ${typeConfig.pluralLabel.toLowerCase()}...`}
+        inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+        id={`registry-content-rankings-search-${assetTypeId}`}
+      />
+
       <section className="space-y-3">
-        <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-          <AnalyticsLineChart
-            key={`registry-content-${assetTypeId}-${period}`}
-            data={chartData}
-            lines={[
+        <SectionSeparator
+          label={isChartFiltered ? "Filtered Downloads" : "Downloads"}
+          icon={Download}
+          className="mb-4"
+        />
+        {hasFilterMatches ? (
+          <MultiSeriesChartCard
+            title={`${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`}
+            chartKey={`registry-content-${assetTypeId}-${period}-${chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
+            data={chartBucketed.data}
+            series={[
               {
                 key: "Downloads",
                 name: "Downloads",
                 color: "var(--registry-type-accent)",
               },
             ]}
-            xAxisKey="date"
             xAxisTicks={chartTicks}
             height={280}
-            startAtZero={true}
+            stackId="content-downloads"
+            ariaLabelPrefix="Content downloads chart"
           />
-        </article>
+        ) : (
+          <article className={CHART_CARD_CLASS}>
+            <ChartEmptyState
+              label={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
+            />
+          </article>
+        )}
+      </section>
+
+      <section>
+        <SectionSeparator
+          label={`Top ${typeConfig.pluralLabel}`}
+          icon={typeConfig.icon ?? FileStack}
+          className="mb-4"
+        />
+        {/* Per-listing downloads are the flattest distribution on the site
+            (the top map holds only 3-6% of its type), so share thresholds are
+            meaningless here — minShare 0 selects a plain top 10. */}
+        {/* Per-listing distributions are so flat that an "Others" line dwarfs
+            the top entries into a band — Others renders only in the bar view
+            and the pie, and the top slice caps at 8 to map 1:1 onto the
+            palette. */}
+        <TopEntitiesChart
+          series={filteredListingSeries}
+          entityKey={assetTypeId}
+          period={period}
+          assetType={assetTypeId}
+          minShare={0}
+          seriesCap={8}
+          filtered={isChartFiltered}
+          emptyLabel={`No ${typeConfig.pluralLabel.toLowerCase()} match the current filters.`}
+          chartOthers={false}
+        />
       </section>
 
       <section>
         <SectionSeparator label="Rankings" icon={FileStack} className="mb-4" />
-        <RegistryToolbarSearch
-          query={rankingQuery}
-          onChange={setRankingQuery}
-          placeholder={`Search ${typeConfig.pluralLabel.toLowerCase()}...`}
-          className="mb-4"
-          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
-          id={`registry-content-rankings-search-${assetTypeId}`}
-        />
         <RegistryRankingsTable
           rows={filteredRows}
           rankByRowKey={rankByRowKey}
@@ -829,11 +999,18 @@ function RegistryContentTab({
   );
 }
 
-type AuthorRankingSortKey = "downloads" | "maps" | "mods" | "assets";
+type AuthorRankingSortKey = "downloads" | "authored" | "collaborator" | "caretaker";
 type ProjectRankingSortKey = "downloads" | "maps" | "mods" | "assets";
 type MapStatisticSortKey = "demand" | "pops" | "demandPoints" | "playableAreaKm2";
 
 const AUTHOR_SORT_DEFAULTS: Record<AuthorRankingSortKey, "asc" | "desc"> = {
+  downloads: "desc",
+  authored: "desc",
+  collaborator: "desc",
+  caretaker: "desc",
+};
+
+const PROJECT_SORT_DEFAULTS: Record<ProjectRankingSortKey, "asc" | "desc"> = {
   downloads: "desc",
   maps: "desc",
   mods: "desc",
@@ -922,6 +1099,23 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     if (!trimmedQuery) return sortedRows;
     return sortedRows.filter((row) => matchesRegistrySearch([row.name, row.id], trimmedQuery));
   }, [query, sortedRows]);
+  // Authors filter by name/id only: matching by their assets' vocabulary would
+  // show total downloads under an asset-scoped query, which misleads. The
+  // chart lags a keystroke behind the table via useDeferredValue.
+  const deferredQuery = useDeferredValue(query);
+  const isChartFiltered = deferredQuery.trim().length > 0;
+  const filteredAuthorSeries = useMemo(() => {
+    const trimmedQuery = deferredQuery.trim();
+    if (!trimmedQuery) {
+      return data.authors.dailyDownloads;
+    }
+    return {
+      dates: data.authors.dailyDownloads.dates,
+      entities: data.authors.dailyDownloads.entities.filter((entity) =>
+        matchesRegistrySearch(entity.searchValues ?? [entity.name, entity.id], trimmedQuery),
+      ),
+    };
+  }, [data.authors.dailyDownloads, deferredQuery]);
 
   const handleSort = (nextSortKey: AuthorRankingSortKey) => {
     setDirections((current) => ({
@@ -961,49 +1155,49 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         render: (row) => formatNumber(row.downloads),
       },
       {
-        id: "maps",
-        label: "Maps Published",
+        id: "authored",
+        label: "Authored",
         width: "16%",
         sortable: true,
-        active: sortKey === "maps",
-        direction: directions.maps,
-        align: "right",
-        accentColor: "var(--map-accent)",
-        onSort: () => handleSort("maps"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "maps" ? "text-[var(--map-accent)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.maps),
-      },
-      {
-        id: "mods",
-        label: "Mods Published",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "mods",
-        direction: directions.mods,
-        align: "right",
-        accentColor: "var(--mod-accent)",
-        onSort: () => handleSort("mods"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "mods" ? "text-[var(--mod-accent)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.mods),
-      },
-      {
-        id: "assets",
-        label: "Assets Published",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "assets",
-        direction: directions.assets,
+        active: sortKey === "authored",
+        direction: directions.authored,
         align: "right",
         accentColor: "var(--suite-accent-light)",
-        onSort: () => handleSort("assets"),
+        onSort: () => handleSort("authored"),
         cellClassName: `font-semibold tabular-nums ${
-          sortKey === "assets" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+          sortKey === "authored" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
         }`,
-        render: (row) => formatNumber(row.assets),
+        render: (row) => formatNumber(row.authored),
+      },
+      {
+        id: "collaborator",
+        label: "Collaborator",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "collaborator",
+        direction: directions.collaborator,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("collaborator"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "collaborator" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.collaborator),
+      },
+      {
+        id: "caretaker",
+        label: "Caretaker",
+        width: "16%",
+        sortable: true,
+        active: sortKey === "caretaker",
+        direction: directions.caretaker,
+        align: "right",
+        accentColor: "var(--suite-accent-light)",
+        onSort: () => handleSort("caretaker"),
+        cellClassName: `font-semibold tabular-nums ${
+          sortKey === "caretaker" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+        }`,
+        render: (row) => formatNumber(row.caretaker),
       },
     ],
     [directions, sortKey],
@@ -1030,34 +1224,46 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     >
       <section>
         <SectionSeparator label="Timeline" icon={ChartLine} className="mb-4" />
-        <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-          <AnalyticsLineChart
-            key="registry-authors-timeline"
-            data={chartData}
-            lines={[
-              {
-                key: "Authors",
-                name: "Authors",
-                color: "var(--suite-accent-light)",
-              },
-            ]}
-            xAxisKey="date"
-            height={280}
-            startAtZero={true}
-          />
-        </article>
+        {/* Cumulative level, so the shared bucketing never applies here. */}
+        <MultiSeriesChartCard
+          title="Cumulative Authors"
+          chartKey="registry-authors-timeline"
+          data={chartData}
+          series={[
+            {
+              key: "Authors",
+              name: "Authors",
+              color: "var(--suite-accent-light)",
+            },
+          ]}
+          height={280}
+          stackId="authors-timeline"
+          ariaLabelPrefix="Authors timeline chart"
+        />
+      </section>
+
+      {/* The Timeline above counts all authors; everything below the search
+          (Top chart, pie, rankings) reflects the name/id filter. */}
+      <RegistryToolbarSearch
+        query={query}
+        onChange={setQuery}
+        placeholder="Search authors..."
+        inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+        id="registry-author-rankings-search"
+      />
+
+      <section>
+        <SectionSeparator label="Top Authors" icon={Users} className="mb-4" />
+        <TopEntitiesChart
+          series={filteredAuthorSeries}
+          entityKey="authors"
+          filtered={isChartFiltered}
+          emptyLabel="No authors match the current filters."
+        />
       </section>
 
       <section>
         <SectionSeparator label="Rankings" icon={Trophy} className="mb-4" />
-        <RegistryToolbarSearch
-          query={query}
-          onChange={setQuery}
-          placeholder="Search authors..."
-          className="mb-4"
-          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
-          id="registry-author-rankings-search"
-        />
         <RegistryRankingsTable
           rows={filteredRows}
           rankByRowKey={rankByRowKey}
@@ -1081,7 +1287,7 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
 function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
   const [sortKey, setSortKey] = useState<ProjectRankingSortKey>("downloads");
   const [directions, setDirections] =
-    useState<Record<ProjectRankingSortKey, "asc" | "desc">>(AUTHOR_SORT_DEFAULTS);
+    useState<Record<ProjectRankingSortKey, "asc" | "desc">>(PROJECT_SORT_DEFAULTS);
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];
@@ -1109,6 +1315,22 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
       matchesRegistrySearch([row.name, row.id, row.authorName, row.authorId], trimmedQuery),
     );
   }, [query, sortedRows]);
+  // The chart lags a keystroke behind the table via useDeferredValue so typing
+  // stays smooth while recharts re-renders.
+  const deferredQuery = useDeferredValue(query);
+  const isChartFiltered = deferredQuery.trim().length > 0;
+  const filteredProjectSeries = useMemo(() => {
+    const trimmedQuery = deferredQuery.trim();
+    if (!trimmedQuery) {
+      return data.projects.dailyDownloads;
+    }
+    return {
+      dates: data.projects.dailyDownloads.dates,
+      entities: data.projects.dailyDownloads.entities.filter((entity) =>
+        matchesRegistrySearch(entity.searchValues ?? [entity.name, entity.id], trimmedQuery),
+      ),
+    };
+  }, [data.projects.dailyDownloads, deferredQuery]);
 
   const handleSort = (nextSortKey: ProjectRankingSortKey) => {
     setDirections((current) => ({
@@ -1138,7 +1360,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         render: (row) => (
           <Link
             to={`${row.href}/analytics`}
-            className="inline-flex max-w-full items-center gap-1.5 transition-colors hover:text-[var(--suite-accent-light)] hover:underline hover:decoration-current hover:underline-offset-4"
+            className={`inline-flex max-w-full items-center gap-1.5 [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_TEXT_LINK_CLASS}`}
           >
             <span className="truncate">{row.name}</span>
             <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />
@@ -1244,16 +1466,31 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         } as CSSProperties
       }
     >
+      {/* Filters everything below it: the Top chart, the pie, and the rankings. */}
+      <RegistryToolbarSearch
+        query={query}
+        onChange={setQuery}
+        placeholder="Search projects..."
+        inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
+        id="registry-project-rankings-search"
+      />
+
+      <section>
+        <SectionSeparator label="Top Projects" icon={FolderGit2} className="mb-4" />
+        {/* "No Project" holds most downloads, leaving real projects tiny
+            shares of the total — minShare 0 selects a plain top 10 so up to
+            nine actual projects chart alongside it. */}
+        <TopEntitiesChart
+          series={filteredProjectSeries}
+          entityKey="projects"
+          minShare={0}
+          filtered={isChartFiltered}
+          emptyLabel="No projects match the current filters."
+        />
+      </section>
+
       <section>
         <SectionSeparator label="Rankings" icon={Trophy} className="mb-4" />
-        <RegistryToolbarSearch
-          query={query}
-          onChange={setQuery}
-          placeholder="Search projects..."
-          className="mb-4"
-          inputClassName="h-12 rounded-xl bg-card/75 shadow-none"
-          id="registry-project-rankings-search"
-        />
         <RegistryRankingsTable
           rows={filteredRows}
           rankByRowKey={rankByRowKey}
@@ -1353,7 +1590,7 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
         render: (row) => (
           <Link
             to={getRegistryDetailUrl("maps", row.id, "analytics")}
-            className="inline-flex w-full min-w-0 max-w-full items-center gap-1.5 transition-colors hover:text-[var(--registry-type-accent)] hover:underline hover:decoration-current hover:underline-offset-4"
+            className={`inline-flex w-full min-w-0 max-w-full items-center gap-1.5 [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_TEXT_LINK_CLASS}`}
           >
             <span className="truncate">{row.name}</span>
             <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" aria-hidden={true} />

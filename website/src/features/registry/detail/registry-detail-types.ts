@@ -8,6 +8,8 @@ export type RegistryDetailSourceLink = {
 export type RegistryDetailCollaborator = {
   authorId: string;
   authorLabel: string;
+  /** True when this collaborator is the listing's active caretaker (caretakers entry without `until`). */
+  isActiveCaretaker: boolean;
 };
 
 export type RegistryDetailDataQuality =
@@ -52,6 +54,13 @@ export type RegistryDetailDownloadAnalytics = {
 export type RegistryDetailDownloadHistoryPoint = {
   date: string;
   downloads: number;
+};
+
+/** One release version's daily download series (registry version-grain CSV). */
+export type RegistryDetailVersionDailySeries = {
+  version: string;
+  totalDownloads: number;
+  history: RegistryDetailDownloadHistoryPoint[];
 };
 
 export type RegistryDetailDownloadTrend = {
@@ -108,6 +117,7 @@ export type RegistryDetailModel = {
   downloads: number | null;
   downloadAnalytics: RegistryDetailDownloadAnalytics;
   downloadHistory: RegistryDetailDownloadHistoryPoint[];
+  versionDownloadHistory: RegistryDetailVersionDailySeries[];
   downloadTrends: RegistryDetailDownloadTrend[];
   galleryImages: string[];
   versions: RegistryDetailVersion[];
@@ -193,6 +203,7 @@ export type RegistryDetailLoadedData = {
   projectId: string | null;
   downloadAnalytics: RegistryDetailDownloadAnalytics;
   downloadHistory?: RegistryDetailDownloadHistoryPoint[];
+  versionDownloadHistory?: RegistryDetailVersionDailySeries[];
   downloadTrends?: RegistryDetailDownloadTrend[];
   mapRankings: {
     population: number | null;

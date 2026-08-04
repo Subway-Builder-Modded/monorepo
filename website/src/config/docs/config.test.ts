@@ -133,12 +133,18 @@ describe("getSidebarOrder", () => {
     expect(order).toEqual([
       "publishing-content",
       "updating-content",
+      "deprecation",
       "using-custom-url",
+      "manifest-requirements",
       "collaborators",
+      "caretakers",
       "dependencies",
       "author-attribution",
       "tagging",
-      "data-quality",
+      {
+        key: "data-quality",
+        children: ["overview", "submission-questions", "scoring-rubric", "quality-floor"],
+      },
       "markdown-playground",
     ]);
   });

@@ -1,0 +1,36 @@
+---
+title: Deprecating Content
+description: Retire an asset from downloads and browse while keeping its history and attribution.
+icon: Archive
+---
+
+Deprecation retires an asset without deleting it. A deprecated asset:
+
+- is _no longer downloadable_ from Railyard or the website;
+- is _hidden from browse and search results by default_ — it remains viewable behind the _Deprecated_ filter, marked with a gray badge and always sorted last;
+- is _left otherwise unchanged_: the listing page, download history, and author attribution remain constant, and download counts stay credited to the author and/or caretakers.
+
+Deprecation is not deletion, and it is fully reversible.
+
+## Who can deprecate {#who-can-deprecate}
+
+Only the asset's _original publisher_ or its _active [caretaker](/registry/docs/caretakers)_ can deprecate it (or reverse a deprecation). Ordinary [collaborators](/registry/docs/collaborators) cannot.
+
+## How to deprecate an asset {#how-to-deprecate}
+
+1. On the [Registry's GitHub repository](https://github.com/Subway-Builder-Modded/registry), navigate to **Issues** > **New Issue** > **Deprecate an Asset**.
+2. Enter the _asset ID_ — the form works for both mods and maps, so no type selection is needed.
+3. Optionally provide a _reason_ (e.g. "Superseded by my-asset-2"). It is shown publicly on the asset's listing page.
+4. Submit. After validation confirms the requester is the publisher or active caretaker, an automated pull request is opened for maintainer review. The deprecation takes effect once a maintainer merges it.
+
+If validation fails, edit the issue and comment `revalidate` to retry.
+
+## Restoring a deprecated asset {#restoring}
+
+Deprecation is reversible through the same flow: **Issues** > **New Issue** > **Remove Asset Deprecation**. The same authorization rule applies. Once the resulting pull request is merged, the asset returns to normal: downloadable, visible in browse by default, exactly as before.
+
+:::tip
+
+If the problem is that _older versions_ of an asset no longer work on current game versions, [capping those versions' game compatibility](/registry/docs/manifest-requirements#retroactive) is usually the better fix than deprecating the whole asset.
+
+:::

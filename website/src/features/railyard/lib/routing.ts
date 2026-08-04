@@ -19,6 +19,7 @@ const RAILYARD_ANALYTICS_PERIODS = new Set<RailyardAnalyticsPeriodId>([
   "3d",
   "7d",
   "14d",
+  "30d",
 ]);
 const RAILYARD_ANALYTICS_PERIOD_TABS = new Set<RailyardAnalyticsTabId>([
   "timeline",

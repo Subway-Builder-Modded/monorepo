@@ -1,4 +1,4 @@
-import { History, TrendingUp } from "lucide-react";
+import { ChartPie, History, TrendingUp } from "lucide-react";
 import { useMemo, useState, type CSSProperties } from "react";
 import {
   RankBadge,
@@ -12,7 +12,21 @@ import {
   TableHeader,
   TableRow,
 } from "@subway-builder-modded/shared-ui";
-import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
+import type { PieSlice } from "@subway-builder-modded/analytics";
+import {
+  bucketMultiSeriesData,
+  buildTopSeriesWithOthers,
+  getGrainLabel,
+  type NamedDailySeries,
+} from "@/shared/analytics/multi-series";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
+import { PieChartCard } from "@/shared/analytics/pie-chart-card";
+import {
+  REGISTRY_ANALYTICS_PERIOD_OPTIONS,
+  RegistryAnalyticsPeriodToggle,
+} from "@/features/registry/analytics/components/analytics-period-toggle";
+import type { RegistryAnalyticsPeriodId } from "@/features/registry/analytics/lib/load-registry-analytics";
+import { TABLE_HEADER_ROW_CLASS } from "@/shared/styles/panels";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 import { getAnalyticsTabSections } from "@/features/registry/detail/config/analytics-tab-config";
 import { DetailsMetricGrid } from "@/features/registry/detail/components/details-tab";
@@ -73,10 +87,47 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
       return compareNullableNumbers(left[trendSortKey], right[trendSortKey], trendDirection);
     });
   }, [detail.downloadTrends, trendDirection, trendSortKey]);
-  const chartData = detail.downloadHistory.map((point) => ({
-    date: point.date,
-    Downloads: point.downloads,
-  }));
+
+  // History chart: per-version stacked series over the selected period window
+  // (a slice of the listing's trimmed daily history) when the version-grain
+  // CSV covers this listing, otherwise a single listing-grain series. The pie
+  // decomposes the same window, so both stay in agreement. Versions per
+  // listing are a flat, small set — plain top-10 selection, like the other
+  // per-listing charts.
+  const [period, setPeriod] = useState<RegistryAnalyticsPeriodId>("all-time");
+  const historyChart = useMemo(() => {
+    const days = REGISTRY_ANALYTICS_PERIOD_OPTIONS.find((option) => option.id === period)?.days;
+    const windowHistory = days ? detail.downloadHistory.slice(-days) : detail.downloadHistory;
+    const dates = windowHistory.map((point) => point.date);
+    const versionSeries: NamedDailySeries[] = detail.versionDownloadHistory.map((entry) => ({
+      id: entry.version,
+      name: entry.version,
+      valueByDate: new Map(entry.history.map((point) => [point.date, point.downloads])),
+    }));
+    const versionModel = buildTopSeriesWithOthers({
+      series: versionSeries,
+      dates,
+      topCount: 10,
+    });
+    const hasVersions = versionModel.series.length > 0;
+    const data = hasVersions
+      ? versionModel.data
+      : windowHistory.map((point) => ({ date: point.date, Downloads: point.downloads }));
+    const series = hasVersions
+      ? versionModel.series
+      : [{ key: "Downloads", name: "Downloads", color: "var(--registry-type-accent)" }];
+    const bucketed = bucketMultiSeriesData(data);
+    const chartTicks = days ? bucketed.data.map((point) => String(point.date)) : undefined;
+    const versionSlices: PieSlice[] = versionModel.series.map((entry) => ({
+      key: entry.key,
+      name: entry.name,
+      value: entry.total,
+      color: entry.color,
+    }));
+
+    return { bucketed, chartTicks, series, hasVersions, versionSlices };
+  }, [detail.downloadHistory, detail.versionDownloadHistory, period]);
+  const chartData = historyChart.bucketed.data;
 
   if (sections.length === 0 && chartData.length === 0 && detail.downloadTrends.length === 0) {
     return null;
@@ -119,7 +170,7 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
               <div className="min-w-[40rem] xl:min-w-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                    <TableRow className={TABLE_HEADER_ROW_CLASS}>
                       <SortableTableHead
                         label="Period"
                         active={trendSortKey === "label"}
@@ -160,24 +211,41 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
         </div>
       ) : null}
 
-      {chartData.length > 0 ? (
+      {detail.downloadHistory.length > 0 ? (
         <div>
           <SectionSeparator label="Download History" icon={History} className="mb-4 mt-7" />
-          <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-            <AnalyticsLineChart
-              data={chartData}
-              lines={[
-                {
-                  key: "Downloads",
-                  name: "Downloads",
-                  color: "var(--registry-type-accent)",
-                },
-              ]}
-              xAxisKey="date"
-              height={220}
-              startAtZero={true}
-            />
-          </article>
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <RegistryAnalyticsPeriodToggle value={period} onChange={setPeriod} />
+            </div>
+            <div
+              className={
+                historyChart.versionSlices.length > 1
+                  ? "grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+                  : undefined
+              }
+            >
+              <MultiSeriesChartCard
+                title={`${getGrainLabel(historyChart.bucketed.grain)} Downloads${
+                  historyChart.hasVersions ? " by Version" : ""
+                }`}
+                chartKey={`listing-history-${period}-${historyChart.bucketed.grain}`}
+                data={chartData}
+                series={historyChart.series}
+                xAxisTicks={historyChart.chartTicks}
+                height={280}
+                stackId="listing-history"
+                ariaLabelPrefix="Download history chart"
+              />
+              {historyChart.versionSlices.length > 1 ? (
+                <PieChartCard
+                  title="Download Share by Version"
+                  icon={ChartPie}
+                  data={historyChart.versionSlices}
+                />
+              ) : null}
+            </div>
+          </div>
         </div>
       ) : null}
     </section>

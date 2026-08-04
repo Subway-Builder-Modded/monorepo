@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, type RefObject } from "react";
 import { ArrowUpToLine, Copy, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mdxToMarkdown } from "@/features/docs/lib/markdown-copy";
@@ -90,10 +90,12 @@ export function OnThisPage({
   headings,
   editUrl,
   rawContent,
+  contentRootRef,
 }: {
   headings: DocsTocHeading[];
   editUrl?: string;
   rawContent?: string | null;
+  contentRootRef?: RefObject<HTMLElement | null>;
 }) {
   const candidateHeadings = useMemo(
     () => headings.filter((heading) => heading.level >= 2 && heading.level <= 4),
@@ -135,6 +137,17 @@ export function OnThisPage({
 
     recompute();
 
+    const contentRoot = contentRootRef?.current;
+    const observer = contentRoot ? new MutationObserver(scheduleRecompute) : null;
+    if (observer && contentRoot) {
+      observer.observe(contentRoot, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ["hidden", "aria-hidden"],
+      });
+    }
+
     window.addEventListener("sbm-tab-group-change", scheduleRecompute);
     window.addEventListener("sbm-docs-content-change", scheduleRecompute);
     window.addEventListener("resize", scheduleRecompute);
@@ -142,12 +155,13 @@ export function OnThisPage({
 
     return () => {
       if (frameId) window.cancelAnimationFrame(frameId);
+      observer?.disconnect();
       window.removeEventListener("sbm-tab-group-change", scheduleRecompute);
       window.removeEventListener("sbm-docs-content-change", scheduleRecompute);
       window.removeEventListener("resize", scheduleRecompute);
       window.removeEventListener("hashchange", scheduleRecompute);
     };
-  }, [candidateHeadings]);
+  }, [candidateHeadings, contentRootRef]);
 
   const filteredHeadings = useMemo(() => {
     if (!renderedIds) return candidateHeadings;

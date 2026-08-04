@@ -7,6 +7,7 @@ import {
   ExternalLink,
   FolderGit2,
   RefreshCcw,
+  UserPen,
   UserRound,
 } from "lucide-react";
 import {
@@ -42,6 +43,27 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   day: "numeric",
   year: "numeric",
 });
+
+function AuthorRoleIcon({
+  role,
+  icon,
+}: {
+  role: "Author" | "Collaborator" | "Caretaker";
+  icon: ReactNode;
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-flex items-center" aria-label={role}>
+            {icon}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top">{role}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 function DetailRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
@@ -150,7 +172,10 @@ export function RegistryDetailSidebar({
       <SidebarSection title="Authors">
         <div className="space-y-0.5" style={authorLinkAccentVars}>
           <div className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground">
-            <UserStar className="size-4.5 text-foreground" aria-hidden={true} />
+            <AuthorRoleIcon
+              role="Author"
+              icon={<UserStar className="size-4.5 text-foreground" aria-hidden={true} />}
+            />
             <span className="inline-flex items-center gap-1.5">
               {detail.authorId ? (
                 <Link
@@ -174,7 +199,17 @@ export function RegistryDetailSidebar({
               key={collaborator.authorId}
               className="flex items-center gap-2 rounded-lg px-1 py-1.5 text-base font-medium text-foreground"
             >
-              <UserRound className="size-4.5 text-foreground" aria-hidden={true} />
+              {collaborator.isActiveCaretaker ? (
+                <AuthorRoleIcon
+                  role="Caretaker"
+                  icon={<UserPen className="size-4.5 text-foreground" aria-hidden={true} />}
+                />
+              ) : (
+                <AuthorRoleIcon
+                  role="Collaborator"
+                  icon={<UserRound className="size-4.5 text-foreground" aria-hidden={true} />}
+                />
+              )}
               <Link
                 to={`/registry/authors/${encodeURIComponent(collaborator.authorId)}`}
                 className="underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--registry-author-accent-light)] hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-light)_62%,transparent)] dark:hover:text-[var(--registry-author-accent-dark)] dark:hover:decoration-[color-mix(in_srgb,var(--registry-author-accent-dark)_62%,transparent)]"

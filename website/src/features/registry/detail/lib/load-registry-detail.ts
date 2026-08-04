@@ -12,6 +12,7 @@ import type {
   RegistryDetailDownloadHistoryPoint,
   RegistryDetailDownloadTrend,
   RegistryDetailLoadedData,
+  RegistryDetailVersionDailySeries,
 } from "@/features/registry/detail/registry-detail-types";
 
 type RawManifest = {
@@ -35,6 +36,7 @@ type RawManifest = {
     url?: string;
   };
   collaborators?: unknown[];
+  caretakers?: unknown[];
   deprecation?: {
     since?: string;
     by_github_id?: number;
@@ -215,6 +217,25 @@ function resolveListingDownloadDailyData(
 
 function getListingTypeForAnalytics(typeId: string): "map" | "mod" {
   return typeId === "maps" ? "map" : "mod";
+}
+
+// Per-version rows arrive semver-sorted from the registry CSV. Histories are
+// left untrimmed so every version shares the same date axis; the analytics tab
+// aligns them to the listing's own (trimmed) history window.
+function resolveListingVersionDailySeries(
+  id: string,
+  typeId: string,
+  versionRows: Array<Record<string, string>>,
+): RegistryDetailVersionDailySeries[] {
+  const listingType = getListingTypeForAnalytics(typeId);
+  return versionRows
+    .filter((row) => row["listing_type"] === listingType && row["id"] === id)
+    .map((row) => ({
+      version: row["version"] ?? "",
+      totalDownloads: Number(row["total_downloads"]) || 0,
+      history: extractDailyDownloadHistory(row),
+    }))
+    .filter((entry) => entry.version !== "" && entry.totalDownloads > 0);
 }
 
 function resolveListingDailyDownloadTrend(
@@ -429,6 +450,36 @@ function resolveAuthorHref(authorId: string | null, authorsIndex: RawAuthorsInde
   return entry?.attribution_link?.trim() || null;
 }
 
+/**
+ * Resolves the github id of a listing's ACTIVE caretaker: the `caretakers`
+ * history entry without an `until` timestamp. Closed windows (entries with
+ * `until`) never yield an active caretaker.
+ */
+export function resolveActiveCaretakerGithubId(caretakers: unknown): number | null {
+  if (!Array.isArray(caretakers)) {
+    return null;
+  }
+
+  for (let index = caretakers.length - 1; index >= 0; index -= 1) {
+    const entry = caretakers[index];
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+
+    const { github_id: githubIdValue, until } = entry as { github_id?: unknown; until?: unknown };
+    if (typeof until === "string" && until.trim()) {
+      continue;
+    }
+
+    const githubId = toGithubId(githubIdValue);
+    if (githubId !== null) {
+      return githubId;
+    }
+  }
+
+  return null;
+}
+
 function resolveCollaborators(
   manifest: RawManifest,
   authorsIndex: RawAuthorsIndex,
@@ -438,6 +489,8 @@ function resolveCollaborators(
   if (collaboratorIds.length === 0) {
     return [];
   }
+
+  const activeCaretakerGithubId = resolveActiveCaretakerGithubId(manifest.caretakers);
 
   const authorByGithubId = new Map<number, { authorId: string; authorLabel: string }>();
   for (const author of authorsIndex.authors ?? []) {
@@ -476,7 +529,10 @@ function resolveCollaborators(
     }
 
     seenAuthorIds.add(normalizedAuthorId);
-    result.push(matchedAuthor);
+    result.push({
+      ...matchedAuthor,
+      isActiveCaretaker: activeCaretakerGithubId !== null && githubId === activeCaretakerGithubId,
+    });
   }
 
   return result;
@@ -603,6 +659,7 @@ export async function loadRegistryDetail(
     downloadsRaw,
     authorsRaw,
     dailyAnalyticsRaw,
+    versionAnalyticsRaw,
     trend1dRaw,
     trend3dRaw,
     trend7dRaw,
@@ -613,6 +670,7 @@ export async function loadRegistryDetail(
     safeFetchText(`${baseUrl}/downloads.json`),
     safeFetchText(getRegistryAuthorsIndexPath()),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
+    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/asset_versions_by_day.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_1d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_3d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_7d.csv`),
@@ -684,6 +742,11 @@ export async function loadRegistryDetail(
     },
     downloadAnalytics,
     downloadHistory: dailyDownloads.history,
+    versionDownloadHistory: resolveListingVersionDailySeries(
+      id,
+      typeConfig.id,
+      resolveDailyDownloadRows(versionAnalyticsRaw),
+    ),
     downloadTrends,
     mapRankings,
     manifest,

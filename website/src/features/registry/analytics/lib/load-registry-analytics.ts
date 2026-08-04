@@ -1,8 +1,14 @@
 import { loadCreatorDatabaseData } from "@/features/registry/authors/lib/load-creator-database";
+import { buildRegistryCountrySearchValues } from "@/features/registry/lib/registry-search";
+import { ADMIN_AUTHOR_ID } from "@/features/registry/lib/credited-downloads";
+import {
+  buildAuthorDailyDownloadSeries,
+  buildListingCreditWindows,
+} from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
-export type RegistryAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d";
+export type RegistryAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d" | "30d";
 export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
 
 export type RegistryAnalyticsHistoryPoint = {
@@ -22,6 +28,12 @@ export type RegistryAnalyticsHistoryPoint = {
     maps: number;
     mods: number;
   };
+  /** Listings deprecated on this date (manifest deprecation.since). */
+  deprecations: {
+    total: number;
+    maps: number;
+    mods: number;
+  };
 };
 
 export type RegistryAnalyticsAuthorHistoryPoint = {
@@ -29,14 +41,34 @@ export type RegistryAnalyticsAuthorHistoryPoint = {
   authors: number;
 };
 
+export type RegistryAnalyticsEntityDailySeries = {
+  /** Ascending date universe (YYYY-MM-DD) of the daily analytics window. */
+  dates: string[];
+  /** One daily series per charted entity (author, listing, project, ...). */
+  entities: Array<{
+    id: string;
+    name: string;
+    byDate: Map<string, { maps: number; mods: number }>;
+    /** Fixed color for synthetic categories (e.g. "No Project"); palette otherwise. */
+    color?: string;
+    /** Synthetic catch-all categories don't count toward the series-count floor. */
+    synthetic?: boolean;
+    /** Vocabulary for filter-by-search, mirroring the tab's rankings search. */
+    searchValues?: string[];
+  }>;
+};
+
 export type RegistryAnalyticsAuthorRanking = {
   id: string;
   name: string;
   href: string;
   downloads: number;
-  maps: number;
-  mods: number;
-  assets: number;
+  /** Assets this person authors (their own listings). */
+  authored: number;
+  /** Assets where this person is a plain collaborator (caretaken excluded). */
+  collaborator: number;
+  /** Assets this person caretakes. */
+  caretaker: number;
 };
 
 export type RegistryAnalyticsProjectRanking = {
@@ -88,9 +120,25 @@ export type RegistryAnalyticsData = {
   authors: {
     history: RegistryAnalyticsAuthorHistoryPoint[];
     rankings: RegistryAnalyticsAuthorRanking[];
+    /** Per-author (day-grain credit-attributed, admin excluded). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
+  };
+  listings: {
+    /** Per-listing. */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
+  };
+  countries: {
+    /** Per-country, aggregated over the country's listings (country-less listings excluded). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
+  };
+  regions: {
+    /** Per registry location tag (manifest `location`, derived from country). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
   };
   projects: {
     rankings: RegistryAnalyticsProjectRanking[];
+    /** Per-project (multi-asset projects only, matching the rankings). */
+    dailyDownloads: RegistryAnalyticsEntityDailySeries;
   };
   mapStatistics: {
     rankings: RegistryAnalyticsMapStatisticRanking[];
@@ -119,6 +167,7 @@ const RANKING_URLS = {
   "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
   "3d": "/registry-cache/analytics/most_popular_last_3d.csv",
   "7d": "/registry-cache/analytics/most_popular_last_7d.csv",
+  "30d": "/registry-cache/analytics/most_popular_last_30d.csv",
 } as const;
 
 function safeFetchText(url: string): Promise<string> {
@@ -205,6 +254,14 @@ function getPublishedDate(item: RegistryAnalyticsItem): string | null {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
+function getDeprecationDate(item: RegistryAnalyticsItem): string | null {
+  const manifest = item.manifest as { deprecation?: { since?: string } };
+  const since = manifest?.deprecation?.since;
+  if (typeof since !== "string") return null;
+  const date = since.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+}
+
 function getFirstActivityDate(row: CsvRow, dateHeaders: string[]): string | null {
   for (const dateHeader of dateHeaders) {
     if (getNumber(row[dateHeader]) > 0) {
@@ -237,24 +294,32 @@ function normalizeHistory(
   const validItemsById = buildValidItemsById(items);
   const downloadsByDate = new Map<
     string,
-    Pick<RegistryAnalyticsHistoryPoint, "downloads" | "listings">
+    Pick<RegistryAnalyticsHistoryPoint, "downloads" | "listings" | "deprecations">
   >();
 
   for (const dateHeader of dateHeaders) {
     downloadsByDate.set(normalizeDate(dateHeader), {
       downloads: { total: 0, maps: 0, mods: 0 },
       listings: { total: 0, maps: 0, mods: 0 },
+      deprecations: { total: 0, maps: 0, mods: 0 },
     });
   }
 
   for (const item of items) {
+    const typeKey = item.type === "maps" ? "maps" : "mods";
     const publishedDate = getPublishedDate(item);
     const day = publishedDate ? downloadsByDate.get(publishedDate) : undefined;
-    if (!day) continue;
+    if (day) {
+      day.listings.total += 1;
+      day.listings[typeKey] += 1;
+    }
 
-    const typeKey = item.type === "maps" ? "maps" : "mods";
-    day.listings.total += 1;
-    day.listings[typeKey] += 1;
+    const deprecationDate = getDeprecationDate(item);
+    const deprecationDay = deprecationDate ? downloadsByDate.get(deprecationDate) : undefined;
+    if (deprecationDay) {
+      deprecationDay.deprecations.total += 1;
+      deprecationDay.deprecations[typeKey] += 1;
+    }
   }
 
   for (const row of rows) {
@@ -292,6 +357,7 @@ function normalizeHistory(
           mods: cumulativeMods,
         },
         listings: day.listings,
+        deprecations: day.deprecations,
       };
     })
     .sort((left, right) => left.date.localeCompare(right.date));
@@ -332,18 +398,211 @@ function buildAuthorHistory(
   });
 }
 
+/** One daily series per listing, straight from the by-day rows (no attribution). */
+function buildListingDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entities: RegistryAnalyticsEntityDailySeries["entities"] = [];
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    const isMap = item.type === "maps";
+    const byDate = new Map<string, { maps: number; mods: number }>();
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      byDate.set(normalizeDate(dateHeader), {
+        maps: isMap ? downloads : 0,
+        mods: isMap ? 0 : downloads,
+      });
+    }
+    if (byDate.size > 0) {
+      entities.push({
+        id: item.id,
+        name: row.name?.trim() || item.name || item.id,
+        byDate,
+        searchValues: [
+          item.name,
+          item.id,
+          item.author ?? "",
+          item.authorId ?? "",
+          item.countryCode ?? "",
+          item.countryName ?? "",
+          ...buildRegistryCountrySearchValues(item.countryCode ?? ""),
+          ...(item.searchAliases ?? []),
+        ],
+      });
+    }
+  }
+
+  return { dates, entities };
+}
+
+/**
+ * One daily series per country, aggregated over that country's listings.
+ * Listings without a country (mods today; any future country-less asset type)
+ * are excluded rather than bucketed, so the chart stays a geography view.
+ */
+function buildCountryDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entitiesById = new Map<string, RegistryAnalyticsEntityDailySeries["entities"][number]>();
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    const countryCode = item?.countryCode?.trim().toUpperCase();
+    if (!item || !countryCode) continue;
+    const isMap = item.type === "maps";
+
+    const entity = entitiesById.get(countryCode) ?? {
+      id: countryCode,
+      name: item.countryName?.trim() || countryCode,
+      byDate: new Map<string, { maps: number; mods: number }>(),
+      searchValues: [
+        item.countryName ?? "",
+        countryCode,
+        ...buildRegistryCountrySearchValues(countryCode),
+      ],
+    };
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      const date = normalizeDate(dateHeader);
+      const current = entity.byDate.get(date) ?? { maps: 0, mods: 0 };
+      if (isMap) current.maps += downloads;
+      else current.mods += downloads;
+      entity.byDate.set(date, current);
+    }
+    entitiesById.set(countryCode, entity);
+  }
+
+  return { dates, entities: [...entitiesById.values()] };
+}
+
+/** "north-america" -> "North America", "very-high" -> "Very High". */
+function titleCaseSlug(slug: string): string {
+  return slug
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+type EntityGroup = { id: string; name: string; color?: string };
+
+/** Generic daily-series builder grouping listings by an item-derived key. */
+function buildGroupedDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+  getGroup: (item: RegistryAnalyticsItem) => EntityGroup | null,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entitiesById = new Map<string, RegistryAnalyticsEntityDailySeries["entities"][number]>();
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    const group = getGroup(item);
+    if (!group) continue;
+    const isMap = item.type === "maps";
+
+    const entity = entitiesById.get(group.id) ?? {
+      id: group.id,
+      name: group.name,
+      byDate: new Map<string, { maps: number; mods: number }>(),
+      ...(group.color ? { color: group.color } : {}),
+    };
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      const date = normalizeDate(dateHeader);
+      const current = entity.byDate.get(date) ?? { maps: 0, mods: 0 };
+      if (isMap) current.maps += downloads;
+      else current.mods += downloads;
+      entity.byDate.set(date, current);
+    }
+    entitiesById.set(group.id, entity);
+  }
+
+  return { dates, entities: [...entitiesById.values()] };
+}
+
+function getItemLocation(item: RegistryAnalyticsItem): string {
+  const manifest = item.manifest as { location?: string };
+  return manifest.location?.trim().toLowerCase() ?? "";
+}
+
+/** Distinct slate for the synthetic "No Project" series (Others stays lighter grey). */
+const NO_PROJECT_SERIES_COLOR = "#64748b";
+const NO_PROJECT_SERIES_ID = "__no_project__";
+
+/**
+ * One daily series per project, aggregated over the project's listings.
+ * Projects match the tab's definition (multi-asset); every listing outside
+ * one — including single-asset repos — rolls into a synthetic "No Project"
+ * series so the chart still accounts for the whole registry.
+ */
+function buildProjectDailySeries(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+  projectMetaById: Map<string, { name: string; searchValues: string[] }>,
+): RegistryAnalyticsEntityDailySeries {
+  const dateHeaders = getDateHeaders(rows);
+  const dates = dateHeaders.map(normalizeDate).sort((left, right) => left.localeCompare(right));
+  const entitiesById = new Map<string, RegistryAnalyticsEntityDailySeries["entities"][number]>();
+
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    const projectId = item.projectId?.trim().toLowerCase();
+    const projectMeta = projectId ? projectMetaById.get(projectId) : undefined;
+    const isProjectListing = Boolean(projectId && projectMeta);
+    const isMap = item.type === "maps";
+
+    const entity = entitiesById.get(isProjectListing ? projectId! : NO_PROJECT_SERIES_ID) ?? {
+      id: isProjectListing ? projectId! : NO_PROJECT_SERIES_ID,
+      name: isProjectListing ? projectMeta!.name : "No Project",
+      byDate: new Map<string, { maps: number; mods: number }>(),
+      ...(isProjectListing
+        ? { searchValues: projectMeta!.searchValues }
+        : { color: NO_PROJECT_SERIES_COLOR, synthetic: true, searchValues: ["No Project"] }),
+    };
+    for (const dateHeader of dateHeaders) {
+      const downloads = getNumber(row[dateHeader]);
+      if (downloads <= 0) continue;
+      const date = normalizeDate(dateHeader);
+      const current = entity.byDate.get(date) ?? { maps: 0, mods: 0 };
+      if (isMap) current.maps += downloads;
+      else current.mods += downloads;
+      entity.byDate.set(date, current);
+    }
+    entitiesById.set(entity.id, entity);
+  }
+
+  return { dates, entities: [...entitiesById.values()] };
+}
+
 function buildAuthorRankings(
   authors: Awaited<ReturnType<typeof loadCreatorDatabaseData>>["authors"],
 ): RegistryAnalyticsAuthorRanking[] {
   return authors
+    .filter((author) => author.downloads > 0)
     .map((author) => ({
       id: author.id,
       name: author.label,
       href: author.href,
       downloads: author.downloads,
-      maps: author.maps,
-      mods: author.mods,
-      assets: author.assets,
+      authored: author.assets,
+      collaborator: author.collaborations,
+      caretaker: author.caretakenAssets,
     }))
     .sort((left, right) => right.downloads - left.downloads);
 }
@@ -422,6 +681,7 @@ function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
     "3d": { maps: [], mods: [] },
     "7d": { maps: [], mods: [] },
     "14d": { maps: [], mods: [] },
+    "30d": { maps: [], mods: [] },
   };
 }
 
@@ -512,6 +772,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     allTimeRaw,
     last3Raw,
     last7Raw,
+    last30Raw,
   ] = await Promise.all([
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
@@ -525,6 +786,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(RANKING_URLS["all-time"]),
     safeFetchText(RANKING_URLS["3d"]),
     safeFetchText(RANKING_URLS["7d"]),
+    safeFetchText(RANKING_URLS["30d"]),
   ]);
 
   const authorRows = parseCsv(authorDayRaw);
@@ -549,7 +811,47 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     validItemsById,
   );
   contentRankings["14d"] = buildFourteenDayRankings(byDayRows, validItemsById);
+  contentRankings["30d"] = normalizeRankingRows(
+    parseCsv(last30Raw),
+    (row) => getNumber(row.adjusted_download_change || row.download_change),
+    validItemsById,
+  );
   const history = normalizeHistory(byDayRows, allItems);
+  const itemsByTypeRecord = Object.fromEntries(
+    REGISTRY_TYPES.map((typeConfig, index) => [typeConfig.id, itemEntries[index] ?? []]),
+  );
+  const authorLoginByGithubId = new Map<number, string>();
+  for (const author of creatorData.authors) {
+    if (typeof author.githubId === "number") {
+      authorLoginByGithubId.set(author.githubId, author.id);
+    }
+  }
+  const authorDaily = buildAuthorDailyDownloadSeries({
+    dailyRows: byDayRows,
+    items: allItems,
+    creditWindowsByListing: buildListingCreditWindows(itemsByTypeRecord, authorLoginByGithubId),
+    excludedPersonIds: [ADMIN_AUTHOR_ID],
+  });
+  const authorLabelById = new Map(
+    creatorData.authors.map((author) => [author.id.trim().toLowerCase(), author.label]),
+  );
+  const authorDailyDownloads: RegistryAnalyticsEntityDailySeries = {
+    dates: authorDaily.dates,
+    entities: authorDaily.authors.map((series) => ({
+      id: series.id,
+      name: authorLabelById.get(series.id) ?? series.id,
+      byDate: series.byDate,
+    })),
+  };
+  const projectMetaById = new Map(
+    creatorData.projects.map((project) => [
+      project.id.trim().toLowerCase(),
+      {
+        name: project.name,
+        searchValues: [project.name, project.id, project.authorLabel, project.authorId],
+      },
+    ]),
+  );
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
   const validMapIds = new Set(maps.map((item) => item.id));
@@ -576,9 +878,23 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     authors: {
       history: buildAuthorHistory(authorRows, allItems),
       rankings: buildAuthorRankings(creatorData.authors),
+      dailyDownloads: authorDailyDownloads,
+    },
+    listings: {
+      dailyDownloads: buildListingDailySeries(byDayRows, validItemsById),
+    },
+    countries: {
+      dailyDownloads: buildCountryDailySeries(byDayRows, validItemsById),
+    },
+    regions: {
+      dailyDownloads: buildGroupedDailySeries(byDayRows, validItemsById, (item) => {
+        const location = getItemLocation(item);
+        return location ? { id: location, name: titleCaseSlug(location) } : null;
+      }),
     },
     projects: {
       rankings: buildProjectRankings(creatorData.projects),
+      dailyDownloads: buildProjectDailySeries(byDayRows, validItemsById, projectMetaById),
     },
     mapStatistics: {
       rankings: buildMapStatisticRankings(

@@ -85,7 +85,7 @@ const BASE: RegistryDetailLoadedData = {
     "0.9.0": 4,
   },
   authorAttributionHref: "https://example.test/author-a",
-  collaborators: [{ authorId: "author-b", authorLabel: "Author B" }],
+  collaborators: [{ authorId: "author-b", authorLabel: "Author B", isActiveCaretaker: false }],
   projectId: null,
   downloadAnalytics: {
     rank: 3,

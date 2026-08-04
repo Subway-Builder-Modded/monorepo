@@ -16,6 +16,18 @@ As implied in the [Publishing Content guide](/registry/docs/publishing-content),
 
 To update an asset when using GitHub releases, simply create a new release with a higher version number than the currently published release. The Registry will automatically pull the new release and update your content. Make sure to follow the same specifications as before when uploading your asset (e.g. ZIP file structure, semantic versioning format, etc.).
 
+:::important
+
+Every new release must include a `manifest.json` asset declaring a valid `subway-builder` dependency range, exactly like the original submission — a release without one fails the integrity check and will be neither installable nor counted. See [Manifest Requirements](/registry/docs/manifest-requirements).
+
+:::
+
+:::tip
+
+Game compatibility of _already-published versions_ can also be changed — for example, capping every version before the latest at an older game version — by replacing their release's `manifest.json` asset in place. See [Changing compatibility retroactively](/registry/docs/manifest-requirements#retroactive).
+
+:::
+
 ---
 
 ## Custom URL {#custom-url}

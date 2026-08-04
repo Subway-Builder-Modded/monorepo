@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -9,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import type { LineConfig, ChartMargin, MultiSeriesPoint } from "./chart-types";
+import { AnalyticsChartLegend, toggleLegendKey } from "./chart-legend";
 import { AnalyticsTooltip, type AnalyticsTooltipPayload } from "./chart-tooltip";
 import {
   CHART_AXIS_LINE_COLOR,
@@ -16,11 +18,12 @@ import {
   CHART_FONT_SIZE,
   CHART_GRID_STROKE,
   DEFAULT_CHART_MARGIN,
-  createCategoryTicks,
+  createFittedCategoryTicks,
   createLineChartTicks,
   formatXAxisLabel,
   formatYAxisTick,
 } from "./chart-theme";
+import { useContainerWidth } from "./use-container-width";
 
 export type AnalyticsLineChartProps = {
   data: MultiSeriesPoint[];
@@ -35,54 +38,14 @@ export type AnalyticsLineChartProps = {
 
 type RangeBandPoint = Record<string, string | number | [number, number]>;
 
-function AnalyticsLineLegend({ lines }: { lines: LineConfig[] }) {
-  if (lines.length <= 1) return null;
+type ResolvedLine = LineConfig & { resolvedColor: string };
 
-  return (
-    <ul
-      style={{
-        alignItems: "center",
-        color: "hsl(var(--foreground))",
-        columnGap: "0.7rem",
-        display: "flex",
-        flexWrap: "wrap",
-        fontSize: CHART_FONT_SIZE,
-        justifyContent: "center",
-        listStyle: "none",
-        margin: "0.75rem 0 0",
-        padding: 0,
-        rowGap: "0.5rem",
-      }}
-    >
-      {lines.map((line, index) => {
-        const color = line.color ?? `var(--chart-${index + 1}, var(--accent))`;
-        return (
-          <li
-            key={line.key}
-            style={{
-              alignItems: "center",
-              display: "inline-flex",
-              gap: "0.35rem",
-              lineHeight: 1,
-            }}
-          >
-            <span
-              style={{
-                backgroundColor: color,
-                borderRadius: "9999px",
-                display: "block",
-                flexShrink: 0,
-                height: "0.5rem",
-                width: "0.5rem",
-              }}
-              aria-hidden={true}
-            />
-            <span>{line.name}</span>
-          </li>
-        );
-      })}
-    </ul>
-  );
+/** Fallback colors come from the line's ORIGINAL index so they stay stable while series are hidden. */
+function resolveLines(lines: LineConfig[]): ResolvedLine[] {
+  return lines.map((line, index) => ({
+    ...line,
+    resolvedColor: line.color ?? `var(--chart-${index + 1}, var(--accent))`,
+  }));
 }
 
 function getNumericValue(point: MultiSeriesPoint, key: string) {
@@ -127,20 +90,30 @@ export function AnalyticsLineChart({
   startAtZero = false,
   hideZeroTooltipEntries = false,
 }: AnalyticsLineChartProps) {
-  const yValues = lines.flatMap((line) =>
+  const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(new Set());
+  const { ref: containerRef, width: containerWidth } = useContainerWidth();
+  const resolvedLines = resolveLines(lines);
+  const visibleLines = resolvedLines.filter((line) => !hiddenKeys.has(line.key));
+  const yValues = visibleLines.flatMap((line) =>
     data
       .map((point) => point[line.key])
       .filter((value): value is number => typeof value === "number" && Number.isFinite(value)),
   );
   const { domain: yDomain, ticks: yTicks } = createLineChartTicks(yValues, { startAtZero });
-  const xTicks = xAxisTicks ?? createCategoryTicks(data.map((point) => point[xAxisKey]), 8);
-  const isMultiSeries = lines.length > 1;
+  const xTicks = xAxisTicks
+    ? createFittedCategoryTicks(xAxisTicks, containerWidth)
+    : createFittedCategoryTicks(
+        data.map((point) => point[xAxisKey]),
+        containerWidth,
+        { cap: 8 },
+      );
+  const isMultiSeries = visibleLines.length > 1;
   const gradientStartOpacity = isMultiSeries ? 0.16 : 0.25;
   const gradientEndOpacity = isMultiSeries ? 0.025 : 0.025;
-  const chartData = isMultiSeries ? buildRangeBandData(data, lines) : data;
+  const chartData = isMultiSeries ? buildRangeBandData(data, visibleLines) : data;
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={containerRef}>
       <ResponsiveContainer width="100%" height={height}>
         <ComposedChart
           data={chartData}
@@ -148,22 +121,23 @@ export function AnalyticsLineChart({
           style={{ color: "hsl(var(--muted-foreground))" }}
         >
           <defs>
-            {lines.map((line, index) => {
-              const color = line.color ?? `var(--chart-${index + 1}, var(--accent))`;
-              return (
-                <linearGradient
-                  key={line.key}
-                  id={`analytics-line-gradient-${line.key}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="5%" stopColor={color} stopOpacity={gradientStartOpacity} />
-                  <stop offset="95%" stopColor={color} stopOpacity={gradientEndOpacity} />
-                </linearGradient>
-              );
-            })}
+            {resolvedLines.map((line) => (
+              <linearGradient
+                key={line.key}
+                id={`analytics-line-gradient-${line.key}`}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="5%"
+                  stopColor={line.resolvedColor}
+                  stopOpacity={gradientStartOpacity}
+                />
+                <stop offset="95%" stopColor={line.resolvedColor} stopOpacity={gradientEndOpacity} />
+              </linearGradient>
+            ))}
           </defs>
           <CartesianGrid
             strokeDasharray="3 3"
@@ -205,8 +179,7 @@ export function AnalyticsLineChart({
             )}
           />
           {isMultiSeries
-            ? lines.map((line, index) => {
-                const color = line.color ?? `var(--chart-${index + 1}, var(--accent))`;
+            ? visibleLines.map((line) => {
                 const bandKey = getBandKey(line.key);
                 return (
                   <Area
@@ -227,18 +200,17 @@ export function AnalyticsLineChart({
                 );
               })
             : null}
-          {lines.map((line, index) => {
-            const color = line.color ?? `var(--chart-${index + 1}, var(--accent))`;
-            return isMultiSeries ? (
+          {visibleLines.map((line) =>
+            isMultiSeries ? (
               <Line
                 key={line.key}
                 type="monotone"
                 dataKey={line.key}
                 name={line.name}
-                stroke={color}
+                stroke={line.resolvedColor}
                 strokeWidth={2}
                 dot={false}
-                activeDot={{ r: 4, strokeWidth: 0, fill: color }}
+                activeDot={{ r: 4, strokeWidth: 0, fill: line.resolvedColor }}
                 isAnimationActive={true}
                 animationDuration={700}
                 animationEasing="ease-out"
@@ -249,20 +221,31 @@ export function AnalyticsLineChart({
                 type="monotone"
                 dataKey={line.key}
                 name={line.name}
-                stroke={color}
+                stroke={line.resolvedColor}
                 strokeWidth={2}
                 fill={`url(#analytics-line-gradient-${line.key})`}
                 dot={false}
-                activeDot={{ r: 4, strokeWidth: 0, fill: color }}
+                activeDot={{ r: 4, strokeWidth: 0, fill: line.resolvedColor }}
                 isAnimationActive={true}
                 animationDuration={700}
                 animationEasing="ease-out"
               />
-            );
-          })}
+            ),
+          )}
         </ComposedChart>
       </ResponsiveContainer>
-      <AnalyticsLineLegend lines={lines} />
+      <AnalyticsChartLegend
+        entries={resolvedLines.map((line) => ({
+          key: line.key,
+          name: line.name,
+          color: line.resolvedColor,
+        }))}
+        hiddenKeys={hiddenKeys}
+        onToggle={(key) =>
+          setHiddenKeys((current) => toggleLegendKey(current, key, resolvedLines.length))
+        }
+        columnGap="0.7rem"
+      />
     </div>
   );
 }

@@ -253,6 +253,56 @@ const MODEL: CommunityPageModel = {
         latestServerDataDate: "2026-04-26",
       },
     },
+    "30d": {
+      period: "30d",
+      fromDate: "2026-03-28",
+      throughDate: "2026-04-26",
+      points: [
+        {
+          date: "2026-04-20",
+          totalUsers: 560,
+          messagesCreated: 14,
+          publicMessagesCreated: 4,
+          privateMessagesCreated: 10,
+        },
+        {
+          date: "2026-04-26",
+          totalUsers: 574,
+          messagesCreated: 0,
+          publicMessagesCreated: 0,
+          privateMessagesCreated: 0,
+        },
+      ],
+      previousDayDeltaUsers: 0,
+      summary: {
+        membersNow: 574,
+        netGrowth: 16,
+        joined: 21,
+        left: 5,
+        messagesCreated: 41,
+        publicMessagesCreated: 15,
+        privateMessagesCreated: 26,
+        lowActivity: false,
+        splitLabel: "period split",
+        splitPublic: 15,
+        splitPrivate: 26,
+      },
+      contributors: {
+        status: "limited",
+        contributors: [
+          {
+            userName: "Signal",
+            totalMessages: 10,
+            publicMessages: 2,
+            privateMessages: 8,
+          },
+        ],
+        summary:
+          "Contributor activity is cached through 2026-04-23. Server growth metrics are current through 2026-04-26.",
+        latestUserDataDate: "2026-04-23",
+        latestServerDataDate: "2026-04-26",
+      },
+    },
   },
   allTime: {
     currentMembers: 574,

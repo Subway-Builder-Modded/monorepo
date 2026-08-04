@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { loadRegistryDetail } from "@/features/registry/detail/lib/load-registry-detail";
+import {
+  loadRegistryDetail,
+  resolveActiveCaretakerGithubId,
+} from "@/features/registry/detail/lib/load-registry-detail";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 
@@ -217,5 +220,155 @@ describe("loadRegistryDetail", () => {
       { period: "7d", label: "Last 7 Days", downloads: 12, rank: 1 },
       { period: "14d", label: "Last 14 Days", downloads: 12, rank: 1 },
     ]);
+  });
+
+  it("loads per-version daily download series, dropping zero-total versions", async () => {
+    const id = "akron-oh";
+    const manifest = { name: "Akron" };
+
+    mockRegistryItems(makeItem(id, manifest));
+    mockFetchWithMap({
+      [`/registry-cache/maps/${id}/manifest.json`]: JSON.stringify(manifest),
+      "/registry-cache/maps/integrity.json": JSON.stringify({
+        listings: { [id]: { versions: {} } },
+      }),
+      "/registry-cache/maps/downloads.json": JSON.stringify({}),
+      "/registry-cache/authors/index.json": JSON.stringify({ authors: [] }),
+      "/registry-cache/analytics/most_popular_by_day.csv":
+        "id,listing_type,2026_01_01,2026_01_02,2026_01_03\nakron-oh,map,0,5,7\n",
+      "/registry-cache/analytics/asset_versions_by_day.csv": [
+        "listing_type,id,version,total_downloads,2026_01_01,2026_01_02,2026_01_03",
+        "map,akron-oh,1.0.0,9,0,5,4",
+        "map,akron-oh,1.1.0,3,0,0,3",
+        "map,akron-oh,0.9.0,0,0,0,0",
+        "map,other-map,1.0.0,8,0,4,4",
+        "mod,akron-oh,1.0.0,6,0,3,3",
+        "",
+      ].join("\n"),
+      "/registry-cache/github-releases-cache.json": JSON.stringify({}),
+    });
+
+    const detail = await loadRegistryDetail("maps", id);
+
+    expect(detail?.versionDownloadHistory).toEqual([
+      {
+        version: "1.0.0",
+        totalDownloads: 9,
+        history: [
+          { date: "2026-01-02", downloads: 5 },
+          { date: "2026-01-03", downloads: 4 },
+        ],
+      },
+      {
+        version: "1.1.0",
+        totalDownloads: 3,
+        history: [
+          { date: "2026-01-02", downloads: 0 },
+          { date: "2026-01-03", downloads: 3 },
+        ],
+      },
+    ]);
+  });
+
+  it("marks the active caretaker among resolved collaborators", async () => {
+    const id = "opo-pt-metropolitan";
+    const manifest = {
+      name: "Porto",
+      collaborators: [111, 222],
+      caretakers: [
+        { github_id: 111, since: "2026-01-01T00:00:00Z", until: "2026-05-31T23:59:59Z" },
+        { github_id: 222, since: "2026-06-01T00:00:00Z" },
+      ],
+    };
+
+    mockRegistryItems(makeItem(id, manifest));
+    mockFetchWithMap({
+      [`/registry-cache/maps/${id}/manifest.json`]: JSON.stringify(manifest),
+      "/registry-cache/maps/integrity.json": JSON.stringify({ listings: { [id]: {} } }),
+      "/registry-cache/maps/downloads.json": JSON.stringify({}),
+      "/registry-cache/authors/index.json": JSON.stringify({
+        authors: [
+          { github_id: 111, author_id: "closed-window-collab" },
+          { github_id: 222, author_id: "active-caretaker" },
+        ],
+      }),
+      "/registry-cache/analytics/most_popular_by_day.csv": "id,total\n",
+      "/registry-cache/github-releases-cache.json": JSON.stringify({}),
+    });
+
+    const detail = await loadRegistryDetail("maps", id);
+
+    expect(detail?.collaborators).toEqual([
+      {
+        authorId: "closed-window-collab",
+        authorLabel: "closed-window-collab",
+        isActiveCaretaker: false,
+      },
+      { authorId: "active-caretaker", authorLabel: "active-caretaker", isActiveCaretaker: true },
+    ]);
+  });
+
+  it("resolves no active caretaker when every caretaker window is closed", async () => {
+    const id = "opo-pt-metropolitan";
+    const manifest = {
+      name: "Porto",
+      collaborators: [111],
+      caretakers: [
+        { github_id: 111, since: "2026-01-01T00:00:00Z", until: "2026-05-31T23:59:59Z" },
+      ],
+    };
+
+    mockRegistryItems(makeItem(id, manifest));
+    mockFetchWithMap({
+      [`/registry-cache/maps/${id}/manifest.json`]: JSON.stringify(manifest),
+      "/registry-cache/maps/integrity.json": JSON.stringify({ listings: { [id]: {} } }),
+      "/registry-cache/maps/downloads.json": JSON.stringify({}),
+      "/registry-cache/authors/index.json": JSON.stringify({
+        authors: [{ github_id: 111, author_id: "former-caretaker" }],
+      }),
+      "/registry-cache/analytics/most_popular_by_day.csv": "id,total\n",
+      "/registry-cache/github-releases-cache.json": JSON.stringify({}),
+    });
+
+    const detail = await loadRegistryDetail("maps", id);
+
+    expect(detail?.collaborators).toEqual([
+      { authorId: "former-caretaker", authorLabel: "former-caretaker", isActiveCaretaker: false },
+    ]);
+  });
+});
+
+describe("resolveActiveCaretakerGithubId", () => {
+  it("returns the github id of the entry without an until timestamp", () => {
+    expect(
+      resolveActiveCaretakerGithubId([
+        { github_id: 111, since: "2026-01-01T00:00:00Z", until: "2026-05-31T23:59:59Z" },
+        { github_id: 222, since: "2026-06-01T00:00:00Z" },
+      ]),
+    ).toBe(222);
+  });
+
+  it("returns null when all windows are closed", () => {
+    expect(
+      resolveActiveCaretakerGithubId([
+        { github_id: 111, since: "2026-01-01T00:00:00Z", until: "2026-05-31T23:59:59Z" },
+      ]),
+    ).toBeNull();
+  });
+
+  it("accepts string github ids and ignores malformed entries", () => {
+    expect(
+      resolveActiveCaretakerGithubId([
+        null,
+        "not-an-object",
+        { github_id: "333", since: "2026-06-01" },
+      ]),
+    ).toBe(333);
+  });
+
+  it("returns null for missing or non-array caretakers", () => {
+    expect(resolveActiveCaretakerGithubId(undefined)).toBeNull();
+    expect(resolveActiveCaretakerGithubId([])).toBeNull();
+    expect(resolveActiveCaretakerGithubId({})).toBeNull();
   });
 });

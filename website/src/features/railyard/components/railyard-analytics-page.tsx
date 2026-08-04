@@ -28,11 +28,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "@subway-builder-modded/shared-ui";
-import { AnalyticsLineChart } from "@subway-builder-modded/analytics";
 import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation";
+import {
+  MULTI_SERIES_PALETTE,
+  bucketMultiSeriesData,
+  getGrainLabel,
+} from "@/shared/analytics/multi-series";
+import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
+import { CHART_CARD_FLUSH_CLASS, TABLE_HEADER_ROW_CLASS } from "@/shared/styles/panels";
 import { navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
-import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { railyardDownloadOptions } from "@/features/railyard/railyard-downloads";
 import {
   DetailsMetricGrid,
@@ -104,18 +109,21 @@ const PERIOD_TAB_PATHS: Record<
     "3d": "/railyard/analytics/timeline/3d",
     "7d": "/railyard/analytics/timeline/7d",
     "14d": "/railyard/analytics/timeline/14d",
+    "30d": "/railyard/analytics/timeline/30d",
   },
   versions: {
     "all-time": "/railyard/analytics/versions/all-time",
     "3d": "/railyard/analytics/versions/3d",
     "7d": "/railyard/analytics/versions/7d",
     "14d": "/railyard/analytics/versions/14d",
+    "30d": "/railyard/analytics/versions/30d",
   },
   "operating-systems": {
     "all-time": "/railyard/analytics/operating-systems/all-time",
     "3d": "/railyard/analytics/operating-systems/3d",
     "7d": "/railyard/analytics/operating-systems/7d",
     "14d": "/railyard/analytics/operating-systems/14d",
+    "30d": "/railyard/analytics/operating-systems/30d",
   },
 };
 
@@ -124,6 +132,7 @@ const TIMELINE_PERIODS = [
   { id: "3d" as const, label: "Last 3 Days", days: 3 },
   { id: "7d" as const, label: "Last 7 Days", days: 7 },
   { id: "14d" as const, label: "Last 14 Days", days: 14 },
+  { id: "30d" as const, label: "Last 30 Days", days: 30 },
 ];
 const GRAPH_EXCLUDED_DATES = new Set(["2026-03-30"]);
 
@@ -156,15 +165,7 @@ function getNextDirection<T extends string>(
     : directions[nextKey];
 }
 
-const VERSION_GRAPH_PALETTE = [
-  getSuiteById("registry").accent.light,
-  getRegistryTypeConfigOrDefault("mods").accentLight,
-  getSuiteById("template-mod").accent.light,
-  getSuiteById("depot").accent.light,
-  getSuiteById("railyard").accent.light,
-  getRegistryTypeConfigOrDefault("maps").accentLight,
-  getSuiteById("website").accent.light,
-];
+const VERSION_GRAPH_PALETTE = MULTI_SERIES_PALETTE;
 const OPERATING_SYSTEM_LINES = [
   { id: "windows" as const, key: "Windows", label: "Windows", color: "#dc2626" },
   { id: "macos" as const, key: "macOS", label: "macOS", color: "#eab308" },
@@ -408,11 +409,14 @@ function RailyardTimelineTab({
       icon: Monitor,
     },
   ];
-  const chartData = graphRows.map((row) => ({
-    date: row.date,
-    Downloads: row.downloads,
-  }));
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const bucketed = bucketMultiSeriesData(
+    graphRows.map((row) => ({
+      date: row.date,
+      Downloads: row.downloads,
+    })),
+  );
+  const chartTicks =
+    period === "all-time" ? undefined : bucketed.data.map((point) => String(point.date));
 
   return (
     <section className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]">
@@ -429,23 +433,22 @@ function RailyardTimelineTab({
         accentLight="var(--suite-accent-light)"
         accentDark="var(--suite-accent-dark)"
       />
-      <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-        <AnalyticsLineChart
-          key={`railyard-timeline-${period}`}
-          data={chartData}
-          lines={[
-            {
-              key: "Downloads",
-              name: "Downloads",
-              color: "var(--registry-type-accent)",
-            },
-          ]}
-          xAxisKey="date"
-          xAxisTicks={chartTicks}
-          height={240}
-          startAtZero={true}
-        />
-      </article>
+      <MultiSeriesChartCard
+        title={`${getGrainLabel(bucketed.grain)} Downloads`}
+        chartKey={`railyard-timeline-${period}-${bucketed.grain}`}
+        data={bucketed.data}
+        series={[
+          {
+            key: "Downloads",
+            name: "Downloads",
+            color: "var(--registry-type-accent)",
+          },
+        ]}
+        xAxisTicks={chartTicks}
+        height={240}
+        stackId="railyard-timeline"
+        ariaLabelPrefix="Railyard downloads timeline"
+      />
     </section>
   );
 }
@@ -500,7 +503,7 @@ function RailyardVersionsBreakdown({ data }: { data: RailyardAnalyticsData }) {
   return (
     <div>
       <SectionSeparator label="Breakdown" icon={ListOrdered} className="mb-4 mt-7" />
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+      <div className={CHART_CARD_FLUSH_CLASS}>
         <ScrollArea scrollbars="horizontal" className="w-full">
           <div className="min-w-[52rem] xl:min-w-0">
             <Table>
@@ -511,7 +514,7 @@ function RailyardVersionsBreakdown({ data }: { data: RailyardAnalyticsData }) {
                 <col style={{ width: "20%" }} />
               </colgroup>
               <TableHeader>
-                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                <TableRow className={TABLE_HEADER_ROW_CLASS}>
                   <SortableTableHead
                     label="Version"
                     active={sortKey === "version"}
@@ -630,7 +633,9 @@ function RailyardVersionsTab({
     }
     return point;
   });
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const bucketed = bucketMultiSeriesData(chartData);
+  const chartTicks =
+    period === "all-time" ? undefined : bucketed.data.map((point) => String(point.date));
 
   return (
     <section className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]">
@@ -641,18 +646,15 @@ function RailyardVersionsTab({
           onChange={(nextPeriod) => navigate(PERIOD_TAB_PATHS.versions[nextPeriod])}
         />
       </div>
-      <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-        <AnalyticsLineChart
-          key={`railyard-versions-${period}`}
-          data={chartData}
-          lines={versionGraphLines}
-          xAxisKey="date"
-          xAxisTicks={chartTicks}
-          height={280}
-          startAtZero={true}
-          hideZeroTooltipEntries={true}
-        />
-      </article>
+      <MultiSeriesChartCard
+        title={`${getGrainLabel(bucketed.grain)} Downloads by Version`}
+        chartKey={`railyard-versions-${period}-${bucketed.grain}`}
+        data={bucketed.data}
+        series={versionGraphLines}
+        xAxisTicks={chartTicks}
+        stackId="versions"
+        ariaLabelPrefix="Versions chart"
+      />
       <RailyardVersionsBreakdown data={data} />
     </section>
   );
@@ -729,7 +731,7 @@ function RailyardOperatingSystemsBreakdown({ data }: { data: RailyardAnalyticsDa
   return (
     <div>
       <SectionSeparator label="Breakdown" icon={ListOrdered} className="mb-4 mt-7" />
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-card/75">
+      <div className={CHART_CARD_FLUSH_CLASS}>
         <ScrollArea scrollbars="horizontal" className="w-full">
           <div className="min-w-[76rem] xl:min-w-0">
             <Table>
@@ -742,7 +744,7 @@ function RailyardOperatingSystemsBreakdown({ data }: { data: RailyardAnalyticsDa
                 <col style={{ width: "10%" }} />
               </colgroup>
               <TableHeader>
-                <TableRow className="border-border/70 bg-muted/35 hover:bg-muted/35">
+                <TableRow className={TABLE_HEADER_ROW_CLASS}>
                   <SortableTableHead
                     label="Build"
                     active={sortKey === "build"}
@@ -859,10 +861,12 @@ function RailyardOperatingSystemsTab({
     macOS: row.operatingSystems.macos,
     Linux: row.operatingSystems.linux,
   }));
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
   const activeOsLines = OPERATING_SYSTEM_LINES.filter((line) =>
     chartData.some((point) => point[line.key] > 0),
   );
+  const bucketed = bucketMultiSeriesData(chartData);
+  const chartTicks =
+    period === "all-time" ? undefined : bucketed.data.map((point) => String(point.date));
 
   return (
     <section className="space-y-4 [--registry-type-accent:var(--suite-accent-light)] dark:[--registry-type-accent:var(--suite-accent-dark)]">
@@ -873,22 +877,21 @@ function RailyardOperatingSystemsTab({
           onChange={(nextPeriod) => navigate(PERIOD_TAB_PATHS["operating-systems"][nextPeriod])}
         />
       </div>
-      <article className="rounded-2xl border border-border/70 bg-card/75 p-4 sm:p-5">
-        <AnalyticsLineChart
-          key={`railyard-operating-systems-${period}`}
-          data={chartData}
-          lines={activeOsLines.map((line) => ({
-            key: line.key,
-            name: line.label,
-            color: line.color,
-          }))}
-          xAxisKey="date"
-          xAxisTicks={chartTicks}
-          height={280}
-          startAtZero={true}
-          hideZeroTooltipEntries={true}
-        />
-      </article>
+      <MultiSeriesChartCard
+        title={`${getGrainLabel(bucketed.grain)} Downloads by Operating System`}
+        icon={Monitor}
+        chartKey={`railyard-operating-systems-${period}-${bucketed.grain}`}
+        data={bucketed.data}
+        series={activeOsLines.map((line) => ({
+          key: line.key,
+          name: line.label,
+          color: line.color,
+        }))}
+        xAxisTicks={chartTicks}
+        height={280}
+        stackId="railyard-operating-systems"
+        ariaLabelPrefix="Operating systems chart"
+      />
       <RailyardOperatingSystemsBreakdown data={data} />
     </section>
   );

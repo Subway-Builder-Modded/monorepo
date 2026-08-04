@@ -285,7 +285,15 @@ function computeProjectHistory(
     if (!typeId || itemProjectByTypeAndId.get(`${typeId}:${id}`) !== normalizedProjectId) continue;
 
     for (const point of extractDailyDownloadHistory(row)) {
-      const current = byDate.get(point.date) ?? { date: point.date, total: 0, maps: 0, mods: 0 };
+      const current = byDate.get(point.date) ?? {
+        date: point.date,
+        total: 0,
+        maps: 0,
+        mods: 0,
+        caretakenTotal: 0,
+        caretakenMaps: 0,
+        caretakenMods: 0,
+      };
       current.total += point.downloads;
       if (typeId === "maps") current.maps += point.downloads;
       if (typeId === "mods") current.mods += point.downloads;
@@ -311,6 +319,7 @@ function computeProjectTrends(
     { period: "3d" as const, label: "Last 3 Days", days: 3 },
     { period: "7d" as const, label: "Last 7 Days", days: 7 },
     { period: "14d" as const, label: "Last 14 Days", days: 14 },
+    { period: "30d" as const, label: "Last 30 Days", days: 30 },
   ];
 
   return periods.map(({ period, label, days }) => {

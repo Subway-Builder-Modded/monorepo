@@ -13,6 +13,9 @@ import {
   Shuffle,
   Trash2,
   User,
+  UserPen,
+  UserRound,
+  UserStar,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -26,6 +29,10 @@ import { RegistryToolbarDropdown } from "@/features/registry/components/registry
 import { RegistryToolbarSearch } from "@/features/registry/components/registry-toolbar-search";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import { matchesRegistrySearch } from "@/features/registry/lib/registry-search";
+import {
+  ACCENT_NAME_LINK_CLASS,
+  EMPTY_STATE_PANEL_CLASS,
+} from "@/features/registry/lib/registry-styles";
 import {
   loadCreatorDatabaseData,
   type RegistryCreatorDatabaseAuthor,
@@ -295,7 +302,16 @@ function ProjectTypeCountPill({
   );
 }
 
-function CollaborationCountPill({ count }: { count: number }) {
+/** Person rows split by role rather than asset type: Author / Collaborator / Caretaker. */
+function RoleCountPill({
+  label,
+  icon: Icon,
+  count,
+}: {
+  label: string;
+  icon: LucideIcon;
+  count: number;
+}) {
   if (count <= 0) return null;
 
   const registrySuite = getSuiteById("registry");
@@ -311,8 +327,8 @@ function CollaborationCountPill({ count }: { count: number }) {
         } as CSSProperties
       }
     >
-      <Users className="size-3.5" aria-hidden={true} />
-      <span>Collaborations</span>
+      <Icon className="size-3.5" aria-hidden={true} />
+      <span>{label}</span>
       <span
         className="rounded border px-1.5 py-0.5 text-[11px] font-bold leading-none tabular-nums"
         style={{
@@ -362,26 +378,16 @@ function AuthorDatabaseCard({ author }: { author: RegistryCreatorDatabaseAuthor 
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={author.href}
-            className="relative z-20 min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={`relative z-20 min-w-0 truncate text-lg font-semibold text-foreground [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
           >
             {author.label}
           </Link>
           <AuthorRoleBadge authorId={author.id} className="cursor-pointer" />
-          <ProjectTypeCountPill
-            typeId="maps"
-            count={author.maps}
-            href={getRegistryTypeSearchUrl("maps", author.id)}
-          />
-          <ProjectTypeCountPill
-            typeId="mods"
-            count={author.mods}
-            href={getRegistryTypeSearchUrl("mods", author.id)}
-          />
-          <CollaborationCountPill count={author.collaborations} />
+          <RoleCountPill label="Author" icon={UserStar} count={author.assets} />
+          <RoleCountPill label="Collaborator" icon={UserRound} count={author.collaborations} />
+          <RoleCountPill label="Caretaker" icon={UserPen} count={author.caretakenAssets} />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <AssetMetric assets={author.assets} />
-          <MetadataDivider />
           <DownloadMetric downloads={author.downloads} />
         </div>
       </div>
@@ -403,7 +409,7 @@ function ProjectDatabaseCard({ project }: { project: RegistryCreatorDatabaseProj
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
           <Link
             to={project.href}
-            className="relative z-20 min-w-0 truncate text-lg font-semibold text-foreground underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={`relative z-20 min-w-0 truncate text-lg font-semibold text-foreground [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
           >
             {project.name}
           </Link>
@@ -423,7 +429,7 @@ function ProjectDatabaseCard({ project }: { project: RegistryCreatorDatabaseProj
             <User className="size-3.5 shrink-0" aria-hidden={true} />
             <Link
               to={project.authorHref}
-              className="relative z-20 min-w-0 truncate underline decoration-transparent underline-offset-2 transition-colors hover:text-[var(--suite-accent-light)] hover:decoration-[color-mix(in_srgb,var(--suite-accent-light)_62%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={`relative z-20 min-w-0 truncate [--ui-link-accent:var(--suite-accent-light)] ${ACCENT_NAME_LINK_CLASS} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
             >
               {project.authorLabel}
             </Link>
@@ -735,14 +741,16 @@ export function RegistryCreatorDatabasePage({
             </div>
 
             {isLoading ? (
-              <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/15">
+              <div className={EMPTY_STATE_PANEL_CLASS}>
                 <Loader2
                   className="size-9 animate-spin text-muted-foreground motion-reduce:animate-none"
                   aria-hidden={true}
                 />
               </div>
             ) : activeRows.length === 0 ? (
-              <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/15 px-4 text-center text-sm text-muted-foreground">
+              <div
+                className={`${EMPTY_STATE_PANEL_CLASS} px-4 text-center text-sm text-muted-foreground`}
+              >
                 No {activeTab} match your search.
               </div>
             ) : (
