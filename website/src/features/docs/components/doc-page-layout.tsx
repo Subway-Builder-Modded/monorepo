@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { SuiteAccentLink, SuiteAccentScope } from "@subway-builder-modded/shared-ui";
 import { Link } from "@/lib/router";
 import { getSuiteById } from "@/config/site-navigation";
@@ -45,6 +45,7 @@ export function DocPageLayout({
   slug: string;
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialSidebarCollapsedState);
+  const articleRef = useRef<HTMLElement>(null);
   const tree = getDocsTree(suiteId, version);
   const node = findTreeNode(tree, slug);
   const versionConfig = version ? getDocsVersion(suiteId, version) : null;
@@ -107,7 +108,7 @@ export function DocPageLayout({
             onCollapsedChange={setSidebarCollapsed}
           />
 
-          <article className="min-w-0">
+          <article ref={articleRef} className="min-w-0">
             <MobileDocsSidebar
               tree={tree}
               suiteId={suiteId}
@@ -146,7 +147,12 @@ export function DocPageLayout({
             </section>
           </article>
 
-          <OnThisPage headings={headings} editUrl={editUrl} rawContent={rawContent} />
+          <OnThisPage
+            headings={headings}
+            editUrl={editUrl}
+            rawContent={rawContent}
+            contentRootRef={articleRef}
+          />
         </div>
       </div>
     </SuiteAccentScope>

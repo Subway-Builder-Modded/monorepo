@@ -1,3 +1,4 @@
+import { createRef } from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -175,6 +176,31 @@ describe("OnThisPage", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Tab Only" })).toBeInTheDocument();
+    });
+  });
+
+  it("recomputes rendered headings when async article content loads", async () => {
+    document.body.innerHTML = `<article></article>`;
+    const article = document.querySelector("article") as HTMLElement;
+    const contentRootRef = createRef<HTMLElement>();
+    contentRootRef.current = article;
+
+    render(
+      <OnThisPage
+        headings={[{ id: "async-section", text: "Async Section", level: 2 }]}
+        contentRootRef={contentRootRef}
+      />,
+    );
+
+    expect(screen.getByText("No sections on this page.")).toBeInTheDocument();
+
+    const heading = document.createElement("h2");
+    heading.id = "async-section";
+    heading.textContent = "Async Section";
+    article.appendChild(heading);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Async Section" })).toBeInTheDocument();
     });
   });
 

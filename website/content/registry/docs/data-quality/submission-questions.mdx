@@ -12,7 +12,7 @@ Every question has plain-language options, and **"Not sure" is always a safe ans
 
 Your answers are used to produce a provisional data-quality score. A reviewer from the [Subway Builder Modded](https://github.com/Subway-Builder-Modded) organization will then confirm it, after which the map receives one of seven quality tiers:
 
-| Tier          | Meaning (approximate)                                                                        |
+| **Tier**      | **Meaning** (approximate)                                                                    |
 | :------------ | :------------------------------------------------------------------------------------------- |
 | **Very High** | Measured, government data on both sides of the commute (residence/workplace), at fine detail |
 | **High**      | Strong official data with minor gaps in coverage or at somewhat coarse granularity           |
@@ -24,32 +24,36 @@ Your answers are used to produce a provisional data-quality score. A reviewer fr
 
 Until a reviewer confirms a score, your map will show as **Unscored**. Answering nothing or answering "Not sure" to everything is not penalized, so there is no downside to filling in what you can.
 
-The full scoring methodology used by reviewers is documented in the [Data Quality Scoring Guidelines](/registry/docs/data-quality/scoring). It should not be necessary to read it to submit a map, but it is linked throughout this guide if you want the details behind any question.
+The full scoring methodology used by reviewers is documented in the [Data Quality Scoring Guidelines](/registry/docs/data-quality/scoring-rubric). It should not be necessary to read it to submit a map, but it is linked throughout this guide if you want the details behind any question.
 
 ---
 
 ## Grounding Rules {#grounding-rules}
 
-### Rule 1 — Answer with where the numbers are _published_, not where you _put_ them {#rule-1}
+**Rule 1 — Answer with where the numbers are *published*, not where you *put* them.**
 
-Several questions ask for the **smallest area your numbers are reported for**. That means the area in your **source's table** — not how finely your finished map places its demand points.
+Several questions ask for the *smallest area your numbers are reported for*. That means the area in your *source's table* — not how finely your finished map places its demand points.
 
 :::example
-The statistics office publishes one employment total per municipality. You spread that total across the city using a fine 200m mesh. Your workplace data is **reported at the municipality** — so answer "whole cities or municipalities", even though your map has many points per municipality. The spreading you did is its own question (the _placement_ question), and your map will receive credit for it there.
+
+The statistics office publishes one employment total per municipality. You spread that total across the city using a fine 200m mesh. Your workplace data is reported at the *municipality* — so answer "whole cities or municipalities", even though your map has many points per municipality. The spreading you did is its own question (the **placement** question), and your map will receive credit for it there.
+
 :::
 
-### Rule 2 — The area-size table {#rule-2}
+---
 
-Statistics are published at wildly different area sizes, and the form describes them in plain words. Here is how those words line up with the administrative levels ("ADM") the [full rubric](/registry/docs/data-quality/scoring#granularity) uses, with examples:
+**Rule 2 — The area-size table**
 
-| Form wording                             | Level | Examples                                         |
-| :--------------------------------------- | :---- | :----------------------------------------------- |
-| Uniform grid squares (~100–1000m)        | Mesh  | JP 500 m workplace mesh, PL 125 m residents grid |
-| Individual buildings or census blocks    | ADM5  | US census block, TW 最小統計區                   |
-| Neighborhoods or districts within a city | ADM4  | US block group, JP 町丁目                        |
-| Whole cities or municipalities           | ADM3  | US city, JP 市区町村, PL gmina, CZ obec          |
-| Counties or larger regions               | ADM2  | US county, CZ okres, UA район                    |
-| States or provinces                      | ADM1  | US state, JP 都道府県, PL województwo            |
+Statistics are published at wildly different area sizes, and the form describes them in plain words. Here is how those words line up with the administrative levels ("ADM") the [full rubric](/registry/docs/data-quality/scoring-rubric#granularity) uses, with examples:
+
+| **Form Wording**                         | **Level** | **Examples**                                     |
+| :--------------------------------------- | :-------- | :----------------------------------------------- |
+| Uniform grid squares (~100–1000m)        | Mesh      | JP 500 m workplace mesh, PL 125 m residents grid |
+| Individual buildings or census blocks    | ADM5      | US census block, TW 最小統計區                   |
+| Neighborhoods or districts within a city | ADM4      | US block group, JP 町丁目                        |
+| Whole cities or municipalities           | ADM3      | US city, JP 市区町村, PL gmina, CZ obec          |
+| Counties or larger regions               | ADM2      | US county, CZ okres, UA район                    |
+| States or provinces                      | ADM1      | US state, JP 都道府県, PL województwo            |
 
 **Notes**:
 
@@ -58,11 +62,11 @@ Statistics are published at wildly different area sizes, and the form describes 
 
 ---
 
-## Workplace data {#workplace-data}
+## Workplace Data {#workplace-data}
 
-Where people **work** is the destination side of every commute, and it counts the most toward the map's final score. The submission asks three questions, covering in broad terms: where the numbers come from, how finely they are published, and how you placed them. (Full details: [rubric §4 — Workplace](/registry/docs/data-quality/scoring#workplace).)
+Where people work is the destination side of every commute, and it counts the most toward the map's final score. The submission asks three questions, covering in broad terms: where the numbers come from, how finely they are published, and how you placed them. See more details in the [full scoring rubric](/registry/docs/data-quality/scoring-rubric#workplace).
 
-### 1. Where do your job numbers come from? {#q1}
+### Job Numbers {#job-numbers}
 
 The key distinction: does your source know where people **actually work**, or only where their employer is **registered**?
 
@@ -107,14 +111,14 @@ Open the source table and look at what one row covers. When two grains are plaus
 | Spread evenly across each area                                                                      | No building information used                                                                                                                      |
 
 :::tip[If unsure]
-Describe the placement approach in Methodology; this is the question where a brief description helps reviewers most. The [worked country examples](/registry/docs/data-quality/scoring#example-countries) in the rubric show how existing pipelines answered.
+Describe the placement approach in Methodology; this is the question where a brief description helps reviewers most. The [worked country examples](/registry/docs/data-quality/scoring-rubric#example-countries) in the rubric show how existing pipelines answered.
 :::
 
 ---
 
 ## Residence data {#residence-data}
 
-Where people **live** is the origin side of the commute. The submission asks the same three questions as for the workplace side. (Full details: [rubric §5 — Resident](/registry/docs/data-quality/scoring#resident).)
+Where people **live** is the origin side of the commute. The submission asks the same three questions as for the workplace side. (Full details: [rubric §5 — Resident](/registry/docs/data-quality/scoring-rubric#resident).)
 
 ### 4. What do your population numbers count? {#q4}
 
@@ -152,7 +156,7 @@ The residence equivalent of question 3; the main difference is that high-fidelit
 
 ## Commute flows {#commute-flows}
 
-The pairing of who commutes **from** where **to** where. This data is often hard to find, and its absence is acceptable; a gravity model can estimate flows. What is scored is whether real flow data (or real totals) constrain those estimates. (Full details: [rubric §6 — O/D Shaping](/registry/docs/data-quality/scoring#od-shaping).)
+The pairing of who commutes **from** where **to** where. This data is often hard to find, and its absence is acceptable; a gravity model can estimate flows. What is scored is whether real flow data (or real totals) constrain those estimates. (Full details: [rubric §6 — O/D Shaping](/registry/docs/data-quality/scoring-rubric#od-shaping).)
 
 ### 7. Does the census publish data about where people commute from and to? {#q7}
 
