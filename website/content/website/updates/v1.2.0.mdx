@@ -9,7 +9,7 @@ tag: release
 
 ### Registry
 
-- Added **Data Quality** documents explaining how map data quality is assessed, [scoring](/registry/docs/data-quality/scoring), the new [quality floor](/registry/docs/data-quality/quality-floor) for submissions, and a [Q&A](/registry/docs/data-quality/questions) section for creators.
+- Added **Data Quality** documents explaining how map data quality is assessed, [scoring](/registry/docs/data-quality/scoring-rubric), the new [quality floor](/registry/docs/data-quality/quality-floor) for submissions, and a [Q&A](/registry/docs/data-quality/submission-questions) section for creators.
 - Added support for deprecated assets; these assets show a badge similar to existing `Incompatible` assets, and are hidden by default ([#603](https://github.com/Subway-Builder-Modded/monorepo/pull/603)).
 - Overhauled **Analytics** with a full chart suite ([#600](https://github.com/Subway-Builder-Modded/monorepo/pull/600)–[#606](https://github.com/Subway-Builder-Modded/monorepo/pull/606))
   - New Overview sections (Cumulative Downloads, Seasonality, Downloads, Maps, Listings) plus **Top Authors / Maps / Mods / Projects / Countries** charts
@@ -17,6 +17,7 @@ tag: release
   - Asset pages chart download history per release version, and author pages now have a **Top Assets** chart.
   - Analytics search filters the charts and rankings together, and supports standard query grammar (e.g. `kronifer | slurry`, `Yukina- !CZ`)
 - Added **caretaker roles** across the site; person pages are split into Author / Collaborator / Caretaker views, and downloads are credited to the caretaker for versions they manage.
+- Added registry lifecycle guides — [Deprecating Content](/registry/docs/deprecation), [Caretakers](/registry/docs/caretakers), and [Manifest Requirements](/registry/docs/manifest-requirements) — covering the deprecation flow, caretaker roles, and per-version game compatibility including retroactive caps ([#610](https://github.com/Subway-Builder-Modded/monorepo/pull/610)).
 
 </ChangelogSection>
 
@@ -25,6 +26,7 @@ tag: release
 ### Registry
 
 - Credits are now sourced from the registry authors index ([#594](https://github.com/Subway-Builder-Modded/monorepo/pull/594))
+- Refreshed the publishing and updating guides to match current validation: release `manifest.json` requirements per asset type, the required data-quality questions, and review timing ([#610](https://github.com/Subway-Builder-Modded/monorepo/pull/610))
 - Long chart histories fold the x-axis into weekly buckets automatically, so axis labels are pruned to fit small screens instead of overlapping
 
 </ChangelogSection>
