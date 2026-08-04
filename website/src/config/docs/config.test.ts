@@ -140,7 +140,7 @@ describe("getSidebarOrder", () => {
       "tagging",
       {
         key: "data-quality",
-        children: ["questions", "scoring", "quality-floor"],
+        children: ["overview", "submission-questions", "scoring-rubric", "quality-floor"],
       },
       "markdown-playground",
     ]);
