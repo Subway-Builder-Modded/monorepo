@@ -1,0 +1,37 @@
+---
+title: v1.2.0
+icon: Globe
+date: August 4, 2026
+tag: release
+---
+
+<ChangelogSection type="features">
+
+### Registry
+
+- Added the **Data Quality docs suite** explaining how map data quality is assessed: the seven-tier scale, [scoring](/registry/docs/data-quality/scoring), the [quality floor](/registry/docs/data-quality/quality-floor) for new submissions, and a [Q&A](/registry/docs/data-quality/questions)
+- Added **deprecated asset support**: deprecated listings show a badge and detail notice, sort last, and can be hidden or shown with the browse **Visibility** toggle ([#603](https://github.com/Subway-Builder-Modded/monorepo/pull/603))
+- Rebuilt **Registry Analytics** into a full chart suite ([#600](https://github.com/Subway-Builder-Modded/monorepo/pull/600)–[#606](https://github.com/Subway-Builder-Modded/monorepo/pull/606))
+  - New Overview sections (Cumulative Downloads, Seasonality, Downloads, Maps, Listings) plus **Top Authors / Maps / Mods / Projects / Countries** charts, each with line/bar switches, clickable legends, share pies, and time-period views including **Last 30 Days**
+  - Asset pages chart their **download history per release version**, and author pages gain a **Top Assets** chart — both credit caretaken assets to the right person per day
+  - Analytics search filters the charts and rankings together, and supports an extended grammar (`kronifer | slurry`, `Yukina- !CZ`)
+- Added **caretaker roles** across the site: person pages split into Author / Collaborator / Caretaker views, and caretaken downloads are credited to the caretaker for the days they held the listing
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+### Registry
+
+- Credits are now sourced from the unified registry authors index ([#594](https://github.com/Subway-Builder-Modded/monorepo/pull/594))
+- Long chart histories fold into weekly buckets automatically, and axis labels thin to fit small screens instead of overlapping
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+### Registry
+
+- Fixed deprecated listings with no downloadable versions being missing from the site entirely (browse, detail pages, and analytics)
+
+</ChangelogSection>
