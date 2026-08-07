@@ -9,18 +9,7 @@ import (
 	"railyard/internal/paths"
 )
 
-// CleanupOrphanFoundationTiles scans the Railyard-managed tiles directory for
-// foundation tile files (<code>_foundations.pmtiles) whose base tile
-// (<code>.pmtiles) is gone — the signature of a map uninstalled before
-// foundation tiles were included in uninstall cleanup (pre-0.2.10). Returns the
-// paths removed. Only files directly inside tilesRoot are ever touched; the
-// game's own data directories are never scanned.
-//
-// A foundations file whose base tile still exists is always kept: the pair may
-// belong to a swapped-out profile, and stale-but-paired files are reconciled by
-// the install and profile-restore paths instead.
-// TODO(profiles): reclaiming whole swapped-out pairs belongs to the full
-// stale-asset purge deferred in profiles_state.SwapProfile.
+// CleanupOrphanFoundationTiles removes foundation tile files directly inside tilesRoot whose base .pmtiles file is gone (orphaned by pre-0.2.10 uninstalls), returning the removed paths.
 func CleanupOrphanFoundationTiles(tilesRoot string) ([]string, error) {
 	entries, err := os.ReadDir(tilesRoot)
 	if err != nil {
@@ -47,6 +36,9 @@ func CleanupOrphanFoundationTiles(tilesRoot string) ([]string, error) {
 			continue
 		}
 		if baseTileExists {
+			// A paired foundations file may belong to a swapped-out profile; stale
+			// pairs are reconciled by the install and profile-restore paths.
+			// TODO(profiles): reclaim swapped-out pairs in the full stale-asset purge.
 			continue
 		}
 		orphanPath := paths.JoinLocalPath(tilesRoot, name)

@@ -421,9 +421,9 @@ func extractMap(d *Downloader, filePath string, mapId string, version string, sk
 	}
 
 	if fileStruct, ok := filesFound[files.MapArchiveKeyFoundationTiles]; !ok || !fileStruct.Found {
-		// The base tiles were just replaced, so a foundations file from a previous
-		// version no longer matches the installed data and would silently re-enable
-		// the foundations layer via the HasFoundationTiles probe. Best-effort removal.
+		// Best-effort removal: a foundations file from a previous version no longer
+		// matches the just-replaced base tiles and would re-enable the foundations
+		// layer against mismatched data.
 		_ = os.Remove(paths.JoinLocalPath(d.getMapTilePath(), configData.Code+files.MapFoundationTileFileExt))
 	}
 

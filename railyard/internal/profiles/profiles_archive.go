@@ -312,11 +312,9 @@ func (s *UserProfiles) restoreMapsFromArchive(tempDir, profileID string) (types.
 			return errResp, false
 		}
 
-		// Restore foundation tiles if present in the archive. Always clear the
-		// destination first: the base tiles were just replaced, so a foundations
-		// file left by another profile or version no longer matches them (archives
-		// created before foundations support carry none, leaving the layer
-		// safely disabled until the map is updated or reinstalled).
+		// Restore foundation tiles if present in the archive, clearing the destination
+		// first so a stale file from another profile or version never outlives the
+		// freshly restored base tiles (legacy archives carry none).
 		archiveFoundationTilePath := paths.JoinLocalPath(tempDir, "maps", code, profileArchiveFoundationTilesFileName)
 		destFoundationTilePath := paths.JoinLocalPath(paths.TilesPath(), code+files.MapFoundationTileFileExt)
 		if err := clearRestoreFile(destFoundationTilePath); err != nil {

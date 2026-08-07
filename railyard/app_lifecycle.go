@@ -334,9 +334,7 @@ func (a *App) cleanupTmpStaging(stage string) {
 	}
 }
 
-// cleanupOrphanedFoundationTiles removes foundation tile files orphaned by map
-// uninstalls that predate foundation-tile cleanup (pre-0.2.10). Best-effort:
-// failures are logged and never block startup.
+// cleanupOrphanedFoundationTiles sweeps orphaned foundation tile files on startup, best-effort.
 func (a *App) cleanupOrphanedFoundationTiles() {
 	removed, err := files.CleanupOrphanFoundationTiles(paths.TilesPath())
 	if err != nil {
