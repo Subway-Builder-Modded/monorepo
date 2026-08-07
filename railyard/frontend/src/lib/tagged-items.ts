@@ -22,6 +22,20 @@ export function compareItems(
   modDownloadTotals: Record<string, number>,
   mapDownloadTotals: Record<string, number>,
 ): number {
+  // Retired items always sort last regardless of the selected sort field
+  // (including random) — active, then deprecated, then deleted; the selected
+  // sort applies within each partition.
+  const rank = (entry: TaggedItem): number =>
+    entry.item.deprecation == null
+      ? 0
+      : entry.item.deprecation.deleted === true
+        ? 2
+        : 1;
+  const aRank = rank(a);
+  const bRank = rank(b);
+  if (aRank !== bRank) {
+    return aRank - bRank;
+  }
   return sharedCompareItems(a, b, sort, modDownloadTotals, mapDownloadTotals, {
     getAuthor: (item) =>
       typeof item.author === 'string'

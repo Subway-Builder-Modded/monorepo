@@ -22,7 +22,12 @@ import { getCountryFlagIcon } from '@/lib/flags';
 import { countRenders } from '@/lib/perf';
 
 import type { types } from '../../../wailsjs/go/models';
-import { IncompatibleBadge, TestBadge } from './AssetStatusBadges';
+import {
+  DeletedBadge,
+  DeprecatedBadge,
+  IncompatibleBadge,
+  TestBadge,
+} from './AssetStatusBadges';
 import { AuthorName } from './AuthorName';
 import { GalleryImage } from './GalleryImage';
 
@@ -34,6 +39,8 @@ interface ItemCardWrapperProps {
   incompatible?: boolean;
   gameVersion?: string;
   test?: boolean;
+  deprecated?: boolean;
+  deleted?: boolean;
   viewMode?: 'full' | 'compact' | 'list';
   descriptionMode?: 'raw' | 'preview';
 }
@@ -54,6 +61,8 @@ function ItemCardComponent({
   incompatible = false,
   gameVersion,
   test = false,
+  deprecated = false,
+  deleted = false,
   viewMode = 'full',
   descriptionMode = 'raw',
 }: ItemCardWrapperProps) {
@@ -104,9 +113,11 @@ function ItemCardComponent({
       installedVersion={installedVersion}
       totalDownloads={totalDownloads}
       topLeftBadge={
-        incompatible || test ? (
+        incompatible || test || deprecated || deleted ? (
           <span className="inline-flex items-center gap-1">
             {test && <TestBadge />}
+            {deprecated && <DeprecatedBadge />}
+            {deleted && <DeletedBadge />}
             {incompatible && (
               <TooltipProvider>
                 <Tooltip>
