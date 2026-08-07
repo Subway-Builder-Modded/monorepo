@@ -236,6 +236,8 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
 	}
 
+	a.cleanupOrphanedFoundationTiles()
+
 	if err := a.Registry.Initialize(); err != nil {
 		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
 	} else {
@@ -329,6 +331,19 @@ func (a *App) configureTmpStagingRoots() {
 func (a *App) cleanupTmpStaging(stage string) {
 	if err := files.CleanupTmpStagingRoots(); err != nil {
 		a.Logger.Warn("Failed to cleanup managed atomic staging directories", "stage", stage, "error", err)
+	}
+}
+
+// cleanupOrphanedFoundationTiles removes foundation tile files orphaned by map
+// uninstalls that predate foundation-tile cleanup (pre-0.2.10). Best-effort:
+// failures are logged and never block startup.
+func (a *App) cleanupOrphanedFoundationTiles() {
+	removed, err := files.CleanupOrphanFoundationTiles(paths.TilesPath())
+	if err != nil {
+		a.Logger.Warn("Failed to clean up orphaned foundation tile files", "error", err)
+	}
+	if len(removed) > 0 {
+		a.Logger.Info("Removed orphaned foundation tile files", "count", len(removed), "files", removed)
 	}
 }
 func (a *App) addSaltsOnFirstRun() error {

@@ -18,7 +18,7 @@ func InstalledModSize(modsRoot string, modID string, markerFileName string) (int
 	return ManagedDirectorySize(modPath, markerFileName)
 }
 
-// InstalledMapSize returns the managed on-disk size for a map installation, including the .pmtiles object which lies in a separate directory under the Appdata folder.
+// InstalledMapSize returns the managed on-disk size for a map installation, including the .pmtiles objects (base and optional foundation tiles) which lie in a separate directory under the Appdata folder.
 func InstalledMapSize(mapsRoot string, tilesRoot string, cityCode string, markerFileName string) (int64, error) {
 	if strings.TrimSpace(mapsRoot) == "" || strings.TrimSpace(cityCode) == "" {
 		return 0, nil
@@ -36,7 +36,13 @@ func InstalledMapSize(mapsRoot string, tilesRoot string, cityCode string, marker
 		return 0, err
 	}
 
-	return size + tileSize, nil
+	foundationTilePath := paths.JoinLocalPath(tilesRoot, cityCode+MapFoundationTileFileExt)
+	foundationTileSize, err := FileSizeIfExists(foundationTilePath)
+	if err != nil {
+		return 0, err
+	}
+
+	return size + tileSize + foundationTileSize, nil
 }
 
 // statIfExists stats filePath, treating a missing file as (nil, false, nil) and

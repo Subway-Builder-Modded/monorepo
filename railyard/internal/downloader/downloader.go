@@ -475,6 +475,9 @@ func (d *Downloader) checkInstallAssetMarkerPresent(assetType types.AssetType, a
 }
 
 // checkUninstallMissingMarker checks if the Railyard marker is absent from assetDir, indicating the asset is not properly installed and should not be removed.
+// TODO(profiles): a missing marker turns uninstall into a no-op, so a map whose marker was
+// lost keeps its data, tiles, and thumbnail on disk with no way to reclaim them from the app.
+// Fold reclamation into the full stale-asset purge deferred in profiles_state.SwapProfile.
 func (d *Downloader) checkUninstallMissingMarker(assetType types.AssetType, assetID, assetDir string) *types.AssetUninstallResponse {
 	if _, err := os.Stat(paths.JoinLocalPath(assetDir, constants.RailyardAssetMarker)); errors.Is(err, fs.ErrNotExist) {
 		// Return a no-op warn response if the marker is missing
@@ -871,9 +874,13 @@ func (d *Downloader) uninstallMapNow(mapId string) types.AssetUninstallResponse 
 	if err := os.RemoveAll(mapDataPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map data files", err, "map_id", mapId)
 	}
-	tilePath := paths.JoinLocalPath(d.getMapTilePath(), mapConfig.Code+".pmtiles")
+	tilePath := paths.JoinLocalPath(d.getMapTilePath(), mapConfig.Code+files.MapTileFileExt)
 	if err := os.Remove(tilePath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map tile files", err, "map_id", mapId)
+	}
+	foundationTilePath := paths.JoinLocalPath(d.getMapTilePath(), mapConfig.Code+files.MapFoundationTileFileExt)
+	if err := os.Remove(foundationTilePath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map foundation tile files", err, "map_id", mapId)
 	}
 	os.Remove(paths.JoinLocalPath(d.getMapThumbnailPath(), mapConfig.Code+".svg")) // Doesn't matter if this fails, thumbnail is optional and may not exist
 	d.Registry.RemoveInstalledMap(mapId)

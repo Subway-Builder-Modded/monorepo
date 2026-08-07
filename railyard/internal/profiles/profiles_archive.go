@@ -15,6 +15,9 @@ import (
 
 const profileSubscriptionsArchiveFileName = "profile_subscriptions.json"
 
+// profileArchiveFoundationTilesFileName is the archive-entry name for a map's optional foundation tiles, alongside "tiles.pmtiles" and "thumbnail.svg".
+const profileArchiveFoundationTilesFileName = "tiles_foundations.pmtiles"
+
 // CreateProfileArchive generates a tar archive of the profile's current state, including installed maps/mods and their data, and saves it to disk. Returns a GenericResponse indicating success or failure with an appropriate message.
 func (s *UserProfiles) CreateProfileArchive(profileID string) types.GenericResponse {
 	profile, _, profileErr := s.profileSnapshot(profileID)
@@ -112,6 +115,12 @@ func (s *UserProfiles) copyMapsToArchive(tempDir, profileID string, maps []types
 		// Copy tiles if exists
 		tilePath := paths.JoinLocalPath(paths.TilesPath(), fmt.Sprintf("%s.pmtiles", code))
 		if errResp, ok := files.CopyOptionalFile(tilePath, paths.JoinLocalPath(mapDir, "tiles.pmtiles"), profileID, code, "tiles", s.Logger); !ok {
+			return errResp, false
+		}
+
+		// Copy foundation tiles if exists
+		foundationTilePath := paths.JoinLocalPath(paths.TilesPath(), code+files.MapFoundationTileFileExt)
+		if errResp, ok := files.CopyOptionalFile(foundationTilePath, paths.JoinLocalPath(mapDir, profileArchiveFoundationTilesFileName), profileID, code, "foundation tiles", s.Logger); !ok {
 			return errResp, false
 		}
 	}
@@ -300,6 +309,20 @@ func (s *UserProfiles) restoreMapsFromArchive(tempDir, profileID string) (types.
 			return s.archiveError("Failed to clear map tiles before restore", "failed to clear map tiles before restore", err, "profile_id", profileID, "map_id", code)
 		}
 		if errResp, ok := files.CopyOptionalFile(archiveTilePath, destTilePath, profileID, code, "tiles", s.Logger); !ok {
+			return errResp, false
+		}
+
+		// Restore foundation tiles if present in the archive. Always clear the
+		// destination first: the base tiles were just replaced, so a foundations
+		// file left by another profile or version no longer matches them (archives
+		// created before foundations support carry none, leaving the layer
+		// safely disabled until the map is updated or reinstalled).
+		archiveFoundationTilePath := paths.JoinLocalPath(tempDir, "maps", code, profileArchiveFoundationTilesFileName)
+		destFoundationTilePath := paths.JoinLocalPath(paths.TilesPath(), code+files.MapFoundationTileFileExt)
+		if err := clearRestoreFile(destFoundationTilePath); err != nil {
+			return s.archiveError("Failed to clear map foundation tiles before restore", "failed to clear map foundation tiles before restore", err, "profile_id", profileID, "map_id", code)
+		}
+		if errResp, ok := files.CopyOptionalFile(archiveFoundationTilePath, destFoundationTilePath, profileID, code, "foundation tiles", s.Logger); !ok {
 			return errResp, false
 		}
 	}
