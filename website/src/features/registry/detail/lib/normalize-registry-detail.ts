@@ -437,6 +437,7 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
       ? {
           since: data.manifest.deprecation.since?.trim() || null,
           reason: data.manifest.deprecation.reason?.trim() || null,
+          deleted: data.manifest.deprecation.deleted === true,
         }
       : null,
   };

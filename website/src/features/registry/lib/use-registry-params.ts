@@ -23,6 +23,8 @@ export type RegistryBrowseParams = {
   pageSize: number;
   /** Include author-deprecated listings in browse results (default off). */
   showDeprecated: boolean;
+  /** Include permanently deleted listings in browse results (default off). */
+  showDeleted: boolean;
 };
 
 type PersistedRegistryBrowseState = Omit<RegistryBrowseParams, "typeId">;
@@ -135,6 +137,9 @@ function serializeBrowseState(state: PersistedRegistryBrowseState): string {
   if (state.showDeprecated) {
     p.set("deprecated", "1");
   }
+  if (state.showDeleted) {
+    p.set("deleted", "1");
+  }
 
   const search = p.toString();
   return search ? `?${search}` : "";
@@ -170,6 +175,8 @@ export function useRegistryParams() {
     const pageSize = parsePageSize(p.get("pageSize"));
     const rawDeprecated = p.get("deprecated");
     const showDeprecated = rawDeprecated === "1" || rawDeprecated === "true";
+    const rawDeleted = p.get("deleted");
+    const showDeleted = rawDeleted === "1" || rawDeleted === "true";
 
     return {
       query,
@@ -180,6 +187,7 @@ export function useRegistryParams() {
       page,
       pageSize,
       showDeprecated,
+      showDeleted,
     };
   }, [search, cachedViewMode]);
 
@@ -195,6 +203,7 @@ export function useRegistryParams() {
       page: persistedState.page,
       pageSize: persistedState.pageSize,
       showDeprecated: persistedState.showDeprecated,
+      showDeleted: persistedState.showDeleted,
     };
   }, [typeId, persistedState]);
 
@@ -210,6 +219,7 @@ export function useRegistryParams() {
         page: updates.page ?? params.page,
         pageSize: updates.pageSize ?? params.pageSize,
         showDeprecated: updates.showDeprecated ?? params.showDeprecated,
+        showDeleted: updates.showDeleted ?? params.showDeleted,
       };
 
       writeCachedViewMode(nextPersisted.viewMode);

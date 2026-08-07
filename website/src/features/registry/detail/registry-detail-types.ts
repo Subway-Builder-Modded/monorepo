@@ -132,10 +132,12 @@ export type RegistryDetailModel = {
   integrityVersionCount: number;
   mapFields: RegistryDetailMapFields | null;
   /** Author-deprecation record; null for active listings. Deprecated listings
-   * render a notice and never offer downloads. */
+   * render a notice and never offer downloads; deleted=true is the permanent
+   * variant with its own notice wording. */
   deprecation: {
     since: string | null;
     reason: string | null;
+    deleted: boolean;
   } | null;
 };
 
@@ -189,6 +191,7 @@ export type RegistryDetailLoadedData = {
       since?: string;
       by_github_id?: number;
       reason?: string;
+      deleted?: boolean;
     };
   };
   listingLastUpdated: number | null;

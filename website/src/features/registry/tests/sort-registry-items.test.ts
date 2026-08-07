@@ -24,6 +24,7 @@ function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchIt
     population: 1_000_000,
     isTest: false,
     isDeprecated: false,
+    isDeleted: false,
     manifest: {},
     ...overrides,
   };
@@ -174,5 +175,23 @@ describe("sortRegistryItems", () => {
     ];
     const result = sortRegistryItems(items, "random", "desc", SEED);
     expect(result[result.length - 1]?.id).toBe("old-item");
+  });
+});
+
+describe("deleted partition", () => {
+  it("sorts active, then deprecated, then deleted, applying the sort within each", () => {
+    const items = [
+      makeItem({ id: "gone-big", totalDownloads: 9_999, isDeprecated: true, isDeleted: true }),
+      makeItem({ id: "old-item", totalDownloads: 500, isDeprecated: true }),
+      makeItem({ id: "active-small", totalDownloads: 2 }),
+      makeItem({ id: "gone-tiny", totalDownloads: 1, isDeprecated: true, isDeleted: true }),
+    ];
+    const sorted = sortRegistryItems(items, "downloads", "desc", 0);
+    expect(sorted.map((i) => i.id)).toEqual([
+      "active-small",
+      "old-item",
+      "gone-big",
+      "gone-tiny",
+    ]);
   });
 });

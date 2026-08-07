@@ -59,12 +59,14 @@ export function sortRegistryItems(
   direction: "asc" | "desc",
   randomSeed: number,
 ): RegistrySearchItem[] {
-  const deprecated = items.filter((item) => item.isDeprecated);
-  if (deprecated.length > 0) {
+  const deprecated = items.filter((item) => item.isDeprecated && !item.isDeleted);
+  const deleted = items.filter((item) => item.isDeleted);
+  if (deprecated.length > 0 || deleted.length > 0) {
     const active = items.filter((item) => !item.isDeprecated);
     return [
       ...sortItemsBy(active, sortId, direction, randomSeed),
       ...sortItemsBy(deprecated, sortId, direction, randomSeed),
+      ...sortItemsBy(deleted, sortId, direction, randomSeed),
     ];
   }
 
