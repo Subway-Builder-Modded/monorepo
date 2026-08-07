@@ -296,6 +296,7 @@ describe("normalizeRegistryDetail deprecation", () => {
     expect(model.deprecation).toEqual({
       since: "2026-08-03T00:00:00Z",
       reason: "Superseded by asset-b",
+      deleted: false,
     });
   });
 
@@ -304,7 +305,27 @@ describe("normalizeRegistryDetail deprecation", () => {
     data.manifest.deprecation = { since: "2026-08-03T00:00:00Z", by_github_id: 100 };
 
     const model = normalizeRegistryDetail(data);
-    expect(model.deprecation).toEqual({ since: "2026-08-03T00:00:00Z", reason: null });
+    expect(model.deprecation).toEqual({
+      since: "2026-08-03T00:00:00Z",
+      reason: null,
+      deleted: false,
+    });
+  });
+
+  it("carries the deleted flag through", () => {
+    const data = structuredClone(BASE);
+    data.manifest.deprecation = {
+      since: "2026-08-03T00:00:00Z",
+      by_github_id: 100,
+      deleted: true,
+    };
+
+    const model = normalizeRegistryDetail(data);
+    expect(model.deprecation).toEqual({
+      since: "2026-08-03T00:00:00Z",
+      reason: null,
+      deleted: true,
+    });
   });
 
   it("returns null deprecation for active listings", () => {

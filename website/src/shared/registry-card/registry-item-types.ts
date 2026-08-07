@@ -45,6 +45,8 @@ export type RegistryCardData = {
   population: number | null;
   /** Author-deprecated listing: renders a Deprecated badge on the card. */
   isDeprecated?: boolean;
+  /** Permanently deleted listing: renders a Deleted badge instead. */
+  isDeleted?: boolean;
 };
 
 /** View variant for the card. */

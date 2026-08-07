@@ -56,22 +56,34 @@ type RegistryFilterSidebarProps = {
   showDeprecated: boolean;
   deprecatedCount: number;
   onShowDeprecatedChange: (show: boolean) => void;
+  showDeleted: boolean;
+  deletedCount: number;
+  onShowDeletedChange: (show: boolean) => void;
   onCollapsedChange?: (collapsed: boolean) => void;
 };
 
-/** Visibility section: author-deprecated listings are hidden by default and
- * only surface while this toggle is on. Rendered only when the current type
- * actually has deprecated listings (or the toggle is already on via URL). */
-function DeprecatedVisibilitySection({
+/** Visibility section: author-retired listings (deprecated or deleted) are
+ * hidden by default and each only surfaces while its own toggle is on. Each
+ * toggle renders only when the current type actually has such listings (or
+ * the toggle is already on via URL). */
+function RetiredVisibilitySection({
   showDeprecated,
   deprecatedCount,
   onShowDeprecatedChange,
+  showDeleted,
+  deletedCount,
+  onShowDeletedChange,
 }: {
   showDeprecated: boolean;
   deprecatedCount: number;
   onShowDeprecatedChange: (show: boolean) => void;
+  showDeleted: boolean;
+  deletedCount: number;
+  onShowDeletedChange: (show: boolean) => void;
 }) {
-  if (deprecatedCount === 0 && !showDeprecated) {
+  const showDeprecatedToggle = deprecatedCount > 0 || showDeprecated;
+  const showDeletedToggle = deletedCount > 0 || showDeleted;
+  if (!showDeprecatedToggle && !showDeletedToggle) {
     return null;
   }
 
@@ -82,20 +94,39 @@ function DeprecatedVisibilitySection({
       <section className="space-y-2" aria-label="Visibility">
         <p className={cn("px-1", SECTION_LABEL_CLASS)}>Visibility</p>
 
-        <button
-          type="button"
-          onClick={() => onShowDeprecatedChange(!showDeprecated)}
-          aria-pressed={showDeprecated}
-          style={SIDEBAR_UI_ACCENT_STYLE}
-          className={cn(
-            ACCENT_TOGGLE_BASE_CLASS,
-            showDeprecated ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
-          )}
-        >
-          <Archive className="size-4 shrink-0" aria-hidden={true} />
-          <span className="flex-1">Deprecated</span>
-          <RegistryTypeCountBadge count={deprecatedCount} isActive={showDeprecated} />
-        </button>
+        {showDeprecatedToggle && (
+          <button
+            type="button"
+            onClick={() => onShowDeprecatedChange(!showDeprecated)}
+            aria-pressed={showDeprecated}
+            style={SIDEBAR_UI_ACCENT_STYLE}
+            className={cn(
+              ACCENT_TOGGLE_BASE_CLASS,
+              showDeprecated ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
+            )}
+          >
+            <Archive className="size-4 shrink-0" aria-hidden={true} />
+            <span className="flex-1">Deprecated</span>
+            <RegistryTypeCountBadge count={deprecatedCount} isActive={showDeprecated} />
+          </button>
+        )}
+
+        {showDeletedToggle && (
+          <button
+            type="button"
+            onClick={() => onShowDeletedChange(!showDeleted)}
+            aria-pressed={showDeleted}
+            style={SIDEBAR_UI_ACCENT_STYLE}
+            className={cn(
+              ACCENT_TOGGLE_BASE_CLASS,
+              showDeleted ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
+            )}
+          >
+            <Trash2 className="size-4 shrink-0" aria-hidden={true} />
+            <span className="flex-1">Deleted</span>
+            <RegistryTypeCountBadge count={deletedCount} isActive={showDeleted} />
+          </button>
+        )}
       </section>
     </>
   );
@@ -158,6 +189,9 @@ type SidebarFilterContentProps = {
   showDeprecated: boolean;
   deprecatedCount: number;
   onShowDeprecatedChange: (show: boolean) => void;
+  showDeleted: boolean;
+  deletedCount: number;
+  onShowDeletedChange: (show: boolean) => void;
 };
 
 /** The sidebar's filter sections, shared between the scroll-area and plain
@@ -175,6 +209,9 @@ function SidebarFilterContent({
   showDeprecated,
   deprecatedCount,
   onShowDeprecatedChange,
+  showDeleted,
+  deletedCount,
+  onShowDeletedChange,
 }: SidebarFilterContentProps) {
   return (
     <>
@@ -236,10 +273,13 @@ function SidebarFilterContent({
         )}
       </section>
 
-      <DeprecatedVisibilitySection
+      <RetiredVisibilitySection
         showDeprecated={showDeprecated}
         deprecatedCount={deprecatedCount}
         onShowDeprecatedChange={onShowDeprecatedChange}
+        showDeleted={showDeleted}
+        deletedCount={deletedCount}
+        onShowDeletedChange={onShowDeletedChange}
       />
     </>
   );
@@ -265,6 +305,9 @@ export function RegistryFilterSidebar({
   showDeprecated,
   deprecatedCount,
   onShowDeprecatedChange,
+  showDeleted,
+  deletedCount,
+  onShowDeletedChange,
   onCollapsedChange,
 }: RegistryFilterSidebarProps) {
   const categories = buildTagCategories(typeId, availableTags, typeItems);
@@ -378,6 +421,9 @@ export function RegistryFilterSidebar({
       showDeprecated={showDeprecated}
       deprecatedCount={deprecatedCount}
       onShowDeprecatedChange={onShowDeprecatedChange}
+      showDeleted={showDeleted}
+      deletedCount={deletedCount}
+      onShowDeletedChange={onShowDeletedChange}
     />
   );
 

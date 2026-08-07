@@ -71,6 +71,7 @@ function makeMapItem(id: string) {
     population: null,
     isTest: false,
     isDeprecated: false,
+    isDeleted: false,
     manifest: {},
   };
 }

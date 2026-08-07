@@ -1,5 +1,5 @@
 import { Button, NeutralFadedUnderline, cn } from "@subway-builder-modded/shared-ui";
-import { Archive, ArrowDownToLine, Download, Users } from "lucide-react";
+import { Archive, ArrowDownToLine, Download, Trash2, Users } from "lucide-react";
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import { Link } from "@/lib/router";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
@@ -135,8 +135,12 @@ export function RegistryDetailHeader({
                 "col-span-2 w-full shrink-0 px-4 py-2 text-base lg:col-span-1 lg:w-auto lg:self-start",
               )}
             >
-              <Archive className="size-4" aria-hidden={true} />
-              Deprecated
+              {detail.deprecation.deleted ? (
+                <Trash2 className="size-4" aria-hidden={true} />
+              ) : (
+                <Archive className="size-4" aria-hidden={true} />
+              )}
+              {detail.deprecation.deleted ? "Deleted" : "Deprecated"}
             </div>
           ) : (
             <Button
@@ -157,15 +161,22 @@ export function RegistryDetailHeader({
       {detail.deprecation ? (
         <div className={cn(MUTED_PANEL_CLASS, "px-4 py-3 text-sm leading-relaxed")}>
           <p className="m-0 flex flex-wrap items-center gap-x-2 gap-y-1">
-            <Archive className="size-4 shrink-0" aria-hidden={true} />
+            {detail.deprecation.deleted ? (
+              <Trash2 className="size-4 shrink-0" aria-hidden={true} />
+            ) : (
+              <Archive className="size-4 shrink-0" aria-hidden={true} />
+            )}
             <span>
               <span className="font-semibold text-foreground">
-                This {detail.typeConfig.label.toLowerCase()} was deprecated by its author
+                This {detail.typeConfig.label.toLowerCase()} was{" "}
+                {detail.deprecation.deleted ? "permanently deleted" : "deprecated"} by its author
               </span>
               {detail.deprecation.since
                 ? ` on ${formatRegistryDate(detail.deprecation.since)}`
                 : null}
-              {" — it is no longer downloadable, but its history and credits remain."}
+              {detail.deprecation.deleted
+                ? " — it can never be restored, but its history and credits remain."
+                : " — it is no longer downloadable, but its history and credits remain."}
             </span>
           </p>
           {detail.deprecation.reason ? (
