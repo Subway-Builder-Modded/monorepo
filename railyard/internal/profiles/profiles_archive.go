@@ -15,9 +15,6 @@ import (
 
 const profileSubscriptionsArchiveFileName = "profile_subscriptions.json"
 
-// profileArchiveFoundationTilesFileName is the archive-entry name for a map's optional foundation tiles, alongside "tiles.pmtiles" and "thumbnail.svg".
-const profileArchiveFoundationTilesFileName = "tiles_foundations.pmtiles"
-
 // CreateProfileArchive generates a tar archive of the profile's current state, including installed maps/mods and their data, and saves it to disk. Returns a GenericResponse indicating success or failure with an appropriate message.
 func (s *UserProfiles) CreateProfileArchive(profileID string) types.GenericResponse {
 	profile, _, profileErr := s.profileSnapshot(profileID)
@@ -106,22 +103,12 @@ func (s *UserProfiles) copyMapsToArchive(tempDir, profileID string, maps []types
 			return s.archiveError("Failed to copy map data", "failed to copy map data", err, "profile_id", profileID, "map_id", code)
 		}
 
-		// Copy thumbnail if exists
-		thumbnailPath := paths.JoinLocalPath(s.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps", fmt.Sprintf("%s.svg", code))
-		if errResp, ok := files.CopyOptionalFile(thumbnailPath, paths.JoinLocalPath(mapDir, "thumbnail.svg"), profileID, code, "thumbnail", s.Logger); !ok {
-			return errResp, false
-		}
-
-		// Copy tiles if exists
-		tilePath := paths.JoinLocalPath(paths.TilesPath(), fmt.Sprintf("%s.pmtiles", code))
-		if errResp, ok := files.CopyOptionalFile(tilePath, paths.JoinLocalPath(mapDir, "tiles.pmtiles"), profileID, code, "tiles", s.Logger); !ok {
-			return errResp, false
-		}
-
-		// Copy foundation tiles if exists
-		foundationTilePath := paths.JoinLocalPath(paths.TilesPath(), code+files.MapFoundationTileFileExt)
-		if errResp, ok := files.CopyOptionalFile(foundationTilePath, paths.JoinLocalPath(mapDir, profileArchiveFoundationTilesFileName), profileID, code, "foundation tiles", s.Logger); !ok {
-			return errResp, false
+		// Copy out-of-tree artifacts (tiles, thumbnail, foundation tiles) if they exist
+		for _, artifact := range files.MapArtifacts {
+			sourcePath := files.MapArtifactPath(artifact, s.Config.Cfg.MetroMakerDataPath, code)
+			if errResp, ok := files.CopyOptionalFile(sourcePath, paths.JoinLocalPath(mapDir, artifact.ProfileEntryName), profileID, code, artifact.Label, s.Logger); !ok {
+				return errResp, false
+			}
 		}
 	}
 	return types.GenericResponse{}, true
@@ -292,36 +279,18 @@ func (s *UserProfiles) restoreMapsFromArchive(tempDir, profileID string) (types.
 			return s.archiveError("Failed to copy city data from archive", "failed to copy city data from archive", err, "profile_id", profileID, "map_id", code)
 		}
 
-		// Restore thumbnail if exists
-		archiveThumbnailPath := paths.JoinLocalPath(tempDir, "maps", code, "thumbnail.svg")
-		destThumbnailPath := paths.JoinLocalPath(s.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps", fmt.Sprintf("%s.svg", code))
-		if err := clearRestoreFile(destThumbnailPath); err != nil {
-			return s.archiveError("Failed to clear map thumbnail before restore", "failed to clear map thumbnail before restore", err, "profile_id", profileID, "map_id", code)
-		}
-		if errResp, ok := files.CopyOptionalFile(archiveThumbnailPath, destThumbnailPath, profileID, code, "thumbnail", s.Logger); !ok {
-			return errResp, false
-		}
-
-		// Restore tiles if exists
-		archiveTilePath := paths.JoinLocalPath(tempDir, "maps", code, "tiles.pmtiles")
-		destTilePath := paths.JoinLocalPath(paths.TilesPath(), fmt.Sprintf("%s.pmtiles", code))
-		if err := clearRestoreFile(destTilePath); err != nil {
-			return s.archiveError("Failed to clear map tiles before restore", "failed to clear map tiles before restore", err, "profile_id", profileID, "map_id", code)
-		}
-		if errResp, ok := files.CopyOptionalFile(archiveTilePath, destTilePath, profileID, code, "tiles", s.Logger); !ok {
-			return errResp, false
-		}
-
-		// Restore foundation tiles if present in the archive, clearing the destination
-		// first so a stale file from another profile or version never outlives the
-		// freshly restored base tiles (legacy archives carry none).
-		archiveFoundationTilePath := paths.JoinLocalPath(tempDir, "maps", code, profileArchiveFoundationTilesFileName)
-		destFoundationTilePath := paths.JoinLocalPath(paths.TilesPath(), code+files.MapFoundationTileFileExt)
-		if err := clearRestoreFile(destFoundationTilePath); err != nil {
-			return s.archiveError("Failed to clear map foundation tiles before restore", "failed to clear map foundation tiles before restore", err, "profile_id", profileID, "map_id", code)
-		}
-		if errResp, ok := files.CopyOptionalFile(archiveFoundationTilePath, destFoundationTilePath, profileID, code, "foundation tiles", s.Logger); !ok {
-			return errResp, false
+		// Restore out-of-tree artifacts present in the archive, clearing each
+		// destination first so a stale file from another profile or version never
+		// outlives the freshly restored map data (legacy archives may lack some).
+		for _, artifact := range files.MapArtifacts {
+			archiveArtifactPath := paths.JoinLocalPath(tempDir, "maps", code, artifact.ProfileEntryName)
+			destPath := files.MapArtifactPath(artifact, s.Config.Cfg.MetroMakerDataPath, code)
+			if err := clearRestoreFile(destPath); err != nil {
+				return s.archiveError(fmt.Sprintf("Failed to clear map %s before restore", artifact.Label), fmt.Sprintf("failed to clear map %s before restore", artifact.Label), err, "profile_id", profileID, "map_id", code)
+			}
+			if errResp, ok := files.CopyOptionalFile(archiveArtifactPath, destPath, profileID, code, artifact.Label, s.Logger); !ok {
+				return errResp, false
+			}
 		}
 	}
 	return types.GenericResponse{}, true
