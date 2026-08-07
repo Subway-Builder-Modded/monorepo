@@ -112,22 +112,38 @@ func (r *Registry) bootstrapMapSubscription(
 		}
 		diskConfig = &cfg
 	} else {
-		if resolvedManifest, err := r.GetMap(mapID); err == nil {
-			manifest = resolvedManifest
-			cityCode = manifest.CityCode
-		} else {
-			installed, ok := installedMapByID[mapID]
-			if !ok || installed.MapConfig.Code == "" {
-				r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing manifest and no installed fallback", "map_id", mapID, "error", err)
-				return types.InstalledMapInfo{}, false
-			}
-			cityCode = installed.MapConfig.Code
-		}
-		cfg, ok := r.validateMapData(mapID, version, mapInstallRoot, cityCode, false)
-		if !ok {
+		installedCode := installedMapByID[mapID].MapConfig.Code
+		manifest, _ = r.GetMap(mapID)
+		if manifest == nil && installedCode == "" {
+			r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing manifest and no installed fallback", "map_id", mapID)
 			return types.InstalledMapInfo{}, false
 		}
-		diskConfig = &cfg
+		// The installed snapshot records which code's files THIS install actually wrote; the
+		// manifest's city_code tracks the listing's LATEST version. After a code-changing
+		// update upstream the two diverge until the local install updates — trusting the
+		// manifest alone here validates against a directory that does not exist yet, silently
+		// drops the map from installed state, and triggers a full re-download of the pinned
+		// version. Prefer the snapshot, fall back to the manifest code (the snapshot may be
+		// absent or stale when bootstrap is repairing corrupted installed metadata).
+		candidateCodes := make([]string, 0, 2)
+		if installedCode != "" {
+			candidateCodes = append(candidateCodes, installedCode)
+		}
+		if manifest != nil && manifest.CityCode != "" && manifest.CityCode != installedCode {
+			candidateCodes = append(candidateCodes, manifest.CityCode)
+		}
+		validated := false
+		for _, candidate := range candidateCodes {
+			if cfg, ok := r.validateMapData(mapID, version, mapInstallRoot, candidate, false); ok {
+				cityCode = candidate
+				diskConfig = &cfg
+				validated = true
+				break
+			}
+		}
+		if !validated {
+			return types.InstalledMapInfo{}, false
+		}
 	}
 
 	config, ok := r.resolveConfig(installedMapByID[mapID], diskConfig, manifest, version, cityCode)
@@ -207,7 +223,7 @@ func (r *Registry) validateMapData(
 	}
 	configFromDisk, errorType, validationErr := files.ValidateInstalledMapData(mapInstallRoot, paths.TilesPath(), cityCode, isLocal)
 	if validationErr != nil {
-		r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing downloaded map data files", "map_id", assetID,
+		r.logger.Warn("Map data validation failed during installed-state bootstrap: missing downloaded map data files", "map_id", assetID,
 			"map_code", cityCode,
 			"error_type", errorType,
 			"error", validationErr,
@@ -215,7 +231,7 @@ func (r *Registry) validateMapData(
 		return types.ConfigData{}, false
 	}
 	if !isLocal && configFromDisk.Version != "" && strings.TrimPrefix(assetVersion, "v") != strings.TrimPrefix(configFromDisk.Version, "v") {
-		r.logger.Warn("Skipping subscribed map during installed-state bootstrap: installed version does not match subscribed version", "map_id", assetID, "map_code", cityCode, "installed_version", configFromDisk.Version, "subscribed_version", assetVersion)
+		r.logger.Warn("Map data validation failed during installed-state bootstrap: installed version does not match subscribed version", "map_id", assetID, "map_code", cityCode, "installed_version", configFromDisk.Version, "subscribed_version", assetVersion)
 		return types.ConfigData{}, false
 	}
 	return configFromDisk, true
