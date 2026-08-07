@@ -890,6 +890,53 @@ func (d *Downloader) uninstallMapNow(mapId string) types.AssetUninstallResponse 
 	return d.uninstallSuccess(types.AssetTypeMap, mapId, "Map uninstalled successfully", "map_id", mapId)
 }
 
+// cleanupSupersededMapArtifacts removes the previous city code's on-disk artifacts after an
+// update whose archive changed the map's code. The on-disk layout is keyed by code, so such an
+// update writes a fresh artifact set under the new code and the old set would otherwise be
+// orphaned forever: invisible to size accounting and untouched by uninstall, which only ever
+// deletes the current code's paths. Best-effort — the install has already committed, so
+// failures only log.
+func (d *Downloader) cleanupSupersededMapArtifacts(mapId string, previousCode string, newCode string) {
+	if previousCode == "" || previousCode == newCode {
+		return
+	}
+	// Another installed asset may legitimately own the previous code's files (codes are unique
+	// across installs, but the replace-conflict path can hand a code over to a different asset).
+	for _, installed := range d.Registry.GetInstalledMaps() {
+		if installed.MapConfig.Code == previousCode {
+			d.Logger.Info(
+				"Skipping superseded map artifact cleanup: previous code owned by an installed asset",
+				"map_id", mapId, "previous_code", previousCode, "owner_id", installed.ID,
+			)
+			return
+		}
+	}
+	oldDataPath := paths.JoinLocalPath(d.getMapDataPath(), previousCode)
+	// Only remove the data directory when the Railyard marker proves this app wrote it; without
+	// the marker it may be game-owned (e.g. the previous code now belongs to a vanilla city).
+	if hasMarker, err := files.HasAssetMarker(oldDataPath, constants.RailyardAssetMarker); err != nil {
+		d.Logger.Warn("Could not verify marker for superseded map data directory; leaving it in place", "map_id", mapId, "path", oldDataPath, "error", err)
+	} else if !hasMarker {
+		d.Logger.Warn("Superseded map data directory has no Railyard marker; leaving it in place", "map_id", mapId, "path", oldDataPath)
+	} else if err := os.RemoveAll(oldDataPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		d.Logger.Warn("Failed to remove superseded map data directory", "map_id", mapId, "path", oldDataPath, "error", err)
+	}
+	// Tiles and thumbnails live in Railyard-managed directories, so no marker gate applies.
+	for _, artifact := range []string{
+		paths.JoinLocalPath(d.getMapTilePath(), previousCode+files.MapTileFileExt),
+		paths.JoinLocalPath(d.getMapTilePath(), previousCode+files.MapFoundationTileFileExt),
+		paths.JoinLocalPath(d.getMapThumbnailPath(), previousCode+files.MapThumbnailFileExt),
+	} {
+		if err := os.Remove(artifact); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			d.Logger.Warn("Failed to remove superseded map artifact", "map_id", mapId, "artifact", artifact, "error", err)
+		}
+	}
+	d.Logger.Info(
+		"Removed superseded map artifacts after city code change",
+		"map_id", mapId, "previous_code", previousCode, "new_code", newCode,
+	)
+}
+
 // InstallAsset handles installation for all supported asset types using a structured request.
 func (d *Downloader) InstallAsset(req types.InstallAssetRequest) types.AssetInstallResponse {
 	requireValidAssetType(req.AssetType, "install")
@@ -1156,6 +1203,11 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 		return conflictResp
 	}
 
+	// Snapshot the pre-update install before the registry entry is overwritten: if the new
+	// archive carries a different city code, the previous code's artifacts must be cleaned up
+	// after the install commits.
+	previousState, wasInstalled := d.getInstalledState(types.AssetTypeMap, mapId)
+
 	d.Logger.Info("Extracting map", "map_id", mapId, "version", version, "temp_path", downloadResp.Path)
 	// No context is passed here (for cancellation). Commit-first semantics ensure prior content
 	// remains intact until this extract+atomic commit succeeds.
@@ -1173,6 +1225,9 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 	d.Registry.SetInstalledMapConstraints(mapId, mapConstraints)
 	if err := d.Registry.WriteInstalledToDisk(); err != nil {
 		d.Logger.Warn("Failed to persist installed state after installing map", "error", err)
+	}
+	if wasInstalled {
+		d.cleanupSupersededMapArtifacts(mapId, previousState.mapConfig.Code, extractResp.Config.Code)
 	}
 	d.Logger.Info("InstallMap completed", "map_id", mapId, "version", version)
 	return extractResp
