@@ -29,6 +29,8 @@ export type RegistrySearchItem = {
   countryName: string | null;
   countryEmoji: string | null;
   population: number | null;
+  /** Registry data-quality weighted score in [0, 1]; null when unscored (tier "unknown") or not a map. */
+  dataQualityScore?: number | null;
   isTest: boolean;
   /** Author-deprecated listing: hidden from browse by default, never downloadable. */
   isDeprecated: boolean;

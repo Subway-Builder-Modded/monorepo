@@ -46,13 +46,17 @@ describe('sort helpers', () => {
     expect(modOptions).toHaveLength(11);
     expect(modOptions.map((option) => option.value)).not.toContain('population:asc');
     expect(modOptions.map((option) => option.value)).not.toContain('population:desc');
+    expect(modOptions.map((option) => option.value)).not.toContain('data_quality:asc');
+    expect(modOptions.map((option) => option.value)).not.toContain('data_quality:desc');
     expect(modOptions.map((option) => option.value)).not.toContain('city_code:asc');
     expect(modOptions.map((option) => option.value)).not.toContain('city_code:desc');
     expect(modOptions.map((option) => option.value)).toContain('last_updated:asc');
     expect(modOptions.map((option) => option.value)).toContain('last_updated:desc');
     expect(modOptions.map((option) => option.value)).toContain('random:asc');
     expect(modOptions.map((option) => option.value)).not.toContain('random:desc');
-    expect(mapOptions).toHaveLength(17);
+    expect(mapOptions).toHaveLength(19);
+    expect(mapOptions.map((option) => option.value)).toContain('data_quality:desc');
+    expect(mapOptions.map((option) => option.value)).toContain('data_quality:asc');
     expect(mapOptions).toEqual(SORT_OPTIONS);
   });
 
@@ -110,6 +114,12 @@ describe('normalizeSortStateForType', () => {
     expect(normalized.field).not.toBe('population');
     expect(normalized.field).not.toBe('city_code');
     expect(normalized.field).not.toBe('country');
+
+    const qualityNormalized = normalizeSortStateForType(
+      { field: 'data_quality', direction: 'desc' },
+      'mod',
+    );
+    expect(qualityNormalized.field).not.toBe('data_quality');
   });
 
   it('allows map-only fields for map type', () => {
@@ -119,6 +129,9 @@ describe('normalizeSortStateForType', () => {
     expect(
       normalizeSortStateForType({ field: 'city_code', direction: 'desc' }, 'map'),
     ).toEqual({ field: 'city_code', direction: 'desc' });
+    expect(
+      normalizeSortStateForType({ field: 'data_quality', direction: 'desc' }, 'map'),
+    ).toEqual({ field: 'data_quality', direction: 'desc' });
   });
 
   it('falls back gracefully for an unknown field', () => {
@@ -141,6 +154,7 @@ describe('TEXT_SORT_FIELDS', () => {
   it('excludes numeric and random fields', () => {
     expect(TEXT_SORT_FIELDS.has('downloads')).toBe(false);
     expect(TEXT_SORT_FIELDS.has('population')).toBe(false);
+    expect(TEXT_SORT_FIELDS.has('data_quality')).toBe(false);
     expect(TEXT_SORT_FIELDS.has('random')).toBe(false);
     expect(TEXT_SORT_FIELDS.has('last_updated')).toBe(false);
   });

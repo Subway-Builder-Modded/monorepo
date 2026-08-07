@@ -106,6 +106,30 @@ describe("sortRegistryItems", () => {
     expect(result[2]?.id).toBe("b");
   });
 
+  it("sorts by dataQuality (maps-only field)", () => {
+    const items = [
+      makeItem({ id: "a", dataQualityScore: 0.45 }),
+      makeItem({ id: "b", dataQualityScore: 0.87 }),
+      makeItem({ id: "c", dataQualityScore: 0.12 }),
+    ];
+    const desc = sortRegistryItems(items, "dataQuality", "desc", SEED);
+    expect(desc.map((i) => i.id)).toEqual(["b", "a", "c"]);
+    const asc = sortRegistryItems(items, "dataQuality", "asc", SEED);
+    expect(asc.map((i) => i.id)).toEqual(["c", "a", "b"]);
+  });
+
+  it("sorts unscored items last for dataQuality in both directions", () => {
+    const items = [
+      makeItem({ id: "unscored", dataQualityScore: null }),
+      makeItem({ id: "low", dataQualityScore: 0.05 }),
+      makeItem({ id: "high", dataQualityScore: 0.9 }),
+    ];
+    const desc = sortRegistryItems(items, "dataQuality", "desc", SEED);
+    expect(desc.map((i) => i.id)).toEqual(["high", "low", "unscored"]);
+    const asc = sortRegistryItems(items, "dataQuality", "asc", SEED);
+    expect(asc.map((i) => i.id)).toEqual(["low", "high", "unscored"]);
+  });
+
   it("sorts by cityCode with inverted direction semantics", () => {
     const items = [makeItem({ id: "a", cityCode: "ZZZ" }), makeItem({ id: "b", cityCode: "AAA" })];
     const asc = sortRegistryItems(items, "cityCode", "asc", SEED);
@@ -137,6 +161,40 @@ describe("sortRegistryItems", () => {
     const result = sortRegistryItems(items, "population", "asc", SEED);
     expect(result[0]?.id).toBe("b");
     expect(result[1]?.id).toBe("a");
+  });
+
+  it("breaks primary ties by most recent update, then name, then id, in both directions", () => {
+    const items = [
+      makeItem({ id: "b", totalDownloads: 100, lastActivityAt: 1000, name: "Beta" }),
+      makeItem({ id: "a", totalDownloads: 100, lastActivityAt: 2000, name: "Zulu" }),
+      makeItem({ id: "c", totalDownloads: 100, lastActivityAt: 1000, name: "Alpha" }),
+      makeItem({ id: "d", totalDownloads: 50, lastActivityAt: 9999 }),
+    ];
+    // Tied on downloads: newest first (a), then name A→Z within same
+    // timestamp (c before b). The tiebreak never flips with direction.
+    const desc = sortRegistryItems(items, "downloads", "desc", SEED);
+    expect(desc.map((i) => i.id)).toEqual(["a", "c", "b", "d"]);
+    const asc = sortRegistryItems(items, "downloads", "asc", SEED);
+    expect(asc.map((i) => i.id)).toEqual(["d", "a", "c", "b"]);
+  });
+
+  it("breaks full ties by id", () => {
+    const items = [
+      makeItem({ id: "zeta", name: "Same", lastActivityAt: 500 }),
+      makeItem({ id: "alpha", name: "Same", lastActivityAt: 500 }),
+    ];
+    const result = sortRegistryItems(items, "name", "asc", SEED);
+    expect(result.map((i) => i.id)).toEqual(["alpha", "zeta"]);
+  });
+
+  it("orders unscored dataQuality items among themselves by the tiebreak chain", () => {
+    const items = [
+      makeItem({ id: "unscored-old", dataQualityScore: null, lastActivityAt: 100 }),
+      makeItem({ id: "unscored-new", dataQualityScore: null, lastActivityAt: 900 }),
+      makeItem({ id: "scored", dataQualityScore: 0.5 }),
+    ];
+    const result = sortRegistryItems(items, "dataQuality", "desc", SEED);
+    expect(result.map((i) => i.id)).toEqual(["scored", "unscored-new", "unscored-old"]);
   });
 
   it("direction toggle reverses order for deterministic sorts", () => {
