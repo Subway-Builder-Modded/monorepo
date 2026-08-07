@@ -309,6 +309,92 @@ func TestBootstrapInstalledStateFromProfilePreservesExistingRemoteMapWhenManifes
 	require.Equal(t, "MIS", reg.GetInstalledMaps()[0].MapConfig.Code)
 }
 
+func TestBootstrapInstalledStateFromProfileKeepsInstallWhenManifestCityCodeChanged(t *testing.T) {
+	testutil.NewHarness(t)
+	// The registry manifest already advertises the NEW code (a code-changing
+	// update was published upstream), but the local install still holds the
+	// previous code's files. Bootstrap must validate against the installed
+	// snapshot's code — not the manifest's — or the map is silently dropped
+	// and re-downloaded.
+	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
+		Maps: []types.MapManifest{fixtureRegistryMapManifest("lyon", "LSY")},
+	})
+
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	testutil.SetValidConfigPaths(t, &cfg.Cfg)
+	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
+	require.NoError(t, reg.fetchFromDisk())
+
+	reg.installedMaps = []types.InstalledMapInfo{
+		{
+			ID:        "lyon",
+			Version:   "1.0.0",
+			IsLocal:   false,
+			MapConfig: types.ConfigData{Code: "LYS", Name: "Lyon", Version: "1.0.0"},
+		},
+	}
+	mapPath := paths.JoinLocalPath(cfg.Cfg.GetMapsFolderPath(), "LYS")
+	require.NoError(t, os.MkdirAll(mapPath, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, constants.RailyardAssetMarker), []byte(""), 0o644))
+	writeInstalledMapFiles(t, cfg.Cfg.GetMapsFolderPath(), paths.TilesPath(), "LYS", types.ConfigData{
+		Code:    "LYS",
+		Name:    "Lyon",
+		Version: "1.0.0",
+	})
+
+	profile := types.DefaultProfile()
+	profile.Subscriptions.Maps["lyon"] = "1.0.0"
+
+	require.NoError(t, reg.BootstrapInstalledStateFromProfile(profile))
+	installed := reg.GetInstalledMaps()
+	require.Len(t, installed, 1)
+	require.Equal(t, "lyon", installed[0].ID)
+	require.Equal(t, "LYS", installed[0].MapConfig.Code)
+}
+
+func TestBootstrapInstalledStateFromProfileFallsBackToManifestCodeWhenSnapshotStale(t *testing.T) {
+	testutil.NewHarness(t)
+	// Corrupted installed metadata points at a code with no files on disk,
+	// while the manifest's code matches what is actually installed — the
+	// manifest fallback recovers the install instead of dropping it.
+	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
+		Maps: []types.MapManifest{fixtureRegistryMapManifest("lyon", "LSY")},
+	})
+
+	cfg := config.NewConfig(testutil.TestLogSink{})
+	testutil.SetValidConfigPaths(t, &cfg.Cfg)
+	reg := NewRegistry(testutil.TestLogSink{}, cfg)
+	reg.SetContext(context.WithValue(context.Background(), "test", "true"))
+	require.NoError(t, reg.fetchFromDisk())
+
+	reg.installedMaps = []types.InstalledMapInfo{
+		{
+			ID:        "lyon",
+			Version:   "1.0.0",
+			IsLocal:   false,
+			MapConfig: types.ConfigData{Code: "ZZZ", Name: "Lyon", Version: "1.0.0"},
+		},
+	}
+	mapPath := paths.JoinLocalPath(cfg.Cfg.GetMapsFolderPath(), "LSY")
+	require.NoError(t, os.MkdirAll(mapPath, 0o755))
+	require.NoError(t, os.WriteFile(paths.JoinLocalPath(mapPath, constants.RailyardAssetMarker), []byte(""), 0o644))
+	writeInstalledMapFiles(t, cfg.Cfg.GetMapsFolderPath(), paths.TilesPath(), "LSY", types.ConfigData{
+		Code:    "LSY",
+		Name:    "Lyon",
+		Version: "1.0.0",
+	})
+
+	profile := types.DefaultProfile()
+	profile.Subscriptions.Maps["lyon"] = "1.0.0"
+
+	require.NoError(t, reg.BootstrapInstalledStateFromProfile(profile))
+	installed := reg.GetInstalledMaps()
+	require.Len(t, installed, 1)
+	require.Equal(t, "lyon", installed[0].ID)
+	require.Equal(t, "LSY", installed[0].MapConfig.Code)
+}
+
 func TestBootstrapInstalledStateFromProfileHydratesLocalMapConfigFromDisk(t *testing.T) {
 	testutil.NewHarness(t)
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{})
