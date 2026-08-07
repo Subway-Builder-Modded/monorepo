@@ -324,7 +324,9 @@ export function ProjectHeader({
         installUpdateTooltip = 'Cancel';
         break;
       case !!deprecation:
-        installUpdateTooltip = `This ${type === 'map' ? 'map' : 'mod'} was deprecated by its author and can no longer be installed`;
+        installUpdateTooltip = deprecation?.deleted
+          ? `This ${type === 'map' ? 'map' : 'mod'} was permanently deleted by its author and can no longer be installed`
+          : `This ${type === 'map' ? 'map' : 'mod'} was deprecated by its author and can no longer be installed`;
         break;
       case mutationLocked:
         installUpdateTooltip = (
@@ -561,14 +563,21 @@ export function ProjectHeader({
             {deprecation && (
               <div className="flex max-w-xl flex-col gap-1 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1.5 font-medium text-foreground">
-                  <Archive className="h-3.5 w-3.5 shrink-0" />
-                  Deprecated by the author
+                  {deprecation.deleted ? (
+                    <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <Archive className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                  {deprecation.deleted
+                    ? 'Deleted by the author'
+                    : 'Deprecated by the author'}
                   {deprecation.since &&
                     ` on ${new Date(deprecation.since).toLocaleDateString()}`}
                 </span>
                 <span>
-                  This {type === 'map' ? 'map' : 'mod'} can no longer be
-                  downloaded; its history and credits remain.
+                  {deprecation.deleted
+                    ? `This ${type === 'map' ? 'map' : 'mod'} was permanently deleted and can no longer be downloaded; its history and credits remain.`
+                    : `This ${type === 'map' ? 'map' : 'mod'} can no longer be downloaded; its history and credits remain.`}
                 </span>
                 {deprecation.reason && <span>{deprecation.reason}</span>}
               </div>

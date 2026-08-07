@@ -23,6 +23,7 @@ import { countRenders } from '@/lib/perf';
 
 import type { types } from '../../../wailsjs/go/models';
 import {
+  DeletedBadge,
   DeprecatedBadge,
   IncompatibleBadge,
   TestBadge,
@@ -39,6 +40,7 @@ interface ItemCardWrapperProps {
   gameVersion?: string;
   test?: boolean;
   deprecated?: boolean;
+  deleted?: boolean;
   viewMode?: 'full' | 'compact' | 'list';
   descriptionMode?: 'raw' | 'preview';
 }
@@ -60,6 +62,7 @@ function ItemCardComponent({
   gameVersion,
   test = false,
   deprecated = false,
+  deleted = false,
   viewMode = 'full',
   descriptionMode = 'raw',
 }: ItemCardWrapperProps) {
@@ -110,10 +113,11 @@ function ItemCardComponent({
       installedVersion={installedVersion}
       totalDownloads={totalDownloads}
       topLeftBadge={
-        incompatible || test || deprecated ? (
+        incompatible || test || deprecated || deleted ? (
           <span className="inline-flex items-center gap-1">
             {test && <TestBadge />}
             {deprecated && <DeprecatedBadge />}
+            {deleted && <DeletedBadge />}
             {incompatible && (
               <TooltipProvider>
                 <Tooltip>

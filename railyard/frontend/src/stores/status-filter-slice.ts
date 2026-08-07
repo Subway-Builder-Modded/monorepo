@@ -3,7 +3,8 @@ export type StatusFilter =
   | 'local'
   | 'incompatible'
   | 'test'
-  | 'deprecated';
+  | 'deprecated'
+  | 'deleted';
 
 export const STATUS_FILTER_VALUES: readonly StatusFilter[] = [
   'compatible',
@@ -11,6 +12,7 @@ export const STATUS_FILTER_VALUES: readonly StatusFilter[] = [
   'incompatible',
   'test',
   'deprecated',
+  'deleted',
 ];
 
 export interface StatusFilterSlice {

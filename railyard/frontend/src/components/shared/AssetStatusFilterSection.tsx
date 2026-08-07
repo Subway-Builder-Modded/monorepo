@@ -10,6 +10,7 @@ import {
   FlaskConical,
   HardDrive,
   type LucideIcon,
+  Trash2,
 } from 'lucide-react';
 
 import type { StatusFilter } from '@/stores/library-store';
@@ -32,6 +33,7 @@ const OPTION_ORDER: StatusFilter[] = [
   'local',
   'incompatible',
   'deprecated',
+  'deleted',
 ];
 
 const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
@@ -87,6 +89,19 @@ const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
     key: 'deprecated',
     label: 'Deprecated',
     Icon: Archive,
+    iconColor: 'text-muted-foreground',
+    activeText: 'text-foreground',
+    activeBg: 'bg-muted-foreground/10',
+    activePill: 'bg-muted-foreground',
+    hoverBg: 'group-hover:bg-muted-foreground/10',
+    hoverText: 'group-hover:text-foreground',
+  },
+  // Same neutral treatment and hide-by-default rule as Deprecated; deletion
+  // is the permanent variant.
+  deleted: {
+    key: 'deleted',
+    label: 'Deleted',
+    Icon: Trash2,
     iconColor: 'text-muted-foreground',
     activeText: 'text-foreground',
     activeBg: 'bg-muted-foreground/10',

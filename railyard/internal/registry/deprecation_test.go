@@ -27,16 +27,20 @@ func modWithDeprecation(id string, deprecation *types.Deprecation) types.ModMani
 // listings without a complete version stay hidden (delisted).
 func TestFilterManifestsByIntegrityKeepsDeprecated(t *testing.T) {
 	deprecation := &types.Deprecation{Since: "2026-08-01T00:00:00Z", ByGithubID: 1}
+	deletion := &types.Deprecation{Since: "2026-08-01T00:00:00Z", ByGithubID: 1, Deleted: true}
 	manifests := []types.ModManifest{
 		modWithDeprecation("active-mod", nil),
 		modWithDeprecation("deprecated-mod", deprecation),
+		modWithDeprecation("deleted-mod", deletion),
 		modWithDeprecation("delisted-mod", nil),
 		modWithDeprecation("unlisted-mod", deprecation),
 	}
 	listings := map[string]types.IntegrityListing{
 		"active-mod":     {HasCompleteVersion: true},
 		"deprecated-mod": {HasCompleteVersion: false},
-		"delisted-mod":   {HasCompleteVersion: false},
+		// Deleted implies deprecated: retained on the same rule.
+		"deleted-mod":  {HasCompleteVersion: false},
+		"delisted-mod": {HasCompleteVersion: false},
 		// unlisted-mod has no integrity listing at all: dropped even when deprecated.
 	}
 
@@ -52,7 +56,7 @@ func TestFilterManifestsByIntegrityKeepsDeprecated(t *testing.T) {
 	for _, item := range filtered {
 		ids = append(ids, item.ID)
 	}
-	want := []string{"active-mod", "deprecated-mod"}
+	want := []string{"active-mod", "deprecated-mod", "deleted-mod"}
 	if len(ids) != len(want) {
 		t.Fatalf("filtered ids = %v, want %v", ids, want)
 	}

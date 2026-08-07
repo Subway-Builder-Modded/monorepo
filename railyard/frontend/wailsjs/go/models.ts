@@ -1205,16 +1205,18 @@ export namespace types {
 	    since: string;
 	    by_github_id: number;
 	    reason?: string;
-	
+	    deleted?: boolean;
+
 	    static createFrom(source: any = {}) {
 	        return new Deprecation(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.since = source["since"];
 	        this.by_github_id = source["by_github_id"];
 	        this.reason = source["reason"];
+	        this.deleted = source["deleted"];
 	    }
 	}
 	export class UpdateConfig {

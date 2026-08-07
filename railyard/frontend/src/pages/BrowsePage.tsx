@@ -421,7 +421,10 @@ function BrowsePageContent({
                 )}
                 gameVersion={gameVersion}
                 test={item.is_test === true}
-                deprecated={item.deprecation != null}
+                deprecated={
+                  item.deprecation != null && item.deprecation.deleted !== true
+                }
+                deleted={item.deprecation?.deleted === true}
                 totalDownloads={
                   itemType === 'mod'
                     ? (modDownloadTotals[item.id] ?? 0)

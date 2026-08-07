@@ -1,6 +1,12 @@
 import { ImageChip } from '@subway-builder-modded/asset-listings-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
-import { Archive, CircleAlert, FlaskConical, HardDrive } from 'lucide-react';
+import {
+  Archive,
+  CircleAlert,
+  FlaskConical,
+  HardDrive,
+  Trash2,
+} from 'lucide-react';
 
 export function LocalBadge({ className }: { className?: string }) {
   return (
@@ -42,6 +48,22 @@ export function DeprecatedBadge({ className }: { className?: string }) {
     >
       <Archive className="h-2.5 w-2.5 shrink-0" />
       Deprecated
+    </ImageChip>
+  );
+}
+
+// Same neutral treatment as Deprecated (also an author decision), distinct
+// icon/label: deletion is permanent where deprecation is reversible.
+export function DeletedBadge({ className }: { className?: string }) {
+  return (
+    <ImageChip
+      className={cn(
+        'border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground',
+        className,
+      )}
+    >
+      <Trash2 className="h-2.5 w-2.5 shrink-0" />
+      Deleted
     </ImageChip>
   );
 }
