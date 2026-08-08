@@ -609,7 +609,7 @@ func (s *UserProfiles) SwapProfile(req types.SwapProfileRequest) types.UserProfi
 	}
 
 	// If the target archive is fresh, we can restore from archive.
-	// TODO(profiles): Before restore, aggressively purge all Railyard-managed assets not present in the target profile's installed metadata to avoid stale on-disk collisions and reduce disk usage. This is deferred until we can reliably validate map version equality fromconfig.json for all managed maps (requires adoption of 0.2.0).
+	// TODO(profiles): Before restore, aggressively purge all Railyard-managed assets not present in the target profile's installed metadata to avoid stale on-disk collisions and reduce disk usage. For maps that means the data directory plus every files.MapArtifacts entry. This is deferred until we can reliably validate map version equality from config.json for all managed maps (requires adoption of 0.2.0).
 	if isTargetArchiveFresh {
 		restoreResult := s.RestoreProfileArchive(targetProfile.ID)
 		if restoreResult.Status == types.ResponseError {

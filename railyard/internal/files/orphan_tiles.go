@@ -38,7 +38,7 @@ func CleanupOrphanFoundationTiles(tilesRoot string) ([]string, error) {
 		if baseTileExists {
 			// A paired foundations file may belong to a swapped-out profile; stale
 			// pairs are reconciled by the install and profile-restore paths.
-			// TODO(profiles): reclaim swapped-out pairs in the full stale-asset purge.
+			// TODO(profiles): reclaim swapped-out assets in the full stale-asset purge.
 			continue
 		}
 		orphanPath := paths.JoinLocalPath(tilesRoot, name)
