@@ -23,6 +23,16 @@ function compareNumbers(a: number | null, b: number | null): number {
   return a - b;
 }
 
+/** Tiebreak chain when the primary sort compares equal — independent of the
+ *  selected direction: most recently updated first, then name A→Z, then id. */
+function compareTiebreak(a: RegistrySearchItem, b: RegistrySearchItem): number {
+  return (
+    b.lastActivityAt - a.lastActivityAt ||
+    collator.compare(a.name, b.name) ||
+    a.id.localeCompare(b.id)
+  );
+}
+
 /** Mulberry32 seeded PRNG for stable random sort.
  *  Returns a value in [0, 1).
  */
@@ -97,6 +107,17 @@ function sortItemsBy(
       case "population":
         cmp = compareNumbers(a.population, b.population);
         break;
+      case "dataQuality": {
+        const qa = a.dataQualityScore ?? null;
+        const qb = b.dataQualityScore ?? null;
+        // Unscored items sort last in both directions, so return before the
+        // direction flip below. Two unscored items fall through with cmp 0 so
+        // the tiebreak chain orders them.
+        if (qa === null && qb !== null) return 1;
+        if (qa !== null && qb === null) return -1;
+        cmp = qa !== null && qb !== null ? qa - qb : 0;
+        break;
+      }
       case "name":
         cmp = compareStrings(a.name, b.name);
         break;
@@ -110,7 +131,8 @@ function sortItemsBy(
         cmp = 0;
     }
 
-    return direction === "desc" ? -cmp : cmp;
+    const primary = direction === "desc" ? -cmp : cmp;
+    return primary || compareTiebreak(a, b);
   });
 
   return sorted;

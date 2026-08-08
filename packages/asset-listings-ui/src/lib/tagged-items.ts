@@ -75,62 +75,96 @@ export function compareItems<T extends AbstractTaggedItem>(
   const getAuthor = options?.getAuthor ?? getAuthorDefault;
   const getCityCode = options?.getCityCode ?? getCityCodeDefault;
 
-  switch (sort.field) {
-    case 'name':
-      return compareText(a.item.name ?? '', b.item.name ?? '', sort.direction);
-    case 'city_code': {
-      const cityCodeA =
-        a.type === 'map' ? getCityCode(a.item) : '';
-      const cityCodeB =
-        b.type === 'map' ? getCityCode(b.item) : '';
-      return compareText(cityCodeA, cityCodeB, sort.direction);
+  const comparePrimary = (): number => {
+    switch (sort.field) {
+      case 'name':
+        return compareText(
+          a.item.name ?? '',
+          b.item.name ?? '',
+          sort.direction,
+        );
+      case 'city_code': {
+        const cityCodeA =
+          a.type === 'map' ? getCityCode(a.item) : '';
+        const cityCodeB =
+          b.type === 'map' ? getCityCode(b.item) : '';
+        return compareText(cityCodeA, cityCodeB, sort.direction);
+      }
+      case 'country': {
+        const countryA =
+          a.type === 'map' ? (a.item.country ?? '') : '';
+        const countryB =
+          b.type === 'map' ? (b.item.country ?? '') : '';
+        return compareText(countryA, countryB, sort.direction);
+      }
+      case 'author':
+        return compareText(
+          getAuthor(a.item),
+          getAuthor(b.item),
+          sort.direction,
+        );
+      case 'population': {
+        const popA =
+          a.type === 'map' ? (a.item.population ?? 0) : 0;
+        const popB =
+          b.type === 'map' ? (b.item.population ?? 0) : 0;
+        return compareByDirection(popA, popB, sort.direction);
+      }
+      case 'data_quality': {
+        // Registry weighted score in [0, 1]; absent when unscored (tier
+        // "unknown"). Unscored items sort last in both directions; two
+        // unscored items compare equal and fall through to the tiebreak.
+        const scoreA =
+          a.type === 'map'
+            ? (a.item.data_quality?.weighted_score ?? null)
+            : null;
+        const scoreB =
+          b.type === 'map'
+            ? (b.item.data_quality?.weighted_score ?? null)
+            : null;
+        if (scoreA === null && scoreB === null) return 0;
+        if (scoreA === null) return 1;
+        if (scoreB === null) return -1;
+        return compareByDirection(scoreA, scoreB, sort.direction);
+      }
+      case 'downloads': {
+        const downloadsA = getTotalDownloads(
+          a,
+          modDownloadTotals,
+          mapDownloadTotals,
+        );
+        const downloadsB = getTotalDownloads(
+          b,
+          modDownloadTotals,
+          mapDownloadTotals,
+        );
+        return compareByDirection(downloadsA, downloadsB, sort.direction);
+      }
+      case 'last_updated': {
+        const updatedA = getLastUpdated(a);
+        const updatedB = getLastUpdated(b);
+        return compareByDirection(updatedA, updatedB, sort.direction);
+      }
+      case 'first_released': {
+        const releasedA = getFirstReleased(a);
+        const releasedB = getFirstReleased(b);
+        return compareByDirection(releasedA, releasedB, sort.direction);
+      }
+      default:
+        return 0;
     }
-    case 'country': {
-      const countryA =
-        a.type === 'map' ? (a.item.country ?? '') : '';
-      const countryB =
-        b.type === 'map' ? (b.item.country ?? '') : '';
-      return compareText(countryA, countryB, sort.direction);
-    }
-    case 'author':
-      return compareText(
-        getAuthor(a.item),
-        getAuthor(b.item),
-        sort.direction,
-      );
-    case 'population': {
-      const popA =
-        a.type === 'map' ? (a.item.population ?? 0) : 0;
-      const popB =
-        b.type === 'map' ? (b.item.population ?? 0) : 0;
-      return compareByDirection(popA, popB, sort.direction);
-    }
-    case 'downloads': {
-      const downloadsA = getTotalDownloads(
-        a,
-        modDownloadTotals,
-        mapDownloadTotals,
-      );
-      const downloadsB = getTotalDownloads(
-        b,
-        modDownloadTotals,
-        mapDownloadTotals,
-      );
-      return compareByDirection(downloadsA, downloadsB, sort.direction);
-    }
-    case 'last_updated': {
-      const updatedA = getLastUpdated(a);
-      const updatedB = getLastUpdated(b);
-      return compareByDirection(updatedA, updatedB, sort.direction);
-    }
-    case 'first_released': {
-      const releasedA = getFirstReleased(a);
-      const releasedB = getFirstReleased(b);
-      return compareByDirection(releasedA, releasedB, sort.direction);
-    }
-    default:
-      return 0;
-  }
+  };
+
+  const primary = comparePrimary();
+  if (primary !== 0) return primary;
+
+  // Tiebreak chain, independent of the selected direction: most recently
+  // updated first, then name A→Z, then id.
+  return (
+    getLastUpdated(b) - getLastUpdated(a) ||
+    String(a.item.name ?? '').localeCompare(String(b.item.name ?? '')) ||
+    String(a.item.id ?? '').localeCompare(String(b.item.id ?? ''))
+  );
 }
 
 export function sortTaggedItemsByLastUpdated<T extends AbstractTaggedItem>(

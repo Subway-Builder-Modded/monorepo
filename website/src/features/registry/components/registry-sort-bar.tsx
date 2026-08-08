@@ -13,6 +13,7 @@ import {
   Users,
   Building2,
   CalendarDays,
+  Gauge,
   Shuffle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -25,6 +26,7 @@ const SORT_ICONS: Record<RegistrySortId, LucideIcon> = {
   name: Type,
   author: User,
   population: Users,
+  dataQuality: Gauge,
   cityCode: Building2,
   random: Shuffle,
 };
@@ -34,6 +36,7 @@ const NUMERIC_SORT_IDS = new Set<RegistrySortId>([
   "firstReleased",
   "downloads",
   "population",
+  "dataQuality",
 ]);
 
 type RegistrySortBarProps = {

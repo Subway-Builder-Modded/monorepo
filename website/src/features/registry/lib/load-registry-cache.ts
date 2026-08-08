@@ -457,6 +457,10 @@ export async function loadRegistryItemsForType(
             ? manifest.residents_total
             : null
         : null,
+      dataQualityScore:
+        typeUiRules.hasMapMetadata && typeof manifest.data_quality?.weighted_score === "number"
+          ? manifest.data_quality.weighted_score
+          : null,
       isTest: false,
       isDeprecated,
       manifest,

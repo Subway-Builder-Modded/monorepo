@@ -175,11 +175,131 @@ describe('compareItems', () => {
     ).toBeGreaterThan(0);
   });
 
+  it('sorts maps by data_quality weighted score', () => {
+    const low = makeMap({
+      data_quality: { tier: 'low', weighted_score: 0.31, rubric_version: 1 },
+    });
+    const high = makeMap({
+      data_quality: {
+        tier: 'very-high',
+        weighted_score: 0.87,
+        rubric_version: 1,
+      },
+    });
+    expect(
+      compareItems(
+        low,
+        high,
+        { field: 'data_quality', direction: 'desc' },
+        {},
+        {},
+      ),
+    ).toBeGreaterThan(0);
+    expect(
+      compareItems(
+        low,
+        high,
+        { field: 'data_quality', direction: 'asc' },
+        {},
+        {},
+      ),
+    ).toBeLessThan(0);
+  });
+
+  it('sorts unscored maps last for data_quality in both directions', () => {
+    const scored = makeMap({
+      data_quality: {
+        tier: 'very-low',
+        weighted_score: 0.16,
+        rubric_version: 1,
+      },
+    });
+    const unscored = makeMap({
+      data_quality: { tier: 'unknown', rubric_version: 1 },
+    });
+    for (const direction of ['asc', 'desc'] as const) {
+      expect(
+        compareItems(
+          scored,
+          unscored,
+          { field: 'data_quality', direction },
+          {},
+          {},
+        ),
+      ).toBeLessThan(0);
+      expect(
+        compareItems(
+          unscored,
+          scored,
+          { field: 'data_quality', direction },
+          {},
+          {},
+        ),
+      ).toBeGreaterThan(0);
+    }
+  });
+
   it('sorts maps by city_code', () => {
     const a = makeMap({ city_code: 'AAA' });
     const b = makeMap({ city_code: 'ZZZ' });
     expect(
       compareItems(a, b, { field: 'city_code', direction: 'asc' }, {}, {}),
+    ).toBeLessThan(0);
+  });
+
+  it('breaks primary ties by newest update regardless of direction', () => {
+    const newer = makeMod({ id: 'z-mod', name: 'Same', last_updated: 900 });
+    const older = makeMod({ id: 'a-mod', name: 'Same', last_updated: 100 });
+    for (const direction of ['asc', 'desc'] as const) {
+      // Both have zero downloads — tied on the primary sort.
+      expect(
+        compareItems(newer, older, { field: 'downloads', direction }, {}, {}),
+      ).toBeLessThan(0);
+      expect(
+        compareItems(older, newer, { field: 'downloads', direction }, {}, {}),
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it('breaks remaining ties by name, then id', () => {
+    const alpha = makeMod({ id: 'z-mod', name: 'Alpha', last_updated: 500 });
+    const beta = makeMod({ id: 'a-mod', name: 'Beta', last_updated: 500 });
+    expect(
+      compareItems(
+        alpha,
+        beta,
+        { field: 'downloads', direction: 'asc' },
+        {},
+        {},
+      ),
+    ).toBeLessThan(0);
+
+    const idA = makeMod({ id: 'aaa', name: 'Same', last_updated: 500 });
+    const idZ = makeMod({ id: 'zzz', name: 'Same', last_updated: 500 });
+    expect(
+      compareItems(idA, idZ, { field: 'downloads', direction: 'asc' }, {}, {}),
+    ).toBeLessThan(0);
+  });
+
+  it('orders two unscored maps by the tiebreak chain under data_quality sort', () => {
+    const unscoredNew = makeMap({
+      id: 'z-map',
+      data_quality: { tier: 'unknown', rubric_version: 1 },
+      last_updated: 900,
+    });
+    const unscoredOld = makeMap({
+      id: 'a-map',
+      data_quality: { tier: 'unknown', rubric_version: 1 },
+      last_updated: 100,
+    });
+    expect(
+      compareItems(
+        unscoredNew,
+        unscoredOld,
+        { field: 'data_quality', direction: 'desc' },
+        {},
+        {},
+      ),
     ).toBeLessThan(0);
   });
 
