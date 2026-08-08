@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "id": "marseille",
+  "name": "Marseille",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the greater Marseille - Aix-en-Provence metropolitan area (France), from Marseille-Provence airport to Aubagne and the Calanques to Aix-en-Provence. 333k+ OSM buildings (binary format), 681k+ commuters with demand built from real INSEE census data. Marseille-Provence airport with runways and taxiways. Mediterranean coastline and the Calanques fully modelled with depth data. Protomaps basemap with water, parks and forests.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ba98a3dcb50372fa9aca5cf30cae8e54567ceeb4/maps/marseille/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ba98a3dcb50372fa9aca5cf30cae8e54567ceeb4/maps/marseille/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ba98a3dcb50372fa9aca5cf30cae8e54567ceeb4/maps/marseille/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subway-builder-marseille",
+  "update": {
+    "type": "github",
+    "repo": "pierreggt/subway-builder-marseille"
+  },
+  "city_code": "MRS",
+  "country": "FR",
+  "population": 681085,
+  "residents_total": 681085,
+  "points_count": 4874,
+  "population_count": 11992,
+  "initial_view_state": {
+    "latitude": 43.2965,
+    "longitude": 5.3698,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi 2021 (donnees carroyees, revenus et population) - INSEE Recensement de la population 2021, mobilites professionnelles - OpenStreetMap contributors (ODbL) - Overture Maps Foundation (buildings)",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "MAR.pmtiles": 33.47,
+    "buildings_index.bin.gz": 18.06,
+    "config.json": 0,
+    "demand_data.json.gz": 0.35,
+    "ocean_depth_index.json.gz": 3.12,
+    "ocean_depth_index_contours.json.gz": 2.64,
+    "roads.geojson.gz": 3.01,
+    "runways_taxiways.geojson.gz": 0.08
+  },
+  "included_cities": [
+    "Aix-en-Provence",
+    "Aubagne",
+    "Martigues",
+    "Istres",
+    "Vitrolles",
+    "La Ciotat",
+    "Cassis",
+    "Marignane",
+    "Salon-de-Provence",
+    "Gardanne"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.19860434210769384,
+      "p25": 0.19867828980551858,
+      "p50": 0.1989618800489936,
+      "p75": 0.2004701878148637,
+      "p90": 0.28332777591954134,
+      "mean": 0.23603292713635654
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.1986068487654031,
+      "p25": 0.19868193176451102,
+      "p50": 0.19905230283353562,
+      "p75": 0.20051821912909326,
+      "p90": 0.44741634989747253,
+      "mean": 0.2932824448889847
+    },
+    "commuteDistanceKm": {
+      "p10": 1770,
+      "p25": 4520,
+      "p50": 8086,
+      "p75": 20580,
+      "p90": 32866,
+      "mean": 13361.531020680453
+    },
+    "residentCellDensity": {
+      "p10": 60,
+      "p25": 135,
+      "p50": 351,
+      "p75": 841,
+      "p90": 1757,
+      "mean": 715.4403066812705
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 112,
+      "p50": 245,
+      "p75": 729,
+      "p90": 1502,
+      "mean": 718.5706462212486
+    },
+    "detail": {
+      "radiusKm": 0.1990070863055933,
+      "expectedPointSpacingKm": 0.44472931188927545,
+      "normalizedRadius": 0.4474791316546732,
+      "activityPerPoint": 139.7384078785392,
+      "playableAreaKm2": 1324,
+      "playableAreaPerPointKm2": 0.27164546573656134,
+      "playableCatchmentRadiusKm": 0.2940534599030381,
+      "localityScore": 0.7398552289788441,
+      "deaggregationScore": 1,
+      "score": 0.8601483761414912
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.9040776098329745,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 5.3914510291960696,
+            "latitude": 43.355859584743435,
+            "massShare": 1,
+            "assignedMass": 1362170,
+            "assignedPointCount": 4874,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1786095539,
+  "data_quality": {
+    "tier": "unknown",
+    "rubric_version": 1
+  }
+}

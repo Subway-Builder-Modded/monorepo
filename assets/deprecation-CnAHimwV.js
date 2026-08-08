@@ -1,0 +1,20 @@
+import{a as e}from"./chunk-BEqpzyXh.js";import{t}from"./jsx-runtime-qJqhvtml.js";var n=e(t());function r(e){let t={a:`a`,code:`code`,em:`em`,h2:`h2`,li:`li`,ol:`ol`,p:`p`,strong:`strong`,ul:`ul`,...e.components},{Tip:r}=t;return r||a(`Tip`,!0),(0,n.jsxs)(n.Fragment,{children:[(0,n.jsx)(t.p,{children:`Deprecation retires an asset without deleting it. A deprecated asset:`}),`
+`,(0,n.jsxs)(t.ul,{children:[`
+`,(0,n.jsxs)(t.li,{children:[`is `,(0,n.jsx)(t.em,{children:`no longer downloadable`}),` from Railyard or the website;`]}),`
+`,(0,n.jsxs)(t.li,{children:[`is `,(0,n.jsx)(t.em,{children:`hidden from browse and search results by default`}),` — it remains viewable behind the `,(0,n.jsx)(t.em,{children:`Deprecated`}),` filter, marked with a gray badge and always sorted last;`]}),`
+`,(0,n.jsxs)(t.li,{children:[`is `,(0,n.jsx)(t.em,{children:`left otherwise unchanged`}),`: the listing page, download history, and author attribution remain constant, and download counts stay credited to the author and/or caretakers.`]}),`
+`]}),`
+`,(0,n.jsx)(t.p,{children:`Deprecation is not deletion, and it is fully reversible.`}),`
+`,(0,n.jsx)(t.h2,{id:`who-can-deprecate`,children:`Who can deprecate`}),`
+`,(0,n.jsxs)(t.p,{children:[`Only the asset's `,(0,n.jsx)(t.em,{children:`original publisher`}),` or its `,(0,n.jsxs)(t.em,{children:[`active `,(0,n.jsx)(t.a,{href:`/registry/docs/caretakers`,children:`caretaker`})]}),` can deprecate it (or reverse a deprecation). Ordinary `,(0,n.jsx)(t.a,{href:`/registry/docs/collaborators`,children:`collaborators`}),` cannot.`]}),`
+`,(0,n.jsx)(t.h2,{id:`how-to-deprecate`,children:`How to deprecate an asset`}),`
+`,(0,n.jsxs)(t.ol,{children:[`
+`,(0,n.jsxs)(t.li,{children:[`On the `,(0,n.jsx)(t.a,{href:`https://github.com/Subway-Builder-Modded/registry`,children:`Registry's GitHub repository`}),`, navigate to `,(0,n.jsx)(t.strong,{children:`Issues`}),` > `,(0,n.jsx)(t.strong,{children:`New Issue`}),` > `,(0,n.jsx)(t.strong,{children:`Deprecate an Asset`}),`.`]}),`
+`,(0,n.jsxs)(t.li,{children:[`Enter the `,(0,n.jsx)(t.em,{children:`asset ID`}),` — the form works for both mods and maps, so no type selection is needed.`]}),`
+`,(0,n.jsxs)(t.li,{children:[`Optionally provide a `,(0,n.jsx)(t.em,{children:`reason`}),` (e.g. "Superseded by my-asset-2"). It is shown publicly on the asset's listing page.`]}),`
+`,(0,n.jsx)(t.li,{children:`Submit. After validation confirms the requester is the publisher or active caretaker, an automated pull request is opened for maintainer review. The deprecation takes effect once a maintainer merges it.`}),`
+`]}),`
+`,(0,n.jsxs)(t.p,{children:[`If validation fails, edit the issue and comment `,(0,n.jsx)(t.code,{children:`revalidate`}),` to retry.`]}),`
+`,(0,n.jsx)(t.h2,{id:`restoring`,children:`Restoring a deprecated asset`}),`
+`,(0,n.jsxs)(t.p,{children:[`Deprecation is reversible through the same flow: `,(0,n.jsx)(t.strong,{children:`Issues`}),` > `,(0,n.jsx)(t.strong,{children:`New Issue`}),` > `,(0,n.jsx)(t.strong,{children:`Remove Asset Deprecation`}),`. The same authorization rule applies. Once the resulting pull request is merged, the asset returns to normal: downloadable, visible in browse by default, exactly as before.`]}),`
+`,(0,n.jsx)(r,{children:(0,n.jsxs)(t.p,{children:[`If the problem is that `,(0,n.jsx)(t.em,{children:`older versions`}),` of an asset no longer work on current game versions, `,(0,n.jsx)(t.a,{href:`/registry/docs/manifest-requirements#retroactive`,children:`capping those versions' game compatibility`}),` is usually the better fix than deprecating the whole asset.`]})})]})}function i(e={}){let{wrapper:t}=e.components||{};return t?(0,n.jsx)(t,{...e,children:(0,n.jsx)(r,{...e})}):r(e)}function a(e,t){throw Error(`Expected `+(t?`component`:`object`)+" `"+e+"` to be defined: you likely forgot to import, pass, or provide it.")}export{i as default};

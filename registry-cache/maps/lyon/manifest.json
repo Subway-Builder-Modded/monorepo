@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "id": "lyon",
+  "name": "Lyon",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the greater Lyon metropolitan area (France), from Lyon-Saint Exupery airport to Tassin-la-Demi-Lune and from Rillieux-la-Pape to Saint-Priest. 204k+ OSM buildings (binary format), 736k+ commuters with demand built from real INSEE census data. Lyon-Saint Exupery airport with runways and taxiways. The Rhone and Saone rivers fully modelled with depth data. Protomaps basemap with water, parks and forests.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ba98a3dcb50372fa9aca5cf30cae8e54567ceeb4/maps/lyon/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ba98a3dcb50372fa9aca5cf30cae8e54567ceeb4/maps/lyon/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ba98a3dcb50372fa9aca5cf30cae8e54567ceeb4/maps/lyon/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subway-builder-lyon",
+  "update": {
+    "type": "github",
+    "repo": "pierreggt/subway-builder-lyon"
+  },
+  "city_code": "LYS",
+  "country": "FR",
+  "population": 736894,
+  "residents_total": 736894,
+  "points_count": 3608,
+  "population_count": 12984,
+  "initial_view_state": {
+    "latitude": 45.764,
+    "longitude": 4.8357,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi 2021 (donnees carroyees, revenus et population) - INSEE Recensement de la population 2021, mobilites professionnelles - OpenStreetMap contributors (ODbL) - Overture Maps Foundation (buildings)",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "LSY.pmtiles": 18.92,
+    "buildings_index.bin.gz": 11.15,
+    "config.json": 0,
+    "demand_data.json.gz": 0.35,
+    "ocean_depth_index.json.gz": 1.19,
+    "ocean_depth_index_contours.json.gz": 1.04,
+    "roads.geojson.gz": 1.97,
+    "runways_taxiways.geojson.gz": 0.08
+  },
+  "included_cities": [
+    "Villeurbanne",
+    "Vénissieux",
+    "Saint-Priest",
+    "Rillieux-la-Pape",
+    "Tassin-la-Demi-Lune",
+    "Bron",
+    "Vaulx-en-Velin",
+    "Écully",
+    "Caluire-et-Cuire",
+    "Meyzieu"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.19898781136114266,
+      "p25": 0.19904105395466065,
+      "p50": 0.19912619982619392,
+      "p75": 0.1994333319854527,
+      "p90": 0.20058664744844318,
+      "mean": 0.21723485787876937
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.19899988891667547,
+      "p25": 0.19906349775422943,
+      "p50": 0.1991756764313045,
+      "p75": 0.2005866064184832,
+      "p90": 0.43606147854270066,
+      "mean": 0.3076111898613069
+    },
+    "commuteDistanceKm": {
+      "p10": 1789,
+      "p25": 4051,
+      "p50": 7286,
+      "p75": 14338,
+      "p90": 23114,
+      "mean": 10210.664125077017
+    },
+    "residentCellDensity": {
+      "p10": 98,
+      "p25": 240,
+      "p50": 589,
+      "p75": 1342,
+      "p90": 3330,
+      "mean": 1295.6392857142857
+    },
+    "workerCellDensity": {
+      "p10": 67,
+      "p25": 182,
+      "p50": 458,
+      "p75": 1213,
+      "p90": 2900,
+      "mean": 1296.2255772646536
+    },
+    "detail": {
+      "radiusKm": 0.19915093659226732,
+      "expectedPointSpacingKm": 0.39746982481793286,
+      "normalizedRadius": 0.5010466811750841,
+      "activityPerPoint": 204.2389135254989,
+      "playableAreaKm2": 700,
+      "playableAreaPerPointKm2": 0.19401330376940132,
+      "playableCatchmentRadiusKm": 0.24850825467372173,
+      "localityScore": 0.6201368960891048,
+      "deaggregationScore": 1,
+      "score": 0.7874877117067318
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.6088523741122672,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 4.87405218329909,
+            "latitude": 45.75185887058385,
+            "massShare": 1,
+            "assignedMass": 1473788,
+            "assignedPointCount": 3608,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1786095708,
+  "data_quality": {
+    "tier": "unknown",
+    "rubric_version": 1
+  }
+}

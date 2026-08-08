@@ -1,0 +1,28 @@
+{
+  "sourceRepo": "Subway-Builder-Modded/registry",
+  "sourceRef": "main",
+  "commitSha": "ba98a3dcb50372fa9aca5cf30cae8e54567ceeb4",
+  "mapDataSourceRef": "map-data",
+  "mapDataCommitSha": "292917335052821c818c9ab500adce792ea77c93",
+  "fetchedAt": "2026-08-08T17:32:09.205Z",
+  "files": [
+    "public/registry-cache/analytics/asset_versions_by_day.csv",
+    "public/registry-cache/analytics/assets_by_day.csv",
+    "public/registry-cache/analytics/authors_by_day.csv",
+    "public/registry-cache/analytics/authors_by_total_downloads.csv",
+    "public/registry-cache/analytics/authors_index.json",
+    "public/registry-cache/analytics/listing_projects.csv",
+    "public/registry-cache/analytics/listing_version_credits.csv",
+    "public/registry-cache/analytics/maps_statistics.csv",
+    "public/registry-cache/analytics/most_popular_all_time.csv",
+    "public/registry-cache/analytics/most_popular_by_day.csv",
+    "public/registry-cache/analytics/most_popular_last_1d.csv",
+    "public/registry-cache/analytics/most_popular_last_30d.csv",
+    "public/registry-cache/analytics/most_popular_last_3d.csv",
+    "public/registry-cache/analytics/most_popular_last_7d.csv",
+    "public/registry-cache/analytics/projects_most_popular_all_time.csv",
+    "public/registry-cache/analytics/projects_most_popular_last_1d.csv",
+    "public/registry-cache/analytics/projects_most_popular_last_3d.csv",
+    "public/registry-cache/analytics/projects_most_popular_last_7d.csv"
+  ]
+}
