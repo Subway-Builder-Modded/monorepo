@@ -5,6 +5,7 @@ import "railyard/internal/paths"
 // MapArtifactRoot identifies which Railyard-managed directory a map artifact is installed into.
 type MapArtifactRoot int
 
+// Enumeration of map artifact roots.
 const (
 	// ArtifactRootTiles is the flat pmtiles directory under the Railyard app-data root.
 	ArtifactRootTiles MapArtifactRoot = iota
@@ -22,11 +23,7 @@ type MapArtifact struct {
 	OptionalOnRemove bool            // removal failures are ignored instead of failing uninstall
 }
 
-// MapArtifacts is the single source of truth for out-of-tree map artifacts:
-// install, stale-artifact removal, uninstall, and profile archive/restore all
-// iterate it, so adding an entry wires the artifact through every lifecycle
-// path at once. Files inside the map data directory need no entry — they
-// inherit the directory's lifecycle.
+// MapArtifacts is the source of truth for map artifacts outside of `cities/data“:
 var MapArtifacts = []MapArtifact{
 	{
 		ArchiveKey:       MapArchiveKeyTiles,
