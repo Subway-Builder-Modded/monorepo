@@ -475,6 +475,7 @@ func (d *Downloader) checkInstallAssetMarkerPresent(assetType types.AssetType, a
 }
 
 // checkUninstallMissingMarker checks if the Railyard marker is absent from assetDir, indicating the asset is not properly installed and should not be removed.
+// TODO(profiles): a missing marker makes uninstall a no-op, leaving the asset's files on disk with no way to reclaim them from the app.
 func (d *Downloader) checkUninstallMissingMarker(assetType types.AssetType, assetID, assetDir string) *types.AssetUninstallResponse {
 	if _, err := os.Stat(paths.JoinLocalPath(assetDir, constants.RailyardAssetMarker)); errors.Is(err, fs.ErrNotExist) {
 		// Return a no-op warn response if the marker is missing
@@ -511,12 +512,17 @@ func (d *Downloader) getMapDataPath() string {
 
 // getMapTilePath returns the filesystem path for installed map tiles.
 func (d *Downloader) getMapTilePath() string {
-	return paths.JoinLocalPath(paths.AppDataRoot(), "tiles")
+	return paths.TilesPath()
 }
 
 // getMapThumbnailPath returns the filesystem path for installed map thumbnails.
 func (d *Downloader) getMapThumbnailPath() string {
-	return paths.JoinLocalPath(d.Config.Cfg.MetroMakerDataPath, "public", "data", "city-maps")
+	return paths.MetroMakerMapThumbnailsPath(d.Config.Cfg.MetroMakerDataPath)
+}
+
+// mapArtifactPath returns the installed path of an out-of-tree map artifact for the given city code.
+func (d *Downloader) mapArtifactPath(artifact files.MapArtifact, cityCode string) string {
+	return files.MapArtifactPath(artifact, d.Config.Cfg.MetroMakerDataPath, cityCode)
 }
 
 type installedState struct {
@@ -871,11 +877,12 @@ func (d *Downloader) uninstallMapNow(mapId string) types.AssetUninstallResponse 
 	if err := os.RemoveAll(mapDataPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map data files", err, "map_id", mapId)
 	}
-	tilePath := paths.JoinLocalPath(d.getMapTilePath(), mapConfig.Code+".pmtiles")
-	if err := os.Remove(tilePath); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, "Failed to remove map tile files", err, "map_id", mapId)
+	for _, artifact := range files.MapArtifacts {
+		err := os.Remove(d.mapArtifactPath(artifact, mapConfig.Code))
+		if err != nil && !errors.Is(err, fs.ErrNotExist) && !artifact.OptionalOnRemove {
+			return d.uninstallError(types.AssetTypeMap, mapId, types.UninstallErrorFilesystem, fmt.Sprintf("Failed to remove map %s files", artifact.Label), err, "map_id", mapId)
+		}
 	}
-	os.Remove(paths.JoinLocalPath(d.getMapThumbnailPath(), mapConfig.Code+".svg")) // Doesn't matter if this fails, thumbnail is optional and may not exist
 	d.Registry.RemoveInstalledMap(mapId)
 	if err := d.Registry.WriteInstalledToDisk(); err != nil {
 		d.Logger.Warn("Failed to persist installed state after uninstalling map", "error", err)
