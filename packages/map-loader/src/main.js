@@ -38,5 +38,20 @@ const MOD_VERSION = "$MOD_VERSION";
   // the city-load and map-ready hooks.
   const layers = createLayerManager(config, api);
   api.hooks.onCityLoad(layers.handleCityLoad);
+  api.hooks.onCityLoad((code) => {
+    let foundPlace = config.places.find((place) => place.code === code);
+    if (!foundPlace) {
+      return;
+    }
+    fetch("http://127.0.0.1:"+config.drivingPathPort+"/loadpaths", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        cityCode: code,
+      })
+    })
+  });
   api.hooks.onMapReady(layers.handleMapReady);
 })();

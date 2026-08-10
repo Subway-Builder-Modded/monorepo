@@ -1,9 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   isUsablePath,
+  installDrivingPathServer,
   parseModdedPathRequest,
   urlFromFetchInput,
 } from "./driving-path.js";
+
+const originalFetch = globalThis.fetch;
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+  vi.restoreAllMocks();
+});
 
 describe("parseModdedPathRequest", () => {
   it("parses a well-formed modded path url", () => {
@@ -53,5 +61,40 @@ describe("urlFromFetchInput", () => {
       "map://paths/A/b",
     );
     expect(urlFromFetchInput(null)).toBe("");
+  });
+});
+
+describe("installDrivingPathServer", () => {
+  it("forwards matching modded path requests to the path server", async () => {
+    const fetchMock = vi.fn(async () => new Response('{"coordinates":[]}'));
+    globalThis.fetch = fetchMock;
+
+    installDrivingPathServer({
+      drivingPathPort: 4321,
+      places: [{ code: "KUN" }],
+    });
+
+    await globalThis.fetch("map://paths/KUN/pop-42");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:4321/path?cityCode=KUN&popId=pop-42",
+      undefined,
+    );
+  });
+
+  it("passes through non-matching requests unchanged", async () => {
+    const fetchMock = vi.fn(async () => new Response("ok"));
+    globalThis.fetch = fetchMock;
+
+    installDrivingPathServer({
+      drivingPathPort: 4321,
+      places: [{ code: "KUN" }],
+    });
+
+    await globalThis.fetch("map://paths/OTHER/pop-42");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith("map://paths/OTHER/pop-42", undefined);
   });
 });
