@@ -408,6 +408,43 @@ func TestUninstallMapAssetWarnPaths(t *testing.T) {
 	})
 }
 
+func TestUninstallMapAssetRemovesAllTileArtifacts(t *testing.T) {
+	d, reg, _ := newConfiguredDownloader(t, true)
+	const code = "TAR"
+	seedInstalledLocalMap(t, d, reg, "map-artifacts", "1.0.0", code)
+
+	require.NoError(t, os.MkdirAll(d.getMapTilePath(), 0o755))
+	tilePath := filepath.Join(d.getMapTilePath(), code+".pmtiles")
+	foundationTilePath := filepath.Join(d.getMapTilePath(), code+"_foundations.pmtiles")
+	require.NoError(t, os.WriteFile(tilePath, []byte("tiles"), 0o644))
+	require.NoError(t, os.WriteFile(foundationTilePath, []byte("foundations"), 0o644))
+
+	resp := d.UninstallAsset(types.AssetTypeMap, "map-artifacts")
+	require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
+	require.NoDirExists(t, filepath.Join(d.getMapDataPath(), code))
+	require.NoFileExists(t, tilePath)
+	require.NoFileExists(t, foundationTilePath)
+	require.Empty(t, reg.GetInstalledMaps())
+}
+
+func TestUninstallMapAssetFoundationTileRemovalFailure(t *testing.T) {
+	d, reg, _ := newConfiguredDownloader(t, true)
+	const code = "FDF"
+	seedInstalledLocalMap(t, d, reg, "map-foundation-fail", "1.0.0", code)
+
+	// A non-empty directory at the foundation tile path makes os.Remove fail deterministically.
+	foundationTileDir := filepath.Join(d.getMapTilePath(), code+"_foundations.pmtiles")
+	require.NoError(t, os.MkdirAll(foundationTileDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(foundationTileDir, "occupied"), []byte("x"), 0o644))
+	t.Cleanup(func() { _ = os.RemoveAll(foundationTileDir) })
+
+	resp := d.UninstallAsset(types.AssetTypeMap, "map-foundation-fail")
+	require.Equal(t, types.ResponseError, resp.Status)
+	require.Equal(t, types.UninstallErrorFilesystem, resp.ErrorType)
+	require.Contains(t, resp.Message, "Failed to remove map foundation tile files")
+	require.Len(t, reg.GetInstalledMaps(), 1)
+}
+
 func TestUninstallMapAssetTileRemovalFailure(t *testing.T) {
 	d, reg, _ := newConfiguredDownloader(t, true)
 	const code = "TDF"

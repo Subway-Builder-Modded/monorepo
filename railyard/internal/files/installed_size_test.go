@@ -47,6 +47,23 @@ func TestInstalledMapSize(t *testing.T) {
 		require.Equal(t, int64(9), size)
 	})
 
+	t.Run("includes optional foundation tiles size", func(t *testing.T) {
+		mapRoot := t.TempDir()
+		tileRoot := t.TempDir()
+		cityCode := "AAA"
+
+		mapPath := filepath.Join(mapRoot, cityCode)
+		require.NoError(t, os.MkdirAll(mapPath, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(mapPath, ".marker"), []byte("m"), 0o644))
+		require.NoError(t, os.WriteFile(filepath.Join(mapPath, "roads.geojson.gz"), []byte("12345"), 0o644))
+		require.NoError(t, os.WriteFile(filepath.Join(tileRoot, cityCode+MapTileFileExt), []byte("123"), 0o644))
+		require.NoError(t, os.WriteFile(filepath.Join(tileRoot, cityCode+MapFoundationTileFileExt), []byte("1234"), 0o644))
+
+		size, err := InstalledMapSize(mapRoot, tileRoot, cityCode, ".marker")
+		require.NoError(t, err)
+		require.Equal(t, int64(13), size)
+	})
+
 	t.Run("returns zero when unmanaged or missing", func(t *testing.T) {
 		size, err := InstalledMapSize(t.TempDir(), t.TempDir(), "ZZZ", ".marker")
 		require.NoError(t, err)

@@ -182,3 +182,49 @@ func TestExtractMapConflictDetectedAtExtractTime(t *testing.T) {
 	require.Equal(t, types.InstallErrorMapCodeConflict, resp.ErrorType)
 	require.Contains(t, resp.Message, "already installed map")
 }
+
+func TestExtractMapWritesFoundationTiles(t *testing.T) {
+	d, _, _ := newConfiguredDownloader(t, true)
+	const code = "FDT"
+
+	configJSON, err := json.Marshal(types.ConfigData{Code: code, Name: "Foundation Map"})
+	require.NoError(t, err)
+	archive := registrytest.MockZip(t, map[string][]byte{
+		"config.json":               configJSON,
+		"demand_data.json":          []byte("{}"),
+		"roads.geojson":             []byte(`{"type":"FeatureCollection","features":[]}`),
+		"runways_taxiways.geojson":  []byte(`{"type":"FeatureCollection","features":[]}`),
+		"buildings_index.json":      []byte("{}"),
+		"tiles.pmtiles":             []byte("tiles"),
+		"tiles_foundations.pmtiles": []byte("foundations"),
+		"thumbnail.svg":             []byte("<svg></svg>"),
+	})
+	zipPath := filepath.Join(t.TempDir(), "with-foundations.zip")
+	require.NoError(t, os.WriteFile(zipPath, archive, 0o644))
+
+	resp := extractMap(d, zipPath, "map-fdt", "1.0.0", false)
+	require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
+
+	foundationTileData, err := os.ReadFile(filepath.Join(d.getMapTilePath(), code+files.MapFoundationTileFileExt))
+	require.NoError(t, err)
+	require.Equal(t, "foundations", string(foundationTileData))
+}
+
+func TestExtractMapRemovesStaleFoundationTiles(t *testing.T) {
+	d, _, _ := newConfiguredDownloader(t, true)
+	const code = "SFT"
+
+	require.NoError(t, os.MkdirAll(d.getMapTilePath(), 0o755))
+	staleFoundationTilePath := filepath.Join(d.getMapTilePath(), code+files.MapFoundationTileFileExt)
+	require.NoError(t, os.WriteFile(staleFoundationTilePath, []byte("stale"), 0o644))
+
+	// The fixture archive carries no foundation tiles, so the stale file from a
+	// previous version must not survive the reinstall.
+	zipPath := filepath.Join(t.TempDir(), "no-foundations.zip")
+	require.NoError(t, os.WriteFile(zipPath, registrytest.MockMapZip(t, code), 0o644))
+
+	resp := extractMap(d, zipPath, "map-sft", "1.0.0", false)
+	require.Equal(t, types.ResponseSuccess, resp.Status, resp.Message)
+	require.NoFileExists(t, staleFoundationTilePath)
+	require.FileExists(t, filepath.Join(d.getMapTilePath(), code+files.MapTileFileExt))
+}

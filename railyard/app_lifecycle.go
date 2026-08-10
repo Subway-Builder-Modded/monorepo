@@ -1,19 +1,16 @@
 package main
 
 // This file defines the app lifecycle: Wails startup/shutdown hooks, startup readiness,
-// event emission, startup profile resolution, background startup routines, and first-run /
-// staging maintenance.
+// event emission, startup profile resolution, background startup routines, and staging
+// maintenance.
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"runtime"
 
-	"railyard/internal/constants"
 	"railyard/internal/files"
 	"railyard/internal/logger"
 	"railyard/internal/paths"
@@ -236,6 +233,8 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 		updater.CheckForUpdates(a.ctx, a.Downloader.OnProgress, a.Logger, a.Config.GetGithubToken())
 	}
 
+	a.cleanupOrphanedArtifacts()
+
 	if err := a.Registry.Initialize(); err != nil {
 		a.Logger.Warn("Failed to ensure local registry repository", "error", err)
 	} else {
@@ -293,21 +292,6 @@ func runNonBlockingStartupRoutines(a *App, activeProfile types.UserProfile) {
 	}
 }
 
-func (a *App) bootstrapInstalledState(activeProfile types.UserProfile) {
-	err := a.Registry.BootstrapInstalledStateFromProfile(activeProfile)
-	if err != nil {
-		// This should not be blocking as we are already in an error state
-		a.Logger.Error("Failed to bootstrap installed asset state on startup", err, "profile_id", activeProfile.ID)
-		return
-	}
-
-	// Reconcile local map subscriptions after bootstrap to remove any entries that can no longer be fulfilled with the current installed state.
-	reconcileResult := a.Profiles.ReconcileLocalMapSubscriptions(activeProfile.ID)
-	if reconcileResult.Status == types.ResponseError {
-		return
-	}
-}
-
 func (a *App) configureTmpStagingRoots() {
 	cfgResult := a.Config.GetConfig()
 	// Set separate staging roots for app data and MetroMaker data to allow atomic operations (and avoid cross-drive issues) for both locations
@@ -330,32 +314,4 @@ func (a *App) cleanupTmpStaging(stage string) {
 	if err := files.CleanupTmpStagingRoots(); err != nil {
 		a.Logger.Warn("Failed to cleanup managed atomic staging directories", "stage", stage, "error", err)
 	}
-}
-func (a *App) addSaltsOnFirstRun() error {
-	if _, err := os.Stat(paths.JoinLocalPath(paths.AppDataRoot(), constants.RailyardAssetsSaltedMarker)); errors.Is(err, fs.ErrNotExist) {
-		a.Logger.Info("Adding salts to existing assets on first run")
-		for _, mod := range a.Registry.GetInstalledMods() {
-			id := mod.ID
-
-			if _, err := os.Create(paths.JoinLocalPath(a.Config.Cfg.GetModsFolderPath(), id, constants.RailyardAssetMarker)); err != nil {
-				a.Logger.Warn("Failed to add salt file for mod", "mod_id", id, "error", err)
-				return err
-			}
-		}
-
-		for _, m := range a.Registry.GetInstalledMaps() {
-			code := m.MapConfig.Code
-			if _, err := os.Create(paths.JoinLocalPath(a.Config.Cfg.GetMapsFolderPath(), code, constants.RailyardAssetMarker)); err != nil {
-				a.Logger.Warn("Failed to add salt file for map", "map_code", code, "error", err)
-				return err
-			}
-		}
-
-		// Create a marker file to indicate that salts have been added, so we don't repeat this process on subsequent runs
-		if _, err := os.Create(paths.JoinLocalPath(paths.AppDataRoot(), constants.RailyardAssetsSaltedMarker)); err != nil {
-			a.Logger.Warn("Failed to create asset salted marker file", "error", err)
-			return err
-		}
-	}
-	return nil
 }
