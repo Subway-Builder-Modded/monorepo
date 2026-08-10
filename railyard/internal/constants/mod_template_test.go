@@ -15,7 +15,8 @@ func TestModTemplateServesModdedDrivingPaths(t *testing.T) {
 	require.Contains(t, out, "})();")
 	// The driving-path server ships and is wired into the IIFE.
 	require.Contains(t, out, "installDrivingPathServer(config)")
-	require.Contains(t, out, "__railyardPathShim")
+	require.Contains(t, out, "function drivingPathFetchShim(input, init)")
+	require.Contains(t, out, "http://127.0.0.1:")
 	// It answers the request the pop-details view makes.
 	require.Contains(t, out, "map:\\/\\/paths")
 	// It is gated to Railyard maps via the config allow-list.
