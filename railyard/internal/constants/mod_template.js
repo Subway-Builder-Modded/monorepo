@@ -12,7 +12,6 @@
     return input && input.url || "";
   }
   function installDrivingPathServer(config2) {
-    // __railyardPathShim
     const moddedCodes = new Set((config2.places || []).map((p) => p.code));
     const pathServerURL = `http://127.0.0.1:${config2.drivingPathPort}/path?cityCode={cityCode}&popId={popId}`;
     const originalFetch = globalThis.fetch.bind(globalThis);
@@ -297,6 +296,11 @@
     await registerCities(config, api, baseURL);
     registerCountryTabs(config.places, api);
     const layers = createLayerManager(config, api);
+    api.hooks.onGameInit(() => {
+      fetch(`http://127.0.0.1:${config.drivingPathPort}/cache`, {
+        method: "DELETE"
+      });
+    });
     api.hooks.onCityLoad(layers.handleCityLoad);
     api.hooks.onCityLoad((code) => {
       let foundPlace = config.places.find((place) => place.code === code);
