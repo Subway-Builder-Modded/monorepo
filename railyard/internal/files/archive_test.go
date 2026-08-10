@@ -3,6 +3,7 @@ package files
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"io"
 	"os"
@@ -183,6 +184,22 @@ func TestReadJSONFromTarArchiveReturnsDecodeError(t *testing.T) {
 	_, found, readErr := ReadJSONFromTarArchive[types.Subscriptions](archivePath, "profile_subscriptions.json")
 	require.Error(t, readErr)
 	require.False(t, found)
+}
+
+func TestReadJSONFromGzip(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "payload.json.gz")
+	file, err := os.Create(path)
+	require.NoError(t, err)
+
+	gz := gzip.NewWriter(file)
+	_, err = gz.Write([]byte(`{"name":"railyard"}`))
+	require.NoError(t, err)
+	require.NoError(t, gz.Close())
+	require.NoError(t, file.Close())
+
+	value, readErr := ReadJSONFromGzip[testPayload](path, "payload")
+	require.NoError(t, readErr)
+	require.Equal(t, testPayload{Name: "railyard"}, value)
 }
 
 func TestWriteArchiveJSON(t *testing.T) {

@@ -184,7 +184,7 @@ func TestGenerateMod(t *testing.T) {
 		maps := setupMaps(t, dir)
 		app := newModTestApp(t, dir, maps)
 
-		require.NoError(t, app.generateMod(0, true))
+		require.NoError(t, app.generateMod(0, 0, true))
 
 		cfg := readGeneratedModConfig(t, indexPath(dir))
 		codes := make([]string, 0, len(cfg.Places))
@@ -200,7 +200,7 @@ func TestGenerateMod(t *testing.T) {
 		maps := setupMaps(t, dir)
 		app := newModTestApp(t, dir, maps)
 
-		require.NoError(t, app.generateMod(0, false))
+		require.NoError(t, app.generateMod(0, 0, false))
 
 		cfg := readGeneratedModConfig(t, indexPath(dir))
 		codes := make([]string, 0, len(cfg.Places))

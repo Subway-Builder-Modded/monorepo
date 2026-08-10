@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"railyard/internal/constants"
+	"railyard/internal/drivingpaths"
 	"railyard/internal/types"
 )
 
@@ -96,7 +97,15 @@ func (a *App) LaunchGame(skipIncompatibleMaps bool) types.GameLaunchResponse {
 
 	a.generateMissingThumbnails(port)
 
-	if err := a.generateMod(port, skipIncompatibleMaps); err != nil {
+	drivingPort, drivingServer, err := drivingpaths.StartDrivingPathsServer(a.Logger, a.Config.Cfg.MetroMakerDataPath)
+	a.drivingPathServer = drivingServer
+
+	if err != nil {
+		a.Logger.Warn("Failed to start driving paths server", "error", err)
+		return launchErr(err.Error())
+	}
+
+	if err := a.generateMod(port, drivingPort, skipIncompatibleMaps); err != nil {
 		a.Logger.Warn("Failed to generate mod", "error", err)
 		return launchErr(err.Error())
 	}
@@ -228,6 +237,11 @@ func (a *App) StopGame() types.GenericResponse {
 	if a.pmtilesServer != nil {
 		a.Logger.Info("Shutting down PMTiles server")
 		a.pmtilesServer.Close()
+	}
+
+	if a.drivingPathServer != nil {
+		a.Logger.Info("Shutting down driving paths server")
+		a.drivingPathServer.Close()
 	}
 
 	// Kill the whole process tree so Electron's renderer children can't survive and leave a ghost

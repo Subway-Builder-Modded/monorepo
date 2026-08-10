@@ -6,98 +6,23 @@
     const match = MODDED_PATH_URL.exec(url);
     return match ? { cityCode: match[1], popId: match[2] } : null;
   }
-  function isUsablePath(coords) {
-    return Array.isArray(coords) && coords.length >= 2 && coords.every(
-      (p) => Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1])
-    );
-  }
   function urlFromFetchInput(input) {
     if (typeof input === "string") return input;
     if (input instanceof URL) return input.href;
     return input && input.url || "";
   }
-  async function loadDrivingPathsFromFile(cityCode) {
-    const port = window.electronAPI && window.electronAPI.getDataServerPort ? await window.electronAPI.getDataServerPort() : null;
-    if (!port) throw new Error("data server port unavailable");
-    const base = "http://127.0.0.1:" + port + "/data/" + cityCode + "/demand_data.json";
-    let text;
-    const gz = await fetch(base + ".gz?useDownloaded=true").catch(() => null);
-    if (gz && gz.ok) {
-      const stream = gz.body.pipeThrough(new DecompressionStream("gzip"));
-      text = await new Response(stream).text();
-    } else {
-      const plain = await fetch(base + "?useDownloaded=true");
-      if (!plain.ok) throw new Error("demand_data fetch failed: " + plain.status);
-      text = await plain.text();
-    }
-    const data = JSON.parse(text);
-    const paths = /* @__PURE__ */ new Map();
-    const pops = data.pops || {};
-    for (const id of Object.keys(pops)) {
-      if (isUsablePath(pops[id].drivingPath)) paths.set(id, pops[id].drivingPath);
-    }
-    return paths;
-  }
   function installDrivingPathServer(config2) {
     const moddedCodes = new Set((config2.places || []).map((p) => p.code));
-    const fileCaches = /* @__PURE__ */ new Map();
-    const fileLoads = /* @__PURE__ */ new Map();
-    async function resolvePath(cityCode, popId) {
-      try {
-        const dd = window.SubwayBuilderAPI.gameState.getDemandData();
-        const pop = dd && dd.popsMap && dd.popsMap.get(popId);
-        if (pop && isUsablePath(pop.drivingPath)) return pop.drivingPath;
-      } catch (e) {
-      }
-      const cached = fileCaches.get(cityCode);
-      if (cached) return cached.get(popId) || null;
-      if (!fileLoads.has(cityCode)) {
-        fileLoads.set(
-          cityCode,
-          loadDrivingPathsFromFile(cityCode).then((map2) => {
-            fileCaches.set(cityCode, map2);
-            return map2;
-          }).catch(() => {
-            fileLoads.delete(cityCode);
-            return /* @__PURE__ */ new Map();
-          })
-        );
-      }
-      const map = await fileLoads.get(cityCode);
-      return map.get(popId) || null;
-    }
-    const existing = window.fetch;
-    if (existing && existing.__railyardPathShim) {
-      existing.__railyardResolve = resolvePath;
-      existing.__railyardCodes = moddedCodes;
-      return;
-    }
-    const realFetch = existing.bind(window);
-    const shim = async function(input, init) {
+    const pathServerURL = `http://127.0.0.1:${config2.drivingPathPort}/path?cityCode={cityCode}&popId={popId}`;
+    const originalFetch = globalThis.fetch.bind(globalThis);
+    globalThis.fetch = function drivingPathFetchShim(input, init) {
       const request = parseModdedPathRequest(urlFromFetchInput(input));
-      if (!request || !shim.__railyardCodes.has(request.cityCode)) {
-        return realFetch(input, init);
+      if (request && moddedCodes.has(request.cityCode)) {
+        const forwardedURL = pathServerURL.replace("{cityCode}", encodeURIComponent(request.cityCode)).replace("{popId}", encodeURIComponent(request.popId));
+        return originalFetch(forwardedURL, init);
       }
-      let coordinates = null;
-      try {
-        coordinates = await shim.__railyardResolve(
-          request.cityCode,
-          request.popId
-        );
-      } catch (e) {
-      }
-      if (!isUsablePath(coordinates)) {
-        return new Response("", { status: 404 });
-      }
-      return new Response(JSON.stringify({ coordinates }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
-      });
+      return originalFetch(input, init);
     };
-    shim.__railyardPathShim = true;
-    shim.__railyardResolve = resolvePath;
-    shim.__railyardCodes = moddedCodes;
-    window.fetch = shim;
   }
 
   // src/cities.js
@@ -371,7 +296,27 @@
     await registerCities(config, api, baseURL);
     registerCountryTabs(config.places, api);
     const layers = createLayerManager(config, api);
+    api.hooks.onGameInit(() => {
+      fetch(`http://127.0.0.1:${config.drivingPathPort}/cache`, {
+        method: "DELETE"
+      });
+    });
     api.hooks.onCityLoad(layers.handleCityLoad);
+    api.hooks.onCityLoad((code) => {
+      let foundPlace = config.places.find((place) => place.code === code);
+      if (!foundPlace) {
+        return;
+      }
+      fetch("http://127.0.0.1:" + config.drivingPathPort + "/loadpaths", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          cityCode: code
+        })
+      });
+    });
     api.hooks.onMapReady(layers.handleMapReady);
   })();
 })();

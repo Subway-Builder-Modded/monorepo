@@ -42,8 +42,9 @@ type App struct {
 	Profiles   *profiles.UserProfiles
 	Logger     *logger.AppLogger
 
-	game          gameLaunchState
-	pmtilesServer *http.Server
+	game              gameLaunchState
+	pmtilesServer     *http.Server
+	drivingPathServer *http.Server
 	// contentGate enforces mutual exclusion between the game session and content mutations.
 	contentGate *gate.GameContentGate
 

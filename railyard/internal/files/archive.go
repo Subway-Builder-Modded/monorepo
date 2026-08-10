@@ -179,6 +179,36 @@ func ExtractArchiveToDir(archivePath, destDir string) error {
 	return nil
 }
 
+// ReadJSONFromGzip reads and decodes a JSON file from a gzip-compressed file.
+// THIS DOES NOT READ TAR.GZ. THIS READS A SINGLE GZIP FILE CONTAINING JSON DATA.
+func ReadJSONFromGzip[T any](gzipPath string, label string) (T, error) {
+	var zero T
+
+	gzipFile, err := os.Open(gzipPath)
+	if err != nil {
+		return zero, fmt.Errorf("failed to open gzip file %s: %w", gzipPath, err)
+	}
+	defer gzipFile.Close()
+
+	gzipReader, err := gzip.NewReader(gzipFile)
+	if err != nil {
+		return zero, fmt.Errorf("failed to create gzip reader for %s: %w", gzipPath, err)
+	}
+	defer gzipReader.Close()
+
+	data, err := io.ReadAll(gzipReader)
+	if err != nil {
+		return zero, fmt.Errorf("failed to read gzip file %s: %w", gzipPath, err)
+	}
+
+	decoded, err := ParseJSON[T](data, label)
+	if err != nil {
+		return zero, fmt.Errorf("failed to parse JSON from gzip file %s: %w", gzipPath, err)
+	}
+
+	return decoded, nil
+}
+
 // ReadJSONFromTarArchive reads and decodes a JSON file from a tar archive by file basename.
 // Returns found=false when the target file is not present in the archive.
 func ReadJSONFromTarArchive[T any](archivePath string, targetFileName string) (T, bool, error) {

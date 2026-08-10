@@ -19,7 +19,7 @@ import (
 	"railyard/internal/types"
 )
 
-func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
+func (a *App) generateMod(port int, drivingPathPort int, skipIncompatibleMaps bool) error {
 	maps := a.Registry.GetInstalledMaps()
 	a.Logger.Info("Generating mod with maps", "count", len(maps))
 
@@ -47,11 +47,12 @@ func (a *App) generateMod(port int, skipIncompatibleMaps bool) error {
 		})
 	}
 	config := types.MetroMakerModConfig{
-		Port:          port,
-		TileZoomLevel: 15,
-		Places:        places,
-		Colors:        constants.MAP_COLORS,
-		GameVersion:   a.GetGameVersion().Version,
+		Port:            port,
+		DrivingPathPort: drivingPathPort,
+		TileZoomLevel:   15,
+		Places:          places,
+		Colors:          constants.MAP_COLORS,
+		GameVersion:     a.GetGameVersion().Version,
 	}
 	manifest := types.MetroMakerModManifest{
 		Id:          "com.railyard.maploader",
