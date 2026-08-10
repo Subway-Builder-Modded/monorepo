@@ -11,7 +11,6 @@ export {
 export { generateTabs, registerCountryTabs } from "./tabs.js";
 export {
   parseModdedPathRequest,
-  isUsablePath,
   urlFromFetchInput,
   installDrivingPathServer,
 } from "./driving-path.js";

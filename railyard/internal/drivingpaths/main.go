@@ -13,6 +13,17 @@ var drivingPathsCache = &types.DrivingPathsCache{}
 var globalLogger logger.Logger
 var metroMakerDataPath string
 
+func handleResetCache(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	drivingPathsCache = &types.DrivingPathsCache{}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Driving paths cache reset"))
+}
+
 func handleLoadDrivingPathsForCity(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		globalLogger.Error("Failed to parse form when loading driving paths for city", err)
@@ -100,6 +111,7 @@ func createHTTPServer(listener *net.Listener, log logger.Logger) (*http.Server, 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/loadpaths", handleLoadDrivingPathsForCity)
 	mux.HandleFunc("/path", handleGetDrivingPathForCity)
+	mux.HandleFunc("/cache", handleResetCache)
 	server := &http.Server{
 		Handler: mux,
 	}

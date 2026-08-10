@@ -37,6 +37,11 @@ const MOD_VERSION = "$MOD_VERSION";
   // Custom layer management: holds the current-city/map state shared between
   // the city-load and map-ready hooks.
   const layers = createLayerManager(config, api);
+  api.hooks.onGameInit(() => {
+    fetch(`http://127.0.0.1:${config.drivingPathPort}/cache`, {
+      method: "DELETE",
+    });
+  })
   api.hooks.onCityLoad(layers.handleCityLoad);
   api.hooks.onCityLoad((code) => {
     let foundPlace = config.places.find((place) => place.code === code);

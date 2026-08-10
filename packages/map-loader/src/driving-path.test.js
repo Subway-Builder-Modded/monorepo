@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  isUsablePath,
   installDrivingPathServer,
   parseModdedPathRequest,
   urlFromFetchInput,
@@ -25,29 +24,6 @@ describe("parseModdedPathRequest", () => {
     expect(parseModdedPathRequest("https://example.com/x")).toBeNull();
     expect(parseModdedPathRequest("map://paths/KUN")).toBeNull();
     expect(parseModdedPathRequest("")).toBeNull();
-  });
-});
-
-describe("isUsablePath", () => {
-  it("accepts >=2 finite [lon,lat] points", () => {
-    expect(
-      isUsablePath([
-        [1, 2],
-        [3, 4],
-      ]),
-    ).toBe(true);
-  });
-
-  it("rejects short, non-array, or non-finite coordinates", () => {
-    expect(isUsablePath([[1, 2]])).toBe(false);
-    expect(isUsablePath(null)).toBe(false);
-    expect(isUsablePath("nope")).toBe(false);
-    expect(
-      isUsablePath([
-        [1, 2],
-        [NaN, 4],
-      ]),
-    ).toBe(false);
   });
 });
 
@@ -78,7 +54,7 @@ describe("installDrivingPathServer", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:4321/path?cityCode=KUN&popId=pop-42",
+      "http://127.0.0.1:4321/path?cityCode=KUN&popId=pop-42",
       undefined,
     );
   });
