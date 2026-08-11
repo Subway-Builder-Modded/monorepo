@@ -2,6 +2,7 @@ package drivingpaths
 
 import (
 	"compress/gzip"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"sync"
@@ -27,7 +28,7 @@ func TestLoadDrivingPathsForCityLoadsJSONFileIntoCache(t *testing.T) {
 
 	path, ok := cache.GetPath("KUN", "pop-1")
 	require.True(t, ok)
-	require.Equal(t, [][]float64{{1.1, 2.2}, {3.3, 4.4}}, path)
+	require.JSONEq(t, "[[1.1,2.2],[3.3,4.4]]", string(path))
 	require.True(t, cache.HasMap("KUN"))
 }
 
@@ -52,7 +53,7 @@ func TestLoadDrivingPathsForCityLoadsGzipFileIntoCache(t *testing.T) {
 
 	pathData, ok := cache.GetPath("KUN", "pop-2")
 	require.True(t, ok)
-	require.Equal(t, [][]float64{{5.5, 6.6}}, pathData)
+	require.JSONEq(t, "[[5.5,6.6]]", string(pathData))
 }
 
 func TestLoadIfAbsentSerializesConcurrentLoads(t *testing.T) {
@@ -68,7 +69,7 @@ func TestLoadIfAbsentSerializesConcurrentLoads(t *testing.T) {
 		default:
 		}
 		<-release
-		return types.DrivingPathsFile{"pop-1": {{1, 2}}}, nil
+		return types.DrivingPathsFile{"pop-1": json.RawMessage("[[1,2]]")}, nil
 	}
 
 	var wg sync.WaitGroup
@@ -96,5 +97,5 @@ func TestLoadIfAbsentSerializesConcurrentLoads(t *testing.T) {
 	require.Equal(t, int32(1), loaderCalls.Load())
 	path, ok := cache.GetPath("KUN", "pop-1")
 	require.True(t, ok)
-	require.Equal(t, [][]float64{{1, 2}}, path)
+	require.JSONEq(t, "[[1,2]]", string(path))
 }

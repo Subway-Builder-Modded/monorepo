@@ -1,8 +1,13 @@
 package types
 
-import "sync"
+import (
+	"encoding/json"
+	"sync"
+)
 
-type DrivingPathsFile map[string][][]float64
+// DrivingPathsFile maps a popId to its route as raw JSON bytes. This makes loading
+// a map's paths a quick scan and obviates the need to unmarshall the coordinates.
+type DrivingPathsFile map[string]json.RawMessage
 
 type DrivingPathsCache struct {
 	mu   sync.RWMutex
@@ -33,7 +38,7 @@ func (c *DrivingPathsCache) RemoveMap(mapName string) {
 	delete(c.data, mapName)
 }
 
-func (c *DrivingPathsCache) GetPath(mapName string, popId string) ([][]float64, bool) {
+func (c *DrivingPathsCache) GetPath(mapName string, popId string) (json.RawMessage, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.data == nil {

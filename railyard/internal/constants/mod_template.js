@@ -9,7 +9,7 @@
   function urlFromFetchInput(input) {
     if (typeof input === "string") return input;
     if (input instanceof URL) return input.href;
-    return input && input.url || "";
+    return (input && input.url) || "";
   }
   function installDrivingPathServer(config2) {
     const moddedCodes = new Set((config2.places || []).map((p) => p.code));
@@ -18,8 +18,19 @@
     globalThis.fetch = function drivingPathFetchShim(input, init) {
       const request = parseModdedPathRequest(urlFromFetchInput(input));
       if (request && moddedCodes.has(request.cityCode)) {
-        const forwardedURL = pathServerURL.replace("{cityCode}", encodeURIComponent(request.cityCode)).replace("{popId}", encodeURIComponent(request.popId));
-        return originalFetch(forwardedURL, init);
+        const forwardedURL = pathServerURL
+          .replace("{cityCode}", encodeURIComponent(request.cityCode))
+          .replace("{popId}", encodeURIComponent(request.popId));
+        // log each driving-path fetch with its round-trip latency.
+        const clock = typeof performance !== "undefined" ? performance : Date;
+        const startedAt = clock.now();
+        return originalFetch(forwardedURL, init).then((response) => {
+          const ms = Math.round(clock.now() - startedAt);
+          console.log(
+            `[mapLoader] driving path ${request.cityCode}/${request.popId} → ${response.status} in ${ms}ms`,
+          );
+          return response;
+        });
       }
       return originalFetch(input, init);
     };
@@ -36,7 +47,7 @@
           name: place.name,
           population: place.population,
           description: place.description,
-          mapImageUrl: mapImageURL
+          mapImageUrl: mapImageURL,
         };
         if (place.initialViewState) {
           newPlace.initialViewState = place.initialViewState;
@@ -45,7 +56,7 @@
             longitude: (place.bbox[0] + place.bbox[2]) / 2,
             latitude: (place.bbox[1] + place.bbox[3]) / 2,
             zoom: 12,
-            bearing: 0
+            bearing: 0,
           };
         }
         if (place.minZoom) {
@@ -61,35 +72,41 @@
         await api2.registerCity(newPlace);
         api2.map.setDefaultLayerVisibility(place.code, {
           oceanFoundations: place.hasOceanDepth ? true : false,
-          trackElevations: false
+          trackElevations: false,
         });
         const dataFiles = {
-          buildingsIndex: "/data/" + place.code + `/${place.buildingsIndexFile}`,
+          buildingsIndex:
+            "/data/" + place.code + `/${place.buildingsIndexFile}`,
           demandData: "/data/" + place.code + "/demand_data.json",
           roads: "/data/" + place.code + "/roads.geojson",
-          runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson"
+          runwaysTaxiways: "/data/" + place.code + "/runways_taxiways.geojson",
         };
         if (place.hasOceanDepth) {
-          dataFiles.oceanDepthIndex = "/data/" + place.code + "/ocean_depth_index.json";
+          dataFiles.oceanDepthIndex =
+            "/data/" + place.code + "/ocean_depth_index.json";
         }
         let foundationsTileURL = tilesURL;
         if (place.hasFoundationTiles) {
-          foundationsTileURL = baseURL2 + "/" + place.code + "_foundations/{z}/{x}/{y}.mvt";
+          foundationsTileURL =
+            baseURL2 + "/" + place.code + "_foundations/{z}/{x}/{y}.mvt";
         }
         api2.map.setTileURLOverride({
           cityCode: place.code,
           tilesUrl: tilesURL,
           foundationTilesUrl: foundationsTileURL,
-          maxZoom: config2.tileZoomLevel
+          maxZoom: config2.tileZoomLevel,
         });
         api2.cities.setCityDataFiles(place.code, dataFiles);
-      })
+      }),
     );
   }
 
   // src/utils.js
   function getFlagEmoji(countryCode) {
-    const codePoints = countryCode.toUpperCase().split("").map((char) => 127397 + char.charCodeAt());
+    const codePoints = countryCode
+      .toUpperCase()
+      .split("")
+      .map((char) => 127397 + char.charCodeAt());
     return String.fromCodePoint(...codePoints);
   }
   function capitalizeString(str) {
@@ -100,7 +117,11 @@
     const v2Parts = v2.split(".").map(Number);
     if (v1Parts[0] > v2Parts[0]) return true;
     if (v1Parts[0] == v2Parts[0] && v1Parts[1] > v2Parts[1]) return true;
-    if (v1Parts[0] == v2Parts[0] && v1Parts[1] == v2Parts[1] && v1Parts[2] > v2Parts[2])
+    if (
+      v1Parts[0] == v2Parts[0] &&
+      v1Parts[1] == v2Parts[1] &&
+      v1Parts[2] > v2Parts[2]
+    )
       return true;
     return false;
   }
@@ -126,20 +147,23 @@
   }
   function registerCountryTabs(places, api2) {
     const tabs = generateTabs(places);
-    Object.entries(tabs).map(([country, cityCodes]) => ({
-      id: country,
-      label: getCountryName(country),
-      emoji: getFlagEmoji(country),
-      cityCodes
-    })).sort((a, b) => a.label.localeCompare(b.label)).forEach((tab) => {
-      console.log(
-        "Registering tab for country:",
-        tab.id,
-        "with codes:",
-        tab.cityCodes
-      );
-      api2.cities.registerTab(tab);
-    });
+    Object.entries(tabs)
+      .map(([country, cityCodes]) => ({
+        id: country,
+        label: getCountryName(country),
+        emoji: getFlagEmoji(country),
+        cityCodes,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .forEach((tab) => {
+        console.log(
+          "Registering tab for country:",
+          tab.id,
+          "with codes:",
+          tab.cityCodes,
+        );
+        api2.cities.registerTab(tab);
+      });
   }
 
   // src/layers.js
@@ -147,7 +171,7 @@
     "world-land",
     "world-borders",
     "city-markers-dot",
-    "city-markers-label"
+    "city-markers-label",
   ];
   function createLayerManager(config2, api2) {
     let currentCityCode = null;
@@ -168,7 +192,10 @@
     function isFoundationsVisible(map) {
       const layers = map.getStyle().layers;
       for (const layer of layers) {
-        if (layer.id === "building-foundations" && map.getLayoutProperty(layer.id, "visibility") === "visible") {
+        if (
+          layer.id === "building-foundations" &&
+          map.getLayoutProperty(layer.id, "visibility") === "visible"
+        ) {
           return true;
         }
       }
@@ -179,7 +206,7 @@
         return;
       }
       const colorsData = JSON.parse(
-        window.localStorage.getItem("map_custom_colors")
+        window.localStorage.getItem("map_custom_colors"),
       );
       const currentTheme = api2.ui.getResolvedTheme().toUpperCase();
       const themeObject = `custom${capitalizeString(currentTheme)}Colors`;
@@ -189,12 +216,22 @@
         const mapColors = api2.gameState.getMapColors();
         colorToUsePark = mapColors.parks;
         colorToUseAirport = mapColors.airports;
-      } else if (config2.gameVersion && semverCompare(config2.gameVersion, "1.3.0")) {
-        colorToUsePark = colorsData[themeObject]?.parks ?? config2.colors[currentTheme].PARK;
-        colorToUseAirport = colorsData[themeObject]?.airports ?? config2.colors[currentTheme].AIRPORT;
+      } else if (
+        config2.gameVersion &&
+        semverCompare(config2.gameVersion, "1.3.0")
+      ) {
+        colorToUsePark =
+          colorsData[themeObject]?.parks ?? config2.colors[currentTheme].PARK;
+        colorToUseAirport =
+          colorsData[themeObject]?.airports ??
+          config2.colors[currentTheme].AIRPORT;
       } else if (colorsData.useCustomColors) {
-        colorToUsePark = colorsData[themeObject]?.parks ? colorsData[themeObject].parks : config2.colors[currentTheme].PARK;
-        colorToUseAirport = colorsData[themeObject]?.airports ? colorsData[themeObject].airports : config2.colors[currentTheme].AIRPORT;
+        colorToUsePark = colorsData[themeObject]?.parks
+          ? colorsData[themeObject].parks
+          : config2.colors[currentTheme].PARK;
+        colorToUseAirport = colorsData[themeObject]?.airports
+          ? colorsData[themeObject].airports
+          : config2.colors[currentTheme].AIRPORT;
       } else {
         colorToUsePark = config2.colors[currentTheme].PARK;
         colorToUseAirport = config2.colors[currentTheme].AIRPORT;
@@ -211,13 +248,13 @@
               "fill-extrusion-color": colorToUsePark,
               "fill-extrusion-height": 0,
               "fill-extrusion-base": 0,
-              "fill-extrusion-opacity": 0.8
+              "fill-extrusion-opacity": 0.8,
             },
             layout: {
-              visibility: isFoundationsVisible(map) ? "none" : "visible"
-            }
+              visibility: isFoundationsVisible(map) ? "none" : "visible",
+            },
           },
-          "general-tiles"
+          "general-tiles",
         );
         removeVanillaParkLayers(map);
       }
@@ -233,13 +270,13 @@
               "fill-extrusion-color": colorToUseAirport,
               "fill-extrusion-height": 0,
               "fill-extrusion-base": 0,
-              "fill-extrusion-opacity": 1
+              "fill-extrusion-opacity": 1,
             },
             layout: {
-              visibility: isFoundationsVisible(map) ? "none" : "visible"
-            }
+              visibility: isFoundationsVisible(map) ? "none" : "visible",
+            },
           },
-          "general-tiles"
+          "general-tiles",
         );
         removeVanillaAirportLayers(map);
       }
@@ -257,7 +294,7 @@
       if (semverCompare(config2.gameVersion, "1.3.6")) {
         api2.actions.setDemandBubbleScale(1);
         const scaling = config2.places.find(
-          (place) => place.code === cityCode
+          (place) => place.code === cityCode,
         )?.demandDotScaling;
         if (scaling) {
           api2.actions.setDemandBubbleScale(scaling);
@@ -267,9 +304,12 @@
     function handleMapReady(map) {
       mapRef = map ?? api2.utils.getMap();
       const resolvedMap = mapRef;
-      if (semverCompare(config2.gameVersion, "1.3.6") && config2.places.some((place) => place.demandDotScaling)) {
+      if (
+        semverCompare(config2.gameVersion, "1.3.6") &&
+        config2.places.some((place) => place.demandDotScaling)
+      ) {
         const scaling = config2.places.find(
-          (place) => place.demandDotScaling
+          (place) => place.demandDotScaling,
         )?.demandDotScaling;
         api2.actions.setDemandBubbleScale(scaling);
       }
@@ -286,7 +326,7 @@
   var MOD_VERSION = "$MOD_VERSION";
   (async () => {
     console.log(
-      `[mapLoader] Railyard v${MOD_VERSION} — registering ${config.places.length} map(s)`
+      `[mapLoader] Railyard v${MOD_VERSION} — registering ${config.places.length} map(s)`,
     );
     try {
       installDrivingPathServer(config);
@@ -298,24 +338,35 @@
     const layers = createLayerManager(config, api);
     api.hooks.onGameInit(() => {
       fetch(`http://127.0.0.1:${config.drivingPathPort}/cache`, {
-        method: "DELETE"
+        method: "DELETE",
       });
     });
     api.hooks.onCityLoad(layers.handleCityLoad);
-    api.hooks.onCityLoad((code) => {
+    api.hooks.onCityLoad(async (code) => {
       let foundPlace = config.places.find((place) => place.code === code);
       if (!foundPlace) {
         return;
       }
-      fetch("http://127.0.0.1:" + config.drivingPathPort + "/loadpaths", {
+      console.log(
+        `[mapLoader] city ${code} — evicting other maps + warming driving paths`,
+      );
+      await fetch("http://127.0.0.1:" + config.drivingPathPort + "/cache", {
+        method: "DELETE",
+      });
+      const clock = typeof performance !== "undefined" ? performance : Date;
+      const startedAt = clock.now();
+      await fetch("http://127.0.0.1:" + config.drivingPathPort + "/loadpaths", {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
-          cityCode: code
-        })
+          cityCode: code,
+        }),
       });
+      console.log(
+        `[mapLoader] driving paths ready for ${code} in ${Math.round(clock.now() - startedAt)}ms`,
+      );
     });
     api.hooks.onMapReady(layers.handleMapReady);
   })();

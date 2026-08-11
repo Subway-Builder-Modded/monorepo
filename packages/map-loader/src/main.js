@@ -41,22 +41,36 @@ const MOD_VERSION = "$MOD_VERSION";
     fetch(`http://127.0.0.1:${config.drivingPathPort}/cache`, {
       method: "DELETE",
     });
-  })
+  });
   api.hooks.onCityLoad(layers.handleCityLoad);
-  api.hooks.onCityLoad((code) => {
+  api.hooks.onCityLoad(async (code) => {
     let foundPlace = config.places.find((place) => place.code === code);
     if (!foundPlace) {
       return;
     }
-    fetch("http://127.0.0.1:"+config.drivingPathPort+"/loadpaths", {
+    // Keep only the active city's driving paths cached. Evict any previously
+    // loaded city first, then add the current so that the server holds at most
+    // one map's pathsin memory.
+    console.log(
+      `[mapLoader] city ${code} — evicting other maps + warming driving paths`,
+    );
+    await fetch("http://127.0.0.1:" + config.drivingPathPort + "/cache", {
+      method: "DELETE",
+    });
+    const clock = typeof performance !== "undefined" ? performance : Date;
+    const startedAt = clock.now();
+    await fetch("http://127.0.0.1:" + config.drivingPathPort + "/loadpaths", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
         cityCode: code,
-      })
-    })
+      }),
+    });
+    console.log(
+      `[mapLoader] driving paths ready for ${code} in ${Math.round(clock.now() - startedAt)}ms`,
+    );
   });
   api.hooks.onMapReady(layers.handleMapReady);
 })();
