@@ -36,7 +36,5 @@ func TestMapArtifactsManifestIsWellFormed(t *testing.T) {
 
 	require.False(t, IsMapArtifactKey(MapArchiveKeyConfig))
 	require.False(t, IsMapArtifactKey(MapArchiveKeyDemandData))
-	// driving_paths lives inside the map data folder, so it is NOT an out-of-tree
-	// artifact — uninstall's RemoveAll(mapDataPath) reclaims it (no orphan cleanup).
 	require.False(t, IsMapArtifactKey(MapArchiveKeyDrivingPaths))
 }
