@@ -459,6 +459,33 @@ func TestBuildMapArchiveFileIndexTileClassification(t *testing.T) {
 	}
 }
 
+func TestBuildMapArchiveFileIndexRecognizesDrivingPaths(t *testing.T) {
+	// driving_paths.json(.gz) is the per-pop driving-route sidecar the driving-paths
+	// server loads on demand. The extractor only writes recognized archive keys, so
+	// this must be classified — otherwise the sidecar ships in the zip but is dropped
+	// on install and every /path lookup 404s (regression guard for PR #617).
+	for _, name := range []string{"driving_paths.json.gz", "driving_paths.json"} {
+		t.Run(name, func(t *testing.T) {
+			zipPath := writeZipArchive(t, map[string][]byte{
+				MapConfigFileName:  mustMapConfigJSON(t, "DPX"),
+				MapDemandFileName:  []byte("{}"),
+				MapRoadsFileName:   []byte("{}"),
+				MapRunwaysFileName: []byte("{}"),
+				"DPX.pmtiles":      []byte("tiles"),
+				name:               []byte("{}"),
+			})
+			file, err := zip.OpenReader(zipPath)
+			require.NoError(t, err)
+			defer file.Close()
+
+			filesFound := BuildMapArchiveFileIndex(file.File)
+			require.True(t, filesFound[MapArchiveKeyDrivingPaths].Found, "expected driving paths to be recognized")
+			require.NotNil(t, filesFound[MapArchiveKeyDrivingPaths].FileObject)
+			require.False(t, filesFound[MapArchiveKeyDrivingPaths].Required, "driving paths must be optional")
+		})
+	}
+}
+
 func mustMapConfigJSON(t *testing.T, code string) []byte {
 	t.Helper()
 	cfg := types.ConfigData{
