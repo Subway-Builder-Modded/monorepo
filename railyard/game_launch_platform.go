@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"railyard/internal/constants"
+	"railyard/internal/files"
 	"railyard/internal/logger"
 
 	"github.com/mitchellh/go-ps"
@@ -84,9 +85,7 @@ func nativeLaunchCommand(goos string, spec launchSpec) *exec.Cmd {
 		// Electron stub executables that lack valid magic bytes.
 		innerExe := spec.exePath
 		if strings.HasSuffix(spec.exePath, ".app") {
-			// Derive inner binary from Info.plist CFBundleExecutable convention
-			bundleName := strings.TrimSuffix(path.Base(spec.exePath), ".app")
-			innerExe = path.Join(spec.exePath, "Contents", "MacOS", bundleName)
+			innerExe = resolveMacBundleExecutable(spec.exePath)
 		}
 		args := []string{"-c", `ELECTRON_ENABLE_LOGGING=1 exec "$0" "$@"`, innerExe}
 		args = append(args, spec.extraArgs...)
@@ -113,6 +112,35 @@ func nativeLaunchCommand(goos string, spec launchSpec) *exec.Cmd {
 		cmd.Dir = filepath.Dir(spec.exePath)
 		return withDevToolsEnv(cmd, spec.useDevTools)
 	}
+}
+
+// resolveMacBundleExecutable resolves a .app bundle to the binary inside Contents/MacOS.
+// Renaming the bundle directory does not rename the inner binary (that name comes from
+// Info.plist CFBundleExecutable), so the basename-derived candidate is only tried first;
+// a renamed bundle is resolved via the game's default binary name, then via a
+// single-file scan of Contents/MacOS. Falls back to the derived path so a broken bundle
+// surfaces the usual launch error.
+func resolveMacBundleExecutable(bundlePath string) string {
+	macOSDir := path.Join(bundlePath, "Contents", "MacOS")
+	derived := path.Join(macOSDir, strings.TrimSuffix(path.Base(bundlePath), ".app"))
+	if files.RegularFileExists(derived) {
+		return derived
+	}
+	if canonical := path.Join(macOSDir, constants.GameMacProcessName); files.RegularFileExists(canonical) {
+		return canonical
+	}
+	if entries, err := os.ReadDir(macOSDir); err == nil {
+		var names []string
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				names = append(names, entry.Name())
+			}
+		}
+		if len(names) == 1 {
+			return path.Join(macOSDir, names[0])
+		}
+	}
+	return derived
 }
 
 // isMacAppBundlePath reports whether the path points at or inside a macOS .app bundle.

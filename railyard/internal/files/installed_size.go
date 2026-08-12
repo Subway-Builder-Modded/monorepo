@@ -64,6 +64,13 @@ func FileExists(filePath string) (bool, error) {
 	return exists, err
 }
 
+// RegularFileExists reports whether filePath exists and is not a directory.
+// Stat failures are treated as absence.
+func RegularFileExists(filePath string) bool {
+	info, exists, err := statIfExists(filePath)
+	return err == nil && exists && !info.IsDir()
+}
+
 // FileSizeIfExists returns the size of the target file when it exists.
 // Missing files are treated as zero-size and non-fatal to the method.
 func FileSizeIfExists(filePath string) (int64, error) {
