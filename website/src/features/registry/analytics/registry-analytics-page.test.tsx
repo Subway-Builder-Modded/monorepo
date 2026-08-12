@@ -122,6 +122,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               caretaker: 2,
             },
           ],
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -142,6 +143,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         countries: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -162,6 +164,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         regions: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -174,6 +177,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         quality: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -187,6 +191,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         listings: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -235,6 +240,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               assets: 1,
             },
           ],
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [

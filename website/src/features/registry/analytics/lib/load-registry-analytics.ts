@@ -4,6 +4,7 @@ import { ADMIN_AUTHOR_ID } from "@/features/registry/lib/credited-downloads";
 import {
   buildAuthorDailyDownloadSeries,
   buildListingCreditWindows,
+  resolveCreditedPersonIdForDate,
 } from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
@@ -13,6 +14,8 @@ export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
 
 /** Periods whose downloads chart derives from the hourly series (4h buckets). */
 export const HOURLY_CHART_PERIODS: ReadonlySet<RegistryAnalyticsPeriodId> = new Set(["1d", "3d"]);
+/** Display grouping of the hourly series: wall-clock-aligned 4h windows (UTC). */
+export const HOURLY_BUCKET_HOURS = 4;
 
 export type RegistryAnalyticsHourlyPoint = {
   /** UTC hour bucket key, e.g. "2026-08-13T04:00Z". */
@@ -23,6 +26,58 @@ export type RegistryAnalyticsHourlyPoint = {
     mods: number;
   };
 };
+
+/**
+ * Per-entity analogue of RegistryAnalyticsEntityDailySeries at hour grain.
+ * Entities carry values only — name/color/search metadata stays on the daily
+ * series and joins by id at render time.
+ */
+export type RegistryAnalyticsEntityHourlySeries = {
+  /** Ascending UTC hour bucket universe of the rolling window. */
+  buckets: string[];
+  entities: Array<{
+    id: string;
+    byBucket: Map<string, { maps: number; mods: number }>;
+  }>;
+};
+
+/** Floors an hour bucket key to its wall-clock-aligned display window. */
+export function alignHourlyBucket(bucket: string, bucketHours = HOURLY_BUCKET_HOURS): string {
+  const hour = Number.parseInt(bucket.slice(11, 13), 10);
+  if (!Number.isFinite(hour)) return bucket;
+  const alignedHour = Math.floor(hour / bucketHours) * bucketHours;
+  return `${bucket.slice(0, 11)}${String(alignedHour).padStart(2, "0")}:00Z`;
+}
+
+/**
+ * The aligned display-window bucket keys for a short period: unique, ascending,
+ * trailing 24h/72h of the series (the newest window is partial until its last
+ * hour lands).
+ */
+export function getHourlyWindowBuckets(
+  buckets: Iterable<string>,
+  period: RegistryAnalyticsPeriodId,
+): string[] {
+  const aligned = [...new Set([...buckets].map((bucket) => alignHourlyBucket(bucket)))].sort(
+    (left, right) => left.localeCompare(right),
+  );
+  const windowHours = period === "1d" ? 24 : 72;
+  return aligned.slice(-(windowHours / HOURLY_BUCKET_HOURS));
+}
+
+/** Chart x label for an aligned bucket: "04:00" within a one-day cut, "08-11 04:00" across days. */
+export function formatHourlyBucketLabel(bucket: string, period: RegistryAnalyticsPeriodId): string {
+  const time = bucket.slice(11, 16);
+  return period === "1d" ? time : `${bucket.slice(5, 10)} ${time}`;
+}
+
+/** Sparse ticks for hourly-derived charts: every point at 1d, day boundaries at 3d. */
+export function getHourlyChartTicks(
+  labels: string[],
+  period: RegistryAnalyticsPeriodId,
+): string[] {
+  return period === "1d" ? labels : labels.filter((label) => label.endsWith("00:00"));
+}
 
 export type RegistryAnalyticsHistoryPoint = {
   date: string;
@@ -137,23 +192,28 @@ export type RegistryAnalyticsData = {
     rankings: RegistryAnalyticsAuthorRanking[];
     /** Per-author (day-grain credit-attributed, admin excluded). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   listings: {
     /** Per-listing. */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   countries: {
     /** Per-country, aggregated over the country's listings (country-less listings excluded). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   regions: {
     /** Per registry location tag (manifest `location`, derived from country). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   projects: {
     rankings: RegistryAnalyticsProjectRanking[];
     /** Per-project (multi-asset projects only, matching the rankings). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   mapStatistics: {
     rankings: RegistryAnalyticsMapStatisticRanking[];
@@ -724,6 +784,41 @@ function normalizeHourly(rows: CsvRow[]): RegistryAnalyticsHourlyPoint[] {
     .map(([bucket, downloads]) => ({ bucket, downloads }));
 }
 
+/**
+ * Folds the long-form hourly rows into per-entity hour-grain series using the
+ * same listing→entity assignment its daily sibling uses (the bucket's UTC date
+ * feeds date-sensitive assignments like caretaker credit windows).
+ */
+function buildEntityHourlySeries(
+  hourlyRows: CsvRow[],
+  assignEntityId: (
+    typeId: RegistryAnalyticsAssetTypeId,
+    listingId: string,
+    bucketDateTs: number,
+  ) => string | null,
+): RegistryAnalyticsEntityHourlySeries {
+  const buckets = new Set<string>();
+  const entitiesById = new Map<string, RegistryAnalyticsEntityHourlySeries["entities"][number]>();
+  for (const row of hourlyRows) {
+    const type = getAssetType(row.listing_type);
+    const bucket = row.bucket_utc ?? "";
+    const downloads = getNumber(row.downloads);
+    if (!type || !bucket || downloads <= 0) continue;
+    buckets.add(bucket);
+    const entityId = assignEntityId(type, row.id ?? "", Date.parse(bucket.slice(0, 10)));
+    if (!entityId) continue;
+    const entity = entitiesById.get(entityId) ?? { id: entityId, byBucket: new Map() };
+    const current = entity.byBucket.get(bucket) ?? { maps: 0, mods: 0 };
+    current[type] += downloads;
+    entity.byBucket.set(bucket, current);
+    entitiesById.set(entityId, entity);
+  }
+  return {
+    buckets: [...buckets].sort((left, right) => left.localeCompare(right)),
+    entities: [...entitiesById.values()],
+  };
+}
+
 function normalizeRankingRows(
   rows: CsvRow[],
   getDownloads: (row: CsvRow) => number,
@@ -901,11 +996,40 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       authorLoginByGithubId.set(author.githubId, author.id);
     }
   }
+  const creditWindowsByListing = buildListingCreditWindows(itemsByTypeRecord, authorLoginByGithubId);
   const authorDaily = buildAuthorDailyDownloadSeries({
     dailyRows: byDayRows,
     items: allItems,
-    creditWindowsByListing: buildListingCreditWindows(itemsByTypeRecord, authorLoginByGithubId),
+    creditWindowsByListing,
     excludedPersonIds: [ADMIN_AUTHOR_ID],
+  });
+  // Per-entity hourly series mirror the daily builders' listing→entity
+  // assignments (credit windows for authors, country/region/project mappings)
+  // so 1d/3d entity charts can draw real sub-daily shapes.
+  const hourlyRows = parseCsv(hourlyRaw);
+  const listingsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) =>
+    validItemsById.has(listingId) ? listingId : null,
+  );
+  const countriesHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
+    const item = validItemsById.get(listingId);
+    const countryCode = item?.countryCode?.trim().toUpperCase();
+    return item && countryCode ? countryCode : null;
+  });
+  const regionsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
+    const item = validItemsById.get(listingId);
+    return item ? getItemLocation(item) || null : null;
+  });
+  const adminPersonId = ADMIN_AUTHOR_ID.trim().toLowerCase();
+  const authorsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId, bucketDateTs) => {
+    const item = validItemsById.get(listingId);
+    const listingAuthorId = (item?.authorId ?? item?.author ?? "").trim().toLowerCase();
+    if (!item || !listingAuthorId) return null;
+    const creditedId = resolveCreditedPersonIdForDate(
+      bucketDateTs,
+      creditWindowsByListing.get(`${item.type}:${listingId}`),
+      listingAuthorId,
+    );
+    return creditedId && creditedId !== adminPersonId ? creditedId : null;
   });
   const authorLabelById = new Map(
     creatorData.authors.map((author) => [author.id.trim().toLowerCase(), author.label]),
@@ -927,6 +1051,12 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       },
     ]),
   );
+  const projectsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
+    const item = validItemsById.get(listingId);
+    if (!item) return null;
+    const projectId = item.projectId?.trim().toLowerCase();
+    return projectId && projectMetaById.has(projectId) ? projectId : NO_PROJECT_SERIES_ID;
+  });
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
   const validMapIds = new Set(maps.map((item) => item.id));
@@ -949,28 +1079,33 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       },
     },
     history,
-    hourly: normalizeHourly(parseCsv(hourlyRaw)),
+    hourly: normalizeHourly(hourlyRows),
     contentRankings,
     authors: {
       history: buildAuthorHistory(authorRows, allItems),
       rankings: buildAuthorRankings(creatorData.authors),
       dailyDownloads: authorDailyDownloads,
+      hourlyDownloads: authorsHourly,
     },
     listings: {
       dailyDownloads: buildListingDailySeries(byDayRows, validItemsById),
+      hourlyDownloads: listingsHourly,
     },
     countries: {
       dailyDownloads: buildCountryDailySeries(byDayRows, validItemsById),
+      hourlyDownloads: countriesHourly,
     },
     regions: {
       dailyDownloads: buildGroupedDailySeries(byDayRows, validItemsById, (item) => {
         const location = getItemLocation(item);
         return location ? { id: location, name: titleCaseSlug(location) } : null;
       }),
+      hourlyDownloads: regionsHourly,
     },
     projects: {
       rankings: buildProjectRankings(creatorData.projects),
       dailyDownloads: buildProjectDailySeries(byDayRows, validItemsById, projectMetaById),
+      hourlyDownloads: projectsHourly,
     },
     mapStatistics: {
       rankings: buildMapStatisticRankings(

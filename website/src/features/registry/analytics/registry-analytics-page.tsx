@@ -80,9 +80,14 @@ import {
   matchesRegistrySearch,
 } from "@/features/registry/lib/registry-search";
 import {
+  HOURLY_BUCKET_HOURS,
   HOURLY_CHART_PERIODS,
+  alignHourlyBucket,
   bucketRegistryAnalyticsHourly,
   filterRegistryAnalyticsHistory,
+  formatHourlyBucketLabel,
+  getHourlyChartTicks,
+  getHourlyWindowBuckets,
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
   type RegistryAnalyticsAssetTypeId,
@@ -90,6 +95,7 @@ import {
   type RegistryAnalyticsContentRanking,
   type RegistryAnalyticsData,
   type RegistryAnalyticsEntityDailySeries,
+  type RegistryAnalyticsEntityHourlySeries,
   type RegistryAnalyticsMapStatisticRanking,
   type RegistryAnalyticsPeriodId,
   type RegistryAnalyticsProjectRanking,
@@ -142,7 +148,6 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
 const CONTENT_ASSET_INCREMENT = 20;
 const AUTHOR_RANKING_INCREMENT = 20;
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const HOURLY_BUCKET_HOURS = 4;
 const HOUR_OF_DAY_LABELS = Array.from(
   { length: 24 },
   (_, hour) => `${String(hour).padStart(2, "0")}:00`,
@@ -151,12 +156,6 @@ const HOUR_OF_DAY_LABELS = Array.from(
 const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter(
   (_, hour) => hour % HOURLY_BUCKET_HOURS === 0,
 );
-
-/** Chart x label for an aligned bucket: "04:00" within a one-day cut, "08-11 04:00" across days. */
-function formatHourlyBucketLabel(bucket: string, withDate: boolean) {
-  const time = bucket.slice(11, 16);
-  return withDate ? `${bucket.slice(5, 10)} ${time}` : time;
-}
 
 /**
  * 1d/3d chart rows from the hourly series: wall-clock-aligned 4h buckets
@@ -173,17 +172,22 @@ function buildHourlyChartRows(
 ) {
   const buckets = bucketRegistryAnalyticsHourly(hourly, HOURLY_BUCKET_HOURS);
   const windowHours = period === "1d" ? 24 : 72;
-  const withDate = period !== "1d";
   return buckets.slice(-(windowHours / HOURLY_BUCKET_HOURS)).map((point) => ({
-    date: formatHourlyBucketLabel(point.bucket, withDate),
+    date: formatHourlyBucketLabel(point.bucket, period),
     ...readValues(point.downloads),
   }));
 }
 
-/** Sparse ticks for hourly-derived charts: every point at 1d, day boundaries at 3d. */
-function getHourlyChartTicks(rows: Array<{ date: string }>, period: RegistryAnalyticsPeriodId) {
-  const labels = rows.map((row) => row.date);
-  return period === "1d" ? labels : labels.filter((label) => label.endsWith("00:00"));
+/** Restricts an hourly entity series to the entities surviving a filtered daily series. */
+function matchHourlyToDaily(
+  hourly: RegistryAnalyticsEntityHourlySeries,
+  daily: RegistryAnalyticsEntityDailySeries,
+): RegistryAnalyticsEntityHourlySeries {
+  const allowedIds = new Set(daily.entities.map((entity) => entity.id));
+  return {
+    buckets: hourly.buckets,
+    entities: hourly.entities.filter((entity) => allowedIds.has(entity.id)),
+  };
 }
 
 const numberFormatter = new Intl.NumberFormat("en-US");
@@ -345,7 +349,10 @@ function RegistryOverviewTab({
     period === "all-time"
       ? undefined
       : hourlyMode
-        ? getHourlyChartTicks(chartData, period)
+        ? getHourlyChartTicks(
+            chartData.map((point) => point.date),
+            period,
+          )
         : chartData.map((point) => point.date);
   // Average downloads per weekday over the full history — the registry's
   // weekly activity rhythm (all-time, so it sits above the period break).
@@ -577,6 +584,7 @@ function RegistryOverviewTab({
             threshold — typically 10+ countries, bound by the series cap. */}
         <TopEntitiesChart
           series={data.countries.dailyDownloads}
+          hourlySeries={data.countries.hourlyDownloads}
           entityKey="countries"
           period={period}
           assetType="total"
@@ -851,21 +859,53 @@ function RegistryContentTab({
         : row.downloads[assetTypeId],
     })),
   );
-  // The filtered view sums matched listings from the daily per-listing series;
-  // the hourly series carries no per-listing filter here, so it only backs the
-  // unfiltered short cuts.
-  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && !isChartFiltered && data.hourly.length > 0;
-  const hourlyChartRows = hourlyMode
-    ? buildHourlyChartRows(data.hourly, period, (downloads) => ({
+  // Short cuts derive from the hourly series: site type totals when unfiltered,
+  // a sum over the matched listings' per-listing hourly series when filtered.
+  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.hourly.length > 0;
+  const hourlyChartRows = useMemo(() => {
+    if (!hourlyMode) return null;
+    if (!isChartFiltered) {
+      return buildHourlyChartRows(data.hourly, period, (downloads) => ({
         Downloads: downloads[assetTypeId],
-      }))
-    : null;
+      }));
+    }
+    const allowedIds = new Set(filteredListingSeries.entities.map((entity) => entity.id));
+    const windowBuckets = getHourlyWindowBuckets(data.listings.hourlyDownloads.buckets, period);
+    const labelByBucket = new Map(
+      windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
+    );
+    const totals = new Map<string, number>();
+    for (const entity of data.listings.hourlyDownloads.entities) {
+      if (!allowedIds.has(entity.id)) continue;
+      for (const [bucket, point] of entity.byBucket) {
+        const label = labelByBucket.get(alignHourlyBucket(bucket));
+        if (!label) continue;
+        const value = assetTypeId === "maps" ? point.maps : point.mods;
+        totals.set(label, (totals.get(label) ?? 0) + value);
+      }
+    }
+    return windowBuckets.map((bucket) => {
+      const label = labelByBucket.get(bucket)!;
+      return { date: label, Downloads: totals.get(label) ?? 0 };
+    });
+  }, [
+    assetTypeId,
+    data.hourly,
+    data.listings.hourlyDownloads,
+    filteredListingSeries,
+    hourlyMode,
+    isChartFiltered,
+    period,
+  ]);
   const chartRows = hourlyChartRows ?? chartBucketed.data;
   const chartTicks =
     period === "all-time"
       ? undefined
       : hourlyChartRows
-        ? getHourlyChartTicks(hourlyChartRows, period)
+        ? getHourlyChartTicks(
+            hourlyChartRows.map((row) => row.date),
+            period,
+          )
         : chartBucketed.data.map((point) => String(point.date));
   const hasFilterMatches = !isChartFiltered || filteredListingSeries.entities.length > 0;
   const baseRows = data.contentRankings[period][assetTypeId];
@@ -1038,7 +1078,7 @@ function RegistryContentTab({
           <MultiSeriesChartCard
             title={
               hourlyMode
-                ? "Downloads · 4h Buckets (UTC)"
+                ? `${isChartFiltered ? "Filtered " : ""}Downloads · 4h Buckets (UTC)`
                 : `${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`
             }
             chartKey={`registry-content-${assetTypeId}-${period}-${hourlyMode ? "hourly" : chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
@@ -1079,6 +1119,7 @@ function RegistryContentTab({
             palette. */}
         <TopEntitiesChart
           series={filteredListingSeries}
+          hourlySeries={matchHourlyToDaily(data.listings.hourlyDownloads, filteredListingSeries)}
           entityKey={assetTypeId}
           period={period}
           assetType={assetTypeId}
@@ -1369,6 +1410,7 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         <SectionSeparator label="Top Authors" icon={Users} className="mb-4" />
         <TopEntitiesChart
           series={filteredAuthorSeries}
+          hourlySeries={matchHourlyToDaily(data.authors.hourlyDownloads, filteredAuthorSeries)}
           entityKey="authors"
           filtered={isChartFiltered}
           emptyLabel="No authors match the current filters."
@@ -1595,6 +1637,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
             nine actual projects chart alongside it. */}
         <TopEntitiesChart
           series={filteredProjectSeries}
+          hourlySeries={matchHourlyToDaily(data.projects.hourlyDownloads, filteredProjectSeries)}
           entityKey="projects"
           minShare={0}
           filtered={isChartFiltered}

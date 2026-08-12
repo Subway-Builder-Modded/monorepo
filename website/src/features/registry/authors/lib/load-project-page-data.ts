@@ -11,6 +11,7 @@ import type {
   RegistryAuthorContributor,
   RegistryAuthorDownloadHistoryPoint,
   RegistryAuthorDownloadTrend,
+  RegistryAuthorHourlyPoint,
   RegistryAuthorOverview,
 } from "./load-author-page-data";
 
@@ -270,6 +271,41 @@ function computeProjectDownloadRanks(
       })),
     ),
   };
+}
+
+// Hour-grain sibling of computeProjectHistory over the long-form hourly rows;
+// projects have no caretaker split, so the caretaken fields stay zero.
+function computeProjectHourly(
+  normalizedProjectId: string,
+  hourlyRows: Array<Record<string, string>>,
+  itemProjectByTypeAndId: Map<string, string>,
+): RegistryAuthorHourlyPoint[] {
+  const byBucket = new Map<string, RegistryAuthorHourlyPoint>();
+
+  for (const row of hourlyRows) {
+    const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
+    const id = row["id"] ?? "";
+    const bucket = row["bucket_utc"] ?? "";
+    const downloads = Number(row["downloads"]) || 0;
+    if (!typeId || !bucket || downloads <= 0) continue;
+    if (itemProjectByTypeAndId.get(`${typeId}:${id}`) !== normalizedProjectId) continue;
+
+    const current = byBucket.get(bucket) ?? {
+      bucket,
+      total: 0,
+      maps: 0,
+      mods: 0,
+      caretakenTotal: 0,
+      caretakenMaps: 0,
+      caretakenMods: 0,
+    };
+    current.total += downloads;
+    if (typeId === "maps") current.maps += downloads;
+    if (typeId === "mods") current.mods += downloads;
+    byBucket.set(bucket, current);
+  }
+
+  return [...byBucket.values()].sort((left, right) => left.bucket.localeCompare(right.bucket));
 }
 
 function computeProjectHistory(
@@ -533,10 +569,14 @@ export async function loadProjectPageData(
   const dailyAnalyticsRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`,
   );
+  const hourlyAnalyticsRaw = await safeFetchText(
+    `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/hourly/downloads.csv`,
+  );
   const releaseCacheRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/github-releases-cache.json`,
   );
   const dailyRows = dailyAnalyticsRaw ? parseCsvRows(dailyAnalyticsRaw) : [];
+  const hourlyRows = hourlyAnalyticsRaw ? parseCsvRows(hourlyAnalyticsRaw) : [];
   const releaseCache = safeJson<ReleaseCache>(releaseCacheRaw ?? "{}", {});
   const itemProjectByTypeAndId = buildItemProjectLookup(allItemsByType);
   const projectAssetCounts = buildProjectAssetCounts(allItemsByType);
@@ -545,6 +585,7 @@ export async function loadProjectPageData(
     downloads,
     ranks: computeProjectDownloadRanks(normalizedProjectId, allItemsByType),
     history: computeProjectHistory(normalizedProjectId, dailyRows, itemProjectByTypeAndId),
+    hourly: computeProjectHourly(normalizedProjectId, hourlyRows, itemProjectByTypeAndId),
     trends: computeProjectTrends(
       normalizedProjectId,
       dailyRows,

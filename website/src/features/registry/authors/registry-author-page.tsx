@@ -63,7 +63,14 @@ import {
   REGISTRY_ANALYTICS_PERIOD_OPTIONS,
   RegistryAnalyticsPeriodToggle,
 } from "@/features/registry/analytics/components/analytics-period-toggle";
-import type { RegistryAnalyticsPeriodId } from "@/features/registry/analytics/lib/load-registry-analytics";
+import {
+  HOURLY_CHART_PERIODS,
+  alignHourlyBucket,
+  formatHourlyBucketLabel,
+  getHourlyChartTicks,
+  getHourlyWindowBuckets,
+  type RegistryAnalyticsPeriodId,
+} from "@/features/registry/analytics/lib/load-registry-analytics";
 import {
   CHART_CARD_FLUSH_CLASS,
   SECTION_CARD_STYLE,
@@ -879,13 +886,49 @@ function AuthorDownloadHistory({
   const windowHistory = periodDays
     ? data.analytics.history.slice(-periodDays)
     : data.analytics.history;
-  const chartData = windowHistory.map((point) => ({
-    date: point.date,
-    Published: point[activeMode],
-    Caretaken: point[caretakenKey] ?? 0,
-  }));
+  // Short cuts draw aligned 4h UTC buckets from the hour-grain history instead
+  // of 1-3 daily bars; caretaken hourly keys mirror the daily mode keys.
+  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.analytics.hourly.length > 0;
+  const chartData = hourlyMode
+    ? (() => {
+        const windowBuckets = getHourlyWindowBuckets(
+          data.analytics.hourly.map((point) => point.bucket),
+          period,
+        );
+        const rowByBucket = new Map(
+          windowBuckets.map((bucket) => [
+            bucket,
+            { date: formatHourlyBucketLabel(bucket, period), Published: 0, Caretaken: 0 },
+          ]),
+        );
+        const caretakenHourlyKey =
+          activeMode === "total"
+            ? ("caretakenTotal" as const)
+            : activeMode === "maps"
+              ? ("caretakenMaps" as const)
+              : ("caretakenMods" as const);
+        for (const point of data.analytics.hourly) {
+          const row = rowByBucket.get(alignHourlyBucket(point.bucket));
+          if (!row) continue;
+          row.Published += point[activeMode];
+          row.Caretaken += point[caretakenHourlyKey];
+        }
+        return windowBuckets.map((bucket) => rowByBucket.get(bucket)!);
+      })()
+    : windowHistory.map((point) => ({
+        date: point.date,
+        Published: point[activeMode],
+        Caretaken: point[caretakenKey] ?? 0,
+      }));
   const bucketed = bucketMultiSeriesData(chartData);
-  const chartTicks = periodDays ? bucketed.data.map((point) => String(point.date)) : undefined;
+  const chartTicks = hourlyMode
+    ? getHourlyChartTicks(
+        bucketed.data.map((point) => String(point.date)),
+        period,
+      )
+    : periodDays
+      ? bucketed.data.map((point) => String(point.date))
+      : undefined;
   const hasPublishedSeries = chartData.some((point) => point.Published > 0);
   const hasCaretakenSeries = chartData.some((point) => point.Caretaken > 0);
   // Caretaker-credited downloads render as a washed-out companion line so they
@@ -934,8 +977,10 @@ function AuthorDownloadHistory({
           </div>
         ) : null}
         <MultiSeriesChartCard
-          title={`${getGrainLabel(bucketed.grain)} Downloads`}
-          chartKey={`author-history-${activeMode}-${period}-${bucketed.grain}`}
+          title={
+            hourlyMode ? "Downloads · 4h Buckets (UTC)" : `${getGrainLabel(bucketed.grain)} Downloads`
+          }
+          chartKey={`author-history-${activeMode}-${period}-${hourlyMode ? "hourly" : bucketed.grain}`}
           data={bucketed.data}
           series={lines}
           xAxisTicks={chartTicks}
@@ -959,17 +1004,48 @@ function AuthorTopAssets({
   period: RegistryAnalyticsPeriodId;
 }) {
   const listingSeries = data.analytics.listingSeries ?? [];
+  const listingHourlySeries = data.analytics.listingHourlySeries ?? [];
   const model = useMemo(() => {
+    // Short cuts feed the same top-N pipeline with aligned 4h UTC bucket labels
+    // as the x universe and hour-grain credited values.
+    const hourlyMode = HOURLY_CHART_PERIODS.has(period) && listingHourlySeries.length > 0;
     const periodDays = REGISTRY_ANALYTICS_PERIOD_OPTIONS.find(
       (option) => option.id === period,
     )?.days;
     const historyDates = data.analytics.history.map((point) => point.date);
-    const dates = periodDays ? historyDates.slice(-periodDays) : historyDates;
-    const named: NamedDailySeries[] = listingSeries.map((entry) => ({
-      id: `${entry.typeId}:${entry.id}`,
-      name: entry.name,
-      valueByDate: new Map(entry.history.map((point) => [point.date, point.downloads])),
-    }));
+    const windowBuckets = hourlyMode
+      ? getHourlyWindowBuckets(
+          listingHourlySeries.flatMap((entry) => [...entry.byBucket.keys()]),
+          period,
+        )
+      : [];
+    const labelByBucket = new Map(
+      windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
+    );
+    const dates = hourlyMode
+      ? windowBuckets.map((bucket) => labelByBucket.get(bucket)!)
+      : periodDays
+        ? historyDates.slice(-periodDays)
+        : historyDates;
+    const named: NamedDailySeries[] = hourlyMode
+      ? listingHourlySeries.map((entry) => {
+          const valueByLabel = new Map<string, number>();
+          for (const [bucket, downloads] of entry.byBucket) {
+            const label = labelByBucket.get(alignHourlyBucket(bucket));
+            if (!label) continue;
+            valueByLabel.set(label, (valueByLabel.get(label) ?? 0) + downloads);
+          }
+          return {
+            id: `${entry.typeId}:${entry.id}`,
+            name: entry.name,
+            valueByDate: valueByLabel,
+          };
+        })
+      : listingSeries.map((entry) => ({
+          id: `${entry.typeId}:${entry.id}`,
+          name: entry.name,
+          valueByDate: new Map(entry.history.map((point) => [point.date, point.downloads])),
+        }));
     // Per-listing distributions are flat: top 8 (1:1 with the palette), with
     // "Others" rendered only in the bar view and the pie — as a line it would
     // dwarf the individual assets.
@@ -985,7 +1061,15 @@ function AuthorTopAssets({
       // "Top N" only when Others exists (something was actually cut).
       isTopSlice: realCount < top.series.length,
       bucketed,
-      chartTicks: periodDays ? bucketed.data.map((point) => String(point.date)) : undefined,
+      hourlyMode,
+      chartTicks: hourlyMode
+        ? getHourlyChartTicks(
+            bucketed.data.map((point) => String(point.date)),
+            period,
+          )
+        : periodDays
+          ? bucketed.data.map((point) => String(point.date))
+          : undefined,
       slices: top.series.map((entry) => ({
         key: entry.key,
         name: entry.name,
@@ -993,7 +1077,7 @@ function AuthorTopAssets({
         color: entry.color,
       })),
     };
-  }, [data.analytics.history, listingSeries, period]);
+  }, [data.analytics.history, listingHourlySeries, listingSeries, period]);
 
   if (model.series.length === 0) return null;
 
@@ -1008,10 +1092,14 @@ function AuthorTopAssets({
         }
       >
         <MultiSeriesChartCard
-          title={`${
-            model.isTopSlice ? `Top ${model.realCount} ` : ""
-          }${getGrainLabel(model.bucketed.grain)} Downloads by Asset`}
-          chartKey={`author-top-assets-${period}-${model.bucketed.grain}`}
+          title={
+            model.hourlyMode
+              ? `${model.isTopSlice ? `Top ${model.realCount} ` : ""}Downloads by Asset · 4h Buckets (UTC)`
+              : `${
+                  model.isTopSlice ? `Top ${model.realCount} ` : ""
+                }${getGrainLabel(model.bucketed.grain)} Downloads by Asset`
+          }
+          chartKey={`author-top-assets-${period}-${model.hourlyMode ? "hourly" : model.bucketed.grain}`}
           data={model.bucketed.data}
           series={model.series}
           xAxisTicks={model.chartTicks}
