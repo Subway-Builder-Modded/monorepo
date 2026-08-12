@@ -31,9 +31,7 @@ func TestParseDrivingPathsEmptyObject(t *testing.T) {
 }
 
 func TestParseDrivingPathsFallsBackOnMalformed(t *testing.T) {
-	// Value isn't an array, so the fast path bails to encoding/json, which then
-	// errors on the invalid token — a well-formed file always parses, a broken
-	// one fails loudly rather than silently returning garbage.
+	// A non-array value bails to encoding/json, which then fails loudly on the invalid token.
 	_, err := parseDrivingPaths([]byte(`{"a": not-json}`))
 	require.Error(t, err)
 }

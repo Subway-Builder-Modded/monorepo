@@ -96,8 +96,8 @@ func handleGetDrivingPathForCity(w http.ResponseWriter, r *http.Request) {
 	cacheHit := drivingPathsCache.HasMap(cityCode)
 
 	// Ensure the city's paths are loaded before the lookup. The mod loads the city's paths
-	// via a POST to /loadpaths onCityLoad, but a path can still be requested before that 
-	// finishes, which can result in a 404. 
+	// via a POST to /loadpaths onCityLoad, but a path can still be requested before that
+	// finishes, which can result in a 404.
 	if err := loadDrivingPathsForCity(cityCode, drivingPathsCache, metroMakerDataPath); err != nil {
 		http.Error(w, "Driving path not found for cityCode: "+cityCode+" and popId: "+popId, http.StatusNotFound)
 		globalLogger.Error("Failed to load driving paths on demand for cityCode: "+cityCode, err)

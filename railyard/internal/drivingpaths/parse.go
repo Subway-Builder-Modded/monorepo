@@ -13,15 +13,12 @@ const (
 
 // parseDrivingPaths splits a driving-paths document ({"popId":[[lon,lat],...],...})
 // into popId -> raw route bytes without unmarshalling each route's coordinates.
-//
-// A single map can carry tens of thousands of routes, so a full encoding/json
-// decode into map[string][][]float64 is dominated by reflection over the nested
-// float arrays (~1.6s for a 46MB document). This top-level scan finds each key and
-// the byte span of its array value in one pass (~180ms) and keeps the value raw, so
-// serving a route is a zero-parse byte copy. On any structural surprise it falls
-// back to encoding/json so a well-formed document always loads.
+// On any structural surprise it falls back to encoding/json so a well-formed document always loads.
 func parseDrivingPaths(b []byte) (types.DrivingPathsFile, error) {
 	out := make(types.DrivingPathsFile)
+
+	// Single-pass scan over the top-level object: find each key and the byte span of
+	// its array value, keeping the value raw so serving a route is a zero-parse copy.
 	i, n := 0, len(b)
 	for i < n && b[i] != '{' {
 		i++
@@ -103,6 +100,7 @@ func parseDrivingPaths(b []byte) (types.DrivingPathsFile, error) {
 	return out, nil
 }
 
+// fallbackParseDrivingPaths decodes the document with encoding/json when the fast scan bails.
 func fallbackParseDrivingPaths(b []byte) (types.DrivingPathsFile, error) {
 	var m types.DrivingPathsFile
 	if err := json.Unmarshal(b, &m); err != nil {
