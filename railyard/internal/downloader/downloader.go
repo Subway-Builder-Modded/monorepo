@@ -921,14 +921,11 @@ func (d *Downloader) cleanupSupersededMapArtifacts(mapId string, previousCode st
 	} else if err := os.RemoveAll(oldDataPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		d.Logger.Warn("Failed to remove superseded map data directory", "map_id", mapId, "path", oldDataPath, "error", err)
 	}
-	// Tiles and thumbnails live in Railyard-managed directories, so no marker gate applies.
-	for _, artifact := range []string{
-		paths.JoinLocalPath(d.getMapTilePath(), previousCode+files.MapTileFileExt),
-		paths.JoinLocalPath(d.getMapTilePath(), previousCode+files.MapFoundationTileFileExt),
-		paths.JoinLocalPath(d.getMapThumbnailPath(), previousCode+files.MapThumbnailFileExt),
-	} {
-		if err := os.Remove(artifact); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			d.Logger.Warn("Failed to remove superseded map artifact", "map_id", mapId, "artifact", artifact, "error", err)
+	// Out-of-tree artifacts live in Railyard-managed directories, so no marker gate applies.
+	for _, artifact := range files.MapArtifacts {
+		artifactPath := d.mapArtifactPath(artifact, previousCode)
+		if err := os.Remove(artifactPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			d.Logger.Warn("Failed to remove superseded map artifact", "map_id", mapId, "artifact", artifactPath, "error", err)
 		}
 	}
 	d.Logger.Info(
