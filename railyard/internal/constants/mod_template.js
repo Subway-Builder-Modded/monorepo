@@ -19,7 +19,15 @@
       const request = parseModdedPathRequest(urlFromFetchInput(input));
       if (request && moddedCodes.has(request.cityCode)) {
         const forwardedURL = pathServerURL.replace("{cityCode}", encodeURIComponent(request.cityCode)).replace("{popId}", encodeURIComponent(request.popId));
-        return originalFetch(forwardedURL, init);
+        const clock = typeof performance !== "undefined" ? performance : Date;
+        const startedAt = clock.now();
+        return originalFetch(forwardedURL, init).then((response) => {
+          const ms = Math.round(clock.now() - startedAt);
+          console.log(
+            `[mapLoader] driving path ${request.cityCode}/${request.popId} → ${response.status} in ${ms}ms`
+          );
+          return response;
+        });
       }
       return originalFetch(input, init);
     };
@@ -302,12 +310,20 @@
       });
     });
     api.hooks.onCityLoad(layers.handleCityLoad);
-    api.hooks.onCityLoad((code) => {
+    api.hooks.onCityLoad(async (code) => {
       let foundPlace = config.places.find((place) => place.code === code);
       if (!foundPlace) {
         return;
       }
-      fetch("http://127.0.0.1:" + config.drivingPathPort + "/loadpaths", {
+      console.log(
+        `[mapLoader] city ${code} — evicting other maps + warming driving paths`
+      );
+      await fetch("http://127.0.0.1:" + config.drivingPathPort + "/cache", {
+        method: "DELETE"
+      });
+      const clock = typeof performance !== "undefined" ? performance : Date;
+      const startedAt = clock.now();
+      await fetch("http://127.0.0.1:" + config.drivingPathPort + "/loadpaths", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -316,6 +332,9 @@
           cityCode: code
         })
       });
+      console.log(
+        `[mapLoader] driving paths ready for ${code} in ${Math.round(clock.now() - startedAt)}ms`
+      );
     });
     api.hooks.onMapReady(layers.handleMapReady);
   })();

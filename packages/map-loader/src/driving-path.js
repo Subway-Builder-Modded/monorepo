@@ -33,7 +33,17 @@ export function installDrivingPathServer(config) {
         .replace("{cityCode}", encodeURIComponent(request.cityCode))
         .replace("{popId}", encodeURIComponent(request.popId));
 
-      return originalFetch(forwardedURL, init);
+      // Log each driving-path fetch with its round-trip latency so a slow first
+      // request (cold cache / lazy load) is distinguishable from a warm-cache hit.
+      const clock = typeof performance !== "undefined" ? performance : Date;
+      const startedAt = clock.now();
+      return originalFetch(forwardedURL, init).then((response) => {
+        const ms = Math.round(clock.now() - startedAt);
+        console.log(
+          `[mapLoader] driving path ${request.cityCode}/${request.popId} → ${response.status} in ${ms}ms`
+        );
+        return response;
+      });
     }
 
     return originalFetch(input, init);

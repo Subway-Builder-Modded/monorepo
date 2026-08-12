@@ -1,9 +1,10 @@
 package drivingpaths
 
 import (
-	"encoding/json"
 	"net"
 	"net/http"
+	"time"
+
 	"railyard/internal/logger"
 	"railyard/internal/types"
 )
@@ -43,22 +44,25 @@ func handleLoadDrivingPathsForCity(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if drivingPathsCache.HasMap(cityCode) {
+		globalLogger.Info("Driving paths already loaded for city", "city", cityCode)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Driving paths already loaded for city: " + cityCode))
 		return
 	}
 
-	// Start loading in a background goroutine so the main executor isn't blocked.
-	go func(code string) {
-		if err := loadDrivingPathsForCity(code, drivingPathsCache, metroMakerDataPath); err != nil {
-			globalLogger.Error("Failed to load driving paths for city (async): "+code, err)
-		} else {
-			globalLogger.Info("Driving paths loaded for city", "city", code)
-		}
-	}(cityCode)
-
+	// Load synchronously so the caller knows exactly when the city's paths are ready
+	// (its console log resolves on completion) and the pre-warm is done before the
+	// response returns. LoadIfAbsent still serializes with any concurrent /path load.
+	globalLogger.Info("Driving paths load requested", "city", cityCode)
+	start := time.Now()
+	if err := loadDrivingPathsForCity(cityCode, drivingPathsCache, metroMakerDataPath); err != nil {
+		globalLogger.Error("Failed to load driving paths for city: "+cityCode, err)
+		http.Error(w, "Failed to load driving paths for city: "+cityCode, http.StatusNotFound)
+		return
+	}
+	globalLogger.Info("Driving paths loaded for city", "city", cityCode, "elapsedMs", time.Since(start).Milliseconds())
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Driving paths load started"))
+	w.Write([]byte("Driving paths loaded for city: " + cityCode))
 }
 
 func handleGetDrivingPathForCity(w http.ResponseWriter, r *http.Request) {
@@ -87,24 +91,33 @@ func handleGetDrivingPathForCity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	start := time.Now()
+	// cacheHit records whether the city's paths were already resident before the request.
+	cacheHit := drivingPathsCache.HasMap(cityCode)
+
+	// Ensure the city's paths are loaded before the lookup. The mod loads the city's paths
+	// via a POST to /loadpaths onCityLoad, but a path can still be requested before that
+	// finishes, which can result in a 404.
+	if err := loadDrivingPathsForCity(cityCode, drivingPathsCache, metroMakerDataPath); err != nil {
+		http.Error(w, "Driving path not found for cityCode: "+cityCode+" and popId: "+popId, http.StatusNotFound)
+		globalLogger.Error("Failed to load driving paths on demand for cityCode: "+cityCode, err)
+		return
+	}
+
 	path, ok := drivingPathsCache.GetPath(cityCode, popId)
 	if !ok {
 		http.Error(w, "Driving path not found for cityCode: "+cityCode+" and popId: "+popId, http.StatusNotFound)
 		globalLogger.Error("Driving path not found for cityCode: "+cityCode+" and popId: "+popId, nil)
 		return
 	}
-	response := types.DrivingPathsResponse{
-		Coordinates: path,
-	}
+	globalLogger.Info("Served driving path", "city", cityCode, "popId", popId, "cacheHit", cacheHit, "elapsedMs", time.Since(start).Milliseconds())
 
-	bytes, err := json.Marshal(response)
-	if err != nil {
-		http.Error(w, "Failed to serialize response: "+err.Error(), http.StatusInternalServerError)
-		globalLogger.Error("Failed to serialize response when getting driving path for city", err)
-		return
-	}
+	// Write {"coordinates":<raw route bytes>} directly. The cached value is already
+	// the route's JSON coordinate array, so there is nothing to marshal.
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(bytes)
+	w.Write([]byte(`{"coordinates":`))
+	w.Write(path)
+	w.Write([]byte("}"))
 }
 
 func createHTTPServer(listener *net.Listener, log logger.Logger) (*http.Server, error) {

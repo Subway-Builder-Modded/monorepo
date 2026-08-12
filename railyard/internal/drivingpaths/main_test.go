@@ -1,8 +1,10 @@
 package drivingpaths
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -18,7 +20,7 @@ func TestHandleResetCacheResetsCache(t *testing.T) {
 	drivingPathsCache = &types.DrivingPathsCache{}
 	t.Cleanup(func() { drivingPathsCache = previousCache })
 
-	drivingPathsCache.AddMap("KUN", types.DrivingPathsFile{"pop-1": {{1, 2}}})
+	drivingPathsCache.AddMap("KUN", types.DrivingPathsFile{"pop-1": json.RawMessage("[[1,2]]")})
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodDelete, "/cache", nil)
 
@@ -41,9 +43,14 @@ func TestHandleResetCacheRejectsNonDelete(t *testing.T) {
 func TestHandleLoadDrivingPathsForCityReturnsLoadedMessageWhenAlreadyCached(t *testing.T) {
 	previousCache := drivingPathsCache
 	drivingPathsCache = &types.DrivingPathsCache{}
-	t.Cleanup(func() { drivingPathsCache = previousCache })
+	previousLogger := globalLogger
+	globalLogger = logger.LoggerAtPath(filepath.Join(t.TempDir(), "drivingpaths.log"))
+	t.Cleanup(func() {
+		drivingPathsCache = previousCache
+		globalLogger = previousLogger
+	})
 
-	drivingPathsCache.AddMap("KUN", types.DrivingPathsFile{"pop-1": {{1, 2}}})
+	drivingPathsCache.AddMap("KUN", types.DrivingPathsFile{"pop-1": json.RawMessage("[[1,2]]")})
 	recorder := httptest.NewRecorder()
 	body := strings.NewReader("cityCode=KUN")
 	request := httptest.NewRequest(http.MethodPost, "/loadpaths", body)
@@ -76,7 +83,7 @@ func TestHandleGetDrivingPathForCityReturnsJSON(t *testing.T) {
 		globalLogger = previousLogger
 	})
 
-	drivingPathsCache.AddMap("KUN", types.DrivingPathsFile{"pop-1": {{1.1, 2.2}, {3.3, 4.4}}})
+	drivingPathsCache.AddMap("KUN", types.DrivingPathsFile{"pop-1": json.RawMessage("[[1.1,2.2],[3.3,4.4]]")})
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodGet, "/path?cityCode=KUN&popId=pop-1", nil)
 
@@ -104,4 +111,34 @@ func TestHandleGetDrivingPathForCityReturnsNotFound(t *testing.T) {
 
 	require.Equal(t, http.StatusNotFound, recorder.Code)
 	require.Contains(t, recorder.Body.String(), "Driving path not found for cityCode: KUN and popId: missing")
+}
+
+func TestHandleGetDrivingPathForCityLazyLoadsWhenCacheEmpty(t *testing.T) {
+	previousCache := drivingPathsCache
+	drivingPathsCache = &types.DrivingPathsCache{}
+	previousLogger := globalLogger
+	globalLogger = logger.LoggerAtPath(filepath.Join(t.TempDir(), "drivingpaths.log"))
+	previousDataPath := metroMakerDataPath
+	metroMakerRoot := t.TempDir()
+	metroMakerDataPath = metroMakerRoot
+	t.Cleanup(func() {
+		drivingPathsCache = previousCache
+		globalLogger = previousLogger
+		metroMakerDataPath = previousDataPath
+	})
+
+	cityDir := filepath.Join(metroMakerRoot, "cities", "data", "KUN")
+	require.NoError(t, os.MkdirAll(cityDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(cityDir, "driving_paths.json"), []byte(`{"pop-1":[[1.1,2.2],[3.3,4.4]]}`), 0o644))
+
+	// No prior POST /loadpaths — the cache starts empty, mirroring an early request.
+	require.False(t, drivingPathsCache.HasMap("KUN"))
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/path?cityCode=KUN&popId=pop-1", nil)
+	handleGetDrivingPathForCity(recorder, request)
+
+	require.Equal(t, http.StatusOK, recorder.Code)
+	require.JSONEq(t, `{"coordinates":[[1.1,2.2],[3.3,4.4]]}`, recorder.Body.String())
+	require.True(t, drivingPathsCache.HasMap("KUN"))
 }

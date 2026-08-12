@@ -36,4 +36,5 @@ func TestMapArtifactsManifestIsWellFormed(t *testing.T) {
 
 	require.False(t, IsMapArtifactKey(MapArchiveKeyConfig))
 	require.False(t, IsMapArtifactKey(MapArchiveKeyDemandData))
+	require.False(t, IsMapArtifactKey(MapArchiveKeyDrivingPaths))
 }
