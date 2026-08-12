@@ -311,11 +311,9 @@ func TestBootstrapInstalledStateFromProfilePreservesExistingRemoteMapWhenManifes
 
 func TestBootstrapInstalledStateFromProfileKeepsInstallWhenManifestCityCodeChanged(t *testing.T) {
 	testutil.NewHarness(t)
-	// The registry manifest already advertises the NEW code (a code-changing
-	// update was published upstream), but the local install still holds the
-	// previous code's files. Bootstrap must validate against the installed
-	// snapshot's code — not the manifest's — or the map is silently dropped
-	// and re-downloaded.
+	// The manifest already advertises the new code but the local install still holds the
+	// previous code's files — bootstrap must validate the installed snapshot's code, not
+	// the manifest's, or the map is silently dropped and re-downloaded.
 	registrytest.WriteFixture(t, registrytest.RepositoryFixture{
 		Maps: []types.MapManifest{fixtureRegistryMapManifest("lyon", "LSY")},
 	})

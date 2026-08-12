@@ -118,13 +118,11 @@ func (r *Registry) bootstrapMapSubscription(
 			r.logger.Warn("Skipping subscribed map during installed-state bootstrap: missing manifest and no installed fallback", "map_id", mapID)
 			return types.InstalledMapInfo{}, false
 		}
-		// The installed snapshot records which code's files THIS install actually wrote; the
-		// manifest's city_code tracks the listing's LATEST version. After a code-changing
-		// update upstream the two diverge until the local install updates — trusting the
-		// manifest alone here validates against a directory that does not exist yet, silently
-		// drops the map from installed state, and triggers a full re-download of the pinned
-		// version. Prefer the snapshot, fall back to the manifest code (the snapshot may be
-		// absent or stale when bootstrap is repairing corrupted installed metadata).
+		// After a code-changing update upstream, the manifest's city_code (latest version) and
+		// the installed snapshot's code (what this install wrote to disk) diverge until the
+		// local install updates. Validating the manifest code alone finds no files, silently
+		// drops the map, and re-downloads the pinned version — so prefer the snapshot, keeping
+		// the manifest code as the fallback that repairs corrupted installed metadata.
 		candidateCodes := make([]string, 0, 2)
 		if installedCode != "" {
 			candidateCodes = append(candidateCodes, installedCode)

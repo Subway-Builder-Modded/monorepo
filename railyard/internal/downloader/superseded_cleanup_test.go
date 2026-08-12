@@ -11,10 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// writeSupersededMapArtifacts lays down the full on-disk artifact set for a city
-// code: data directory (optionally marker-managed), tiles, foundation tiles, and
-// thumbnail. Codes must be unique per test — the tiles directory is shared
-// process-wide via the TestMain env root.
+// writeSupersededMapArtifacts lays down a city code's full on-disk artifact set. Codes must be
+// unique per test — the tiles directory is shared process-wide via the TestMain env root.
 func writeSupersededMapArtifacts(t *testing.T, d *Downloader, code string, withMarker bool) (dataDir, tile, foundationTile, thumbnail string) {
 	t.Helper()
 	dataDir = paths.JoinLocalPath(d.getMapDataPath(), code)
@@ -67,11 +65,10 @@ func TestCleanupSupersededMapArtifactsKeepsUnmarkedDataDir(t *testing.T) {
 
 	d.cleanupSupersededMapArtifacts("lyon", "OLDB", "NEWB")
 
-	// Without the Railyard marker the data directory may not be ours (e.g. the
-	// old code now belongs to a vanilla city) — it must be left in place.
+	// The unmarked (possibly game-owned) data directory must be left in place.
 	require.DirExists(t, oldDir)
 	require.FileExists(t, paths.JoinLocalPath(oldDir, "demand_data.json.gz"))
-	// Tiles and thumbnails live in Railyard-managed directories and are removed.
+	// Railyard-managed out-of-tree artifacts are still removed.
 	require.NoFileExists(t, tile)
 	require.NoFileExists(t, foundationTile)
 	require.NoFileExists(t, thumbnail)

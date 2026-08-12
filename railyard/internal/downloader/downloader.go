@@ -891,17 +891,17 @@ func (d *Downloader) uninstallMapNow(mapId string) types.AssetUninstallResponse 
 }
 
 // cleanupSupersededMapArtifacts removes the previous city code's on-disk artifacts after an
-// update whose archive changed the map's code. The on-disk layout is keyed by code, so such an
-// update writes a fresh artifact set under the new code and the old set would otherwise be
-// orphaned forever: invisible to size accounting and untouched by uninstall, which only ever
-// deletes the current code's paths. Best-effort — the install has already committed, so
-// failures only log.
+// update whose archive changed the map's code. Best-effort — the install has already committed.
 func (d *Downloader) cleanupSupersededMapArtifacts(mapId string, previousCode string, newCode string) {
 	if previousCode == "" || previousCode == newCode {
 		return
 	}
-	// Another installed asset may legitimately own the previous code's files (codes are unique
-	// across installs, but the replace-conflict path can hand a code over to a different asset).
+	// The on-disk layout is keyed by code, so the update wrote a fresh artifact set under the
+	// new code; without cleanup the old set is orphaned forever — invisible to size accounting
+	// and untouched by uninstall, which only ever deletes the current code's paths.
+
+	// Skip when another installed asset legitimately owns the previous code's files (codes are
+	// unique across installs, but the replace-conflict path can hand a code to another asset).
 	for _, installed := range d.Registry.GetInstalledMaps() {
 		if installed.MapConfig.Code == previousCode {
 			d.Logger.Info(
@@ -1200,9 +1200,8 @@ func (d *Downloader) installMapNow(ctx context.Context, mapId string, version st
 		return conflictResp
 	}
 
-	// Snapshot the pre-update install before the registry entry is overwritten: if the new
-	// archive carries a different city code, the previous code's artifacts must be cleaned up
-	// after the install commits.
+	// Snapshot the pre-update install before the registry entry is overwritten; its city code
+	// drives the superseded-artifact cleanup after the install commits.
 	previousState, wasInstalled := d.getInstalledState(types.AssetTypeMap, mapId)
 
 	d.Logger.Info("Extracting map", "map_id", mapId, "version", version, "temp_path", downloadResp.Path)
