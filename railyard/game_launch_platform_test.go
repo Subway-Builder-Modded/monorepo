@@ -63,6 +63,46 @@ func TestBuildLaunchCommandDarwinAppBundle(t *testing.T) {
 	require.False(t, hasEnv(cmd, "DEBUG_PROD=TRUE"))
 }
 
+// makeAppBundle creates <root>/<bundleName>/Contents/MacOS with the given binaries and
+// returns the bundle path in slash form, matching how macOS paths reach launchSpec.
+func makeAppBundle(t *testing.T, bundleName string, binaries ...string) string {
+	t.Helper()
+	bundle := filepath.Join(t.TempDir(), bundleName)
+	macOSDir := filepath.Join(bundle, "Contents", "MacOS")
+	require.NoError(t, os.MkdirAll(macOSDir, 0o755))
+	for _, name := range binaries {
+		require.NoError(t, os.WriteFile(filepath.Join(macOSDir, name), []byte("bin"), 0o755))
+	}
+	return filepath.ToSlash(bundle)
+}
+
+func TestResolveMacBundleExecutable(t *testing.T) {
+	// Unrenamed bundle: the basename-derived binary wins.
+	bundle := makeAppBundle(t, "Subway Builder.app", constants.GameMacProcessName)
+	require.Equal(t, bundle+"/Contents/MacOS/"+constants.GameMacProcessName, resolveMacBundleExecutable(bundle))
+
+	// Renamed bundle: the canonical binary name is found even though the basename does not match.
+	bundle = makeAppBundle(t, "Subway Builder Different.app", constants.GameMacProcessName)
+	require.Equal(t, bundle+"/Contents/MacOS/"+constants.GameMacProcessName, resolveMacBundleExecutable(bundle))
+
+	// Renamed bundle with a non-canonical binary: the single-file scan finds it.
+	bundle = makeAppBundle(t, "Renamed.app", "other-binary")
+	require.Equal(t, bundle+"/Contents/MacOS/other-binary", resolveMacBundleExecutable(bundle))
+
+	// Ambiguous scan (multiple binaries, none matching) falls back to the derived path.
+	bundle = makeAppBundle(t, "Renamed.app", "binary-one", "binary-two")
+	require.Equal(t, bundle+"/Contents/MacOS/Renamed", resolveMacBundleExecutable(bundle))
+
+	// Nonexistent bundle falls back to the derived path so launch surfaces the error.
+	require.Equal(t, "/missing/Game.app/Contents/MacOS/Game", resolveMacBundleExecutable("/missing/Game.app"))
+}
+
+func TestBuildLaunchCommandDarwinRenamedAppBundle(t *testing.T) {
+	bundle := makeAppBundle(t, "Subway Builder Different.app", constants.GameMacProcessName)
+	cmd := buildLaunchCommand("darwin", launchSpec{exePath: bundle})
+	require.Equal(t, bundle+"/Contents/MacOS/"+constants.GameMacProcessName, cmd.Args[3])
+}
+
 func TestBuildLaunchCommandDarwinNonBundleFallsBackToDirect(t *testing.T) {
 	cmd := buildLaunchCommand("darwin", launchSpec{exePath: "/opt/game/subway-builder"})
 	require.Equal(t, []string{"/opt/game/subway-builder"}, cmd.Args)
