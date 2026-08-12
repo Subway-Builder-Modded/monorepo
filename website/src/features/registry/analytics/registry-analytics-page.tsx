@@ -80,6 +80,8 @@ import {
   matchesRegistrySearch,
 } from "@/features/registry/lib/registry-search";
 import {
+  HOURLY_CHART_PERIODS,
+  bucketRegistryAnalyticsHourly,
   filterRegistryAnalyticsHistory,
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
@@ -130,6 +132,7 @@ const TAB_PATHS: Record<RegistryAnalyticsTabId, string> = {
 
 const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
   "all-time": "/registry/analytics/overview/all-time",
+  "1d": "/registry/analytics/overview/1d",
   "3d": "/registry/analytics/overview/3d",
   "7d": "/registry/analytics/overview/7d",
   "14d": "/registry/analytics/overview/14d",
@@ -139,6 +142,49 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
 const CONTENT_ASSET_INCREMENT = 20;
 const AUTHOR_RANKING_INCREMENT = 20;
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const HOURLY_BUCKET_HOURS = 4;
+const HOUR_OF_DAY_LABELS = Array.from(
+  { length: 24 },
+  (_, hour) => `${String(hour).padStart(2, "0")}:00`,
+);
+// 24 hour categories collide at full density; tick every bucket boundary only.
+const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter(
+  (_, hour) => hour % HOURLY_BUCKET_HOURS === 0,
+);
+
+/** Chart x label for an aligned bucket: "04:00" within a one-day cut, "08-11 04:00" across days. */
+function formatHourlyBucketLabel(bucket: string, withDate: boolean) {
+  const time = bucket.slice(11, 16);
+  return withDate ? `${bucket.slice(5, 10)} ${time}` : time;
+}
+
+/**
+ * 1d/3d chart rows from the hourly series: wall-clock-aligned 4h buckets
+ * (6/18 points), newest last; the trailing bucket is partial until its last
+ * hour lands. `readValues` maps a bucket's downloads onto the chart's series keys.
+ */
+function buildHourlyChartRows(
+  hourly: RegistryAnalyticsData["hourly"],
+  period: RegistryAnalyticsPeriodId,
+  readValues: (downloads: RegistryAnalyticsData["hourly"][number]["downloads"]) => Record<
+    string,
+    number
+  >,
+) {
+  const buckets = bucketRegistryAnalyticsHourly(hourly, HOURLY_BUCKET_HOURS);
+  const windowHours = period === "1d" ? 24 : 72;
+  const withDate = period !== "1d";
+  return buckets.slice(-(windowHours / HOURLY_BUCKET_HOURS)).map((point) => ({
+    date: formatHourlyBucketLabel(point.bucket, withDate),
+    ...readValues(point.downloads),
+  }));
+}
+
+/** Sparse ticks for hourly-derived charts: every point at 1d, day boundaries at 3d. */
+function getHourlyChartTicks(rows: Array<{ date: string }>, period: RegistryAnalyticsPeriodId) {
+  const labels = rows.map((row) => row.date);
+  return period === "1d" ? labels : labels.filter((label) => label.endsWith("00:00"));
+}
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
@@ -256,12 +302,21 @@ function RegistryOverviewTab({
     };
   });
   const readTypeValue = (record: Record<string, number>, typeId: string) => record[typeId] ?? 0;
-  const chartData = graphRows.map((row) => ({
-    date: row.date,
-    ...Object.fromEntries(
-      typeSeries.map((series) => [series.key, readTypeValue(row.downloads, series.id)]),
-    ),
-  }));
+  // Short cuts draw from the hourly series (4h buckets: 6/18 points) instead of
+  // 1-3 daily bars; longer cuts keep the daily grain the history provides.
+  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.hourly.length > 0;
+  const chartData = hourlyMode
+    ? buildHourlyChartRows(data.hourly, period, (downloads) =>
+        Object.fromEntries(
+          typeSeries.map((series) => [series.key, readTypeValue(downloads, series.id)]),
+        ),
+      )
+    : graphRows.map((row) => ({
+        date: row.date,
+        ...Object.fromEntries(
+          typeSeries.map((series) => [series.key, readTypeValue(row.downloads, series.id)]),
+        ),
+      }));
   const cumulativeChartData = data.history.map((row) => ({
     date: row.date,
     ...Object.fromEntries(
@@ -286,7 +341,12 @@ function RegistryOverviewTab({
     ? [...typeSeries, { key: "Deprecated", name: "Deprecated", color: OTHERS_SERIES_COLOR }]
     : typeSeries;
   const newListingsGrainLabel = getGrainLabel(newListingsBucketed.grain);
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const chartTicks =
+    period === "all-time"
+      ? undefined
+      : hourlyMode
+        ? getHourlyChartTicks(chartData, period)
+        : chartData.map((point) => point.date);
   // Average downloads per weekday over the full history — the registry's
   // weekly activity rhythm (all-time, so it sits above the period break).
   const weekdaySums = WEEKDAY_LABELS.map(() => ({
@@ -311,6 +371,27 @@ function RegistryOverviewTab({
         weekdaySums[index].days > 0
           ? Math.round((weekdaySums[index].byType[series.key] ?? 0) / weekdaySums[index].days)
           : 0,
+      ]),
+    ),
+  }));
+  // Average downloads per UTC hour-of-day — the daily activity rhythm. Unlike
+  // the all-time weekday chart this can only cover the hourly series' rolling
+  // 14-day window; a bucket-less hour contributes zero to its average.
+  const hourlyDayCount = Math.max(1, new Set(data.hourly.map((point) => point.bucket.slice(0, 10))).size);
+  const hourOfDaySums = HOUR_OF_DAY_LABELS.map(() => ({}) as Record<string, number>);
+  for (const point of data.hourly) {
+    const sums = hourOfDaySums[Number.parseInt(point.bucket.slice(11, 13), 10)];
+    if (!sums) continue;
+    for (const series of typeSeries) {
+      sums[series.key] = (sums[series.key] ?? 0) + readTypeValue(point.downloads, series.id);
+    }
+  }
+  const hourOfDayChartData = HOUR_OF_DAY_LABELS.map((hour, index) => ({
+    hour,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [
+        series.key,
+        Math.round(((hourOfDaySums[index][series.key] ?? 0) / hourlyDayCount) * 10) / 10,
       ]),
     ),
   }));
@@ -425,18 +506,32 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Seasonality" icon={Activity} className="mb-4" />
-        <MultiSeriesChartCard
-          title="Average Daily Downloads"
-          chartKey="registry-weekday-rhythm"
-          data={weekdayChartData}
-          series={typeSeries}
-          xAxisKey="day"
-          xAxisTicks={WEEKDAY_LABELS}
-          height={280}
-          stackId="weekday"
-          defaultStyle="bar"
-          ariaLabelPrefix="Weekly rhythm chart"
-        />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <MultiSeriesChartCard
+            title="Average Daily Downloads"
+            chartKey="registry-weekday-rhythm"
+            data={weekdayChartData}
+            series={typeSeries}
+            xAxisKey="day"
+            xAxisTicks={WEEKDAY_LABELS}
+            height={280}
+            stackId="weekday"
+            defaultStyle="bar"
+            ariaLabelPrefix="Weekly rhythm chart"
+          />
+          <MultiSeriesChartCard
+            title="Average Hourly Downloads (UTC)"
+            chartKey="registry-hour-of-day-rhythm"
+            data={hourOfDayChartData}
+            series={typeSeries}
+            xAxisKey="hour"
+            xAxisTicks={HOUR_OF_DAY_TICKS}
+            height={280}
+            stackId="hour-of-day"
+            defaultStyle="bar"
+            ariaLabelPrefix="Hourly rhythm chart"
+          />
+        </div>
       </section>
 
       {/* Everything above is all-time; everything below follows the selected
@@ -462,8 +557,8 @@ function RegistryOverviewTab({
         <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <MultiSeriesChartCard
-            title="Daily Downloads"
-            chartKey={`registry-downloads-${period}`}
+            title={hourlyMode ? "Downloads · 4h Buckets (UTC)" : "Daily Downloads"}
+            chartKey={`registry-downloads-${period}${hourlyMode ? "-hourly" : ""}`}
             data={chartData}
             series={typeSeries}
             xAxisTicks={chartTicks}
@@ -756,8 +851,22 @@ function RegistryContentTab({
         : row.downloads[assetTypeId],
     })),
   );
+  // The filtered view sums matched listings from the daily per-listing series;
+  // the hourly series carries no per-listing filter here, so it only backs the
+  // unfiltered short cuts.
+  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && !isChartFiltered && data.hourly.length > 0;
+  const hourlyChartRows = hourlyMode
+    ? buildHourlyChartRows(data.hourly, period, (downloads) => ({
+        Downloads: downloads[assetTypeId],
+      }))
+    : null;
+  const chartRows = hourlyChartRows ?? chartBucketed.data;
   const chartTicks =
-    period === "all-time" ? undefined : chartBucketed.data.map((point) => String(point.date));
+    period === "all-time"
+      ? undefined
+      : hourlyChartRows
+        ? getHourlyChartTicks(hourlyChartRows, period)
+        : chartBucketed.data.map((point) => String(point.date));
   const hasFilterMatches = !isChartFiltered || filteredListingSeries.entities.length > 0;
   const baseRows = data.contentRankings[period][assetTypeId];
   const sortedRows = useMemo(
@@ -887,7 +996,7 @@ function RegistryContentTab({
               preserveScroll: true,
             })
           }
-          className="grid-cols-2 sm:grid-cols-5"
+          className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
           style={
             {
               "--registry-type-accent": "var(--suite-accent-light)",
@@ -927,9 +1036,13 @@ function RegistryContentTab({
         />
         {hasFilterMatches ? (
           <MultiSeriesChartCard
-            title={`${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`}
-            chartKey={`registry-content-${assetTypeId}-${period}-${chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
-            data={chartBucketed.data}
+            title={
+              hourlyMode
+                ? "Downloads · 4h Buckets (UTC)"
+                : `${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`
+            }
+            chartKey={`registry-content-${assetTypeId}-${period}-${hourlyMode ? "hourly" : chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
+            data={chartRows}
             series={[
               {
                 key: "Downloads",

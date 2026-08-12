@@ -69,6 +69,7 @@ function makeDetail(
     ],
     versionDownloadHistory,
     downloadTrends: [],
+    hourlyDownloads: [],
     galleryImages: [],
     versions: [],
     versionSource: null,

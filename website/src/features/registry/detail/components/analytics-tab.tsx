@@ -25,7 +25,10 @@ import {
   REGISTRY_ANALYTICS_PERIOD_OPTIONS,
   RegistryAnalyticsPeriodToggle,
 } from "@/features/registry/analytics/components/analytics-period-toggle";
-import type { RegistryAnalyticsPeriodId } from "@/features/registry/analytics/lib/load-registry-analytics";
+import {
+  HOURLY_CHART_PERIODS,
+  type RegistryAnalyticsPeriodId,
+} from "@/features/registry/analytics/lib/load-registry-analytics";
 import { TABLE_HEADER_ROW_CLASS } from "@/shared/styles/panels";
 import type { RegistryDetailModel } from "@/features/registry/detail/registry-detail-types";
 import { getAnalyticsTabSections } from "@/features/registry/detail/config/analytics-tab-config";
@@ -109,6 +112,48 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
       dates,
       topCount: 10,
     });
+    const versionSlices: PieSlice[] = versionModel.series.map((entry) => ({
+      key: entry.key,
+      name: entry.name,
+      value: entry.total,
+      color: entry.color,
+    }));
+
+    // Short cuts draw from the hourly series (aligned 4h buckets: 6/18 points,
+    // UTC) instead of 1-3 daily bars. The hourly grain carries no version split,
+    // so the chart is single-series; the version pie still decomposes the
+    // matching daily window.
+    if (HOURLY_CHART_PERIODS.has(period) && detail.hourlyDownloads.length > 0) {
+      const byBucket = new Map<string, number>();
+      for (const point of detail.hourlyDownloads) {
+        const hour = Number.parseInt(point.bucket.slice(11, 13), 10);
+        if (!Number.isFinite(hour)) continue;
+        const aligned = `${point.bucket.slice(0, 11)}${String(Math.floor(hour / 4) * 4).padStart(2, "0")}:00Z`;
+        byBucket.set(aligned, (byBucket.get(aligned) ?? 0) + point.downloads);
+      }
+      const withDate = period !== "1d";
+      const data = [...byBucket.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .slice(-((period === "1d" ? 24 : 72) / 4))
+        .map(([bucket, downloads]) => ({
+          date: withDate
+            ? `${bucket.slice(5, 10)} ${bucket.slice(11, 16)}`
+            : bucket.slice(11, 16),
+          Downloads: downloads,
+        }));
+      return {
+        bucketed: { data, grain: "daily" as const },
+        chartTicks:
+          period === "1d"
+            ? data.map((point) => point.date)
+            : data.map((point) => point.date).filter((label) => label.endsWith("00:00")),
+        series: [{ key: "Downloads", name: "Downloads", color: "var(--registry-type-accent)" }],
+        hasVersions: false,
+        hourlyMode: true,
+        versionSlices,
+      };
+    }
+
     const hasVersions = versionModel.series.length > 0;
     const data = hasVersions
       ? versionModel.data
@@ -118,15 +163,9 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
       : [{ key: "Downloads", name: "Downloads", color: "var(--registry-type-accent)" }];
     const bucketed = bucketMultiSeriesData(data);
     const chartTicks = days ? bucketed.data.map((point) => String(point.date)) : undefined;
-    const versionSlices: PieSlice[] = versionModel.series.map((entry) => ({
-      key: entry.key,
-      name: entry.name,
-      value: entry.total,
-      color: entry.color,
-    }));
 
-    return { bucketed, chartTicks, series, hasVersions, versionSlices };
-  }, [detail.downloadHistory, detail.versionDownloadHistory, period]);
+    return { bucketed, chartTicks, series, hasVersions, hourlyMode: false, versionSlices };
+  }, [detail.downloadHistory, detail.hourlyDownloads, detail.versionDownloadHistory, period]);
   const chartData = historyChart.bucketed.data;
 
   if (sections.length === 0 && chartData.length === 0 && detail.downloadTrends.length === 0) {
@@ -226,10 +265,14 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
               }
             >
               <MultiSeriesChartCard
-                title={`${getGrainLabel(historyChart.bucketed.grain)} Downloads${
-                  historyChart.hasVersions ? " by Version" : ""
-                }`}
-                chartKey={`listing-history-${period}-${historyChart.bucketed.grain}`}
+                title={
+                  historyChart.hourlyMode
+                    ? "Downloads · 4h Buckets (UTC)"
+                    : `${getGrainLabel(historyChart.bucketed.grain)} Downloads${
+                        historyChart.hasVersions ? " by Version" : ""
+                      }`
+                }
+                chartKey={`listing-history-${period}-${historyChart.hourlyMode ? "hourly" : historyChart.bucketed.grain}`}
                 data={chartData}
                 series={historyChart.series}
                 xAxisTicks={historyChart.chartTicks}

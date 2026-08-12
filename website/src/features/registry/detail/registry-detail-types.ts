@@ -56,6 +56,13 @@ export type RegistryDetailDownloadHistoryPoint = {
   downloads: number;
 };
 
+/** One UTC hour bucket of this listing's downloads (14-day rolling hourly series). */
+export type RegistryDetailHourlyPoint = {
+  /** UTC hour bucket key, e.g. "2026-08-13T04:00Z". */
+  bucket: string;
+  downloads: number;
+};
+
 /** One release version's daily download series (registry version-grain CSV). */
 export type RegistryDetailVersionDailySeries = {
   version: string;
@@ -118,6 +125,7 @@ export type RegistryDetailModel = {
   downloadAnalytics: RegistryDetailDownloadAnalytics;
   downloadHistory: RegistryDetailDownloadHistoryPoint[];
   versionDownloadHistory: RegistryDetailVersionDailySeries[];
+  hourlyDownloads: RegistryDetailHourlyPoint[];
   downloadTrends: RegistryDetailDownloadTrend[];
   galleryImages: string[];
   versions: RegistryDetailVersion[];
@@ -204,6 +212,7 @@ export type RegistryDetailLoadedData = {
   downloadAnalytics: RegistryDetailDownloadAnalytics;
   downloadHistory?: RegistryDetailDownloadHistoryPoint[];
   versionDownloadHistory?: RegistryDetailVersionDailySeries[];
+  hourlyDownloads?: RegistryDetailHourlyPoint[];
   downloadTrends?: RegistryDetailDownloadTrend[];
   mapRankings: {
     population: number | null;

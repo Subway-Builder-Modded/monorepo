@@ -187,7 +187,7 @@ export function TopEntitiesChart({
             <RegistryAnalyticsPeriodToggle
               value={period}
               onChange={setInternalPeriod}
-              className="grid-cols-2 sm:grid-cols-5"
+              className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
               style={
                 {
                   "--registry-type-accent": "var(--suite-accent-light)",

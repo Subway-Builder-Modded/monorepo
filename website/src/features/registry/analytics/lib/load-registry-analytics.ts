@@ -8,8 +8,21 @@ import {
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
-export type RegistryAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d" | "30d";
+export type RegistryAnalyticsPeriodId = "all-time" | "1d" | "3d" | "7d" | "14d" | "30d";
 export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
+
+/** Periods whose downloads chart derives from the hourly series (4h buckets). */
+export const HOURLY_CHART_PERIODS: ReadonlySet<RegistryAnalyticsPeriodId> = new Set(["1d", "3d"]);
+
+export type RegistryAnalyticsHourlyPoint = {
+  /** UTC hour bucket key, e.g. "2026-08-13T04:00Z". */
+  bucket: string;
+  downloads: {
+    total: number;
+    maps: number;
+    mods: number;
+  };
+};
 
 export type RegistryAnalyticsHistoryPoint = {
   date: string;
@@ -113,6 +126,8 @@ export type RegistryAnalyticsData = {
     };
   };
   history: RegistryAnalyticsHistoryPoint[];
+  /** Site-wide hourly download deltas (14-day rolling window, UTC buckets, ascending). */
+  hourly: RegistryAnalyticsHourlyPoint[];
   contentRankings: Record<
     RegistryAnalyticsPeriodId,
     Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]>
@@ -163,8 +178,10 @@ export type RegistryAnalyticsContentRanking = {
 const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
+const HOURLY_DOWNLOADS_URL = "/registry-cache/analytics/hourly/downloads.csv";
 const RANKING_URLS = {
   "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
+  "1d": "/registry-cache/analytics/most_popular_last_1d.csv",
   "3d": "/registry-cache/analytics/most_popular_last_3d.csv",
   "7d": "/registry-cache/analytics/most_popular_last_7d.csv",
   "30d": "/registry-cache/analytics/most_popular_last_30d.csv",
@@ -678,11 +695,33 @@ function buildMapStatisticRankings(
 function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
   return {
     "all-time": { maps: [], mods: [] },
+    "1d": { maps: [], mods: [] },
     "3d": { maps: [], mods: [] },
     "7d": { maps: [], mods: [] },
     "14d": { maps: [], mods: [] },
     "30d": { maps: [], mods: [] },
   };
+}
+
+/**
+ * Aggregates the long-form hourly CSV (bucket_utc,listing_type,id,downloads)
+ * into site-wide per-bucket totals, ascending (bucket keys sort chronologically).
+ */
+function normalizeHourly(rows: CsvRow[]): RegistryAnalyticsHourlyPoint[] {
+  const byBucket = new Map<string, { total: number; maps: number; mods: number }>();
+  for (const row of rows) {
+    const bucket = row.bucket_utc ?? "";
+    const type = getAssetType(row.listing_type);
+    const downloads = getNumber(row.downloads);
+    if (!bucket || !type || downloads <= 0) continue;
+    const entry = byBucket.get(bucket) ?? { total: 0, maps: 0, mods: 0 };
+    entry.total += downloads;
+    entry[type] += downloads;
+    byBucket.set(bucket, entry);
+  }
+  return [...byBucket.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([bucket, downloads]) => ({ bucket, downloads }));
 }
 
 function normalizeRankingRows(
@@ -732,6 +771,33 @@ function buildFourteenDayRankings(
   );
 }
 
+/**
+ * Groups hourly points into wall-clock-aligned `bucketHours` windows (UTC),
+ * ascending; each grouped point keeps the window's START hour as its bucket key.
+ * Alignment to 00/04/08/... keeps windows comparable day-over-day; the trailing
+ * window is partial until its last hour lands.
+ */
+export function bucketRegistryAnalyticsHourly(
+  hourly: RegistryAnalyticsHourlyPoint[],
+  bucketHours = 4,
+): RegistryAnalyticsHourlyPoint[] {
+  const byBucket = new Map<string, RegistryAnalyticsHourlyPoint["downloads"]>();
+  for (const point of hourly) {
+    const hour = Number.parseInt(point.bucket.slice(11, 13), 10);
+    if (!Number.isFinite(hour)) continue;
+    const alignedHour = Math.floor(hour / bucketHours) * bucketHours;
+    const aligned = `${point.bucket.slice(0, 11)}${String(alignedHour).padStart(2, "0")}:00Z`;
+    const entry = byBucket.get(aligned) ?? { total: 0, maps: 0, mods: 0 };
+    entry.total += point.downloads.total;
+    entry.maps += point.downloads.maps;
+    entry.mods += point.downloads.mods;
+    byBucket.set(aligned, entry);
+  }
+  return [...byBucket.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([bucket, downloads]) => ({ bucket, downloads }));
+}
+
 export function filterRegistryAnalyticsHistory(
   history: RegistryAnalyticsHistoryPoint[],
   period: RegistryAnalyticsPeriodId,
@@ -767,9 +833,11 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     authorDayRaw,
     mapStatisticsRaw,
     byDayRaw,
+    hourlyRaw,
     creatorData,
     itemEntries,
     allTimeRaw,
+    last1Raw,
     last3Raw,
     last7Raw,
     last30Raw,
@@ -777,6 +845,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
     safeFetchText(MOST_POPULAR_BY_DAY_URL),
+    safeFetchText(HOURLY_DOWNLOADS_URL),
     loadCreatorDatabaseData(),
     Promise.all(
       REGISTRY_TYPES.map((typeConfig) =>
@@ -784,6 +853,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       ),
     ),
     safeFetchText(RANKING_URLS["all-time"]),
+    safeFetchText(RANKING_URLS["1d"]),
     safeFetchText(RANKING_URLS["3d"]),
     safeFetchText(RANKING_URLS["7d"]),
     safeFetchText(RANKING_URLS["30d"]),
@@ -798,6 +868,11 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   contentRankings["all-time"] = normalizeRankingRows(
     parseCsv(allTimeRaw),
     (row) => getNumber(row.adjusted_total_downloads || row.total_downloads),
+    validItemsById,
+  );
+  contentRankings["1d"] = normalizeRankingRows(
+    parseCsv(last1Raw),
+    (row) => getNumber(row.adjusted_download_change || row.download_change),
     validItemsById,
   );
   contentRankings["3d"] = normalizeRankingRows(
@@ -874,6 +949,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       },
     },
     history,
+    hourly: normalizeHourly(parseCsv(hourlyRaw)),
     contentRankings,
     authors: {
       history: buildAuthorHistory(authorRows, allItems),

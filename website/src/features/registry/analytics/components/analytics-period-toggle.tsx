@@ -8,6 +8,7 @@ export const REGISTRY_ANALYTICS_PERIOD_OPTIONS: Array<{
   days: number | null;
 }> = [
   { id: "all-time", label: "All Time", days: null },
+  { id: "1d", label: "Last Day", days: 1 },
   { id: "3d", label: "Last 3 Days", days: 3 },
   { id: "7d", label: "Last 7 Days", days: 7 },
   { id: "14d", label: "Last 14 Days", days: 14 },
@@ -18,7 +19,7 @@ export const REGISTRY_ANALYTICS_PERIOD_OPTIONS: Array<{
 export function RegistryAnalyticsPeriodToggle({
   value,
   onChange,
-  className = "grid-cols-2 sm:grid-cols-5",
+  className = "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
   style,
 }: {
   value: RegistryAnalyticsPeriodId;

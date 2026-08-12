@@ -135,6 +135,13 @@ const authorsByDayCsv = [
   "author-c,Author C,/registry/authors/author-c,1,1,0,2,0,2,0",
 ].join("\n");
 
+const hourlyDownloadsCsv = [
+  "bucket_utc,listing_type,id,downloads",
+  "2026-03-12T04:00Z,map,map-a,2",
+  "2026-03-12T05:00Z,map,map-b,1",
+  "2026-03-12T05:00Z,mod,mod-a,3",
+].join("\n");
+
 const mapStatisticsCsv = [
   "rank,id,name,author,author_alias,attribution_link,city_code,country,population,population_count,points_count,playable_area_cells",
   "1,map-a,Map Alpha,author-a,Author A,/registry/authors/author-a,TYO,JP,1000000,2000,300,0",
@@ -152,6 +159,7 @@ describe("loadRegistryAnalyticsData", () => {
             if (url.includes("authors_by_day")) return Promise.resolve(authorsByDayCsv);
             if (url.includes("maps_statistics")) return Promise.resolve(mapStatisticsCsv);
             if (url.includes("most_popular_by_day")) return Promise.resolve(byDayCsv);
+            if (url.includes("hourly")) return Promise.resolve(hourlyDownloadsCsv);
             if (url.includes("most_popular_all_time")) return Promise.resolve(allTimeRankingCsv);
             return Promise.resolve(changeRankingCsv);
           },
@@ -171,6 +179,10 @@ describe("loadRegistryAnalyticsData", () => {
       mods: { listings: 1, downloads: 5 },
     });
     expect(data.history).toHaveLength(3);
+    expect(data.hourly).toEqual([
+      { bucket: "2026-03-12T04:00Z", downloads: { total: 2, maps: 2, mods: 0 } },
+      { bucket: "2026-03-12T05:00Z", downloads: { total: 4, maps: 1, mods: 3 } },
+    ]);
     expect(data.history[0]).toMatchObject({
       date: "2026-03-11",
       downloads: { total: 4, maps: 4, mods: 0 },
