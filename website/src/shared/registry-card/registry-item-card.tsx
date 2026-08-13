@@ -165,10 +165,10 @@ function DeletedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
     <Badge
       variant="secondary"
       size={size}
-      className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold text-zinc-700 dark:text-zinc-400"
+      className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold text-zinc-800 dark:text-zinc-200"
       style={{
-        background: "color-mix(in srgb, #55555c 15%, transparent)",
-        border: "1px solid color-mix(in srgb, #55555c 35%, transparent)",
+        background: "color-mix(in srgb, #55555c 26%, transparent)",
+        border: "1px solid color-mix(in srgb, #55555c 55%, transparent)",
       }}
     >
       <Trash2 className="size-3.5" aria-hidden={true} />

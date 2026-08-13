@@ -108,7 +108,7 @@ function VisibilitySection({
       Icon: Trash2,
       count: deletedCount,
       // Darker charcoal: permanent retirement.
-      accentClass: "text-zinc-700 dark:text-zinc-400",
+      accentClass: "text-zinc-800 dark:text-zinc-200",
       show: deletedCount > 0 || visibility === "deleted",
     },
   ];
