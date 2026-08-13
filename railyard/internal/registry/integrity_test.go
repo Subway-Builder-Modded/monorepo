@@ -221,3 +221,39 @@ func TestAssetMissingInstallableVersion(t *testing.T) {
 	require.True(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-incomplete")) // listed but no complete version
 	require.True(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-delisted"))   // absent from a loaded report
 }
+
+func TestGameIncompatibleAssetsFlagsConstrainedTestListing(t *testing.T) {
+	reg := newTestRegistry(t)
+	// Mirrors the registry's compatibility-test-mod: is_test, complete, with a
+	// game_version ceiling below the detected game.
+	reg.integrityMods = types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			"compatibility-test-mod": {
+				HasCompleteVersion: true,
+				Versions: map[string]types.IntegrityVersionStatus{
+					"v1.0.0": {IsComplete: true, GameVersion: "<=1.3.0"},
+				},
+			},
+			"unconstrained-mod": {
+				HasCompleteVersion: true,
+				Versions: map[string]types.IntegrityVersionStatus{
+					"v1.0.0": {IsComplete: true},
+				},
+			},
+		},
+	}
+
+	resp := reg.GameIncompatibleAssets(types.AssetTypeMod, "1.4.0")
+	require.Equal(t, types.ResponseSuccess, resp.Status)
+	require.Equal(t, []string{"compatibility-test-mod"}, resp.AssetIDs)
+
+	// At or below the ceiling nothing is flagged.
+	within := reg.GameIncompatibleAssets(types.AssetTypeMod, "1.3.0")
+	require.Empty(t, within.AssetIDs)
+
+	// Undetected game version is not a verdict.
+	undetected := reg.GameIncompatibleAssets(types.AssetTypeMod, "")
+	require.Empty(t, undetected.AssetIDs)
+}
