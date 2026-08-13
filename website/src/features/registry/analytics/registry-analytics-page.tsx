@@ -271,10 +271,9 @@ function RegistryOverviewTab({
   }));
   // Releases are sparse at day grain; the shared bucketing collapses the
   // all-time cut to weeks while short cuts show recent uptake day by day.
-  // Deprecations chart as a POSITIVE grey series (the asset still exists,
-  // just retired — and the state is reversible); deletions chart NEGATIVE in
-  // a darker grey below the axis: an actively lost listing nets to zero
-  // against its arrival instead of counting twice.
+  // Deprecations chart POSITIVE in grey (the asset still exists and may
+  // return); deletions chart NEGATIVE in a darker grey — an actively lost
+  // listing nets to zero against its arrival instead of counting twice.
   const hasDeprecations = graphRows.some((row) => row.deprecations.total > 0);
   const hasDeletions = graphRows.some((row) => (row.deletions?.total ?? 0) > 0);
   const newListingsBucketed = bucketMultiSeriesData(

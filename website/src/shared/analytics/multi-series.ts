@@ -22,7 +22,7 @@ export const MULTI_SERIES_PALETTE = [
 /** Muted color for the aggregated remainder series ("Others"). */
 export const OTHERS_SERIES_COLOR = "#8a8a94";
 
-/** Darker grey for permanently deleted listings (charts negative, below axis). */
+/** Darker grey for permanently deleted listings. */
 export const DELETED_SERIES_COLOR = "#55555c";
 
 export type NamedDailySeries = {

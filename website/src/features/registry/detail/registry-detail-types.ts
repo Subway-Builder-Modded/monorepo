@@ -132,8 +132,7 @@ export type RegistryDetailModel = {
   integrityVersionCount: number;
   mapFields: RegistryDetailMapFields | null;
   /** Author-deprecation record; null for active listings. Deprecated listings
-   * render a notice and never offer downloads; deleted=true is the permanent
-   * variant with its own notice wording. */
+   * render a notice and never offer downloads; deleted=true is permanent. */
   deprecation: {
     since: string | null;
     reason: string | null;
