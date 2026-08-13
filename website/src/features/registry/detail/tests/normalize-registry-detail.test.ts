@@ -332,3 +332,67 @@ describe("normalizeRegistryDetail deprecation", () => {
     expect(normalizeRegistryDetail(structuredClone(BASE)).deprecation).toBeNull();
   });
 });
+
+describe("normalizeRegistryDetail unavailable versions", () => {
+  it("includes retired/removed versions as display-only entries and excludes broken ones", () => {
+    const model = normalizeRegistryDetail({
+      ...BASE,
+      listingVersions: {
+        ...BASE.listingVersions,
+        "0.8.0": {
+          is_complete: false,
+          availability: "retired",
+          checked_at: "2026-05-01T00:00:00.000Z",
+          source: {
+            download_url: "https://downloads.example.test/dead.zip",
+            repo: "owner/repo",
+            tag: "v0.8.0",
+          },
+        },
+        "0.7.0": {
+          is_complete: false,
+          availability: "removed",
+          released_at: "2026-02-01T00:00:00.000Z",
+          checked_at: "2026-05-01T00:00:00.000Z",
+        },
+      },
+      versionDownloads: { ...BASE.versionDownloads, "0.8.0": 55, "0.7.0": 7 },
+    });
+
+    const byVersion = new Map(model.versions.map((v) => [v.version, v]));
+    // Plain incomplete (broken) versions stay hidden.
+    expect(byVersion.has("0.1.0")).toBe(false);
+
+    expect(byVersion.get("0.8.0")).toMatchObject({
+      availability: "retired",
+      downloads: 55,
+      downloadUrl: null,
+      sourceTag: "v0.8.0",
+    });
+    expect(byVersion.get("0.7.0")).toMatchObject({
+      availability: "removed",
+      downloads: 7,
+      releaseDate: "2026-02-01T00:00:00.000Z",
+    });
+    expect(byVersion.get("1.0.0")).toMatchObject({ availability: null });
+  });
+
+  it("never reports an unavailable version as the latest version", () => {
+    const model = normalizeRegistryDetail({
+      ...BASE,
+      listingVersions: {
+        ...BASE.listingVersions,
+        // A rolled-back release that sorts above every live version.
+        "2.0.0": {
+          is_complete: false,
+          availability: "removed",
+          released_at: "2026-05-01T00:00:00.000Z",
+          checked_at: "2026-05-02T00:00:00.000Z",
+        },
+      },
+    });
+
+    expect(model.versions[0]?.version).toBe("2.0.0");
+    expect(model.latestVersion).toBe("1.0.0");
+  });
+});

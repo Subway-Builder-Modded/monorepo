@@ -134,6 +134,7 @@ describe("getSidebarOrder", () => {
       "publishing-content",
       "updating-content",
       "deprecation",
+      "retiring-versions",
       "using-custom-url",
       "manifest-requirements",
       "collaborators",

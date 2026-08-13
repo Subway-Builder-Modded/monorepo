@@ -1,0 +1,64 @@
+---
+title: Retiring Versions
+description: Withdraw a single version's files while keeping its identity, changelog, and download counts visible.
+icon: PackageX
+---
+
+Retirement is the version-level counterpart to [deprecation](/registry/docs/deprecation): instead of retiring a whole listing, you withdraw the _files_ of one superseded version while its history stays on the record. A retired version:
+
+- is _no longer downloadable_ from Railyard or the website;
+- stays _visible in the version list_ on both surfaces, marked **No longer available**;
+- keeps its _changelog, release date, and download count_ — counts are frozen at their last observed value and remain part of the listing's totals.
+
+Retire versions when you want to reclaim release storage or ensure players only install current artifacts (for example, a map pack that republishes every city on each release and keeps only the latest download live).
+
+## Retiring a version (custom update source) {#custom-update-source}
+
+If your listing uses a [custom update URL](/registry/docs/using-custom-url), retirement is a change to your `update.json`: **keep the version's entry**, mark it retired, and strip its artifacts.
+
+```json
+{
+  "version": "0.1.0",
+  "date": "2026-08-10",
+  "changelog": "Initial release — census-based commute demand and 3D buildings.",
+  "game_version": ">=1.0.0",
+  "download": null,
+  "sha256": null,
+  "retired": true
+}
+```
+
+What matters:
+
+| Field                     | Keep?    | Why                                                              |
+| ------------------------- | -------- | ---------------------------------------------------------------- |
+| `version`, `date`         | **Yes**  | The version's identity and place in the timeline                 |
+| `changelog`               | **Yes**  | Stays viewable in Railyard and on the website after retirement   |
+| `game_version`            | **Yes**  | Shown as compatibility metadata on the retired entry             |
+| `download`, `sha256`      | **Null** | The artifacts are withdrawn; a live URL keeps the version live   |
+| `retired`                 | **Yes**  | The explicit marker the registry propagates to apps              |
+
+You can then delete the release _assets_ (the `.zip`) from your repository. The registry's next full run marks the version `retired` in its integrity data, and download counts freeze at their final values.
+
+Do **not** remove the version's entry from `update.json` — a pruned entry stops being enumerated and is treated as [removed](#removed-versions) instead, which loses the changelog.
+
+## Retiring a version (GitHub releases source) {#github-releases-source}
+
+For listings that update straight from GitHub releases, delete the release's **assets, not the release itself**. A release that still exists but has no `.zip` keeps its identity, date, and release notes; only the download is withdrawn.
+
+Deleting the whole release (or its tag) removes the version from enumeration entirely — see below.
+
+## Removed versions {#removed-versions}
+
+When a previously downloadable version stops being enumerated at all — a deleted GitHub release, or an entry pruned from `update.json` — the registry carries a frozen record of it forward: the version still appears as **No longer available** with its release date and frozen download count, but its changelog is gone (nothing retains release notes for versions that vanish upstream). Prefer retirement; treat removal as what happens on rollbacks, not as a lifecycle tool.
+
+## Retired vs. removed vs. deprecation {#comparison}
+
+|                             | Retired                        | Removed                            | Deprecated (listing)                    |
+| --------------------------- | ------------------------------ | ---------------------------------- | --------------------------------------- |
+| Scope                       | One version                    | One version                        | Whole listing                           |
+| Downloadable                | No                             | No                                 | No                                      |
+| Shown in version list       | Yes — _No longer available_    | Yes — _No longer available_        | Listing hidden behind its filter        |
+| Changelog kept              | **Yes**                        | No                                 | Yes                                     |
+| Download counts kept        | Yes (frozen)                   | Yes (frozen)                       | Yes (frozen)                            |
+| Reversible                  | Yes — restore the download URL | Only by republishing the version   | Yes                                     |
