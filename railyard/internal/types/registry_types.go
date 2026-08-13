@@ -197,6 +197,7 @@ type VersionInfo struct {
 	Prerelease             bool              `json:"prerelease"`
 	Dependencies           map[string]string `json:"dependencies,omitempty"`             // Map of dependency mod IDs to version constraints
 	MapBuildingsConstraint string            `json:"map_buildings_constraint,omitempty"` // Derived semver range for map versions based on which buildings-index files the version ships; always empty for mods
+	Availability           string            `json:"availability,omitempty"`             // "" = downloadable; "retired"/"removed" = display-only entry whose artifacts are gone (registry integrity availability)
 }
 
 // VersionsCacheEntry is a persisted upstream-release lookup: the resolved versions plus the HTTP ETag used to revalidate them with a conditional request.
@@ -282,6 +283,10 @@ type IntegrityVersionStatus struct {
 	Fingerprint  string                 `json:"fingerprint"`
 	CheckedAt    string                 `json:"checked_at"`
 	ReleasedAt   string                 `json:"released_at,omitempty"`
+	// Availability marks versions that are no longer downloadable by design:
+	// "retired" (still listed by the author's update.json, artifacts withdrawn)
+	// or "removed" (no longer enumerated upstream; frozen carry-forward entry).
+	Availability string `json:"availability,omitempty"`
 }
 
 // IntegrityVersionSource represents the source information for a version

@@ -493,6 +493,7 @@ export namespace types {
 	    prerelease: boolean;
 	    dependencies?: Record<string, string>;
 	    map_buildings_constraint?: string;
+	    availability?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new VersionInfo(source);
@@ -512,6 +513,7 @@ export namespace types {
 	        this.prerelease = source["prerelease"];
 	        this.dependencies = source["dependencies"];
 	        this.map_buildings_constraint = source["map_buildings_constraint"];
+	        this.availability = source["availability"];
 	    }
 	}
 	export class DependencyListEntry {
@@ -1120,6 +1122,7 @@ export namespace types {
 	    fingerprint: string;
 	    checked_at: string;
 	    released_at?: string;
+	    availability?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new IntegrityVersionStatus(source);
@@ -1137,6 +1140,7 @@ export namespace types {
 	        this.fingerprint = source["fingerprint"];
 	        this.checked_at = source["checked_at"];
 	        this.released_at = source["released_at"];
+	        this.availability = source["availability"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -1206,11 +1210,11 @@ export namespace types {
 	    by_github_id: number;
 	    reason?: string;
 	    deleted?: boolean;
-
+	
 	    static createFrom(source: any = {}) {
 	        return new Deprecation(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.since = source["since"];

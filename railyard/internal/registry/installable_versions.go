@@ -123,20 +123,87 @@ func (r *Registry) GetInstallableVersionsFromIntegrity(assetType types.AssetType
 }
 
 // GetInstallableVersions returns the integrity-approved versions for an asset.
+// Install and dependency-resolution flows rely on every returned version being
+// downloadable; display-only unavailable versions are never included here.
 func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID string) ([]types.VersionInfo, error) {
-	updateType, source, err := r.resolveAssetUpdateSource(assetType, assetID)
+	versions, _, err := r.resolveFilteredVersions(assetType, assetID)
+	return versions, err
+}
+
+// GetDisplayableVersions returns the installable versions plus display-only
+// entries for versions the registry marks retired/removed, so the UI can render
+// the full version history with frozen download counts and changelogs.
+func (r *Registry) GetDisplayableVersions(assetType types.AssetType, assetID string) ([]types.VersionInfo, error) {
+	filtered, upstream, err := r.resolveFilteredVersions(assetType, assetID)
 	if err != nil {
 		return nil, err
+	}
+
+	listing, ok := r.getIntegrityListing(assetType, assetID)
+	if !ok {
+		return filtered, nil
+	}
+
+	upstreamByVersion := make(map[string]types.VersionInfo, len(upstream))
+	for _, version := range upstream {
+		upstreamByVersion[version.Version] = version
+	}
+
+	appended := false
+	for version, status := range listing.Versions {
+		// Unavailable entries are always incomplete, so they can never collide
+		// with the integrity-filtered installable list.
+		if status.Availability == "" || status.IsComplete {
+			continue
+		}
+		info, hasUpstream := upstreamByVersion[version]
+		if !hasUpstream {
+			info = types.VersionInfo{Version: version}
+		}
+		info.Availability = status.Availability
+		// Display-only: never expose install artifacts, even if the upstream
+		// source still lists a (dead) URL.
+		info.DownloadURL = ""
+		info.SHA256 = ""
+		info.Manifest = ""
+		if info.Date == "" {
+			info.Date = status.ReleasedAt
+		}
+		if info.GameVersion == "" {
+			info.GameVersion = status.GameVersion
+		}
+		if len(info.Dependencies) == 0 {
+			info.Dependencies = status.Dependencies
+		}
+		// MapBuildingsConstraint is deliberately left as-is: unavailable entries
+		// carry empty matched_files, and deriving a constraint from that would
+		// falsely flag them as incompatible.
+		filtered = append(filtered, info)
+		appended = true
+	}
+	if appended {
+		sortSemverVersions(filtered)
+	}
+
+	return filtered, nil
+}
+
+// resolveFilteredVersions fetches the upstream version list and returns the
+// integrity-complete subset (enriched for maps) alongside the raw upstream list.
+func (r *Registry) resolveFilteredVersions(assetType types.AssetType, assetID string) ([]types.VersionInfo, []types.VersionInfo, error) {
+	updateType, source, err := r.resolveAssetUpdateSource(assetType, assetID)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	versions, err := r.GetVersions(updateType, source)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	filtered, err := r.filterVersionsByIntegrity(assetType, assetID, versions)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// For maps, enrich each version with its buildings-index constraint derived from
@@ -151,7 +218,7 @@ func (r *Registry) GetInstallableVersions(assetType types.AssetType, assetID str
 		}
 	}
 
-	return filtered, nil
+	return filtered, versions, nil
 }
 
 // integrityVersionConstraints builds a version's compatibility constraints from its integrity record.
@@ -225,9 +292,10 @@ func (r *Registry) GameIncompatibleAssets(assetType types.AssetType, gameVersion
 	return resp
 }
 
-// GetInstallableVersionsResponse returns installable versions with response metadata.
+// GetInstallableVersionsResponse returns the UI-facing version list — installable
+// versions plus display-only retired/removed entries — with response metadata.
 func (r *Registry) GetInstallableVersionsResponse(assetType types.AssetType, assetID string) types.VersionsResponse {
-	versions, err := r.GetInstallableVersions(assetType, assetID)
+	versions, err := r.GetDisplayableVersions(assetType, assetID)
 	if err != nil {
 		return types.VersionsResponse{
 			GenericResponse: types.ErrorResponse(err.Error()),

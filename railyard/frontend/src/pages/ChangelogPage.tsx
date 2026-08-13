@@ -46,7 +46,11 @@ import { toast } from 'sonner';
 import { Link, useRoute } from 'wouter';
 
 import { ChangelogDependencies } from '@/components/project/ChangelogDependencies';
-import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
+import {
+  DisabledReasonTooltipContent,
+  IncompatibilityTooltipContent,
+  unavailableVersionReason,
+} from '@/components/shared/IncompatibilityTooltip';
 import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import { useGameVersion } from '@/hooks/use-game-version';
 import { useInstallableVersions } from '@/hooks/use-installable-versions';
@@ -397,6 +401,32 @@ export function ChangelogPage() {
             </Button>
           </MutationLockTooltip>
         </div>
+      );
+    }
+    if (versionInfo.availability) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  size="sm"
+                  disabled
+                  className={INSTALL_ACCENT.solidButton}
+                >
+                  <Download className="h-4 w-4" />
+                  Install {versionInfo.version}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-64">
+              <DisabledReasonTooltipContent
+                title="Unable to Install"
+                reasons={[unavailableVersionReason(versionInfo.availability)]}
+              />
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     }
     if (incompatible || mutationLocked) {

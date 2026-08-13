@@ -59,6 +59,8 @@ type RawIntegrity = {
         {
           is_complete?: boolean;
           checked_at?: string;
+          released_at?: string;
+          availability?: string;
           source?: {
             update_type?: string;
             repo?: string;

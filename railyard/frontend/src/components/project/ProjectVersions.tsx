@@ -37,7 +37,11 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Link } from 'wouter';
 
-import { IncompatibilityTooltipContent } from '@/components/shared/IncompatibilityTooltip';
+import {
+  DisabledReasonTooltipContent,
+  IncompatibilityTooltipContent,
+  unavailableVersionReason,
+} from '@/components/shared/IncompatibilityTooltip';
 import { compareSemver } from '@/lib/semver';
 import {
   handleSubscriptionMutationError,
@@ -273,7 +277,9 @@ export function ProjectVersions({
               downloads={v.downloads}
               changelogHref={`/project/${typeListingPath}/${itemId}/changelog/${encodeURIComponent(v.version)}`}
               className={
-                incompatible || mutationLocked ? 'opacity-50' : undefined
+                incompatible || mutationLocked || v.availability
+                  ? 'opacity-50'
+                  : undefined
               }
               renderLink={(href, className, children) => (
                 <Link href={href} className={className}>
@@ -296,6 +302,29 @@ export function ProjectVersions({
                     <CheckCircle className="h-2.5 w-2.5" />
                     Installed
                   </Badge>
+                ) : v.availability ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="outline"
+                            size="icon-xs"
+                            disabled
+                            className={INSTALL_ACCENT.outlineButton}
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <DisabledReasonTooltipContent
+                          title="Unable to Install"
+                          reasons={[unavailableVersionReason(v.availability)]}
+                        />
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 ) : incompatible || mutationLocked ? (
                   <TooltipProvider>
                     <Tooltip>

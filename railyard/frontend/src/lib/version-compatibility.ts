@@ -9,12 +9,13 @@ interface GameCompatibleVersion {
 
 // getDownloadableVersions keeps the versions actually installable for an asset type: mods
 // require a manifest asset, maps have no such gate. Mirrors the backend's installable filter.
-export function getDownloadableVersions<T extends { manifest?: string }>(
-  assetType: AssetType,
-  versions: T[],
-): T[] {
+// Display-only unavailable versions (availability "retired"/"removed") carry no manifest by
+// design and pass through; their rows gate installation instead.
+export function getDownloadableVersions<
+  T extends { manifest?: string; availability?: string },
+>(assetType: AssetType, versions: T[]): T[] {
   return assetType === 'mod'
-    ? versions.filter((version) => version.manifest)
+    ? versions.filter((version) => version.manifest || version.availability)
     : versions;
 }
 
