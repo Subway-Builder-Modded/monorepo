@@ -341,3 +341,63 @@ describe('sortTaggedItemsByLastUpdated', () => {
     expect(items).toEqual(original);
   });
 });
+
+describe('compareItems deprecated partition', () => {
+  const DEPRECATION = { since: '2026-08-01T00:00:00Z', by_github_id: 1 };
+
+  it('sorts deprecated items last regardless of the selected sort', () => {
+    const active = makeMod({ id: 'zzz-active', name: 'Zzz Active' });
+    const deprecated = makeMod({
+      id: 'aaa-old',
+      name: 'Aaa Old',
+      deprecation: DEPRECATION,
+    });
+    // Name-ascending would put the deprecated item first; the partition wins.
+    expect(
+      compareItems(
+        deprecated,
+        active,
+        { field: 'name', direction: 'asc' },
+        {},
+        {},
+      ),
+    ).toBeGreaterThan(0);
+    expect(
+      compareItems(
+        active,
+        deprecated,
+        { field: 'name', direction: 'asc' },
+        {},
+        {},
+      ),
+    ).toBeLessThan(0);
+  });
+
+  it('applies the selected sort within the deprecated partition', () => {
+    const a = makeMod({ id: 'a', name: 'Alpha', deprecation: DEPRECATION });
+    const b = makeMod({ id: 'b', name: 'Beta', deprecation: DEPRECATION });
+    expect(
+      compareItems(a, b, { field: 'name', direction: 'asc' }, {}, {}),
+    ).toBeLessThan(0);
+  });
+
+  it('sorts deleted items after deprecated ones, active first', () => {
+    const DELETION = { ...DEPRECATION, deleted: true };
+    const active = makeMod({ id: 'zzz-active', name: 'Zzz Active' });
+    const deprecated = makeMod({
+      id: 'mmm-old',
+      name: 'Mmm Old',
+      deprecation: DEPRECATION,
+    });
+    const deleted = makeMod({
+      id: 'aaa-gone',
+      name: 'Aaa Gone',
+      deprecation: DELETION,
+    });
+    // Name-ascending would order gone < old < active; partitions win.
+    const sort = { field: 'name', direction: 'asc' } as const;
+    expect(compareItems(active, deprecated, sort, {}, {})).toBeLessThan(0);
+    expect(compareItems(deprecated, deleted, sort, {}, {})).toBeLessThan(0);
+    expect(compareItems(deleted, active, sort, {}, {})).toBeGreaterThan(0);
+  });
+});

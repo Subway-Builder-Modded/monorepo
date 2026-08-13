@@ -179,7 +179,9 @@ export function HomePage() {
   const recentMaps = useMemo(
     () =>
       sortTaggedItemsByLastUpdated(
-        maps.map((item) => ({ type: 'map' as const, item })),
+        maps
+          .filter((item) => item.deprecation == null)
+          .map((item) => ({ type: 'map' as const, item })),
         'desc',
       ).slice(0, DISCOVER_SECTION_ITEM_LIMIT),
     [maps],
@@ -188,7 +190,9 @@ export function HomePage() {
   const recentMods = useMemo(
     () =>
       sortTaggedItemsByLastUpdated(
-        mods.map((item) => ({ type: 'mod' as const, item })),
+        mods
+          .filter((item) => item.deprecation == null)
+          .map((item) => ({ type: 'mod' as const, item })),
         'desc',
       ).slice(0, DISCOVER_SECTION_ITEM_LIMIT),
     [mods],

@@ -1201,6 +1201,24 @@ export namespace types {
 	
 	
 	
+	export class Deprecation {
+	    since: string;
+	    by_github_id: number;
+	    reason?: string;
+	    deleted?: boolean;
+
+	    static createFrom(source: any = {}) {
+	        return new Deprecation(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.since = source["since"];
+	        this.by_github_id = source["by_github_id"];
+	        this.reason = source["reason"];
+	        this.deleted = source["deleted"];
+	    }
+	}
 	export class UpdateConfig {
 	    type: string;
 	    repo?: string;
@@ -1233,6 +1251,8 @@ export namespace types {
 	    update: any;
 	    is_test?: boolean;
 	    search_aliases?: string[];
+	    // Go type: Deprecation
+	    deprecation?: any;
 	    city_code: string;
 	    country: string;
 	    location: string;
@@ -1263,6 +1283,7 @@ export namespace types {
 	        this.update = this.convertValues(source["update"], null);
 	        this.is_test = source["is_test"];
 	        this.search_aliases = source["search_aliases"];
+	        this.deprecation = this.convertValues(source["deprecation"], null);
 	        this.city_code = source["city_code"];
 	        this.country = source["country"];
 	        this.location = source["location"];
@@ -1344,6 +1365,8 @@ export namespace types {
 	    update: any;
 	    is_test?: boolean;
 	    search_aliases?: string[];
+	    // Go type: Deprecation
+	    deprecation?: any;
 	
 	    static createFrom(source: any = {}) {
 	        return new ModManifest(source);
@@ -1365,6 +1388,7 @@ export namespace types {
 	        this.update = this.convertValues(source["update"], null);
 	        this.is_test = source["is_test"];
 	        this.search_aliases = source["search_aliases"];
+	        this.deprecation = this.convertValues(source["deprecation"], null);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

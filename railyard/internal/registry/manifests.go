@@ -78,14 +78,14 @@ func (r *Registry) fetchFromDisk() error {
 	mods = filterManifestsByIntegrity(
 		mods,
 		modIntegrity.Listings,
-		func(item types.ModManifest) string { return item.ID },
+		func(item types.ModManifest) types.AssetManifest { return item.AssetManifest },
 		types.AssetTypeMod,
 		r.logger,
 	)
 	maps = filterManifestsByIntegrity(
 		maps,
 		mapIntegrity.Listings,
-		func(item types.MapManifest) string { return item.ID },
+		func(item types.MapManifest) types.AssetManifest { return item.AssetManifest },
 		types.AssetTypeMap,
 		r.logger,
 	)
@@ -137,6 +137,7 @@ func toAssetManifest(raw types.RawManifest, author types.AuthorDetails) types.As
 		Update:        raw.Update,
 		IsTest:        raw.IsTest,
 		SearchAliases: raw.SearchAliases,
+		Deprecation:   raw.Deprecation,
 	}
 }
 
@@ -196,7 +197,7 @@ func (r *Registry) convertMapManifests(
 func filterManifestsByIntegrity[T any](
 	manifests []T,
 	listings map[string]types.IntegrityListing,
-	idFn func(T) string,
+	baseFn func(T) types.AssetManifest,
 	assetType types.AssetType,
 	logger logSink,
 ) []T {
@@ -206,15 +207,19 @@ func filterManifestsByIntegrity[T any](
 
 	filtered := make([]T, 0, len(manifests))
 	for _, manifest := range manifests {
-		assetID := idFn(manifest)
-		listing, ok := listings[assetID]
+		base := baseFn(manifest)
+		listing, ok := listings[base.ID]
 		if !ok {
-			logger.Warn("Skipping manifest missing integrity listing", "asset_type", assetType, "asset_id", assetID)
+			logger.Warn("Skipping manifest missing integrity listing", "asset_type", assetType, "asset_id", base.ID)
 			continue
 		}
-		// Only manifests that are listed as complete are valid and should be displayed to the user
-		if !listing.HasCompleteVersion {
-			logger.Warn("Skipping manifest without any complete integrity versions", "asset_type", assetType, "asset_id", assetID)
+		// Only manifests that are listed as complete are valid and should be
+		// displayed to the user. Deprecated assets are the exception: the
+		// registry pipeline deliberately publishes them with zero complete
+		// versions, but they stay visible (behind the Deprecated facet) so
+		// their history and attribution remain browsable.
+		if !listing.HasCompleteVersion && base.Deprecation == nil {
+			logger.Warn("Skipping manifest without any complete integrity versions", "asset_type", assetType, "asset_id", base.ID)
 			continue
 		}
 		filtered = append(filtered, manifest)

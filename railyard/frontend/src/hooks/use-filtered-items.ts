@@ -54,9 +54,17 @@ function matchesBrowseStatus(
 ): boolean {
   const isIncompatible =
     incompatibleItemKeys?.has(assetKey(entry.type, entry.item.id)) ?? false;
-  if (status === 'compatible') return !isIncompatible;
+  const isDeleted = entry.item.deprecation?.deleted === true;
+  const isDeprecated = entry.item.deprecation != null && !isDeleted;
+  // Deprecated/deleted are excluded from 'compatible' so selecting only
+  // Compatible can never pull them in; statuses otherwise compose (an item
+  // may match test + incompatible + deprecated simultaneously).
+  if (status === 'compatible')
+    return !isIncompatible && !isDeprecated && !isDeleted;
   if (status === 'incompatible') return isIncompatible;
   if (status === 'test') return entry.item.is_test === true;
+  if (status === 'deprecated') return isDeprecated;
+  if (status === 'deleted') return isDeleted;
   // 'local' never applies to registry listings.
   return false;
 }
@@ -83,19 +91,37 @@ export function useFilteredItems({
     [mods, maps],
   );
 
+  // The one asymmetric status semantic: deprecated and deleted items are
+  // HIDDEN by default (an empty status facet means "everything except
+  // deprecated/deleted") and each only surfaces for the browsed type while
+  // its own facet is selected. Other-type retired items are always excluded
+  // so the type-count badges match what a type switch (which clears the
+  // status facet) will actually show.
+  const visibleItems = useMemo(() => {
+    const showDeprecated = statusFilters.includes('deprecated');
+    const showDeleted = statusFilters.includes('deleted');
+    return registryItems.filter((entry) => {
+      if (entry.item.deprecation == null) return true;
+      if (entry.type !== filters.type) return false;
+      return entry.item.deprecation.deleted === true
+        ? showDeleted
+        : showDeprecated;
+    });
+  }, [filters.type, registryItems, statusFilters]);
+
   // Status is a type-scoped facet: it only constrains the browsed type. Items of the
   // other type pass through so its type/dim counts stay independent of the status
   // selection (which setType clears on switch anyway).
   const allItems = useMemo(() => {
-    if (statusFilters.length === 0) return registryItems;
-    return registryItems.filter(
+    if (statusFilters.length === 0) return visibleItems;
+    return visibleItems.filter(
       (entry) =>
         entry.type !== filters.type ||
         statusFilters.some((sf) =>
           matchesBrowseStatus(entry, sf, incompatibleItemKeys),
         ),
     );
-  }, [filters.type, incompatibleItemKeys, registryItems, statusFilters]);
+  }, [filters.type, incompatibleItemKeys, visibleItems, statusFilters]);
   const accessors = useMemo(
     () => createTaggedListingAccessors<TaggedItem>(),
     [],
@@ -133,9 +159,21 @@ export function useFilteredItems({
           test: 0,
           local: 0,
           incompatible: 0,
+          deprecated: 0,
+          deleted: 0,
         };
         for (const entry of facetItems) {
+          // Each count reflects what selecting that facet alone would show:
+          // retired items only ever surface under their own facet
+          // (Deprecated or Deleted), so they don't inflate other counts.
+          const ownFacet: StatusFilter | null =
+            entry.item.deprecation == null
+              ? null
+              : entry.item.deprecation.deleted === true
+                ? 'deleted'
+                : 'deprecated';
           for (const status of STATUS_FILTER_VALUES) {
+            if (ownFacet !== null && status !== ownFacet) continue;
             if (matchesBrowseStatus(entry, status, incompatibleItemKeys)) {
               counts[status] += 1;
             }
