@@ -12,6 +12,7 @@ import type {
   RegistryDetailDownloadHistoryPoint,
   RegistryDetailDownloadTrend,
   RegistryDetailLoadedData,
+  RegistryDetailHourlyPoint,
   RegistryDetailVersionDailySeries,
 } from "@/features/registry/detail/registry-detail-types";
 
@@ -217,6 +218,26 @@ function resolveListingDownloadDailyData(
 
 function getListingTypeForAnalytics(typeId: string): "map" | "mod" {
   return typeId === "maps" ? "map" : "mod";
+}
+
+// The hourly series is a rolling 14-day window of long-form rows
+// (bucket_utc,listing_type,id,downloads); the fetch is lenient like the other
+// analytics sources, so an absent file just leaves 1d/3d charts on daily grain.
+function resolveListingHourlyDownloads(
+  id: string,
+  typeId: string,
+  hourlyRaw: string | null,
+): RegistryDetailHourlyPoint[] {
+  if (!hourlyRaw) return [];
+  const listingType = getListingTypeForAnalytics(typeId);
+  return parseCsvRows(hourlyRaw)
+    .filter((row) => row["listing_type"] === listingType && row["id"] === id)
+    .map((row) => ({
+      bucket: row["bucket_utc"] ?? "",
+      downloads: Number(row["downloads"]) || 0,
+    }))
+    .filter((point) => point.bucket !== "" && point.downloads > 0)
+    .sort((left, right) => left.bucket.localeCompare(right.bucket));
 }
 
 // Per-version rows arrive semver-sorted from the registry CSV. Histories are
@@ -660,6 +681,7 @@ export async function loadRegistryDetail(
     authorsRaw,
     dailyAnalyticsRaw,
     versionAnalyticsRaw,
+    hourlyAnalyticsRaw,
     trend1dRaw,
     trend3dRaw,
     trend7dRaw,
@@ -671,6 +693,7 @@ export async function loadRegistryDetail(
     safeFetchText(getRegistryAuthorsIndexPath()),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/asset_versions_by_day.csv`),
+    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/hourly/downloads.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_1d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_3d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_7d.csv`),
@@ -747,6 +770,7 @@ export async function loadRegistryDetail(
       typeConfig.id,
       resolveDailyDownloadRows(versionAnalyticsRaw),
     ),
+    hourlyDownloads: resolveListingHourlyDownloads(id, typeConfig.id, hourlyAnalyticsRaw),
     downloadTrends,
     mapRankings,
     manifest,

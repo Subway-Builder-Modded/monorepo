@@ -108,6 +108,26 @@ export type RegistryAuthorListingDailySeries = {
   history: Array<{ date: string; downloads: number }>;
 };
 
+/** Hour-grain sibling of RegistryAuthorDownloadHistoryPoint (rolling 14-day window). */
+export type RegistryAuthorHourlyPoint = {
+  /** UTC hour bucket key, e.g. "2026-08-13T04:00Z". */
+  bucket: string;
+  total: number;
+  maps: number;
+  mods: number;
+  caretakenTotal: number;
+  caretakenMaps: number;
+  caretakenMods: number;
+};
+
+/** One credited listing's hourly downloads (credit resolved by the bucket's UTC date). */
+export type RegistryAuthorListingHourlySeries = {
+  id: string;
+  typeId: string;
+  name: string;
+  byBucket: Map<string, number>;
+};
+
 export type RegistryAuthorAnalytics = {
   downloads: {
     total: number;
@@ -120,10 +140,14 @@ export type RegistryAuthorAnalytics = {
     mods: number | null;
   };
   history: RegistryAuthorDownloadHistoryPoint[];
+  /** Hour-grain history for the 1d/3d chart cuts; empty when the hourly CSV is absent. */
+  hourly: RegistryAuthorHourlyPoint[];
   trends: RegistryAuthorDownloadTrend[];
   rankingsByType: Record<string, RegistryAuthorRankingRow[]>;
   /** Absent on entity pages that don't chart per-asset splits (projects). */
   listingSeries?: RegistryAuthorListingDailySeries[];
+  /** Hour-grain sibling of listingSeries for the Top Assets 1d/3d cuts. */
+  listingHourlySeries?: RegistryAuthorListingHourlySeries[];
 };
 
 type RawAuthorsIndex = {
@@ -477,6 +501,104 @@ function computeAuthorHistory(
   );
   const firstNonZeroIndex = history.findIndex((point) => point.total + point.caretakenTotal > 0);
   return firstNonZeroIndex <= 0 ? history : history.slice(firstNonZeroIndex);
+}
+
+// Hour-grain sibling of computeAuthorHistory over the long-form hourly rows
+// (bucket_utc,listing_type,id,downloads). Credit is resolved from each
+// bucket's UTC date — the same day-grain caretaker rule, applied per hour.
+function computeAuthorHourly(
+  normalizedAuthorId: string,
+  hourlyRows: Array<Record<string, string>>,
+  itemAuthorByTypeAndId: Map<string, string>,
+  creditWindowsByListing: Map<string, ListingCreditWindow[]>,
+): RegistryAuthorHourlyPoint[] {
+  const byBucket = new Map<string, RegistryAuthorHourlyPoint>();
+
+  for (const row of hourlyRows) {
+    const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
+    const id = row["id"] ?? "";
+    const bucket = row["bucket_utc"] ?? "";
+    const downloads = Number(row["downloads"]) || 0;
+    if (!typeId || !bucket || downloads <= 0) continue;
+    const typeKey = `${typeId}:${id}`;
+    const listingAuthorId = itemAuthorByTypeAndId.get(typeKey) ?? "";
+    const windows = creditWindowsByListing.get(typeKey);
+    const isAuthor = listingAuthorId === normalizedAuthorId;
+    if (!isAuthor && !windows?.some((window) => window.personId === normalizedAuthorId)) {
+      continue;
+    }
+    const creditedId = resolveCreditedPersonIdForDate(
+      Date.parse(bucket.slice(0, 10)),
+      windows,
+      listingAuthorId,
+    );
+    if (creditedId !== normalizedAuthorId) continue;
+
+    const current = byBucket.get(bucket) ?? {
+      bucket,
+      total: 0,
+      maps: 0,
+      mods: 0,
+      caretakenTotal: 0,
+      caretakenMaps: 0,
+      caretakenMods: 0,
+    };
+    if (isAuthor) {
+      current.total += downloads;
+      if (typeId === "maps") current.maps += downloads;
+      if (typeId === "mods") current.mods += downloads;
+    } else {
+      current.caretakenTotal += downloads;
+      if (typeId === "maps") current.caretakenMaps += downloads;
+      if (typeId === "mods") current.caretakenMods += downloads;
+    }
+    byBucket.set(bucket, current);
+  }
+
+  return [...byBucket.values()].sort((left, right) => left.bucket.localeCompare(right.bucket));
+}
+
+// Hour-grain sibling of computeAuthorListingSeries for the Top Assets chart.
+function computeAuthorListingHourlySeries(
+  normalizedAuthorId: string,
+  hourlyRows: Array<Record<string, string>>,
+  itemAuthorByTypeAndId: Map<string, string>,
+  creditWindowsByListing: Map<string, ListingCreditWindow[]>,
+  nameByTypeAndId: Map<string, string>,
+): RegistryAuthorListingHourlySeries[] {
+  const byTypeKey = new Map<string, RegistryAuthorListingHourlySeries>();
+
+  for (const row of hourlyRows) {
+    const typeId = getTypeIdForAnalyticsListingType(row["listing_type"]);
+    const id = row["id"] ?? "";
+    const bucket = row["bucket_utc"] ?? "";
+    const downloads = Number(row["downloads"]) || 0;
+    if (!typeId || !bucket || downloads <= 0) continue;
+    const typeKey = `${typeId}:${id}`;
+    const listingAuthorId = itemAuthorByTypeAndId.get(typeKey) ?? "";
+    const windows = creditWindowsByListing.get(typeKey);
+    const isAuthor = listingAuthorId === normalizedAuthorId;
+    if (!isAuthor && !windows?.some((window) => window.personId === normalizedAuthorId)) {
+      continue;
+    }
+    if (
+      resolveCreditedPersonIdForDate(Date.parse(bucket.slice(0, 10)), windows, listingAuthorId) !==
+      normalizedAuthorId
+    ) {
+      continue;
+    }
+
+    const series = byTypeKey.get(typeKey) ?? {
+      id,
+      typeId,
+      name: nameByTypeAndId.get(typeKey) ?? id,
+      byBucket: new Map<string, number>(),
+    };
+    series.byBucket.set(bucket, (series.byBucket.get(bucket) ?? 0) + downloads);
+    byTypeKey.set(typeKey, series);
+  }
+
+  return [...byTypeKey.values()];
 }
 
 // Per-listing companion to computeAuthorHistory: the same day-grain credit
@@ -835,10 +957,14 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
   const dailyAnalyticsRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`,
   );
+  const hourlyAnalyticsRaw = await safeFetchText(
+    `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/hourly/downloads.csv`,
+  );
   const releaseCacheRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/github-releases-cache.json`,
   );
   const dailyRows = dailyAnalyticsRaw ? parseCsvRows(dailyAnalyticsRaw) : [];
+  const hourlyRows = hourlyAnalyticsRaw ? parseCsvRows(hourlyAnalyticsRaw) : [];
   const releaseCache = safeJson<ReleaseCache>(releaseCacheRaw ?? "{}", {});
   const itemAuthorByTypeAndId = buildItemAuthorLookup(allItemsByType);
   const creditedTotalsByAuthor = credits
@@ -887,9 +1013,22 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
       itemAuthorByTypeAndId,
       creditWindowsByListing,
     ),
+    hourly: computeAuthorHourly(
+      normalizedAuthorId,
+      hourlyRows,
+      itemAuthorByTypeAndId,
+      creditWindowsByListing,
+    ),
     listingSeries: computeAuthorListingSeries(
       normalizedAuthorId,
       dailyRows,
+      itemAuthorByTypeAndId,
+      creditWindowsByListing,
+      nameByTypeAndId,
+    ),
+    listingHourlySeries: computeAuthorListingHourlySeries(
+      normalizedAuthorId,
+      hourlyRows,
       itemAuthorByTypeAndId,
       creditWindowsByListing,
       nameByTypeAndId,

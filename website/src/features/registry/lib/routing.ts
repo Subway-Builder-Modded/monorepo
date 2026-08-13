@@ -19,7 +19,7 @@ const REGISTRY_ANALYTICS_TABS = new Set([
   "projects",
   "map-statistics",
 ]);
-const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "3d", "7d", "14d", "30d"]);
+const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "1d", "3d", "7d", "14d", "30d"]);
 const REGISTRY_ANALYTICS_ASSET_TYPES = new Set(["maps", "mods"]);
 
 export type RegistryRouteMatch =

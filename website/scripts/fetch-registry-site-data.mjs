@@ -45,6 +45,10 @@ const COPY_MAPPINGS = [
     destination: "public/registry-cache/analytics/most_popular_all_time.csv",
   },
   {
+    source: "analytics/hourly/downloads.csv",
+    destination: "public/registry-cache/analytics/hourly/downloads.csv",
+  },
+  {
     source: "analytics/most_popular_last_1d.csv",
     destination: "public/registry-cache/analytics/most_popular_last_1d.csv",
   },

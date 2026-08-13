@@ -80,7 +80,14 @@ import {
   matchesRegistrySearch,
 } from "@/features/registry/lib/registry-search";
 import {
+  HOURLY_BUCKET_HOURS,
+  HOURLY_CHART_PERIODS,
+  alignHourlyBucket,
+  bucketRegistryAnalyticsHourly,
   filterRegistryAnalyticsHistory,
+  formatHourlyBucketLabel,
+  getHourlyChartTicks,
+  getHourlyWindowBuckets,
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
   type RegistryAnalyticsAssetTypeId,
@@ -88,6 +95,7 @@ import {
   type RegistryAnalyticsContentRanking,
   type RegistryAnalyticsData,
   type RegistryAnalyticsEntityDailySeries,
+  type RegistryAnalyticsEntityHourlySeries,
   type RegistryAnalyticsMapStatisticRanking,
   type RegistryAnalyticsPeriodId,
   type RegistryAnalyticsProjectRanking,
@@ -130,6 +138,7 @@ const TAB_PATHS: Record<RegistryAnalyticsTabId, string> = {
 
 const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
   "all-time": "/registry/analytics/overview/all-time",
+  "1d": "/registry/analytics/overview/1d",
   "3d": "/registry/analytics/overview/3d",
   "7d": "/registry/analytics/overview/7d",
   "14d": "/registry/analytics/overview/14d",
@@ -139,6 +148,44 @@ const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
 const CONTENT_ASSET_INCREMENT = 20;
 const AUTHOR_RANKING_INCREMENT = 20;
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const HOUR_OF_DAY_LABELS = Array.from(
+  { length: 24 },
+  (_, hour) => `${String(hour).padStart(2, "0")}:00`,
+);
+// 24 hour categories collide at full density; tick every bucket boundary only.
+const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter((_, hour) => hour % HOURLY_BUCKET_HOURS === 0);
+
+/**
+ * 1d/3d chart rows from the hourly series: wall-clock-aligned 4h buckets
+ * (6/18 points), newest last; the trailing bucket is partial until its last
+ * hour lands. `readValues` maps a bucket's downloads onto the chart's series keys.
+ */
+function buildHourlyChartRows(
+  hourly: RegistryAnalyticsData["hourly"],
+  period: RegistryAnalyticsPeriodId,
+  readValues: (
+    downloads: RegistryAnalyticsData["hourly"][number]["downloads"],
+  ) => Record<string, number>,
+) {
+  const buckets = bucketRegistryAnalyticsHourly(hourly, HOURLY_BUCKET_HOURS);
+  const windowHours = period === "1d" ? 24 : 72;
+  return buckets.slice(-(windowHours / HOURLY_BUCKET_HOURS)).map((point) => ({
+    date: formatHourlyBucketLabel(point.bucket, period),
+    ...readValues(point.downloads),
+  }));
+}
+
+/** Restricts an hourly entity series to the entities surviving a filtered daily series. */
+function matchHourlyToDaily(
+  hourly: RegistryAnalyticsEntityHourlySeries,
+  daily: RegistryAnalyticsEntityDailySeries,
+): RegistryAnalyticsEntityHourlySeries {
+  const allowedIds = new Set(daily.entities.map((entity) => entity.id));
+  return {
+    buckets: hourly.buckets,
+    entities: hourly.entities.filter((entity) => allowedIds.has(entity.id)),
+  };
+}
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
@@ -256,12 +303,21 @@ function RegistryOverviewTab({
     };
   });
   const readTypeValue = (record: Record<string, number>, typeId: string) => record[typeId] ?? 0;
-  const chartData = graphRows.map((row) => ({
-    date: row.date,
-    ...Object.fromEntries(
-      typeSeries.map((series) => [series.key, readTypeValue(row.downloads, series.id)]),
-    ),
-  }));
+  // Short cuts draw from the hourly series (4h buckets: 6/18 points) instead of
+  // 1-3 daily bars; longer cuts keep the daily grain the history provides.
+  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.hourly.length > 0;
+  const chartData = hourlyMode
+    ? buildHourlyChartRows(data.hourly, period, (downloads) =>
+        Object.fromEntries(
+          typeSeries.map((series) => [series.key, readTypeValue(downloads, series.id)]),
+        ),
+      )
+    : graphRows.map((row) => ({
+        date: row.date,
+        ...Object.fromEntries(
+          typeSeries.map((series) => [series.key, readTypeValue(row.downloads, series.id)]),
+        ),
+      }));
   const cumulativeChartData = data.history.map((row) => ({
     date: row.date,
     ...Object.fromEntries(
@@ -286,7 +342,15 @@ function RegistryOverviewTab({
     ? [...typeSeries, { key: "Deprecated", name: "Deprecated", color: OTHERS_SERIES_COLOR }]
     : typeSeries;
   const newListingsGrainLabel = getGrainLabel(newListingsBucketed.grain);
-  const chartTicks = period === "all-time" ? undefined : chartData.map((point) => point.date);
+  const chartTicks =
+    period === "all-time"
+      ? undefined
+      : hourlyMode
+        ? getHourlyChartTicks(
+            chartData.map((point) => point.date),
+            period,
+          )
+        : chartData.map((point) => point.date);
   // Average downloads per weekday over the full history — the registry's
   // weekly activity rhythm (all-time, so it sits above the period break).
   const weekdaySums = WEEKDAY_LABELS.map(() => ({
@@ -311,6 +375,30 @@ function RegistryOverviewTab({
         weekdaySums[index].days > 0
           ? Math.round((weekdaySums[index].byType[series.key] ?? 0) / weekdaySums[index].days)
           : 0,
+      ]),
+    ),
+  }));
+  // Average downloads per UTC hour-of-day — the daily activity rhythm. Unlike
+  // the all-time weekday chart this can only cover the hourly series' rolling
+  // 14-day window; a bucket-less hour contributes zero to its average.
+  const hourlyDayCount = Math.max(
+    1,
+    new Set(data.hourly.map((point) => point.bucket.slice(0, 10))).size,
+  );
+  const hourOfDaySums = HOUR_OF_DAY_LABELS.map(() => ({}) as Record<string, number>);
+  for (const point of data.hourly) {
+    const sums = hourOfDaySums[Number.parseInt(point.bucket.slice(11, 13), 10)];
+    if (!sums) continue;
+    for (const series of typeSeries) {
+      sums[series.key] = (sums[series.key] ?? 0) + readTypeValue(point.downloads, series.id);
+    }
+  }
+  const hourOfDayChartData = HOUR_OF_DAY_LABELS.map((hour, index) => ({
+    hour,
+    ...Object.fromEntries(
+      typeSeries.map((series) => [
+        series.key,
+        Math.round(((hourOfDaySums[index][series.key] ?? 0) / hourlyDayCount) * 10) / 10,
       ]),
     ),
   }));
@@ -425,18 +513,32 @@ function RegistryOverviewTab({
 
       <section className="space-y-3">
         <SectionSeparator label="Seasonality" icon={Activity} className="mb-4" />
-        <MultiSeriesChartCard
-          title="Average Daily Downloads"
-          chartKey="registry-weekday-rhythm"
-          data={weekdayChartData}
-          series={typeSeries}
-          xAxisKey="day"
-          xAxisTicks={WEEKDAY_LABELS}
-          height={280}
-          stackId="weekday"
-          defaultStyle="bar"
-          ariaLabelPrefix="Weekly rhythm chart"
-        />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <MultiSeriesChartCard
+            title="Average Daily Downloads"
+            chartKey="registry-weekday-rhythm"
+            data={weekdayChartData}
+            series={typeSeries}
+            xAxisKey="day"
+            xAxisTicks={WEEKDAY_LABELS}
+            height={280}
+            stackId="weekday"
+            defaultStyle="bar"
+            ariaLabelPrefix="Weekly rhythm chart"
+          />
+          <MultiSeriesChartCard
+            title="Average Hourly Downloads (UTC)"
+            chartKey="registry-hour-of-day-rhythm"
+            data={hourOfDayChartData}
+            series={typeSeries}
+            xAxisKey="hour"
+            xAxisTicks={HOUR_OF_DAY_TICKS}
+            height={280}
+            stackId="hour-of-day"
+            defaultStyle="bar"
+            ariaLabelPrefix="Hourly rhythm chart"
+          />
+        </div>
       </section>
 
       {/* Everything above is all-time; everything below follows the selected
@@ -462,8 +564,8 @@ function RegistryOverviewTab({
         <SectionSeparator label="Downloads" icon={Download} className="mb-4" />
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <MultiSeriesChartCard
-            title="Daily Downloads"
-            chartKey={`registry-downloads-${period}`}
+            title={hourlyMode ? "Downloads · 4h Buckets (UTC)" : "Daily Downloads"}
+            chartKey={`registry-downloads-${period}${hourlyMode ? "-hourly" : ""}`}
             data={chartData}
             series={typeSeries}
             xAxisTicks={chartTicks}
@@ -482,6 +584,7 @@ function RegistryOverviewTab({
             threshold — typically 10+ countries, bound by the series cap. */}
         <TopEntitiesChart
           series={data.countries.dailyDownloads}
+          hourlySeries={data.countries.hourlyDownloads}
           entityKey="countries"
           period={period}
           assetType="total"
@@ -756,8 +859,54 @@ function RegistryContentTab({
         : row.downloads[assetTypeId],
     })),
   );
+  // Short cuts derive from the hourly series: site type totals when unfiltered,
+  // a sum over the matched listings' per-listing hourly series when filtered.
+  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.hourly.length > 0;
+  const hourlyChartRows = useMemo(() => {
+    if (!hourlyMode) return null;
+    if (!isChartFiltered) {
+      return buildHourlyChartRows(data.hourly, period, (downloads) => ({
+        Downloads: downloads[assetTypeId],
+      }));
+    }
+    const allowedIds = new Set(filteredListingSeries.entities.map((entity) => entity.id));
+    const windowBuckets = getHourlyWindowBuckets(data.listings.hourlyDownloads.buckets, period);
+    const labelByBucket = new Map(
+      windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
+    );
+    const totals = new Map<string, number>();
+    for (const entity of data.listings.hourlyDownloads.entities) {
+      if (!allowedIds.has(entity.id)) continue;
+      for (const [bucket, point] of entity.byBucket) {
+        const label = labelByBucket.get(alignHourlyBucket(bucket));
+        if (!label) continue;
+        const value = assetTypeId === "maps" ? point.maps : point.mods;
+        totals.set(label, (totals.get(label) ?? 0) + value);
+      }
+    }
+    return windowBuckets.map((bucket) => {
+      const label = labelByBucket.get(bucket)!;
+      return { date: label, Downloads: totals.get(label) ?? 0 };
+    });
+  }, [
+    assetTypeId,
+    data.hourly,
+    data.listings.hourlyDownloads,
+    filteredListingSeries,
+    hourlyMode,
+    isChartFiltered,
+    period,
+  ]);
+  const chartRows = hourlyChartRows ?? chartBucketed.data;
   const chartTicks =
-    period === "all-time" ? undefined : chartBucketed.data.map((point) => String(point.date));
+    period === "all-time"
+      ? undefined
+      : hourlyChartRows
+        ? getHourlyChartTicks(
+            hourlyChartRows.map((row) => row.date),
+            period,
+          )
+        : chartBucketed.data.map((point) => String(point.date));
   const hasFilterMatches = !isChartFiltered || filteredListingSeries.entities.length > 0;
   const baseRows = data.contentRankings[period][assetTypeId];
   const sortedRows = useMemo(
@@ -887,7 +1036,7 @@ function RegistryContentTab({
               preserveScroll: true,
             })
           }
-          className="grid-cols-2 sm:grid-cols-5"
+          className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
           style={
             {
               "--registry-type-accent": "var(--suite-accent-light)",
@@ -927,9 +1076,13 @@ function RegistryContentTab({
         />
         {hasFilterMatches ? (
           <MultiSeriesChartCard
-            title={`${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`}
-            chartKey={`registry-content-${assetTypeId}-${period}-${chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
-            data={chartBucketed.data}
+            title={
+              hourlyMode
+                ? `${isChartFiltered ? "Filtered " : ""}Downloads · 4h Buckets (UTC)`
+                : `${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`
+            }
+            chartKey={`registry-content-${assetTypeId}-${period}-${hourlyMode ? "hourly" : chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
+            data={chartRows}
             series={[
               {
                 key: "Downloads",
@@ -966,6 +1119,7 @@ function RegistryContentTab({
             palette. */}
         <TopEntitiesChart
           series={filteredListingSeries}
+          hourlySeries={matchHourlyToDaily(data.listings.hourlyDownloads, filteredListingSeries)}
           entityKey={assetTypeId}
           period={period}
           assetType={assetTypeId}
@@ -1256,6 +1410,7 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         <SectionSeparator label="Top Authors" icon={Users} className="mb-4" />
         <TopEntitiesChart
           series={filteredAuthorSeries}
+          hourlySeries={matchHourlyToDaily(data.authors.hourlyDownloads, filteredAuthorSeries)}
           entityKey="authors"
           filtered={isChartFiltered}
           emptyLabel="No authors match the current filters."
@@ -1482,6 +1637,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
             nine actual projects chart alongside it. */}
         <TopEntitiesChart
           series={filteredProjectSeries}
+          hourlySeries={matchHourlyToDaily(data.projects.hourlyDownloads, filteredProjectSeries)}
           entityKey="projects"
           minShare={0}
           filtered={isChartFiltered}

@@ -4,12 +4,77 @@ import { ADMIN_AUTHOR_ID } from "@/features/registry/lib/credited-downloads";
 import {
   buildAuthorDailyDownloadSeries,
   buildListingCreditWindows,
+  resolveCreditedPersonIdForDate,
 } from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
-export type RegistryAnalyticsPeriodId = "all-time" | "3d" | "7d" | "14d" | "30d";
+export type RegistryAnalyticsPeriodId = "all-time" | "1d" | "3d" | "7d" | "14d" | "30d";
 export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
+
+/** Periods whose downloads chart derives from the hourly series (4h buckets). */
+export const HOURLY_CHART_PERIODS: ReadonlySet<RegistryAnalyticsPeriodId> = new Set(["1d", "3d"]);
+/** Display grouping of the hourly series: wall-clock-aligned 4h windows (UTC). */
+export const HOURLY_BUCKET_HOURS = 4;
+
+export type RegistryAnalyticsHourlyPoint = {
+  /** UTC hour bucket key, e.g. "2026-08-13T04:00Z". */
+  bucket: string;
+  downloads: {
+    total: number;
+    maps: number;
+    mods: number;
+  };
+};
+
+/**
+ * Per-entity analogue of RegistryAnalyticsEntityDailySeries at hour grain.
+ * Entities carry values only — name/color/search metadata stays on the daily
+ * series and joins by id at render time.
+ */
+export type RegistryAnalyticsEntityHourlySeries = {
+  /** Ascending UTC hour bucket universe of the rolling window. */
+  buckets: string[];
+  entities: Array<{
+    id: string;
+    byBucket: Map<string, { maps: number; mods: number }>;
+  }>;
+};
+
+/** Floors an hour bucket key to its wall-clock-aligned display window. */
+export function alignHourlyBucket(bucket: string, bucketHours = HOURLY_BUCKET_HOURS): string {
+  const hour = Number.parseInt(bucket.slice(11, 13), 10);
+  if (!Number.isFinite(hour)) return bucket;
+  const alignedHour = Math.floor(hour / bucketHours) * bucketHours;
+  return `${bucket.slice(0, 11)}${String(alignedHour).padStart(2, "0")}:00Z`;
+}
+
+/**
+ * The aligned display-window bucket keys for a short period: unique, ascending,
+ * trailing 24h/72h of the series (the newest window is partial until its last
+ * hour lands).
+ */
+export function getHourlyWindowBuckets(
+  buckets: Iterable<string>,
+  period: RegistryAnalyticsPeriodId,
+): string[] {
+  const aligned = [...new Set([...buckets].map((bucket) => alignHourlyBucket(bucket)))].sort(
+    (left, right) => left.localeCompare(right),
+  );
+  const windowHours = period === "1d" ? 24 : 72;
+  return aligned.slice(-(windowHours / HOURLY_BUCKET_HOURS));
+}
+
+/** Chart x label for an aligned bucket: "04:00" within a one-day cut, "08-11 04:00" across days. */
+export function formatHourlyBucketLabel(bucket: string, period: RegistryAnalyticsPeriodId): string {
+  const time = bucket.slice(11, 16);
+  return period === "1d" ? time : `${bucket.slice(5, 10)} ${time}`;
+}
+
+/** Sparse ticks for hourly-derived charts: every point at 1d, day boundaries at 3d. */
+export function getHourlyChartTicks(labels: string[], period: RegistryAnalyticsPeriodId): string[] {
+  return period === "1d" ? labels : labels.filter((label) => label.endsWith("00:00"));
+}
 
 export type RegistryAnalyticsHistoryPoint = {
   date: string;
@@ -113,6 +178,8 @@ export type RegistryAnalyticsData = {
     };
   };
   history: RegistryAnalyticsHistoryPoint[];
+  /** Site-wide hourly download deltas (14-day rolling window, UTC buckets, ascending). */
+  hourly: RegistryAnalyticsHourlyPoint[];
   contentRankings: Record<
     RegistryAnalyticsPeriodId,
     Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]>
@@ -122,23 +189,28 @@ export type RegistryAnalyticsData = {
     rankings: RegistryAnalyticsAuthorRanking[];
     /** Per-author (day-grain credit-attributed, admin excluded). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   listings: {
     /** Per-listing. */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   countries: {
     /** Per-country, aggregated over the country's listings (country-less listings excluded). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   regions: {
     /** Per registry location tag (manifest `location`, derived from country). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   projects: {
     rankings: RegistryAnalyticsProjectRanking[];
     /** Per-project (multi-asset projects only, matching the rankings). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
+    hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   mapStatistics: {
     rankings: RegistryAnalyticsMapStatisticRanking[];
@@ -163,8 +235,10 @@ export type RegistryAnalyticsContentRanking = {
 const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
+const HOURLY_DOWNLOADS_URL = "/registry-cache/analytics/hourly/downloads.csv";
 const RANKING_URLS = {
   "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
+  "1d": "/registry-cache/analytics/most_popular_last_1d.csv",
   "3d": "/registry-cache/analytics/most_popular_last_3d.csv",
   "7d": "/registry-cache/analytics/most_popular_last_7d.csv",
   "30d": "/registry-cache/analytics/most_popular_last_30d.csv",
@@ -678,10 +752,67 @@ function buildMapStatisticRankings(
 function buildEmptyContentRankings(): RegistryAnalyticsData["contentRankings"] {
   return {
     "all-time": { maps: [], mods: [] },
+    "1d": { maps: [], mods: [] },
     "3d": { maps: [], mods: [] },
     "7d": { maps: [], mods: [] },
     "14d": { maps: [], mods: [] },
     "30d": { maps: [], mods: [] },
+  };
+}
+
+/**
+ * Aggregates the long-form hourly CSV (bucket_utc,listing_type,id,downloads)
+ * into site-wide per-bucket totals, ascending (bucket keys sort chronologically).
+ */
+function normalizeHourly(rows: CsvRow[]): RegistryAnalyticsHourlyPoint[] {
+  const byBucket = new Map<string, { total: number; maps: number; mods: number }>();
+  for (const row of rows) {
+    const bucket = row.bucket_utc ?? "";
+    const type = getAssetType(row.listing_type);
+    const downloads = getNumber(row.downloads);
+    if (!bucket || !type || downloads <= 0) continue;
+    const entry = byBucket.get(bucket) ?? { total: 0, maps: 0, mods: 0 };
+    entry.total += downloads;
+    entry[type] += downloads;
+    byBucket.set(bucket, entry);
+  }
+  return [...byBucket.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([bucket, downloads]) => ({ bucket, downloads }));
+}
+
+/**
+ * Folds the long-form hourly rows into per-entity hour-grain series using the
+ * same listing→entity assignment its daily sibling uses (the bucket's UTC date
+ * feeds date-sensitive assignments like caretaker credit windows).
+ */
+function buildEntityHourlySeries(
+  hourlyRows: CsvRow[],
+  assignEntityId: (
+    typeId: RegistryAnalyticsAssetTypeId,
+    listingId: string,
+    bucketDateTs: number,
+  ) => string | null,
+): RegistryAnalyticsEntityHourlySeries {
+  const buckets = new Set<string>();
+  const entitiesById = new Map<string, RegistryAnalyticsEntityHourlySeries["entities"][number]>();
+  for (const row of hourlyRows) {
+    const type = getAssetType(row.listing_type);
+    const bucket = row.bucket_utc ?? "";
+    const downloads = getNumber(row.downloads);
+    if (!type || !bucket || downloads <= 0) continue;
+    buckets.add(bucket);
+    const entityId = assignEntityId(type, row.id ?? "", Date.parse(bucket.slice(0, 10)));
+    if (!entityId) continue;
+    const entity = entitiesById.get(entityId) ?? { id: entityId, byBucket: new Map() };
+    const current = entity.byBucket.get(bucket) ?? { maps: 0, mods: 0 };
+    current[type] += downloads;
+    entity.byBucket.set(bucket, current);
+    entitiesById.set(entityId, entity);
+  }
+  return {
+    buckets: [...buckets].sort((left, right) => left.localeCompare(right)),
+    entities: [...entitiesById.values()],
   };
 }
 
@@ -732,6 +863,33 @@ function buildFourteenDayRankings(
   );
 }
 
+/**
+ * Groups hourly points into wall-clock-aligned `bucketHours` windows (UTC),
+ * ascending; each grouped point keeps the window's START hour as its bucket key.
+ * Alignment to 00/04/08/... keeps windows comparable day-over-day; the trailing
+ * window is partial until its last hour lands.
+ */
+export function bucketRegistryAnalyticsHourly(
+  hourly: RegistryAnalyticsHourlyPoint[],
+  bucketHours = 4,
+): RegistryAnalyticsHourlyPoint[] {
+  const byBucket = new Map<string, RegistryAnalyticsHourlyPoint["downloads"]>();
+  for (const point of hourly) {
+    const hour = Number.parseInt(point.bucket.slice(11, 13), 10);
+    if (!Number.isFinite(hour)) continue;
+    const alignedHour = Math.floor(hour / bucketHours) * bucketHours;
+    const aligned = `${point.bucket.slice(0, 11)}${String(alignedHour).padStart(2, "0")}:00Z`;
+    const entry = byBucket.get(aligned) ?? { total: 0, maps: 0, mods: 0 };
+    entry.total += point.downloads.total;
+    entry.maps += point.downloads.maps;
+    entry.mods += point.downloads.mods;
+    byBucket.set(aligned, entry);
+  }
+  return [...byBucket.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([bucket, downloads]) => ({ bucket, downloads }));
+}
+
 export function filterRegistryAnalyticsHistory(
   history: RegistryAnalyticsHistoryPoint[],
   period: RegistryAnalyticsPeriodId,
@@ -767,9 +925,11 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     authorDayRaw,
     mapStatisticsRaw,
     byDayRaw,
+    hourlyRaw,
     creatorData,
     itemEntries,
     allTimeRaw,
+    last1Raw,
     last3Raw,
     last7Raw,
     last30Raw,
@@ -777,6 +937,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
     safeFetchText(MOST_POPULAR_BY_DAY_URL),
+    safeFetchText(HOURLY_DOWNLOADS_URL),
     loadCreatorDatabaseData(),
     Promise.all(
       REGISTRY_TYPES.map((typeConfig) =>
@@ -784,6 +945,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       ),
     ),
     safeFetchText(RANKING_URLS["all-time"]),
+    safeFetchText(RANKING_URLS["1d"]),
     safeFetchText(RANKING_URLS["3d"]),
     safeFetchText(RANKING_URLS["7d"]),
     safeFetchText(RANKING_URLS["30d"]),
@@ -798,6 +960,11 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   contentRankings["all-time"] = normalizeRankingRows(
     parseCsv(allTimeRaw),
     (row) => getNumber(row.adjusted_total_downloads || row.total_downloads),
+    validItemsById,
+  );
+  contentRankings["1d"] = normalizeRankingRows(
+    parseCsv(last1Raw),
+    (row) => getNumber(row.adjusted_download_change || row.download_change),
     validItemsById,
   );
   contentRankings["3d"] = normalizeRankingRows(
@@ -826,11 +993,43 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       authorLoginByGithubId.set(author.githubId, author.id);
     }
   }
+  const creditWindowsByListing = buildListingCreditWindows(
+    itemsByTypeRecord,
+    authorLoginByGithubId,
+  );
   const authorDaily = buildAuthorDailyDownloadSeries({
     dailyRows: byDayRows,
     items: allItems,
-    creditWindowsByListing: buildListingCreditWindows(itemsByTypeRecord, authorLoginByGithubId),
+    creditWindowsByListing,
     excludedPersonIds: [ADMIN_AUTHOR_ID],
+  });
+  // Per-entity hourly series mirror the daily builders' listing→entity
+  // assignments (credit windows for authors, country/region/project mappings)
+  // so 1d/3d entity charts can draw real sub-daily shapes.
+  const hourlyRows = parseCsv(hourlyRaw);
+  const listingsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) =>
+    validItemsById.has(listingId) ? listingId : null,
+  );
+  const countriesHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
+    const item = validItemsById.get(listingId);
+    const countryCode = item?.countryCode?.trim().toUpperCase();
+    return item && countryCode ? countryCode : null;
+  });
+  const regionsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
+    const item = validItemsById.get(listingId);
+    return item ? getItemLocation(item) || null : null;
+  });
+  const adminPersonId = ADMIN_AUTHOR_ID.trim().toLowerCase();
+  const authorsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId, bucketDateTs) => {
+    const item = validItemsById.get(listingId);
+    const listingAuthorId = (item?.authorId ?? item?.author ?? "").trim().toLowerCase();
+    if (!item || !listingAuthorId) return null;
+    const creditedId = resolveCreditedPersonIdForDate(
+      bucketDateTs,
+      creditWindowsByListing.get(`${item.type}:${listingId}`),
+      listingAuthorId,
+    );
+    return creditedId && creditedId !== adminPersonId ? creditedId : null;
   });
   const authorLabelById = new Map(
     creatorData.authors.map((author) => [author.id.trim().toLowerCase(), author.label]),
@@ -852,6 +1051,12 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       },
     ]),
   );
+  const projectsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
+    const item = validItemsById.get(listingId);
+    if (!item) return null;
+    const projectId = item.projectId?.trim().toLowerCase();
+    return projectId && projectMetaById.has(projectId) ? projectId : NO_PROJECT_SERIES_ID;
+  });
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
   const validMapIds = new Set(maps.map((item) => item.id));
@@ -874,27 +1079,33 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       },
     },
     history,
+    hourly: normalizeHourly(hourlyRows),
     contentRankings,
     authors: {
       history: buildAuthorHistory(authorRows, allItems),
       rankings: buildAuthorRankings(creatorData.authors),
       dailyDownloads: authorDailyDownloads,
+      hourlyDownloads: authorsHourly,
     },
     listings: {
       dailyDownloads: buildListingDailySeries(byDayRows, validItemsById),
+      hourlyDownloads: listingsHourly,
     },
     countries: {
       dailyDownloads: buildCountryDailySeries(byDayRows, validItemsById),
+      hourlyDownloads: countriesHourly,
     },
     regions: {
       dailyDownloads: buildGroupedDailySeries(byDayRows, validItemsById, (item) => {
         const location = getItemLocation(item);
         return location ? { id: location, name: titleCaseSlug(location) } : null;
       }),
+      hourlyDownloads: regionsHourly,
     },
     projects: {
       rankings: buildProjectRankings(creatorData.projects),
       dailyDownloads: buildProjectDailySeries(byDayRows, validItemsById, projectMetaById),
+      hourlyDownloads: projectsHourly,
     },
     mapStatistics: {
       rankings: buildMapStatisticRankings(

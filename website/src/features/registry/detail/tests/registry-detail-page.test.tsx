@@ -100,6 +100,7 @@ function makeDetail(): RegistryDetailModel {
     downloadHistory: [],
     versionDownloadHistory: [],
     downloadTrends: [],
+    hourlyDownloads: [],
     galleryImages: ["https://cdn.example.test/first.webp", "https://cdn.example.test/second.webp"],
     versions: [],
     versionSource: null,

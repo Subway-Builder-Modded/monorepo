@@ -90,11 +90,13 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               },
             ],
           },
+          "1d": { maps: [], mods: [] },
           "3d": { maps: [], mods: [] },
           "7d": { maps: [], mods: [] },
           "14d": { maps: [], mods: [] },
           "30d": { maps: [], mods: [] },
         },
+        hourly: [],
         authors: {
           history: [
             { date: "2026-03-11", authors: 1 },
@@ -120,6 +122,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               caretaker: 2,
             },
           ],
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -140,6 +143,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         countries: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -160,6 +164,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         regions: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -172,6 +177,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         quality: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -185,6 +191,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         listings: {
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -233,6 +240,7 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
               assets: 1,
             },
           ],
+          hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
             entities: [
@@ -315,15 +323,17 @@ describe("RegistryAnalyticsPage", () => {
     expect(overviewLineCharts[0]).toHaveTextContent("1 points · Maps, Mods");
     expect(screen.getByText("Maps")).toBeInTheDocument();
     expect(overviewLineCharts[1]).toHaveTextContent("2 points · Japan, United Kingdom");
-    // Cumulative Downloads, Seasonality, and the Listings releases chart
-    // default to stacked bars.
+    // Cumulative Downloads, the two Seasonality rhythms, and the Listings
+    // releases chart default to stacked bars.
     const overviewStackedCharts = screen.getAllByTestId("registry-stacked-chart");
     expect(overviewStackedCharts[0]).toHaveTextContent("2 points · Maps, Mods");
     expect(screen.getByText("Seasonality")).toBeInTheDocument();
     expect(overviewStackedCharts[1]).toHaveTextContent("7 points · Maps, Mods");
+    // Hour-of-day rhythm always charts the full 24 UTC hours.
+    expect(overviewStackedCharts[2]).toHaveTextContent("24 points · Maps, Mods");
     expect(screen.getByText("Listings by Type")).toBeInTheDocument();
     // Deprecations join the New Listings chart as a negative series.
-    expect(overviewStackedCharts[2]).toHaveTextContent("1 points · Maps, Mods, Deprecated");
+    expect(overviewStackedCharts[3]).toHaveTextContent("1 points · Maps, Mods, Deprecated");
     // Every pie sits beside its measure: Download Share, then the Maps
     // section's three pies, then Listings by Type.
     const pieCharts = screen.getAllByTestId("registry-pie-chart");
