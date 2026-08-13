@@ -36,13 +36,14 @@ export function IncompatibleBadge({ className }: { className?: string }) {
   );
 }
 
-// Deliberately neutral (not red) — deprecation is an author decision, not a
-// defect. Mirrors the website's gray Archive treatment.
+// Deliberately not red — retirement is an author decision, not a defect.
+// Deprecated (reversible) wears a desaturated slate blue; Deleted (permanent)
+// wears a darker charcoal. Mirrors the website badges and analytics series.
 export function DeprecatedBadge({ className }: { className?: string }) {
   return (
     <ImageChip
       className={cn(
-        'border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground',
+        'border-slate-400/40 bg-slate-400/15 text-slate-600 dark:text-slate-300',
         className,
       )}
     >
@@ -52,12 +53,12 @@ export function DeprecatedBadge({ className }: { className?: string }) {
   );
 }
 
-// Same neutral treatment as DeprecatedBadge; deletion is the permanent variant.
+// See DeprecatedBadge; deletion is the permanent variant.
 export function DeletedBadge({ className }: { className?: string }) {
   return (
     <ImageChip
       className={cn(
-        'border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground',
+        'border-zinc-600/40 bg-zinc-600/15 text-zinc-600 dark:text-zinc-400',
         className,
       )}
     >

@@ -83,30 +83,31 @@ const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
     hoverBg: 'group-hover:bg-red-500/10',
     hoverText: 'group-hover:text-red-600 dark:group-hover:text-red-400',
   },
-  // Neutral gray on purpose — deprecation is an author decision, not a defect.
-  // Deprecated items are hidden from browse unless this facet is selected.
+  // Deliberately not red — retirement is an author decision, not a defect.
+  // Deprecated (reversible) wears slate blue; hidden unless selected.
   deprecated: {
     key: 'deprecated',
     label: 'Deprecated',
     Icon: Archive,
-    iconColor: 'text-muted-foreground',
-    activeText: 'text-foreground',
-    activeBg: 'bg-muted-foreground/10',
-    activePill: 'bg-muted-foreground',
-    hoverBg: 'group-hover:bg-muted-foreground/10',
-    hoverText: 'group-hover:text-foreground',
+    iconColor: 'text-slate-500 dark:text-slate-400',
+    activeText: 'text-slate-600 dark:text-slate-300',
+    activeBg: 'bg-slate-400/15',
+    activePill: 'bg-slate-500',
+    hoverBg: 'group-hover:bg-slate-400/15',
+    hoverText: 'group-hover:text-slate-600 dark:group-hover:text-slate-300',
   },
-  // Same rules as deprecated; deletion is the permanent variant.
+  // Same hide-by-default rule as deprecated; the permanent variant wears a
+  // darker charcoal.
   deleted: {
     key: 'deleted',
     label: 'Deleted',
     Icon: Trash2,
-    iconColor: 'text-muted-foreground',
-    activeText: 'text-foreground',
-    activeBg: 'bg-muted-foreground/10',
-    activePill: 'bg-muted-foreground',
-    hoverBg: 'group-hover:bg-muted-foreground/10',
-    hoverText: 'group-hover:text-foreground',
+    iconColor: 'text-zinc-600 dark:text-zinc-400',
+    activeText: 'text-zinc-700 dark:text-zinc-300',
+    activeBg: 'bg-zinc-600/15',
+    activePill: 'bg-zinc-600',
+    hoverBg: 'group-hover:bg-zinc-600/15',
+    hoverText: 'group-hover:text-zinc-700 dark:group-hover:text-zinc-300',
   },
 };
 

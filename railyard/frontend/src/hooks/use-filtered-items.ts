@@ -69,6 +69,39 @@ function matchesBrowseStatus(
   return false;
 }
 
+// Each count reflects what selecting that facet alone would show: retired
+// items only ever surface under their own facet (Deprecated or Deleted), so
+// they don't inflate other counts; every other status composes (a test item
+// with no compatible version counts under both Test and Incompatible).
+export function computeBrowseStatusCounts(
+  facetItems: readonly TaggedItem[],
+  incompatibleItemKeys: ReadonlySet<string> | undefined,
+): Record<StatusFilter, number> {
+  const counts: Record<StatusFilter, number> = {
+    compatible: 0,
+    test: 0,
+    local: 0,
+    incompatible: 0,
+    deprecated: 0,
+    deleted: 0,
+  };
+  for (const entry of facetItems) {
+    const ownFacet: StatusFilter | null =
+      entry.item.deprecation == null
+        ? null
+        : entry.item.deprecation.deleted === true
+          ? 'deleted'
+          : 'deprecated';
+    for (const status of STATUS_FILTER_VALUES) {
+      if (ownFacet !== null && status !== ownFacet) continue;
+      if (matchesBrowseStatus(entry, status, incompatibleItemKeys)) {
+        counts[status] += 1;
+      }
+    }
+  }
+  return counts;
+}
+
 export function useFilteredItems({
   mods,
   maps,
@@ -148,39 +181,16 @@ export function useFilteredItems({
   // status selection itself, and — per the countFilters convention — not the query.
   const statusCounts = useMemo(
     () =>
-      measureSync('browse.statusCounts', () => {
-        const facetItems = filterTaggedItems({
-          items: registryItems,
-          filters: countFilters,
-          accessors,
-        });
-        const counts: Record<StatusFilter, number> = {
-          compatible: 0,
-          test: 0,
-          local: 0,
-          incompatible: 0,
-          deprecated: 0,
-          deleted: 0,
-        };
-        for (const entry of facetItems) {
-          // Each count reflects what selecting that facet alone would show:
-          // retired items only ever surface under their own facet
-          // (Deprecated or Deleted), so they don't inflate other counts.
-          const ownFacet: StatusFilter | null =
-            entry.item.deprecation == null
-              ? null
-              : entry.item.deprecation.deleted === true
-                ? 'deleted'
-                : 'deprecated';
-          for (const status of STATUS_FILTER_VALUES) {
-            if (ownFacet !== null && status !== ownFacet) continue;
-            if (matchesBrowseStatus(entry, status, incompatibleItemKeys)) {
-              counts[status] += 1;
-            }
-          }
-        }
-        return counts;
-      }),
+      measureSync('browse.statusCounts', () =>
+        computeBrowseStatusCounts(
+          filterTaggedItems({
+            items: registryItems,
+            filters: countFilters,
+            accessors,
+          }),
+          incompatibleItemKeys,
+        ),
+      ),
     [accessors, countFilters, incompatibleItemKeys, registryItems],
   );
 
