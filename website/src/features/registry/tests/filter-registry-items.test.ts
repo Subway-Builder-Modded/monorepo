@@ -23,6 +23,7 @@ function makeItem(overrides: Partial<RegistrySearchItem> = {}): RegistrySearchIt
     population: 500000,
     isTest: false,
     isDeprecated: false,
+    isDeleted: false,
     manifest: {},
     ...overrides,
   };
@@ -154,5 +155,37 @@ describe("filterRegistryItems deprecated visibility", () => {
     ];
     const result = filterRegistryItems(items, "alpha", [], true);
     expect(result.map((i) => i.id)).toEqual(["old-match"]);
+  });
+});
+
+describe("deleted listings", () => {
+  it("excludes deleted items by default and under showDeprecated alone", () => {
+    const items = [
+      makeItem(),
+      makeItem({ id: "old-item", isDeprecated: true }),
+      makeItem({ id: "gone-item", isDeprecated: true, isDeleted: true }),
+    ];
+    expect(filterRegistryItems(items, "", []).map((i) => i.id)).toEqual(["item-a"]);
+    expect(filterRegistryItems(items, "", [], true).map((i) => i.id)).toEqual([
+      "item-a",
+      "old-item",
+    ]);
+  });
+
+  it("surfaces deleted items only under showDeleted", () => {
+    const items = [
+      makeItem(),
+      makeItem({ id: "old-item", isDeprecated: true }),
+      makeItem({ id: "gone-item", isDeprecated: true, isDeleted: true }),
+    ];
+    expect(filterRegistryItems(items, "", [], false, true).map((i) => i.id)).toEqual([
+      "item-a",
+      "gone-item",
+    ]);
+    expect(filterRegistryItems(items, "", [], true, true).map((i) => i.id)).toEqual([
+      "item-a",
+      "old-item",
+      "gone-item",
+    ]);
   });
 });

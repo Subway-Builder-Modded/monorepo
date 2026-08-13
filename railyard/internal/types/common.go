@@ -64,6 +64,8 @@ const (
 	InstallErrorPersistStateFailed         DownloaderErrorType = "install_persist_state_failed"
 	InstallErrorDependencyResolutionFailed DownloaderErrorType = "install_dependency_resolution_failed"
 	InstallErrorIncompatibleGameVersion    DownloaderErrorType = "install_incompatible_game_version"
+	InstallErrorAssetDeprecated            DownloaderErrorType = "install_asset_deprecated"
+	InstallErrorAssetDeleted               DownloaderErrorType = "install_asset_deleted"
 	InstallErrorGameRunning                DownloaderErrorType = "install_game_running"
 	InstallErrorGameVersionUndetectable    DownloaderErrorType = "install_game_version_undetectable"
 	UninstallErrorNotInstalled             DownloaderErrorType = "uninstall_not_installed"

@@ -1,6 +1,12 @@
 import { ImageChip } from '@subway-builder-modded/asset-listings-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
-import { CircleAlert, FlaskConical, HardDrive } from 'lucide-react';
+import {
+  Archive,
+  CircleAlert,
+  FlaskConical,
+  HardDrive,
+  Trash2,
+} from 'lucide-react';
 
 export function LocalBadge({ className }: { className?: string }) {
   return (
@@ -26,6 +32,37 @@ export function IncompatibleBadge({ className }: { className?: string }) {
     >
       <CircleAlert className="h-2.5 w-2.5 shrink-0" />
       Incompatible
+    </ImageChip>
+  );
+}
+
+// Deliberately neutral (not red) — deprecation is an author decision, not a
+// defect. Mirrors the website's gray Archive treatment.
+export function DeprecatedBadge({ className }: { className?: string }) {
+  return (
+    <ImageChip
+      className={cn(
+        'border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground',
+        className,
+      )}
+    >
+      <Archive className="h-2.5 w-2.5 shrink-0" />
+      Deprecated
+    </ImageChip>
+  );
+}
+
+// Same neutral treatment as DeprecatedBadge; deletion is the permanent variant.
+export function DeletedBadge({ className }: { className?: string }) {
+  return (
+    <ImageChip
+      className={cn(
+        'border-muted-foreground/30 bg-muted-foreground/10 text-muted-foreground',
+        className,
+      )}
+    >
+      <Trash2 className="h-2.5 w-2.5 shrink-0" />
+      Deleted
     </ImageChip>
   );
 }

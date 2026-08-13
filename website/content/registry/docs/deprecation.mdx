@@ -1,20 +1,30 @@
 ---
-title: Deprecating Content
-description: Retire an asset from downloads and browse while keeping its history and attribution.
+title: Deprecation & Deletion
+description: Retire an asset reversibly (deprecation) or permanently (deletion), keeping its history and attribution either way.
 icon: Archive
 ---
 
-Deprecation retires an asset without deleting it. A deprecated asset:
+There are two ways to retire an asset, and they differ in exactly one thing — whether you can change your mind later:
+
+- **Deprecation** retires an asset _reversibly_. You can restore it at any time.
+- **Deletion** retires an asset _permanently_. It can never be restored — returning the content to the Registry would require publishing a new listing.
+
+Everything else is the same. A deprecated or deleted asset:
 
 - is _no longer downloadable_ from Railyard or the website;
-- is _hidden from browse and search results by default_ — it remains viewable behind the _Deprecated_ filter, marked with a gray badge and always sorted last;
+- is _hidden from browse and search results by default_ — it remains viewable behind its own filter (_Deprecated_ or _Deleted_), marked with a gray badge and always sorted last;
 - is _left otherwise unchanged_: the listing page, download history, and author attribution remain constant, and download counts stay credited to the author and/or caretakers.
 
-Deprecation is not deletion, and it is fully reversible.
+|                                         | Deprecated                          | Deleted                          |
+| --------------------------------------- | ----------------------------------- | -------------------------------- |
+| Downloadable                            | No                                  | No                               |
+| Visible in browse by default            | No (behind the _Deprecated_ filter) | No (behind the _Deleted_ filter) |
+| History, credits & download counts kept | Yes                                 | Yes                              |
+| Reversible                              | **Yes**                             | **No — permanent**               |
 
-## Who can deprecate {#who-can-deprecate}
+## Who can deprecate or delete {#who-can-deprecate}
 
-Only the asset's _original publisher_ or its _active [caretaker](/registry/docs/caretakers)_ can deprecate it (or reverse a deprecation). Ordinary [collaborators](/registry/docs/collaborators) cannot.
+Only the asset's _original publisher_ or its _active [caretaker](/registry/docs/caretakers)_ can deprecate or delete it (or reverse a deprecation). Ordinary [collaborators](/registry/docs/collaborators) cannot.
 
 ## How to deprecate an asset {#how-to-deprecate}
 
@@ -25,9 +35,23 @@ Only the asset's _original publisher_ or its _active [caretaker](/registry/docs/
 
 If validation fails, edit the issue and comment `revalidate` to retry.
 
+## How to delete an asset {#how-to-delete}
+
+Deletion uses its own form — **Issues** > **New Issue** > **Delete an Asset** — with the same flow and authorization rule as deprecation, plus a required acknowledgement that the action is permanent.
+
+Deleting an _already-deprecated_ asset is allowed: it makes the deprecation permanent. The reverse is not — a deleted asset can never go back to being merely deprecated.
+
+:::deprecated
+
+**Deletion cannot be undone.** There is no restoration flow, and maintainers will not restore deleted content. If you may ever want the asset back, deprecate it instead — deprecation gives you everything deletion does except the permanence.
+
+:::
+
 ## Restoring a deprecated asset {#restoring}
 
 Deprecation is reversible through the same flow: **Issues** > **New Issue** > **Remove Asset Deprecation**. The same authorization rule applies. Once the resulting pull request is merged, the asset returns to normal: downloadable, visible in browse by default, exactly as before.
+
+This flow only works for deprecated assets — deleted assets are refused.
 
 :::tip
 

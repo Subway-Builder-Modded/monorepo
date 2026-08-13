@@ -14,16 +14,19 @@ export function collectTags(items: RegistrySearchItem[]): string[] {
 
 /** Filter registry items by search query and tag selection.
  * All matches are case-insensitive.
- * Deprecated items are excluded unless `showDeprecated` is set — they only
- * ever surface behind the explicit browse toggle.
+ * Deprecated and deleted items are excluded unless their respective toggle
+ * is set — each only ever surfaces behind its own explicit browse toggle.
  */
 export function filterRegistryItems(
   items: RegistrySearchItem[],
   query: string,
   selectedTags: string[],
   showDeprecated = false,
+  showDeleted = false,
 ): RegistrySearchItem[] {
-  const visibleItems = showDeprecated ? items : items.filter((item) => !item.isDeprecated);
+  const visibleItems = items.filter((item) =>
+    item.isDeleted ? showDeleted : item.isDeprecated ? showDeprecated : true,
+  );
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length > 0;
   const hasTags = selectedTags.length > 0;

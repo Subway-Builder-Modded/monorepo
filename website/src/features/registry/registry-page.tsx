@@ -176,6 +176,11 @@ export function RegistryPage() {
     [setParams],
   );
 
+  const handleShowDeletedChange = useCallback(
+    (showDeleted: boolean) => setParams({ showDeleted, page: 1 }),
+    [setParams],
+  );
+
   const handlePageSizeChange = useCallback(
     (pageSize: number) => setParams({ pageSize, page: 1 }),
     [setParams],
@@ -214,6 +219,8 @@ export function RegistryPage() {
         pageSize={params.pageSize}
         showDeprecated={params.showDeprecated}
         onShowDeprecatedChange={handleShowDeprecatedChange}
+        showDeleted={params.showDeleted}
+        onShowDeletedChange={handleShowDeletedChange}
         onTypeChange={handleTypeChange}
         onQueryChange={handleQueryChange}
         onTagToggle={handleTagToggle}

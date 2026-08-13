@@ -23,5 +23,6 @@ export function toRegistryCardData(
     countryEmoji: item.countryEmoji,
     population: item.population,
     isDeprecated: item.isDeprecated,
+    isDeleted: item.isDeleted,
   };
 }

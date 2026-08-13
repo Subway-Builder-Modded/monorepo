@@ -4,11 +4,13 @@ import {
 } from '@subway-builder-modded/asset-listings-ui';
 import { cn, Separator } from '@subway-builder-modded/shared-ui';
 import {
+  Archive,
   Check,
   CircleAlert,
   FlaskConical,
   HardDrive,
   type LucideIcon,
+  Trash2,
 } from 'lucide-react';
 
 import type { StatusFilter } from '@/stores/library-store';
@@ -30,6 +32,8 @@ const OPTION_ORDER: StatusFilter[] = [
   'test',
   'local',
   'incompatible',
+  'deprecated',
+  'deleted',
 ];
 
 const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
@@ -78,6 +82,31 @@ const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
     activePill: 'bg-red-500',
     hoverBg: 'group-hover:bg-red-500/10',
     hoverText: 'group-hover:text-red-600 dark:group-hover:text-red-400',
+  },
+  // Neutral gray on purpose — deprecation is an author decision, not a defect.
+  // Deprecated items are hidden from browse unless this facet is selected.
+  deprecated: {
+    key: 'deprecated',
+    label: 'Deprecated',
+    Icon: Archive,
+    iconColor: 'text-muted-foreground',
+    activeText: 'text-foreground',
+    activeBg: 'bg-muted-foreground/10',
+    activePill: 'bg-muted-foreground',
+    hoverBg: 'group-hover:bg-muted-foreground/10',
+    hoverText: 'group-hover:text-foreground',
+  },
+  // Same rules as deprecated; deletion is the permanent variant.
+  deleted: {
+    key: 'deleted',
+    label: 'Deleted',
+    Icon: Trash2,
+    iconColor: 'text-muted-foreground',
+    activeText: 'text-foreground',
+    activeBg: 'bg-muted-foreground/10',
+    activePill: 'bg-muted-foreground',
+    hoverBg: 'group-hover:bg-muted-foreground/10',
+    hoverText: 'group-hover:text-foreground',
   },
 };
 

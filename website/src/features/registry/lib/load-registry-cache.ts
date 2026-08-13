@@ -410,6 +410,7 @@ export async function loadRegistryItemsForType(
   for (const { id, manifest } of validEntries) {
     if (manifest.is_test === true) continue;
     const isDeprecated = manifest.deprecation !== undefined;
+    const isDeleted = manifest.deprecation?.deleted === true;
     if (!isDeprecated && !hasCompleteVersion(integrity.listings?.[id])) continue;
     const authorId = manifest.author?.trim() || null;
 
@@ -463,6 +464,7 @@ export async function loadRegistryItemsForType(
           : null,
       isTest: false,
       isDeprecated,
+      isDeleted,
       manifest,
     });
   }

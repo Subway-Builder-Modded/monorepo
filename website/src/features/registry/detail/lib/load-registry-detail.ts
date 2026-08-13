@@ -42,6 +42,7 @@ type RawManifest = {
     since?: string;
     by_github_id?: number;
     reason?: string;
+    deleted?: boolean;
   };
 };
 

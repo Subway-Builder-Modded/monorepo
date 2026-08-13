@@ -93,8 +93,14 @@ export type RegistryAnalyticsHistoryPoint = {
     maps: number;
     mods: number;
   };
-  /** Listings deprecated on this date (manifest deprecation.since). */
+  /** Listings deprecated (not deleted) on this date (manifest deprecation.since). */
   deprecations: {
+    total: number;
+    maps: number;
+    mods: number;
+  };
+  /** Listings permanently deleted on this date (deprecation.since with deleted=true). */
+  deletions: {
     total: number;
     maps: number;
     mods: number;
@@ -336,6 +342,11 @@ function getDeprecationDate(item: RegistryAnalyticsItem): string | null {
   return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
 }
 
+function isDeletedItem(item: RegistryAnalyticsItem): boolean {
+  const manifest = item.manifest as { deprecation?: { deleted?: boolean } };
+  return manifest?.deprecation?.deleted === true;
+}
+
 function getFirstActivityDate(row: CsvRow, dateHeaders: string[]): string | null {
   for (const dateHeader of dateHeaders) {
     if (getNumber(row[dateHeader]) > 0) {
@@ -368,7 +379,7 @@ function normalizeHistory(
   const validItemsById = buildValidItemsById(items);
   const downloadsByDate = new Map<
     string,
-    Pick<RegistryAnalyticsHistoryPoint, "downloads" | "listings" | "deprecations">
+    Pick<RegistryAnalyticsHistoryPoint, "downloads" | "listings" | "deprecations" | "deletions">
   >();
 
   for (const dateHeader of dateHeaders) {
@@ -376,6 +387,7 @@ function normalizeHistory(
       downloads: { total: 0, maps: 0, mods: 0 },
       listings: { total: 0, maps: 0, mods: 0 },
       deprecations: { total: 0, maps: 0, mods: 0 },
+      deletions: { total: 0, maps: 0, mods: 0 },
     });
   }
 
@@ -391,8 +403,9 @@ function normalizeHistory(
     const deprecationDate = getDeprecationDate(item);
     const deprecationDay = deprecationDate ? downloadsByDate.get(deprecationDate) : undefined;
     if (deprecationDay) {
-      deprecationDay.deprecations.total += 1;
-      deprecationDay.deprecations[typeKey] += 1;
+      const bucket = isDeletedItem(item) ? deprecationDay.deletions : deprecationDay.deprecations;
+      bucket.total += 1;
+      bucket[typeKey] += 1;
     }
   }
 
@@ -432,6 +445,7 @@ function normalizeHistory(
         },
         listings: day.listings,
         deprecations: day.deprecations,
+        deletions: day.deletions,
       };
     })
     .sort((left, right) => left.date.localeCompare(right.date));

@@ -37,6 +37,7 @@ function makeItem(id: string, manifest: unknown): RegistrySearchItem {
     population: null,
     isTest: false,
     isDeprecated: false,
+    isDeleted: false,
     manifest,
   };
 }

@@ -1,5 +1,15 @@
 package types
 
+// Deprecation is the author/caretaker-issued retirement record on a listing
+// manifest. Presence marks the asset deprecated (never installable);
+// Deleted=true makes the retirement permanent.
+type Deprecation struct {
+	Since      string `json:"since"`
+	ByGithubID int64  `json:"by_github_id"`
+	Reason     string `json:"reason,omitempty"`
+	Deleted    bool   `json:"deleted,omitempty"`
+}
+
 // RawManifest represents shared manifest fields as stored on disk in the registry repository.
 // This shape is intentionally distinct from AssetManifest because `AuthorID` is not yet enriched.
 type RawManifest struct {
@@ -16,6 +26,7 @@ type RawManifest struct {
 	Update        UpdateConfig `json:"update"`
 	IsTest        bool         `json:"is_test,omitempty"`
 	SearchAliases []string     `json:"search_aliases,omitempty"`
+	Deprecation   *Deprecation `json:"deprecation,omitempty"`
 }
 
 type RawModManifest struct {
