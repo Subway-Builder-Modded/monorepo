@@ -187,11 +187,6 @@ describe("deleted partition", () => {
       makeItem({ id: "gone-tiny", totalDownloads: 1, isDeprecated: true, isDeleted: true }),
     ];
     const sorted = sortRegistryItems(items, "downloads", "desc", 0);
-    expect(sorted.map((i) => i.id)).toEqual([
-      "active-small",
-      "old-item",
-      "gone-big",
-      "gone-tiny",
-    ]);
+    expect(sorted.map((i) => i.id)).toEqual(["active-small", "old-item", "gone-big", "gone-tiny"]);
   });
 });

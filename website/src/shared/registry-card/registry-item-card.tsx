@@ -595,7 +595,11 @@ function RegistryCardFull({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <TypeBadge typeConfig={typeConfig} size="md" />
-              {data.isDeleted ? <DeletedBadge size="md" /> : data.isDeprecated ? <DeprecatedBadge size="md" /> : null}
+              {data.isDeleted ? (
+                <DeletedBadge size="md" />
+              ) : data.isDeprecated ? (
+                <DeprecatedBadge size="md" />
+              ) : null}
             </div>
             <div className="flex items-center gap-3">
               {data.population !== null && <PopulationCount count={data.population} />}

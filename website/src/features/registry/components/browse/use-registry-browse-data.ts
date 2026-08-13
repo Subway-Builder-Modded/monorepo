@@ -69,10 +69,7 @@ export function useRegistryBrowseData({
     [typeItems],
   );
 
-  const availableTags = useMemo(
-    () => collectTags(typeItems.filter(isShown)),
-    [typeItems, isShown],
-  );
+  const availableTags = useMemo(() => collectTags(typeItems.filter(isShown)), [typeItems, isShown]);
 
   const filteredItems = useMemo(
     () => filterRegistryItems(typeItems, deferredQuery, selectedTags, showDeprecated, showDeleted),
