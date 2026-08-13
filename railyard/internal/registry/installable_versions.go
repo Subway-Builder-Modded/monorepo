@@ -37,6 +37,35 @@ func (r *Registry) AssetMissingInstallableVersion(assetType types.AssetType, ass
 	return !ok || !listing.HasCompleteVersion
 }
 
+// assetDeprecation returns the asset's retirement record from its retained
+// manifest, or nil when the asset is unknown or not retired.
+func (r *Registry) assetDeprecation(assetType types.AssetType, assetID string) *types.Deprecation {
+	switch assetType {
+	case types.AssetTypeMod:
+		if manifest, err := r.GetMod(assetID); err == nil {
+			return manifest.Deprecation
+		}
+	case types.AssetTypeMap:
+		if manifest, err := r.GetMap(assetID); err == nil {
+			return manifest.Deprecation
+		}
+	}
+	return nil
+}
+
+// AssetDeleted reports whether the asset was permanently deleted by its author.
+func (r *Registry) AssetDeleted(assetType types.AssetType, assetID string) bool {
+	deprecation := r.assetDeprecation(assetType, assetID)
+	return deprecation != nil && deprecation.Deleted
+}
+
+// AssetDeprecatedNotDeleted reports whether the asset is deprecated but not
+// deleted — the reversible retirement state that preserves local installs.
+func (r *Registry) AssetDeprecatedNotDeleted(assetType types.AssetType, assetID string) bool {
+	deprecation := r.assetDeprecation(assetType, assetID)
+	return deprecation != nil && !deprecation.Deleted
+}
+
 // resolveAssetUpdateSource resolves the raw update source for an asset manifest.
 func (r *Registry) resolveAssetUpdateSource(assetType types.AssetType, assetID string) (string, string, error) {
 	switch assetType {

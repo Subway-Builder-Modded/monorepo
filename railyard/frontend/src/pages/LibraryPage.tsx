@@ -238,6 +238,9 @@ export function LibraryPage() {
       const manifest = installed.isLocal
         ? localModManifestFromInstalled(installed)
         : modManifestById.get(installed.id);
+      // Deleted assets never render here: reconcile purges them, and this
+      // guards the window between a registry refresh and the purge landing.
+      if (manifest?.deprecation?.deleted === true) return [];
       return manifest
         ? [
             {
@@ -255,6 +258,7 @@ export function LibraryPage() {
       const manifest = installed.isLocal
         ? localMapManifestFromInstalled(installed)
         : mapManifestById.get(installed.id);
+      if (manifest?.deprecation?.deleted === true) return [];
       if (manifest) {
         return [
           {

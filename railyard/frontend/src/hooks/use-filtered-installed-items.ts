@@ -69,6 +69,10 @@ function matchesStatusFilter(
   if (sf === 'compatible')
     return isInstalledCompatible(gameVersion, item.constraints ?? []) !== false;
   if (sf === 'test') return !item.isLocal && item.item.is_test === true;
+  // Only the reversible deprecated state can appear in the Library; deleted
+  // assets are purged and filtered out before reaching it.
+  if (sf === 'deprecated')
+    return !item.isLocal && item.item.deprecation != null;
   return false;
 }
 
@@ -83,9 +87,8 @@ export function countInstalledStatuses(
     test: 0,
     local: 0,
     incompatible: 0,
-    // Library items are already installed; the deprecated and deleted facets
-    // never apply.
     deprecated: 0,
+    // Invariant: deleted assets are purged and never rendered in the Library.
     deleted: 0,
   };
   for (const item of items) {

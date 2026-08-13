@@ -412,6 +412,17 @@ func (s *UserProfiles) reconcileSubscriptionVersion(
 ) (*types.SubscriptionOperation, *types.UserProfilesError) {
 	pinned := strings.TrimSpace(pinnedVersion)
 
+	// Permanently deleted assets are purged unconditionally — they must never
+	// survive in a profile, regardless of what integrity or version lookups say.
+	if s.Registry.AssetDeleted(assetType, assetID) {
+		return s.purgeNonInstallableSubscription(profile, profileID, assetType, assetID, pinned)
+	}
+	// Deprecated (not deleted) assets keep their subscription and installed
+	// files: deprecation is reversible and only blocks new installs.
+	if s.Registry.AssetDeprecatedNotDeleted(assetType, assetID) {
+		return nil, nil
+	}
+
 	// Resolve installable versions from the integrity report.
 	installable, lookupErr := s.Registry.GetInstallableVersionsFromIntegrity(assetType, assetID)
 	if lookupErr == nil {

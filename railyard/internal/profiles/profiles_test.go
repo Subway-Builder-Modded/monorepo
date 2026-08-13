@@ -101,6 +101,7 @@ type registryFixture struct {
 	failVersions       bool
 	missingModManifest bool
 	incompleteVersions []string
+	deprecation        *types.Deprecation
 }
 
 func configureConfig(t *testing.T, cfg *config.Config) {
@@ -146,6 +147,7 @@ func mockRegistry(t *testing.T, reg *registry.Registry, fixtures []registryFixtu
 			FailVersions:       f.failVersions,
 			MissingModManifest: f.missingModManifest,
 			IncompleteVersions: f.incompleteVersions,
+			Deprecation:        f.deprecation,
 		})
 	}
 	return registrytest.MockRegistryServer(t, reg, sharedFixtures)

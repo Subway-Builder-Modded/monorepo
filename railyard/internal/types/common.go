@@ -103,6 +103,10 @@ var autoPurgeDownloadErrorTypes = map[DownloaderErrorType]struct{}{
 	InstallErrorVersionNotFound: {},
 	// Confirmed incompatibility (game detected, constraint violated): purge so the user is not saddled with an asset that silently never installs.
 	InstallErrorIncompatibleGameVersion: {},
+	// Permanent deletion is a terminal verdict: purge rather than fail sync on
+	// every launch. InstallErrorAssetDeprecated is deliberately NOT purged —
+	// deprecation is reversible and preserves installed state.
+	InstallErrorAssetDeleted: {},
 	// IMPORTANT: InstallErrorGameVersionUndetectable is deliberately NOT purged — an undetectable version (misconfigured exe, early startup) is an unknown, not an incompatibility verdict
 	// In this case the install is blocked but the subscription is preserved for retry.
 }
