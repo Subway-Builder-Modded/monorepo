@@ -262,6 +262,11 @@ export function VersionsTab({
     return <p className="text-sm text-muted-foreground">No published versions are available.</p>;
   }
 
+  const unavailableVersionTitle = (availability: "retired" | "removed") =>
+    availability === "retired"
+      ? "The author retired this release; its files can no longer be downloaded."
+      : "This release was removed upstream; its files can no longer be downloaded.";
+
   if (selectedVersionId) {
     return (
       <div className="space-y-4">
@@ -293,11 +298,27 @@ export function VersionsTab({
                   <Download className="size-4" />
                 </a>
               ) : (
-                <span className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground/45">
+                <span
+                  className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground/45"
+                  title={
+                    selectedVersion.availability
+                      ? unavailableVersionTitle(selectedVersion.availability)
+                      : undefined
+                  }
+                >
                   <Download className="size-4" />
                 </span>
               )}
             </header>
+
+            {selectedVersion.availability && (
+              <p className="mb-3 text-sm text-muted-foreground">
+                This version is no longer available for download
+                {selectedVersion.availability === "retired"
+                  ? " — the author retired this release."
+                  : " — it was removed upstream."}
+              </p>
+            )}
 
             {isChangelogLoading ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -343,6 +364,14 @@ export function VersionsTab({
                     >
                       {version.version}
                     </Link>
+                    {version.availability && (
+                      <span
+                        className="ml-2 inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+                        title={unavailableVersionTitle(version.availability)}
+                      >
+                        No longer available
+                      </span>
+                    )}
                   </td>
                   <td className="border-t border-border/30 px-4 py-2.5 text-foreground/85">
                     {formatRegistryDate(version.releaseDate)}
@@ -362,7 +391,14 @@ export function VersionsTab({
                           <Download className="size-4" />
                         </a>
                       ) : (
-                        <span className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground/45">
+                        <span
+                          className="inline-flex h-7 w-7 items-center justify-center text-muted-foreground/45"
+                          title={
+                            version.availability
+                              ? unavailableVersionTitle(version.availability)
+                              : undefined
+                          }
+                        >
                           <Download className="size-4" />
                         </span>
                       )}

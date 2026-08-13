@@ -152,18 +152,35 @@ function resolveVersions(
   versionDownloads: Record<string, number>,
 ): RegistryDetailVersion[] {
   const versions = Object.entries(listingVersions)
-    .filter(([, meta]) => meta.is_complete === true)
-    .map(([version, meta]) => ({
-      version,
-      releaseDate: versionReleaseDates[version] ?? meta.checked_at ?? null,
-      downloads:
-        typeof versionDownloads[version] === "number"
-          ? Math.max(0, versionDownloads[version])
-          : null,
-      downloadUrl: meta.source?.download_url?.trim() || null,
-      sourceRepo: meta.source?.repo?.trim() || null,
-      sourceTag: meta.source?.tag?.trim() || null,
-    }));
+    .filter(
+      ([, meta]) =>
+        meta.is_complete === true ||
+        meta.availability === "retired" ||
+        meta.availability === "removed",
+    )
+    .map(([version, meta]) => {
+      const availability: "retired" | "removed" | null =
+        meta.is_complete === true
+          ? null
+          : meta.availability === "retired"
+            ? "retired"
+            : meta.availability === "removed"
+              ? "removed"
+              : null;
+      return {
+        version,
+        releaseDate: versionReleaseDates[version] ?? meta.released_at ?? meta.checked_at ?? null,
+        downloads:
+          typeof versionDownloads[version] === "number"
+            ? Math.max(0, versionDownloads[version])
+            : null,
+        // Unavailable versions never expose a (dead) download URL.
+        downloadUrl: availability ? null : meta.source?.download_url?.trim() || null,
+        sourceRepo: meta.source?.repo?.trim() || null,
+        sourceTag: meta.source?.tag?.trim() || null,
+        availability,
+      };
+    });
 
   versions.sort((left, right) => {
     return right.version.localeCompare(left.version, undefined, {
@@ -386,7 +403,9 @@ export function normalizeRegistryDetail(data: RegistryDetailLoadedData): Registr
       data.manifest.gallery,
     ),
     versions,
-    latestVersion: versions[0]?.version ?? null,
+    // Newest downloadable version — display-only unavailable entries (e.g. a
+    // rolled-back release that sorts highest) must never present as latest.
+    latestVersion: versions.find((v) => !v.availability)?.version ?? null,
     latestDownloadUrl,
     publishedDate: integrityStats.publishedDate,
     updatedDate: integrityStats.updatedDate,

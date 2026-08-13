@@ -28,6 +28,8 @@ export type RegistryDetailVersion = {
   downloadUrl: string | null;
   sourceRepo: string | null;
   sourceTag: string | null;
+  /** Null for downloadable versions; "retired"/"removed" for display-only entries whose artifacts are gone. */
+  availability: "retired" | "removed" | null;
 };
 
 export type RegistryDetailIntegritySource = {
@@ -41,6 +43,8 @@ export type RegistryDetailIntegritySource = {
 export type RegistryDetailIntegrityVersion = {
   is_complete?: boolean;
   checked_at?: string;
+  released_at?: string;
+  availability?: string;
   source?: RegistryDetailIntegritySource;
 };
 
