@@ -50,6 +50,117 @@ func TestGetInstallableVersions(t *testing.T) {
 	require.Equal(t, "1.0.0", filtered[1].Version)
 }
 
+func TestGetDisplayableVersionsIncludesUnavailableEntries(t *testing.T) {
+	reg := newTestRegistry(t)
+	registrytest.SetManifestsForTest(t, reg, nil, []types.MapManifest{
+		func() types.MapManifest {
+			manifest := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+			manifest.Update = types.UpdateConfig{
+				Type: "custom",
+				URL:  "https://example.com/update.json",
+			}
+			return manifest
+		}(),
+	})
+	reg.integrityMaps = types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			"map-a": {
+				HasCompleteVersion: true,
+				CompleteVersions:   []string{"1.2.0"},
+				Versions: map[string]types.IntegrityVersionStatus{
+					"1.2.0": {IsComplete: true},
+					// Retired: still enumerated by the author's update.json.
+					"1.1.0": {IsComplete: false, Availability: "retired"},
+					// Removed: no longer enumerated upstream at all.
+					"1.0.0": {
+						IsComplete:   false,
+						Availability: "removed",
+						GameVersion:  ">=1.0.0",
+						ReleasedAt:   "2026-05-01T00:00:00.000Z",
+					},
+					// Plain incomplete (broken) version: never displayed.
+					"2.0.0-broken": {IsComplete: false},
+				},
+			},
+		},
+	}
+	reg.versions.set("custom|https://example.com/update.json", []types.VersionInfo{
+		{Version: "1.2.0", Changelog: "Latest", DownloadURL: "https://example.com/1.2.0.zip"},
+		{Version: "1.1.0", Changelog: "Retired changelog", Date: "2026-06-01", DownloadURL: ""},
+	})
+
+	displayable, err := reg.GetDisplayableVersions(types.AssetTypeMap, "map-a")
+	require.NoError(t, err)
+	require.Len(t, displayable, 3)
+
+	// Semver-descending: 1.2.0 (live), 1.1.0 (retired), 1.0.0 (removed).
+	require.Equal(t, "1.2.0", displayable[0].Version)
+	require.Empty(t, displayable[0].Availability)
+
+	retired := displayable[1]
+	require.Equal(t, "1.1.0", retired.Version)
+	require.Equal(t, "retired", retired.Availability)
+	require.Equal(t, "Retired changelog", retired.Changelog)
+	require.Equal(t, "2026-06-01", retired.Date)
+	require.Empty(t, retired.DownloadURL)
+	require.Empty(t, retired.MapBuildingsConstraint)
+
+	removed := displayable[2]
+	require.Equal(t, "1.0.0", removed.Version)
+	require.Equal(t, "removed", removed.Availability)
+	require.Equal(t, "2026-05-01T00:00:00.000Z", removed.Date)
+	require.Equal(t, ">=1.0.0", removed.GameVersion)
+	require.Empty(t, removed.DownloadURL)
+
+	// Install flows keep the complete-only view.
+	installable, err := reg.GetInstallableVersions(types.AssetTypeMap, "map-a")
+	require.NoError(t, err)
+	require.Len(t, installable, 1)
+	require.Equal(t, "1.2.0", installable[0].Version)
+}
+
+func TestGetDisplayableVersionsClearsDeadArtifactURLs(t *testing.T) {
+	reg := newTestRegistry(t)
+	registrytest.SetManifestsForTest(t, reg, nil, []types.MapManifest{
+		func() types.MapManifest {
+			manifest := registrytest.MockMapManifestWithIDAndCode("map-a", "AAA")
+			manifest.Update = types.UpdateConfig{
+				Type: "custom",
+				URL:  "https://example.com/update.json",
+			}
+			return manifest
+		}(),
+	})
+	reg.integrityMaps = types.RegistryIntegrityReport{
+		SchemaVersion: 1,
+		GeneratedAt:   "1970-01-01T00:00:00Z",
+		Listings: map[string]types.IntegrityListing{
+			"map-a": {
+				HasCompleteVersion: true,
+				CompleteVersions:   []string{"1.1.0"},
+				Versions: map[string]types.IntegrityVersionStatus{
+					"1.1.0": {IsComplete: true},
+					"1.0.0": {IsComplete: false, Availability: "retired"},
+				},
+			},
+		},
+	}
+	// Upstream still lists a (dead) download URL for the retired version.
+	reg.versions.set("custom|https://example.com/update.json", []types.VersionInfo{
+		{Version: "1.1.0", DownloadURL: "https://example.com/1.1.0.zip"},
+		{Version: "1.0.0", DownloadURL: "https://example.com/dead.zip", SHA256: "abc", Manifest: "https://example.com/m.json"},
+	})
+
+	displayable, err := reg.GetDisplayableVersions(types.AssetTypeMap, "map-a")
+	require.NoError(t, err)
+	require.Len(t, displayable, 2)
+	require.Empty(t, displayable[1].DownloadURL)
+	require.Empty(t, displayable[1].SHA256)
+	require.Empty(t, displayable[1].Manifest)
+}
+
 func TestGetInstallableVersionsRejectsMissingOrIncompleteListings(t *testing.T) {
 	reg := newTestRegistry(t)
 	registrytest.SetManifestsForTest(t, reg, nil, []types.MapManifest{
