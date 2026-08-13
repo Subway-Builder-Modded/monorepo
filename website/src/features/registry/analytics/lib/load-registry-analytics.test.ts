@@ -67,6 +67,7 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               publishedAt: Date.UTC(2026, 2, 11),
               totalDownloads: 10,
               manifest: {
+                location: "east-asia",
                 grid_statistics: {
                   detail: {
                     playableAreaKm2: 42,
@@ -183,6 +184,23 @@ describe("loadRegistryAnalyticsData", () => {
       { bucket: "2026-03-12T04:00Z", downloads: { total: 2, maps: 2, mods: 0 } },
       { bucket: "2026-03-12T05:00Z", downloads: { total: 4, maps: 1, mods: 3 } },
     ]);
+    // Per-entity hourly series carry the same listing→entity assignments as
+    // their daily siblings, so the 1d/3d entity charts have data to draw.
+    expect(data.listings.hourlyDownloads.entities.map((entity) => entity.id).sort()).toEqual([
+      "map-a",
+      "map-b",
+      "mod-a",
+    ]);
+    expect(data.countries.hourlyDownloads.entities.map((entity) => entity.id)).toEqual(["JP"]);
+    expect(
+      data.countries.hourlyDownloads.entities[0].byBucket.get("2026-03-12T04:00Z"),
+    ).toEqual({ maps: 2, mods: 0 });
+    expect(data.authors.hourlyDownloads.entities.map((entity) => entity.id).sort()).toEqual([
+      "author-a",
+      "author-b",
+    ]);
+    expect(data.projects.hourlyDownloads.entities.length).toBeGreaterThan(0);
+    expect(data.regions.hourlyDownloads.entities.length).toBeGreaterThan(0);
     expect(data.history[0]).toMatchObject({
       date: "2026-03-11",
       downloads: { total: 4, maps: 4, mods: 0 },
