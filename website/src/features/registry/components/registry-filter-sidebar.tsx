@@ -61,10 +61,11 @@ type RegistryFilterSidebarProps = {
   onCollapsedChange?: (collapsed: boolean) => void;
 };
 
-/** Visibility section: an exclusive three-way selector mirroring the app's
- * Asset Status facet — Available (default), Deprecated, Deleted. The retired
- * options render only when the current type has such listings (or one is
- * already selected via URL); the whole section hides when neither does. */
+/** Listing Status: an exclusive selector over the registry-side lifecycle of
+ * a listing — Available (default), Deprecated, Deleted — mirroring the app.
+ * The retired options render only when the current type has such listings (or
+ * one is already selected via URL); the whole section hides when neither
+ * does. */
 function VisibilitySection({
   visibility,
   deprecatedCount,
@@ -120,8 +121,8 @@ function VisibilitySection({
     <>
       <SideRailDivider className="my-2 opacity-50" />
 
-      <section className="space-y-2" aria-label="Visibility">
-        <p className={cn("px-1", SECTION_LABEL_CLASS)}>Visibility</p>
+      <section className="space-y-2" aria-label="Listing status">
+        <p className={cn("px-1", SECTION_LABEL_CLASS)}>Listing Status</p>
 
         {options
           .filter((option) => option.show)
