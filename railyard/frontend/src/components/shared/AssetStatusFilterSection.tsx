@@ -96,8 +96,7 @@ const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
     hoverBg: 'group-hover:bg-muted-foreground/10',
     hoverText: 'group-hover:text-foreground',
   },
-  // Same neutral treatment and hide-by-default rule as Deprecated; deletion
-  // is the permanent variant.
+  // Same rules as deprecated; deletion is the permanent variant.
   deleted: {
     key: 'deleted',
     label: 'Deleted',

@@ -52,8 +52,7 @@ export function DeprecatedBadge({ className }: { className?: string }) {
   );
 }
 
-// Same neutral treatment as Deprecated (also an author decision), distinct
-// icon/label: deletion is permanent where deprecation is reversible.
+// Same neutral treatment as DeprecatedBadge; deletion is the permanent variant.
 export function DeletedBadge({ className }: { className?: string }) {
   return (
     <ImageChip

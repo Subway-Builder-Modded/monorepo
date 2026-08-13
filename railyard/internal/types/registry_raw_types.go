@@ -1,9 +1,8 @@
 package types
 
-// Deprecation is the author/caretaker-issued deprecation record on a listing
-// manifest. Presence marks the asset deprecated: it is never downloadable and
-// only surfaces in browse behind the Deprecated status facet. Deleted=true
-// upgrades that to permanent deletion (never restorable; own Deleted facet).
+// Deprecation is the author/caretaker-issued retirement record on a listing
+// manifest. Presence marks the asset deprecated (never installable);
+// Deleted=true makes the retirement permanent.
 type Deprecation struct {
 	Since      string `json:"since"`
 	ByGithubID int64  `json:"by_github_id"`
