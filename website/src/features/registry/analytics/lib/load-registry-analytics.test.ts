@@ -192,9 +192,10 @@ describe("loadRegistryAnalyticsData", () => {
       "mod-a",
     ]);
     expect(data.countries.hourlyDownloads.entities.map((entity) => entity.id)).toEqual(["JP"]);
-    expect(
-      data.countries.hourlyDownloads.entities[0].byBucket.get("2026-03-12T04:00Z"),
-    ).toEqual({ maps: 2, mods: 0 });
+    expect(data.countries.hourlyDownloads.entities[0].byBucket.get("2026-03-12T04:00Z")).toEqual({
+      maps: 2,
+      mods: 0,
+    });
     expect(data.authors.hourlyDownloads.entities.map((entity) => entity.id).sort()).toEqual([
       "author-a",
       "author-b",

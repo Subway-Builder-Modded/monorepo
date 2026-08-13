@@ -72,10 +72,7 @@ export function formatHourlyBucketLabel(bucket: string, period: RegistryAnalytic
 }
 
 /** Sparse ticks for hourly-derived charts: every point at 1d, day boundaries at 3d. */
-export function getHourlyChartTicks(
-  labels: string[],
-  period: RegistryAnalyticsPeriodId,
-): string[] {
+export function getHourlyChartTicks(labels: string[], period: RegistryAnalyticsPeriodId): string[] {
   return period === "1d" ? labels : labels.filter((label) => label.endsWith("00:00"));
 }
 
@@ -996,7 +993,10 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       authorLoginByGithubId.set(author.githubId, author.id);
     }
   }
-  const creditWindowsByListing = buildListingCreditWindows(itemsByTypeRecord, authorLoginByGithubId);
+  const creditWindowsByListing = buildListingCreditWindows(
+    itemsByTypeRecord,
+    authorLoginByGithubId,
+  );
   const authorDaily = buildAuthorDailyDownloadSeries({
     dailyRows: byDayRows,
     items: allItems,

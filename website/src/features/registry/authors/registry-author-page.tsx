@@ -978,7 +978,9 @@ function AuthorDownloadHistory({
         ) : null}
         <MultiSeriesChartCard
           title={
-            hourlyMode ? "Downloads · 4h Buckets (UTC)" : `${getGrainLabel(bucketed.grain)} Downloads`
+            hourlyMode
+              ? "Downloads · 4h Buckets (UTC)"
+              : `${getGrainLabel(bucketed.grain)} Downloads`
           }
           chartKey={`author-history-${activeMode}-${period}-${hourlyMode ? "hourly" : bucketed.grain}`}
           data={bucketed.data}

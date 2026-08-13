@@ -136,9 +136,7 @@ export function AnalyticsTab({ detail }: AnalyticsTabProps) {
         .sort(([left], [right]) => left.localeCompare(right))
         .slice(-((period === "1d" ? 24 : 72) / 4))
         .map(([bucket, downloads]) => ({
-          date: withDate
-            ? `${bucket.slice(5, 10)} ${bucket.slice(11, 16)}`
-            : bucket.slice(11, 16),
+          date: withDate ? `${bucket.slice(5, 10)} ${bucket.slice(11, 16)}` : bucket.slice(11, 16),
           Downloads: downloads,
         }));
       return {

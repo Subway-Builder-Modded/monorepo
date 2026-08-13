@@ -153,9 +153,7 @@ const HOUR_OF_DAY_LABELS = Array.from(
   (_, hour) => `${String(hour).padStart(2, "0")}:00`,
 );
 // 24 hour categories collide at full density; tick every bucket boundary only.
-const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter(
-  (_, hour) => hour % HOURLY_BUCKET_HOURS === 0,
-);
+const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter((_, hour) => hour % HOURLY_BUCKET_HOURS === 0);
 
 /**
  * 1d/3d chart rows from the hourly series: wall-clock-aligned 4h buckets
@@ -165,10 +163,9 @@ const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter(
 function buildHourlyChartRows(
   hourly: RegistryAnalyticsData["hourly"],
   period: RegistryAnalyticsPeriodId,
-  readValues: (downloads: RegistryAnalyticsData["hourly"][number]["downloads"]) => Record<
-    string,
-    number
-  >,
+  readValues: (
+    downloads: RegistryAnalyticsData["hourly"][number]["downloads"],
+  ) => Record<string, number>,
 ) {
   const buckets = bucketRegistryAnalyticsHourly(hourly, HOURLY_BUCKET_HOURS);
   const windowHours = period === "1d" ? 24 : 72;
@@ -384,7 +381,10 @@ function RegistryOverviewTab({
   // Average downloads per UTC hour-of-day — the daily activity rhythm. Unlike
   // the all-time weekday chart this can only cover the hourly series' rolling
   // 14-day window; a bucket-less hour contributes zero to its average.
-  const hourlyDayCount = Math.max(1, new Set(data.hourly.map((point) => point.bucket.slice(0, 10))).size);
+  const hourlyDayCount = Math.max(
+    1,
+    new Set(data.hourly.map((point) => point.bucket.slice(0, 10))).size,
+  );
   const hourOfDaySums = HOUR_OF_DAY_LABELS.map(() => ({}) as Record<string, number>);
   for (const point of data.hourly) {
     const sums = hourOfDaySums[Number.parseInt(point.bucket.slice(11, 13), 10)];

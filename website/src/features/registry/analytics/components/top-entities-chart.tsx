@@ -145,8 +145,7 @@ export function TopEntitiesChart({
       accentDark: modsConfig.accentDark,
     },
   ];
-  const hourlyMode =
-    HOURLY_CHART_PERIODS.has(period) && (hourlySeries?.entities.length ?? 0) > 0;
+  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && (hourlySeries?.entities.length ?? 0) > 0;
   const chartModel = useMemo(() => {
     // Hourly cut: same top-N/Others selection and pie, but the x universe is the
     // aligned 4h bucket labels and values come from the hour-grain series.
