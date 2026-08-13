@@ -1,4 +1,15 @@
 import type { RegistrySearchItem } from "./registry-search-types";
+import type { RegistryVisibility } from "./use-registry-params";
+
+/** matchesVisibility reports whether an item belongs to the visibility class. */
+export function matchesVisibility(
+  item: Pick<RegistrySearchItem, "isDeprecated" | "isDeleted">,
+  visibility: RegistryVisibility,
+): boolean {
+  if (visibility === "deleted") return item.isDeleted;
+  if (visibility === "deprecated") return item.isDeprecated && !item.isDeleted;
+  return !item.isDeprecated;
+}
 import { buildRegistryItemSearchValues, matchesRegistrySearch } from "./registry-search";
 
 /** Collect all unique tags across a set of items. */
@@ -14,19 +25,17 @@ export function collectTags(items: RegistrySearchItem[]): string[] {
 
 /** Filter registry items by search query and tag selection.
  * All matches are case-insensitive.
- * Deprecated and deleted items are excluded unless their respective toggle
- * is set — each only ever surfaces behind its own explicit browse toggle.
+ * Visibility is exclusive: exactly one retirement class is shown at a time
+ * ("available" = neither deprecated nor deleted), mirroring the app's Asset
+ * Status facet semantics.
  */
 export function filterRegistryItems(
   items: RegistrySearchItem[],
   query: string,
   selectedTags: string[],
-  showDeprecated = false,
-  showDeleted = false,
+  visibility: RegistryVisibility = "available",
 ): RegistrySearchItem[] {
-  const visibleItems = items.filter((item) =>
-    item.isDeleted ? showDeleted : item.isDeprecated ? showDeprecated : true,
-  );
+  const visibleItems = items.filter((item) => matchesVisibility(item, visibility));
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length > 0;
   const hasTags = selectedTags.length > 0;

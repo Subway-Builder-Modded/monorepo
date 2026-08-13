@@ -25,6 +25,7 @@ import { RegistryGrid } from "./browse/registry-grid";
 import { RegistryLoadingState } from "./browse/registry-loading-state";
 import { RegistryEmptyState } from "./browse/registry-empty-state";
 import { useRegistryBrowseData } from "./browse/use-registry-browse-data";
+import type { RegistryVisibility } from "@/features/registry/lib/use-registry-params";
 import { RegistryToolbarSearch } from "./registry-toolbar-search";
 
 import type { RegistryCardVariant } from "@/shared/registry-card/registry-item-types";
@@ -41,10 +42,8 @@ type RegistryBrowseSectionProps = {
   viewMode: RegistryViewMode;
   page: number;
   pageSize: number;
-  showDeprecated: boolean;
-  showDeleted: boolean;
-  onShowDeprecatedChange: (show: boolean) => void;
-  onShowDeletedChange: (show: boolean) => void;
+  visibility: RegistryVisibility;
+  onVisibilityChange: (visibility: RegistryVisibility) => void;
   onTypeChange: (id: string) => void;
   onQueryChange: (q: string) => void;
   onTagToggle: (tag: string) => void;
@@ -69,10 +68,8 @@ export function RegistryBrowseSection({
   viewMode,
   page,
   pageSize,
-  showDeprecated,
-  showDeleted,
-  onShowDeprecatedChange,
-  onShowDeletedChange,
+  visibility,
+  onVisibilityChange,
   onTypeChange,
   onQueryChange,
   onTagToggle,
@@ -147,8 +144,7 @@ export function RegistryBrowseSection({
     sortDir,
     page,
     pageSize,
-    showDeprecated,
-    showDeleted,
+    visibility,
     isLoading,
     onPageChange,
   });
@@ -186,12 +182,10 @@ export function RegistryBrowseSection({
           selectedTags={selectedTags}
           onTagToggle={onTagToggle}
           onTagsClear={onTagsClear}
-          showDeprecated={showDeprecated}
+          visibility={visibility}
           deprecatedCount={deprecatedCount}
-          onShowDeprecatedChange={onShowDeprecatedChange}
-          showDeleted={showDeleted}
           deletedCount={deletedCount}
-          onShowDeletedChange={onShowDeletedChange}
+          onVisibilityChange={onVisibilityChange}
           onCollapsedChange={setSidebarCollapsed}
         />
 

@@ -21,11 +21,12 @@ export type RegistryBrowseParams = {
   viewMode: RegistryViewMode;
   page: number;
   pageSize: number;
-  /** Include author-deprecated listings in browse results (default off). */
-  showDeprecated: boolean;
-  /** Include permanently deleted listings in browse results (default off). */
-  showDeleted: boolean;
+  /** Which retirement class browse shows — exclusive, mirroring the app's
+   * Asset Status facet. "available" (default) hides all retired listings. */
+  visibility: RegistryVisibility;
 };
+
+export type RegistryVisibility = "available" | "deprecated" | "deleted";
 
 type PersistedRegistryBrowseState = Omit<RegistryBrowseParams, "typeId">;
 
@@ -134,11 +135,8 @@ function serializeBrowseState(state: PersistedRegistryBrowseState): string {
   if (state.pageSize !== DEFAULT_PAGE_SIZE) {
     p.set("pageSize", String(state.pageSize));
   }
-  if (state.showDeprecated) {
-    p.set("deprecated", "1");
-  }
-  if (state.showDeleted) {
-    p.set("deleted", "1");
+  if (state.visibility !== "available") {
+    p.set("visibility", state.visibility);
   }
 
   const search = p.toString();
@@ -173,10 +171,18 @@ export function useRegistryParams() {
     const viewMode = cachedViewMode;
     const page = parsePage(p.get("page"));
     const pageSize = parsePageSize(p.get("pageSize"));
+    const rawVisibility = p.get("visibility");
+    // Legacy toggle params are accepted as aliases; deleted wins when both set.
     const rawDeprecated = p.get("deprecated");
-    const showDeprecated = rawDeprecated === "1" || rawDeprecated === "true";
     const rawDeleted = p.get("deleted");
-    const showDeleted = rawDeleted === "1" || rawDeleted === "true";
+    const visibility: RegistryVisibility =
+      rawVisibility === "deprecated" || rawVisibility === "deleted"
+        ? rawVisibility
+        : rawDeleted === "1" || rawDeleted === "true"
+          ? "deleted"
+          : rawDeprecated === "1" || rawDeprecated === "true"
+            ? "deprecated"
+            : "available";
 
     return {
       query,
@@ -186,8 +192,7 @@ export function useRegistryParams() {
       viewMode,
       page,
       pageSize,
-      showDeprecated,
-      showDeleted,
+      visibility,
     };
   }, [search, cachedViewMode]);
 
@@ -202,8 +207,7 @@ export function useRegistryParams() {
       viewMode: persistedState.viewMode,
       page: persistedState.page,
       pageSize: persistedState.pageSize,
-      showDeprecated: persistedState.showDeprecated,
-      showDeleted: persistedState.showDeleted,
+      visibility: persistedState.visibility,
     };
   }, [typeId, persistedState]);
 
@@ -218,8 +222,7 @@ export function useRegistryParams() {
         viewMode: updates.viewMode ?? params.viewMode,
         page: updates.page ?? params.page,
         pageSize: updates.pageSize ?? params.pageSize,
-        showDeprecated: updates.showDeprecated ?? params.showDeprecated,
-        showDeleted: updates.showDeleted ?? params.showDeleted,
+        visibility: updates.visibility ?? params.visibility,
       };
 
       writeCachedViewMode(nextPersisted.viewMode);

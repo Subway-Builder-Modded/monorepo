@@ -31,7 +31,8 @@ import {
   uiAccentStyle,
 } from "@/features/registry/lib/registry-styles";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
-import { PanelLeftOpen, PanelLeftClose, Trash2, ArrowUpToLine, Archive } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, Trash2, ArrowUpToLine, Archive, Eye } from "lucide-react";
+import type { RegistryVisibility } from "@/features/registry/lib/use-registry-params";
 import { RegistryTagCategorySection } from "@/features/registry/components/registry-tag-category-section";
 
 const REGISTRY_SIDEBAR_COLLAPSED_KEY = "sbm:registry-sidebar-collapsed";
@@ -53,37 +54,65 @@ type RegistryFilterSidebarProps = {
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
   onTagsClear: () => void;
-  showDeprecated: boolean;
+  visibility: RegistryVisibility;
   deprecatedCount: number;
-  onShowDeprecatedChange: (show: boolean) => void;
-  showDeleted: boolean;
   deletedCount: number;
-  onShowDeletedChange: (show: boolean) => void;
+  onVisibilityChange: (visibility: RegistryVisibility) => void;
   onCollapsedChange?: (collapsed: boolean) => void;
 };
 
-/** Visibility section: author-retired listings (deprecated or deleted) are
- * hidden by default and each only surfaces while its own toggle is on. Each
- * toggle renders only when the current type actually has such listings (or
- * the toggle is already on via URL). */
-function RetiredVisibilitySection({
-  showDeprecated,
+/** Visibility section: an exclusive three-way selector mirroring the app's
+ * Asset Status facet — Available (default), Deprecated, Deleted. The retired
+ * options render only when the current type has such listings (or one is
+ * already selected via URL); the whole section hides when neither does. */
+function VisibilitySection({
+  visibility,
   deprecatedCount,
-  onShowDeprecatedChange,
-  showDeleted,
   deletedCount,
-  onShowDeletedChange,
+  onVisibilityChange,
 }: {
-  showDeprecated: boolean;
+  visibility: RegistryVisibility;
   deprecatedCount: number;
-  onShowDeprecatedChange: (show: boolean) => void;
-  showDeleted: boolean;
   deletedCount: number;
-  onShowDeletedChange: (show: boolean) => void;
+  onVisibilityChange: (visibility: RegistryVisibility) => void;
 }) {
-  const showDeprecatedToggle = deprecatedCount > 0 || showDeprecated;
-  const showDeletedToggle = deletedCount > 0 || showDeleted;
-  if (!showDeprecatedToggle && !showDeletedToggle) {
+  const options: {
+    value: RegistryVisibility;
+    label: string;
+    Icon: typeof Archive;
+    count: number | null;
+    accentClass: string;
+    show: boolean;
+  }[] = [
+    {
+      value: "available",
+      label: "Available",
+      Icon: Eye,
+      count: null,
+      accentClass: "",
+      show: true,
+    },
+    {
+      value: "deprecated",
+      label: "Deprecated",
+      Icon: Archive,
+      count: deprecatedCount,
+      // Slate blue: reversible retirement. Matches the app badge and the
+      // analytics deprecated series.
+      accentClass: "text-slate-600 dark:text-slate-300",
+      show: deprecatedCount > 0 || visibility === "deprecated",
+    },
+    {
+      value: "deleted",
+      label: "Deleted",
+      Icon: Trash2,
+      count: deletedCount,
+      // Darker charcoal: permanent retirement.
+      accentClass: "text-zinc-700 dark:text-zinc-400",
+      show: deletedCount > 0 || visibility === "deleted",
+    },
+  ];
+  if (!options.some((option) => option.show && option.value !== "available")) {
     return null;
   }
 
@@ -94,39 +123,29 @@ function RetiredVisibilitySection({
       <section className="space-y-2" aria-label="Visibility">
         <p className={cn("px-1", SECTION_LABEL_CLASS)}>Visibility</p>
 
-        {showDeprecatedToggle && (
-          <button
-            type="button"
-            onClick={() => onShowDeprecatedChange(!showDeprecated)}
-            aria-pressed={showDeprecated}
-            style={SIDEBAR_UI_ACCENT_STYLE}
-            className={cn(
-              ACCENT_TOGGLE_BASE_CLASS,
-              showDeprecated ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
-            )}
-          >
-            <Archive className="size-4 shrink-0" aria-hidden={true} />
-            <span className="flex-1">Deprecated</span>
-            <RegistryTypeCountBadge count={deprecatedCount} isActive={showDeprecated} />
-          </button>
-        )}
-
-        {showDeletedToggle && (
-          <button
-            type="button"
-            onClick={() => onShowDeletedChange(!showDeleted)}
-            aria-pressed={showDeleted}
-            style={SIDEBAR_UI_ACCENT_STYLE}
-            className={cn(
-              ACCENT_TOGGLE_BASE_CLASS,
-              showDeleted ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
-            )}
-          >
-            <Trash2 className="size-4 shrink-0" aria-hidden={true} />
-            <span className="flex-1">Deleted</span>
-            <RegistryTypeCountBadge count={deletedCount} isActive={showDeleted} />
-          </button>
-        )}
+        {options
+          .filter((option) => option.show)
+          .map(({ value, label, Icon, count, accentClass }) => {
+            const active = visibility === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => onVisibilityChange(value)}
+                aria-pressed={active}
+                style={SIDEBAR_UI_ACCENT_STYLE}
+                className={cn(
+                  ACCENT_TOGGLE_BASE_CLASS,
+                  active ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
+                  active && accentClass,
+                )}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden={true} />
+                <span className="flex-1">{label}</span>
+                {count !== null && <RegistryTypeCountBadge count={count} isActive={active} />}
+              </button>
+            );
+          })}
       </section>
     </>
   );
@@ -186,12 +205,10 @@ type SidebarFilterContentProps = {
   onTagToggle: (tag: string) => void;
   collapsedCategories: Set<string>;
   onToggleCategory: (categoryId: string) => void;
-  showDeprecated: boolean;
+  visibility: RegistryVisibility;
   deprecatedCount: number;
-  onShowDeprecatedChange: (show: boolean) => void;
-  showDeleted: boolean;
   deletedCount: number;
-  onShowDeletedChange: (show: boolean) => void;
+  onVisibilityChange: (visibility: RegistryVisibility) => void;
 };
 
 /** The sidebar's filter sections, shared between the scroll-area and plain
@@ -206,12 +223,10 @@ function SidebarFilterContent({
   onTagToggle,
   collapsedCategories,
   onToggleCategory,
-  showDeprecated,
+  visibility,
   deprecatedCount,
-  onShowDeprecatedChange,
-  showDeleted,
   deletedCount,
-  onShowDeletedChange,
+  onVisibilityChange,
 }: SidebarFilterContentProps) {
   return (
     <>
@@ -273,13 +288,11 @@ function SidebarFilterContent({
         )}
       </section>
 
-      <RetiredVisibilitySection
-        showDeprecated={showDeprecated}
+      <VisibilitySection
+        visibility={visibility}
         deprecatedCount={deprecatedCount}
-        onShowDeprecatedChange={onShowDeprecatedChange}
-        showDeleted={showDeleted}
         deletedCount={deletedCount}
-        onShowDeletedChange={onShowDeletedChange}
+        onVisibilityChange={onVisibilityChange}
       />
     </>
   );
@@ -302,12 +315,10 @@ export function RegistryFilterSidebar({
   selectedTags,
   onTagToggle,
   onTagsClear,
-  showDeprecated,
+  visibility,
   deprecatedCount,
-  onShowDeprecatedChange,
-  showDeleted,
   deletedCount,
-  onShowDeletedChange,
+  onVisibilityChange,
   onCollapsedChange,
 }: RegistryFilterSidebarProps) {
   const categories = buildTagCategories(typeId, availableTags, typeItems);
@@ -418,12 +429,10 @@ export function RegistryFilterSidebar({
       onTagToggle={onTagToggle}
       collapsedCategories={collapsedCategories}
       onToggleCategory={toggleCategory}
-      showDeprecated={showDeprecated}
+      visibility={visibility}
       deprecatedCount={deprecatedCount}
-      onShowDeprecatedChange={onShowDeprecatedChange}
-      showDeleted={showDeleted}
       deletedCount={deletedCount}
-      onShowDeletedChange={onShowDeletedChange}
+      onVisibilityChange={onVisibilityChange}
     />
   );
 
