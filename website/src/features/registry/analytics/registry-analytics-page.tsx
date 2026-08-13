@@ -44,6 +44,7 @@ import { getSuiteAnalyticsNavItem, getSuiteById } from "@/config/site-navigation
 import { getCountryFlagIcon } from "@/lib/country-flags";
 import {
   MULTI_SERIES_PALETTE,
+  DELETED_SERIES_COLOR,
   OTHERS_SERIES_COLOR,
   bucketMultiSeriesData,
   getGrainLabel,
@@ -326,21 +327,28 @@ function RegistryOverviewTab({
   }));
   // Releases are sparse at day grain; the shared bucketing collapses the
   // all-time cut to weeks while short cuts show recent uptake day by day.
-  // Deprecations chart as a NEGATIVE series below the axis: a listing that
-  // arrives and is later deprecated nets to zero instead of counting twice.
+  // Deprecations chart POSITIVE in grey (the asset still exists and may
+  // return); deletions chart NEGATIVE in a darker grey — an actively lost
+  // listing nets to zero against its arrival instead of counting twice.
   const hasDeprecations = graphRows.some((row) => row.deprecations.total > 0);
+  const hasDeletions = graphRows.some((row) => (row.deletions?.total ?? 0) > 0);
   const newListingsBucketed = bucketMultiSeriesData(
     graphRows.map((row) => ({
       date: row.date,
       ...Object.fromEntries(
         typeSeries.map((series) => [series.key, readTypeValue(row.listings, series.id)]),
       ),
-      ...(hasDeprecations ? { Deprecated: -row.deprecations.total } : {}),
+      ...(hasDeprecations ? { Deprecated: row.deprecations.total } : {}),
+      ...(hasDeletions ? { Deleted: -(row.deletions?.total ?? 0) } : {}),
     })),
   );
-  const newListingsSeries = hasDeprecations
-    ? [...typeSeries, { key: "Deprecated", name: "Deprecated", color: OTHERS_SERIES_COLOR }]
-    : typeSeries;
+  const newListingsSeries = [
+    ...typeSeries,
+    ...(hasDeprecations
+      ? [{ key: "Deprecated", name: "Deprecated", color: OTHERS_SERIES_COLOR }]
+      : []),
+    ...(hasDeletions ? [{ key: "Deleted", name: "Deleted", color: DELETED_SERIES_COLOR }] : []),
+  ];
   const newListingsGrainLabel = getGrainLabel(newListingsBucketed.grain);
   const chartTicks =
     period === "all-time"

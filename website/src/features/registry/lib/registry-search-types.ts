@@ -32,8 +32,10 @@ export type RegistrySearchItem = {
   /** Registry data-quality weighted score in [0, 1]; null when unscored (tier "unknown") or not a map. */
   dataQualityScore?: number | null;
   isTest: boolean;
-  /** Author-deprecated listing: hidden from browse by default, never downloadable. */
+  /** Author-retired listing (deprecated or deleted): hidden from browse by default, never downloadable. */
   isDeprecated: boolean;
+  /** Permanently deleted listing (implies isDeprecated); shown behind its own Deleted filter. */
+  isDeleted: boolean;
   /** Raw manifest for advanced consumers; do not depend on shape. */
   manifest: unknown;
 };
@@ -77,6 +79,8 @@ export type RawRegistryManifest = {
     since?: string;
     by_github_id?: number;
     reason?: string;
+    /** Present-and-true = permanently deleted (never restorable). */
+    deleted?: boolean;
   };
 };
 
