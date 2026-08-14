@@ -11,6 +11,7 @@ import {
   SaveConfig,
   UpdateCheckForUpdatesOnLaunch,
   UpdateGithubToken,
+  UpdateShowDeletedListings,
   UpdateUseSteamLaunch,
 } from '../../wailsjs/go/config/Config';
 import { types } from '../../wailsjs/go/models';
@@ -36,6 +37,9 @@ interface ConfigState {
   clearConfig: () => Promise<void>;
   updateGithubToken: (token: string) => Promise<types.ResolveConfigResponse>;
   clearGithubToken: () => Promise<types.ResolveConfigResponse>;
+  updateShowDeletedListings: (
+    show: boolean,
+  ) => Promise<types.ResolveConfigResponse>;
   updateCheckForUpdatesOnLaunch: (
     checkForUpdates: boolean,
   ) => Promise<types.ResolveConfigResponse>;
@@ -233,6 +237,27 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       if (result.status === 'error') {
         throw new Error(
           result.message || 'Failed to update useSteamLaunch setting',
+        );
+      }
+      set({
+        config: result.config,
+        validation: result.validation,
+        hasGithubToken: result.hasGithubToken,
+      });
+      return result;
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err) });
+      throw err;
+    }
+  },
+
+  updateShowDeletedListings: async (show: boolean) => {
+    set({ error: null });
+    try {
+      const result = await UpdateShowDeletedListings(show);
+      if (result.status === 'error') {
+        throw new Error(
+          result.message || 'Failed to update deleted-listing visibility',
         );
       }
       set({

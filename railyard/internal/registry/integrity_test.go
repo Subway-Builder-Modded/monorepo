@@ -221,3 +221,36 @@ func TestAssetMissingInstallableVersion(t *testing.T) {
 	require.True(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-incomplete")) // listed but no complete version
 	require.True(t, reg.AssetMissingInstallableVersion(types.AssetTypeMap, "map-delisted"))   // absent from a loaded report
 }
+
+func TestDeletedListingsHiddenUnlessOptedIn(t *testing.T) {
+	reg := newTestRegistry(t)
+	deleted := &types.Deprecation{Since: "2026-08-06T00:00:00Z", ByGithubID: 1, Deleted: true}
+	deprecated := &types.Deprecation{Since: "2026-08-06T00:00:00Z", ByGithubID: 1}
+	reg.mods = []types.ModManifest{
+		{AssetManifest: types.AssetManifest{ID: "active-mod"}},
+		{AssetManifest: types.AssetManifest{ID: "deprecated-mod", Deprecation: deprecated}},
+		{AssetManifest: types.AssetManifest{ID: "deleted-mod", Deprecation: deleted}},
+	}
+
+	ids := func() []string {
+		out := []string{}
+		for _, m := range reg.GetMods() {
+			out = append(out, m.ID)
+		}
+		return out
+	}
+
+	// Default: deleted hidden; deprecated stays visible.
+	require.Equal(t, []string{"active-mod", "deprecated-mod"}, ids())
+
+	// Opt-in reveals deleted.
+	reg.config.Cfg.ShowDeletedListings = true
+	require.Equal(t, []string{"active-mod", "deprecated-mod", "deleted-mod"}, ids())
+
+	// Purge/install policy is config-independent: the raw lookup still sees
+	// the deleted asset while it is hidden from display.
+	reg.config.Cfg.ShowDeletedListings = false
+	require.True(t, reg.AssetDeleted(types.AssetTypeMod, "deleted-mod"))
+	require.False(t, reg.AssetDeleted(types.AssetTypeMod, "deprecated-mod"))
+	require.True(t, reg.AssetDeprecatedNotDeleted(types.AssetTypeMod, "deprecated-mod"))
+}

@@ -10,6 +10,14 @@ export function AddInstalledMod(arg1, arg2, arg3, arg4) {
   return window['go']['registry']['Registry']['AddInstalledMod'](arg1, arg2, arg3, arg4);
 }
 
+export function AssetDeleted(arg1, arg2) {
+  return window['go']['registry']['Registry']['AssetDeleted'](arg1, arg2);
+}
+
+export function AssetDeprecatedNotDeleted(arg1, arg2) {
+  return window['go']['registry']['Registry']['AssetDeprecatedNotDeleted'](arg1, arg2);
+}
+
 export function AssetMissingInstallableVersion(arg1, arg2) {
   return window['go']['registry']['Registry']['AssetMissingInstallableVersion'](arg1, arg2);
 }
