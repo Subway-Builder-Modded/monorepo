@@ -67,9 +67,9 @@ This also means that you may re-release the same update in a new GitHub release 
       "game_version": ">=1.0.0",
       "date": "2026-02-24",
       "changelog": "Initial release.",
-      "download": "https://example.com/my-mod/releases/v1.0.0.zip",
+      "download": "https://github.com/your-name/your-repo/releases/download/v1.0.0/my-mod.zip",
       "sha256": "<your asset's sha256>",
-      "manifest": "https://example.com/my-mod/releases/v1.0.0/manifest.json"
+      "manifest": "https://github.com/your-name/your-repo/releases/download/v1.0.0/manifest.json"
     }
   ]
 }
@@ -84,6 +84,26 @@ This also means that you may re-release the same update in a new GitHub release 
 Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`, `abc`, `version-A`, etc. will not work. Your version must be `X.Y.Z` or `vX.Y.Z`.
 
 :::
+
+:::caution
+
+`download` and `manifest` **must** be GitHub release asset URLs — `https://github.com/<owner>/<repo>/releases/download/<tag>/<file>`. The Registry reads your download counts from the release asset behind that URL, so a file hosted anywhere else leaves the version permanently uninstallable.
+
+:::
+
+### Every field {#field-reference}
+
+| Field          | Type    | Required                 | What it does                                                                                                    |
+| -------------- | ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `version`      | string  | **Yes**                  | The version's identity. Entries without one are skipped entirely.                                               |
+| `download`     | string  | **Yes** — unless retired | GitHub release asset URL for the ZIP. Its release asset is also where download counts come from.                |
+| `sha256`       | string  | **Yes** — unless retired | Checked on install; a mismatch blocks it.                                                                       |
+| `manifest`     | string  | **Mods only**            | URL of the `manifest.json` you uploaded beside the ZIP. Lets the Registry resolve dependencies without the ZIP. |
+| `game_version` | string  | **Yes** for new versions | Which Subway Builder versions this works with, e.g. `>=1.0.0`. Older entries are grandfathered.                 |
+| `date`         | string  | Recommended              | Publish date. Orders the version history and is kept after retirement.                                          |
+| `changelog`    | string  | Recommended              | Shown in Railyard and on the website, including after the version is retired.                                   |
+| `dependencies` | object  | No                       | Other mods this needs — mod ID to version range. Mods only.                                                     |
+| `retired`      | boolean | No                       | Withdraws the version while keeping its history. See [Retiring Versions](/registry/docs/retiring-versions).     |
 
 :::tip
 
