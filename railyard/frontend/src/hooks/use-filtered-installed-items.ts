@@ -1,6 +1,9 @@
 import {
+  classifyListingStatus,
+  countListingStatuses,
   filterAndSortTaggedItems,
   filterTaggedItems,
+  matchesListingStatus,
 } from '@subway-builder-modded/asset-listings-state';
 import {
   ASSET_LISTING_FUSE_SEARCH_OPTIONS,
@@ -73,35 +76,28 @@ function matchesStatusFilter(
   return !item.isLocal && item.item.is_test === true;
 }
 
-/** Classifies an installed item's listing status. Local means no registry
- * listing at all; deleted cannot occur (see the LibraryPage guard). */
+/** Deleted cannot occur here — see the LibraryPage guard. */
 export function installedListingStatusOf(
   item: InstalledTaggedItem,
 ): ListingStatusFilter {
-  if (item.isLocal) return 'local';
-  return item.item.deprecation != null ? 'deprecated' : 'active';
+  return classifyListingStatus({
+    isDeprecated: item.item.deprecation != null,
+    isDeleted: item.item.deprecation?.deleted === true,
+    isLocal: item.isLocal,
+  });
 }
 
 export function matchesInstalledListingStatus(
   item: InstalledTaggedItem,
   selected: readonly ListingStatusFilter[],
 ): boolean {
-  return selected.includes(installedListingStatusOf(item));
+  return matchesListingStatus(installedListingStatusOf(item), selected);
 }
 
 export function countInstalledListingStatuses(
   items: readonly InstalledTaggedItem[],
 ): Record<ListingStatusFilter, number> {
-  const counts: Record<ListingStatusFilter, number> = {
-    active: 0,
-    deprecated: 0,
-    deleted: 0,
-    local: 0,
-  };
-  for (const item of items) {
-    counts[installedListingStatusOf(item)] += 1;
-  }
-  return counts;
+  return countListingStatuses(items, installedListingStatusOf);
 }
 
 // Counts how many items match each status. Statuses overlap: 'compatible' means

@@ -1,3 +1,7 @@
+import {
+  toggleListingStatus as sharedToggleListingStatus,
+  type ListingStatus,
+} from "@subway-builder-modded/asset-listings-state";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, navigate } from "@/lib/router";
 import { REGISTRY_TYPES, DEFAULT_REGISTRY_TYPE_ID } from "@/features/registry/registry-type-config";
@@ -26,21 +30,16 @@ export type RegistryBrowseParams = {
   listingStatuses: RegistryListingStatus[];
 };
 
-export type RegistryListingStatus = "active" | "deprecated" | "deleted";
+export type RegistryListingStatus = Exclude<ListingStatus, "local">;
 
 export const DEFAULT_LISTING_STATUSES: RegistryListingStatus[] = ["active"];
 
-/** Toggle with a never-empty invariant: deselecting the last class is a
- * no-op, so browse always shows exactly one well-defined union. */
+/** Local never applies to registry listings. */
 export function toggleListingStatus(
   current: readonly RegistryListingStatus[],
   status: RegistryListingStatus,
 ): RegistryListingStatus[] {
-  if (current.includes(status)) {
-    if (current.length === 1) return [...current];
-    return current.filter((value) => value !== status);
-  }
-  return [...current, status];
+  return sharedToggleListingStatus(current, status) as RegistryListingStatus[];
 }
 
 type PersistedRegistryBrowseState = Omit<RegistryBrowseParams, "typeId">;

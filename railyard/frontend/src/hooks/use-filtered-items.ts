@@ -1,6 +1,9 @@
 import {
+  classifyListingStatus,
+  countListingStatuses,
   filterAndPaginateTaggedItems,
   filterTaggedItems,
+  matchesListingStatus as sharedMatchesListingStatus,
   type SourceAssetQueryFilterState,
 } from '@subway-builder-modded/asset-listings-state';
 import { type PerPage } from '@subway-builder-modded/config';
@@ -66,19 +69,18 @@ function matchesBrowseStatus(
   return false;
 }
 
-/** listingStatusOf classifies a registry listing's lifecycle state. */
 export function listingStatusOf(entry: TaggedItem): ListingStatusFilter {
-  if (entry.item.deprecation == null) return 'active';
-  return entry.item.deprecation.deleted === true ? 'deleted' : 'deprecated';
+  return classifyListingStatus({
+    isDeprecated: entry.item.deprecation != null,
+    isDeleted: entry.item.deprecation?.deleted === true,
+  });
 }
 
-/** matchesListingStatus reports whether an item falls in the selected union
- * of listing-status classes (never empty — see createListingStatusSlice). */
 export function matchesListingStatus(
   entry: TaggedItem,
   selected: readonly ListingStatusFilter[],
 ): boolean {
-  return selected.includes(listingStatusOf(entry));
+  return sharedMatchesListingStatus(listingStatusOf(entry), selected);
 }
 
 // Status counts are scoped to the selected listing-status union and compose
@@ -105,24 +107,15 @@ export function computeBrowseStatusCounts(
   return counts;
 }
 
-// Listing-status counts for the browsed type, independent of the current
-// selection so every class advertises its size. 'local' never applies to
-// registry listings (Library computes its own counts).
+// Independent of the current selection, so every class advertises its size.
 export function computeListingStatusCounts(
   facetItems: readonly TaggedItem[],
   browsedType: 'mod' | 'map',
 ): Record<ListingStatusFilter, number> {
-  const counts: Record<ListingStatusFilter, number> = {
-    active: 0,
-    deprecated: 0,
-    deleted: 0,
-    local: 0,
-  };
-  for (const entry of facetItems) {
-    if (entry.type !== browsedType) continue;
-    counts[listingStatusOf(entry)] += 1;
-  }
-  return counts;
+  return countListingStatuses(
+    facetItems.filter((entry) => entry.type === browsedType),
+    listingStatusOf,
+  );
 }
 
 export function useFilteredItems({

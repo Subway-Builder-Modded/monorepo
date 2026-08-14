@@ -1,6 +1,10 @@
-/** Asset status: how a listing stands relative to the user's setup. A
- * listing's own lifecycle (and Local, meaning no listing at all) is a
- * separate dimension — see ListingStatusFilter. */
+import {
+  type ListingStatus,
+  toggleListingStatus,
+} from '@subway-builder-modded/asset-listings-state';
+
+/** Compatibility: how a listing stands relative to the user's setup. Its
+ * own lifecycle is a separate dimension — see ListingStatusFilter. */
 export type StatusFilter = 'compatible' | 'incompatible' | 'test';
 
 export const STATUS_FILTER_VALUES: readonly StatusFilter[] = [
@@ -36,13 +40,7 @@ export function createStatusFilterSlice(set: SetFn): StatusFilterSlice {
   };
 }
 
-/** Composable listing-status classes: the registry-side lifecycle of a
- * listing, plus Local (an installed item with no listing at all — Library
- * only). Multi-select union with a per-surface default; the selection can
- * never be empty (deselecting the last class is a no-op). Deleted only has
- * members when the Show Deleted Listings setting is enabled, so its chip
- * auto-hides by count. */
-export type ListingStatusFilter = 'active' | 'deprecated' | 'deleted' | 'local';
+export type ListingStatusFilter = ListingStatus;
 
 export interface ListingStatusSlice {
   listingStatuses: ListingStatusFilter[];
@@ -65,15 +63,8 @@ export function createListingStatusSlice(
     listingStatuses: [...defaults],
     listingStatusDefault: defaults,
     toggleListingStatus: (status) =>
-      set((state) => {
-        if (state.listingStatuses.includes(status)) {
-          // Never-empty invariant: deselecting the last class is a no-op.
-          if (state.listingStatuses.length === 1) return {};
-          return {
-            listingStatuses: state.listingStatuses.filter((s) => s !== status),
-          };
-        }
-        return { listingStatuses: [...state.listingStatuses, status] };
-      }),
+      set((state) => ({
+        listingStatuses: toggleListingStatus(state.listingStatuses, status),
+      })),
   };
 }
