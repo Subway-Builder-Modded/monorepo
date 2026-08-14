@@ -1,0 +1,48 @@
+---
+title: v1.2.1
+icon: Globe
+date: August 14, 2026
+tag: release
+---
+
+<ChangelogSection type="features">
+
+### Registry
+
+- Added a **Status** filter covering the full listing lifecycle: Active, Deprecated, and Deleted ([#614](https://github.com/Subway-Builder-Modded/monorepo/pull/614), [#624](https://github.com/Subway-Builder-Modded/monorepo/pull/624))
+  - Deprecated and deleted listings each carry their own badge and color, and sort last when shown
+  - Deleted listings also carry a notice on their detail page, and their analytics series is split at the point of deletion
+- Retired and removed versions now appear in a listing's version history as **No Longer Available**, keeping their changelog, release date, and download count ([#621](https://github.com/Subway-Builder-Modded/monorepo/pull/621))
+- Added hourly-derived 1d/3d download graphs and an hour-of-day seasonality view ([#620](https://github.com/Subway-Builder-Modded/monorepo/pull/620))
+- Added sorting by data quality, with fallbacks for tiebreakers ([#613](https://github.com/Subway-Builder-Modded/monorepo/pull/613))
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+### General
+
+- Grouped the documentation sidebar now that both suites have outgrown a flat list ([#631](https://github.com/Subway-Builder-Modded/monorepo/pull/631))
+  - Registry docs are grouped into **Publishing**, **Lifecycle**, and **Ownership**; Railyard docs into **Installing**, **Using Railyard**, and **Troubleshooting**
+  - Every page keeps the URL it was published under, so existing links still resolve
+
+### Registry
+
+- Published the full [`update.json` field reference](/registry/docs/using-custom-url#field-reference) for custom update sources, covering every field the Registry reads and when each is required ([#629](https://github.com/Subway-Builder-Modded/monorepo/pull/629))
+- Documented withdrawing a single version for GitHub Releases sources in [Retiring Versions](/registry/docs/retiring-versions)
+- Matched the documented Status filter classes and retirement colors to what the apps actually ship ([#628](https://github.com/Subway-Builder-Modded/monorepo/pull/628))
+
+### Railyard
+
+- Added [Listing Status & Filters](/railyard/docs/latest/listing-status-and-filters), covering the Compatibility and Status filter groups, the **Show Deleted Listings** setting, and what happens to installed content when a listing is retired ([#630](https://github.com/Subway-Builder-Modded/monorepo/pull/630))
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+### Registry
+
+- Fixed the listing visibility rule so a retired listing is shown or hidden consistently across browse, search, and author pages ([#627](https://github.com/Subway-Builder-Modded/monorepo/pull/627))
+- Corrected the custom update source example, which used a download URL the Registry rejects and would have left the version permanently uninstallable ([#629](https://github.com/Subway-Builder-Modded/monorepo/pull/629))
+
+</ChangelogSection>
