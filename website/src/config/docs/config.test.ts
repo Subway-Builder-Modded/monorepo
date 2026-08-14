@@ -131,17 +131,24 @@ describe("getSidebarOrder", () => {
   it("returns sidebar order for non-versioned registry", () => {
     const order = getSidebarOrder("registry", null);
     expect(order).toEqual([
-      "publishing-content",
-      "updating-content",
-      "deprecation",
-      "retiring-versions",
-      "using-custom-url",
-      "manifest-requirements",
-      "collaborators",
-      "caretakers",
-      "dependencies",
-      "author-attribution",
-      "tagging",
+      {
+        key: "publishing",
+        children: [
+          "publishing-content",
+          "manifest-requirements",
+          "using-custom-url",
+          "tagging",
+          "dependencies",
+        ],
+      },
+      {
+        key: "lifecycle",
+        children: ["updating-content", "retiring-versions", "deprecation"],
+      },
+      {
+        key: "ownership",
+        children: ["collaborators", "caretakers", "author-attribution"],
+      },
       {
         key: "data-quality",
         children: ["overview", "submission-questions", "scoring-rubric", "quality-floor"],
