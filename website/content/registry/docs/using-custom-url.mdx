@@ -91,6 +91,12 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 :::
 
+:::note
+
+Custom URL assets — **maps included** — declare game compatibility with `game_version` on each version entry, _not_ with a standalone `manifest.json` release asset. The [manifest.json contract](/registry/docs/manifest-requirements) covers the GitHub Releases path instead. Mods still need the `manifest` field so the Registry can resolve dependencies without downloading the ZIP.
+
+:::
+
 ### Every field {#field-reference}
 
 | Field          | Type    | Required                 | What it does                                                                                                    |
