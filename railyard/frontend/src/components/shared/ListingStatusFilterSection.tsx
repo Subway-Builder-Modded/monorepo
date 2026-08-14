@@ -1,4 +1,8 @@
 import {
+  isListingStatusLocked,
+  visibleListingStatuses,
+} from '@subway-builder-modded/asset-listings-state';
+import {
   FILTER_COUNT_BADGE_CLASS,
   FILTER_SECTION_TITLE_CLASS,
 } from '@subway-builder-modded/asset-listings-ui';
@@ -73,36 +77,11 @@ const LISTING_STATUS_OPTIONS: Record<ListingStatusFilter, ListingStatusOption> =
     },
   };
 
-/** The classes worth offering: those with members. */
-export function visibleListingStatusOptions(
-  options: readonly ListingStatusFilter[],
-  counts: Record<ListingStatusFilter, number>,
-): ListingStatusFilter[] {
-  // Selection state deliberately does not keep a chip on screen: an empty
-  // class never constrains a union filter. The narrowing filters (asset
-  // status, tags) do the opposite, since a selected zero-count option there
-  // forces an empty result the user would otherwise be unable to undo.
-  return options.filter((key) => (counts[key] ?? 0) > 0);
-}
-
-/** Whether deselecting this class would empty the selection. */
-export function isListingStatusLocked(
-  key: ListingStatusFilter,
-  visible: readonly ListingStatusFilter[],
-  selected: readonly ListingStatusFilter[],
-): boolean {
-  // Hidden classes are excluded from the tally — they contribute nothing to
-  // the union, so a selection of only-hidden classes is effectively empty.
-  const effective = visible.filter((option) => selected.includes(option));
-  return effective.length === 1 && effective[0] === key;
-}
-
 export interface ListingStatusFilterSectionProps {
   activeStatuses: readonly ListingStatusFilter[];
   counts: Record<ListingStatusFilter, number>;
   onToggle: (status: ListingStatusFilter) => void;
-  /** Which classes this surface has: Browse omits local, Library omits
-   * deleted (deleted assets are purged and never installed). */
+  /** Which classes this surface offers. */
   options: readonly ListingStatusFilter[];
 }
 
@@ -113,7 +92,7 @@ export function ListingStatusFilterSection({
   onToggle,
   options,
 }: ListingStatusFilterSectionProps) {
-  const visibleKeys = visibleListingStatusOptions(options, counts);
+  const visibleKeys = visibleListingStatuses(options, counts);
   // Below two classes there is no choice to make; matches the sidebar's
   // minimumVisibleOptions convention.
   if (visibleKeys.length < 2) return null;
