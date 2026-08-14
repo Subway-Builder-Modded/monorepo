@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -531,4 +532,37 @@ func TestCompleteSetupPersists(t *testing.T) {
 	require.Equal(t, types.ResponseSuccess, res.Status)
 	require.True(t, res.Config.SetupCompleted)
 	require.True(t, h.persisted().SetupCompleted)
+}
+
+func TestLegacyConfigWithoutShowDeletedListingsDefaultsOff(t *testing.T) {
+	// Configs written before the field existed must load with the flag off.
+	legacy := []byte(`{"railyardPath":"/tmp/x","checkForUpdatesOnLaunch":true,"setupCompleted":true}`)
+	var cfg types.AppConfig
+	require.NoError(t, json.Unmarshal(legacy, &cfg))
+	require.False(t, cfg.ShowDeletedListings)
+	require.True(t, cfg.CheckForUpdatesOnLaunch)
+
+	// And a new config with the flag set survives a round trip; older clients
+	// simply ignore the unknown field on read.
+	cfg.ShowDeletedListings = true
+	data, err := json.Marshal(cfg)
+	require.NoError(t, err)
+	var reread types.AppConfig
+	require.NoError(t, json.Unmarshal(data, &reread))
+	require.True(t, reread.ShowDeletedListings)
+}
+
+func TestUpdateShowDeletedListingsPersists(t *testing.T) {
+	h := setup(t, types.AppConfig{})
+
+	res := h.cfg.UpdateShowDeletedListings(true)
+	require.Equal(t, types.ResponseSuccess, res.Status)
+	require.True(t, res.Config.ShowDeletedListings)
+	// Must survive a restart: an in-memory-only toggle silently reverts on
+	// the next launch, which reads as "the setting does nothing".
+	require.True(t, h.persisted().ShowDeletedListings)
+
+	off := h.cfg.UpdateShowDeletedListings(false)
+	require.Equal(t, types.ResponseSuccess, off.Status)
+	require.False(t, h.persisted().ShowDeletedListings)
 }

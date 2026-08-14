@@ -5,19 +5,22 @@ import { useRegistryStore } from './registry-store';
 const {
   mockGetModsResponse,
   mockGetMapsResponse,
-  mockRefreshResponse,
+  mockRefreshRegistryAndReconcile,
   mockGetDownloadCountsByAssetType,
 } = vi.hoisted(() => ({
   mockGetModsResponse: vi.fn(),
   mockGetMapsResponse: vi.fn(),
-  mockRefreshResponse: vi.fn(),
+  mockRefreshRegistryAndReconcile: vi.fn(),
   mockGetDownloadCountsByAssetType: vi.fn(),
+}));
+
+vi.mock('../../wailsjs/go/main/App', () => ({
+  RefreshRegistryAndReconcile: mockRefreshRegistryAndReconcile,
 }));
 
 vi.mock('../../wailsjs/go/registry/Registry', () => ({
   GetModsResponse: mockGetModsResponse,
   GetMapsResponse: mockGetMapsResponse,
-  RefreshResponse: mockRefreshResponse,
   GetDownloadCountsByAssetType: mockGetDownloadCountsByAssetType,
 }));
 
@@ -233,7 +236,10 @@ describe('useRegistryStore download totals', () => {
       mapDownloadTotals: { map_old: 2 },
     });
 
-    mockRefreshResponse.mockResolvedValue({ status: 'success', message: 'ok' });
+    mockRefreshRegistryAndReconcile.mockResolvedValue({
+      status: 'success',
+      message: 'ok',
+    });
     mockGetModsResponse.mockResolvedValue({
       status: 'success',
       message: 'ok',
@@ -261,7 +267,7 @@ describe('useRegistryStore download totals', () => {
     await useRegistryStore.getState().refresh();
 
     const state = useRegistryStore.getState();
-    expect(mockRefreshResponse).toHaveBeenCalledTimes(1);
+    expect(mockRefreshRegistryAndReconcile).toHaveBeenCalledTimes(1);
     expect(mockGetModsResponse).toHaveBeenCalledTimes(1);
     expect(mockGetMapsResponse).toHaveBeenCalledTimes(1);
     expect(state.modDownloadTotals).toEqual({ mod_c: 9 });

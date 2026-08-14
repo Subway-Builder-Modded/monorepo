@@ -39,6 +39,11 @@ import {
   Archive,
   CircleCheck,
 } from "lucide-react";
+import {
+  isListingStatusLocked,
+  visibleListingStatuses,
+} from "@subway-builder-modded/asset-listings-state";
+
 import type { RegistryListingStatus } from "@/features/registry/lib/use-registry-params";
 import { RegistryTagCategorySection } from "@/features/registry/components/registry-tag-category-section";
 
@@ -67,11 +72,8 @@ type RegistryFilterSidebarProps = {
   onCollapsedChange?: (collapsed: boolean) => void;
 };
 
-/** Listing Status: a composable union over a listing's registry-side
- * lifecycle — Active (default), Deprecated, Deleted — mirroring the app.
- * Never empty: deselecting the last class is a no-op, surfaced as a disabled
- * chip. Retired options render only when the current type has such listings
- * (or one is selected via URL). */
+/** Status: a composable union over a listing's registry-side lifecycle,
+ * mirroring the app. */
 function ListingStatusSection({
   listingStatuses,
   counts,
@@ -108,9 +110,11 @@ function ListingStatusSection({
       accentClass: "text-zinc-800 dark:text-zinc-200",
     },
   ];
-  const visible = options.filter(
-    ({ value }) => value === "active" || counts[value] > 0 || listingStatuses.includes(value),
+  const visibleValues = visibleListingStatuses(
+    options.map(({ value }) => value),
+    { ...counts, local: 0 },
   );
+  const visible = options.filter(({ value }) => visibleValues.includes(value));
   if (visible.length <= 1) {
     return null;
   }
@@ -119,15 +123,12 @@ function ListingStatusSection({
     <>
       <SideRailDivider className="my-2 opacity-50" />
 
-      <section className="space-y-2" aria-label="Listing status">
-        <p className={cn("px-1", SECTION_LABEL_CLASS)}>Listing Status</p>
+      <section className="space-y-2" aria-label="Status">
+        <p className={cn("px-1", SECTION_LABEL_CLASS)}>Status</p>
 
         {visible.map(({ value, label, Icon, accentClass }) => {
           const active = listingStatuses.includes(value);
-          // The last VISIBLE selected class cannot be deselected; hidden
-          // zero-member classes contribute nothing to the union.
-          const effective = visible.filter((option) => listingStatuses.includes(option.value));
-          const locked = active && effective.length === 1;
+          const locked = active && isListingStatusLocked(value, visibleValues, listingStatuses);
           return (
             <button
               key={value}

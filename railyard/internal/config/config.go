@@ -144,6 +144,23 @@ func (s *Config) UpdateConfig(mutator func(*types.AppConfig), persist bool) (typ
 	return resolveConfigResultFromAppConfig(s.Cfg), nil
 }
 
+// updateConfigResponse applies a mutation and wraps the outcome in the
+// response envelope every setter below returns.
+func (s *Config) updateConfigResponse(
+	message string,
+	persist bool,
+	mutate func(*types.AppConfig),
+) types.ResolveConfigResponse {
+	result, err := s.UpdateConfig(mutate, persist)
+	if err != nil {
+		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse(message),
+		ResolveConfigResult: result,
+	}
+}
+
 func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigResponse {
 	if err := s.errIfGameRunning("Steam launch"); err != nil {
 		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
@@ -182,50 +199,29 @@ func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigRe
 		gamePath = detected
 	}
 
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+	return s.updateConfigResponse("Config updated", false, func(cfg *types.AppConfig) {
 		cfg.UseSteamLaunch = useSteamLaunch
 		cfg.DefaultSteamLibraryPath = libraryPath
 		cfg.SteamGamePath = gamePath
-	}, false)
-	if err != nil {
-		return types.ResolveConfigResponse{
-			GenericResponse: types.ErrorResponse(err.Error()),
-		}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("Config updated"),
-		ResolveConfigResult: result,
-	}
+	})
+}
+
+func (s *Config) UpdateShowDeletedListings(show bool) types.ResolveConfigResponse {
+	return s.updateConfigResponse("Config updated", true, func(cfg *types.AppConfig) {
+		cfg.ShowDeletedListings = show
+	})
 }
 
 func (s *Config) UpdateCheckForUpdatesOnLaunch(checkForUpdates bool) types.ResolveConfigResponse {
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+	return s.updateConfigResponse("Config updated", false, func(cfg *types.AppConfig) {
 		cfg.CheckForUpdatesOnLaunch = checkForUpdates
-	}, false)
-	if err != nil {
-		return types.ResolveConfigResponse{
-			GenericResponse: types.ErrorResponse(err.Error()),
-		}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("Config updated"),
-		ResolveConfigResult: result,
-	}
+	})
 }
 
 func (s *Config) CompleteSetup() types.ResolveConfigResponse {
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+	return s.updateConfigResponse("Setup completed", true, func(cfg *types.AppConfig) {
 		cfg.SetupCompleted = true
-	}, true) // Persist to disk immediately
-	if err != nil {
-		return types.ResolveConfigResponse{
-			GenericResponse: types.ErrorResponse(err.Error()),
-		}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("Setup completed"),
-		ResolveConfigResult: result,
-	}
+	})
 }
 
 // UpdateExecutable updates and persists ExecutablePath to the runtime app config.
@@ -312,14 +308,7 @@ func (s *Config) ClearConfig() types.ResolveConfigResponse {
 
 // SaveConfig persists the current runtime config state to disk.
 func (s *Config) SaveConfig() types.ResolveConfigResponse {
-	result, err := s.UpdateConfig(func(*types.AppConfig) {}, true)
-	if err != nil {
-		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("Config saved"),
-		ResolveConfigResult: result,
-	}
+	return s.updateConfigResponse("Config saved", true, func(*types.AppConfig) {})
 }
 
 func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) types.ResolveConfigResponse {
@@ -337,60 +326,32 @@ func (s *Config) UpdateDefaultSteamLibraryPath(defaultSteamLibraryPath string) t
 		}
 	}
 	// A failed detection stores "" and surfaces as SteamGamePathValid=false
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+	return s.updateConfigResponse("Default Steam library path updated", false, func(cfg *types.AppConfig) {
 		cfg.DefaultSteamLibraryPath = trimmed
 		cfg.SteamGamePath = gamePath
-	}, false)
-	if err != nil {
-		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("Default Steam library path updated"),
-		ResolveConfigResult: result,
-	}
+	})
 }
 
 func (s *Config) ClearDefaultSteamLibraryPath() types.ResolveConfigResponse {
 	if err := s.errIfGameRunning("the Steam library path"); err != nil {
 		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
 	}
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+	return s.updateConfigResponse("Default Steam library path cleared", false, func(cfg *types.AppConfig) {
 		cfg.DefaultSteamLibraryPath = ""
 		cfg.SteamGamePath = ""
-	}, false)
-	if err != nil {
-		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("Default Steam library path cleared"),
-		ResolveConfigResult: result,
-	}
+	})
 }
 
 func (s *Config) UpdateGithubToken(githubToken string) types.ResolveConfigResponse {
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+	return s.updateConfigResponse("GitHub token updated", false, func(cfg *types.AppConfig) {
 		cfg.GithubToken = githubToken
-	}, false)
-	if err != nil {
-		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("GitHub token updated"),
-		ResolveConfigResult: result,
-	}
+	})
 }
 
 func (s *Config) ClearGithubToken() types.ResolveConfigResponse {
-	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+	return s.updateConfigResponse("GitHub token cleared", false, func(cfg *types.AppConfig) {
 		cfg.GithubToken = ""
-	}, false)
-	if err != nil {
-		return types.ResolveConfigResponse{GenericResponse: types.ErrorResponse(err.Error())}
-	}
-	return types.ResolveConfigResponse{
-		GenericResponse:     types.SuccessResponse("GitHub token cleared"),
-		ResolveConfigResult: result,
-	}
+	})
 }
 
 func (s *Config) GetGithubToken() string {

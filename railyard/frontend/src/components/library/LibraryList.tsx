@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { Link } from 'wouter';
 
 import {
+  DeprecatedBadge,
   IncompatibleBadge,
   LocalBadge,
   TestBadge,
@@ -274,6 +275,7 @@ function LibraryListRowImpl({
   const showIncompatible =
     isInstalledCompatible(gameVersion, entry.constraints ?? []) === false;
   const showTest = !isLocal && entry.item.is_test === true;
+  const showDeprecated = !isLocal && entry.item.deprecation != null;
   const map = isMap ? (entry.item as types.MapManifest) : null;
 
   const mapCityCode = map?.city_code?.trim().toUpperCase() ?? '';
@@ -409,6 +411,7 @@ function LibraryListRowImpl({
           )}
         >
           {showTest && <TestBadge />}
+          {showDeprecated && <DeprecatedBadge />}
           {isLocal && <LocalBadge />}
           {showIncompatible && (
             <TooltipProvider>

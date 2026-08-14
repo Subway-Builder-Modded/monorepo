@@ -26,6 +26,8 @@ type UpdateFixture struct {
 	MissingModManifest bool
 	// IncompleteVersions are available upstream via Github API (so GetVersions sees them) but are not complete within integrity (so GetInstallableVersions excludes them). This test asset set directly targets this upstream/integrity gap.
 	IncompleteVersions []string
+	// Deprecation marks the fixture's manifest as retired (deleted when .Deleted).
+	Deprecation *types.Deprecation
 }
 
 // remoteVersions returns every version the upstream releases endpoint returns
@@ -118,8 +120,9 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 			}
 			maps = append(maps, types.MapManifest{
 				AssetManifest: types.AssetManifest{
-					ID:   current.AssetID,
-					Name: "Fixture Map",
+					ID:          current.AssetID,
+					Deprecation: current.Deprecation,
+					Name:        "Fixture Map",
 					Author: types.AuthorDetails{
 						AuthorID:        current.AssetID + "-author",
 						AuthorAlias:     current.AssetID + "-author",
@@ -133,8 +136,9 @@ func MockRegistryServer(t *testing.T, reg any, fixtures []UpdateFixture) func() 
 		} else {
 			mods = append(mods, types.ModManifest{
 				AssetManifest: types.AssetManifest{
-					ID:     current.AssetID,
-					Update: types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
+					ID:          current.AssetID,
+					Deprecation: current.Deprecation,
+					Update:      types.UpdateConfig{Type: "custom", URL: "{{BASE_URL}}" + updatePath},
 				},
 			})
 			modIntegrityListings[current.AssetID] = integrityListingFromFixture(current)

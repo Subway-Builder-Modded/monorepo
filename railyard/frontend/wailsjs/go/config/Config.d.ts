@@ -43,4 +43,6 @@ export function UpdateGithubToken(arg1:string):Promise<types.ResolveConfigRespon
 
 export function UpdateMetroMakerDataFolder(arg1:string):Promise<types.ResolveConfigResult>;
 
+export function UpdateShowDeletedListings(arg1:boolean):Promise<types.ResolveConfigResponse>;
+
 export function UpdateUseSteamLaunch(arg1:boolean):Promise<types.ResolveConfigResponse>;

@@ -139,9 +139,7 @@ function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
   );
 }
 
-/** Deliberately not red — retirement is an author decision, not a defect.
- * Deprecated (reversible) wears a desaturated slate blue; Deleted (permanent)
- * wears a darker charcoal. Mirrors the app badges and analytics series. */
+/** Not red: retirement is an author decision, not a defect. */
 function DeprecatedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
   return (
     <Badge

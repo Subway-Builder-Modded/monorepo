@@ -82,6 +82,10 @@ export function UpdateMetroMakerDataFolder(arg1) {
   return window['go']['config']['Config']['UpdateMetroMakerDataFolder'](arg1);
 }
 
+export function UpdateShowDeletedListings(arg1) {
+  return window['go']['config']['Config']['UpdateShowDeletedListings'](arg1);
+}
+
 export function UpdateUseSteamLaunch(arg1) {
   return window['go']['config']['Config']['UpdateUseSteamLaunch'](arg1);
 }

@@ -1,18 +1,16 @@
-export type StatusFilter =
-  | 'compatible'
-  | 'local'
-  | 'incompatible'
-  | 'test'
-  | 'deprecated'
-  | 'deleted';
+import {
+  type ListingStatus,
+  toggleListingStatus,
+} from '@subway-builder-modded/asset-listings-state';
+
+/** Compatibility: how a listing stands relative to the user's setup. Its
+ * own lifecycle is a separate dimension — see ListingStatusFilter. */
+export type StatusFilter = 'compatible' | 'incompatible' | 'test';
 
 export const STATUS_FILTER_VALUES: readonly StatusFilter[] = [
   'compatible',
-  'local',
   'incompatible',
   'test',
-  'deprecated',
-  'deleted',
 ];
 
 export interface StatusFilterSlice {
@@ -39,5 +37,34 @@ export function createStatusFilterSlice(set: SetFn): StatusFilterSlice {
           : [...state.statusFilters, filter],
       })),
     clearStatusFilters: () => set({ statusFilters: [] }),
+  };
+}
+
+export type ListingStatusFilter = ListingStatus;
+
+export interface ListingStatusSlice {
+  listingStatuses: ListingStatusFilter[];
+  /** The surface's default selection; dataset switches reset to this. */
+  listingStatusDefault: ListingStatusFilter[];
+  toggleListingStatus: (status: ListingStatusFilter) => void;
+}
+
+export function createListingStatusSlice(
+  set: (
+    partial:
+      | Partial<{ listingStatuses: ListingStatusFilter[] }>
+      | ((state: {
+          listingStatuses: ListingStatusFilter[];
+        }) => Partial<{ listingStatuses: ListingStatusFilter[] }>),
+  ) => void,
+  defaults: ListingStatusFilter[],
+): ListingStatusSlice {
+  return {
+    listingStatuses: [...defaults],
+    listingStatusDefault: defaults,
+    toggleListingStatus: (status) =>
+      set((state) => ({
+        listingStatuses: toggleListingStatus(state.listingStatuses, status),
+      })),
   };
 }

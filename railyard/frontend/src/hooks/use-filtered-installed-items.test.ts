@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  countInstalledListingStatuses,
   countInstalledStatuses,
+  installedListingStatusOf,
   type InstalledTaggedItem,
   isInstalledItemVisibleByStatus,
+  matchesInstalledListingStatus,
 } from '@/hooks/use-filtered-installed-items';
 
 import type { types } from '../../wailsjs/go/models';
@@ -90,17 +93,6 @@ describe('isInstalledItemVisibleByStatus', () => {
     ).toBe(true);
   });
 
-  it('local filter shows only local assets', () => {
-    const remote = installedItem();
-    const local = installedItem({ isLocal: true });
-    expect(isInstalledItemVisibleByStatus(remote, ['local'], gameVersion)).toBe(
-      false,
-    );
-    expect(isInstalledItemVisibleByStatus(local, ['local'], gameVersion)).toBe(
-      true,
-    );
-  });
-
   it('OR logic: asset matching any selected filter is visible', () => {
     const testIncompatible = installedItem({
       item: {
@@ -128,7 +120,7 @@ describe('isInstalledItemVisibleByStatus', () => {
     ).toBe(false);
   });
 
-  it('counts statuses over the given items, with compatible overlapping local/test', () => {
+  it('counts asset statuses over the given items, with compatible overlapping test', () => {
     const items = [
       installedItem(),
       installedItem({ isLocal: true }),
@@ -142,9 +134,6 @@ describe('isInstalledItemVisibleByStatus', () => {
     ];
     expect(countInstalledStatuses(items, gameVersion)).toEqual({
       compatible: 3,
-      deprecated: 0,
-      deleted: 0,
-      local: 1,
       test: 1,
       incompatible: 1,
     });
@@ -166,5 +155,46 @@ describe('isInstalledItemVisibleByStatus', () => {
         gameVersion,
       ),
     ).toBe(false);
+  });
+});
+
+describe('installed listing status', () => {
+  const active = installedItem();
+  const deprecated = installedItem({
+    item: {
+      id: 'wkj',
+      deprecation: { since: '2026-08-01T00:00:00Z', by_github_id: 1 },
+    } as unknown as types.ModManifest,
+  });
+  const local = installedItem({ isLocal: true });
+
+  it('classifies each installed item into exactly one class', () => {
+    expect(installedListingStatusOf(active)).toBe('active');
+    expect(installedListingStatusOf(deprecated)).toBe('deprecated');
+    // Local items have no registry listing at all.
+    expect(installedListingStatusOf(local)).toBe('local');
+  });
+
+  it('matches the selected union and counts every class', () => {
+    expect(matchesInstalledListingStatus(local, ['active', 'deprecated'])).toBe(
+      false,
+    );
+    expect(
+      matchesInstalledListingStatus(local, ['active', 'deprecated', 'local']),
+    ).toBe(true);
+    expect(countInstalledListingStatuses([active, deprecated, local])).toEqual({
+      active: 1,
+      deprecated: 1,
+      deleted: 0,
+      local: 1,
+    });
+  });
+
+  it("counts a deprecated listing's asset statuses normally", () => {
+    // Lifecycle no longer suppresses asset status: an installed deprecated
+    // listing with no constraints still counts as compatible.
+    expect(countInstalledStatuses([deprecated], gameVersion).compatible).toBe(
+      1,
+    );
   });
 });

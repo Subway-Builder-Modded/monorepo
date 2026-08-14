@@ -7,6 +7,10 @@ export function AddInstalledMap(arg1:string,arg2:string,arg3:boolean,arg4:types.
 
 export function AddInstalledMod(arg1:string,arg2:string,arg3:boolean,arg4:types.MetroMakerModManifest):Promise<void>;
 
+export function AssetDeleted(arg1:types.AssetType,arg2:string):Promise<boolean>;
+
+export function AssetDeprecatedNotDeleted(arg1:types.AssetType,arg2:string):Promise<boolean>;
+
 export function AssetMissingInstallableVersion(arg1:types.AssetType,arg2:string):Promise<boolean>;
 
 export function BootstrapInstalledStateFromProfile(arg1:types.UserProfile):Promise<void>;

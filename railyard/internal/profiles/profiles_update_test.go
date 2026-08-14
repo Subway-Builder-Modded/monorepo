@@ -1022,6 +1022,70 @@ func TestReconcileSubscriptionVersions(t *testing.T) {
 			},
 		},
 		{
+			name: "Purges subscription when asset is permanently deleted even while versions look installable",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "1.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:   "map-a",
+						assetType: types.AssetTypeMap,
+						// A stale integrity snapshot may still list installable
+						// versions; deletion must purge regardless.
+						versions:    []string{"1.0.0"},
+						mapCode:     "AAA",
+						deprecation: &types.Deprecation{Since: "2026-08-06T00:00:00Z", ByGithubID: 1, Deleted: true},
+					},
+				})
+			},
+			expectStatus: types.ResponseWarn,
+			assertResult: func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile) {
+				t.Helper()
+				_, exists := result.Profile.Subscriptions.Maps["map-a"]
+				require.False(t, exists)
+				_, persistedExists := persisted.Subscriptions.Maps["map-a"]
+				require.False(t, persistedExists)
+			},
+		},
+		{
+			name: "Keeps subscription when asset is deprecated but not deleted despite no complete version",
+			state: func() types.UserProfilesState {
+				state := types.InitialProfilesState()
+				profile := state.Profiles[types.DefaultProfileID]
+				profile.Subscriptions.Maps["map-a"] = "1.0.0"
+				state.Profiles[types.DefaultProfileID] = profile
+				return state
+			}(),
+			setup: func(t *testing.T, cfg *config.Config, reg *registry.Registry) func() {
+				t.Helper()
+				configureConfig(t, cfg)
+				return mockRegistry(t, reg, []registryFixture{
+					{
+						assetID:   "map-a",
+						assetType: types.AssetTypeMap,
+						// The registry publishes deprecated listings with zero
+						// complete versions; the install must be preserved.
+						incompleteVersions: []string{"1.0.0"},
+						mapCode:            "AAA",
+						deprecation:        &types.Deprecation{Since: "2026-08-06T00:00:00Z", ByGithubID: 1},
+					},
+				})
+			},
+			expectStatus: types.ResponseSuccess,
+			assertResult: func(t *testing.T, result types.UpdateSubscriptionsResult, persisted types.UserProfile) {
+				t.Helper()
+				require.Empty(t, result.Operations)
+				require.Equal(t, "1.0.0", persisted.Subscriptions.Maps["map-a"])
+			},
+		},
+		{
 			name: "Purges subscription when asset has no complete version",
 			state: func() types.UserProfilesState {
 				state := types.InitialProfilesState()
