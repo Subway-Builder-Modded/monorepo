@@ -19,7 +19,10 @@ import {
 import { isInstalledCompatible } from '@/lib/version-compatibility';
 import { type StatusFilter, useLibraryStore } from '@/stores/library-store';
 import { useProfileStore } from '@/stores/profile-store';
-import { STATUS_FILTER_VALUES } from '@/stores/status-filter-slice';
+import {
+  type ListingStatusFilter,
+  STATUS_FILTER_VALUES,
+} from '@/stores/status-filter-slice';
 
 import type { types } from '../../wailsjs/go/models';
 
@@ -63,17 +66,42 @@ function matchesStatusFilter(
   sf: StatusFilter,
   gameVersion: string,
 ): boolean {
-  if (sf === 'local') return item.isLocal;
   if (sf === 'incompatible')
     return isInstalledCompatible(gameVersion, item.constraints ?? []) === false;
   if (sf === 'compatible')
     return isInstalledCompatible(gameVersion, item.constraints ?? []) !== false;
-  if (sf === 'test') return !item.isLocal && item.item.is_test === true;
-  // Only the reversible deprecated state can appear in the Library; deleted
-  // assets are purged and filtered out before reaching it.
-  if (sf === 'deprecated')
-    return !item.isLocal && item.item.deprecation != null;
-  return false;
+  return !item.isLocal && item.item.is_test === true;
+}
+
+/** Classifies an installed item's listing status. Local means no registry
+ * listing at all; deleted cannot occur (see the LibraryPage guard). */
+export function installedListingStatusOf(
+  item: InstalledTaggedItem,
+): ListingStatusFilter {
+  if (item.isLocal) return 'local';
+  return item.item.deprecation != null ? 'deprecated' : 'active';
+}
+
+export function matchesInstalledListingStatus(
+  item: InstalledTaggedItem,
+  selected: readonly ListingStatusFilter[],
+): boolean {
+  return selected.includes(installedListingStatusOf(item));
+}
+
+export function countInstalledListingStatuses(
+  items: readonly InstalledTaggedItem[],
+): Record<ListingStatusFilter, number> {
+  const counts: Record<ListingStatusFilter, number> = {
+    active: 0,
+    deprecated: 0,
+    deleted: 0,
+    local: 0,
+  };
+  for (const item of items) {
+    counts[installedListingStatusOf(item)] += 1;
+  }
+  return counts;
 }
 
 // Counts how many items match each status. Statuses overlap: 'compatible' means
@@ -85,11 +113,7 @@ export function countInstalledStatuses(
   const counts: Record<StatusFilter, number> = {
     compatible: 0,
     test: 0,
-    local: 0,
     incompatible: 0,
-    deprecated: 0,
-    // Invariant: deleted assets are purged and never rendered in the Library.
-    deleted: 0,
   };
   for (const item of items) {
     for (const status of STATUS_FILTER_VALUES) {
@@ -122,6 +146,7 @@ export function useFilteredInstalledItems({
   const page = useLibraryStore((s) => s.page);
   const setPage = useLibraryStore((s) => s.setPage);
   const statusFilters = useLibraryStore((s) => s.statusFilters);
+  const listingStatuses = useLibraryStore((s) => s.listingStatuses);
   const gameVersion = useGameVersion();
   const accessors = useMemo(
     () => createTaggedListingAccessors<InstalledTaggedItem>(),
@@ -140,14 +165,17 @@ export function useFilteredInstalledItems({
   // independent of the status selection (which setType clears on switch anyway).
   const statusScopedItems = useMemo(
     () =>
-      statusFilters.length === 0
-        ? items
-        : items.filter(
-            (item) =>
-              item.type !== filters.type ||
-              isInstalledItemVisibleByStatus(item, statusFilters, gameVersion),
-          ),
-    [filters.type, gameVersion, items, statusFilters],
+      items.filter((item) => {
+        if (item.type !== filters.type) return true;
+        // Listing status is a never-empty union; asset status still composes
+        // as an optional narrowing on top of it.
+        if (!matchesInstalledListingStatus(item, listingStatuses)) return false;
+        return (
+          statusFilters.length === 0 ||
+          isInstalledItemVisibleByStatus(item, statusFilters, gameVersion)
+        );
+      }),
+    [filters.type, gameVersion, items, listingStatuses, statusFilters],
   );
 
   const dimCounts = useMemo(
@@ -162,18 +190,33 @@ export function useFilteredInstalledItems({
 
   // Status facet counts: every other facet applies (type, tags, map dims), but not the
   // status selection itself, and — per the countFilters convention — not the query.
+  const facetItems = useMemo(
+    () =>
+      filterTaggedItems({
+        items,
+        filters: countFilters as TaggedItemFilterState,
+        accessors,
+        fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
+      }),
+    [accessors, countFilters, items],
+  );
+
   const statusCounts = useMemo(
     () =>
       countInstalledStatuses(
-        filterTaggedItems({
-          items,
-          filters: countFilters as TaggedItemFilterState,
-          accessors,
-          fuseOptions: ASSET_LISTING_FUSE_SEARCH_OPTIONS,
-        }),
+        facetItems.filter((item) =>
+          matchesInstalledListingStatus(item, listingStatuses),
+        ),
         gameVersion,
       ),
-    [accessors, countFilters, gameVersion, items],
+    [facetItems, gameVersion, listingStatuses],
+  );
+
+  // Listing-status counts stay independent of the current selection so each
+  // class advertises its size.
+  const listingStatusCounts = useMemo(
+    () => countInstalledListingStatuses(facetItems),
+    [facetItems],
   );
 
   const filtered = useMemo(() => {
@@ -234,5 +277,7 @@ export function useFilteredInstalledItems({
     setPage,
     dimCounts,
     statusCounts,
+    listingStatuses,
+    listingStatusCounts,
   };
 }

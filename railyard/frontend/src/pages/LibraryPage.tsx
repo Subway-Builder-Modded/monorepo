@@ -41,6 +41,7 @@ import { ImportReviewDialog } from '@/components/library/ImportReviewDialog';
 import { LibraryActionBar } from '@/components/library/LibraryActionBar';
 import { LibraryList } from '@/components/library/LibraryList';
 import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterSection';
+import { ListingStatusFilterSection } from '@/components/shared/ListingStatusFilterSection';
 import { MutationLockTooltip } from '@/components/shared/MutationLockTooltip';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredInstalledItems } from '@/hooks/use-filtered-installed-items';
@@ -162,6 +163,7 @@ export function LibraryPage() {
 
   const statusFilters = useLibraryStore((s) => s.statusFilters);
   const toggleStatusFilter = useLibraryStore((s) => s.toggleStatusFilter);
+  const toggleListingStatus = useLibraryStore((s) => s.toggleListingStatus);
 
   const mods = useRegistryStore((s) => s.mods);
   const maps = useRegistryStore((s) => s.maps);
@@ -290,6 +292,8 @@ export function LibraryPage() {
     setPage,
     dimCounts: filteredDimCounts,
     statusCounts,
+    listingStatuses,
+    listingStatusCounts,
   } = useFilteredInstalledItems({
     items: installedItems,
     modDownloadTotals,
@@ -512,6 +516,15 @@ export function LibraryPage() {
               activeFilters={statusFilters}
               counts={statusCounts}
               onToggle={toggleStatusFilter}
+              options={['compatible', 'test', 'incompatible']}
+            />
+          }
+          footerContent={
+            <ListingStatusFilterSection
+              activeStatuses={listingStatuses}
+              counts={listingStatusCounts}
+              onToggle={toggleListingStatus}
+              options={['active', 'deprecated', 'local']}
             />
           }
         />

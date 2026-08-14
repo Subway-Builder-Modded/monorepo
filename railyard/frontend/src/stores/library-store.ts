@@ -18,7 +18,9 @@ import { create } from 'zustand';
 
 import { createQueryFilterSlice } from '@/stores/query-filter-slice';
 import {
+  createListingStatusSlice,
   createStatusFilterSlice,
+  type ListingStatusSlice,
   type StatusFilterSlice,
 } from '@/stores/status-filter-slice';
 
@@ -46,7 +48,8 @@ const defaultLibraryFilters: LibraryFilters = {
 interface LibraryState
   extends
     AssetQueryFilterStoreState<LibraryFilters, LibraryFilterByAssetType>,
-    StatusFilterSlice {
+    StatusFilterSlice,
+    ListingStatusSlice {
   selectedIds: Set<string>;
   toggleSelected: (id: string) => void;
   selectAll: (ids: string[]) => void;
@@ -66,6 +69,7 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   }),
   selectedIds: new Set<string>(),
   ...createStatusFilterSlice(set),
+  ...createListingStatusSlice(set, ['active', 'deprecated', 'local']),
   toggleSelected: (id) =>
     set((state) => {
       const next = new Set(state.selectedIds);

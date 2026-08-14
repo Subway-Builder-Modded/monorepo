@@ -58,6 +58,8 @@ export interface SidebarFiltersProps {
   dataQualityTitle?: string;
   minimumVisibleOptions?: number;
   statusContent?: ReactNode;
+  /** Rendered at the bottom of the rail, after tags and map dimensions. */
+  footerContent?: ReactNode;
 }
 
 const typeOptions: Array<{
@@ -86,6 +88,7 @@ export function SidebarFilters({
   dataQualityTitle = "Data Quality",
   minimumVisibleOptions = 1,
   statusContent: statusContent,
+  footerContent: footerContent,
 }: SidebarFiltersProps) {
   const counts: Record<GalleryAssetType, number> = {
     mod: modCount,
@@ -255,6 +258,8 @@ export function SidebarFilters({
           />
         </>
       )}
+
+      {footerContent}
     </div>
   );
 }

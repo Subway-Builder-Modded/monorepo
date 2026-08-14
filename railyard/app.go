@@ -111,17 +111,17 @@ func (a *App) GetTotalMemory() (uint64, error) {
 	return utils.GetTotalSystemMemoryMB()
 }
 
-// RefreshRegistryAndReconcile refreshes the registry clone and immediately
-// reconciles + syncs the active profile against the fresh data, so retirement
-// changes landing mid-session (notably permanent deletions) are actioned in
-// the same session instead of one restart late. Reconcile/sync failures are
-// logged but do not fail the refresh: the registry data did update.
+// RefreshRegistryAndReconcile refreshes the registry clone, then reconciles
+// and syncs the active profile against the fresh data.
 func (a *App) RefreshRegistryAndReconcile() types.GenericResponse {
 	refresh := a.Registry.RefreshResponse()
 	if refresh.Status == types.ResponseError {
 		return refresh
 	}
 
+	// Retirement changes landing mid-session (notably permanent deletions) are
+	// actioned now rather than one restart late. Reconcile/sync failures are
+	// logged but do not fail the refresh: the registry data did update.
 	profileResult := a.Profiles.GetActiveProfile()
 	if profileResult.Status == types.ResponseError {
 		a.Logger.MultipleError("Skipping post-refresh reconcile; no active profile", logger.AsErrors(profileResult.Errors))
