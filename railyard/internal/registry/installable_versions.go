@@ -42,11 +42,11 @@ func (r *Registry) AssetMissingInstallableVersion(assetType types.AssetType, ass
 func (r *Registry) assetDeprecation(assetType types.AssetType, assetID string) *types.Deprecation {
 	switch assetType {
 	case types.AssetTypeMod:
-		if manifest, err := r.GetMod(assetID); err == nil {
+		if manifest := r.findRawMod(assetID); manifest != nil {
 			return manifest.Deprecation
 		}
 	case types.AssetTypeMap:
-		if manifest, err := r.GetMap(assetID); err == nil {
+		if manifest := r.findRawMap(assetID); manifest != nil {
 			return manifest.Deprecation
 		}
 	}

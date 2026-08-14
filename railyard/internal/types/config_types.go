@@ -20,6 +20,10 @@ type AppConfig struct {
 	SetupCompleted          bool   `json:"setupCompleted"`
 	ChromeSandboxPath       string `json:"chromeSandboxPath,omitempty"`
 	ViewTestAssets          bool   `json:"viewTestAssets,omitempty"`
+	// ShowDeletedListings reveals permanently deleted registry listings in
+	// browse (behind their facet). Off by default; absent in older configs,
+	// which unmarshals to false.
+	ShowDeletedListings     bool   `json:"showDeletedListings,omitempty"`
 	DefaultSteamLibraryPath string `json:"defaultSteamLibraryPath,omitempty"`
 	UseSteamLaunch          bool   `json:"useSteamLaunch,omitempty"` // Whether to launch the game through Steam instead of directly.
 	SteamGamePath           string `json:"steamGamePath,omitempty"`  // Resolved Steam game install directory; independent of ExecutablePath.

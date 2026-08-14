@@ -198,6 +198,24 @@ func (s *Config) UpdateUseSteamLaunch(useSteamLaunch bool) types.ResolveConfigRe
 	}
 }
 
+func (s *Config) UpdateShowDeletedListings(show bool) types.ResolveConfigResponse {
+	// Persisted immediately: it is a pure display preference with no path
+	// validation to defer, and an unpersisted value silently reverts on the
+	// next launch.
+	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
+		cfg.ShowDeletedListings = show
+	}, true)
+	if err != nil {
+		return types.ResolveConfigResponse{
+			GenericResponse: types.ErrorResponse(err.Error()),
+		}
+	}
+	return types.ResolveConfigResponse{
+		GenericResponse:     types.SuccessResponse("Config updated"),
+		ResolveConfigResult: result,
+	}
+}
+
 func (s *Config) UpdateCheckForUpdatesOnLaunch(checkForUpdates bool) types.ResolveConfigResponse {
 	result, err := s.UpdateConfig(func(cfg *types.AppConfig) {
 		cfg.CheckForUpdatesOnLaunch = checkForUpdates

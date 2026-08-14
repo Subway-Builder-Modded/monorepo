@@ -209,6 +209,9 @@ func (r *Registry) GetMods() []types.ModManifest {
 		if mod.IsTest && !r.config.Cfg.ViewTestAssets {
 			continue // Skip test mods if the setting is disabled
 		}
+		if mod.Deprecation != nil && mod.Deprecation.Deleted && !r.config.Cfg.ShowDeletedListings {
+			continue // Deleted listings are hidden unless opted into
+		}
 		NewMods = append(NewMods, mod)
 	}
 	return NewMods
@@ -227,6 +230,9 @@ func (r *Registry) GetMaps() []types.MapManifest {
 	NewMaps := make([]types.MapManifest, 0)
 	for _, m := range r.maps {
 		if m.IsTest && !r.config.Cfg.ViewTestAssets {
+			continue
+		}
+		if m.Deprecation != nil && m.Deprecation.Deleted && !r.config.Cfg.ShowDeletedListings {
 			continue
 		}
 		NewMaps = append(NewMaps, m)
@@ -278,6 +284,28 @@ func (r *Registry) GetMod(modID string) (*types.ModManifest, error) {
 	}
 
 	return nil, fmt.Errorf("mod with ID %q not found in registry", modID)
+}
+
+// findRawMod looks up a mod manifest by ID without display filters (test /
+// deleted hiding). Internal consumers deciding purge or install policy must
+// use this: policy cannot depend on what the user chose to see.
+func (r *Registry) findRawMod(modID string) *types.ModManifest {
+	for _, m := range r.mods {
+		if m.ID == modID {
+			return &m
+		}
+	}
+	return nil
+}
+
+// findRawMap is findRawMod for maps.
+func (r *Registry) findRawMap(mapID string) *types.MapManifest {
+	for _, m := range r.maps {
+		if m.ID == mapID {
+			return &m
+		}
+	}
+	return nil
 }
 
 // GetMap looks up a map manifest by ID from the loaded registry data.

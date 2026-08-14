@@ -45,6 +45,7 @@ export namespace types {
 	    setupCompleted: boolean;
 	    chromeSandboxPath?: string;
 	    viewTestAssets?: boolean;
+	    showDeletedListings?: boolean;
 	    defaultSteamLibraryPath?: string;
 	    useSteamLaunch?: boolean;
 	    steamGamePath?: string;
@@ -63,6 +64,7 @@ export namespace types {
 	        this.setupCompleted = source["setupCompleted"];
 	        this.chromeSandboxPath = source["chromeSandboxPath"];
 	        this.viewTestAssets = source["viewTestAssets"];
+	        this.showDeletedListings = source["showDeletedListings"];
 	        this.defaultSteamLibraryPath = source["defaultSteamLibraryPath"];
 	        this.useSteamLaunch = source["useSteamLaunch"];
 	        this.steamGamePath = source["steamGamePath"];

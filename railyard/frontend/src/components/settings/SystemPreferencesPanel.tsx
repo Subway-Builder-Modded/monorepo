@@ -7,7 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@subway-builder-modded/shared-ui';
-import { CircleFadingArrowUp, Database, Shield, Terminal } from 'lucide-react';
+import {
+  CircleFadingArrowUp,
+  Database,
+  Shield,
+  Terminal,
+  Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -15,6 +21,7 @@ import { SettingRow } from '@/components/settings/SettingRow';
 import { SettingToggleButton } from '@/components/settings/SettingToggleButton';
 import { useConfigStore } from '@/stores/config-store';
 import { useProfileStore } from '@/stores/profile-store';
+import { useRegistryStore } from '@/stores/registry-store';
 
 import {
   GetPlatform,
@@ -25,6 +32,13 @@ import {
 export function SystemPreferencesPanel() {
   const profile = useProfileStore((s) => s.profile);
   const usingSteam = useConfigStore((s) => s.config?.useSteamLaunch ?? false);
+  const showDeletedListings = useConfigStore(
+    (s) => s.config?.showDeletedListings ?? false,
+  );
+  const updateShowDeletedListings = useConfigStore(
+    (s) => s.updateShowDeletedListings,
+  );
+  const reloadRegistry = useRegistryStore((s) => s.reload);
   const updateSystemPreferences = useProfileStore(
     (s) => s.updateSystemPreferences,
   );
@@ -46,6 +60,22 @@ export function SystemPreferencesPanel() {
         setSandboxInstalled(response.installed);
     });
   }, [platform]);
+
+  const handleToggleShowDeletedListings = async () => {
+    try {
+      const newValue = !showDeletedListings;
+      await updateShowDeletedListings(newValue);
+      // The backend filters deleted listings out of GetMods/GetMaps, so the
+      // already-loaded registry data must be re-read for the change to take
+      // effect without a restart.
+      await reloadRegistry();
+      toast.success(
+        `Deleted listings ${newValue ? 'shown in browse' : 'hidden'}.`,
+      );
+    } catch {
+      toast.error('Failed to update deleted-listing visibility.');
+    }
+  };
 
   const handleToggleRefreshRegistryOnStartup = async () => {
     if (!profile) return;
@@ -133,6 +163,20 @@ export function SystemPreferencesPanel() {
                 onToggle={handleToggleAutoUpdateSubscriptions}
                 enabledLabel="Enabled"
                 disabledLabel="Disabled"
+              />
+            }
+          />
+          <SettingRow
+            icon={<Trash2 className="h-4 w-4" />}
+            iconClassName="bg-zinc-700/25 text-zinc-800 dark:bg-zinc-300/15 dark:text-zinc-200"
+            label="Show Deleted Listings"
+            description="Reveal permanently deleted registry listings in browse, behind the Deleted listing status"
+            action={
+              <SettingToggleButton
+                enabled={showDeletedListings}
+                onToggle={handleToggleShowDeletedListings}
+                enabledLabel="Shown"
+                disabledLabel="Hidden"
               />
             }
           />
