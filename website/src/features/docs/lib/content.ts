@@ -90,10 +90,14 @@ function buildTreeFromEntries(
     for (const item of orderItems) {
       const key = typeof item === "string" ? item : item.key;
       const children = typeof item === "string" ? undefined : item.children;
-      const slug = parentSlug ? `${parentSlug}/${key}` : key;
-
-      const entry = entryBySlug.get(slug);
+      // A child resolves against its parent's folder first, then as a top-level
+      // page. The fallback lets the sidebar group pages that already live at
+      // top-level slugs, so navigation can be reorganized without moving files
+      // and changing their URLs.
+      const nestedSlug = parentSlug ? `${parentSlug}/${key}` : key;
+      const entry = entryBySlug.get(nestedSlug) ?? entryBySlug.get(key);
       if (!entry) continue;
+      const slug = entryBySlug.has(nestedSlug) ? nestedSlug : key;
 
       const hasChildren = children && children.length > 0;
       const childNodes = hasChildren ? buildNodes(children, slug, depth + 1) : [];
