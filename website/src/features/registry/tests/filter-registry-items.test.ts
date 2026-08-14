@@ -142,10 +142,10 @@ describe("filterRegistryItems deprecated visibility", () => {
     expect(filterRegistryItems(items, "alpha", [])).toHaveLength(0);
   });
 
-  it("includes deprecated items when showDeprecated is on", () => {
+  it("shows only deprecated items under the deprecated visibility class", () => {
     const items = [makeItem(), makeItem({ id: "old-item", isDeprecated: true })];
-    const result = filterRegistryItems(items, "", [], true);
-    expect(result.map((i) => i.id).sort()).toEqual(["item-a", "old-item"]);
+    const result = filterRegistryItems(items, "", [], ["deprecated"]);
+    expect(result.map((i) => i.id)).toEqual(["old-item"]);
   });
 
   it("applies query and tag filters to deprecated items when shown", () => {
@@ -153,37 +153,26 @@ describe("filterRegistryItems deprecated visibility", () => {
       makeItem({ id: "old-match", name: "Alpha Legacy", isDeprecated: true }),
       makeItem({ id: "old-miss", name: "Beta Legacy", isDeprecated: true }),
     ];
-    const result = filterRegistryItems(items, "alpha", [], true);
+    const result = filterRegistryItems(items, "alpha", [], ["deprecated"]);
     expect(result.map((i) => i.id)).toEqual(["old-match"]);
   });
 });
 
 describe("deleted listings", () => {
-  it("excludes deleted items by default and under showDeprecated alone", () => {
+  it("shows the selected union of listing-status classes", () => {
     const items = [
       makeItem(),
       makeItem({ id: "old-item", isDeprecated: true }),
       makeItem({ id: "gone-item", isDeprecated: true, isDeleted: true }),
     ];
     expect(filterRegistryItems(items, "", []).map((i) => i.id)).toEqual(["item-a"]);
-    expect(filterRegistryItems(items, "", [], true).map((i) => i.id)).toEqual([
-      "item-a",
+    expect(filterRegistryItems(items, "", [], ["active"]).map((i) => i.id)).toEqual(["item-a"]);
+    expect(filterRegistryItems(items, "", [], ["deprecated"]).map((i) => i.id)).toEqual([
       "old-item",
     ]);
-  });
-
-  it("surfaces deleted items only under showDeleted", () => {
-    const items = [
-      makeItem(),
-      makeItem({ id: "old-item", isDeprecated: true }),
-      makeItem({ id: "gone-item", isDeprecated: true, isDeleted: true }),
-    ];
-    expect(filterRegistryItems(items, "", [], false, true).map((i) => i.id)).toEqual([
-      "item-a",
-      "gone-item",
-    ]);
-    expect(filterRegistryItems(items, "", [], true, true).map((i) => i.id)).toEqual([
-      "item-a",
+    expect(filterRegistryItems(items, "", [], ["deleted"]).map((i) => i.id)).toEqual(["gone-item"]);
+    // Unions are expressible: all retired listings at once.
+    expect(filterRegistryItems(items, "", [], ["deprecated", "deleted"]).map((i) => i.id)).toEqual([
       "old-item",
       "gone-item",
     ]);

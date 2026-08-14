@@ -1,5 +1,11 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { collectTags, filterRegistryItems } from "@/features/registry/lib/filter-registry-items";
+import {
+  collectTags,
+  filterRegistryItems,
+  listingStatusOf,
+  matchesListingStatus,
+} from "@/features/registry/lib/filter-registry-items";
+import type { RegistryListingStatus } from "@/features/registry/lib/use-registry-params";
 import { sortRegistryItems } from "@/features/registry/lib/sort-registry-items";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type { RegistrySortId } from "@/features/registry/lib/types";
@@ -13,8 +19,7 @@ type UseRegistryBrowseDataProps = {
   sortDir: "asc" | "desc";
   page: number;
   pageSize: number;
-  showDeprecated: boolean;
-  showDeleted: boolean;
+  listingStatuses: readonly RegistryListingStatus[];
   isLoading: boolean;
   onPageChange: (page: number) => void;
 };
@@ -28,8 +33,7 @@ export function useRegistryBrowseData({
   sortDir,
   page,
   pageSize,
-  showDeprecated,
-  showDeleted,
+  listingStatuses,
   isLoading,
   onPageChange,
 }: UseRegistryBrowseDataProps) {
@@ -44,36 +48,36 @@ export function useRegistryBrowseData({
 
   const typeItems = allItemsByType[typeId] ?? [];
 
-  // Sidebar type counts follow the toggles: retired listings only count
-  // toward the totals when their state is being shown.
-  const isShown = useMemo(
-    () => (item: { isDeprecated: boolean; isDeleted: boolean }) =>
-      item.isDeleted ? showDeleted : item.isDeprecated ? showDeprecated : true,
-    [showDeprecated, showDeleted],
-  );
+  // Sidebar type counts follow the selected listing-status union.
   const counts = useMemo(() => {
     const result: Record<string, number> = {};
     for (const [tid, items] of Object.entries(allItemsByType)) {
-      result[tid] = items.filter(isShown).length;
+      result[tid] = items.filter((item) => matchesListingStatus(item, listingStatuses)).length;
     }
     return result;
-  }, [allItemsByType, isShown]);
+  }, [allItemsByType, listingStatuses]);
 
-  const deprecatedCount = useMemo(
-    () => typeItems.filter((item) => item.isDeprecated && !item.isDeleted).length,
-    [typeItems],
+  // Class counts stay independent of the selection so each advertises its size.
+  const listingStatusCounts = useMemo(() => {
+    const result: Record<RegistryListingStatus, number> = {
+      active: 0,
+      deprecated: 0,
+      deleted: 0,
+    };
+    for (const item of typeItems) {
+      result[listingStatusOf(item)] += 1;
+    }
+    return result;
+  }, [typeItems]);
+
+  const availableTags = useMemo(
+    () => collectTags(typeItems.filter((item) => matchesListingStatus(item, listingStatuses))),
+    [typeItems, listingStatuses],
   );
-
-  const deletedCount = useMemo(
-    () => typeItems.filter((item) => item.isDeleted).length,
-    [typeItems],
-  );
-
-  const availableTags = useMemo(() => collectTags(typeItems.filter(isShown)), [typeItems, isShown]);
 
   const filteredItems = useMemo(
-    () => filterRegistryItems(typeItems, deferredQuery, selectedTags, showDeprecated, showDeleted),
-    [typeItems, deferredQuery, selectedTags, showDeprecated, showDeleted],
+    () => filterRegistryItems(typeItems, deferredQuery, selectedTags, listingStatuses),
+    [typeItems, deferredQuery, selectedTags, listingStatuses],
   );
 
   const sortedItems = useMemo(
@@ -121,8 +125,7 @@ export function useRegistryBrowseData({
     typeItems,
     counts,
     availableTags,
-    deprecatedCount,
-    deletedCount,
+    listingStatusCounts,
     sortedItems,
     totalPages,
     visibleItems,
