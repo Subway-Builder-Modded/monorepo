@@ -51,6 +51,18 @@ export function gameRunningReason(detail?: string): DisabledReason {
   return { reason: 'Game Running', detail };
 }
 
+// unavailableVersionReason explains a version whose release artifacts are gone
+// (registry integrity availability "retired" or "removed").
+export function unavailableVersionReason(availability: string): DisabledReason {
+  return {
+    reason: 'No Longer Available',
+    detail:
+      availability === 'retired'
+        ? 'The author retired this release; its files can no longer be downloaded.'
+        : 'This release was removed upstream; its files can no longer be downloaded.',
+  };
+}
+
 // IncompatibilityTooltipContent explains why an asset action is unavailable: an optional
 // game-session lock reason, then one reason per failing version constraint.
 // Omit the header where a nearby "Incompatible" chip already states the status.

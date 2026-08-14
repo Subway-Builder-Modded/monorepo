@@ -17,6 +17,8 @@ export function GetAssetDownloadCounts(arg1:types.AssetType,arg2:string):Promise
 
 export function GetCreditedAuthors():Promise<Array<types.AuthorDetails>>;
 
+export function GetDisplayableVersions(arg1:types.AssetType,arg2:string):Promise<Array<types.VersionInfo>>;
+
 export function GetDownloadCountsByAssetType(arg1:types.AssetType):Promise<types.DownloadCountsByAssetTypeResponse>;
 
 export function GetGalleryImage(arg1:string,arg2:string,arg3:string):Promise<string>;

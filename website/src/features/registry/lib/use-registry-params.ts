@@ -21,11 +21,27 @@ export type RegistryBrowseParams = {
   viewMode: RegistryViewMode;
   page: number;
   pageSize: number;
-  /** Include author-deprecated listings in browse results (default off). */
-  showDeprecated: boolean;
-  /** Include permanently deleted listings in browse results (default off). */
-  showDeleted: boolean;
+  /** Which listing-status classes browse shows — a composable union
+   * mirroring the app. Never empty; defaults to Active alone. */
+  listingStatuses: RegistryListingStatus[];
 };
+
+export type RegistryListingStatus = "active" | "deprecated" | "deleted";
+
+export const DEFAULT_LISTING_STATUSES: RegistryListingStatus[] = ["active"];
+
+/** Toggle with a never-empty invariant: deselecting the last class is a
+ * no-op, so browse always shows exactly one well-defined union. */
+export function toggleListingStatus(
+  current: readonly RegistryListingStatus[],
+  status: RegistryListingStatus,
+): RegistryListingStatus[] {
+  if (current.includes(status)) {
+    if (current.length === 1) return [...current];
+    return current.filter((value) => value !== status);
+  }
+  return [...current, status];
+}
 
 type PersistedRegistryBrowseState = Omit<RegistryBrowseParams, "typeId">;
 
@@ -134,11 +150,9 @@ function serializeBrowseState(state: PersistedRegistryBrowseState): string {
   if (state.pageSize !== DEFAULT_PAGE_SIZE) {
     p.set("pageSize", String(state.pageSize));
   }
-  if (state.showDeprecated) {
-    p.set("deprecated", "1");
-  }
-  if (state.showDeleted) {
-    p.set("deleted", "1");
+  const listing = [...state.listingStatuses].sort().join(",");
+  if (listing !== "active") {
+    p.set("listing", listing);
   }
 
   const search = p.toString();
@@ -173,10 +187,32 @@ export function useRegistryParams() {
     const viewMode = cachedViewMode;
     const page = parsePage(p.get("page"));
     const pageSize = parsePageSize(p.get("pageSize"));
+    const rawListing = p.get("listing");
+    const parsedListing = (rawListing ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(
+        (value): value is RegistryListingStatus =>
+          value === "active" || value === "deprecated" || value === "deleted",
+      );
+    // Legacy params are accepted as aliases: the older exclusive
+    // ?visibility=, and the original ?deprecated=1 / ?deleted=1 toggles.
+    const rawVisibility = p.get("visibility");
     const rawDeprecated = p.get("deprecated");
-    const showDeprecated = rawDeprecated === "1" || rawDeprecated === "true";
     const rawDeleted = p.get("deleted");
-    const showDeleted = rawDeleted === "1" || rawDeleted === "true";
+    const legacy: RegistryListingStatus[] = [];
+    if (rawVisibility === "deprecated" || rawVisibility === "deleted") {
+      legacy.push(rawVisibility);
+    } else {
+      if (rawDeprecated === "1" || rawDeprecated === "true") legacy.push("deprecated");
+      if (rawDeleted === "1" || rawDeleted === "true") legacy.push("deleted");
+    }
+    const listingStatuses: RegistryListingStatus[] =
+      parsedListing.length > 0
+        ? [...new Set(parsedListing)]
+        : legacy.length > 0
+          ? legacy
+          : [...DEFAULT_LISTING_STATUSES];
 
     return {
       query,
@@ -186,8 +222,7 @@ export function useRegistryParams() {
       viewMode,
       page,
       pageSize,
-      showDeprecated,
-      showDeleted,
+      listingStatuses,
     };
   }, [search, cachedViewMode]);
 
@@ -202,8 +237,7 @@ export function useRegistryParams() {
       viewMode: persistedState.viewMode,
       page: persistedState.page,
       pageSize: persistedState.pageSize,
-      showDeprecated: persistedState.showDeprecated,
-      showDeleted: persistedState.showDeleted,
+      listingStatuses: persistedState.listingStatuses,
     };
   }, [typeId, persistedState]);
 
@@ -218,8 +252,7 @@ export function useRegistryParams() {
         viewMode: updates.viewMode ?? params.viewMode,
         page: updates.page ?? params.page,
         pageSize: updates.pageSize ?? params.pageSize,
-        showDeprecated: updates.showDeprecated ?? params.showDeprecated,
-        showDeleted: updates.showDeleted ?? params.showDeleted,
+        listingStatuses: updates.listingStatuses ?? params.listingStatuses,
       };
 
       writeCachedViewMode(nextPersisted.viewMode);
