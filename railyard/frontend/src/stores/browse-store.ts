@@ -15,7 +15,9 @@ import { create } from 'zustand';
 
 import { createQueryFilterSlice } from '@/stores/query-filter-slice';
 import {
+  createListingStatusSlice,
   createStatusFilterSlice,
+  type ListingStatusSlice,
   type StatusFilterSlice,
 } from '@/stores/status-filter-slice';
 
@@ -30,7 +32,8 @@ export type BrowseFilterStoreState = AssetQueryFilterStoreState<
 
 const defaultSearchFilters = createDefaultSourceFilters();
 
-interface BrowseViewModeStoreState extends StatusFilterSlice {
+interface BrowseViewModeStoreState
+  extends StatusFilterSlice, ListingStatusSlice {
   viewMode: SearchViewMode;
   viewModeInitialized: boolean;
   setViewMode: (viewMode: SearchViewMode) => void;
@@ -47,6 +50,7 @@ export const useBrowseStore = create<
   viewMode: 'full',
   viewModeInitialized: false,
   ...createStatusFilterSlice(set),
+  ...createListingStatusSlice(set, ['active']),
   setViewMode: (viewMode) => set({ viewMode, viewModeInitialized: true }),
   initializeViewMode: (viewMode) => {
     if (get().viewModeInitialized) return;

@@ -52,6 +52,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { AssetStatusFilterSection } from '@/components/shared/AssetStatusFilterSection';
 import { ItemCard } from '@/components/shared/ItemCard';
+import { ListingStatusFilterSection } from '@/components/shared/ListingStatusFilterSection';
 import { SidebarPanel } from '@/components/shared/SidebarPanel';
 import { useFilteredItems } from '@/hooks/use-filtered-items';
 import { preloadGalleryImage } from '@/hooks/use-gallery-image';
@@ -94,6 +95,7 @@ function BrowsePageContent({
   const initializeViewMode = useBrowseStore((s) => s.initializeViewMode);
   const statusFilters = useBrowseStore((s) => s.statusFilters);
   const toggleStatusFilter = useBrowseStore((s) => s.toggleStatusFilter);
+  const toggleListingStatus = useBrowseStore((s) => s.toggleListingStatus);
   const defaultBrowseViewMode = useProfileStore((s) => s.searchViewMode());
   const gameVersion = useGameVersion();
 
@@ -189,6 +191,8 @@ function BrowsePageContent({
     setPage,
     dimCounts: filteredDimCounts,
     statusCounts,
+    listingStatuses,
+    listingStatusCounts,
   } = useFilteredItems({
     mods,
     maps,
@@ -346,6 +350,15 @@ function BrowsePageContent({
                 activeFilters={statusFilters}
                 counts={statusCounts}
                 onToggle={toggleStatusFilter}
+                options={['compatible', 'test', 'incompatible']}
+              />
+            }
+            footerContent={
+              <ListingStatusFilterSection
+                activeStatuses={listingStatuses}
+                counts={listingStatusCounts}
+                onToggle={toggleListingStatus}
+                options={['active', 'deprecated', 'deleted']}
               />
             }
           />

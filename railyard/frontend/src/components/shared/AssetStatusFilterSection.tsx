@@ -4,13 +4,10 @@ import {
 } from '@subway-builder-modded/asset-listings-ui';
 import { cn, Separator } from '@subway-builder-modded/shared-ui';
 import {
-  Archive,
   Check,
   CircleAlert,
   FlaskConical,
-  HardDrive,
   type LucideIcon,
-  Trash2,
 } from 'lucide-react';
 
 import type { StatusFilter } from '@/stores/library-store';
@@ -27,14 +24,7 @@ interface AssetStatusFilterOption {
   hoverText: string;
 }
 
-const OPTION_ORDER: StatusFilter[] = [
-  'compatible',
-  'test',
-  'local',
-  'incompatible',
-  'deprecated',
-  'deleted',
-];
+const OPTION_ORDER: StatusFilter[] = ['compatible', 'test', 'incompatible'];
 
 const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
   compatible: {
@@ -61,17 +51,6 @@ const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
       'group-hover:bg-[color-mix(in_srgb,var(--update-primary)_10%,transparent)]',
     hoverText: 'group-hover:text-(--update-primary)',
   },
-  local: {
-    key: 'local',
-    label: 'Local',
-    Icon: HardDrive,
-    iconColor: 'text-amber-500',
-    activeText: 'text-amber-600 dark:text-amber-400',
-    activeBg: 'bg-amber-500/10',
-    activePill: 'bg-amber-500',
-    hoverBg: 'group-hover:bg-amber-500/10',
-    hoverText: 'group-hover:text-amber-600 dark:group-hover:text-amber-400',
-  },
   incompatible: {
     key: 'incompatible',
     label: 'Incompatible',
@@ -83,47 +62,25 @@ const STATUS_OPTIONS: Record<StatusFilter, AssetStatusFilterOption> = {
     hoverBg: 'group-hover:bg-red-500/10',
     hoverText: 'group-hover:text-red-600 dark:group-hover:text-red-400',
   },
-  // Neutral gray on purpose — deprecation is an author decision, not a defect.
-  // Deprecated items are hidden from browse unless this facet is selected.
-  deprecated: {
-    key: 'deprecated',
-    label: 'Deprecated',
-    Icon: Archive,
-    iconColor: 'text-muted-foreground',
-    activeText: 'text-foreground',
-    activeBg: 'bg-muted-foreground/10',
-    activePill: 'bg-muted-foreground',
-    hoverBg: 'group-hover:bg-muted-foreground/10',
-    hoverText: 'group-hover:text-foreground',
-  },
-  // Same rules as deprecated; deletion is the permanent variant.
-  deleted: {
-    key: 'deleted',
-    label: 'Deleted',
-    Icon: Trash2,
-    iconColor: 'text-muted-foreground',
-    activeText: 'text-foreground',
-    activeBg: 'bg-muted-foreground/10',
-    activePill: 'bg-muted-foreground',
-    hoverBg: 'group-hover:bg-muted-foreground/10',
-    hoverText: 'group-hover:text-foreground',
-  },
 };
 
 export interface AssetStatusFilterSectionProps {
   activeFilters: readonly StatusFilter[];
   counts: Record<StatusFilter, number>;
   onToggle: (status: StatusFilter) => void;
+  /** Statuses this surface offers; lifecycle classes live in Status. */
+  options?: readonly StatusFilter[];
 }
 
 export function AssetStatusFilterSection({
   activeFilters,
   counts,
   onToggle,
+  options = OPTION_ORDER,
 }: AssetStatusFilterSectionProps) {
-  const visibleOptions = OPTION_ORDER.map((key) => STATUS_OPTIONS[key]).filter(
-    ({ key }) => (counts[key] ?? 0) > 0 || activeFilters.includes(key),
-  );
+  const visibleOptions = options
+    .map((key) => STATUS_OPTIONS[key])
+    .filter(({ key }) => (counts[key] ?? 0) > 0 || activeFilters.includes(key));
 
   if (visibleOptions.length === 0) return null;
 
@@ -132,9 +89,9 @@ export function AssetStatusFilterSection({
       <Separator />
       <div>
         <p className={cn(FILTER_SECTION_TITLE_CLASS, 'mb-1 px-1 py-1.5')}>
-          Asset Status
+          Compatibility
         </p>
-        <nav className="space-y-0.5" aria-label="Asset status filter">
+        <nav className="space-y-0.5" aria-label="Compatibility filter">
           {visibleOptions.map(
             ({
               key,

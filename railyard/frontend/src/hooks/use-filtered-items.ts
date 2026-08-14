@@ -21,6 +21,7 @@ import {
 import { type BrowseFilterState, useBrowseStore } from '@/stores/browse-store';
 import { useProfileStore } from '@/stores/profile-store';
 import {
+  type ListingStatusFilter,
   STATUS_FILTER_VALUES,
   type StatusFilter,
 } from '@/stores/status-filter-slice';
@@ -54,19 +55,74 @@ function matchesBrowseStatus(
 ): boolean {
   const isIncompatible =
     incompatibleItemKeys?.has(assetKey(entry.type, entry.item.id)) ?? false;
-  const isDeleted = entry.item.deprecation?.deleted === true;
-  const isDeprecated = entry.item.deprecation != null && !isDeleted;
-  // Deprecated/deleted are excluded from 'compatible' so selecting only
-  // Compatible can never pull them in; statuses otherwise compose (an item
-  // may match test + incompatible + deprecated simultaneously).
-  if (status === 'compatible')
-    return !isIncompatible && !isDeprecated && !isDeleted;
+  // Retirement is a visibility class, not a status: statuses compose freely
+  // within the selected class (a test item with no compatible version
+  // matches both Test and Incompatible).
+  if (status === 'compatible') return !isIncompatible;
   if (status === 'incompatible') return isIncompatible;
   if (status === 'test') return entry.item.is_test === true;
-  if (status === 'deprecated') return isDeprecated;
-  if (status === 'deleted') return isDeleted;
-  // 'local' never applies to registry listings.
+  // 'local' never applies to registry listings; 'deprecated'/'deleted' are
+  // visibility classes handled by matchesVisibility.
   return false;
+}
+
+/** listingStatusOf classifies a registry listing's lifecycle state. */
+export function listingStatusOf(entry: TaggedItem): ListingStatusFilter {
+  if (entry.item.deprecation == null) return 'active';
+  return entry.item.deprecation.deleted === true ? 'deleted' : 'deprecated';
+}
+
+/** matchesListingStatus reports whether an item falls in the selected union
+ * of listing-status classes (never empty — see createListingStatusSlice). */
+export function matchesListingStatus(
+  entry: TaggedItem,
+  selected: readonly ListingStatusFilter[],
+): boolean {
+  return selected.includes(listingStatusOf(entry));
+}
+
+// Status counts are scoped to the selected listing-status union and compose
+// freely within it: with Deprecated selected, a test listing whose every
+// version is game-incompatible counts under both Test and Incompatible.
+export function computeBrowseStatusCounts(
+  facetItems: readonly TaggedItem[],
+  listingStatuses: readonly ListingStatusFilter[],
+  incompatibleItemKeys: ReadonlySet<string> | undefined,
+): Record<StatusFilter, number> {
+  const counts: Record<StatusFilter, number> = {
+    compatible: 0,
+    test: 0,
+    incompatible: 0,
+  };
+  for (const entry of facetItems) {
+    if (!matchesListingStatus(entry, listingStatuses)) continue;
+    for (const status of STATUS_FILTER_VALUES) {
+      if (matchesBrowseStatus(entry, status, incompatibleItemKeys)) {
+        counts[status] += 1;
+      }
+    }
+  }
+  return counts;
+}
+
+// Listing-status counts for the browsed type, independent of the current
+// selection so every class advertises its size. 'local' never applies to
+// registry listings (Library computes its own counts).
+export function computeListingStatusCounts(
+  facetItems: readonly TaggedItem[],
+  browsedType: 'mod' | 'map',
+): Record<ListingStatusFilter, number> {
+  const counts: Record<ListingStatusFilter, number> = {
+    active: 0,
+    deprecated: 0,
+    deleted: 0,
+    local: 0,
+  };
+  for (const entry of facetItems) {
+    if (entry.type !== browsedType) continue;
+    counts[listingStatusOf(entry)] += 1;
+  }
+  return counts;
 }
 
 export function useFilteredItems({
@@ -83,6 +139,7 @@ export function useFilteredItems({
   const page = useBrowseStore((s) => s.page);
   const setPage = useBrowseStore((s) => s.setPage);
   const statusFilters = useBrowseStore((s) => s.statusFilters);
+  const listingStatuses = useBrowseStore((s) => s.listingStatuses);
 
   usePaginationSync({ defaultPerPage, filters, setFilters, setPage });
 
@@ -91,23 +148,18 @@ export function useFilteredItems({
     [mods, maps],
   );
 
-  // The one asymmetric status semantic: deprecated and deleted items are
-  // HIDDEN by default (an empty status facet means "everything except
-  // deprecated/deleted") and each only surfaces for the browsed type while
-  // its own facet is selected. Other-type retired items are always excluded
-  // so the type-count badges match what a type switch (which clears the
-  // status facet) will actually show.
-  const visibleItems = useMemo(() => {
-    const showDeprecated = statusFilters.includes('deprecated');
-    const showDeleted = statusFilters.includes('deleted');
-    return registryItems.filter((entry) => {
-      if (entry.item.deprecation == null) return true;
-      if (entry.type !== filters.type) return false;
-      return entry.item.deprecation.deleted === true
-        ? showDeleted
-        : showDeprecated;
-    });
-  }, [filters.type, registryItems, statusFilters]);
+  // Listing status is a composable union (mirroring the website): the
+  // selection is never empty and defaults to Active alone. Retired items of
+  // the OTHER type are always excluded so the type-count badges match what a
+  // type switch (which resets the selection) will actually show.
+  const visibleItems = useMemo(
+    () =>
+      registryItems.filter((entry) => {
+        if (entry.type !== filters.type) return entry.item.deprecation == null;
+        return matchesListingStatus(entry, listingStatuses);
+      }),
+    [filters.type, registryItems, listingStatuses],
+  );
 
   // Status is a type-scoped facet: it only constrains the browsed type. Items of the
   // other type pass through so its type/dim counts stay independent of the status
@@ -148,40 +200,37 @@ export function useFilteredItems({
   // status selection itself, and — per the countFilters convention — not the query.
   const statusCounts = useMemo(
     () =>
-      measureSync('browse.statusCounts', () => {
-        const facetItems = filterTaggedItems({
+      measureSync('browse.statusCounts', () =>
+        computeBrowseStatusCounts(
+          filterTaggedItems({
+            items: registryItems,
+            filters: countFilters,
+            accessors,
+          }),
+          listingStatuses,
+          incompatibleItemKeys,
+        ),
+      ),
+    [
+      accessors,
+      countFilters,
+      incompatibleItemKeys,
+      listingStatuses,
+      registryItems,
+    ],
+  );
+
+  const listingStatusCounts = useMemo(
+    () =>
+      computeListingStatusCounts(
+        filterTaggedItems({
           items: registryItems,
           filters: countFilters,
           accessors,
-        });
-        const counts: Record<StatusFilter, number> = {
-          compatible: 0,
-          test: 0,
-          local: 0,
-          incompatible: 0,
-          deprecated: 0,
-          deleted: 0,
-        };
-        for (const entry of facetItems) {
-          // Each count reflects what selecting that facet alone would show:
-          // retired items only ever surface under their own facet
-          // (Deprecated or Deleted), so they don't inflate other counts.
-          const ownFacet: StatusFilter | null =
-            entry.item.deprecation == null
-              ? null
-              : entry.item.deprecation.deleted === true
-                ? 'deleted'
-                : 'deprecated';
-          for (const status of STATUS_FILTER_VALUES) {
-            if (ownFacet !== null && status !== ownFacet) continue;
-            if (matchesBrowseStatus(entry, status, incompatibleItemKeys)) {
-              counts[status] += 1;
-            }
-          }
-        }
-        return counts;
-      }),
-    [accessors, countFilters, incompatibleItemKeys, registryItems],
+        }),
+        filters.type,
+      ),
+    [accessors, countFilters, filters.type, registryItems],
   );
 
   // Measured (sync); this fully filters + sorts the registry.and should be cheap — the real cost
@@ -217,5 +266,7 @@ export function useFilteredItems({
     setPage,
     dimCounts,
     statusCounts,
+    listingStatuses,
+    listingStatusCounts,
   };
 }

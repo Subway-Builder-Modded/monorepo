@@ -132,13 +132,13 @@ describe('useLibraryStore statusFilters', () => {
   });
 
   it('toggleStatusFilter adds a filter when not present', () => {
-    useLibraryStore.getState().toggleStatusFilter('local');
-    expect(useLibraryStore.getState().statusFilters).toEqual(['local']);
+    useLibraryStore.getState().toggleStatusFilter('test');
+    expect(useLibraryStore.getState().statusFilters).toEqual(['test']);
   });
 
   it('toggleStatusFilter removes a filter when already present', () => {
-    useLibraryStore.setState({ statusFilters: ['local', 'incompatible'] });
-    useLibraryStore.getState().toggleStatusFilter('local');
+    useLibraryStore.setState({ statusFilters: ['test', 'incompatible'] });
+    useLibraryStore.getState().toggleStatusFilter('test');
     expect(useLibraryStore.getState().statusFilters).toEqual(['incompatible']);
   });
 
@@ -149,7 +149,7 @@ describe('useLibraryStore statusFilters', () => {
 
   it('clearStatusFilters empties the list', () => {
     useLibraryStore.setState({
-      statusFilters: ['local', 'incompatible', 'test'],
+      statusFilters: ['compatible', 'incompatible', 'test'],
     });
     useLibraryStore.getState().clearStatusFilters();
     expect(useLibraryStore.getState().statusFilters).toEqual([]);
@@ -161,7 +161,7 @@ describe('useLibraryStore statusFilters', () => {
   });
 
   it('resets to empty when switching type', () => {
-    useLibraryStore.setState({ statusFilters: ['incompatible', 'local'] });
+    useLibraryStore.setState({ statusFilters: ['incompatible', 'test'] });
     useLibraryStore.getState().setType('map');
     expect(useLibraryStore.getState().statusFilters).toEqual([]);
   });

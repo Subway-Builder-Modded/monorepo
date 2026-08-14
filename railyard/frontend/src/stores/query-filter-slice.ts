@@ -7,7 +7,10 @@ import {
   syncFilter,
 } from '@subway-builder-modded/stores-core';
 
-import type { StatusFilter } from '@/stores/status-filter-slice';
+import type {
+  ListingStatusFilter,
+  StatusFilter,
+} from '@/stores/status-filter-slice';
 
 // The query-filter slice models the shared sidebar: Browse and Library apply the
 // same query/sort/type filtering, only against different datasets (remote vs.
@@ -19,6 +22,8 @@ import type { StatusFilter } from '@/stores/status-filter-slice';
 type QueryFilterWritable<TFilter, TScoped> = {
   filters: TFilter;
   page: number;
+  listingStatuses?: ListingStatusFilter[];
+  listingStatusDefault?: ListingStatusFilter[];
   scopedByType: TScoped;
   statusFilters: StatusFilter[];
 };
@@ -67,6 +72,11 @@ export function createQueryFilterSlice<
       set((state) => ({
         ...switchFilter(state.filters, state.page, state.scopedByType, type),
         statusFilters: [],
+        // Listing-status selection resets to the surface's default on
+        // dataset switch, mirroring the status-filter clear.
+        listingStatuses: state.listingStatusDefault
+          ? [...state.listingStatusDefault]
+          : state.listingStatuses,
       })),
     setPage: (page) =>
       set((state) => {
