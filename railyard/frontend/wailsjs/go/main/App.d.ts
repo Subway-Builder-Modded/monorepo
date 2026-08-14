@@ -35,6 +35,8 @@ export function OpenImportAssetDialog(arg1:types.AssetType):Promise<types.Import
 
 export function OpenInFileExplorer(arg1:string):Promise<types.GenericResponse>;
 
+export function RefreshRegistryAndReconcile():Promise<types.GenericResponse>;
+
 export function SandboxIsInstalled():Promise<types.SandboxStatusResponse>;
 
 export function StopGame():Promise<types.GenericResponse>;

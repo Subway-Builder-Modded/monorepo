@@ -66,6 +66,10 @@ export function OpenInFileExplorer(arg1) {
   return window['go']['main']['App']['OpenInFileExplorer'](arg1);
 }
 
+export function RefreshRegistryAndReconcile() {
+  return window['go']['main']['App']['RefreshRegistryAndReconcile']();
+}
+
 export function SandboxIsInstalled() {
   return window['go']['main']['App']['SandboxIsInstalled']();
 }

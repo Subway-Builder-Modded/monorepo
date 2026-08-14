@@ -2,12 +2,12 @@ import { ASSET_TYPES, type AssetType } from '@subway-builder-modded/config';
 import { toCumulativeDownloadTotals } from '@subway-builder-modded/config';
 import { create } from 'zustand';
 
+import { RefreshRegistryAndReconcile } from '../../wailsjs/go/main/App';
 import type { types } from '../../wailsjs/go/models';
 import {
   GetDownloadCountsByAssetType,
   GetMapsResponse,
   GetModsResponse,
-  RefreshResponse,
 } from '../../wailsjs/go/registry/Registry';
 import { measureAsync } from '../lib/perf';
 
@@ -179,7 +179,7 @@ export const useRegistryStore = create<RegistryState>((set, get) => ({
   refresh: async () => {
     set({ refreshing: true, error: null });
     try {
-      const refreshResponse = await RefreshResponse();
+      const refreshResponse = await RefreshRegistryAndReconcile();
       if (refreshResponse.status !== 'success') {
         throw new Error(
           refreshResponse.message || 'Failed to refresh registry',

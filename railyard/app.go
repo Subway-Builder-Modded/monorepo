@@ -110,3 +110,32 @@ func (a *App) GetPlatform() types.PlatformResponse {
 func (a *App) GetTotalMemory() (uint64, error) {
 	return utils.GetTotalSystemMemoryMB()
 }
+
+// RefreshRegistryAndReconcile refreshes the registry clone and immediately
+// reconciles + syncs the active profile against the fresh data, so retirement
+// changes landing mid-session (notably permanent deletions) are actioned in
+// the same session instead of one restart late. Reconcile/sync failures are
+// logged but do not fail the refresh: the registry data did update.
+func (a *App) RefreshRegistryAndReconcile() types.GenericResponse {
+	refresh := a.Registry.RefreshResponse()
+	if refresh.Status == types.ResponseError {
+		return refresh
+	}
+
+	profileResult := a.Profiles.GetActiveProfile()
+	if profileResult.Status == types.ResponseError {
+		a.Logger.MultipleError("Skipping post-refresh reconcile; no active profile", logger.AsErrors(profileResult.Errors))
+		return refresh
+	}
+	profileID := profileResult.Profile.ID
+
+	reconcileResult := a.Profiles.ReconcileSubscriptionVersions(profileID)
+	if reconcileResult.Status == types.ResponseError {
+		a.Logger.MultipleError("Failed to reconcile subscription versions after registry refresh", logger.AsErrors(reconcileResult.Errors), "profile_id", profileID)
+	}
+	syncResult := a.Profiles.SyncSubscriptions(profileID, nil, false)
+	if syncResult.Status == types.ResponseError {
+		a.Logger.MultipleError("Failed to sync subscriptions after registry refresh", logger.AsErrors(syncResult.Errors), "profile_id", profileID)
+	}
+	return refresh
+}
