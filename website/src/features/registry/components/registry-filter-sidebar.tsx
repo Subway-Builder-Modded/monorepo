@@ -124,8 +124,10 @@ function ListingStatusSection({
 
         {visible.map(({ value, label, Icon, accentClass }) => {
           const active = listingStatuses.includes(value);
-          // The last selected class cannot be deselected.
-          const locked = active && listingStatuses.length === 1;
+          // The last VISIBLE selected class cannot be deselected; hidden
+          // zero-member classes contribute nothing to the union.
+          const effective = visible.filter((option) => listingStatuses.includes(option.value));
+          const locked = active && effective.length === 1;
           return (
             <button
               key={value}
