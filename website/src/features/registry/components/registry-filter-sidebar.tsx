@@ -31,8 +31,15 @@ import {
   uiAccentStyle,
 } from "@/features/registry/lib/registry-styles";
 import { useSidebarCollapsed } from "@/hooks/use-sidebar-collapsed";
-import { PanelLeftOpen, PanelLeftClose, Trash2, ArrowUpToLine, Archive, Eye } from "lucide-react";
-import type { RegistryVisibility } from "@/features/registry/lib/use-registry-params";
+import {
+  PanelLeftOpen,
+  PanelLeftClose,
+  Trash2,
+  ArrowUpToLine,
+  Archive,
+  CircleCheck,
+} from "lucide-react";
+import type { RegistryListingStatus } from "@/features/registry/lib/use-registry-params";
 import { RegistryTagCategorySection } from "@/features/registry/components/registry-tag-category-section";
 
 const REGISTRY_SIDEBAR_COLLAPSED_KEY = "sbm:registry-sidebar-collapsed";
@@ -54,66 +61,57 @@ type RegistryFilterSidebarProps = {
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
   onTagsClear: () => void;
-  visibility: RegistryVisibility;
-  deprecatedCount: number;
-  deletedCount: number;
-  onVisibilityChange: (visibility: RegistryVisibility) => void;
+  listingStatuses: readonly RegistryListingStatus[];
+  listingStatusCounts: Record<RegistryListingStatus, number>;
+  onListingStatusToggle: (status: RegistryListingStatus) => void;
   onCollapsedChange?: (collapsed: boolean) => void;
 };
 
-/** Listing Status: an exclusive selector over the registry-side lifecycle of
- * a listing — Available (default), Deprecated, Deleted — mirroring the app.
- * The retired options render only when the current type has such listings (or
- * one is already selected via URL); the whole section hides when neither
- * does. */
-function VisibilitySection({
-  visibility,
-  deprecatedCount,
-  deletedCount,
-  onVisibilityChange,
+/** Listing Status: a composable union over a listing's registry-side
+ * lifecycle — Active (default), Deprecated, Deleted — mirroring the app.
+ * Never empty: deselecting the last class is a no-op, surfaced as a disabled
+ * chip. Retired options render only when the current type has such listings
+ * (or one is selected via URL). */
+function ListingStatusSection({
+  listingStatuses,
+  counts,
+  onToggle,
 }: {
-  visibility: RegistryVisibility;
-  deprecatedCount: number;
-  deletedCount: number;
-  onVisibilityChange: (visibility: RegistryVisibility) => void;
+  listingStatuses: readonly RegistryListingStatus[];
+  counts: Record<RegistryListingStatus, number>;
+  onToggle: (status: RegistryListingStatus) => void;
 }) {
   const options: {
-    value: RegistryVisibility;
+    value: RegistryListingStatus;
     label: string;
     Icon: typeof Archive;
-    count: number | null;
     accentClass: string;
-    show: boolean;
   }[] = [
     {
-      value: "available",
-      label: "Available",
-      Icon: Eye,
-      count: null,
-      accentClass: "",
-      show: true,
+      value: "active",
+      label: "Active",
+      Icon: CircleCheck,
+      accentClass: "text-emerald-600 dark:text-emerald-400",
     },
+    // Slate blue: reversible retirement. Matches the app badge and chart series.
     {
       value: "deprecated",
       label: "Deprecated",
       Icon: Archive,
-      count: deprecatedCount,
-      // Slate blue: reversible retirement. Matches the app badge and the
-      // analytics deprecated series.
       accentClass: "text-slate-600 dark:text-slate-300",
-      show: deprecatedCount > 0 || visibility === "deprecated",
     },
+    // Darker charcoal: permanent retirement.
     {
       value: "deleted",
       label: "Deleted",
       Icon: Trash2,
-      count: deletedCount,
-      // Darker charcoal: permanent retirement.
       accentClass: "text-zinc-800 dark:text-zinc-200",
-      show: deletedCount > 0 || visibility === "deleted",
     },
   ];
-  if (!options.some((option) => option.show && option.value !== "available")) {
+  const visible = options.filter(
+    ({ value }) => value === "active" || counts[value] > 0 || listingStatuses.includes(value),
+  );
+  if (visible.length <= 1) {
     return null;
   }
 
@@ -124,29 +122,31 @@ function VisibilitySection({
       <section className="space-y-2" aria-label="Listing status">
         <p className={cn("px-1", SECTION_LABEL_CLASS)}>Listing Status</p>
 
-        {options
-          .filter((option) => option.show)
-          .map(({ value, label, Icon, count, accentClass }) => {
-            const active = visibility === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => onVisibilityChange(value)}
-                aria-pressed={active}
-                style={SIDEBAR_UI_ACCENT_STYLE}
-                className={cn(
-                  ACCENT_TOGGLE_BASE_CLASS,
-                  active ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
-                  active && accentClass,
-                )}
-              >
-                <Icon className="size-4 shrink-0" aria-hidden={true} />
-                <span className="flex-1">{label}</span>
-                {count !== null && <RegistryTypeCountBadge count={count} isActive={active} />}
-              </button>
-            );
-          })}
+        {visible.map(({ value, label, Icon, accentClass }) => {
+          const active = listingStatuses.includes(value);
+          // The last selected class cannot be deselected.
+          const locked = active && listingStatuses.length === 1;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onToggle(value)}
+              aria-pressed={active}
+              disabled={locked}
+              style={SIDEBAR_UI_ACCENT_STYLE}
+              className={cn(
+                ACCENT_TOGGLE_BASE_CLASS,
+                active ? ACCENT_TOGGLE_ACTIVE_CLASS : ACCENT_TOGGLE_IDLE_MUTED_CLASS,
+                active && accentClass,
+                locked && "cursor-default",
+              )}
+            >
+              <Icon className="size-4 shrink-0" aria-hidden={true} />
+              <span className="flex-1">{label}</span>
+              <RegistryTypeCountBadge count={counts[value]} isActive={active} />
+            </button>
+          );
+        })}
       </section>
     </>
   );
@@ -206,10 +206,9 @@ type SidebarFilterContentProps = {
   onTagToggle: (tag: string) => void;
   collapsedCategories: Set<string>;
   onToggleCategory: (categoryId: string) => void;
-  visibility: RegistryVisibility;
-  deprecatedCount: number;
-  deletedCount: number;
-  onVisibilityChange: (visibility: RegistryVisibility) => void;
+  listingStatuses: readonly RegistryListingStatus[];
+  listingStatusCounts: Record<RegistryListingStatus, number>;
+  onListingStatusToggle: (status: RegistryListingStatus) => void;
 };
 
 /** The sidebar's filter sections, shared between the scroll-area and plain
@@ -224,10 +223,9 @@ function SidebarFilterContent({
   onTagToggle,
   collapsedCategories,
   onToggleCategory,
-  visibility,
-  deprecatedCount,
-  deletedCount,
-  onVisibilityChange,
+  listingStatuses,
+  listingStatusCounts,
+  onListingStatusToggle,
 }: SidebarFilterContentProps) {
   return (
     <>
@@ -289,11 +287,10 @@ function SidebarFilterContent({
         )}
       </section>
 
-      <VisibilitySection
-        visibility={visibility}
-        deprecatedCount={deprecatedCount}
-        deletedCount={deletedCount}
-        onVisibilityChange={onVisibilityChange}
+      <ListingStatusSection
+        listingStatuses={listingStatuses}
+        counts={listingStatusCounts}
+        onToggle={onListingStatusToggle}
       />
     </>
   );
@@ -316,10 +313,9 @@ export function RegistryFilterSidebar({
   selectedTags,
   onTagToggle,
   onTagsClear,
-  visibility,
-  deprecatedCount,
-  deletedCount,
-  onVisibilityChange,
+  listingStatuses,
+  listingStatusCounts,
+  onListingStatusToggle,
   onCollapsedChange,
 }: RegistryFilterSidebarProps) {
   const categories = buildTagCategories(typeId, availableTags, typeItems);
@@ -430,10 +426,9 @@ export function RegistryFilterSidebar({
       onTagToggle={onTagToggle}
       collapsedCategories={collapsedCategories}
       onToggleCategory={toggleCategory}
-      visibility={visibility}
-      deprecatedCount={deprecatedCount}
-      deletedCount={deletedCount}
-      onVisibilityChange={onVisibilityChange}
+      listingStatuses={listingStatuses}
+      listingStatusCounts={listingStatusCounts}
+      onListingStatusToggle={onListingStatusToggle}
     />
   );
 

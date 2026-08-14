@@ -1,14 +1,21 @@
 import type { RegistrySearchItem } from "./registry-search-types";
-import type { RegistryVisibility } from "./use-registry-params";
+import type { RegistryListingStatus } from "./use-registry-params";
 
-/** matchesVisibility reports whether an item belongs to the visibility class. */
-export function matchesVisibility(
+/** listingStatusOf classifies a listing's registry-side lifecycle state. */
+export function listingStatusOf(
   item: Pick<RegistrySearchItem, "isDeprecated" | "isDeleted">,
-  visibility: RegistryVisibility,
+): RegistryListingStatus {
+  if (item.isDeleted) return "deleted";
+  return item.isDeprecated ? "deprecated" : "active";
+}
+
+/** matchesListingStatus reports whether an item falls in the selected union
+ * of listing-status classes (never empty — see toggleListingStatus). */
+export function matchesListingStatus(
+  item: Pick<RegistrySearchItem, "isDeprecated" | "isDeleted">,
+  selected: readonly RegistryListingStatus[],
 ): boolean {
-  if (visibility === "deleted") return item.isDeleted;
-  if (visibility === "deprecated") return item.isDeprecated && !item.isDeleted;
-  return !item.isDeprecated;
+  return selected.includes(listingStatusOf(item));
 }
 import { buildRegistryItemSearchValues, matchesRegistrySearch } from "./registry-search";
 
@@ -25,17 +32,16 @@ export function collectTags(items: RegistrySearchItem[]): string[] {
 
 /** Filter registry items by search query and tag selection.
  * All matches are case-insensitive.
- * Visibility is exclusive: exactly one retirement class is shown at a time
- * ("available" = neither deprecated nor deleted), mirroring the app's Asset
- * Status facet semantics.
+ * Listing status is a composable union (never empty, Active by default),
+ * mirroring the app's Listing Status group.
  */
 export function filterRegistryItems(
   items: RegistrySearchItem[],
   query: string,
   selectedTags: string[],
-  visibility: RegistryVisibility = "available",
+  listingStatuses: readonly RegistryListingStatus[] = ["active"],
 ): RegistrySearchItem[] {
-  const visibleItems = items.filter((item) => matchesVisibility(item, visibility));
+  const visibleItems = items.filter((item) => matchesListingStatus(item, listingStatuses));
   const trimmedQuery = query.trim();
   const hasQuery = trimmedQuery.length > 0;
   const hasTags = selectedTags.length > 0;

@@ -21,12 +21,27 @@ export type RegistryBrowseParams = {
   viewMode: RegistryViewMode;
   page: number;
   pageSize: number;
-  /** Which retirement class browse shows — exclusive, mirroring the app's
-   * Asset Status facet. "available" (default) hides all retired listings. */
-  visibility: RegistryVisibility;
+  /** Which listing-status classes browse shows — a composable union
+   * mirroring the app. Never empty; defaults to Active alone. */
+  listingStatuses: RegistryListingStatus[];
 };
 
-export type RegistryVisibility = "available" | "deprecated" | "deleted";
+export type RegistryListingStatus = "active" | "deprecated" | "deleted";
+
+export const DEFAULT_LISTING_STATUSES: RegistryListingStatus[] = ["active"];
+
+/** Toggle with a never-empty invariant: deselecting the last class is a
+ * no-op, so browse always shows exactly one well-defined union. */
+export function toggleListingStatus(
+  current: readonly RegistryListingStatus[],
+  status: RegistryListingStatus,
+): RegistryListingStatus[] {
+  if (current.includes(status)) {
+    if (current.length === 1) return [...current];
+    return current.filter((value) => value !== status);
+  }
+  return [...current, status];
+}
 
 type PersistedRegistryBrowseState = Omit<RegistryBrowseParams, "typeId">;
 
@@ -135,8 +150,9 @@ function serializeBrowseState(state: PersistedRegistryBrowseState): string {
   if (state.pageSize !== DEFAULT_PAGE_SIZE) {
     p.set("pageSize", String(state.pageSize));
   }
-  if (state.visibility !== "available") {
-    p.set("visibility", state.visibility);
+  const listing = [...state.listingStatuses].sort().join(",");
+  if (listing !== "active") {
+    p.set("listing", listing);
   }
 
   const search = p.toString();
@@ -171,18 +187,32 @@ export function useRegistryParams() {
     const viewMode = cachedViewMode;
     const page = parsePage(p.get("page"));
     const pageSize = parsePageSize(p.get("pageSize"));
+    const rawListing = p.get("listing");
+    const parsedListing = (rawListing ?? "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(
+        (value): value is RegistryListingStatus =>
+          value === "active" || value === "deprecated" || value === "deleted",
+      );
+    // Legacy params are accepted as aliases: the older exclusive
+    // ?visibility=, and the original ?deprecated=1 / ?deleted=1 toggles.
     const rawVisibility = p.get("visibility");
-    // Legacy toggle params are accepted as aliases; deleted wins when both set.
     const rawDeprecated = p.get("deprecated");
     const rawDeleted = p.get("deleted");
-    const visibility: RegistryVisibility =
-      rawVisibility === "deprecated" || rawVisibility === "deleted"
-        ? rawVisibility
-        : rawDeleted === "1" || rawDeleted === "true"
-          ? "deleted"
-          : rawDeprecated === "1" || rawDeprecated === "true"
-            ? "deprecated"
-            : "available";
+    const legacy: RegistryListingStatus[] = [];
+    if (rawVisibility === "deprecated" || rawVisibility === "deleted") {
+      legacy.push(rawVisibility);
+    } else {
+      if (rawDeprecated === "1" || rawDeprecated === "true") legacy.push("deprecated");
+      if (rawDeleted === "1" || rawDeleted === "true") legacy.push("deleted");
+    }
+    const listingStatuses: RegistryListingStatus[] =
+      parsedListing.length > 0
+        ? [...new Set(parsedListing)]
+        : legacy.length > 0
+          ? legacy
+          : [...DEFAULT_LISTING_STATUSES];
 
     return {
       query,
@@ -192,7 +222,7 @@ export function useRegistryParams() {
       viewMode,
       page,
       pageSize,
-      visibility,
+      listingStatuses,
     };
   }, [search, cachedViewMode]);
 
@@ -207,7 +237,7 @@ export function useRegistryParams() {
       viewMode: persistedState.viewMode,
       page: persistedState.page,
       pageSize: persistedState.pageSize,
-      visibility: persistedState.visibility,
+      listingStatuses: persistedState.listingStatuses,
     };
   }, [typeId, persistedState]);
 
@@ -222,7 +252,7 @@ export function useRegistryParams() {
         viewMode: updates.viewMode ?? params.viewMode,
         page: updates.page ?? params.page,
         pageSize: updates.pageSize ?? params.pageSize,
-        visibility: updates.visibility ?? params.visibility,
+        listingStatuses: updates.listingStatuses ?? params.listingStatuses,
       };
 
       writeCachedViewMode(nextPersisted.viewMode);

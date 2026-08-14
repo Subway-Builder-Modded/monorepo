@@ -4,7 +4,11 @@ import { getSuiteById } from "@/config/site-navigation";
 import { RegistryHero } from "./components/registry-hero";
 import { RegistryBrowseSection } from "./components/registry-browse-section";
 import { RegistrySpotlightSearch } from "./components/registry-spotlight-search";
-import { useRegistryParams, type RegistryVisibility } from "./lib/use-registry-params";
+import {
+  toggleListingStatus,
+  useRegistryParams,
+  type RegistryListingStatus,
+} from "./lib/use-registry-params";
 import { loadRegistryItemsForType } from "./lib/load-registry-cache";
 import { REGISTRY_TYPES } from "./registry-type-config";
 import type { RegistrySearchItem } from "./lib/registry-search-types";
@@ -171,9 +175,13 @@ export function RegistryPage() {
 
   const handlePageChange = useCallback((page: number) => setParams({ page }), [setParams]);
 
-  const handleVisibilityChange = useCallback(
-    (visibility: RegistryVisibility) => setParams({ visibility, page: 1 }),
-    [setParams],
+  const handleListingStatusToggle = useCallback(
+    (status: RegistryListingStatus) =>
+      setParams({
+        listingStatuses: toggleListingStatus(params.listingStatuses, status),
+        page: 1,
+      }),
+    [params.listingStatuses, setParams],
   );
 
   const handlePageSizeChange = useCallback(
@@ -212,8 +220,8 @@ export function RegistryPage() {
         viewMode={params.viewMode}
         page={params.page}
         pageSize={params.pageSize}
-        visibility={params.visibility}
-        onVisibilityChange={handleVisibilityChange}
+        listingStatuses={params.listingStatuses}
+        onListingStatusToggle={handleListingStatusToggle}
         onTypeChange={handleTypeChange}
         onQueryChange={handleQueryChange}
         onTagToggle={handleTagToggle}
