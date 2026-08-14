@@ -1,0 +1,48 @@
+---
+title: v0.2.10
+icon: TrainTrack
+date: August 14, 2026
+tag: beta
+url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.10
+previousVersion: v0.2.9
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.9...v0.2.10
+---
+
+<ChangelogSection type="features">
+
+- Added a `Status` filter covering the full listing lifecycle: Active, Deprecated, Deleted, and Local
+  - Browse opens on Active only; Library also shows Deprecated and Local, so nothing you have installed can hide from you
+  - Selections are unions and can be combined, and a class with no members is not offered
+- Added a `Show Deleted Listings` setting, off by default, for looking up a listing after it has been removed
+- Deprecated listings now carry their own badge, sort last, and cannot be newly installed
+- Retired and removed versions now appear in a listing's version history as **No Longer Available**, keeping their changelog, release date, and download count
+- Added sorting by data quality, with tiebreaker fallbacks
+- Driving paths are now served from the app (**[Kronifer](https://github.com/Kronifer)**)
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+- Split compatibility from lifecycle in the sidebar: `Compatibility` covers Compatible/Incompatible, `Status` covers the listing's own lifecycle
+- Deleted assets are now purged from profiles on the next sync, while deprecated assets keep their subscription and installed files
+- Asset detail pages gained version charts and a deprecation series, alongside a consistency pass across the chart system
+- Analytics Overview gained interactive legends, line/bar switches, and a Top Countries breakdown
+- Added a Top Authors chart to the analytics Authors tab
+- Reworked orphan file removal
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Fixed deleted assets surviving in a profile until the following restart
+- Fixed map updates failing when the map's city code changed
+- Fixed a renamed `.app` bundle breaking game launch on macOS
+- Fixed several issues in demand driving path handling
+
+</ChangelogSection>
+
+<ChangelogSection type="notes">
+
+- Deprecation is reversible and leaves your installs alone; deletion is permanent and uninstalls the asset. See [Listing Status & Filters](/railyard/docs/latest/listing-status-and-filters) for what each state means.
+
+</ChangelogSection>
