@@ -11,9 +11,11 @@ describe("updates content", () => {
     const entries = getUpdatesEntries("railyard");
     expect(entries.length).toBeGreaterThan(0);
 
+    // Ordering is semver-aware, not lexicographic: a string sort ranks v0.2.9
+    // above v0.2.10, which is why the expectation is not built with localeCompare.
     const ids = entries.map((entry) => entry.id);
-    const sortedIds = [...ids].sort((a, b) => b.localeCompare(a));
-    expect(ids[0]).toBe(sortedIds[0]);
+    expect(ids.indexOf("v0.2.10")).toBeLessThan(ids.indexOf("v0.2.9"));
+    expect(ids.indexOf("v0.2.9")).toBeLessThan(ids.indexOf("v0.1.6"));
   });
 
   it("finds update by suite and id", () => {
