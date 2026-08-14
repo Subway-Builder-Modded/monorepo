@@ -139,17 +139,16 @@ function TypeBadge({ typeConfig, size = "sm" }: TypeBadgeProps) {
   );
 }
 
-/** Muted gray badge marking an author-deprecated listing. Deliberately
- * neutral (not red) — deprecation is an author decision, not a defect. */
+/** Not red: retirement is an author decision, not a defect. */
 function DeprecatedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
   return (
     <Badge
       variant="secondary"
       size={size}
-      className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold text-muted-foreground"
+      className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold text-slate-600 dark:text-slate-300"
       style={{
-        background: "color-mix(in srgb, var(--muted-foreground) 10%, transparent)",
-        border: "1px solid color-mix(in srgb, var(--muted-foreground) 22%, transparent)",
+        background: "color-mix(in srgb, #64748b 14%, transparent)",
+        border: "1px solid color-mix(in srgb, #64748b 32%, transparent)",
       }}
     >
       <Archive className="size-3.5" aria-hidden={true} />
@@ -158,17 +157,16 @@ function DeprecatedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
   );
 }
 
-/** Same neutral treatment as Deprecated (also an author decision), distinct
- * icon/label: deletion is the permanent variant. */
+/** See DeprecatedBadge; deletion is the permanent variant. */
 function DeletedBadge({ size = "sm" }: { size?: "sm" | "md" }) {
   return (
     <Badge
       variant="secondary"
       size={size}
-      className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold text-muted-foreground"
+      className="inline-flex items-center gap-1.5 rounded-md px-2.5 font-semibold text-zinc-800 dark:text-zinc-200"
       style={{
-        background: "color-mix(in srgb, var(--muted-foreground) 10%, transparent)",
-        border: "1px solid color-mix(in srgb, var(--muted-foreground) 22%, transparent)",
+        background: "color-mix(in srgb, #55555c 26%, transparent)",
+        border: "1px solid color-mix(in srgb, #55555c 55%, transparent)",
       }}
     >
       <Trash2 className="size-3.5" aria-hidden={true} />
