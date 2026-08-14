@@ -1,0 +1,53 @@
+---
+title: Listing Status & Filters
+description: Learn how Railyard separates compatibility from lifecycle, and what happens to your installed content when a listing is retired.
+icon: ListFilter
+---
+
+Railyard filters listings along two independent dimensions, and it helps to know which is which:
+
+- **Compatibility**: how a listing stands relative to _your_ setup. Compatible, Incompatible, and (where present) Test.
+- **Status**: the listing's own lifecycle in the Registry, independent of your machine. Active, Deprecated, Deleted, and Local.
+
+A listing has one value from each. An asset can be perfectly compatible with your game version and still be deprecated by its author, and the two filters are answering different questions, so they appear as separate groups in the sidebar.
+
+## Status {#status}
+
+| Status         | Meaning                                                                                |
+| -------------- | -------------------------------------------------------------------------------------- |
+| **Active**     | A normal listing.                                                                      |
+| **Deprecated** | Retired by its author or caretaker, reversibly. Still installed for anyone who has it. |
+| **Deleted**    | Retired permanently. Cannot be restored; the content returning requires a new listing. |
+| **Local**      | Installed from disk with no Registry listing at all. Library only.                     |
+
+Deprecated and Deleted are author decisions rather than defects, which is why neither is styled as an error: Deprecated wears slate blue, Deleted a darker charcoal, and Local keeps the amber it has always used for unmanaged installs.
+
+See [Deprecation & Deletion](/registry/docs/deprecation) for how an author retires a listing, and [Retiring Versions](/registry/docs/retiring-versions) for withdrawing a single version rather than the whole thing.
+
+## What each surface shows by default {#defaults}
+
+- **Browse** starts on **Active** only. You are shopping for something to install, and retired listings are not installable.
+- **Library** starts on **Active, Deprecated, and Local**, the things you can actually have installed. Deprecation does not uninstall anything, so hiding it would make your own content vanish from your own library.
+
+Both groups are multi-select unions: selecting Active _and_ Deprecated shows both, rather than narrowing to their intersection.
+
+:::note
+
+Two rules keep the filters from painting you into a corner. A status with no members is not offered at all, since an empty class cannot change a union. And you cannot deselect your last remaining status; the toggle is a no-op rather than leaving you with an empty screen and no obvious way back.
+
+:::
+
+## Showing deleted listings {#show-deleted}
+
+Deleted listings are hidden everywhere by default. To see them, enable **Settings → System Preferences → Show Deleted Listings**. A **Deleted** option then appears in the Status filter, still deselected until you choose it. Turning the setting on reveals the class, it does not select it for you.
+
+This is intended for looking something up after the fact, such as checking what a listing was or why it went away, rather than for installing. Deleted content cannot be installed.
+
+## What happens to content you have installed {#installed-content}
+
+This is where the two retirement states stop behaving alike:
+
+- **Deprecated**: nothing happens. Your installed files stay, your subscription stays, and the asset keeps working. Deprecation only blocks _new_ installs. If the author reverses it, the listing simply becomes Active again.
+- **Deleted**: the subscription is **purged and the asset is uninstalled**, on the next reconcile after Railyard sees the deletion. This is unconditional and is not affected by the Show Deleted Listings setting, which governs browse visibility only.
+
+If an asset disappears from your profile without you removing it, a deletion upstream is the first thing to check. A version that merely stopped being installable behaves differently again: Railyard downgrades your subscription to the newest version that still resolves, and only purges when none is left.

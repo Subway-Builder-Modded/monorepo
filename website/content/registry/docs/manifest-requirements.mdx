@@ -1,6 +1,6 @@
 ---
 title: Manifest Requirements
-description: What a release's manifest.json must contain, per asset type, and how to change game compatibility retroactively.
+description: Learn what your release's manifest.json must contain and how to change game compatibility retroactively.
 icon: FileJson
 ---
 
@@ -20,7 +20,7 @@ For _both mods and maps_, `manifest.json` must declare a game-version compatibil
 }
 ```
 
-The value must be a valid [semver range](https://github.com/npm/node-semver#ranges). Single-comparator ranges (`">=1.2.0"`, `"<=1.3.0"`) are recommended — Railyard displays them as friendly text like "1.3.0 or older", while compound ranges are shown verbatim.
+The value must be a valid [semver range](https://github.com/npm/node-semver#ranges). Single-comparator ranges (`">=1.2.0"`, `"<=1.3.0"`) are recommended. Railyard displays them as friendly text like "1.3.0 or older", while compound ranges are shown verbatim.
 
 :::important
 
@@ -49,7 +49,7 @@ A map's `manifest.json` needs _only_ the `subway-builder` dependency range shown
 
 :::tip
 
-Maps are data bundles, not code — they have _no JavaScript entry point_. Fields like `main`, `id`, `name`, or `version` in a map's `manifest.json` are ignored by the Registry and Railyard; only `dependencies["subway-builder"]` is read.
+Maps are data bundles, not code, so they have _no JavaScript entry point_. Fields like `main`, `id`, `name`, or `version` in a map's `manifest.json` are ignored by the Registry and Railyard; only `dependencies["subway-builder"]` is read.
 
 :::
 

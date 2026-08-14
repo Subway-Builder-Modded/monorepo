@@ -87,13 +87,13 @@ Versions **must** be in [semantic versioning format](https://semver.org/). `1.0`
 
 :::caution
 
-`download` and `manifest` **must** be GitHub release asset URLs — `https://github.com/<owner>/<repo>/releases/download/<tag>/<file>`. The Registry reads your download counts from the release asset behind that URL, so a file hosted anywhere else leaves the version permanently uninstallable.
+`download` and `manifest` **must** be GitHub release asset URLs of the form `https://github.com/<owner>/<repo>/releases/download/<tag>/<file>`. The Registry reads your download counts from the release asset behind that URL, so a file hosted anywhere else leaves the version permanently uninstallable.
 
 :::
 
 :::note
 
-Custom URL assets — **maps included** — declare game compatibility with `game_version` on each version entry, _not_ with a standalone `manifest.json` release asset. The [manifest.json contract](/registry/docs/manifest-requirements) covers the GitHub Releases path instead. Mods still need the `manifest` field so the Registry can resolve dependencies without downloading the ZIP.
+Custom URL assets, **maps included**, declare game compatibility with `game_version` on each version entry, _not_ with a standalone `manifest.json` release asset. The [manifest.json contract](/registry/docs/manifest-requirements) covers the GitHub Releases path instead. Mods still need the `manifest` field so the Registry can resolve dependencies without downloading the ZIP.
 
 :::
 
@@ -102,13 +102,13 @@ Custom URL assets — **maps included** — declare game compatibility with `gam
 | Field          | Type    | Required                 | What it does                                                                                                    |
 | -------------- | ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | `version`      | string  | **Yes**                  | The version's identity. Entries without one are skipped entirely.                                               |
-| `download`     | string  | **Yes** — unless retired | GitHub release asset URL for the ZIP. Its release asset is also where download counts come from.                |
-| `sha256`       | string  | **Yes** — unless retired | Checked on install; a mismatch blocks it.                                                                       |
+| `download`     | string  | **Yes**, unless retired  | GitHub release asset URL for the ZIP. Its release asset is also where download counts come from.                |
+| `sha256`       | string  | **Yes**, unless retired  | Checked on install; a mismatch blocks it.                                                                       |
 | `manifest`     | string  | **Mods only**            | URL of the `manifest.json` you uploaded beside the ZIP. Lets the Registry resolve dependencies without the ZIP. |
 | `game_version` | string  | **Yes** for new versions | Which Subway Builder versions this works with, e.g. `>=1.0.0`. Older entries are grandfathered.                 |
 | `date`         | string  | Recommended              | Publish date. Orders the version history and is kept after retirement.                                          |
 | `changelog`    | string  | Recommended              | Shown in Railyard and on the website, including after the version is retired.                                   |
-| `dependencies` | object  | No                       | Other mods this needs — mod ID to version range. Mods only.                                                     |
+| `dependencies` | object  | No                       | Other mods this needs, as mod ID to version range. Mods only.                                                   |
 | `retired`      | boolean | No                       | Withdraws the version while keeping its history. See [Retiring Versions](/registry/docs/retiring-versions).     |
 
 :::tip
