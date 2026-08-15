@@ -93,7 +93,7 @@ export type RegistryAnalyticsHistoryPoint = {
     maps: number;
     mods: number;
   };
-  /** Listings deprecated (not deleted) on this date (manifest deprecation.since). */
+  /** Listings currently deprecated (not deleted), dated by deprecation.since. */
   deprecations: {
     total: number;
     maps: number;
@@ -332,6 +332,14 @@ function getPublishedDate(item: RegistryAnalyticsItem): string | null {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
+/**
+ * The listing's CURRENT retirement, or null once it is reversed. Closed windows
+ * in `deprecation_history` are deliberately ignored: a listing arrives at most
+ * once and departs at most once (its latest retirement), so an un-deprecated
+ * listing keeps its original debut and nothing else. Escalating a deprecation
+ * to a deletion carries the original `since`, so it moves buckets rather than
+ * adding a second departure.
+ */
 function getDeprecationDate(item: RegistryAnalyticsItem): string | null {
   const manifest = item.manifest as { deprecation?: { since?: string } };
   const since = manifest?.deprecation?.since;
