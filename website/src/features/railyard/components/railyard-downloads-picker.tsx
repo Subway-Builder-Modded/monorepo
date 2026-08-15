@@ -8,6 +8,7 @@ import {
 } from "@subway-builder-modded/shared-ui";
 import { ArrowRight } from "lucide-react";
 import {
+  buildRailyardDownloadUrl,
   detectRailyardPlatformAccurate,
   fetchRailyardReleaseAssetInfo,
   formatRailyardAssetSize,
@@ -125,7 +126,11 @@ export function RailyardDownloadsPicker({ options }: RailyardDownloadsPickerProp
                       releaseAssetInfoByName,
                       option.assetName,
                     );
-                    const href = githubAsset?.downloadUrl ?? "#";
+                    // Never "#": the API call is unauthenticated (60 req/hr per
+                    // IP), so a shared address can exhaust it and leave every
+                    // button inert with no visible failure. The constructed URL
+                    // is the same one GitHub serves.
+                    const href = githubAsset?.downloadUrl ?? buildRailyardDownloadUrl(option);
                     const fileType = getRailyardAssetFileType(option.assetName);
                     const fileSize = formatRailyardAssetSize(githubAsset?.sizeBytes);
 

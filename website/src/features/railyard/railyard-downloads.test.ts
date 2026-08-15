@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   buildRailyardDownloadUrl,
   detectRailyardPlatform,
@@ -10,6 +10,7 @@ import {
   setRailyardManualArchitectureOverride,
   normalizeRailyardArchitecture,
   resolveRailyardReleaseAssetInfo,
+  fetchRailyardReleaseAssetInfo,
   railyardDownloadOptions,
   selectRecommendedRailyardDownload,
 } from "@/features/railyard/railyard-downloads";
@@ -247,5 +248,59 @@ describe("railyard downloads", () => {
       downloadUrl: "https://example.test/windows.zip",
       sizeBytes: 13_300_000,
     });
+  });
+});
+
+describe("railyard release asset resolution", () => {
+  const okResponse = (assets: unknown[]) =>
+    ({ ok: true, status: 200, json: () => Promise.resolve({ assets }) }) as unknown as Response;
+  const notFound = () => ({ ok: false, status: 404 }) as unknown as Response;
+  const rateLimited = () => ({ ok: false, status: 403 }) as unknown as Response;
+
+  it("falls back to the current release when the pinned tag does not exist yet", async () => {
+    const calls: string[] = [];
+    const fetchMock = vi.fn((url: string) => {
+      calls.push(url);
+      return Promise.resolve(
+        url.includes("/latest")
+          ? okResponse([
+              {
+                name: "railyard-v0.2.9-macos-universal.dmg",
+                browser_download_url: "https://example.com/dmg",
+                size: 1000,
+              },
+            ])
+          : notFound(),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const info = await fetchRailyardReleaseAssetInfo("v0.2.10");
+
+    expect(calls[0]).toContain("/releases/tags/v0.2.10");
+    expect(calls[1]).toContain("/releases/latest");
+    expect(info["railyard-v0.2.9-macos-universal.dmg"]?.downloadUrl).toBe(
+      "https://example.com/dmg",
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it("still throws when the API is unavailable, so callers can fall back", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(rateLimited())),
+    );
+
+    await expect(fetchRailyardReleaseAssetInfo("v0.2.9")).rejects.toThrow();
+    vi.unstubAllGlobals();
+  });
+
+  it("builds a usable URL for every advertised option without calling the API", () => {
+    for (const option of railyardDownloadOptions) {
+      const url = buildRailyardDownloadUrl(option, "v0.2.9");
+      expect(url).toBe(
+        `https://github.com/Subway-Builder-Modded/monorepo/releases/download/v0.2.9/railyard-v0.2.9-${option.assetName}`,
+      );
+    }
   });
 });
