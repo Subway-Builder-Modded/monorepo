@@ -182,18 +182,24 @@ export function formatRailyardAssetSize(bytes: number | null | undefined): strin
   return `${Math.round(bytes)} B`;
 }
 
+const GITHUB_RELEASES_API = "https://api.github.com/repos/Subway-Builder-Modded/monorepo/releases";
+
+/**
+ * The pinned version comes from the newest changelog file, which can land before
+ * its release is published (or while a failed release run is being re-run). A
+ * missing tag falls back to whatever release is actually current, so the picker
+ * offers a real download instead of nothing.
+ */
 export async function fetchRailyardReleaseAssetInfo(
   version = RAILYARD_LATEST_RELEASE_VERSION,
 ): Promise<Record<string, RailyardReleaseAssetInfo>> {
+  const headers = { Accept: "application/vnd.github+json" };
   const encodedVersion = encodeURIComponent(version);
-  const response = await fetch(
-    `https://api.github.com/repos/Subway-Builder-Modded/monorepo/releases/tags/${encodedVersion}`,
-    {
-      headers: {
-        Accept: "application/vnd.github+json",
-      },
-    },
-  );
+  let response = await fetch(`${GITHUB_RELEASES_API}/tags/${encodedVersion}`, { headers });
+
+  if (response.status === 404) {
+    response = await fetch(`${GITHUB_RELEASES_API}/latest`, { headers });
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch release assets for ${version}`);
