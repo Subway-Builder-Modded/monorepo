@@ -88,7 +88,17 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               projectId: "author-a/project-a",
               publishedAt: Date.UTC(2026, 2, 12),
               totalDownloads: 20,
-              manifest: {},
+              // Deprecated on 03-12 and reinstated on 03-13.
+              manifest: {
+                deprecation_history: [
+                  {
+                    since: "2026-03-12T00:00:00.000Z",
+                    by_github_id: 1,
+                    until: "2026-03-13T00:00:00.000Z",
+                    removed_by_github_id: 1,
+                  },
+                ],
+              },
             },
           ]
         : [
@@ -101,7 +111,7 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               searchAliases: ["Alternate Mod"],
               publishedAt: Date.UTC(2026, 2, 13),
               totalDownloads: 5,
-              manifest: {},
+              manifest: { deprecation: { since: "2026-03-13T00:00:00.000Z", by_github_id: 1 } },
             },
           ],
     ),
@@ -262,6 +272,25 @@ describe("loadRegistryAnalyticsData", () => {
     });
     expect(data.contentRankings["all-time"].maps.map((row) => row.id)).toEqual(["map-b", "map-a"]);
     expect(data.mapStatistics.rankings.map((row) => row.id)).toEqual(["map-a"]);
+  });
+
+  it("charts one debut and only the listing's current retirement", async () => {
+    const data = await loadRegistryAnalyticsData();
+
+    // map-b's deprecation was reversed, so only its debut charts — the closed
+    // window in deprecation_history leaves no dip behind.
+    expect(data.history[1]).toMatchObject({
+      date: "2026-03-12",
+      listings: { total: 1, maps: 1, mods: 0 },
+      deprecations: { total: 0, maps: 0, mods: 0 },
+    });
+    // mod-a is still deprecated: one arrival, one departure, same day.
+    expect(data.history[2]).toMatchObject({
+      date: "2026-03-13",
+      listings: { total: 1, maps: 0, mods: 1 },
+      deprecations: { total: 1, maps: 0, mods: 1 },
+      deletions: { total: 0, maps: 0, mods: 0 },
+    });
   });
 
   it("filters and sums analytics history by selected period", async () => {
