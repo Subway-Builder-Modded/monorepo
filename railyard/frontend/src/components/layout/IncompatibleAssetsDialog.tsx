@@ -48,7 +48,7 @@ export function IncompatibleAssetsDialog({
       tone="uninstall"
       description={`${
         total === 1 ? '1 installed asset is' : `${total} installed assets are`
-      } incompatible with game ${gameVersion} and may not function as intended.`}
+      } incompatible with game version ${gameVersion} and may not function as intended.`}
       itemCount={total}
       renderItem={(index) => {
         const asset = assets[index];
