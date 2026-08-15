@@ -83,7 +83,6 @@ import {
 import {
   HOURLY_BUCKET_HOURS,
   HOURLY_CHART_PERIODS,
-  alignHourlyBucket,
   bucketRegistryAnalyticsHourly,
   filterRegistryAnalyticsHistory,
   formatHourlyBucketLabel,
@@ -157,9 +156,9 @@ const HOUR_OF_DAY_LABELS = Array.from(
 const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter((_, hour) => hour % HOURLY_BUCKET_HOURS === 0);
 
 /**
- * 1d/3d chart rows from the hourly series: wall-clock-aligned 4h buckets
- * (6/18 points), newest last; the trailing bucket is partial until its last
- * hour lands. `readValues` maps a bucket's downloads onto the chart's series keys.
+ * 1d/3d chart rows from the hourly series: 4h buckets anchored at the newest
+ * hour (6/18 points), newest last. `readValues` maps a bucket's downloads onto
+ * the chart's series keys.
  */
 function buildHourlyChartRows(
   hourly: RegistryAnalyticsData["hourly"],
@@ -878,7 +877,10 @@ function RegistryContentTab({
       }));
     }
     const allowedIds = new Set(filteredListingSeries.entities.map((entity) => entity.id));
-    const windowBuckets = getHourlyWindowBuckets(data.listings.hourlyDownloads.buckets, period);
+    const { buckets: windowBuckets, align } = getHourlyWindowBuckets(
+      data.listings.hourlyDownloads.buckets,
+      period,
+    );
     const labelByBucket = new Map(
       windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
     );
@@ -886,7 +888,7 @@ function RegistryContentTab({
     for (const entity of data.listings.hourlyDownloads.entities) {
       if (!allowedIds.has(entity.id)) continue;
       for (const [bucket, point] of entity.byBucket) {
-        const label = labelByBucket.get(alignHourlyBucket(bucket));
+        const label = labelByBucket.get(align(bucket));
         if (!label) continue;
         const value = assetTypeId === "maps" ? point.maps : point.mods;
         totals.set(label, (totals.get(label) ?? 0) + value);
