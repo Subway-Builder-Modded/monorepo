@@ -30,10 +30,8 @@ export type NamedDailySeries = {
   name: string;
   /** date (YYYY-MM-DD) -> value; absent dates count as 0. */
   valueByDate: ReadonlyMap<string, number>;
-  /** Fixed color for synthetic categories (e.g. "No Project"); palette otherwise. */
+  /** Fixed color for categories that own one (e.g. asset types); palette otherwise. */
   color?: string;
-  /** Synthetic catch-all categories don't count toward the `minCount` floor. */
-  synthetic?: boolean;
 };
 
 export type MultiSeriesChartModel = {
@@ -143,19 +141,10 @@ export function buildTopSeriesWithOthers({
   if (minShare === undefined || grandTotal === 0) {
     drawnCount = topCount;
   } else {
-    drawnCount = Math.min(
-      topCount,
-      totals.filter(({ total }) => total / grandTotal >= minShare).length,
-    );
-    // The floor counts real entities only: a synthetic catch-all (e.g.
-    // "No Project") must not satisfy the minimum on its own.
-    const availableReal = totals.filter(({ entry }) => !entry.synthetic).length;
-    const targetReal = Math.min(minCount, availableReal);
-    let drawnReal = totals.slice(0, drawnCount).filter(({ entry }) => !entry.synthetic).length;
-    while (drawnReal < targetReal && drawnCount < Math.min(topCount, totals.length)) {
-      if (!totals[drawnCount].entry.synthetic) drawnReal += 1;
-      drawnCount += 1;
-    }
+    // The minCount floor keeps a flat distribution — where nobody clears the
+    // share threshold — from collapsing into a leaderboard of one.
+    const aboveShare = totals.filter(({ total }) => total / grandTotal >= minShare).length;
+    drawnCount = Math.min(topCount, totals.length, Math.max(aboveShare, minCount));
   }
   const top = totals.slice(0, drawnCount);
   const rest = totals.slice(drawnCount);

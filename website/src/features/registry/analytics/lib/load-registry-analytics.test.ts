@@ -64,6 +64,7 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               searchAliases: ["Tokyo", "Toukyou"],
               cityCode: "TYO",
               countryCode: "JP",
+              projectId: "author-a/project-a",
               publishedAt: Date.UTC(2026, 2, 11),
               totalDownloads: 10,
               manifest: {
@@ -84,6 +85,7 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               searchAliases: ["Beta City"],
               cityCode: "OSA",
               countryCode: "JP",
+              projectId: "author-a/project-a",
               publishedAt: Date.UTC(2026, 2, 12),
               totalDownloads: 20,
               manifest: {},
@@ -200,7 +202,14 @@ describe("loadRegistryAnalyticsData", () => {
       "author-a",
       "author-b",
     ]);
-    expect(data.projects.hourlyDownloads.entities.length).toBeGreaterThan(0);
+    // Listings outside a multi-asset project (mod-a) are excluded outright, so
+    // the project charts and their share denominator only hold real projects.
+    expect(data.projects.hourlyDownloads.entities.map((entity) => entity.id)).toEqual([
+      "author-a/project-a",
+    ]);
+    expect(data.projects.dailyDownloads.entities.map((entity) => entity.id)).toEqual([
+      "author-a/project-a",
+    ]);
     expect(data.regions.hourlyDownloads.entities.length).toBeGreaterThan(0);
     expect(data.history[0]).toMatchObject({
       date: "2026-03-11",

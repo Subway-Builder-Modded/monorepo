@@ -327,9 +327,9 @@ function RegistryOverviewTab({
   }));
   // Releases are sparse at day grain; the shared bucketing collapses the
   // all-time cut to weeks while short cuts show recent uptake day by day.
-  // Deprecations chart POSITIVE in grey (the asset still exists and may
-  // return); deletions chart NEGATIVE in a darker grey — an actively lost
-  // listing nets to zero against its arrival instead of counting twice.
+  // Retirements chart NEGATIVE — deprecations in grey, deletions in a darker
+  // grey. A listing arrived once, so its departure nets against that arrival
+  // rather than stacking a second bar onto a chart that counts new listings.
   const hasDeprecations = graphRows.some((row) => row.deprecations.total > 0);
   const hasDeletions = graphRows.some((row) => (row.deletions?.total ?? 0) > 0);
   const newListingsBucketed = bucketMultiSeriesData(
@@ -338,7 +338,7 @@ function RegistryOverviewTab({
       ...Object.fromEntries(
         typeSeries.map((series) => [series.key, readTypeValue(row.listings, series.id)]),
       ),
-      ...(hasDeprecations ? { Deprecated: row.deprecations.total } : {}),
+      ...(hasDeprecations ? { Deprecated: -row.deprecations.total } : {}),
       ...(hasDeletions ? { Deleted: -(row.deletions?.total ?? 0) } : {}),
     })),
   );
@@ -1640,9 +1640,8 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
 
       <section>
         <SectionSeparator label="Top Projects" icon={FolderGit2} className="mb-4" />
-        {/* "No Project" holds most downloads, leaving real projects tiny
-            shares of the total — minShare 0 selects a plain top 10 so up to
-            nine actual projects chart alongside it. */}
+        {/* Distribution across projects alone is flat, so a plain top 10 beats
+            a share threshold that would draw only the largest one or two. */}
         <TopEntitiesChart
           series={filteredProjectSeries}
           hourlySeries={matchHourlyToDaily(data.projects.hourlyDownloads, filteredProjectSeries)}

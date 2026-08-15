@@ -111,6 +111,8 @@ export type RawRegistryIntegrity = {
           is_complete?: boolean;
           checked_at?: string;
           released_at?: string;
+          /** Set once a previously complete version stops being downloadable. */
+          availability?: "retired" | "removed";
         }
       >;
     }
