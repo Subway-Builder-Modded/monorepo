@@ -65,7 +65,6 @@ import {
 } from "@/features/registry/analytics/components/analytics-period-toggle";
 import {
   HOURLY_CHART_PERIODS,
-  alignHourlyBucket,
   formatHourlyBucketLabel,
   getHourlyChartTicks,
   getHourlyWindowBuckets,
@@ -898,12 +897,12 @@ function AuthorDownloadHistory({
   const windowHistory = periodDays
     ? data.analytics.history.slice(-periodDays)
     : data.analytics.history;
-  // Short cuts draw aligned 4h UTC buckets from the hour-grain history instead
-  // of 1-3 daily bars; caretaken hourly keys mirror the daily mode keys.
+  // Short cuts draw 4h UTC buckets from the hour-grain history instead of 1-3
+  // daily bars; caretaken hourly keys mirror the daily mode keys.
   const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.analytics.hourly.length > 0;
   const chartData = hourlyMode
     ? (() => {
-        const windowBuckets = getHourlyWindowBuckets(
+        const { buckets: windowBuckets, align } = getHourlyWindowBuckets(
           data.analytics.hourly.map((point) => point.bucket),
           period,
         );
@@ -920,7 +919,7 @@ function AuthorDownloadHistory({
               ? ("caretakenMaps" as const)
               : ("caretakenMods" as const);
         for (const point of data.analytics.hourly) {
-          const row = rowByBucket.get(alignHourlyBucket(point.bucket));
+          const row = rowByBucket.get(align(point.bucket));
           if (!row) continue;
           row.Published += point[activeMode];
           row.Caretaken += point[caretakenHourlyKey];
@@ -1021,12 +1020,13 @@ function AuthorTopAssets({
       (option) => option.id === period,
     )?.days;
     const historyDates = data.analytics.history.map((point) => point.date);
-    const windowBuckets = hourlyMode
+    const hourlyWindows = hourlyMode
       ? getHourlyWindowBuckets(
           listingHourlySeries.flatMap((entry) => [...entry.byBucket.keys()]),
           period,
         )
-      : [];
+      : { buckets: [] as string[], align: (bucket: string) => bucket };
+    const windowBuckets = hourlyWindows.buckets;
     const labelByBucket = new Map(
       windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
     );
@@ -1039,7 +1039,7 @@ function AuthorTopAssets({
       ? listingHourlySeries.map((entry) => {
           const valueByLabel = new Map<string, number>();
           for (const [bucket, downloads] of entry.byBucket) {
-            const label = labelByBucket.get(alignHourlyBucket(bucket));
+            const label = labelByBucket.get(hourlyWindows.align(bucket));
             if (!label) continue;
             valueByLabel.set(label, (valueByLabel.get(label) ?? 0) + downloads);
           }

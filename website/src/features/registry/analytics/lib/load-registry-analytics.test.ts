@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  bucketRegistryAnalyticsHourly,
+  createHourlyBucketAligner,
   filterRegistryAnalyticsHistory,
+  getHourlyChartTicks,
+  getHourlyWindowBuckets,
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
 } from "./load-registry-analytics";
@@ -301,5 +305,64 @@ describe("loadRegistryAnalyticsData", () => {
     expect(history.map((row) => row.date)).toEqual(["2026-03-11", "2026-03-12", "2026-03-13"]);
     expect(totals.downloads).toEqual({ total: 35, maps: 30, mods: 5 });
     expect(totals.listings).toEqual({ total: 3, maps: 2, mods: 1 });
+  });
+});
+
+// Hours 00:00-09:00 UTC, so the newest hour (09:00) is not on a wall-clock
+// 4h boundary — the case that used to leave the trailing bar 3 hours short.
+const HOUR_BUCKETS = Array.from(
+  { length: 10 },
+  (_, hour) => `2026-08-13T${String(hour).padStart(2, "0")}:00Z`,
+);
+
+describe("hourly bucket alignment", () => {
+  it("anchors windows at the newest hour so the newest window is complete", () => {
+    const align = createHourlyBucketAligner(HOUR_BUCKETS);
+
+    // The newest window covers 06:00-09:00 — four hours, none of them missing.
+    expect(HOUR_BUCKETS.slice(6).map(align)).toEqual([
+      "2026-08-13T06:00Z",
+      "2026-08-13T06:00Z",
+      "2026-08-13T06:00Z",
+      "2026-08-13T06:00Z",
+    ]);
+    expect(align("2026-08-13T05:00Z")).toBe("2026-08-13T02:00Z");
+    expect(align("2026-08-13T02:00Z")).toBe("2026-08-13T02:00Z");
+    // Windows run backwards past midnight rather than snapping to it.
+    expect(align("2026-08-13T01:00Z")).toBe("2026-08-12T22:00Z");
+  });
+
+  it("returns the trailing windows with the aligner that produced them", () => {
+    const { buckets, align } = getHourlyWindowBuckets(HOUR_BUCKETS, "1d");
+
+    expect(buckets).toEqual(["2026-08-12T22:00Z", "2026-08-13T02:00Z", "2026-08-13T06:00Z"]);
+    expect(buckets).toContain(align("2026-08-13T09:00Z"));
+  });
+
+  it("sums site-wide hourly points into the anchored windows", () => {
+    const hourly = HOUR_BUCKETS.map((bucket) => ({
+      bucket,
+      downloads: { total: 1, maps: 1, mods: 0 },
+    }));
+
+    expect(bucketRegistryAnalyticsHourly(hourly)).toEqual([
+      { bucket: "2026-08-12T22:00Z", downloads: { total: 2, maps: 2, mods: 0 } },
+      { bucket: "2026-08-13T02:00Z", downloads: { total: 4, maps: 4, mods: 0 } },
+      { bucket: "2026-08-13T06:00Z", downloads: { total: 4, maps: 4, mods: 0 } },
+    ]);
+  });
+
+  it("spaces 3d ticks every third window, counting back from the newest", () => {
+    const labels = Array.from({ length: 18 }, (_, index) => `label-${index}`);
+
+    expect(getHourlyChartTicks(labels, "1d")).toEqual(labels);
+    expect(getHourlyChartTicks(labels, "3d")).toEqual([
+      "label-2",
+      "label-5",
+      "label-8",
+      "label-11",
+      "label-14",
+      "label-17",
+    ]);
   });
 });
