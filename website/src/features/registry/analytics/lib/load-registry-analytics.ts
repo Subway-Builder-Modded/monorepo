@@ -120,10 +120,8 @@ export type RegistryAnalyticsEntityDailySeries = {
     id: string;
     name: string;
     byDate: Map<string, { maps: number; mods: number }>;
-    /** Fixed color for synthetic categories (e.g. "No Project"); palette otherwise. */
+    /** Fixed color for categories that own one; palette otherwise. */
     color?: string;
-    /** Synthetic catch-all categories don't count toward the series-count floor. */
-    synthetic?: boolean;
     /** Vocabulary for filter-by-search, mirroring the tab's rankings search. */
     searchValues?: string[];
   }>;
@@ -628,15 +626,12 @@ function getItemLocation(item: RegistryAnalyticsItem): string {
   return manifest.location?.trim().toLowerCase() ?? "";
 }
 
-/** Distinct slate for the synthetic "No Project" series (Others stays lighter grey). */
-const NO_PROJECT_SERIES_COLOR = "#64748b";
-const NO_PROJECT_SERIES_ID = "__no_project__";
-
 /**
  * One daily series per project, aggregated over the project's listings.
- * Projects match the tab's definition (multi-asset); every listing outside
- * one — including single-asset repos — rolls into a synthetic "No Project"
- * series so the chart still accounts for the whole registry.
+ * Projects match the tab's definition (multi-asset); listings outside one —
+ * including single-asset repos — are excluded rather than bucketed into a
+ * catch-all, so both the chart and the share denominator stay a view of
+ * projects (mirroring how the country series drops country-less listings).
  */
 function buildProjectDailySeries(
   rows: CsvRow[],
@@ -649,19 +644,16 @@ function buildProjectDailySeries(
 
   for (const row of rows) {
     const item = validItemsById.get(row.id ?? "");
-    if (!item) continue;
-    const projectId = item.projectId?.trim().toLowerCase();
+    const projectId = item?.projectId?.trim().toLowerCase();
     const projectMeta = projectId ? projectMetaById.get(projectId) : undefined;
-    const isProjectListing = Boolean(projectId && projectMeta);
+    if (!item || !projectId || !projectMeta) continue;
     const isMap = item.type === "maps";
 
-    const entity = entitiesById.get(isProjectListing ? projectId! : NO_PROJECT_SERIES_ID) ?? {
-      id: isProjectListing ? projectId! : NO_PROJECT_SERIES_ID,
-      name: isProjectListing ? projectMeta!.name : "No Project",
+    const entity = entitiesById.get(projectId) ?? {
+      id: projectId,
+      name: projectMeta.name,
       byDate: new Map<string, { maps: number; mods: number }>(),
-      ...(isProjectListing
-        ? { searchValues: projectMeta!.searchValues }
-        : { color: NO_PROJECT_SERIES_COLOR, synthetic: true, searchValues: ["No Project"] }),
+      searchValues: projectMeta.searchValues,
     };
     for (const dateHeader of dateHeaders) {
       const downloads = getNumber(row[dateHeader]);
@@ -1067,9 +1059,8 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   );
   const projectsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
     const item = validItemsById.get(listingId);
-    if (!item) return null;
-    const projectId = item.projectId?.trim().toLowerCase();
-    return projectId && projectMetaById.has(projectId) ? projectId : NO_PROJECT_SERIES_ID;
+    const projectId = item?.projectId?.trim().toLowerCase();
+    return projectId && projectMetaById.has(projectId) ? projectId : null;
   });
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");

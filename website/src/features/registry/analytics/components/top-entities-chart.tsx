@@ -176,7 +176,6 @@ export function TopEntitiesChart({
             id: entry.id,
             name: meta?.name ?? entry.id,
             color: meta?.color,
-            synthetic: meta?.synthetic,
             valueByDate: valueByLabel,
           };
         }),
@@ -196,7 +195,6 @@ export function TopEntitiesChart({
         id: entry.id,
         name: entry.name,
         color: entry.color,
-        synthetic: entry.synthetic,
         valueByDate: new Map(dates.map((date) => [date, getSeriesValue(entry, date, assetType)])),
       })),
       dates,
