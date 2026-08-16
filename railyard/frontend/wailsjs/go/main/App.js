@@ -22,6 +22,10 @@ export function GetPlatform() {
   return window['go']['main']['App']['GetPlatform']();
 }
 
+export function GetSeenAnnouncements() {
+  return window['go']['main']['App']['GetSeenAnnouncements']();
+}
+
 export function GetTotalMemory() {
   return window['go']['main']['App']['GetTotalMemory']();
 }
@@ -56,6 +60,10 @@ export function LogFrontend(arg1, arg2) {
 
 export function ManuallyCheckForUpdates() {
   return window['go']['main']['App']['ManuallyCheckForUpdates']();
+}
+
+export function MarkAnnouncementSeen(arg1) {
+  return window['go']['main']['App']['MarkAnnouncementSeen'](arg1);
 }
 
 export function OpenImportAssetDialog(arg1) {
