@@ -4,6 +4,7 @@ import {
   getRegistryAuthorsIndexPath,
 } from "@/features/registry/lib/registry-asset-paths";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
+import { buildAssetRankings } from "@/features/registry/authors/lib/build-asset-rankings";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
 import type {
   RegistryAuthorAnalytics,
@@ -387,22 +388,6 @@ function computeProjectTrends(
   });
 }
 
-function computeRankingRows(authorItems: RegistrySearchItem[], allItems: RegistrySearchItem[]) {
-  return authorItems.map((item) => ({
-    id: item.id,
-    name: item.name,
-    href: item.href,
-    downloads: item.totalDownloads,
-    rank: computeRank(
-      item.id,
-      allItems.map((entry) => ({
-        id: entry.id,
-        value: Number.isFinite(entry.totalDownloads) ? entry.totalDownloads : null,
-      })),
-    ),
-  }));
-}
-
 function parseReleaseTimestamp(value: string | undefined | null) {
   const timestamp = Date.parse(value ?? "");
   return Number.isFinite(timestamp) ? timestamp : 0;
@@ -592,12 +577,7 @@ export async function loadProjectPageData(
       itemProjectByTypeAndId,
       projectAssetCounts,
     ),
-    rankingsByType: Object.fromEntries(
-      REGISTRY_TYPES.map((typeConfig) => [
-        typeConfig.id,
-        computeRankingRows(itemsByType[typeConfig.id] ?? [], allItemsByType[typeConfig.id] ?? []),
-      ]),
-    ),
+    rankings: buildAssetRankings(itemsByType, allItemsByType, dailyRows),
   };
   const [projectAuthorId = authorId] = normalizedProjectId.split("/");
 

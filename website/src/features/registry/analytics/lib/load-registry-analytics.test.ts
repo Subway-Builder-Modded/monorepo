@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  bucketRegistryAnalyticsHourly,
+  createHourlyBucketAligner,
   filterRegistryAnalyticsHistory,
+  getHourlyChartTicks,
+  getHourlyWindowBuckets,
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
 } from "./load-registry-analytics";
@@ -64,6 +68,7 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               searchAliases: ["Tokyo", "Toukyou"],
               cityCode: "TYO",
               countryCode: "JP",
+              projectId: "author-a/project-a",
               publishedAt: Date.UTC(2026, 2, 11),
               totalDownloads: 10,
               manifest: {
@@ -84,9 +89,20 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               searchAliases: ["Beta City"],
               cityCode: "OSA",
               countryCode: "JP",
+              projectId: "author-a/project-a",
               publishedAt: Date.UTC(2026, 2, 12),
               totalDownloads: 20,
-              manifest: {},
+              // Deprecated on 03-12 and reinstated on 03-13.
+              manifest: {
+                deprecation_history: [
+                  {
+                    since: "2026-03-12T00:00:00.000Z",
+                    by_github_id: 1,
+                    until: "2026-03-13T00:00:00.000Z",
+                    removed_by_github_id: 1,
+                  },
+                ],
+              },
             },
           ]
         : [
@@ -99,7 +115,7 @@ vi.mock("@/features/registry/lib/load-registry-cache", () => ({
               searchAliases: ["Alternate Mod"],
               publishedAt: Date.UTC(2026, 2, 13),
               totalDownloads: 5,
-              manifest: {},
+              manifest: { deprecation: { since: "2026-03-13T00:00:00.000Z", by_github_id: 1 } },
             },
           ],
     ),
@@ -200,7 +216,14 @@ describe("loadRegistryAnalyticsData", () => {
       "author-a",
       "author-b",
     ]);
-    expect(data.projects.hourlyDownloads.entities.length).toBeGreaterThan(0);
+    // Listings outside a multi-asset project (mod-a) are excluded outright, so
+    // the project charts and their share denominator only hold real projects.
+    expect(data.projects.hourlyDownloads.entities.map((entity) => entity.id)).toEqual([
+      "author-a/project-a",
+    ]);
+    expect(data.projects.dailyDownloads.entities.map((entity) => entity.id)).toEqual([
+      "author-a/project-a",
+    ]);
     expect(data.regions.hourlyDownloads.entities.length).toBeGreaterThan(0);
     expect(data.history[0]).toMatchObject({
       date: "2026-03-11",
@@ -255,6 +278,25 @@ describe("loadRegistryAnalyticsData", () => {
     expect(data.mapStatistics.rankings.map((row) => row.id)).toEqual(["map-a"]);
   });
 
+  it("charts one debut and only the listing's current retirement", async () => {
+    const data = await loadRegistryAnalyticsData();
+
+    // map-b's deprecation was reversed, so only its debut charts — the closed
+    // window in deprecation_history leaves no dip behind.
+    expect(data.history[1]).toMatchObject({
+      date: "2026-03-12",
+      listings: { total: 1, maps: 1, mods: 0 },
+      deprecations: { total: 0, maps: 0, mods: 0 },
+    });
+    // mod-a is still deprecated: one arrival, one departure, same day.
+    expect(data.history[2]).toMatchObject({
+      date: "2026-03-13",
+      listings: { total: 1, maps: 0, mods: 1 },
+      deprecations: { total: 1, maps: 0, mods: 1 },
+      deletions: { total: 0, maps: 0, mods: 0 },
+    });
+  });
+
   it("filters and sums analytics history by selected period", async () => {
     const data = await loadRegistryAnalyticsData();
     const history = filterRegistryAnalyticsHistory(data.history, "3d");
@@ -263,5 +305,64 @@ describe("loadRegistryAnalyticsData", () => {
     expect(history.map((row) => row.date)).toEqual(["2026-03-11", "2026-03-12", "2026-03-13"]);
     expect(totals.downloads).toEqual({ total: 35, maps: 30, mods: 5 });
     expect(totals.listings).toEqual({ total: 3, maps: 2, mods: 1 });
+  });
+});
+
+// Hours 00:00-09:00 UTC, so the newest hour (09:00) is not on a wall-clock
+// 4h boundary — the case that used to leave the trailing bar 3 hours short.
+const HOUR_BUCKETS = Array.from(
+  { length: 10 },
+  (_, hour) => `2026-08-13T${String(hour).padStart(2, "0")}:00Z`,
+);
+
+describe("hourly bucket alignment", () => {
+  it("anchors windows at the newest hour so the newest window is complete", () => {
+    const align = createHourlyBucketAligner(HOUR_BUCKETS);
+
+    // The newest window covers 06:00-09:00 — four hours, none of them missing.
+    expect(HOUR_BUCKETS.slice(6).map(align)).toEqual([
+      "2026-08-13T06:00Z",
+      "2026-08-13T06:00Z",
+      "2026-08-13T06:00Z",
+      "2026-08-13T06:00Z",
+    ]);
+    expect(align("2026-08-13T05:00Z")).toBe("2026-08-13T02:00Z");
+    expect(align("2026-08-13T02:00Z")).toBe("2026-08-13T02:00Z");
+    // Windows run backwards past midnight rather than snapping to it.
+    expect(align("2026-08-13T01:00Z")).toBe("2026-08-12T22:00Z");
+  });
+
+  it("returns the trailing windows with the aligner that produced them", () => {
+    const { buckets, align } = getHourlyWindowBuckets(HOUR_BUCKETS, "1d");
+
+    expect(buckets).toEqual(["2026-08-12T22:00Z", "2026-08-13T02:00Z", "2026-08-13T06:00Z"]);
+    expect(buckets).toContain(align("2026-08-13T09:00Z"));
+  });
+
+  it("sums site-wide hourly points into the anchored windows", () => {
+    const hourly = HOUR_BUCKETS.map((bucket) => ({
+      bucket,
+      downloads: { total: 1, maps: 1, mods: 0 },
+    }));
+
+    expect(bucketRegistryAnalyticsHourly(hourly)).toEqual([
+      { bucket: "2026-08-12T22:00Z", downloads: { total: 2, maps: 2, mods: 0 } },
+      { bucket: "2026-08-13T02:00Z", downloads: { total: 4, maps: 4, mods: 0 } },
+      { bucket: "2026-08-13T06:00Z", downloads: { total: 4, maps: 4, mods: 0 } },
+    ]);
+  });
+
+  it("spaces 3d ticks every third window, counting back from the newest", () => {
+    const labels = Array.from({ length: 18 }, (_, index) => `label-${index}`);
+
+    expect(getHourlyChartTicks(labels, "1d")).toEqual(labels);
+    expect(getHourlyChartTicks(labels, "3d")).toEqual([
+      "label-2",
+      "label-5",
+      "label-8",
+      "label-11",
+      "label-14",
+      "label-17",
+    ]);
   });
 });

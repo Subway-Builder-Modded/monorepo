@@ -16,6 +16,10 @@ import {
 } from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import {
+  buildAssetRankings,
+  type RegistryAssetRankings,
+} from "@/features/registry/authors/lib/build-asset-rankings";
+import {
   getListingVersionCreditsKey,
   loadListingVersionCredits,
   type ListingVersionCredits,
@@ -92,14 +96,6 @@ export type RegistryAuthorDownloadTrend = {
   rank: number | null;
 };
 
-export type RegistryAuthorRankingRow = {
-  id: string;
-  name: string;
-  href: string;
-  downloads: number;
-  rank: number | null;
-};
-
 /** One credited listing's daily downloads, day-grain credited to this person. */
 export type RegistryAuthorListingDailySeries = {
   id: string;
@@ -143,7 +139,8 @@ export type RegistryAuthorAnalytics = {
   /** Hour-grain history for the 1d/3d chart cuts; empty when the hourly CSV is absent. */
   hourly: RegistryAuthorHourlyPoint[];
   trends: RegistryAuthorDownloadTrend[];
-  rankingsByType: Record<string, RegistryAuthorRankingRow[]>;
+  /** Asset rankings for every period/mode cut of the analytics band's toggles. */
+  rankings: RegistryAssetRankings;
   /** Absent on entity pages that don't chart per-asset splits (projects). */
   listingSeries?: RegistryAuthorListingDailySeries[];
   /** Hour-grain sibling of listingSeries for the Top Assets 1d/3d cuts. */
@@ -700,25 +697,6 @@ function computeAuthorTrends(
   });
 }
 
-function computeRankingRows(
-  authorItems: RegistrySearchItem[],
-  allItems: RegistrySearchItem[],
-): RegistryAuthorRankingRow[] {
-  return authorItems.map((item) => ({
-    id: item.id,
-    name: item.name,
-    href: item.href,
-    downloads: item.totalDownloads,
-    rank: computeRank(
-      item.id,
-      allItems.map((entry) => ({
-        id: entry.id,
-        value: Number.isFinite(entry.totalDownloads) ? entry.totalDownloads : null,
-      })),
-    ),
-  }));
-}
-
 function buildItemAuthorLookup(allItemsByType: Record<string, RegistrySearchItem[]>) {
   const lookup = new Map<string, string>();
   for (const typeConfig of REGISTRY_TYPES) {
@@ -1039,15 +1017,7 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
       itemAuthorByTypeAndId,
       creditWindowsByListing,
     ),
-    rankingsByType: Object.fromEntries(
-      REGISTRY_TYPES.map((typeConfig) => [
-        typeConfig.id,
-        computeRankingRows(
-          itemsWithCaretakenByType[typeConfig.id] ?? [],
-          allItemsByType[typeConfig.id] ?? [],
-        ),
-      ]),
-    ),
+    rankings: buildAssetRankings(itemsWithCaretakenByType, allItemsByType, dailyRows),
   };
 
   return {

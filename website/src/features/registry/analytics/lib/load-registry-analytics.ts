@@ -14,8 +14,10 @@ export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
 
 /** Periods whose downloads chart derives from the hourly series (4h buckets). */
 export const HOURLY_CHART_PERIODS: ReadonlySet<RegistryAnalyticsPeriodId> = new Set(["1d", "3d"]);
-/** Display grouping of the hourly series: wall-clock-aligned 4h windows (UTC). */
+/** Display grouping of the hourly series: 4h windows anchored at the newest hour. */
 export const HOURLY_BUCKET_HOURS = 4;
+
+const HOUR_MS = 3_600_000;
 
 export type RegistryAnalyticsHourlyPoint = {
   /** UTC hour bucket key, e.g. "2026-08-13T04:00Z". */
@@ -41,39 +43,73 @@ export type RegistryAnalyticsEntityHourlySeries = {
   }>;
 };
 
-/** Floors an hour bucket key to its wall-clock-aligned display window. */
-export function alignHourlyBucket(bucket: string, bucketHours = HOURLY_BUCKET_HOURS): string {
-  const hour = Number.parseInt(bucket.slice(11, 13), 10);
-  if (!Number.isFinite(hour)) return bucket;
-  const alignedHour = Math.floor(hour / bucketHours) * bucketHours;
-  return `${bucket.slice(0, 11)}${String(alignedHour).padStart(2, "0")}:00Z`;
+function parseHourBucket(bucket: string): number {
+  return Date.parse(`${bucket.slice(0, 11)}${bucket.slice(11, 13)}:00:00Z`);
+}
+
+function formatHourBucket(timestamp: number): string {
+  return `${new Date(timestamp).toISOString().slice(0, 13)}:00Z`;
+}
+
+export type HourlyBucketAligner = (bucket: string) => string;
+
+/**
+ * Groups hour buckets into `bucketHours` windows anchored at the NEWEST hour in
+ * the data — the hour-grain analogue of how bucketMultiSeriesData anchors its
+ * weekly windows. Wall-clock alignment (00/04/08/...) left the trailing window
+ * short of up to bucketHours-1 hours, so the newest bar read low for most of
+ * its life; anchoring makes it whole and pushes the only partial window to the
+ * far edge, which is off-screen for a trailing cut anyway.
+ */
+export function createHourlyBucketAligner(
+  buckets: Iterable<string>,
+  bucketHours = HOURLY_BUCKET_HOURS,
+): HourlyBucketAligner {
+  let latest = Number.NEGATIVE_INFINITY;
+  for (const bucket of buckets) {
+    const timestamp = parseHourBucket(bucket);
+    if (Number.isFinite(timestamp) && timestamp > latest) latest = timestamp;
+  }
+  if (!Number.isFinite(latest)) return (bucket) => bucket;
+
+  return (bucket) => {
+    const timestamp = parseHourBucket(bucket);
+    if (!Number.isFinite(timestamp)) return bucket;
+    const windowIndex = Math.floor((latest - timestamp) / HOUR_MS / bucketHours);
+    return formatHourBucket(latest - ((windowIndex + 1) * bucketHours - 1) * HOUR_MS);
+  };
 }
 
 /**
- * The aligned display-window bucket keys for a short period: unique, ascending,
- * trailing 24h/72h of the series (the newest window is partial until its last
- * hour lands).
+ * The display windows for a short period — unique, ascending, trailing 24h/72h —
+ * with the aligner that produced them, so callers map their own points into the
+ * same windows instead of re-deriving the anchor.
  */
 export function getHourlyWindowBuckets(
   buckets: Iterable<string>,
   period: RegistryAnalyticsPeriodId,
-): string[] {
-  const aligned = [...new Set([...buckets].map((bucket) => alignHourlyBucket(bucket)))].sort(
-    (left, right) => left.localeCompare(right),
-  );
+): { buckets: string[]; align: HourlyBucketAligner } {
+  const all = [...buckets];
+  const align = createHourlyBucketAligner(all);
+  const aligned = [...new Set(all.map(align))].sort((left, right) => left.localeCompare(right));
   const windowHours = period === "1d" ? 24 : 72;
-  return aligned.slice(-(windowHours / HOURLY_BUCKET_HOURS));
+  return { buckets: aligned.slice(-(windowHours / HOURLY_BUCKET_HOURS)), align };
 }
 
-/** Chart x label for an aligned bucket: "04:00" within a one-day cut, "08-11 04:00" across days. */
+/** Chart x label for a window, keyed by its start: "04:00" at 1d, "08-11 04:00" across days. */
 export function formatHourlyBucketLabel(bucket: string, period: RegistryAnalyticsPeriodId): string {
   const time = bucket.slice(11, 16);
   return period === "1d" ? time : `${bucket.slice(5, 10)} ${time}`;
 }
 
-/** Sparse ticks for hourly-derived charts: every point at 1d, day boundaries at 3d. */
+/**
+ * Sparse ticks for hourly-derived charts: every window at 1d, every third (12h)
+ * at 3d. Spacing counts back from the newest window — anchored windows no longer
+ * land on midnight, and the newest is the one worth always labelling.
+ */
 export function getHourlyChartTicks(labels: string[], period: RegistryAnalyticsPeriodId): string[] {
-  return period === "1d" ? labels : labels.filter((label) => label.endsWith("00:00"));
+  if (period === "1d") return labels;
+  return labels.filter((_, index) => (labels.length - 1 - index) % 3 === 0);
 }
 
 export type RegistryAnalyticsHistoryPoint = {
@@ -93,7 +129,7 @@ export type RegistryAnalyticsHistoryPoint = {
     maps: number;
     mods: number;
   };
-  /** Listings deprecated (not deleted) on this date (manifest deprecation.since). */
+  /** Listings currently deprecated (not deleted), dated by deprecation.since. */
   deprecations: {
     total: number;
     maps: number;
@@ -120,10 +156,8 @@ export type RegistryAnalyticsEntityDailySeries = {
     id: string;
     name: string;
     byDate: Map<string, { maps: number; mods: number }>;
-    /** Fixed color for synthetic categories (e.g. "No Project"); palette otherwise. */
+    /** Fixed color for categories that own one; palette otherwise. */
     color?: string;
-    /** Synthetic catch-all categories don't count toward the series-count floor. */
-    synthetic?: boolean;
     /** Vocabulary for filter-by-search, mirroring the tab's rankings search. */
     searchValues?: string[];
   }>;
@@ -334,6 +368,14 @@ function getPublishedDate(item: RegistryAnalyticsItem): string | null {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
+/**
+ * The listing's CURRENT retirement, or null once it is reversed. Closed windows
+ * in `deprecation_history` are deliberately ignored: a listing arrives at most
+ * once and departs at most once (its latest retirement), so an un-deprecated
+ * listing keeps its original debut and nothing else. Escalating a deprecation
+ * to a deletion carries the original `since`, so it moves buckets rather than
+ * adding a second departure.
+ */
 function getDeprecationDate(item: RegistryAnalyticsItem): string | null {
   const manifest = item.manifest as { deprecation?: { since?: string } };
   const since = manifest?.deprecation?.since;
@@ -628,15 +670,12 @@ function getItemLocation(item: RegistryAnalyticsItem): string {
   return manifest.location?.trim().toLowerCase() ?? "";
 }
 
-/** Distinct slate for the synthetic "No Project" series (Others stays lighter grey). */
-const NO_PROJECT_SERIES_COLOR = "#64748b";
-const NO_PROJECT_SERIES_ID = "__no_project__";
-
 /**
  * One daily series per project, aggregated over the project's listings.
- * Projects match the tab's definition (multi-asset); every listing outside
- * one — including single-asset repos — rolls into a synthetic "No Project"
- * series so the chart still accounts for the whole registry.
+ * Projects match the tab's definition (multi-asset); listings outside one —
+ * including single-asset repos — are excluded rather than bucketed into a
+ * catch-all, so both the chart and the share denominator stay a view of
+ * projects (mirroring how the country series drops country-less listings).
  */
 function buildProjectDailySeries(
   rows: CsvRow[],
@@ -649,19 +688,16 @@ function buildProjectDailySeries(
 
   for (const row of rows) {
     const item = validItemsById.get(row.id ?? "");
-    if (!item) continue;
-    const projectId = item.projectId?.trim().toLowerCase();
+    const projectId = item?.projectId?.trim().toLowerCase();
     const projectMeta = projectId ? projectMetaById.get(projectId) : undefined;
-    const isProjectListing = Boolean(projectId && projectMeta);
+    if (!item || !projectId || !projectMeta) continue;
     const isMap = item.type === "maps";
 
-    const entity = entitiesById.get(isProjectListing ? projectId! : NO_PROJECT_SERIES_ID) ?? {
-      id: isProjectListing ? projectId! : NO_PROJECT_SERIES_ID,
-      name: isProjectListing ? projectMeta!.name : "No Project",
+    const entity = entitiesById.get(projectId) ?? {
+      id: projectId,
+      name: projectMeta.name,
       byDate: new Map<string, { maps: number; mods: number }>(),
-      ...(isProjectListing
-        ? { searchValues: projectMeta!.searchValues }
-        : { color: NO_PROJECT_SERIES_COLOR, synthetic: true, searchValues: ["No Project"] }),
+      searchValues: projectMeta.searchValues,
     };
     for (const dateHeader of dateHeaders) {
       const downloads = getNumber(row[dateHeader]);
@@ -878,21 +914,21 @@ function buildFourteenDayRankings(
 }
 
 /**
- * Groups hourly points into wall-clock-aligned `bucketHours` windows (UTC),
- * ascending; each grouped point keeps the window's START hour as its bucket key.
- * Alignment to 00/04/08/... keeps windows comparable day-over-day; the trailing
- * window is partial until its last hour lands.
+ * Groups hourly points into `bucketHours` windows anchored at the newest hour
+ * (see createHourlyBucketAligner), ascending; each grouped point keeps the
+ * window's START hour as its bucket key.
  */
 export function bucketRegistryAnalyticsHourly(
   hourly: RegistryAnalyticsHourlyPoint[],
-  bucketHours = 4,
+  bucketHours = HOURLY_BUCKET_HOURS,
 ): RegistryAnalyticsHourlyPoint[] {
+  const align = createHourlyBucketAligner(
+    hourly.map((point) => point.bucket),
+    bucketHours,
+  );
   const byBucket = new Map<string, RegistryAnalyticsHourlyPoint["downloads"]>();
   for (const point of hourly) {
-    const hour = Number.parseInt(point.bucket.slice(11, 13), 10);
-    if (!Number.isFinite(hour)) continue;
-    const alignedHour = Math.floor(hour / bucketHours) * bucketHours;
-    const aligned = `${point.bucket.slice(0, 11)}${String(alignedHour).padStart(2, "0")}:00Z`;
+    const aligned = align(point.bucket);
     const entry = byBucket.get(aligned) ?? { total: 0, maps: 0, mods: 0 };
     entry.total += point.downloads.total;
     entry.maps += point.downloads.maps;
@@ -1067,9 +1103,8 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   );
   const projectsHourly = buildEntityHourlySeries(hourlyRows, (_typeId, listingId) => {
     const item = validItemsById.get(listingId);
-    if (!item) return null;
-    const projectId = item.projectId?.trim().toLowerCase();
-    return projectId && projectMetaById.has(projectId) ? projectId : NO_PROJECT_SERIES_ID;
+    const projectId = item?.projectId?.trim().toLowerCase();
+    return projectId && projectMetaById.has(projectId) ? projectId : null;
   });
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");

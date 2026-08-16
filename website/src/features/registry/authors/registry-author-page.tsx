@@ -65,7 +65,6 @@ import {
 } from "@/features/registry/analytics/components/analytics-period-toggle";
 import {
   HOURLY_CHART_PERIODS,
-  alignHourlyBucket,
   formatHourlyBucketLabel,
   getHourlyChartTicks,
   getHourlyWindowBuckets,
@@ -144,8 +143,8 @@ type AuthorAssetSectionProps = {
 type SortDirection = "asc" | "desc";
 type AuthorTrendSortKey = "label" | "downloads";
 type AuthorRankingSortKey = "name" | "downloads";
+/** Shared by the analytics band's chart, its toggle, and the rankings table. */
 type AuthorHistoryMode = "total" | "maps" | "mods";
-type AuthorAssetRankingMode = "maps" | "mods";
 type AuthorAssetBrowserMode =
   | "maps"
   | "mods"
@@ -168,6 +167,14 @@ type AuthorTabOption = {
 const AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS = {
   primary: "56%",
   secondary: "28%",
+  rank: "16%",
+} as const;
+
+/** The combined view trades name width for the asset-type column. */
+const AUTHOR_RANKING_TOTAL_COLUMN_WIDTHS = {
+  primary: "44%",
+  type: "16%",
+  secondary: "24%",
   rank: "16%",
 } as const;
 
@@ -826,32 +833,16 @@ const CARETAKEN_HISTORY_KEY_BY_MODE = {
   mods: "caretakenMods",
 } as const;
 
-function AuthorDownloadHistory({
-  data,
-  period,
-  onPeriodChange,
-}: {
-  data: RegistryEntityPageData;
-  period: RegistryAnalyticsPeriodId;
-  onPeriodChange: (period: RegistryAnalyticsPeriodId) => void;
-}) {
-  const caretakenItems = data.caretakenItems ?? [];
-  const hasAuthoredMaps = (data.itemsByType.maps ?? []).length > 0;
-  const hasAuthoredMods = (data.itemsByType.mods ?? []).length > 0;
-  const hasMaps = hasAuthoredMaps || caretakenItems.some((item) => item.type === "maps");
-  const hasMods = hasAuthoredMods || caretakenItems.some((item) => item.type === "mods");
-  const hasMultipleAssetTypes = hasMaps && hasMods;
-  const [mode, setMode] = useState<AuthorHistoryMode>("total");
-  const activeMode: AuthorHistoryMode = hasMultipleAssetTypes
-    ? mode
-    : hasMaps
-      ? "maps"
-      : hasMods
-        ? "mods"
-        : "total";
+type AuthorHistoryModeOption = AuthorToggleOption<AuthorHistoryMode> & { color: string };
+
+/** Single-type entities get no "Total" option — it would duplicate their one type. */
+function buildAuthorHistoryModeOptions(
+  hasMaps: boolean,
+  hasMods: boolean,
+): AuthorHistoryModeOption[] {
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
-  const modeOptions = [
+  return [
     {
       id: "total" as const,
       label: "Total",
@@ -859,7 +850,7 @@ function AuthorDownloadHistory({
       accentLight: "var(--suite-accent-light)",
       accentDark: "var(--suite-accent-dark)",
       color: "var(--suite-accent-light)",
-      enabled: true,
+      enabled: hasMaps && hasMods,
     },
     {
       id: "maps" as const,
@@ -880,18 +871,38 @@ function AuthorDownloadHistory({
       enabled: hasMods,
     },
   ].filter((option) => option.enabled);
-  const activeOption = modeOptions.find((option) => option.id === activeMode) ?? modeOptions[0];
+}
+
+function AuthorDownloadHistory({
+  data,
+  period,
+  onPeriodChange,
+  mode,
+  activeMode,
+  activeOption,
+  modeOptions,
+  onModeChange,
+}: {
+  data: RegistryEntityPageData;
+  period: RegistryAnalyticsPeriodId;
+  onPeriodChange: (period: RegistryAnalyticsPeriodId) => void;
+  mode: AuthorHistoryMode;
+  activeMode: AuthorHistoryMode;
+  activeOption: AuthorHistoryModeOption;
+  modeOptions: AuthorHistoryModeOption[];
+  onModeChange: (mode: AuthorHistoryMode) => void;
+}) {
   const caretakenKey = CARETAKEN_HISTORY_KEY_BY_MODE[activeMode];
   const periodDays = REGISTRY_ANALYTICS_PERIOD_OPTIONS.find((option) => option.id === period)?.days;
   const windowHistory = periodDays
     ? data.analytics.history.slice(-periodDays)
     : data.analytics.history;
-  // Short cuts draw aligned 4h UTC buckets from the hour-grain history instead
-  // of 1-3 daily bars; caretaken hourly keys mirror the daily mode keys.
+  // Short cuts draw 4h UTC buckets from the hour-grain history instead of 1-3
+  // daily bars; caretaken hourly keys mirror the daily mode keys.
   const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.analytics.hourly.length > 0;
   const chartData = hourlyMode
     ? (() => {
-        const windowBuckets = getHourlyWindowBuckets(
+        const { buckets: windowBuckets, align } = getHourlyWindowBuckets(
           data.analytics.hourly.map((point) => point.bucket),
           period,
         );
@@ -908,7 +919,7 @@ function AuthorDownloadHistory({
               ? ("caretakenMaps" as const)
               : ("caretakenMods" as const);
         for (const point of data.analytics.hourly) {
-          const row = rowByBucket.get(alignHourlyBucket(point.bucket));
+          const row = rowByBucket.get(align(point.bucket));
           if (!row) continue;
           row.Published += point[activeMode];
           row.Caretaken += point[caretakenHourlyKey];
@@ -947,12 +958,6 @@ function AuthorDownloadHistory({
     ...(hasCaretakenSeries ? [{ key: "Caretaken", name: "Caretaker", color: caretakerColor }] : []),
   ];
 
-  useEffect(() => {
-    if (!modeOptions.some((option) => option.id === mode)) {
-      setMode("total");
-    }
-  }, [mode, modeOptions]);
-
   if (chartData.length === 0) return null;
 
   return (
@@ -962,16 +967,16 @@ function AuthorDownloadHistory({
         className="space-y-4"
         style={{ "--registry-type-accent": activeOption.color } as CSSProperties}
       >
-        {/* Governs this chart and the Top Assets section below it. */}
+        {/* Both toggles govern this chart, Top Assets, and Asset Rankings. */}
         <div className="flex justify-center">
           <RegistryAnalyticsPeriodToggle value={period} onChange={onPeriodChange} />
         </div>
-        {hasMultipleAssetTypes ? (
+        {modeOptions.length > 1 ? (
           <div className="flex justify-center">
             <AnalyticsModeToggle
               value={mode}
               options={modeOptions}
-              onChange={setMode}
+              onChange={onModeChange}
               ariaLabel="Download history mode"
             />
           </div>
@@ -1015,12 +1020,13 @@ function AuthorTopAssets({
       (option) => option.id === period,
     )?.days;
     const historyDates = data.analytics.history.map((point) => point.date);
-    const windowBuckets = hourlyMode
+    const hourlyWindows = hourlyMode
       ? getHourlyWindowBuckets(
           listingHourlySeries.flatMap((entry) => [...entry.byBucket.keys()]),
           period,
         )
-      : [];
+      : { buckets: [] as string[], align: (bucket: string) => bucket };
+    const windowBuckets = hourlyWindows.buckets;
     const labelByBucket = new Map(
       windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
     );
@@ -1033,7 +1039,7 @@ function AuthorTopAssets({
       ? listingHourlySeries.map((entry) => {
           const valueByLabel = new Map<string, number>();
           for (const [bucket, downloads] of entry.byBucket) {
-            const label = labelByBucket.get(alignHourlyBucket(bucket));
+            const label = labelByBucket.get(hourlyWindows.align(bucket));
             if (!label) continue;
             valueByLabel.set(label, (valueByLabel.get(label) ?? 0) + downloads);
           }
@@ -1117,43 +1123,29 @@ function AuthorTopAssets({
   );
 }
 
-function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
-  // Rankings include caretaken assets, so gate on the rows themselves.
-  const hasMaps = (data.analytics.rankingsByType.maps ?? []).length > 0;
-  const hasMods = (data.analytics.rankingsByType.mods ?? []).length > 0;
-  const hasMultipleAssetTypes = hasMaps && hasMods;
-  const [typeId, setTypeId] = useState<AuthorAssetRankingMode>(hasMaps ? "maps" : "mods");
+// Follows the analytics band's period and total/maps/mods toggles; the combined
+// "Total" cut names the asset type per row, since one table then mixes both.
+function AuthorAssetRankingsTable({
+  data,
+  period,
+  mode,
+  modeOption,
+}: {
+  data: RegistryEntityPageData;
+  period: RegistryAnalyticsPeriodId;
+  mode: AuthorHistoryMode;
+  modeOption: AuthorHistoryModeOption;
+}) {
   const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
   const [directions, setDirections] = useState<Record<AuthorRankingSortKey, SortDirection>>({
     name: "asc",
     downloads: "desc",
   });
   const direction = directions[sortKey];
-  const mapsConfig = getRegistryTypeConfigOrDefault("maps");
-  const modsConfig = getRegistryTypeConfigOrDefault("mods");
-  const typeOptions = [
-    {
-      id: "maps" as const,
-      label: "Maps",
-      icon: mapsConfig.icon ?? MapIcon,
-      accentLight: mapsConfig.accentLight,
-      accentDark: mapsConfig.accentDark,
-      enabled: hasMaps,
-    },
-    {
-      id: "mods" as const,
-      label: "Mods",
-      icon: modsConfig.icon ?? Package,
-      accentLight: modsConfig.accentLight,
-      accentDark: modsConfig.accentDark,
-      enabled: hasMods,
-    },
-  ].filter((option) => option.enabled);
-  const activeTypeId = hasMultipleAssetTypes ? typeId : (typeOptions[0]?.id ?? typeId);
-  const activeTypeConfig = getRegistryTypeConfigOrDefault(activeTypeId);
-  const activeRowsForType = data.analytics.rankingsByType[activeTypeId] ?? [];
+  const showType = mode === "total";
+  const rows = data.analytics.rankings[period]?.[mode] ?? [];
   const sortedRows = useMemo(() => {
-    return [...activeRowsForType].sort((left, right) => {
+    return [...rows].sort((left, right) => {
       if (sortKey === "name") {
         return direction === "asc"
           ? left.name.localeCompare(right.name)
@@ -1161,7 +1153,7 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
       }
       return compareNullableNumbers(left[sortKey], right[sortKey], direction);
     });
-  }, [activeRowsForType, direction, sortKey]);
+  }, [rows, direction, sortKey]);
 
   const handleSort = (nextKey: AuthorRankingSortKey) => {
     setDirections((current) => ({
@@ -1171,54 +1163,50 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
     setSortKey(nextKey);
   };
 
-  useEffect(() => {
-    if (!typeOptions.some((option) => option.id === typeId) && typeOptions[0]) {
-      setTypeId(typeOptions[0].id);
-    }
-  }, [typeId, typeOptions]);
-
-  if (typeOptions.length === 0) return null;
+  if (rows.length === 0) return null;
 
   return (
     <div
       style={
         {
-          "--registry-type-accent": activeTypeConfig.accentLight,
-          "--registry-type-accent-light": activeTypeConfig.accentLight,
-          "--registry-type-accent-dark": activeTypeConfig.accentDark,
+          "--registry-type-accent": modeOption.accentLight,
+          "--registry-type-accent-light": modeOption.accentLight,
+          "--registry-type-accent-dark": modeOption.accentDark,
         } as CSSProperties
       }
     >
       <SectionSeparator label="Asset Rankings" icon={Trophy} className="mb-4 mt-7" />
       <div className={CHART_CARD_FLUSH_CLASS}>
-        {hasMultipleAssetTypes ? (
-          <div className="flex justify-center border-b border-border/70 bg-muted/20 p-3">
-            <RegistryTypeToggle
-              activeTypeId={typeId}
-              options={getToggleOptions(typeOptions)}
-              showCounts={false}
-              onChange={(nextTypeId) => setTypeId(nextTypeId as AuthorAssetRankingMode)}
-              className="border-border/50 bg-background/70 shadow-sm"
-              ariaLabel="Asset ranking type"
-            />
-          </div>
-        ) : null}
         <ScrollArea scrollbars="horizontal" className="w-full">
           <div className="min-w-[44rem] xl:min-w-0">
             <Table>
               <colgroup>
-                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
-                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.secondary }} />
-                <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
+                {showType ? (
+                  <>
+                    <col style={{ width: AUTHOR_RANKING_TOTAL_COLUMN_WIDTHS.primary }} />
+                    <col style={{ width: AUTHOR_RANKING_TOTAL_COLUMN_WIDTHS.type }} />
+                    <col style={{ width: AUTHOR_RANKING_TOTAL_COLUMN_WIDTHS.secondary }} />
+                    <col style={{ width: AUTHOR_RANKING_TOTAL_COLUMN_WIDTHS.rank }} />
+                  </>
+                ) : (
+                  <>
+                    <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.primary }} />
+                    <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.secondary }} />
+                    <col style={{ width: AUTHOR_ANALYTICS_TABLE_COLUMN_WIDTHS.rank }} />
+                  </>
+                )}
               </colgroup>
               <TableHeader>
                 <TableRow className={TABLE_HEADER_ROW_CLASS}>
                   <SortableTableHead
-                    label={`${activeTypeConfig.label} Name`}
+                    label={
+                      showType ? "Asset Name" : `${getRegistryTypeConfigOrDefault(mode).label} Name`
+                    }
                     active={sortKey === "name"}
                     direction={direction}
                     onClick={() => handleSort("name")}
                   />
+                  {showType ? <StaticTableHead label="Type" /> : null}
                   <SortableTableHead
                     label="Downloads"
                     active={sortKey === "downloads"}
@@ -1229,30 +1217,54 @@ function AuthorAssetRankingsTable({ data }: { data: RegistryEntityPageData }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedRows.map((row) => (
-                  <TableRow key={row.id} className="border-border/60 hover:bg-transparent">
-                    <TableCell className="px-4 font-medium">
-                      <span className="inline-flex max-w-full items-center gap-1.5">
-                        <Link
-                          to={row.href}
-                          className={`truncate text-foreground [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_NAME_LINK_CLASS}`}
-                        >
-                          {row.name}
-                        </Link>
-                        <ExternalLink
-                          className="size-3.5 shrink-0 text-muted-foreground"
-                          aria-hidden={true}
-                        />
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
-                      {formatNumber(row.downloads)}
-                    </TableCell>
-                    <TableCell className="px-4">
-                      <RankBadge rank={row.rank} className="size-7 text-xs" />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {sortedRows.map((row) => {
+                  const typeConfig = getRegistryTypeConfigOrDefault(row.typeId);
+                  const TypeIcon = typeConfig.icon ?? FileStack;
+                  return (
+                    <TableRow
+                      key={`${row.typeId}:${row.id}`}
+                      className="border-border/60 hover:bg-transparent"
+                      // The combined cut colors each row by its own asset type.
+                      style={
+                        showType
+                          ? ({ "--registry-type-accent": typeConfig.accentLight } as CSSProperties)
+                          : undefined
+                      }
+                    >
+                      <TableCell className="px-4 font-medium">
+                        <span className="inline-flex max-w-full items-center gap-1.5">
+                          <Link
+                            to={row.href}
+                            className={`truncate text-foreground [--ui-link-accent:var(--registry-type-accent)] ${ACCENT_NAME_LINK_CLASS}`}
+                          >
+                            {row.name}
+                          </Link>
+                          <ExternalLink
+                            className="size-3.5 shrink-0 text-muted-foreground"
+                            aria-hidden={true}
+                          />
+                        </span>
+                      </TableCell>
+                      {showType ? (
+                        <TableCell className="px-4">
+                          <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <TypeIcon
+                              className="size-3.5 shrink-0 text-[var(--registry-type-accent)]"
+                              aria-hidden={true}
+                            />
+                            {typeConfig.label}
+                          </span>
+                        </TableCell>
+                      ) : null}
+                      <TableCell className="px-4 font-semibold tabular-nums text-[var(--registry-type-accent)]">
+                        {formatNumber(row.downloads)}
+                      </TableCell>
+                      <TableCell className="px-4">
+                        <RankBadge rank={row.rank} className="size-7 text-xs" />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -1269,8 +1281,10 @@ function AuthorAnalytics({
   data: RegistryEntityPageData;
   emptyMessage?: string;
 }) {
-  // One period window for the whole charts band (Download History + Top Assets).
+  // One period window and one asset-type cut for the whole analytics band
+  // (Download History + Top Assets + Asset Rankings).
   const [period, setPeriod] = useState<RegistryAnalyticsPeriodId>("all-time");
+  const [mode, setMode] = useState<AuthorHistoryMode>("total");
   const caretakenItems = data.caretakenItems ?? [];
   const hasMaps =
     (data.itemsByType.maps ?? []).length > 0 || caretakenItems.some((item) => item.type === "maps");
@@ -1278,6 +1292,14 @@ function AuthorAnalytics({
     (data.itemsByType.mods ?? []).length > 0 || caretakenItems.some((item) => item.type === "mods");
   const hasPublishedAssets = hasMaps || hasMods;
   const hasMultipleAssetTypes = hasMaps && hasMods;
+  const modeOptions = useMemo(
+    () => buildAuthorHistoryModeOptions(hasMaps, hasMods),
+    [hasMaps, hasMods],
+  );
+  const activeMode = modeOptions.some((option) => option.id === mode)
+    ? mode
+    : (modeOptions[0]?.id ?? "total");
+  const activeModeOption = modeOptions.find((option) => option.id === activeMode) ?? modeOptions[0];
   const cards: DetailMetric[] = hasMultipleAssetTypes
     ? [
         {
@@ -1340,9 +1362,23 @@ function AuthorAnalytics({
         />
       </div>
       <AuthorRecentTrendsTable data={data} />
-      <AuthorDownloadHistory data={data} period={period} onPeriodChange={setPeriod} />
+      <AuthorDownloadHistory
+        data={data}
+        period={period}
+        onPeriodChange={setPeriod}
+        mode={mode}
+        activeMode={activeMode}
+        activeOption={activeModeOption}
+        modeOptions={modeOptions}
+        onModeChange={setMode}
+      />
       <AuthorTopAssets data={data} period={period} />
-      {hasMaps || hasMods ? <AuthorAssetRankingsTable data={data} /> : null}
+      <AuthorAssetRankingsTable
+        data={data}
+        period={period}
+        mode={activeMode}
+        modeOption={activeModeOption}
+      />
     </section>
   );
 }

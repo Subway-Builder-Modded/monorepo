@@ -19,7 +19,6 @@ import {
   formatHourlyBucketLabel,
   getHourlyChartTicks,
   getHourlyWindowBuckets,
-  alignHourlyBucket,
   type RegistryAnalyticsEntityDailySeries,
   type RegistryAnalyticsEntityHourlySeries,
   type RegistryAnalyticsPeriodId,
@@ -151,7 +150,10 @@ export function TopEntitiesChart({
     // aligned 4h bucket labels and values come from the hour-grain series.
     // Entity display metadata joins from the daily series by id.
     if (hourlyMode && hourlySeries) {
-      const windowBuckets = getHourlyWindowBuckets(hourlySeries.buckets, period);
+      const { buckets: windowBuckets, align } = getHourlyWindowBuckets(
+        hourlySeries.buckets,
+        period,
+      );
       const labelByBucket = new Map(
         windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
       );
@@ -162,7 +164,7 @@ export function TopEntitiesChart({
           const meta = metaById.get(entry.id);
           const valueByLabel = new Map<string, number>();
           for (const [bucket, point] of entry.byBucket) {
-            const label = labelByBucket.get(alignHourlyBucket(bucket));
+            const label = labelByBucket.get(align(bucket));
             if (!label) continue;
             const value =
               assetType === "maps"
@@ -176,7 +178,6 @@ export function TopEntitiesChart({
             id: entry.id,
             name: meta?.name ?? entry.id,
             color: meta?.color,
-            synthetic: meta?.synthetic,
             valueByDate: valueByLabel,
           };
         }),
@@ -196,7 +197,6 @@ export function TopEntitiesChart({
         id: entry.id,
         name: entry.name,
         color: entry.color,
-        synthetic: entry.synthetic,
         valueByDate: new Map(dates.map((date) => [date, getSeriesValue(entry, date, assetType)])),
       })),
       dates,

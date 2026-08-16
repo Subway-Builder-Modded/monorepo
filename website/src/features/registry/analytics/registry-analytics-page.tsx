@@ -83,7 +83,6 @@ import {
 import {
   HOURLY_BUCKET_HOURS,
   HOURLY_CHART_PERIODS,
-  alignHourlyBucket,
   bucketRegistryAnalyticsHourly,
   filterRegistryAnalyticsHistory,
   formatHourlyBucketLabel,
@@ -157,9 +156,9 @@ const HOUR_OF_DAY_LABELS = Array.from(
 const HOUR_OF_DAY_TICKS = HOUR_OF_DAY_LABELS.filter((_, hour) => hour % HOURLY_BUCKET_HOURS === 0);
 
 /**
- * 1d/3d chart rows from the hourly series: wall-clock-aligned 4h buckets
- * (6/18 points), newest last; the trailing bucket is partial until its last
- * hour lands. `readValues` maps a bucket's downloads onto the chart's series keys.
+ * 1d/3d chart rows from the hourly series: 4h buckets anchored at the newest
+ * hour (6/18 points), newest last. `readValues` maps a bucket's downloads onto
+ * the chart's series keys.
  */
 function buildHourlyChartRows(
   hourly: RegistryAnalyticsData["hourly"],
@@ -327,9 +326,9 @@ function RegistryOverviewTab({
   }));
   // Releases are sparse at day grain; the shared bucketing collapses the
   // all-time cut to weeks while short cuts show recent uptake day by day.
-  // Deprecations chart POSITIVE in grey (the asset still exists and may
-  // return); deletions chart NEGATIVE in a darker grey — an actively lost
-  // listing nets to zero against its arrival instead of counting twice.
+  // Retirements chart NEGATIVE — deprecations in grey, deletions in a darker
+  // grey. A listing arrived once, so its departure nets against that arrival
+  // rather than stacking a second bar onto a chart that counts new listings.
   const hasDeprecations = graphRows.some((row) => row.deprecations.total > 0);
   const hasDeletions = graphRows.some((row) => (row.deletions?.total ?? 0) > 0);
   const newListingsBucketed = bucketMultiSeriesData(
@@ -338,7 +337,7 @@ function RegistryOverviewTab({
       ...Object.fromEntries(
         typeSeries.map((series) => [series.key, readTypeValue(row.listings, series.id)]),
       ),
-      ...(hasDeprecations ? { Deprecated: row.deprecations.total } : {}),
+      ...(hasDeprecations ? { Deprecated: -row.deprecations.total } : {}),
       ...(hasDeletions ? { Deleted: -(row.deletions?.total ?? 0) } : {}),
     })),
   );
@@ -878,7 +877,10 @@ function RegistryContentTab({
       }));
     }
     const allowedIds = new Set(filteredListingSeries.entities.map((entity) => entity.id));
-    const windowBuckets = getHourlyWindowBuckets(data.listings.hourlyDownloads.buckets, period);
+    const { buckets: windowBuckets, align } = getHourlyWindowBuckets(
+      data.listings.hourlyDownloads.buckets,
+      period,
+    );
     const labelByBucket = new Map(
       windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
     );
@@ -886,7 +888,7 @@ function RegistryContentTab({
     for (const entity of data.listings.hourlyDownloads.entities) {
       if (!allowedIds.has(entity.id)) continue;
       for (const [bucket, point] of entity.byBucket) {
-        const label = labelByBucket.get(alignHourlyBucket(bucket));
+        const label = labelByBucket.get(align(bucket));
         if (!label) continue;
         const value = assetTypeId === "maps" ? point.maps : point.mods;
         totals.set(label, (totals.get(label) ?? 0) + value);
@@ -1640,9 +1642,8 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
 
       <section>
         <SectionSeparator label="Top Projects" icon={FolderGit2} className="mb-4" />
-        {/* "No Project" holds most downloads, leaving real projects tiny
-            shares of the total — minShare 0 selects a plain top 10 so up to
-            nine actual projects chart alongside it. */}
+        {/* Distribution across projects alone is flat, so a plain top 10 beats
+            a share threshold that would draw only the largest one or two. */}
         <TopEntitiesChart
           series={filteredProjectSeries}
           hourlySeries={matchHourlyToDaily(data.projects.hourlyDownloads, filteredProjectSeries)}

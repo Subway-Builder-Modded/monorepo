@@ -130,6 +130,37 @@ describe("loadRegistryItemsForType", () => {
     expect(items[0]?.publishedAt).toBe(Date.parse("2026-06-20T07:16:20.303Z"));
   });
 
+  it("keeps the debut date of a listing whose earliest versions were retired", async () => {
+    const base = "/registry-cache/maps";
+
+    mockFetchWithMap({
+      [`${base}/integrity.json`]: JSON.stringify({
+        listings: {
+          "retired-debut-map": {
+            has_complete_version: true,
+            versions: {
+              "0.1.0": { availability: "retired", released_at: "2026-06-01T00:00:00.000Z" },
+              "0.2.0": { availability: "removed", released_at: "2026-06-10T00:00:00.000Z" },
+              "0.3.0": {
+                is_complete: true,
+                released_at: "2026-08-13T00:00:00.000Z",
+                checked_at: "2026-08-14T00:00:00.000Z",
+              },
+            },
+          },
+        },
+      }),
+      [`${base}/downloads.json`]: JSON.stringify({}),
+      [`${base}/index.json`]: JSON.stringify({ maps: ["retired-debut-map"] }),
+      [`${base}/retired-debut-map/manifest.json`]: JSON.stringify({ name: "Retired Debut Map" }),
+    });
+
+    const items = await loadRegistryItemsForType("maps", "maps");
+
+    expect(items[0]?.publishedAt).toBe(Date.parse("2026-06-01T00:00:00.000Z"));
+    expect(items[0]?.latestVersion).toBe("0.3.0");
+  });
+
   it("returns zero downloads and null thumbnail when optional data is missing", async () => {
     const base = "/registry-cache/maps";
 

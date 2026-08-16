@@ -77,13 +77,29 @@ function getCompleteVersionEntries(listing: IntegrityListing | undefined) {
   );
 }
 
+/** An availability stamp is only written over a version that once passed integrity. */
+function wasEverComplete(version: IntegrityVersion): boolean {
+  return version.is_complete === true || version.availability !== undefined;
+}
+
 function parseDateTimestamp(value: string | undefined): number {
   const timestamp = Date.parse(value ?? "");
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-function getCompleteVersionPublishedAt(version: { released_at?: string; checked_at?: string }) {
+function getVersionPublishedAt(version: { released_at?: string; checked_at?: string }) {
   return parseDateTimestamp(version.released_at) || parseDateTimestamp(version.checked_at);
+}
+
+function getEarliestVersionPublishedAt(versions: Array<[string, IntegrityVersion]>): number | null {
+  let earliest = Number.POSITIVE_INFINITY;
+  for (const [, version] of versions) {
+    const timestamp = getVersionPublishedAt(version);
+    if (timestamp > 0 && timestamp < earliest) {
+      earliest = timestamp;
+    }
+  }
+  return Number.isFinite(earliest) ? earliest : null;
 }
 
 function getPublishedAt(
@@ -96,16 +112,15 @@ function getPublishedAt(
     return manifestTimestamp;
   }
 
-  let earliest = Number.POSITIVE_INFINITY;
-
-  for (const [, version] of getCompleteVersionEntries(listing)) {
-    const timestamp = getCompleteVersionPublishedAt(version);
-    if (timestamp > 0 && timestamp < earliest) {
-      earliest = timestamp;
-    }
-  }
-
-  return Number.isFinite(earliest) ? earliest : fallback;
+  // A listing debuts when its first downloadable version shipped, so retired and
+  // removed versions still count: they were complete once, and dropping them
+  // would re-date the listing to whatever release survives and re-debut it.
+  const entries = Object.entries(listing?.versions ?? {});
+  return (
+    getEarliestVersionPublishedAt(entries.filter(([, version]) => wasEverComplete(version))) ??
+    getEarliestVersionPublishedAt(entries) ??
+    fallback
+  );
 }
 
 function getLatestVersionInfo(listing: IntegrityListing | undefined, fallbackTimestamp: number) {
@@ -158,6 +173,7 @@ function getTotalDownloads(id: string, downloads: RawRegistryDownloads): number 
 }
 
 type IntegrityListing = NonNullable<RawRegistryIntegrity["listings"]>[string];
+type IntegrityVersion = NonNullable<IntegrityListing["versions"]>[string];
 type RawRegistryAuthorsIndex = {
   authors?: Array<{
     author_id?: string;
