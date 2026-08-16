@@ -36,6 +36,22 @@ export namespace semver {
 
 export namespace types {
 	
+	export class AnnouncementsResponse {
+	    status: string;
+	    message: string;
+	    seen: string[];
+	
+	    static createFrom(source: any = {}) {
+	        return new AnnouncementsResponse(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.message = source["message"];
+	        this.seen = source["seen"];
+	    }
+	}
 	export class AppConfig {
 	    railyardPath?: string;
 	    metroMakerDataPath?: string;

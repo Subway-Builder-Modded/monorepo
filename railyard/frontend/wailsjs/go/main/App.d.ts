@@ -13,6 +13,8 @@ export function GetGameVersion():Promise<types.GameVersionResponse>;
 
 export function GetPlatform():Promise<types.PlatformResponse>;
 
+export function GetSeenAnnouncements():Promise<types.AnnouncementsResponse>;
+
 export function GetTotalMemory():Promise<number>;
 
 export function HandleDeepLinkTarget(arg1:deeplink.Target):Promise<void>;
@@ -30,6 +32,8 @@ export function LaunchGame(arg1:boolean):Promise<types.GameLaunchResponse>;
 export function LogFrontend(arg1:string,arg2:string):Promise<void>;
 
 export function ManuallyCheckForUpdates():Promise<types.GenericResponse>;
+
+export function MarkAnnouncementSeen(arg1:string):Promise<types.AnnouncementsResponse>;
 
 export function OpenImportAssetDialog(arg1:types.AssetType):Promise<types.ImportAssetDialogResponse>;
 

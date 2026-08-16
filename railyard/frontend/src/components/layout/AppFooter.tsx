@@ -4,17 +4,23 @@ import {
   Button,
 } from '@subway-builder-modded/shared-ui';
 import { cn } from '@subway-builder-modded/shared-ui';
-import { BookText, Heart, Megaphone } from 'lucide-react';
+import { BookText, Heart, Megaphone, ScrollText } from 'lucide-react';
 import { useState } from 'react';
 
 import { DiscordIcon, GitHubIcon } from '@/components/icons/social-icons';
 import { RailyardCreditsModal } from '@/components/shared/RailyardCreditsModal';
+import { useAnnouncementStore } from '@/stores/announcement-store';
 import { useRegistryStore } from '@/stores/registry-store';
 
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 
 type CommunityLink =
-  | { id: 'credits'; label: string; icon: typeof Heart; action: 'credits' }
+  | {
+      id: string;
+      label: string;
+      icon: typeof Heart;
+      action: 'credits' | 'announcement';
+    }
   | { id: string; label: string; href: string; icon: any };
 
 const COMMUNITY_LINKS: CommunityLink[] = [
@@ -31,10 +37,17 @@ const COMMUNITY_LINKS: CommunityLink[] = [
     icon: BookText,
   },
   {
-    id: 'updates',
-    label: 'Updates',
-    href: 'https://subwaybuildermodded.com/railyard/updates',
+    // Announcements are in-app notices; the website link below is the per-version changelog.
+    id: 'announcements',
+    label: 'Announcements',
     icon: Megaphone,
+    action: 'announcement',
+  },
+  {
+    id: 'changelog',
+    label: 'Changelog',
+    href: 'https://subwaybuildermodded.com/railyard/updates',
+    icon: ScrollText,
   },
   {
     id: 'discord',
@@ -58,10 +71,13 @@ export function AppFooter({ version }: AppFooterProps) {
   const [showCredits, setShowCredits] = useState(false);
   const maps = useRegistryStore((s) => s.maps);
   const mods = useRegistryStore((s) => s.mods);
+  const showLatestAnnouncement = useAnnouncementStore((s) => s.showLatest);
 
   const handleLinkClick = (link: CommunityLink) => {
     if ('action' in link && link.action === 'credits') {
       setShowCredits(true);
+    } else if ('action' in link && link.action === 'announcement') {
+      showLatestAnnouncement();
     } else if ('href' in link && link.href) {
       BrowserOpenURL(link.href);
     }

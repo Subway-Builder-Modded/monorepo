@@ -3,6 +3,7 @@ import { SuiteLoader, TooltipProvider } from '@subway-builder-modded/shared-ui';
 import { useEffect, useRef } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 
+import { AnnouncementDialog } from '@/components/layout/AnnouncementDialog';
 import { DownloadNotification } from '@/components/layout/DownloadNotification';
 import { Layout } from '@/components/layout/Layout';
 import { RequestErrorDialog } from '@/components/layout/RequestErrorDialog';
@@ -325,6 +326,7 @@ function App() {
             <DownloadNotification />
             <ExtractNotification />
             <RegistryRefreshNotification />
+            <AnnouncementDialog ready={appReadyForNavigation} />
             <RequestErrorDialog />
             <SteamLaunchStatus />
             <Toaster />

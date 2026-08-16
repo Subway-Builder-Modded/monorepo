@@ -25,6 +25,8 @@ const (
 	UserProfilesFileName = "user_profiles.json"
 	// VersionsCacheFileName is the persisted upstream-release version cache file name.
 	VersionsCacheFileName = "versions_cache.json"
+	// AnnouncementsFileName is the persisted record of acknowledged in-app announcements.
+	AnnouncementsFileName = "announcements.json"
 	// LogFileName is the log file name.
 	LogFileName = "railyard.log"
 	// PrevLogFileName is the previous log file name.
@@ -71,6 +73,11 @@ func ConfigPath() string {
 // VersionsCachePath returns the filesystem path for the persisted upstream-release version cache.
 func VersionsCachePath() string {
 	return filepath.Join(AppDataRoot(), VersionsCacheFileName)
+}
+
+// AnnouncementsPath returns the filesystem path for the persisted announcement acknowledgements.
+func AnnouncementsPath() string {
+	return filepath.Join(AppDataRoot(), AnnouncementsFileName)
 }
 
 // TilesPath returns the default filesystem path for cached map tiles.

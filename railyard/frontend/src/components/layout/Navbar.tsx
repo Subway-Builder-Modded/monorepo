@@ -26,6 +26,7 @@ import {
   CircleUser,
   Compass,
   Inbox,
+  Megaphone,
   Play,
   RefreshCw,
   Settings,
@@ -43,7 +44,9 @@ import {
 } from '@/components/layout/IncompatibleAssetsDialog';
 import { DisabledReasonTooltipContent } from '@/components/shared/IncompatibilityTooltip';
 import { useGameVersion } from '@/hooks/use-game-version';
+import { getUnseenAnnouncement } from '@/lib/announcements';
 import { isInstalledCompatible } from '@/lib/version-compatibility';
+import { useAnnouncementStore } from '@/stores/announcement-store';
 import { useConfigStore } from '@/stores/config-store';
 import { useGameStore } from '@/stores/game-store';
 import { useInstalledStore } from '@/stores/installed-store';
@@ -124,6 +127,11 @@ export function Navbar() {
     (s) => s.installing.size > 0 || s.uninstalling.size > 0 || s.importing,
   );
   const gameVersion = useGameVersion();
+  const seenAnnouncements = useAnnouncementStore((s) => s.seen);
+  const showLatestAnnouncement = useAnnouncementStore((s) => s.showLatest);
+  const hasUnreadAnnouncement = Boolean(
+    getUnseenAnnouncement(seenAnnouncements),
+  );
   const [showModReminder, setShowModReminder] = useState(false);
   const [incompatibleAssets, setIncompatibleAssets] = useState<
     IncompatibleAsset[]
@@ -302,6 +310,35 @@ export function Navbar() {
           <NavbarSpacer />
 
           <NavbarActionsSlot>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <NavbarItem asChild className={NAV_ITEM_GREEN_HOVER_CLASS}>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={showLatestAnnouncement}
+                      aria-label={
+                        hasUnreadAnnouncement
+                          ? 'Announcements (unread)'
+                          : 'Announcements'
+                      }
+                      className="relative"
+                    >
+                      <Megaphone className="h-[1.125rem] w-[1.125rem]" />
+                      {/* The dot is the only unread affordance; once read the icon goes quiet. */}
+                      {hasUnreadAnnouncement ? (
+                        <span
+                          aria-hidden
+                          className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--update-primary)] ring-2 ring-background"
+                        />
+                      ) : null}
+                    </Button>
+                  </NavbarItem>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Announcements</TooltipContent>
+            </Tooltip>
             {running ? (
               <NavbarItem
                 asChild

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"railyard/internal/announcements"
 	"railyard/internal/config"
 	"railyard/internal/constants"
 	"railyard/internal/downloader"
@@ -41,6 +42,8 @@ type App struct {
 	ctx        context.Context
 	Profiles   *profiles.UserProfiles
 	Logger     *logger.AppLogger
+	// Announcements records which in-app announcements the user has acknowledged.
+	Announcements *announcements.Announcements
 
 	game              gameLaunchState
 	pmtilesServer     *http.Server
@@ -72,17 +75,19 @@ func NewApp() *App {
 	cfg := config.NewConfig(l)
 	reg := registry.NewRegistry(l, cfg)
 	dl := downloader.NewDownloader(cfg, reg, l)
-	contentGate := &gate.GameContentGate{}
-	dl.Gate = contentGate
-	userProfiles := profiles.NewUserProfiles(reg, dl, l, cfg)
-	userProfiles.Gate = contentGate
+	ann := announcements.NewAnnouncements()
+	cg := &gate.GameContentGate{}
+	dl.Gate = cg
+	prof := profiles.NewUserProfiles(reg, dl, l, cfg)
+	prof.Gate = cg
 	return &App{
-		Registry:    reg,
-		Config:      cfg,
-		Downloader:  dl,
-		Profiles:    userProfiles,
-		Logger:      l,
-		contentGate: contentGate,
+		Registry:      reg,
+		Config:        cfg,
+		Downloader:    dl,
+		Profiles:      prof,
+		Logger:        l,
+		Announcements: ann,
+		contentGate:   cg,
 	}
 }
 
