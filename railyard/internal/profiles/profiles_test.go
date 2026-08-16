@@ -1,6 +1,7 @@
 package profiles
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -157,6 +158,8 @@ type assetSyncTestFixture struct {
 	subscriptions     map[string]string
 	installedVersion  map[string]string
 	availableVersions map[string]map[string]struct{}
+	unresolvable      map[string]bool // Assets that are listed but resolve no installable versions.
+	deprecated        map[string]bool // Assets the registry reports as deprecated but not deleted.
 }
 
 func mockInstallResponse(
@@ -249,6 +252,9 @@ func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 			},
 			idFn: func(item types.MapManifest) string { return item.ID },
 			resolveInstallableFn: func(_ types.AssetType, assetID string) ([]types.VersionInfo, error) {
+				if fixture.unresolvable[assetID] {
+					return nil, fmt.Errorf("map %q has no complete versions in integrity cache", assetID)
+				}
 				versions := fixture.availableVersions[assetID]
 				list := make([]types.VersionInfo, 0, len(versions))
 				for version := range versions {
@@ -257,8 +263,9 @@ func mockMapAssetSyncArgs(fixture assetSyncTestFixture, install func(string, str
 				return list, nil
 			},
 		},
-		install:   install,
-		uninstall: uninstall,
+		isDeprecated: func(assetID string) bool { return fixture.deprecated[assetID] },
+		install:      install,
+		uninstall:    uninstall,
 	}
 }
 

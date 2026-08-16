@@ -510,6 +510,62 @@ func TestSyncAssetSubscriptionsInstallDecisionsMaps(t *testing.T) {
 	}
 }
 
+// A retired listing keeps its subscription, so any error raised for one recurs on every sync.
+func TestSyncAssetSubscriptionsToleratesListingsWithNothingInstallable(t *testing.T) {
+	testCases := []struct {
+		name             string
+		installedVersion map[string]string
+		deprecated       map[string]bool
+		expectedErrors   []string
+	}{
+		{
+			name:             "Installed at desired version resolves nothing and reports no error",
+			installedVersion: map[string]string{"map-a": "1.0.0"},
+		},
+		{
+			name:             "Deprecated asset awaiting install is skipped rather than failed",
+			installedVersion: map[string]string{},
+			deprecated:       map[string]bool{"map-a": true},
+		},
+		{
+			// Not deprecated, so nothing installable is a genuine problem worth surfacing.
+			name:             "Non-deprecated asset awaiting install still reports the lookup failure",
+			installedVersion: map[string]string{},
+			expectedErrors: []string{
+				`Failed to resolve available versions for map "map-a"`,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			installCalls := 0
+			uninstallCalls := 0
+			_, errs, _, _ := syncAssetSubscriptions(testUserProfilesLogger(t), types.DefaultProfileID, mockMapAssetSyncArgs(assetSyncTestFixture{
+				subscriptions:     map[string]string{"map-a": "1.0.0"},
+				installedVersion:  tc.installedVersion,
+				availableVersions: map[string]map[string]struct{}{"map-a": {}},
+				unresolvable:      map[string]bool{"map-a": true},
+				deprecated:        tc.deprecated,
+			},
+				mockInstallResponse(types.AssetTypeMap, &installCalls, nil),
+				mockUninstallResponse(types.AssetTypeMap, &uninstallCalls, nil),
+			))
+
+			require.Equal(t, 0, installCalls)
+			require.Equal(t, 0, uninstallCalls)
+			if len(tc.expectedErrors) == 0 {
+				require.Empty(t, errs)
+			} else {
+				require.Len(t, errs, len(tc.expectedErrors))
+				for i, expected := range tc.expectedErrors {
+					require.Contains(t, errs[i].Error(), expected)
+				}
+			}
+		})
+	}
+}
+
 func TestSyncAssetSubscriptionsPropagatesInstallErrors(t *testing.T) {
 	fixture := assetSyncTestFixture{
 		subscriptions: map[string]string{

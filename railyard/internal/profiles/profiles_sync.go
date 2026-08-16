@@ -103,6 +103,7 @@ type assetSyncArgs[T any, U any] struct {
 	isStale       func() bool                                                     // Returns true when the sync snapshot is stale due to a newer profile update.
 	installedArgs installedVersionArgs[T]                                         // Non-shared installed-version resolver args.
 	availableArgs availableVersionArgs[U]                                         // Non-shared available-version resolver args.
+	isDeprecated  func(assetID string) bool                                       // Reports whether the asset is deprecated but not deleted.
 	install       func(assetID string, version string) types.AssetInstallResponse // The function to call to install the asset (using the downloader).
 	uninstall     func(assetID string) types.AssetUninstallResponse               // The function to call to uninstall the asset (using the downloader).
 }
@@ -139,6 +140,9 @@ func (s *UserProfiles) buildMapSyncArgs(profile types.UserProfile, isStale func(
 			idFn:                 func(item types.MapManifest) string { return item.ID },
 			resolveInstallableFn: s.Registry.GetInstallableVersionsFromIntegrity,
 		},
+		isDeprecated: func(assetID string) bool {
+			return s.Registry.AssetDeprecatedNotDeleted(types.AssetTypeMap, assetID)
+		},
 		install: func(assetID string, version string) types.AssetInstallResponse {
 			return s.Downloader.InstallAsset(types.InstallAssetRequest{
 				AssetType: types.AssetTypeMap,
@@ -171,6 +175,9 @@ func (s *UserProfiles) buildModSyncArgs(profile types.UserProfile, isStale func(
 			idFn:                 func(item types.ModManifest) string { return item.ID },
 			resolveInstallableFn: s.Registry.GetInstallableVersionsFromIntegrity,
 		},
+		isDeprecated: func(assetID string) bool {
+			return s.Registry.AssetDeprecatedNotDeleted(types.AssetTypeMod, assetID)
+		},
 		install: func(assetID string, version string) types.AssetInstallResponse {
 			return s.Downloader.InstallAsset(types.InstallAssetRequest{
 				AssetType: types.AssetTypeMod,
@@ -198,12 +205,11 @@ func syncAssetSubscriptions[T any, U any](log logger.Logger, profileID string, a
 	}
 	assetType := args.assetType
 	installedVersion := buildVersionIndexFromItems(args.installedArgs)
-	availableVersions := buildAvailableVersionIndex(args.availableArgs, profileID, args.subscriptions, assetType, &errs)
+	lookupAvailable := newAvailableVersionLookup(args.availableArgs, assetType)
 
 	log.Info("Built version indices for sync",
 		"asset_type", args.assetType,
 		"installed_count", len(installedVersion),
-		"available_count", len(availableVersions),
 	)
 
 	for assetID, version := range args.subscriptions {
@@ -218,9 +224,20 @@ func syncAssetSubscriptions[T any, U any](log logger.Logger, profileID string, a
 			continue
 		}
 
+		// Deprecated assets keep their subscription but have nothing installable, so erroring here would fail every sync until the deprecation is reversed.
+		if args.isDeprecated != nil && args.isDeprecated(assetID) {
+			log.Warn("Skipping deprecated asset during sync", "asset_type", args.assetType, "asset_id", assetID, "version", versionText)
+			continue
+		}
+
 		// Check if desired version is available according to the registry before attempting installation.
-		if !isVersionAvailable(availableVersions, assetID, versionText) {
-			availableForAsset := availableVersions[assetID]
+		availableForAsset, err := lookupAvailable(assetID)
+		if err != nil {
+			log.Warn("Failed to resolve available versions during sync", "asset_type", args.assetType, "asset_id", assetID, "error", err)
+			errs = append(errs, updateSubscriptionError(profileID, assetID, assetType, types.ErrorLookupFailed, fmt.Errorf("Failed to resolve available versions for %s %q: %w", assetType, assetID, err)))
+			continue
+		}
+		if _, ok := availableForAsset[versionText]; !ok {
 			availableKeys := make([]string, 0, len(availableForAsset))
 			for k := range availableForAsset {
 				availableKeys = append(availableKeys, k)
@@ -396,49 +413,37 @@ func buildVersionIndexFromItems[T any](args installedVersionArgs[T]) map[string]
 	return versions
 }
 
-// buildAvailableVersionIndex makes use of the registry to build an index of available versions for each asset to which the profile is subscribed.
-func buildAvailableVersionIndex[U any](
+// newAvailableVersionLookup makes use of the registry to resolve an asset's installable versions on demand, memoising each result. Resolving lazily keeps assets that need no work from raising lookup errors.
+func newAvailableVersionLookup[U any](
 	availableArgs availableVersionArgs[U],
-	profileID string,
-	subscriptions map[string]string,
 	assetType types.AssetType,
-	syncErrors *[]types.UserProfilesError,
-) map[string]map[string]struct{} {
-	available := make(map[string]map[string]struct{})
+) func(assetID string) (map[string]struct{}, error) {
 	manifestByID := make(map[string]U)
-
-	// Collect all available manifests and index by assetID for lookup.
 	for _, manifest := range availableArgs.getManifestsFn() {
 		manifestByID[availableArgs.idFn(manifest)] = manifest
 	}
+	cache := make(map[string]map[string]struct{})
 
-	for assetID := range subscriptions {
-		// If a particular assetID is not found in the registry's available manifests, skip and consider it to be "unavailable".
+	return func(assetID string) (map[string]struct{}, error) {
+		if versions, ok := cache[assetID]; ok {
+			return versions, nil
+		}
+		// An asset missing from the registry's manifests is unavailable rather than a lookup failure.
 		if _, ok := manifestByID[assetID]; !ok {
-			continue
+			cache[assetID] = nil
+			return nil, nil
 		}
 
-		// Determine which versions are installable for this asset from the integrity report.
-		versions, err := availableArgs.resolveInstallableFn(assetType, assetID)
+		resolved, err := availableArgs.resolveInstallableFn(assetType, assetID)
 		if err != nil {
-			*syncErrors = append(*syncErrors, updateSubscriptionError(profileID, assetID, assetType, types.ErrorLookupFailed, fmt.Errorf("Failed to resolve available versions for %s %q: %w", assetType, assetID, err)))
-			continue
+			return nil, err
 		}
 
-		available[assetID] = make(map[string]struct{}, len(versions))
-		for _, version := range versions {
-			available[assetID][strings.TrimSpace(version.Version)] = struct{}{}
+		versions := make(map[string]struct{}, len(resolved))
+		for _, version := range resolved {
+			versions[strings.TrimSpace(version.Version)] = struct{}{}
 		}
+		cache[assetID] = versions
+		return versions, nil
 	}
-
-	return available
-}
-
-func isVersionAvailable(available map[string]map[string]struct{}, assetID string, version string) bool {
-	versions, ok := available[assetID]
-	if !ok {
-		return false
-	}
-	_, ok = versions[strings.TrimSpace(version)]
-	return ok
 }
