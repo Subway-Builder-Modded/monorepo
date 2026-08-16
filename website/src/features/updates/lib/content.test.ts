@@ -11,9 +11,23 @@ describe("updates content", () => {
     const entries = getUpdatesEntries("railyard");
     expect(entries.length).toBeGreaterThan(0);
 
+    // Compared numerically per segment rather than lexicographically: string
+    // ordering ranks v0.2.9 above v0.2.10, so a text sort would assert the
+    // wrong order the moment a version reaches two digits.
+    const toSegments = (id: string) => id.replace(/^v/, "").split(".").map(Number);
     const ids = entries.map((entry) => entry.id);
-    const sortedIds = [...ids].sort((a, b) => b.localeCompare(a));
-    expect(ids[0]).toBe(sortedIds[0]);
+
+    for (let index = 1; index < ids.length; index += 1) {
+      const previous = toSegments(ids[index - 1]);
+      const current = toSegments(ids[index]);
+      expect(previous.length).toBe(current.length);
+      const firstDifference = previous.findIndex(
+        (segment, position) => segment !== current[position],
+      );
+      if (firstDifference !== -1) {
+        expect(previous[firstDifference]).toBeGreaterThan(current[firstDifference]);
+      }
+    }
   });
 
   it("finds update by suite and id", () => {
