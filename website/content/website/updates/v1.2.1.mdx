@@ -1,7 +1,7 @@
 ---
 title: v1.2.1
 icon: Globe
-date: August 14, 2026
+date: August 16, 2026
 tag: release
 ---
 
@@ -9,12 +9,13 @@ tag: release
 
 ### Registry
 
-- Added a **Status** filter covering the full listing lifecycle: Active, Deprecated, and Deleted ([#614](https://github.com/Subway-Builder-Modded/monorepo/pull/614), [#624](https://github.com/Subway-Builder-Modded/monorepo/pull/624))
-  - Deprecated and deleted listings each carry their own badge and color, and sort last when shown
-  - Deleted listings also carry a notice on their detail page, and their analytics series is split at the point of deletion
-- Retired and removed versions now appear in a listing's version history as **No Longer Available**, keeping their changelog, release date, and download count ([#621](https://github.com/Subway-Builder-Modded/monorepo/pull/621))
+- Added a **Status** filter to cover all listing states: `Active`, `Deprecated`, and `Deleted` ([#614](https://github.com/Subway-Builder-Modded/monorepo/pull/614), [#624](https://github.com/Subway-Builder-Modded/monorepo/pull/624))
+  - `Deprecated` and `Deleted` listings each carry their own badge and color, and sort last when shown
+  - `Deleted` listings also carry a notice on their detail page, and their analytics series is split at the point of deletion
+- Added compatibility with per-version retirement and removal of published assets
+  - `Retired` and `Removed` versions now appear in a listing's version history as **No Longer Available**, but keep their changelog, release date, and download count ([#621](https://github.com/Subway-Builder-Modded/monorepo/pull/621))
 - Added hourly-derived 1d/3d download graphs and an hour-of-day seasonality view ([#620](https://github.com/Subway-Builder-Modded/monorepo/pull/620))
-- Added sorting by data quality, with fallbacks for tiebreakers ([#613](https://github.com/Subway-Builder-Modded/monorepo/pull/613))
+- Added sorting by data quality, and added alphabetical sort as a generic tiebreakers ([#613](https://github.com/Subway-Builder-Modded/monorepo/pull/613))
 
 </ChangelogSection>
 
@@ -43,6 +44,6 @@ tag: release
 ### Registry
 
 - Fixed the listing visibility rule so a retired listing is shown or hidden consistently across browse, search, and author pages ([#627](https://github.com/Subway-Builder-Modded/monorepo/pull/627))
-- Corrected the custom update source example, which used a download URL the Registry rejects and would have left the version permanently uninstallable ([#629](https://github.com/Subway-Builder-Modded/monorepo/pull/629))
+- Corrected the custom update source example, which used a download URL the Registry rejects and which would have left the version permanently uninstallable ([#629](https://github.com/Subway-Builder-Modded/monorepo/pull/629))
 
 </ChangelogSection>
