@@ -1,0 +1,51 @@
+---
+title: v0.2.10
+icon: TrainTrack
+date: August 16, 2026
+tag: beta
+url: https://github.com/Subway-Builder-Modded/monorepo/releases/tag/v0.2.10
+previousVersion: v0.2.9
+compareUrl: https://github.com/Subway-Builder-Modded/monorepo/compare/v0.2.9...v0.2.10
+---
+
+<ChangelogSection type="features">
+
+- Driving paths are now served from the app via a sidecar file
+  - Mapmakers can optionally provide a `driving_paths.json` which enables Railyard to serve the driving paths rendered when a user clicks on an individual population group in the game
+- Enabled the Railyard app to handle the new `Deprecated` and `Deleted` listing states
+  - Listings that are `Deprecated` are no longer downloadable, but remain installed locally; deprecation is also reversible by the author
+  - Listings that are `Deleted` are auto-purged on registry sync; deletion is permanent
+
+</ChangelogSection>
+
+<ChangelogSection type="improvements">
+
+- Added a `Show Deleted Listings` setting, off by default, for looking up a listing after it has been removed
+  - `Deprecated` and `Deleted` listings each now have their own unique icon, sort last when viewable, and cannot be newly installed
+- Added a `Status` filter covering all listing states: `Active`, `Deprecated`, `Deleted`, and `Local`
+  - Browse defaults to `Active` only; Library in addition shows `Deprecated` and `Local`
+  - `Status` selections are unions and can be combined
+- Authors can now `retire` or `remove` individual versions of previously published assets
+  - Retired and removed versions now appear in a listing's version history as **No Longer Available**
+  - These are no longer downloadable but keep changelog, release date, and download count
+- Added a new `Announcements` section to the App for displaying important messages from the Railyard team
+- Added sorting by data quality, with alphabetical added as a generic fallback for all sort options
+- Improved performance in demand driving path handling via sidecar serving and caching; the sim no longer needs to hold paths in memory
+
+</ChangelogSection>
+
+<ChangelogSection type="bugfixes">
+
+- Fixed deleted assets surviving in a profile until the following restart
+- Fixed map updates failing when the map's city code changed
+- Fixed uninstall orphaning foundations and other files not installed in a map directory
+  - Bootstrap also now automatically cleans up file orphans on startup
+- Fixed a renamed `.app` bundle breaking game launch on macOS
+
+</ChangelogSection>
+
+<ChangelogSection type="notes">
+
+- For more information on `Deprecation` and `Deletion` see [Listing Status & Filters](/railyard/docs/latest/listing-status-and-filters) for what each state means
+
+</ChangelogSection>
