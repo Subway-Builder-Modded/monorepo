@@ -14,15 +14,15 @@ This page is for **players** deciding what a map's quality tier means. If you ar
 
 ## Tiers {#tiers}
 
-| **Tier Displayed**  | **Grade** | **Meaning**                                                                                  |
-| :------------------ | :-------: | :------------------------------------------------------------------------------------------- |
-| `very-high-quality` |     A     | Measured, government data on both sides of the commute (residence/workplace), at fine detail |
-| `high-quality`      |     B     | Strong official data with minor gaps in coverage or at somewhat coarse granularity           |
-| `medium-quality`    |     C     | Real official data, but potentially coarse or partial (e.g. residence side only)             |
-| `low-quality`       |     D     | Weak or indirect anchoring in official data                                                  |
-| `very-low-quality`  |     E     | Mostly estimated, loosely anchored to real statistics                                        |
-| `absent-quality`    |     F     | No census or official statistics at all                                                      |
-| `unknown-quality`   |     U     | Not yet reviewed                                                                             |
+| **Tier Displayed**  | **Grade** | **Meaning**                                                                                               |
+| :------------------ | :-------: | :-------------------------------------------------------------------------------------------------------- |
+| `very-high-quality` |     A     | Measured, government data on both sides of the commute (residence/workplace), at fine detail              |
+| `high-quality`      |     B     | Strong official data with minor gaps in coverage or at somewhat coarse granularity                        |
+| `medium-quality`    |     C     | Real official data, but potentially coarse or partial (e.g. residence side only)                          |
+| `low-quality`       |     D     | Weak or indirect anchoring in official data                                                               |
+| `very-low-quality`  |     E     | Mostly estimated, loosely anchored to real statistics                                                     |
+| `absent-quality`    |     F     | No effective anchoring in official statistics — none at all, or too coarse or indirect to shape the model |
+| `unknown-quality`   |     U     | Not yet reviewed                                                                                          |
 
 Alongside the tier, scored maps carry a continuous **weighted composite score** in [0, 1] — the number shown in parentheses on a map's detail page (e.g. `high-quality (0.65)`). The tier above is a bucketing of that score; the [scoring rubric](/registry/docs/data-quality/scoring-rubric#composite-score) defines exactly how it is computed.
 
