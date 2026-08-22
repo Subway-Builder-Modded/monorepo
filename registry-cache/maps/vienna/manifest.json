@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "id": "vienna",
+  "name": "Vienna",
+  "author": "Rmerr1",
+  "github_id": 314586234,
+  "description": "Population groups are now capped at 200 people (previously up to 3,600).\n\nDemand moves through stations in finer increments, so ridership responds\nmore smoothly and a single large group no longer arrives as one indivisible\nlump. Total demand, routing, building geometry and map tiles are unchanged\nfrom v1.0.0 — this only changes how that demand is subdivided.",
+  "tags": [
+    "central-europe",
+    "airports",
+    "entertainment",
+    "hospitals",
+    "parks",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ab110c24be748d2b9dfca3bed37cccce51973898/maps/vienna/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ab110c24be748d2b9dfca3bed37cccce51973898/maps/vienna/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ab110c24be748d2b9dfca3bed37cccce51973898/maps/vienna/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/RMerr1/sb-vienna-map",
+  "update": {
+    "type": "github",
+    "repo": "Rmerr1/sb-vienna-map"
+  },
+  "city_code": "VIEN",
+  "country": "AT",
+  "population": 1701101,
+  "residents_total": 1701101,
+  "points_count": 3835,
+  "population_count": 34700,
+  "initial_view_state": {
+    "latitude": 48.2085,
+    "longitude": 16.373,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "STAT Austria / OSM / Overture",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "low",
+    "raw_score": 0.24,
+    "weighted_score": 0.41,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  },
+  "location": "central-europe",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "hospitals",
+    "parks",
+    "universities"
+  ],
+  "file_sizes": {
+    "VIEN.pmtiles": 23.63,
+    "VIEN_foundations.pmtiles": 15.84,
+    "buildings_index.bin.gz": 14.45,
+    "buildings_index.json": 58.32,
+    "config.json": 0,
+    "demand_data.json": 4.47,
+    "ocean_depth_index.json.gz": 1.61,
+    "roads.geojson": 10.23,
+    "runways_taxiways.geojson": 0.3
+  },
+  "included_cities": [
+    "Schwechat"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.2101052467550344,
+      "p25": 0.23646355435856128,
+      "p50": 0.2651472427930346,
+      "p75": 0.2910767321881839,
+      "p90": 0.5585733627141205,
+      "mean": 0.33793777362948146
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.1962014776892537,
+      "p25": 0.23141209507101268,
+      "p50": 0.26672695801851354,
+      "p75": 0.30571078218557246,
+      "p90": 0.4049267571639229,
+      "mean": 0.277777429844875
+    },
+    "commuteDistanceKm": {
+      "p10": 2590,
+      "p25": 4651,
+      "p50": 7939,
+      "p75": 12876,
+      "p90": 18576,
+      "mean": 9447.426426512968
+    },
+    "residentCellDensity": {
+      "p10": 54,
+      "p25": 162,
+      "p50": 632,
+      "p75": 2415,
+      "p90": 6608,
+      "mean": 2452.2543352601156
+    },
+    "workerCellDensity": {
+      "p10": 54,
+      "p25": 191,
+      "p50": 725,
+      "p75": 2376,
+      "p90": 5673,
+      "mean": 2522.279761904762
+    },
+    "detail": {
+      "radiusKm": 0.26593592742836075,
+      "expectedPointSpacingKm": 0.4573034733670688,
+      "normalizedRadius": 0.5815305216693577,
+      "activityPerPoint": 443.57262059973925,
+      "playableAreaKm2": 852,
+      "playableAreaPerPointKm2": 0.22216427640156453,
+      "playableCatchmentRadiusKm": 0.2659268424501111,
+      "localityScore": 0.4624129777551758,
+      "deaggregationScore": 1,
+      "score": 0.680009542400087
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.7639124932684666,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 16.3718041625115,
+            "latitude": 48.201685475989386,
+            "massShare": 1,
+            "assignedMass": 3402202,
+            "assignedPointCount": 3835,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1787079021
+}

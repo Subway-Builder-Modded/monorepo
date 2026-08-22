@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "subway-builder-performance",
+  "name": "Subway Builder Performance",
+  "author": "rexmhall09",
+  "github_id": 70306565,
+  "description": "Adds adaptive map scaling, optional level of detail, presets, an FPS counter, and diagnostics without changing simulation rules, routing, finances, or saves.",
+  "tags": [
+    "qol",
+    "ui"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/ab110c24be748d2b9dfca3bed37cccce51973898/mods/subway-builder-performance/gallery/screenshot1.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/rexmhall09/Subway-Builder-Performance-Mod",
+  "update": {
+    "type": "github",
+    "repo": "rexmhall09/Subway-Builder-Performance-Mod"
+  },
+  "last_updated": 1786075716
+}
