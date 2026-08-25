@@ -272,20 +272,40 @@ function isCountryFlagEmojiEntry(value: unknown): value is CountryFlagEmojiEntry
   return typeof record.name === "string";
 }
 
+class CountryResolutionUnavailableError extends Error {
+  readonly fallback: CountryInfo;
+
+  constructor(code: string) {
+    super(`country-flag-emoji unavailable for ${code}`);
+    this.name = "CountryResolutionUnavailableError";
+    this.fallback = { name: code.toUpperCase(), emoji: null };
+  }
+}
+
 /** Resolve country name and emoji from a country code. */
 async function resolveCountry(code: string): Promise<CountryInfo> {
+  let api: CountryFlagEmojiApi | null = null;
   try {
     const imported = await import("country-flag-emoji");
-    const countryFlagEmoji = getCountryFlagEmojiApi(imported);
-    if (!countryFlagEmoji) {
-      return { name: code.toUpperCase(), emoji: null };
-    }
+    api = getCountryFlagEmojiApi(imported);
+  } catch {
+    api = null;
+  }
 
-    const entry = countryFlagEmoji.get(code.toUpperCase());
-    if (isCountryFlagEmojiEntry(entry)) {
-      return { name: entry.name, emoji: entry.emoji ?? null };
-    }
-  } catch {}
+  if (!api) {
+    // Transient failure (dynamic-import hiccup): fall back for this call but
+    // signal the caller not to memoize it — a cached code-as-name fallback
+    // pinned "SK" as Slovakia's display name for a whole server lifetime the
+    // first time a brand-new country appeared (2026-08).
+    throw new CountryResolutionUnavailableError(code);
+  }
+
+  const entry = api.get(code.toUpperCase());
+  if (isCountryFlagEmojiEntry(entry)) {
+    return { name: entry.name, emoji: entry.emoji ?? null };
+  }
+
+  // Genuinely unknown code: the fallback is correct and safe to memoize.
   return { name: code.toUpperCase(), emoji: null };
 }
 
@@ -294,7 +314,18 @@ const countryCache = new Map<string, Promise<CountryInfo>>();
 function getCountryInfo(code: string): Promise<CountryInfo> {
   const upper = code.toUpperCase();
   if (!countryCache.has(upper)) {
-    countryCache.set(upper, resolveCountry(upper));
+    // Memoize successful resolutions only: on a transient failure, serve the
+    // fallback for this call and evict, so the next call retries the import.
+    countryCache.set(
+      upper,
+      resolveCountry(upper).catch((error: unknown) => {
+        countryCache.delete(upper);
+        if (error instanceof CountryResolutionUnavailableError) {
+          return error.fallback;
+        }
+        return { name: upper, emoji: null };
+      }),
+    );
   }
   return countryCache.get(upper)!;
 }
