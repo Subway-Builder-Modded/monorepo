@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
+    "react-day-picker": "^10.0.1",
     "shiki": "^4.0.1"
   },
   "devDependencies": {

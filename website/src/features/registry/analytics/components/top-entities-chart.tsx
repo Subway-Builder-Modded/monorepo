@@ -8,20 +8,24 @@ import {
 } from "@/shared/analytics/multi-series";
 import { MultiSeriesChartCard } from "@/shared/analytics/multi-series-chart-card";
 import { ChartCard, ChartEmptyState } from "@/shared/styles/panels";
-import {
-  REGISTRY_ANALYTICS_PERIOD_OPTIONS,
-  RegistryAnalyticsPeriodToggle,
-} from "@/features/registry/analytics/components/analytics-period-toggle";
+import { RegistryAnalyticsPeriodToggle } from "@/features/registry/analytics/components/analytics-period-toggle";
 import { RegistryTypeToggle } from "@/features/registry/components/registry-type-toggle";
 import { getRegistryTypeConfigOrDefault } from "@/features/registry/registry-type-config";
 import {
   HOURLY_CHART_PERIODS,
   formatHourlyBucketLabel,
+  getCustomRangeDates,
+  getCustomRangeDayCount,
   getHourlyChartTicks,
+  getHourlyRangeBuckets,
   getHourlyWindowBuckets,
+  isHourlyCustomRange,
+  selectPresetDates,
+  type RegistryAnalyticsCustomRange,
   type RegistryAnalyticsEntityDailySeries,
   type RegistryAnalyticsEntityHourlySeries,
   type RegistryAnalyticsPeriodId,
+  type RegistryAnalyticsPeriodParam,
 } from "@/features/registry/analytics/lib/load-registry-analytics";
 
 export type TopEntitiesAssetType = "total" | "maps" | "mods";
@@ -94,6 +98,7 @@ export function TopEntitiesChart({
   hourlySeries,
   entityKey,
   period: controlledPeriod,
+  customRange,
   assetType: controlledAssetType,
   defaultPeriod = "30d",
   minShare = DEFAULT_MIN_SHARE,
@@ -115,7 +120,9 @@ export function TopEntitiesChart({
   /** Stable slug for aria labels and chart keys, e.g. "authors", "projects". */
   entityKey: string;
   /** Controlled period: hides the period toggle and uses this value. */
-  period?: RegistryAnalyticsPeriodId;
+  period?: RegistryAnalyticsPeriodParam;
+  /** The range when the controlled period is "custom" (already validated). */
+  customRange?: RegistryAnalyticsCustomRange;
   /** Controlled asset type: hides the type toggle and uses this value. */
   assetType?: TopEntitiesAssetType;
   defaultPeriod?: RegistryAnalyticsPeriodId;
@@ -152,18 +159,31 @@ export function TopEntitiesChart({
   const showTypeToggle = controlledAssetType === undefined;
 
   const assetTypeOptions = buildAnalyticsAssetScopeOptions();
-  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && (hourlySeries?.entities.length ?? 0) > 0;
+  const activeRange = period === "custom" ? (customRange ?? null) : null;
+  // Custom hourly labels reuse the preset formats: time-only for a single day,
+  // date-and-time across days.
+  const hourlyLabelPeriod: RegistryAnalyticsPeriodId =
+    activeRange && getCustomRangeDayCount(activeRange) === 1 ? "1d" : "3d";
+  const hourlyMode =
+    (activeRange
+      ? isHourlyCustomRange(activeRange)
+      : HOURLY_CHART_PERIODS.has(period as RegistryAnalyticsPeriodId)) &&
+    (hourlySeries?.entities.length ?? 0) > 0;
   const chartModel = useMemo(() => {
     // Hourly cut: same top-N/Others selection and pie, but the x universe is the
     // aligned 4h bucket labels and values come from the hour-grain series.
     // Entity display metadata joins from the daily series by id.
     if (hourlyMode && hourlySeries) {
-      const { buckets: windowBuckets, align } = getHourlyWindowBuckets(
-        hourlySeries.buckets,
-        period,
-      );
+      const { buckets: windowBuckets, align } = activeRange
+        ? getHourlyRangeBuckets(hourlySeries.buckets, activeRange)
+        : getHourlyWindowBuckets(hourlySeries.buckets, period as RegistryAnalyticsPeriodId);
+      const labelPeriod = activeRange ? hourlyLabelPeriod : (period as RegistryAnalyticsPeriodId);
+      // Out-of-range buckets at a custom range's leading edge can align into
+      // the oldest window; keep only buckets of the range's own days.
+      const rangeStartKey = activeRange ? `${activeRange.from}T00:00Z` : null;
+      const rangeEndKey = activeRange ? `${activeRange.to}T23:00Z` : null;
       const labelByBucket = new Map(
-        windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
+        windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, labelPeriod)]),
       );
       const labels = windowBuckets.map((bucket) => labelByBucket.get(bucket)!);
       const metaById = new Map((series?.entities ?? []).map((entry) => [entry.id, entry]));
@@ -172,6 +192,7 @@ export function TopEntitiesChart({
           const meta = metaById.get(entry.id);
           const valueByLabel = new Map<string, number>();
           for (const [bucket, point] of entry.byBucket) {
+            if (rangeStartKey && (bucket < rangeStartKey || bucket > rangeEndKey!)) continue;
             const label = labelByBucket.get(align(bucket));
             if (!label) continue;
             const value =
@@ -196,10 +217,9 @@ export function TopEntitiesChart({
       });
     }
 
-    const periodDays =
-      REGISTRY_ANALYTICS_PERIOD_OPTIONS.find((option) => option.id === period)?.days ?? null;
-    const allDates = series?.dates ?? [];
-    const dates = periodDays === null ? allDates : allDates.slice(-periodDays);
+    const dates = activeRange
+      ? getCustomRangeDates(activeRange)
+      : selectPresetDates(series?.dates ?? [], period as RegistryAnalyticsPeriodId);
     return buildTopSeriesWithOthers({
       series: (series?.entities ?? []).map((entry) => ({
         id: entry.id,
@@ -212,7 +232,18 @@ export function TopEntitiesChart({
       minShare,
       minCount,
     });
-  }, [assetType, hourlyMode, hourlySeries, minCount, minShare, period, series, seriesCap]);
+  }, [
+    activeRange,
+    assetType,
+    hourlyLabelPeriod,
+    hourlyMode,
+    hourlySeries,
+    minCount,
+    minShare,
+    period,
+    series,
+    seriesCap,
+  ]);
 
   // Long windows collapse into weekly (or monthly) buckets so the all-time
   // cut stays readable; short windows pass through daily (hourly rows are
@@ -221,12 +252,12 @@ export function TopEntitiesChart({
   const bucketed = useMemo(() => bucketMultiSeriesData(chartModel.data), [chartModel.data]);
   const grainLabel = getGrainLabel(bucketed.grain);
   const chartTicks =
-    period === "all-time"
+    period === "all-time" || (activeRange && !hourlyMode)
       ? undefined
       : hourlyMode
         ? getHourlyChartTicks(
             bucketed.data.map((point) => String(point.date)),
-            period,
+            activeRange ? hourlyLabelPeriod : (period as RegistryAnalyticsPeriodId),
           )
         : bucketed.data.map((point) => String(point.date));
 

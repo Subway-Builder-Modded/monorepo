@@ -44,10 +44,7 @@ const COPY_MAPPINGS = [
     source: "analytics/most_popular_all_time.csv",
     destination: "public/registry-cache/analytics/most_popular_all_time.csv",
   },
-  {
-    source: "analytics/hourly/downloads.csv",
-    destination: "public/registry-cache/analytics/hourly/downloads.csv",
-  },
+  // Monthly hourly shards are appended below (getHourlyShardMappings).
   {
     source: "analytics/most_popular_last_1d.csv",
     destination: "public/registry-cache/analytics/most_popular_last_1d.csv",
@@ -165,6 +162,37 @@ const COPY_MAPPINGS = [
     destination: "public/railyard/analytics/railyard_app_downloads_history.json",
   },
 ];
+
+/**
+ * Monthly hourly-download shards (analytics/hourly/downloads-YYYY-MM.csv),
+ * floor month through the current UTC month. Optional so the first hours of a
+ * new month (shard not yet committed) don't fail the build. Mirrors
+ * getHourlyShardUrls in load-registry-analytics.ts.
+ */
+function getHourlyShardMappings() {
+  const mappings = [];
+  let year = 2026;
+  let month = 7;
+  const now = new Date();
+  const endYear = now.getUTCFullYear();
+  const endMonth = now.getUTCMonth() + 1;
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    const key = `${year}-${String(month).padStart(2, "0")}`;
+    mappings.push({
+      source: `analytics/hourly/downloads-${key}.csv`,
+      destination: `public/registry-cache/analytics/hourly/downloads-${key}.csv`,
+      optional: true,
+    });
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+  return mappings;
+}
+
+COPY_MAPPINGS.push(...getHourlyShardMappings());
 
 const FETCH_STEPS = [
   "Load local environment",
@@ -583,6 +611,10 @@ function copyMappedFiles(snapshotRoot, workspaceRoot, materializedFiles, progres
   for (const [index, mapping] of COPY_MAPPINGS.entries()) {
     const sourcePath = path.join(snapshotRoot, mapping.source);
     if (!existsSync(sourcePath)) {
+      if (mapping.optional) {
+        progress.detail(`Skipped optional ${mapping.source} (not present)`);
+        continue;
+      }
       fail(`required registry file is missing: ${mapping.source}`);
     }
 
