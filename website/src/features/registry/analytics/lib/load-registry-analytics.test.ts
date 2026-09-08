@@ -23,6 +23,12 @@ vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
           assets: 3,
           collaborations: 0,
           caretakenAssets: 0,
+          mapDownloads: 25,
+          modDownloads: 5,
+          mapCollaborations: 0,
+          modCollaborations: 0,
+          caretakenMaps: 0,
+          caretakenMods: 0,
         },
         {
           id: "author-b",
@@ -34,6 +40,12 @@ vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
           assets: 1,
           collaborations: 0,
           caretakenAssets: 0,
+          mapDownloads: 0,
+          modDownloads: 5,
+          mapCollaborations: 0,
+          modCollaborations: 0,
+          caretakenMaps: 0,
+          caretakenMods: 0,
         },
       ],
       projects: [
@@ -48,6 +60,8 @@ vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
           maps: 2,
           mods: 1,
           assets: 3,
+          mapDownloads: 25,
+          modDownloads: 5,
           searchTerms: ["Map Alpha", "Tokyo"],
         },
       ],
@@ -159,6 +173,20 @@ const hourlyDownloadsCsv = [
   "2026-03-12T05:00Z,mod,mod-a,3",
 ].join("\n");
 
+const authorWindowCsv = [
+  "rank,author,author_alias,attribution_link,asset_count,map_count,mod_count,download_change,adjusted_download_change,current_total,adjusted_current_total,baseline_total,adjusted_baseline_total,latest_snapshot,baseline_snapshot,map_download_change,adjusted_map_download_change,mod_download_change,adjusted_mod_download_change",
+  "1,author-a,Author A,https://github.com/author-a,3,2,1,12,11,30,29,18,18,snap.json,snap.json,8,7,4,4",
+  "2,subway-builder-modded-admin,Admin,https://github.com/admin,1,1,0,9,9,9,9,0,0,snap.json,snap.json,9,9,0,0",
+  "3,author-b,Author B,https://github.com/author-b,1,0,1,3,3,5,5,2,2,snap.json,snap.json,0,0,3,3",
+  "4,author-zero,Author Zero,https://github.com/author-zero,1,1,0,0,0,4,4,4,4,snap.json,snap.json,0,0,0,0",
+].join("\n");
+
+const projectWindowCsv = [
+  "rank,project_key,project_name,author,author_alias,attribution_link,listing_count,download_change,adjusted_download_change,current_total,adjusted_current_total,baseline_total,adjusted_baseline_total,latest_snapshot,baseline_snapshot,map_download_change,adjusted_map_download_change,mod_download_change,adjusted_mod_download_change",
+  "1,author-a/project-a,Project A,author-a,Author A,https://github.com/author-a,3,12,11,30,29,18,18,snap.json,snap.json,8,7,4,4",
+  "2,maps:solo-map,Solo Map,author-b,Author B,https://github.com/author-b,1,6,6,6,6,0,0,snap.json,snap.json,6,6,0,0",
+].join("\n");
+
 const mapStatisticsCsv = [
   "rank,id,name,author,author_alias,attribution_link,city_code,country,population,population_count,points_count,playable_area_cells",
   "1,map-a,Map Alpha,author-a,Author A,/registry/authors/author-a,TYO,JP,1000000,2000,300,0",
@@ -174,6 +202,10 @@ describe("loadRegistryAnalyticsData", () => {
           ok: true,
           text: () => {
             if (url.includes("authors_by_day")) return Promise.resolve(authorsByDayCsv);
+            if (url.includes("authors_last_")) return Promise.resolve(authorWindowCsv);
+            if (url.includes("projects_most_popular_last_")) {
+              return Promise.resolve(projectWindowCsv);
+            }
             if (url.includes("maps_statistics")) return Promise.resolve(mapStatisticsCsv);
             if (url.includes("most_popular_by_day")) return Promise.resolve(byDayCsv);
             if (url.includes("hourly")) return Promise.resolve(hourlyDownloadsCsv);
@@ -231,26 +263,32 @@ describe("loadRegistryAnalyticsData", () => {
       cumulativeDownloads: { total: 4, maps: 4, mods: 0 },
       listings: { total: 1, maps: 1, mods: 0 },
     });
+    // Project A debuts with map-a on 03-11; mod-a has no project.
+    expect(data.projects.history).toEqual([
+      { date: "2026-03-11", projects: 1 },
+      { date: "2026-03-12", projects: 1 },
+      { date: "2026-03-13", projects: 1 },
+    ]);
     expect(data.authors.history).toEqual([
       { date: "2026-03-11", authors: 1 },
       { date: "2026-03-12", authors: 2 },
       { date: "2026-03-13", authors: 3 },
     ]);
-    expect(data.authors.rankings[0]).toMatchObject({
+    expect(data.authors.rankings["all-time"][0]).toMatchObject({
       id: "author-a",
       name: "Author A",
-      downloads: 30,
-      authored: 3,
-      collaborator: 0,
-      caretaker: 0,
+      downloads: { total: 30, maps: 25, mods: 5 },
+      authored: { total: 3, maps: 2, mods: 1 },
+      collaborator: { total: 0, maps: 0, mods: 0 },
+      caretaker: { total: 0, maps: 0, mods: 0 },
     });
-    expect(data.projects.rankings[0]).toMatchObject({
+    expect(data.projects.rankings["all-time"][0]).toMatchObject({
       id: "author-a/project-a",
       name: "Project A",
       authorId: "author-a",
       authorName: "Author A",
       authorHref: "/registry/authors/author-a",
-      downloads: 30,
+      downloads: { total: 30, maps: 25, mods: 5 },
       maps: 2,
       mods: 1,
       assets: 3,
@@ -276,6 +314,33 @@ describe("loadRegistryAnalyticsData", () => {
     });
     expect(data.contentRankings["all-time"].maps.map((row) => row.id)).toEqual(["map-b", "map-a"]);
     expect(data.mapStatistics.rankings.map((row) => row.id)).toEqual(["map-a"]);
+  });
+
+  it("builds window author/project rankings from the adjusted per-window CSVs", async () => {
+    const data = await loadRegistryAnalyticsData();
+
+    // Adjusted change wins over raw; the admin pseudo-author and zero-change
+    // rows are dropped; role counts join from the creator database.
+    expect(data.authors.hasTypeSplitWindows).toBe(true);
+    expect(data.authors.rankings["7d"].map((row) => row.id)).toEqual(["author-a", "author-b"]);
+    expect(data.authors.rankings["7d"][0]).toMatchObject({
+      id: "author-a",
+      name: "Author A",
+      href: "/registry/authors/author-a",
+      downloads: { total: 11, maps: 7, mods: 4 },
+      authored: { total: 3, maps: 2, mods: 1 },
+    });
+
+    // Project windows keep only creator-database (multi-asset) projects, so
+    // single-listing pseudo-project keys drop out.
+    expect(data.projects.hasTypeSplitWindows).toBe(true);
+    expect(data.projects.rankings["30d"].map((row) => row.id)).toEqual(["author-a/project-a"]);
+    expect(data.projects.rankings["30d"][0]).toMatchObject({
+      downloads: { total: 11, maps: 7, mods: 4 },
+      maps: 2,
+      mods: 1,
+      assets: 3,
+    });
   });
 
   it("charts one debut and only the listing's current retirement", async () => {

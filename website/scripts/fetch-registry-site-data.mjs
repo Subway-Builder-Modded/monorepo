@@ -85,6 +85,34 @@ const COPY_MAPPINGS = [
     destination: "public/registry-cache/analytics/projects_most_popular_last_7d.csv",
   },
   {
+    source: "analytics/projects_most_popular_last_14d.csv",
+    destination: "public/registry-cache/analytics/projects_most_popular_last_14d.csv",
+  },
+  {
+    source: "analytics/projects_most_popular_last_30d.csv",
+    destination: "public/registry-cache/analytics/projects_most_popular_last_30d.csv",
+  },
+  {
+    source: "analytics/authors_last_1d.csv",
+    destination: "public/registry-cache/analytics/authors_last_1d.csv",
+  },
+  {
+    source: "analytics/authors_last_3d.csv",
+    destination: "public/registry-cache/analytics/authors_last_3d.csv",
+  },
+  {
+    source: "analytics/authors_last_7d.csv",
+    destination: "public/registry-cache/analytics/authors_last_7d.csv",
+  },
+  {
+    source: "analytics/authors_last_14d.csv",
+    destination: "public/registry-cache/analytics/authors_last_14d.csv",
+  },
+  {
+    source: "analytics/authors_last_30d.csv",
+    destination: "public/registry-cache/analytics/authors_last_30d.csv",
+  },
+  {
     source: "analytics/listing_projects.csv",
     destination: "public/registry-cache/analytics/listing_projects.csv",
   },

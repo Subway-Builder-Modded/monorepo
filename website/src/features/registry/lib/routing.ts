@@ -77,10 +77,12 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
         return { kind: "none" };
       }
 
+      const hasPeriod =
+        tabId === "overview" || tabId === "content" || tabId === "authors" || tabId === "projects";
       return {
         kind: "analytics",
         tabId,
-        periodId: tabId === "overview" || tabId === "content" ? "all-time" : undefined,
+        periodId: hasPeriod ? "all-time" : undefined,
         assetTypeId: tabId === "content" ? "maps" : undefined,
       };
     }
@@ -107,10 +109,8 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
     const tabId = decodeURIComponent(segments[3] ?? "");
     if (segments[1] === "analytics") {
       const analyticsTabId = decodeURIComponent(segments[2] ?? "");
-      if (
-        (analyticsTabId !== "overview" && analyticsTabId !== "content") ||
-        !REGISTRY_ANALYTICS_PERIODS.has(tabId)
-      ) {
+      const periodTabs = new Set(["overview", "content", "authors", "projects"]);
+      if (!periodTabs.has(analyticsTabId) || !REGISTRY_ANALYTICS_PERIODS.has(tabId)) {
         return { kind: "none" };
       }
 
@@ -155,8 +155,9 @@ export function matchRegistryRoute(pathname: string): RegistryRouteMatch {
       const analyticsTabId = decodeURIComponent(segments[2] ?? "");
       const periodId = decodeURIComponent(segments[3] ?? "");
       const assetTypeId = decodeURIComponent(segments[4] ?? "");
+      const typedTabs = new Set(["content", "authors", "projects"]);
       if (
-        analyticsTabId !== "content" ||
+        !typedTabs.has(analyticsTabId) ||
         !REGISTRY_ANALYTICS_PERIODS.has(periodId) ||
         !REGISTRY_ANALYTICS_ASSET_TYPES.has(assetTypeId)
       ) {

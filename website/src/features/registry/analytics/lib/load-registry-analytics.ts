@@ -7,10 +7,15 @@ import {
   resolveCreditedPersonIdForDate,
 } from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
+import { getRegistryAuthorUrl } from "@/features/registry/lib/routing";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
 export type RegistryAnalyticsPeriodId = "all-time" | "1d" | "3d" | "7d" | "14d" | "30d";
 export type RegistryAnalyticsAssetTypeId = "maps" | "mods";
+/** Scope for the Authors/Projects tabs: everything, or one asset type. */
+export type RegistryAnalyticsAssetScopeId = "total" | "maps" | "mods";
+/** A measure carried at total grain plus its per-asset-type split. */
+export type RegistryAnalyticsScopedValue = Record<RegistryAnalyticsAssetScopeId, number>;
 
 /** Periods whose downloads chart derives from the hourly series (4h buckets). */
 export const HOURLY_CHART_PERIODS: ReadonlySet<RegistryAnalyticsPeriodId> = new Set(["1d", "3d"]);
@@ -148,6 +153,11 @@ export type RegistryAnalyticsAuthorHistoryPoint = {
   authors: number;
 };
 
+export type RegistryAnalyticsProjectHistoryPoint = {
+  date: string;
+  projects: number;
+};
+
 export type RegistryAnalyticsEntityDailySeries = {
   /** Ascending date universe (YYYY-MM-DD) of the daily analytics window. */
   dates: string[];
@@ -167,13 +177,14 @@ export type RegistryAnalyticsAuthorRanking = {
   id: string;
   name: string;
   href: string;
-  downloads: number;
-  /** Assets this person authors (their own listings). */
-  authored: number;
-  /** Assets where this person is a plain collaborator (caretaken excluded). */
-  collaborator: number;
-  /** Assets this person caretakes. */
-  caretaker: number;
+  /** Downloads over the ranking's period (adjusted, credit-attributed). */
+  downloads: RegistryAnalyticsScopedValue;
+  /** Assets this person authors (their own listings) — always all-time. */
+  authored: RegistryAnalyticsScopedValue;
+  /** Assets where this person is a plain collaborator (caretaken excluded) — always all-time. */
+  collaborator: RegistryAnalyticsScopedValue;
+  /** Assets this person caretakes — always all-time. */
+  caretaker: RegistryAnalyticsScopedValue;
 };
 
 export type RegistryAnalyticsProjectRanking = {
@@ -183,7 +194,9 @@ export type RegistryAnalyticsProjectRanking = {
   authorId: string;
   authorName: string;
   authorHref: string;
-  downloads: number;
+  /** Downloads over the ranking's period (adjusted). */
+  downloads: RegistryAnalyticsScopedValue;
+  /** All-time listing counts. */
   maps: number;
   mods: number;
   assets: number;
@@ -226,7 +239,9 @@ export type RegistryAnalyticsData = {
   >;
   authors: {
     history: RegistryAnalyticsAuthorHistoryPoint[];
-    rankings: RegistryAnalyticsAuthorRanking[];
+    rankings: Record<RegistryAnalyticsPeriodId, RegistryAnalyticsAuthorRanking[]>;
+    /** False while the window CSVs predate the per-type download-change columns. */
+    hasTypeSplitWindows: boolean;
     /** Per-author (day-grain credit-attributed, admin excluded). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
     hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
@@ -247,7 +262,10 @@ export type RegistryAnalyticsData = {
     hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   projects: {
-    rankings: RegistryAnalyticsProjectRanking[];
+    history: RegistryAnalyticsProjectHistoryPoint[];
+    rankings: Record<RegistryAnalyticsPeriodId, RegistryAnalyticsProjectRanking[]>;
+    /** False while the window CSVs predate the per-type download-change columns. */
+    hasTypeSplitWindows: boolean;
     /** Per-project (multi-asset projects only, matching the rankings). */
     dailyDownloads: RegistryAnalyticsEntityDailySeries;
     hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
@@ -276,6 +294,22 @@ const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
 const HOURLY_DOWNLOADS_URL = "/registry-cache/analytics/hourly/downloads.csv";
+export type RegistryAnalyticsWindowPeriodId = Exclude<RegistryAnalyticsPeriodId, "all-time">;
+const WINDOW_PERIODS: RegistryAnalyticsWindowPeriodId[] = ["1d", "3d", "7d", "14d", "30d"];
+const AUTHOR_WINDOW_RANKING_URLS: Record<RegistryAnalyticsWindowPeriodId, string> = {
+  "1d": "/registry-cache/analytics/authors_last_1d.csv",
+  "3d": "/registry-cache/analytics/authors_last_3d.csv",
+  "7d": "/registry-cache/analytics/authors_last_7d.csv",
+  "14d": "/registry-cache/analytics/authors_last_14d.csv",
+  "30d": "/registry-cache/analytics/authors_last_30d.csv",
+};
+const PROJECT_WINDOW_RANKING_URLS: Record<RegistryAnalyticsWindowPeriodId, string> = {
+  "1d": "/registry-cache/analytics/projects_most_popular_last_1d.csv",
+  "3d": "/registry-cache/analytics/projects_most_popular_last_3d.csv",
+  "7d": "/registry-cache/analytics/projects_most_popular_last_7d.csv",
+  "14d": "/registry-cache/analytics/projects_most_popular_last_14d.csv",
+  "30d": "/registry-cache/analytics/projects_most_popular_last_30d.csv",
+};
 const RANKING_URLS = {
   "all-time": "/registry-cache/analytics/most_popular_all_time.csv",
   "1d": "/registry-cache/analytics/most_popular_last_1d.csv",
@@ -289,6 +323,13 @@ function safeFetchText(url: string): Promise<string> {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.text();
   });
+}
+
+/** Like safeFetchText but degrades to an empty CSV instead of failing the page. */
+function optionalFetchText(url: string): Promise<string> {
+  return fetch(url)
+    .then((response) => (response.ok ? response.text() : ""))
+    .catch(() => "");
 }
 
 function parseCsvLine(line: string): string[] {
@@ -528,6 +569,46 @@ function buildAuthorHistory(
   });
 }
 
+/**
+ * Cumulative count of multi-asset projects by day — the project analogue of
+ * buildAuthorHistory. A project debuts at the earliest of its listings'
+ * published dates, falling back to a listing's first recorded download
+ * activity when the publish date is missing.
+ */
+function buildProjectHistory(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+  projectIds: ReadonlySet<string>,
+): RegistryAnalyticsProjectHistoryPoint[] {
+  const dateHeaders = getDateHeaders(rows);
+  const firstDateByProject = new Map<string, string>();
+  const setEarliest = (projectId: string | undefined, date: string | null) => {
+    const normalizedId = projectId?.trim().toLowerCase();
+    if (!normalizedId || !date || !projectIds.has(normalizedId)) return;
+    const currentDate = firstDateByProject.get(normalizedId);
+    if (!currentDate || date < currentDate) {
+      firstDateByProject.set(normalizedId, date);
+    }
+  };
+
+  for (const item of validItemsById.values()) {
+    setEarliest(item.projectId ?? undefined, getPublishedDate(item));
+  }
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    setEarliest(item.projectId ?? undefined, getFirstActivityDate(row, dateHeaders));
+  }
+
+  return dateHeaders.map((dateKey) => {
+    const date = normalizeDate(dateKey);
+    return {
+      date,
+      projects: [...firstDateByProject.values()].filter((firstDate) => firstDate <= date).length,
+    };
+  });
+}
+
 /** One daily series per listing, straight from the by-day rows (no attribution). */
 function buildListingDailySeries(
   rows: CsvRow[],
@@ -714,40 +795,181 @@ function buildProjectDailySeries(
   return { dates, entities: [...entitiesById.values()] };
 }
 
-function buildAuthorRankings(
+function normalizeEntityId(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+/**
+ * True when the parsed window CSV carries the per-type download-change columns
+ * (appended 2026-09; older caches lack them). Header-only files can't be
+ * probed, so an empty parse counts as split-capable (there is nothing to show).
+ */
+function hasTypeSplitColumns(rows: CsvRow[]): boolean {
+  return rows.length === 0 || "adjusted_map_download_change" in rows[0];
+}
+
+function buildAuthorRoleValues(
+  author: Awaited<ReturnType<typeof loadCreatorDatabaseData>>["authors"][number] | undefined,
+): Pick<RegistryAnalyticsAuthorRanking, "authored" | "collaborator" | "caretaker"> {
+  return {
+    authored: {
+      total: author?.assets ?? 0,
+      maps: author?.maps ?? 0,
+      mods: author?.mods ?? 0,
+    },
+    collaborator: {
+      total: author?.collaborations ?? 0,
+      maps: author?.mapCollaborations ?? 0,
+      mods: author?.modCollaborations ?? 0,
+    },
+    caretaker: {
+      total: author?.caretakenAssets ?? 0,
+      maps: author?.caretakenMaps ?? 0,
+      mods: author?.caretakenMods ?? 0,
+    },
+  };
+}
+
+/**
+ * All-time rankings come from the creator database (credit-attributed listing
+ * totals); window rankings come from the registry's precomputed adjusted
+ * per-window CSVs, joined back to the creator database for names and the
+ * all-time role counts.
+ */
+function buildAuthorRankingsByPeriod(
   authors: Awaited<ReturnType<typeof loadCreatorDatabaseData>>["authors"],
-): RegistryAnalyticsAuthorRanking[] {
-  return authors
+  windowCsvRows: Record<RegistryAnalyticsWindowPeriodId, CsvRow[]>,
+): {
+  rankings: Record<RegistryAnalyticsPeriodId, RegistryAnalyticsAuthorRanking[]>;
+  hasTypeSplitWindows: boolean;
+} {
+  const authorsById = new Map(authors.map((author) => [normalizeEntityId(author.id), author]));
+  const allTime = authors
     .filter((author) => author.downloads > 0)
     .map((author) => ({
       id: author.id,
       name: author.label,
       href: author.href,
-      downloads: author.downloads,
-      authored: author.assets,
-      collaborator: author.collaborations,
-      caretaker: author.caretakenAssets,
+      downloads: {
+        total: author.downloads,
+        maps: author.mapDownloads,
+        mods: author.modDownloads,
+      },
+      ...buildAuthorRoleValues(author),
     }))
-    .sort((left, right) => right.downloads - left.downloads);
+    .sort((left, right) => right.downloads.total - left.downloads.total);
+
+  const adminPersonId = normalizeEntityId(ADMIN_AUTHOR_ID);
+  const buildWindow = (rows: CsvRow[]): RegistryAnalyticsAuthorRanking[] => {
+    const rankings: RegistryAnalyticsAuthorRanking[] = [];
+    for (const row of rows) {
+      const id = row.author?.trim() ?? "";
+      const normalizedId = normalizeEntityId(id);
+      if (!id || normalizedId === adminPersonId) continue;
+      const total = getNumber(row.adjusted_download_change || row.download_change);
+      if (total <= 0) continue;
+      const author = authorsById.get(normalizedId);
+      rankings.push({
+        id: author?.id ?? id,
+        name: author?.label ?? row.author_alias?.trim() ?? id,
+        href: author?.href ?? getRegistryAuthorUrl(id),
+        downloads: {
+          total,
+          maps: getNumber(row.adjusted_map_download_change || row.map_download_change),
+          mods: getNumber(row.adjusted_mod_download_change || row.mod_download_change),
+        },
+        ...buildAuthorRoleValues(author),
+      });
+    }
+    return rankings.sort((left, right) => right.downloads.total - left.downloads.total);
+  };
+
+  return {
+    rankings: {
+      "all-time": allTime,
+      "1d": buildWindow(windowCsvRows["1d"]),
+      "3d": buildWindow(windowCsvRows["3d"]),
+      "7d": buildWindow(windowCsvRows["7d"]),
+      "14d": buildWindow(windowCsvRows["14d"]),
+      "30d": buildWindow(windowCsvRows["30d"]),
+    },
+    hasTypeSplitWindows: WINDOW_PERIODS.every((period) =>
+      hasTypeSplitColumns(windowCsvRows[period]),
+    ),
+  };
 }
 
-function buildProjectRankings(
+/**
+ * Project analogue of buildAuthorRankingsByPeriod. Window rows join by the
+ * registry's project_key; keys outside the creator database (single-asset
+ * pseudo-projects) are dropped so every period lists the same universe of
+ * multi-asset projects the all-time tab shows.
+ */
+function buildProjectRankingsByPeriod(
   projects: Awaited<ReturnType<typeof loadCreatorDatabaseData>>["projects"],
-): RegistryAnalyticsProjectRanking[] {
-  return projects
-    .map((project) => ({
-      id: project.id,
-      name: project.name,
-      href: project.href,
-      authorId: project.authorId,
-      authorName: project.authorLabel,
-      authorHref: project.authorHref,
-      downloads: project.downloads,
-      maps: project.maps,
-      mods: project.mods,
-      assets: project.assets,
-    }))
-    .sort((left, right) => right.downloads - left.downloads);
+  windowCsvRows: Record<RegistryAnalyticsWindowPeriodId, CsvRow[]>,
+): {
+  rankings: Record<RegistryAnalyticsPeriodId, RegistryAnalyticsProjectRanking[]>;
+  hasTypeSplitWindows: boolean;
+} {
+  const projectsById = new Map(projects.map((project) => [normalizeEntityId(project.id), project]));
+  const toRanking = (
+    project: (typeof projects)[number],
+    downloads: RegistryAnalyticsScopedValue,
+  ): RegistryAnalyticsProjectRanking => ({
+    id: project.id,
+    name: project.name,
+    href: project.href,
+    authorId: project.authorId,
+    authorName: project.authorLabel,
+    authorHref: project.authorHref,
+    downloads,
+    maps: project.maps,
+    mods: project.mods,
+    assets: project.assets,
+  });
+
+  const allTime = projects
+    .map((project) =>
+      toRanking(project, {
+        total: project.downloads,
+        maps: project.mapDownloads,
+        mods: project.modDownloads,
+      }),
+    )
+    .sort((left, right) => right.downloads.total - left.downloads.total);
+
+  const buildWindow = (rows: CsvRow[]): RegistryAnalyticsProjectRanking[] => {
+    const rankings: RegistryAnalyticsProjectRanking[] = [];
+    for (const row of rows) {
+      const project = projectsById.get(normalizeEntityId(row.project_key ?? ""));
+      if (!project) continue;
+      const total = getNumber(row.adjusted_download_change || row.download_change);
+      if (total <= 0) continue;
+      rankings.push(
+        toRanking(project, {
+          total,
+          maps: getNumber(row.adjusted_map_download_change || row.map_download_change),
+          mods: getNumber(row.adjusted_mod_download_change || row.mod_download_change),
+        }),
+      );
+    }
+    return rankings.sort((left, right) => right.downloads.total - left.downloads.total);
+  };
+
+  return {
+    rankings: {
+      "all-time": allTime,
+      "1d": buildWindow(windowCsvRows["1d"]),
+      "3d": buildWindow(windowCsvRows["3d"]),
+      "7d": buildWindow(windowCsvRows["7d"]),
+      "14d": buildWindow(windowCsvRows["14d"]),
+      "30d": buildWindow(windowCsvRows["30d"]),
+    },
+    hasTypeSplitWindows: WINDOW_PERIODS.every((period) =>
+      hasTypeSplitColumns(windowCsvRows[period]),
+    ),
+  };
 }
 
 function getManifestPlayableAreaKm2(manifest: unknown): number | null {
@@ -983,6 +1205,8 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     last3Raw,
     last7Raw,
     last30Raw,
+    authorWindowRaws,
+    projectWindowRaws,
   ] = await Promise.all([
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
@@ -999,6 +1223,12 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(RANKING_URLS["3d"]),
     safeFetchText(RANKING_URLS["7d"]),
     safeFetchText(RANKING_URLS["30d"]),
+    Promise.all(
+      WINDOW_PERIODS.map((period) => optionalFetchText(AUTHOR_WINDOW_RANKING_URLS[period])),
+    ),
+    Promise.all(
+      WINDOW_PERIODS.map((period) => optionalFetchText(PROJECT_WINDOW_RANKING_URLS[period])),
+    ),
   ]);
 
   const authorRows = parseCsv(authorDayRaw);
@@ -1106,6 +1336,18 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     const projectId = item?.projectId?.trim().toLowerCase();
     return projectId && projectMetaById.has(projectId) ? projectId : null;
   });
+  const toWindowRows = (raws: string[]) =>
+    Object.fromEntries(
+      WINDOW_PERIODS.map((period, index) => [period, parseCsv(raws[index] ?? "")]),
+    ) as Record<RegistryAnalyticsWindowPeriodId, CsvRow[]>;
+  const authorRankings = buildAuthorRankingsByPeriod(
+    creatorData.authors,
+    toWindowRows(authorWindowRaws),
+  );
+  const projectRankings = buildProjectRankingsByPeriod(
+    creatorData.projects,
+    toWindowRows(projectWindowRaws),
+  );
   const maps = allItems.filter((item) => item.type === "maps");
   const mods = allItems.filter((item) => item.type === "mods");
   const validMapIds = new Set(maps.map((item) => item.id));
@@ -1132,7 +1374,8 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     contentRankings,
     authors: {
       history: buildAuthorHistory(authorRows, allItems),
-      rankings: buildAuthorRankings(creatorData.authors),
+      rankings: authorRankings.rankings,
+      hasTypeSplitWindows: authorRankings.hasTypeSplitWindows,
       dailyDownloads: authorDailyDownloads,
       hourlyDownloads: authorsHourly,
     },
@@ -1152,7 +1395,9 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       hourlyDownloads: regionsHourly,
     },
     projects: {
-      rankings: buildProjectRankings(creatorData.projects),
+      history: buildProjectHistory(byDayRows, validItemsById, new Set(projectMetaById.keys())),
+      rankings: projectRankings.rankings,
+      hasTypeSplitWindows: projectRankings.hasTypeSplitWindows,
       dailyDownloads: buildProjectDailySeries(byDayRows, validItemsById, projectMetaById),
       hourlyDownloads: projectsHourly,
     },
