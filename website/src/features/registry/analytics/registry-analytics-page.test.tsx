@@ -102,26 +102,44 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
             { date: "2026-03-11", authors: 1 },
             { date: "2026-03-12", authors: 2 },
           ],
-          rankings: [
-            {
-              id: "author-a",
-              name: "Author A",
-              href: "/registry/authors/author-a",
-              downloads: 120,
-              authored: 4,
-              collaborator: 1,
-              caretaker: 0,
-            },
-            {
-              id: "author-b",
-              name: "Author B",
-              href: "/registry/authors/author-b",
-              downloads: 84,
-              authored: 2,
-              collaborator: 0,
-              caretaker: 2,
-            },
-          ],
+          hasTypeSplitWindows: true,
+          rankings: {
+            "all-time": [
+              {
+                id: "author-a",
+                name: "Author A",
+                href: "/registry/authors/author-a",
+                downloads: { total: 120, maps: 120, mods: 0 },
+                authored: { total: 4, maps: 3, mods: 1 },
+                collaborator: { total: 1, maps: 1, mods: 0 },
+                caretaker: { total: 0, maps: 0, mods: 0 },
+              },
+              {
+                id: "author-b",
+                name: "Author B",
+                href: "/registry/authors/author-b",
+                downloads: { total: 84, maps: 0, mods: 84 },
+                authored: { total: 2, maps: 0, mods: 2 },
+                collaborator: { total: 0, maps: 0, mods: 0 },
+                caretaker: { total: 2, maps: 0, mods: 2 },
+              },
+            ],
+            "1d": [],
+            "3d": [],
+            "7d": [
+              {
+                id: "author-a",
+                name: "Author A",
+                href: "/registry/authors/author-a",
+                downloads: { total: 11, maps: 7, mods: 4 },
+                authored: { total: 4, maps: 3, mods: 1 },
+                collaborator: { total: 1, maps: 1, mods: 0 },
+                caretaker: { total: 0, maps: 0, mods: 0 },
+              },
+            ],
+            "14d": [],
+            "30d": [],
+          },
           hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
@@ -214,32 +232,40 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         projects: {
-          rankings: [
-            {
-              id: "author-a/project-a",
-              name: "Project A",
-              href: "/registry/authors/author-a/project-a",
-              authorId: "author-a",
-              authorName: "Author A",
-              authorHref: "/registry/authors/author-a",
-              downloads: 220,
-              maps: 2,
-              mods: 0,
-              assets: 2,
-            },
-            {
-              id: "author-b/project-b",
-              name: "Project B",
-              href: "/registry/authors/author-b/project-b",
-              authorId: "author-b",
-              authorName: "Author B",
-              authorHref: "/registry/authors/author-b",
-              downloads: 84,
-              maps: 1,
-              mods: 0,
-              assets: 1,
-            },
-          ],
+          hasTypeSplitWindows: true,
+          rankings: {
+            "all-time": [
+              {
+                id: "author-a/project-a",
+                name: "Project A",
+                href: "/registry/authors/author-a/project-a",
+                authorId: "author-a",
+                authorName: "Author A",
+                authorHref: "/registry/authors/author-a",
+                downloads: { total: 220, maps: 220, mods: 0 },
+                maps: 2,
+                mods: 0,
+                assets: 2,
+              },
+              {
+                id: "author-b/project-b",
+                name: "Project B",
+                href: "/registry/authors/author-b/project-b",
+                authorId: "author-b",
+                authorName: "Author B",
+                authorHref: "/registry/authors/author-b",
+                downloads: { total: 84, maps: 84, mods: 0 },
+                maps: 1,
+                mods: 0,
+                assets: 1,
+              },
+            ],
+            "1d": [],
+            "3d": [],
+            "7d": [],
+            "14d": [],
+            "30d": [],
+          },
           hourlyDownloads: { buckets: [], entities: [] },
           dailyDownloads: {
             dates: ["2026-03-11", "2026-03-12"],
@@ -438,6 +464,35 @@ describe("RegistryAnalyticsPage", () => {
     );
     expect(screen.getByTestId("author-role-badge-author-a")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Author A/i })).not.toHaveTextContent("Developer role");
+  });
+
+  it("scopes author analytics to the selected asset type", async () => {
+    render(<RegistryAnalyticsPage tabId="authors" assetTypeId="maps" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Author A")).toBeInTheDocument();
+    });
+
+    // Author B has no map involvement at all, so the Maps cut hides them
+    // from the rankings AND from the Top Authors chart.
+    expect(screen.queryByText("Author B")).not.toBeInTheDocument();
+    const lineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(lineCharts[1]).toHaveTextContent("2 points · Author A");
+    // Map-scoped values render: 120 map downloads, 3 authored maps.
+    expect(screen.getByText("120")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+  });
+
+  it("ranks authors by the window CSVs for a window period", async () => {
+    render(<RegistryAnalyticsPage tabId="authors" periodId="7d" />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Author A")).toBeInTheDocument();
+    });
+
+    // The 7d window fixture holds only Author A, with adjusted downloads.
+    expect(screen.queryByText("Author B")).not.toBeInTheDocument();
+    expect(screen.getByText("11")).toBeInTheDocument();
   });
 
   it("renders project analytics rankings and omits all-zero columns", async () => {

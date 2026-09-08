@@ -61,9 +61,30 @@ describe("matchRegistryRoute", () => {
     expect(matchRegistryRoute("/registry/analytics/projects")).toEqual({
       kind: "analytics",
       tabId: "projects",
-      periodId: undefined,
+      periodId: "all-time",
       assetTypeId: undefined,
     });
+    expect(matchRegistryRoute("/registry/analytics/authors/7d")).toEqual({
+      kind: "analytics",
+      tabId: "authors",
+      periodId: "7d",
+      assetTypeId: undefined,
+    });
+    expect(matchRegistryRoute("/registry/analytics/authors/7d/maps")).toEqual({
+      kind: "analytics",
+      tabId: "authors",
+      periodId: "7d",
+      assetTypeId: "maps",
+    });
+    expect(matchRegistryRoute("/registry/analytics/projects/30d/mods")).toEqual({
+      kind: "analytics",
+      tabId: "projects",
+      periodId: "30d",
+      assetTypeId: "mods",
+    });
+    // "total" is the segment-less default, never a valid path segment.
+    expect(matchRegistryRoute("/registry/analytics/authors/7d/total")).toEqual({ kind: "none" });
+    expect(matchRegistryRoute("/registry/analytics/map-statistics/7d")).toEqual({ kind: "none" });
   });
 
   it("matches detail routes and version subroutes", () => {
