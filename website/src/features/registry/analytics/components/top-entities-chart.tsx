@@ -26,6 +26,41 @@ import {
 
 export type TopEntitiesAssetType = "total" | "maps" | "mods";
 
+/**
+ * Total/Maps/Mods options for a RegistryTypeToggle acting as an asset SCOPE
+ * (this chart's internal toggle, and the Authors/Projects tab-level toggles).
+ */
+export function buildAnalyticsAssetScopeOptions() {
+  const mapsConfig = getRegistryTypeConfigOrDefault("maps");
+  const modsConfig = getRegistryTypeConfigOrDefault("mods");
+  return [
+    {
+      id: "total",
+      label: "Total",
+      pluralLabel: "Total",
+      icon: BarChart3,
+      accentLight: "var(--suite-accent-light)",
+      accentDark: "var(--suite-accent-dark)",
+    },
+    {
+      id: "maps",
+      label: "Maps",
+      pluralLabel: "Maps",
+      icon: mapsConfig.icon ?? MapIcon,
+      accentLight: mapsConfig.accentLight,
+      accentDark: mapsConfig.accentDark,
+    },
+    {
+      id: "mods",
+      label: "Mods",
+      pluralLabel: "Mods",
+      icon: modsConfig.icon ?? Package,
+      accentLight: modsConfig.accentLight,
+      accentDark: modsConfig.accentDark,
+    },
+  ];
+}
+
 /** Every entity holding at least this share of the window total gets a series. */
 const DEFAULT_MIN_SHARE = 0.05;
 /** Floor so flat distributions (nobody above 5%) still show a leaderboard. */
@@ -116,34 +151,7 @@ export function TopEntitiesChart({
   const showPeriodToggle = controlledPeriod === undefined;
   const showTypeToggle = controlledAssetType === undefined;
 
-  const mapsConfig = getRegistryTypeConfigOrDefault("maps");
-  const modsConfig = getRegistryTypeConfigOrDefault("mods");
-  const assetTypeOptions = [
-    {
-      id: "total",
-      label: "Total",
-      pluralLabel: "Total",
-      icon: BarChart3,
-      accentLight: "var(--suite-accent-light)",
-      accentDark: "var(--suite-accent-dark)",
-    },
-    {
-      id: "maps",
-      label: "Maps",
-      pluralLabel: "Maps",
-      icon: mapsConfig.icon ?? MapIcon,
-      accentLight: mapsConfig.accentLight,
-      accentDark: mapsConfig.accentDark,
-    },
-    {
-      id: "mods",
-      label: "Mods",
-      pluralLabel: "Mods",
-      icon: modsConfig.icon ?? Package,
-      accentLight: modsConfig.accentLight,
-      accentDark: modsConfig.accentDark,
-    },
-  ];
+  const assetTypeOptions = buildAnalyticsAssetScopeOptions();
   const hourlyMode = HOURLY_CHART_PERIODS.has(period) && (hourlySeries?.entities.length ?? 0) > 0;
   const chartModel = useMemo(() => {
     // Hourly cut: same top-N/Others selection and pie, but the x universe is the

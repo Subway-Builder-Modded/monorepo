@@ -59,7 +59,10 @@ import {
   TABLE_HEADER_ROW_CLASS,
 } from "@/shared/styles/panels";
 import { ACCENT_TEXT_LINK_CLASS } from "@/features/registry/lib/registry-styles";
-import { TopEntitiesChart } from "@/features/registry/analytics/components/top-entities-chart";
+import {
+  TopEntitiesChart,
+  buildAnalyticsAssetScopeOptions,
+} from "@/features/registry/analytics/components/top-entities-chart";
 import { Link, navigate } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { RegistryEmptyState } from "@/features/registry/components/browse/registry-empty-state";
@@ -90,6 +93,7 @@ import {
   getHourlyWindowBuckets,
   loadRegistryAnalyticsData,
   sumRegistryAnalyticsHistory,
+  type RegistryAnalyticsAssetScopeId,
   type RegistryAnalyticsAssetTypeId,
   type RegistryAnalyticsAuthorRanking,
   type RegistryAnalyticsContentRanking,
@@ -99,6 +103,7 @@ import {
   type RegistryAnalyticsMapStatisticRanking,
   type RegistryAnalyticsPeriodId,
   type RegistryAnalyticsProjectRanking,
+  type RegistryAnalyticsScopedValue,
 } from "@/features/registry/analytics/lib/load-registry-analytics";
 
 export type RegistryAnalyticsTabId =
@@ -131,8 +136,8 @@ const TABS: RegistryAnalyticsTabItem[] = [
 const TAB_PATHS: Record<RegistryAnalyticsTabId, string> = {
   overview: "/registry/analytics/overview/all-time",
   content: "/registry/analytics/content/all-time/maps",
-  authors: "/registry/analytics/authors",
-  projects: "/registry/analytics/projects",
+  authors: "/registry/analytics/authors/all-time",
+  projects: "/registry/analytics/projects/all-time",
   "map-statistics": "/registry/analytics/map-statistics",
 };
 
@@ -198,6 +203,16 @@ function getContentPath(
   assetTypeId: RegistryAnalyticsAssetTypeId,
 ) {
   return `/registry/analytics/content/${period}/${assetTypeId}`;
+}
+
+/** Authors/Projects URL: the "total" scope stays segment-less. */
+function getEntityScopePath(
+  tab: "authors" | "projects",
+  period: RegistryAnalyticsPeriodId,
+  scope: RegistryAnalyticsAssetScopeId,
+) {
+  const base = `/registry/analytics/${tab}/${period}`;
+  return scope === "total" ? base : `${base}/${scope}`;
 }
 
 function getGraphHistory(
@@ -1197,8 +1212,9 @@ function compareAuthorRankings(
   right: RegistryAnalyticsAuthorRanking,
   sortKey: AuthorRankingSortKey,
   direction: "asc" | "desc",
+  scope: RegistryAnalyticsAssetScopeId,
 ) {
-  const difference = left[sortKey] - right[sortKey];
+  const difference = left[sortKey][scope] - right[sortKey][scope];
   return direction === "asc" ? difference : -difference;
 }
 
@@ -1206,13 +1222,23 @@ function getProjectRankingKey(row: RegistryAnalyticsProjectRanking) {
   return row.id;
 }
 
+function getProjectSortValue(
+  row: RegistryAnalyticsProjectRanking,
+  sortKey: ProjectRankingSortKey,
+  scope: RegistryAnalyticsAssetScopeId,
+) {
+  return sortKey === "downloads" ? row.downloads[scope] : row[sortKey];
+}
+
 function compareProjectRankings(
   left: RegistryAnalyticsProjectRanking,
   right: RegistryAnalyticsProjectRanking,
   sortKey: ProjectRankingSortKey,
   direction: "asc" | "desc",
+  scope: RegistryAnalyticsAssetScopeId,
 ) {
-  const difference = left[sortKey] - right[sortKey];
+  const difference =
+    getProjectSortValue(left, sortKey, scope) - getProjectSortValue(right, sortKey, scope);
   return direction === "asc" ? difference : -difference;
 }
 
@@ -1230,7 +1256,15 @@ function compareMapStatisticRankings(
   return direction === "asc" ? difference : -difference;
 }
 
-function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
+function RegistryAuthorsTab({
+  data,
+  period,
+  scope,
+}: {
+  data: RegistryAnalyticsData;
+  period: RegistryAnalyticsPeriodId;
+  scope: RegistryAnalyticsAssetScopeId;
+}) {
   const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
   const [directions, setDirections] =
     useState<Record<AuthorRankingSortKey, "asc" | "desc">>(AUTHOR_SORT_DEFAULTS);
@@ -1241,12 +1275,27 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     date: point.date,
     Authors: point.authors,
   }));
+  const baseRows = data.authors.rankings[period];
+  // Scope filter: all-time keeps anyone with ANY involvement in the scoped
+  // type (a mods-only author disappears from the Maps cut); window periods
+  // keep only authors with scoped downloads in the window.
+  const scopedRows = useMemo(() => {
+    if (scope === "total") return baseRows;
+    return baseRows.filter((row) =>
+      period === "all-time"
+        ? row.downloads[scope] > 0 ||
+          row.authored[scope] > 0 ||
+          row.collaborator[scope] > 0 ||
+          row.caretaker[scope] > 0
+        : row.downloads[scope] > 0,
+    );
+  }, [baseRows, period, scope]);
   const sortedRows = useMemo(
     () =>
-      [...data.authors.rankings].sort((left, right) =>
-        compareAuthorRankings(left, right, sortKey, direction),
+      [...scopedRows].sort((left, right) =>
+        compareAuthorRankings(left, right, sortKey, direction, scope),
       ),
-    [data.authors.rankings, direction, sortKey],
+    [scopedRows, direction, scope, sortKey],
   );
   const rankByRowKey = useMemo(
     () =>
@@ -1254,9 +1303,9 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         rows: sortedRows,
         direction,
         getKey: getAuthorRankingKey,
-        getTieValue: (row) => row[sortKey],
+        getTieValue: (row) => row[sortKey][scope],
       }),
-    [direction, sortKey, sortedRows],
+    [direction, scope, sortKey, sortedRows],
   );
   const filteredRows = useMemo(() => {
     const trimmedQuery = query.trim();
@@ -1294,6 +1343,26 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
     setSortKey(nextSortKey);
   };
 
+  const buildScopedColumn = (
+    id: AuthorRankingSortKey,
+    label: string,
+    read: (row: RegistryAnalyticsAuthorRanking) => RegistryAnalyticsScopedValue,
+  ): RegistryRankingColumn<RegistryAnalyticsAuthorRanking> => ({
+    id,
+    label,
+    width: "16%",
+    sortable: true,
+    active: sortKey === id,
+    direction: directions[id],
+    align: "right",
+    accentColor: "var(--suite-accent-light)",
+    onSort: () => handleSort(id),
+    cellClassName: `font-semibold tabular-nums ${
+      sortKey === id ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
+    }`,
+    render: (row) => formatNumber(read(row)[scope]),
+  });
+
   const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsAuthorRanking>[]>(
     () => [
       {
@@ -1303,73 +1372,18 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         cellClassName: "font-medium text-foreground",
         render: (row) => <AnalyticsAuthorCell authorId={row.id} authorName={row.name} />,
       },
-      {
-        id: "downloads",
-        label: "Downloads",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "downloads",
-        direction: directions.downloads,
-        align: "right",
-        accentColor: "var(--suite-accent-light)",
-        onSort: () => handleSort("downloads"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "downloads" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.downloads),
-      },
-      {
-        id: "authored",
-        label: "Authored",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "authored",
-        direction: directions.authored,
-        align: "right",
-        accentColor: "var(--suite-accent-light)",
-        onSort: () => handleSort("authored"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "authored" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.authored),
-      },
-      {
-        id: "collaborator",
-        label: "Collaborator",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "collaborator",
-        direction: directions.collaborator,
-        align: "right",
-        accentColor: "var(--suite-accent-light)",
-        onSort: () => handleSort("collaborator"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "collaborator" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.collaborator),
-      },
-      {
-        id: "caretaker",
-        label: "Caretaker",
-        width: "16%",
-        sortable: true,
-        active: sortKey === "caretaker",
-        direction: directions.caretaker,
-        align: "right",
-        accentColor: "var(--suite-accent-light)",
-        onSort: () => handleSort("caretaker"),
-        cellClassName: `font-semibold tabular-nums ${
-          sortKey === "caretaker" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
-        }`,
-        render: (row) => formatNumber(row.caretaker),
-      },
+      buildScopedColumn("downloads", "Downloads", (row) => row.downloads),
+      buildScopedColumn("authored", "Authored", (row) => row.authored),
+      buildScopedColumn("collaborator", "Collaborator", (row) => row.collaborator),
+      buildScopedColumn("caretaker", "Caretaker", (row) => row.caretaker),
     ],
-    [directions, sortKey],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [directions, scope, sortKey],
   );
 
   useEffect(() => {
     setVisibleCount(AUTHOR_RANKING_INCREMENT);
-  }, [query, sortKey, direction]);
+  }, [query, sortKey, direction, period, scope]);
 
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
@@ -1406,8 +1420,44 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
         />
       </section>
 
-      {/* The Timeline above counts all authors; everything below the search
-          (Top chart, pie, rankings) reflects the name/id filter. */}
+      {/* The Timeline above is all-time; everything below follows the selected
+          period and asset scope, mirroring the Overview tab's break. */}
+      <section className="space-y-4">
+        <SectionSeparator label="By Period" icon={CalendarRange} className="mb-4" />
+        <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
+          <PeriodToggle
+            value={period}
+            onChange={(nextPeriod) =>
+              navigate(getEntityScopePath("authors", nextPeriod, scope), {
+                preserveScroll: true,
+              })
+            }
+            className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
+            style={
+              {
+                "--registry-type-accent": "var(--suite-accent-light)",
+              } as CSSProperties
+            }
+          />
+          {data.authors.hasTypeSplitWindows ? (
+            <RegistryTypeToggle
+              activeTypeId={scope}
+              options={buildAnalyticsAssetScopeOptions()}
+              showCounts={false}
+              onChange={(nextScope) =>
+                navigate(
+                  getEntityScopePath("authors", period, nextScope as RegistryAnalyticsAssetScopeId),
+                  { preserveScroll: true },
+                )
+              }
+              className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
+              ariaLabel="Author asset type"
+            />
+          ) : null}
+        </div>
+      </section>
+
+      {/* The search filters everything below it (Top chart, pie, rankings). */}
       <RegistryToolbarSearch
         query={query}
         onChange={setQuery}
@@ -1422,6 +1472,8 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
           series={filteredAuthorSeries}
           hourlySeries={matchHourlyToDaily(data.authors.hourlyDownloads, filteredAuthorSeries)}
           entityKey="authors"
+          period={period}
+          assetType={scope}
           filtered={isChartFiltered}
           emptyLabel="No authors match the current filters."
         />
@@ -1449,19 +1501,36 @@ function RegistryAuthorsTab({ data }: { data: RegistryAnalyticsData }) {
   );
 }
 
-function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
+function RegistryProjectsTab({
+  data,
+  period,
+  scope,
+}: {
+  data: RegistryAnalyticsData;
+  period: RegistryAnalyticsPeriodId;
+  scope: RegistryAnalyticsAssetScopeId;
+}) {
   const [sortKey, setSortKey] = useState<ProjectRankingSortKey>("downloads");
   const [directions, setDirections] =
     useState<Record<ProjectRankingSortKey, "asc" | "desc">>(PROJECT_SORT_DEFAULTS);
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];
+  const baseRows = data.projects.rankings[period];
+  // Scope filter: all-time keeps projects that CONTAIN the scoped type;
+  // window periods keep projects with scoped downloads in the window.
+  const scopedRows = useMemo(() => {
+    if (scope === "total") return baseRows;
+    return baseRows.filter((row) =>
+      period === "all-time" ? row[scope] > 0 : row.downloads[scope] > 0,
+    );
+  }, [baseRows, period, scope]);
   const sortedRows = useMemo(
     () =>
-      [...data.projects.rankings].sort((left, right) =>
-        compareProjectRankings(left, right, sortKey, direction),
+      [...scopedRows].sort((left, right) =>
+        compareProjectRankings(left, right, sortKey, direction, scope),
       ),
-    [data.projects.rankings, direction, sortKey],
+    [scopedRows, direction, scope, sortKey],
   );
   const rankByRowKey = useMemo(
     () =>
@@ -1469,9 +1538,9 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         rows: sortedRows,
         direction,
         getKey: getProjectRankingKey,
-        getTieValue: (row) => row[sortKey],
+        getTieValue: (row) => getProjectSortValue(row, sortKey, scope),
       }),
-    [direction, sortKey, sortedRows],
+    [direction, scope, sortKey, sortedRows],
   );
   const filteredRows = useMemo(() => {
     const trimmedQuery = query.trim();
@@ -1510,9 +1579,15 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
     setSortKey(nextSortKey);
   };
 
-  const hasMaps = data.projects.rankings.some((row) => row.maps > 0);
-  const hasMods = data.projects.rankings.some((row) => row.mods > 0);
-  const hasAssets = data.projects.rankings.some((row) => row.assets > 0);
+  const allTimeRows = data.projects.rankings["all-time"];
+  const hasMaps = allTimeRows.some((row) => row.maps > 0);
+  const hasMods = allTimeRows.some((row) => row.mods > 0);
+  const hasAssets = allTimeRows.some((row) => row.assets > 0);
+  // A scoped cut hides the other type's structural columns (and Assets, which
+  // would duplicate the remaining count column).
+  const showMaps = hasMaps && scope !== "mods";
+  const showMods = hasMods && scope !== "maps";
+  const showAssets = hasAssets && scope === "total";
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
   const columns = useMemo<RegistryRankingColumn<RegistryAnalyticsProjectRanking>[]>(() => {
@@ -1520,7 +1595,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
       {
         id: "project",
         label: "Project",
-        width: hasMaps && hasMods && hasAssets ? "26%" : "38%",
+        width: showMaps && showMods && showAssets ? "26%" : "38%",
         cellClassName: "font-medium text-foreground",
         render: (row) => (
           <Link
@@ -1554,11 +1629,11 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         cellClassName: `font-semibold tabular-nums ${
           sortKey === "downloads" ? "text-[var(--suite-accent-light)]" : "text-muted-foreground"
         }`,
-        render: (row) => formatNumber(row.downloads),
+        render: (row) => formatNumber(row.downloads[scope]),
       },
     ];
 
-    if (hasMaps) {
+    if (showMaps) {
       nextColumns.push({
         id: "maps",
         label: "Maps",
@@ -1576,7 +1651,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
       });
     }
 
-    if (hasMods) {
+    if (showMods) {
       nextColumns.push({
         id: "mods",
         label: "Mods",
@@ -1594,7 +1669,7 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
       });
     }
 
-    if (hasAssets) {
+    if (showAssets) {
       nextColumns.push({
         id: "assets",
         label: "Assets",
@@ -1613,11 +1688,21 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
     }
 
     return nextColumns;
-  }, [directions, hasAssets, hasMaps, hasMods, sortKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [directions, scope, showAssets, showMaps, showMods, sortKey]);
 
   useEffect(() => {
     setVisibleCount(AUTHOR_RANKING_INCREMENT);
-  }, [query, sortKey, direction]);
+  }, [query, sortKey, direction, period, scope]);
+
+  // A scoped cut can hide the active sort column; fall back to Downloads.
+  useEffect(() => {
+    if ((sortKey === "maps" && !showMaps) || (sortKey === "mods" && !showMods)) {
+      setSortKey("downloads");
+    } else if (sortKey === "assets" && !showAssets) {
+      setSortKey("downloads");
+    }
+  }, [showAssets, showMaps, showMods, sortKey]);
 
   return (
     <section
@@ -1631,6 +1716,38 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
         } as CSSProperties
       }
     >
+      <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
+        <PeriodToggle
+          value={period}
+          onChange={(nextPeriod) =>
+            navigate(getEntityScopePath("projects", nextPeriod, scope), {
+              preserveScroll: true,
+            })
+          }
+          className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
+          style={
+            {
+              "--registry-type-accent": "var(--suite-accent-light)",
+            } as CSSProperties
+          }
+        />
+        {data.projects.hasTypeSplitWindows ? (
+          <RegistryTypeToggle
+            activeTypeId={scope}
+            options={buildAnalyticsAssetScopeOptions()}
+            showCounts={false}
+            onChange={(nextScope) =>
+              navigate(
+                getEntityScopePath("projects", period, nextScope as RegistryAnalyticsAssetScopeId),
+                { preserveScroll: true },
+              )
+            }
+            className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
+            ariaLabel="Project asset type"
+          />
+        ) : null}
+      </div>
+
       {/* Filters everything below it: the Top chart, the pie, and the rankings. */}
       <RegistryToolbarSearch
         query={query}
@@ -1648,6 +1765,8 @@ function RegistryProjectsTab({ data }: { data: RegistryAnalyticsData }) {
           series={filteredProjectSeries}
           hourlySeries={matchHourlyToDaily(data.projects.hourlyDownloads, filteredProjectSeries)}
           entityKey="projects"
+          period={period}
+          assetType={scope}
           minShare={0}
           filtered={isChartFiltered}
           emptyLabel="No projects match the current filters."
@@ -1900,7 +2019,7 @@ function RegistryMapStatisticsTab({ data }: { data: RegistryAnalyticsData }) {
 export function RegistryAnalyticsPage({
   tabId = "overview",
   periodId = "all-time",
-  assetTypeId = "maps",
+  assetTypeId,
 }: RegistryAnalyticsPageProps) {
   const suite = getSuiteById("registry");
   const navItem = getSuiteAnalyticsNavItem("registry");
@@ -1959,11 +2078,11 @@ export function RegistryAnalyticsPage({
         ) : activeTab === "overview" ? (
           <RegistryOverviewTab data={data} period={periodId} />
         ) : activeTab === "content" ? (
-          <RegistryContentTab data={data} period={periodId} assetTypeId={assetTypeId} />
+          <RegistryContentTab data={data} period={periodId} assetTypeId={assetTypeId ?? "maps"} />
         ) : activeTab === "authors" ? (
-          <RegistryAuthorsTab data={data} />
+          <RegistryAuthorsTab data={data} period={periodId} scope={assetTypeId ?? "total"} />
         ) : activeTab === "projects" ? (
-          <RegistryProjectsTab data={data} />
+          <RegistryProjectsTab data={data} period={periodId} scope={assetTypeId ?? "total"} />
         ) : (
           <RegistryMapStatisticsTab data={data} />
         )}

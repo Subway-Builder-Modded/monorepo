@@ -29,6 +29,13 @@ export type RegistryCreatorDatabaseAuthor = {
   caretakenAssets: number;
   assets: number;
   downloads: number;
+  /** Per-asset-type splits of the counts above, for type-scoped views. */
+  mapDownloads: number;
+  modDownloads: number;
+  mapCollaborations: number;
+  modCollaborations: number;
+  caretakenMaps: number;
+  caretakenMods: number;
   searchTerms: string[];
 };
 
@@ -43,6 +50,9 @@ export type RegistryCreatorDatabaseProject = {
   mods: number;
   assets: number;
   downloads: number;
+  /** Per-asset-type splits of downloads, for type-scoped views. */
+  mapDownloads: number;
+  modDownloads: number;
   searchTerms: string[];
 };
 
@@ -130,6 +140,12 @@ function buildAuthors(
       caretakenAssets: number;
       assets: number;
       downloads: number;
+      mapDownloads: number;
+      modDownloads: number;
+      mapCollaborations: number;
+      modCollaborations: number;
+      caretakenMaps: number;
+      caretakenMods: number;
       searchTerms: Set<string>;
     }
   >();
@@ -149,6 +165,12 @@ function buildAuthors(
       caretakenAssets: 0,
       assets: 0,
       downloads: 0,
+      mapDownloads: 0,
+      modDownloads: 0,
+      mapCollaborations: 0,
+      modCollaborations: 0,
+      caretakenMaps: 0,
+      caretakenMods: 0,
       searchTerms: new Set<string>(),
     });
   }
@@ -168,12 +190,20 @@ function buildAuthors(
       caretakenAssets: 0,
       assets: 0,
       downloads: 0,
+      mapDownloads: 0,
+      modDownloads: 0,
+      mapCollaborations: 0,
+      modCollaborations: 0,
+      caretakenMaps: 0,
+      caretakenMods: 0,
       searchTerms: new Set<string>(),
     };
     if (item.type === "maps") current.maps += 1;
     if (item.type === "mods") current.mods += 1;
     current.assets += 1;
     current.downloads += item.totalDownloads;
+    if (item.type === "maps") current.mapDownloads += item.totalDownloads;
+    if (item.type === "mods") current.modDownloads += item.totalDownloads;
     buildRegistryItemSearchValues(item).forEach((term) => current.searchTerms.add(term));
     authorsById.set(normalizedId, current);
   }
@@ -231,6 +261,8 @@ function buildAuthors(
       const author = authorsById.get(normalizedAuthorId);
       if (!author) continue;
       author.collaborations += 1;
+      if (item.type === "maps") author.mapCollaborations += 1;
+      if (item.type === "mods") author.modCollaborations += 1;
     }
   }
 
@@ -238,6 +270,10 @@ function buildAuthors(
     const author = authorsById.get(normalizedAuthorId);
     if (author) {
       author.caretakenAssets = caretakenKeys.size;
+      for (const listingKey of caretakenKeys) {
+        if (listingKey.startsWith("map:")) author.caretakenMaps += 1;
+        if (listingKey.startsWith("mod:")) author.caretakenMods += 1;
+      }
     }
   }
 
@@ -253,6 +289,8 @@ function buildAuthors(
       const author = authorsById.get(normalizedAuthorId);
       if (author) {
         author.downloads += delta.total;
+        author.mapDownloads += delta.maps;
+        author.modDownloads += delta.mods;
       }
     }
   }
@@ -280,6 +318,8 @@ function buildProjects(
       maps: number;
       mods: number;
       downloads: number;
+      mapDownloads: number;
+      modDownloads: number;
       searchTerms: Set<string>;
     }
   >();
@@ -291,11 +331,15 @@ function buildProjects(
       maps: 0,
       mods: 0,
       downloads: 0,
+      mapDownloads: 0,
+      modDownloads: 0,
       searchTerms: new Set<string>(),
     };
     if (item.type === "maps") current.maps += 1;
     if (item.type === "mods") current.mods += 1;
     current.downloads += item.totalDownloads;
+    if (item.type === "maps") current.mapDownloads += item.totalDownloads;
+    if (item.type === "mods") current.modDownloads += item.totalDownloads;
     buildRegistryItemSearchValues(item).forEach((term) => current.searchTerms.add(term));
     projects.set(projectId, current);
   }
@@ -315,6 +359,8 @@ function buildProjects(
         mods: totals.mods,
         assets: totals.maps + totals.mods,
         downloads: totals.downloads,
+        mapDownloads: totals.mapDownloads,
+        modDownloads: totals.modDownloads,
         searchTerms: [...totals.searchTerms],
       };
     })
