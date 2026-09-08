@@ -17,8 +17,24 @@ export type RegistryAnalyticsAssetScopeId = "total" | "maps" | "mods";
 /** A measure carried at total grain plus its per-asset-type split. */
 export type RegistryAnalyticsScopedValue = Record<RegistryAnalyticsAssetScopeId, number>;
 
+/** Custom date range: closed interval of UTC days, end-inclusive. */
+export type RegistryAnalyticsCustomRange = { from: string; to: string };
+/** The period URL/prop value: a preset id, or "custom" (range in ?from&to). */
+export type RegistryAnalyticsPeriodParam = RegistryAnalyticsPeriodId | "custom";
+
+/**
+ * First day with hour-grain data. Before the registry's Cloudflare Worker
+ * scheduler, hourly runs were too sparse to trust; the registry's monthly
+ * shard series starts here and is never pruned.
+ */
+export const HOURLY_SERIES_FLOOR_DATE = "2026-07-01";
+
 /** Periods whose downloads chart derives from the hourly series (4h buckets). */
 export const HOURLY_CHART_PERIODS: ReadonlySet<RegistryAnalyticsPeriodId> = new Set(["1d", "3d"]);
+/** Custom ranges shorter than this many days chart 4h buckets instead of days. */
+export const HOURLY_RANGE_MAX_DAYS = 7;
+/** Hard cap of x-axis entries for a custom hourly range (6 days x 6 windows). */
+const HOURLY_RANGE_MAX_WINDOWS = 36;
 /** Display grouping of the hourly series: 4h windows anchored at the newest hour. */
 export const HOURLY_BUCKET_HOURS = 4;
 
@@ -115,6 +131,87 @@ export function formatHourlyBucketLabel(bucket: string, period: RegistryAnalytic
 export function getHourlyChartTicks(labels: string[], period: RegistryAnalyticsPeriodId): string[] {
   if (period === "1d") return labels;
   return labels.filter((_, index) => (labels.length - 1 - index) % 3 === 0);
+}
+
+export function getTodayUtcDate(nowMs = Date.now()): string {
+  return new Date(nowMs).toISOString().slice(0, 10);
+}
+
+const CUSTOM_RANGE_DAY_MS = 86_400_000;
+
+function parseUtcDate(date: string): number {
+  return Date.parse(`${date}T00:00:00Z`);
+}
+
+/** Inclusive day count of a range; 0 when either end is unparseable. */
+export function getCustomRangeDayCount(range: RegistryAnalyticsCustomRange): number {
+  const fromMs = parseUtcDate(range.from);
+  const toMs = parseUtcDate(range.to);
+  if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || toMs < fromMs) return 0;
+  return Math.round((toMs - fromMs) / CUSTOM_RANGE_DAY_MS) + 1;
+}
+
+/** True when the range charts 4h buckets from the hourly series. */
+export function isHourlyCustomRange(range: RegistryAnalyticsCustomRange): boolean {
+  const days = getCustomRangeDayCount(range);
+  return days > 0 && days < HOURLY_RANGE_MAX_DAYS;
+}
+
+/** Every UTC day of the range, ascending and inclusive. */
+export function getCustomRangeDates(range: RegistryAnalyticsCustomRange): string[] {
+  const days = getCustomRangeDayCount(range);
+  const fromMs = parseUtcDate(range.from);
+  return Array.from({ length: days }, (_, index) =>
+    new Date(fromMs + index * CUSTOM_RANGE_DAY_MS).toISOString().slice(0, 10),
+  );
+}
+
+/**
+ * The picker's validity rules; a human-readable error, or null when valid.
+ * Sub-week ranges use the hourly series so they cannot start before its
+ * floor, and only they may include the current (partial) UTC day; weekly and
+ * longer ranges chart complete days, so they end no later than yesterday but
+ * may start anywhere in the daily history.
+ */
+export function validateCustomRange(
+  range: RegistryAnalyticsCustomRange,
+  nowMs = Date.now(),
+): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(range.from) || !/^\d{4}-\d{2}-\d{2}$/.test(range.to)) {
+    return "Enter both dates.";
+  }
+  const days = getCustomRangeDayCount(range);
+  if (days === 0) return "The start date must be on or before the end date.";
+  const today = getTodayUtcDate(nowMs);
+  if (range.to > today) return "The end date cannot be in the future.";
+  if (days >= HOURLY_RANGE_MAX_DAYS) {
+    if (range.to >= today) {
+      return "Ranges of a week or longer chart complete days - end no later than yesterday (UTC).";
+    }
+    return null;
+  }
+  if (range.from < HOURLY_SERIES_FLOOR_DATE) {
+    return `Ranges shorter than a week use the hourly series, which starts ${HOURLY_SERIES_FLOOR_DATE}.`;
+  }
+  return null;
+}
+
+/**
+ * The 4h display windows of a custom hourly range: buckets restricted to the
+ * range's days, aligned into windows anchored at the newest in-range bucket
+ * (mirroring getHourlyWindowBuckets), capped at the last 36 windows.
+ */
+export function getHourlyRangeBuckets(
+  buckets: Iterable<string>,
+  range: RegistryAnalyticsCustomRange,
+): { buckets: string[]; align: HourlyBucketAligner } {
+  const startKey = `${range.from}T00:00Z`;
+  const endKey = `${range.to}T23:00Z`;
+  const inRange = [...buckets].filter((bucket) => bucket >= startKey && bucket <= endKey);
+  const align = createHourlyBucketAligner(inRange);
+  const alignedInRange = new Set(inRange.map(align));
+  const aligned = [...alignedInRange].sort((left, right) => left.localeCompare(right));
+  return { buckets: aligned.slice(-HOURLY_RANGE_MAX_WINDOWS), align };
 }
 
 export type RegistryAnalyticsHistoryPoint = {
@@ -293,7 +390,29 @@ export type RegistryAnalyticsContentRanking = {
 const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
-const HOURLY_DOWNLOADS_URL = "/registry-cache/analytics/hourly/downloads.csv";
+/**
+ * Monthly hourly shard URLs, floor month through the current UTC month. A
+ * month with no cached shard yet (first hours of a new month) degrades to an
+ * empty CSV via optionalFetchText.
+ */
+export function getHourlyShardUrls(nowMs = Date.now()): string[] {
+  const urls: string[] = [];
+  let year = Number.parseInt(HOURLY_SERIES_FLOOR_DATE.slice(0, 4), 10);
+  let month = Number.parseInt(HOURLY_SERIES_FLOOR_DATE.slice(5, 7), 10);
+  const now = new Date(nowMs);
+  const endYear = now.getUTCFullYear();
+  const endMonth = now.getUTCMonth() + 1;
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    const key = `${year}-${String(month).padStart(2, "0")}`;
+    urls.push(`/registry-cache/analytics/hourly/downloads-${key}.csv`);
+    month += 1;
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+  return urls;
+}
 export type RegistryAnalyticsWindowPeriodId = Exclude<RegistryAnalyticsPeriodId, "all-time">;
 const WINDOW_PERIODS: RegistryAnalyticsWindowPeriodId[] = ["1d", "3d", "7d", "14d", "30d"];
 const AUTHOR_WINDOW_RANKING_URLS: Record<RegistryAnalyticsWindowPeriodId, string> = {
@@ -1162,13 +1281,53 @@ export function bucketRegistryAnalyticsHourly(
     .map(([bucket, downloads]) => ({ bucket, downloads }));
 }
 
+/**
+ * Trailing preset window over the daily history. Daily-grain presets (7d and
+ * longer) cover the last N COMPLETE days — the current UTC day's partial
+ * column is excluded — while the 1d/3d presets keep it (their charts run on
+ * the 4h rollup, where the partial day is expected).
+ */
 export function filterRegistryAnalyticsHistory(
   history: RegistryAnalyticsHistoryPoint[],
   period: RegistryAnalyticsPeriodId,
+  nowMs = Date.now(),
 ) {
   const periodDays = period === "all-time" ? null : Number.parseInt(period, 10);
-  if (!periodDays || history.length <= periodDays) return history;
-  return history.slice(-periodDays);
+  if (!periodDays) return history;
+  const complete =
+    !HOURLY_CHART_PERIODS.has(period) &&
+    history[history.length - 1]?.date === getTodayUtcDate(nowMs)
+      ? history.slice(0, -1)
+      : history;
+  if (complete.length <= periodDays) return complete;
+  return complete.slice(-periodDays);
+}
+
+/** The history rows inside a custom range (closed interval). */
+export function filterHistoryByRange(
+  history: RegistryAnalyticsHistoryPoint[],
+  range: RegistryAnalyticsCustomRange,
+) {
+  return history.filter((row) => row.date >= range.from && row.date <= range.to);
+}
+
+/**
+ * Date list of a preset window over an entity series' date universe — the
+ * date-array analogue of filterRegistryAnalyticsHistory (same complete-day
+ * rule), so pies and Top charts sum exactly the days their charts draw.
+ */
+export function selectPresetDates(
+  allDates: string[],
+  period: RegistryAnalyticsPeriodId,
+  nowMs = Date.now(),
+): string[] {
+  const periodDays = period === "all-time" ? null : Number.parseInt(period, 10);
+  if (!periodDays) return allDates;
+  const complete =
+    !HOURLY_CHART_PERIODS.has(period) && allDates[allDates.length - 1] === getTodayUtcDate(nowMs)
+      ? allDates.slice(0, -1)
+      : allDates;
+  return complete.slice(-periodDays);
 }
 
 export function sumRegistryAnalyticsHistory(history: RegistryAnalyticsHistoryPoint[]) {
@@ -1192,6 +1351,107 @@ export function sumRegistryAnalyticsHistory(history: RegistryAnalyticsHistoryPoi
   );
 }
 
+/** Sum of an entity's daily values over a set of dates, split by type. */
+function sumEntityOverDates(
+  entity: RegistryAnalyticsEntityDailySeries["entities"][number],
+  dates: string[],
+): { total: number; maps: number; mods: number } {
+  let maps = 0;
+  let mods = 0;
+  for (const date of dates) {
+    const point = entity.byDate.get(date);
+    if (!point) continue;
+    maps += point.maps;
+    mods += point.mods;
+  }
+  return { total: maps + mods, maps, mods };
+}
+
+/**
+ * Content rankings for a custom range, summed from the per-listing daily
+ * series (unadjusted deltas — a custom window matching a preset can differ
+ * slightly from the preset's adjusted CSV numbers). Row metadata joins from
+ * the all-time rankings by listing key.
+ */
+export function buildCustomContentRankings(
+  data: RegistryAnalyticsData,
+  range: RegistryAnalyticsCustomRange,
+): Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> {
+  const dates = getCustomRangeDates(range);
+  const metaByKey = new Map<string, RegistryAnalyticsContentRanking>();
+  for (const type of ["maps", "mods"] as const) {
+    for (const row of data.contentRankings["all-time"][type]) {
+      metaByKey.set(`${row.type}:${row.id}`, row);
+    }
+  }
+  const grouped: Record<RegistryAnalyticsAssetTypeId, RegistryAnalyticsContentRanking[]> = {
+    maps: [],
+    mods: [],
+  };
+  for (const entity of data.listings.dailyDownloads.entities) {
+    const sums = sumEntityOverDates(entity, dates);
+    if (sums.total <= 0) continue;
+    const meta = metaByKey.get(`maps:${entity.id}`) ?? metaByKey.get(`mods:${entity.id}`);
+    if (!meta) continue;
+    grouped[meta.type].push({ ...meta, downloads: sums.total });
+  }
+  return {
+    maps: grouped.maps.sort((left, right) => right.downloads - left.downloads),
+    mods: grouped.mods.sort((left, right) => right.downloads - left.downloads),
+  };
+}
+
+/**
+ * Author rankings for a custom range, summed from the credit-attributed daily
+ * series (admin already excluded there); names and the all-time role counts
+ * join from the all-time rankings.
+ */
+export function buildCustomAuthorRankings(
+  data: RegistryAnalyticsData,
+  range: RegistryAnalyticsCustomRange,
+): RegistryAnalyticsAuthorRanking[] {
+  const dates = getCustomRangeDates(range);
+  const metaById = new Map(
+    data.authors.rankings["all-time"].map((row) => [normalizeEntityId(row.id), row]),
+  );
+  const rankings: RegistryAnalyticsAuthorRanking[] = [];
+  for (const entity of data.authors.dailyDownloads.entities) {
+    const sums = sumEntityOverDates(entity, dates);
+    if (sums.total <= 0) continue;
+    const meta = metaById.get(normalizeEntityId(entity.id));
+    rankings.push({
+      id: meta?.id ?? entity.id,
+      name: meta?.name ?? entity.name,
+      href: meta?.href ?? getRegistryAuthorUrl(entity.id),
+      downloads: sums,
+      authored: meta?.authored ?? { total: 0, maps: 0, mods: 0 },
+      collaborator: meta?.collaborator ?? { total: 0, maps: 0, mods: 0 },
+      caretaker: meta?.caretaker ?? { total: 0, maps: 0, mods: 0 },
+    });
+  }
+  return rankings.sort((left, right) => right.downloads.total - left.downloads.total);
+}
+
+/** Project analogue of buildCustomAuthorRankings (multi-asset projects only). */
+export function buildCustomProjectRankings(
+  data: RegistryAnalyticsData,
+  range: RegistryAnalyticsCustomRange,
+): RegistryAnalyticsProjectRanking[] {
+  const dates = getCustomRangeDates(range);
+  const metaById = new Map(
+    data.projects.rankings["all-time"].map((row) => [normalizeEntityId(row.id), row]),
+  );
+  const rankings: RegistryAnalyticsProjectRanking[] = [];
+  for (const entity of data.projects.dailyDownloads.entities) {
+    const sums = sumEntityOverDates(entity, dates);
+    if (sums.total <= 0) continue;
+    const meta = metaById.get(normalizeEntityId(entity.id));
+    if (!meta) continue;
+    rankings.push({ ...meta, downloads: sums });
+  }
+  return rankings.sort((left, right) => right.downloads.total - left.downloads.total);
+}
+
 export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData> {
   const [
     authorDayRaw,
@@ -1211,7 +1471,9 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
     safeFetchText(MOST_POPULAR_BY_DAY_URL),
-    safeFetchText(HOURLY_DOWNLOADS_URL),
+    Promise.all(getHourlyShardUrls().map((url) => optionalFetchText(url))).then((raws) =>
+      raws.join("\n"),
+    ),
     loadCreatorDatabaseData(),
     Promise.all(
       REGISTRY_TYPES.map((typeConfig) =>

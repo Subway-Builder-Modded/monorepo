@@ -1,12 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   bucketRegistryAnalyticsHourly,
+  buildCustomAuthorRankings,
+  buildCustomContentRankings,
+  buildCustomProjectRankings,
   createHourlyBucketAligner,
   filterRegistryAnalyticsHistory,
+  getCustomRangeDates,
   getHourlyChartTicks,
+  getHourlyRangeBuckets,
+  getHourlyShardUrls,
   getHourlyWindowBuckets,
+  isHourlyCustomRange,
   loadRegistryAnalyticsData,
+  selectPresetDates,
   sumRegistryAnalyticsHistory,
+  validateCustomRange,
 } from "./load-registry-analytics";
 
 vi.mock("@/features/registry/authors/lib/load-creator-database", () => ({
@@ -208,7 +217,10 @@ describe("loadRegistryAnalyticsData", () => {
             }
             if (url.includes("maps_statistics")) return Promise.resolve(mapStatisticsCsv);
             if (url.includes("most_popular_by_day")) return Promise.resolve(byDayCsv);
-            if (url.includes("hourly")) return Promise.resolve(hourlyDownloadsCsv);
+            // One shard carries the fixture; later months are empty shards.
+            if (url.includes("/hourly/downloads-")) {
+              return Promise.resolve(url.includes("downloads-2026-07") ? hourlyDownloadsCsv : "");
+            }
             if (url.includes("most_popular_all_time")) return Promise.resolve(allTimeRankingCsv);
             return Promise.resolve(changeRankingCsv);
           },
@@ -429,5 +441,127 @@ describe("hourly bucket alignment", () => {
       "label-14",
       "label-17",
     ]);
+  });
+});
+
+// 12:00 UTC on 2026-09-08 — "today" for every clock-dependent assertion.
+const NOW_MS = Date.parse("2026-09-08T12:00:00Z");
+
+describe("custom range rules", () => {
+  it("validates the picker rules", () => {
+    // Sub-week ranges: allowed from the hourly floor, may include today.
+    expect(validateCustomRange({ from: "2026-09-03", to: "2026-09-08" }, NOW_MS)).toBeNull();
+    expect(validateCustomRange({ from: "2026-07-01", to: "2026-07-04" }, NOW_MS)).toBeNull();
+    expect(validateCustomRange({ from: "2026-06-30", to: "2026-07-03" }, NOW_MS)).toMatch(
+      /hourly series/,
+    );
+    // Week-plus ranges: any start date, but only complete days (end < today).
+    expect(validateCustomRange({ from: "2026-03-01", to: "2026-09-07" }, NOW_MS)).toBeNull();
+    expect(validateCustomRange({ from: "2026-09-01", to: "2026-09-08" }, NOW_MS)).toMatch(
+      /complete days/,
+    );
+    expect(validateCustomRangeExtras());
+  });
+
+  it("derives day counts, modes, and date lists", () => {
+    expect(isHourlyCustomRange({ from: "2026-07-01", to: "2026-07-06" })).toBe(true);
+    expect(isHourlyCustomRange({ from: "2026-07-01", to: "2026-07-07" })).toBe(false);
+    expect(getCustomRangeDates({ from: "2026-07-30", to: "2026-08-02" })).toEqual([
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-01",
+      "2026-08-02",
+    ]);
+  });
+
+  it("restricts and anchors hourly windows to the range", () => {
+    const buckets = Array.from({ length: 72 }, (_, hour) => {
+      const day = String(1 + Math.floor(hour / 24)).padStart(2, "0");
+      return `2026-07-${day}T${String(hour % 24).padStart(2, "0")}:00Z`;
+    });
+    const { buckets: windows, align } = getHourlyRangeBuckets(buckets, {
+      from: "2026-07-02",
+      to: "2026-07-03",
+    });
+    // Two full days of 4h windows, anchored at the newest in-range hour.
+    expect(windows).toHaveLength(12);
+    expect(windows[0]).toBe("2026-07-02T00:00Z");
+    expect(windows[11]).toBe("2026-07-03T20:00Z");
+    expect(align("2026-07-03T23:00Z")).toBe("2026-07-03T20:00Z");
+    // Out-of-range days contribute no windows.
+    expect(windows.some((window) => window.startsWith("2026-07-01"))).toBe(false);
+  });
+
+  it("excludes the partial current day from daily presets only", () => {
+    const dates = ["2026-09-05", "2026-09-06", "2026-09-07", "2026-09-08"];
+    expect(selectPresetDates(dates, "7d", NOW_MS)).toEqual([
+      "2026-09-05",
+      "2026-09-06",
+      "2026-09-07",
+    ]);
+    expect(selectPresetDates(dates, "3d", NOW_MS)).toEqual([
+      "2026-09-06",
+      "2026-09-07",
+      "2026-09-08",
+    ]);
+    expect(selectPresetDates(dates, "all-time", NOW_MS)).toEqual(dates);
+
+    const history = dates.map((date) => ({
+      date,
+      downloads: { total: 1, maps: 1, mods: 0 },
+      cumulativeDownloads: { total: 1, maps: 1, mods: 0 },
+      listings: { total: 0, maps: 0, mods: 0 },
+      deprecations: { total: 0, maps: 0, mods: 0 },
+      deletions: { total: 0, maps: 0, mods: 0 },
+    }));
+    expect(filterRegistryAnalyticsHistory(history, "7d", NOW_MS).map((row) => row.date)).toEqual([
+      "2026-09-05",
+      "2026-09-06",
+      "2026-09-07",
+    ]);
+  });
+
+  it("enumerates hourly shard urls from the floor month", () => {
+    expect(getHourlyShardUrls(NOW_MS)).toEqual([
+      "/registry-cache/analytics/hourly/downloads-2026-07.csv",
+      "/registry-cache/analytics/hourly/downloads-2026-08.csv",
+      "/registry-cache/analytics/hourly/downloads-2026-09.csv",
+    ]);
+  });
+});
+
+function validateCustomRangeExtras() {
+  expect(validateCustomRange({ from: "2026-09-05", to: "2026-09-01" }, NOW_MS)).toMatch(
+    /on or before/,
+  );
+  expect(validateCustomRange({ from: "", to: "2026-09-01" }, NOW_MS)).toMatch(/both dates/);
+  expect(validateCustomRange({ from: "2026-09-01", to: "2026-09-09" }, NOW_MS)).toMatch(/future/);
+  return true;
+}
+
+describe("custom range rankings", () => {
+  it("sums content, author, and project rankings over the range", async () => {
+    const data = await loadRegistryAnalyticsData();
+    const range = { from: "2026-03-12", to: "2026-03-13" };
+
+    // map-b: 8 + 12; map-a: 3 + 3; mod-a: 5 — metadata joins from all-time rows.
+    const content = buildCustomContentRankings(data, range);
+    expect(content.maps.map((row) => [row.id, row.downloads])).toEqual([
+      ["map-b", 20],
+      ["map-a", 6],
+    ]);
+    expect(content.mods.map((row) => [row.id, row.downloads])).toEqual([["mod-a", 5]]);
+
+    const authors = buildCustomAuthorRankings(data, range);
+    expect(authors[0]).toMatchObject({
+      id: "author-a",
+      downloads: { total: 26, maps: 26, mods: 0 },
+      authored: { total: 3, maps: 2, mods: 1 },
+    });
+
+    const projects = buildCustomProjectRankings(data, range);
+    expect(projects.map((row) => row.id)).toEqual(["author-a/project-a"]);
+    expect(projects[0].downloads.total).toBeGreaterThan(0);
+    expect(projects[0].maps).toBe(2);
   });
 });

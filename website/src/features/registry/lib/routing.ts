@@ -19,7 +19,8 @@ const REGISTRY_ANALYTICS_TABS = new Set([
   "projects",
   "map-statistics",
 ]);
-const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "1d", "3d", "7d", "14d", "30d"]);
+// "custom" carries its range in ?from=YYYY-MM-DD&to=YYYY-MM-DD query params.
+const REGISTRY_ANALYTICS_PERIODS = new Set(["all-time", "1d", "3d", "7d", "14d", "30d", "custom"]);
 const REGISTRY_ANALYTICS_ASSET_TYPES = new Set(["maps", "mods"]);
 
 export type RegistryRouteMatch =

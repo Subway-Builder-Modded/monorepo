@@ -3,8 +3,11 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { RegistryAnalyticsPage } from "./registry-analytics-page";
 
+let mockSearch = "";
+
 vi.mock("@/lib/router", () => ({
   navigate: vi.fn(),
+  useLocation: () => ({ pathname: "/registry/analytics", search: mockSearch, hash: "" }),
   Link: ({ to, children, ...props }: { to: string; children: ReactNode }) => (
     <a href={to} {...props}>
       {children}
@@ -527,6 +530,29 @@ describe("RegistryAnalyticsPage", () => {
     );
     expect(screen.getByTestId("author-role-badge-author-a")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Author A/i })).not.toHaveTextContent("Developer role");
+  });
+
+  it("renders a custom range on the authors tab from query params", async () => {
+    // A valid week-long range over the fixture's dates; daily rollup.
+    mockSearch = "?from=2026-03-08&to=2026-03-14";
+    try {
+      render(<RegistryAnalyticsPage tabId="authors" periodId="custom" />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Author A")).toBeInTheDocument();
+      });
+
+      // The picker renders with the applied range.
+      expect(screen.getByLabelText("Range start date (UTC)")).toHaveValue("2026-03-08");
+      expect(screen.getByLabelText("Range end date (UTC)")).toHaveValue("2026-03-14");
+      // Custom rankings sum the credit-attributed daily series over the range:
+      // Author A 5 + 4 = 9, Author B 2.
+      expect(screen.getByText("9")).toBeInTheDocument();
+      expect(screen.getByText("Author B")).toBeInTheDocument();
+      expect(screen.getAllByText("2").length).toBeGreaterThan(0);
+    } finally {
+      mockSearch = "";
+    }
   });
 
   it("renders map statistics rankings", async () => {

@@ -63,7 +63,7 @@ import {
   TopEntitiesChart,
   buildAnalyticsAssetScopeOptions,
 } from "@/features/registry/analytics/components/top-entities-chart";
-import { Link, navigate } from "@/lib/router";
+import { Link, navigate, useLocation } from "@/lib/router";
 import { FeatureHomepageHeading } from "@/features/content/components/feature-homepage-heading";
 import { RegistryEmptyState } from "@/features/registry/components/browse/registry-empty-state";
 import { RegistryTabs } from "@/features/registry/components/registry-tabs";
@@ -83,16 +83,30 @@ import {
   buildRegistryCountrySearchValues,
   matchesRegistrySearch,
 } from "@/features/registry/lib/registry-search";
+import { AnalyticsCustomRangePicker } from "@/features/registry/analytics/components/analytics-custom-range-picker";
 import {
   HOURLY_BUCKET_HOURS,
   HOURLY_CHART_PERIODS,
   bucketRegistryAnalyticsHourly,
+  buildCustomAuthorRankings,
+  buildCustomContentRankings,
+  buildCustomProjectRankings,
+  filterHistoryByRange,
   filterRegistryAnalyticsHistory,
   formatHourlyBucketLabel,
+  getCustomRangeDates,
+  getCustomRangeDayCount,
   getHourlyChartTicks,
+  getHourlyRangeBuckets,
   getHourlyWindowBuckets,
+  getTodayUtcDate,
+  isHourlyCustomRange,
   loadRegistryAnalyticsData,
+  selectPresetDates,
   sumRegistryAnalyticsHistory,
+  validateCustomRange,
+  type RegistryAnalyticsCustomRange,
+  type RegistryAnalyticsPeriodParam,
   type RegistryAnalyticsAssetScopeId,
   type RegistryAnalyticsAssetTypeId,
   type RegistryAnalyticsAuthorRanking,
@@ -115,9 +129,22 @@ export type RegistryAnalyticsTabId =
 
 type RegistryAnalyticsPageProps = {
   tabId?: RegistryAnalyticsTabId;
-  periodId?: RegistryAnalyticsPeriodId;
+  periodId?: RegistryAnalyticsPeriodParam;
   assetTypeId?: RegistryAnalyticsAssetTypeId;
 };
+
+/**
+ * The page's resolved time window: a preset, or a VALID custom range. An
+ * invalid or missing ?from/?to falls back to the last seven complete days so
+ * the tab still renders while the picker shows what to fix.
+ */
+type AnalyticsPeriodSelection =
+  | { period: RegistryAnalyticsPeriodId; range: null; rawRange: null }
+  | {
+      period: "custom";
+      range: RegistryAnalyticsCustomRange;
+      rawRange: RegistryAnalyticsCustomRange;
+    };
 
 type RegistryAnalyticsTabItem = {
   id: RegistryAnalyticsTabId;
@@ -141,14 +168,58 @@ const TAB_PATHS: Record<RegistryAnalyticsTabId, string> = {
   "map-statistics": "/registry/analytics/map-statistics",
 };
 
-const OVERVIEW_PERIOD_PATHS: Record<RegistryAnalyticsPeriodId, string> = {
-  "all-time": "/registry/analytics/overview/all-time",
-  "1d": "/registry/analytics/overview/1d",
-  "3d": "/registry/analytics/overview/3d",
-  "7d": "/registry/analytics/overview/7d",
-  "14d": "/registry/analytics/overview/14d",
-  "30d": "/registry/analytics/overview/30d",
-};
+function shiftUtcDate(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** The Custom tab's starting range: the last seven complete UTC days. */
+function getDefaultCustomRange(): RegistryAnalyticsCustomRange {
+  const today = getTodayUtcDate();
+  return { from: shiftUtcDate(today, -7), to: shiftUtcDate(today, -1) };
+}
+
+function withRangeQuery(
+  path: string,
+  period: RegistryAnalyticsPeriodParam,
+  range: RegistryAnalyticsCustomRange | null,
+) {
+  return period === "custom" && range ? `${path}?from=${range.from}&to=${range.to}` : path;
+}
+
+function getOverviewPath(
+  period: RegistryAnalyticsPeriodParam,
+  range: RegistryAnalyticsCustomRange | null,
+) {
+  return withRangeQuery(`/registry/analytics/overview/${period}`, period, range);
+}
+
+function getSelectionKey(selection: AnalyticsPeriodSelection): string {
+  return selection.period === "custom"
+    ? `custom-${selection.range.from}-${selection.range.to}`
+    : selection.period;
+}
+
+function isHourlySelection(selection: AnalyticsPeriodSelection): boolean {
+  return selection.period === "custom"
+    ? isHourlyCustomRange(selection.range)
+    : HOURLY_CHART_PERIODS.has(selection.period);
+}
+
+function getWindowHistory(
+  history: RegistryAnalyticsData["history"],
+  selection: AnalyticsPeriodSelection,
+) {
+  return selection.period === "custom"
+    ? filterHistoryByRange(history, selection.range)
+    : filterRegistryAnalyticsHistory(history, selection.period);
+}
+
+/** The window's date list over an entity series' date universe. */
+function getWindowDates(allDates: string[], selection: AnalyticsPeriodSelection): string[] {
+  return selection.period === "custom"
+    ? getCustomRangeDates(selection.range)
+    : selectPresetDates(allDates, selection.period);
+}
 
 const CONTENT_ASSET_INCREMENT = 20;
 const AUTHOR_RANKING_INCREMENT = 20;
@@ -180,6 +251,104 @@ function buildHourlyChartRows(
   }));
 }
 
+/** Label style for a custom hourly range: time-only within one day. */
+function getRangeLabelPeriod(range: RegistryAnalyticsCustomRange): RegistryAnalyticsPeriodId {
+  return getCustomRangeDayCount(range) === 1 ? "1d" : "3d";
+}
+
+/** buildHourlyChartRows for an hourly-mode selection (preset or custom range). */
+function buildWindowHourlyChartRows(
+  hourly: RegistryAnalyticsData["hourly"],
+  selection: AnalyticsPeriodSelection,
+  readValues: (
+    downloads: RegistryAnalyticsData["hourly"][number]["downloads"],
+  ) => Record<string, number>,
+) {
+  if (selection.period !== "custom") {
+    return buildHourlyChartRows(hourly, selection.period, readValues);
+  }
+  const range = selection.range;
+  const startKey = `${range.from}T00:00Z`;
+  const endKey = `${range.to}T23:00Z`;
+  const inRange = hourly.filter((point) => point.bucket >= startKey && point.bucket <= endKey);
+  const { buckets: windows, align } = getHourlyRangeBuckets(
+    inRange.map((point) => point.bucket),
+    range,
+  );
+  const labelPeriod = getRangeLabelPeriod(range);
+  const totalsByWindow = new Map<string, Record<string, number>>();
+  for (const point of inRange) {
+    const window = align(point.bucket);
+    const values = readValues(point.downloads);
+    const current = totalsByWindow.get(window) ?? {};
+    for (const [key, value] of Object.entries(values)) {
+      current[key] = (current[key] ?? 0) + value;
+    }
+    totalsByWindow.set(window, current);
+  }
+  return windows.map((window) => ({
+    date: formatHourlyBucketLabel(window, labelPeriod),
+    ...totalsByWindow.get(window),
+  }));
+}
+
+/** Hourly-chart x ticks for a selection already known to be hourly-mode. */
+function getWindowHourlyTicks(labels: string[], selection: AnalyticsPeriodSelection): string[] {
+  const labelPeriod =
+    selection.period === "custom" ? getRangeLabelPeriod(selection.range) : selection.period;
+  return getHourlyChartTicks(labels, labelPeriod);
+}
+
+/**
+ * Period toggle plus, in the Custom period, the range picker beneath it. The
+ * optional right slot carries a tab's asset-type toggle on the same row.
+ */
+function AnalyticsPeriodControls({
+  selection,
+  getPath,
+  rightSlot,
+}: {
+  selection: AnalyticsPeriodSelection;
+  getPath: (
+    period: RegistryAnalyticsPeriodParam,
+    range: RegistryAnalyticsCustomRange | null,
+  ) => string;
+  rightSlot?: ReactNode;
+}) {
+  return (
+    <div className="space-y-3">
+      <div
+        className={`flex flex-col items-center gap-3 lg:flex-row ${
+          rightSlot ? "justify-between" : "justify-center"
+        }`}
+      >
+        <PeriodToggle
+          value={selection.period}
+          onChange={(nextPeriod) => navigate(getPath(nextPeriod, null), { preserveScroll: true })}
+          onSelectCustom={() =>
+            navigate(getPath("custom", selection.range ?? getDefaultCustomRange()), {
+              preserveScroll: true,
+            })
+          }
+          className="grid-cols-2 sm:grid-cols-4 lg:grid-cols-7"
+          style={
+            {
+              "--registry-type-accent": "var(--suite-accent-light)",
+            } as CSSProperties
+          }
+        />
+        {rightSlot}
+      </div>
+      {selection.period === "custom" ? (
+        <AnalyticsCustomRangePicker
+          range={selection.rawRange}
+          onApply={(nextRange) => navigate(getPath("custom", nextRange), { preserveScroll: true })}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 /** Restricts an hourly entity series to the entities surviving a filtered daily series. */
 function matchHourlyToDaily(
   hourly: RegistryAnalyticsEntityHourlySeries,
@@ -199,31 +368,22 @@ function formatNumber(value: number) {
 }
 
 function getContentPath(
-  period: RegistryAnalyticsPeriodId,
+  period: RegistryAnalyticsPeriodParam,
   assetTypeId: RegistryAnalyticsAssetTypeId,
+  range: RegistryAnalyticsCustomRange | null,
 ) {
-  return `/registry/analytics/content/${period}/${assetTypeId}`;
+  return withRangeQuery(`/registry/analytics/content/${period}/${assetTypeId}`, period, range);
 }
 
 /** Authors/Projects URL: the "total" scope stays segment-less. */
 function getEntityScopePath(
   tab: "authors" | "projects",
-  period: RegistryAnalyticsPeriodId,
+  period: RegistryAnalyticsPeriodParam,
   scope: RegistryAnalyticsAssetScopeId,
+  range: RegistryAnalyticsCustomRange | null,
 ) {
   const base = `/registry/analytics/${tab}/${period}`;
-  return scope === "total" ? base : `${base}/${scope}`;
-}
-
-function getGraphHistory(
-  history: RegistryAnalyticsData["history"],
-  period: RegistryAnalyticsPeriodId,
-) {
-  const periodDays = period === "all-time" ? null : Number.parseInt(period, 10);
-  if ((period === "3d" || period === "7d") && periodDays && history.length > periodDays) {
-    return history.slice(-(periodDays + 1));
-  }
-  return filterRegistryAnalyticsHistory(history, period);
+  return withRangeQuery(scope === "total" ? base : `${base}/${scope}`, period, range);
 }
 
 function buildOverviewCards(data: RegistryAnalyticsData): DetailMetric[] {
@@ -263,8 +423,8 @@ function RegistryAnalyticsTabs({
   );
 }
 
-function buildPeriodBreakdown(data: RegistryAnalyticsData, period: RegistryAnalyticsPeriodId) {
-  if (period === "all-time") {
+function buildPeriodBreakdown(data: RegistryAnalyticsData, selection: AnalyticsPeriodSelection) {
+  if (selection.period === "all-time") {
     return {
       listings: {
         maps: data.overview.maps.listings,
@@ -277,7 +437,7 @@ function buildPeriodBreakdown(data: RegistryAnalyticsData, period: RegistryAnaly
     };
   }
 
-  const totals = sumRegistryAnalyticsHistory(filterRegistryAnalyticsHistory(data.history, period));
+  const totals = sumRegistryAnalyticsHistory(getWindowHistory(data.history, selection));
   return {
     listings: {
       maps: totals.listings.maps,
@@ -292,19 +452,16 @@ function buildPeriodBreakdown(data: RegistryAnalyticsData, period: RegistryAnaly
 
 function RegistryOverviewTab({
   data,
-  period,
+  selection,
 }: {
   data: RegistryAnalyticsData;
-  period: RegistryAnalyticsPeriodId;
+  selection: AnalyticsPeriodSelection;
 }) {
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
   const graphRows = useMemo(
-    () =>
-      filterRegistryAnalyticsHistory(data.history, period).filter(
-        (row) => row.date !== "2026-03-11",
-      ),
-    [data.history, period],
+    () => getWindowHistory(data.history, selection).filter((row) => row.date !== "2026-03-11"),
+    [data.history, selection],
   );
   // One series per asset type, derived from the registry config so a future
   // asset type extends every Overview chart without edits here.
@@ -320,9 +477,9 @@ function RegistryOverviewTab({
   const readTypeValue = (record: Record<string, number>, typeId: string) => record[typeId] ?? 0;
   // Short cuts draw from the hourly series (4h buckets: 6/18 points) instead of
   // 1-3 daily bars; longer cuts keep the daily grain the history provides.
-  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.hourly.length > 0;
+  const hourlyMode = isHourlySelection(selection) && data.hourly.length > 0;
   const chartData = hourlyMode
-    ? buildHourlyChartRows(data.hourly, period, (downloads) =>
+    ? buildWindowHourlyChartRows(data.hourly, selection, (downloads) =>
         Object.fromEntries(
           typeSeries.map((series) => [series.key, readTypeValue(downloads, series.id)]),
         ),
@@ -365,14 +522,14 @@ function RegistryOverviewTab({
   ];
   const newListingsGrainLabel = getGrainLabel(newListingsBucketed.grain);
   const chartTicks =
-    period === "all-time"
+    selection.period === "all-time" || (selection.period === "custom" && !hourlyMode)
       ? undefined
       : hourlyMode
-        ? getHourlyChartTicks(
-            chartData.map((point) => point.date),
-            period,
+        ? getWindowHourlyTicks(
+            chartData.map((point) => String(point.date)),
+            selection,
           )
-        : chartData.map((point) => point.date);
+        : chartData.map((point) => String(point.date));
   // Average downloads per weekday over the full history — the registry's
   // weekly activity rhythm (all-time, so it sits above the period break).
   const weekdaySums = WEEKDAY_LABELS.map(() => ({
@@ -433,9 +590,7 @@ function RegistryOverviewTab({
       minShare,
     }: { value?: "total" | "maps" | "mods"; limit?: number; minShare?: number } = {},
   ): PieSlice[] => {
-    const allDates = series?.dates ?? [];
-    const periodDays = period === "all-time" ? null : Number.parseInt(period, 10);
-    const dates = periodDays === null ? allDates : allDates.slice(-periodDays);
+    const dates = getWindowDates(series?.dates ?? [], selection);
     const sorted = (series?.entities ?? [])
       .map((entity) => ({
         entity,
@@ -485,7 +640,7 @@ function RegistryOverviewTab({
     value: "maps",
     limit: 8,
   });
-  const breakdown = buildPeriodBreakdown(data, period);
+  const breakdown = buildPeriodBreakdown(data, selection);
   const listingSlices: PieSlice[] = typeSeries.map((series) => ({
     key: series.id,
     name: series.name,
@@ -567,16 +722,7 @@ function RegistryOverviewTab({
           period. The labeled break + attached toggle make that scope visible. */}
       <section className="space-y-4 pt-4">
         <SectionSeparator label="By Period" icon={CalendarRange} className="mb-4" />
-        <div className="flex justify-center">
-          <PeriodToggle
-            value={period}
-            onChange={(nextPeriod) =>
-              navigate(OVERVIEW_PERIOD_PATHS[nextPeriod], {
-                preserveScroll: true,
-              })
-            }
-          />
-        </div>
+        <AnalyticsPeriodControls selection={selection} getPath={getOverviewPath} />
       </section>
 
       {/* One measure per section: Downloads and Maps chart downloads, Listings
@@ -587,7 +733,7 @@ function RegistryOverviewTab({
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <MultiSeriesChartCard
             title={hourlyMode ? "Downloads · 4h Buckets (UTC)" : "Daily Downloads"}
-            chartKey={`registry-downloads-${period}${hourlyMode ? "-hourly" : ""}`}
+            chartKey={`registry-downloads-${getSelectionKey(selection)}${hourlyMode ? "-hourly" : ""}`}
             data={chartData}
             series={typeSeries}
             xAxisTicks={chartTicks}
@@ -608,7 +754,8 @@ function RegistryOverviewTab({
           series={data.countries.dailyDownloads}
           hourlySeries={data.countries.hourlyDownloads}
           entityKey="countries"
-          period={period}
+          period={selection.period}
+          customRange={selection.range ?? undefined}
           assetType="total"
           minShare={0.025}
           titleSuffix=" by Country"
@@ -625,7 +772,7 @@ function RegistryOverviewTab({
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
           <MultiSeriesChartCard
             title={`${newListingsGrainLabel} New Listings`}
-            chartKey={`registry-new-listings-${period}-${newListingsBucketed.grain}`}
+            chartKey={`registry-new-listings-${getSelectionKey(selection)}-${newListingsBucketed.grain}`}
             data={newListingsBucketed.data}
             series={newListingsSeries}
             height={280}
@@ -634,7 +781,7 @@ function RegistryOverviewTab({
             ariaLabelPrefix="New listings chart"
           />
           <PieChartCard
-            title={`${period === "all-time" ? "Listings" : "New Listings"} by Type`}
+            title={`${selection.period === "all-time" ? "Listings" : "New Listings"} by Type`}
             icon={FileStack}
             data={listingSlices}
           />
@@ -825,11 +972,11 @@ function RegistryRankingsTable<TRow>({
 
 function RegistryContentTab({
   data,
-  period,
+  selection,
   assetTypeId,
 }: {
   data: RegistryAnalyticsData;
-  period: RegistryAnalyticsPeriodId;
+  selection: AnalyticsPeriodSelection;
   assetTypeId: RegistryAnalyticsAssetTypeId;
 }) {
   const typeConfig = getRegistryTypeConfigOrDefault(assetTypeId);
@@ -837,8 +984,8 @@ function RegistryContentTab({
   const [visibleCount, setVisibleCount] = useState(CONTENT_ASSET_INCREMENT);
   const [rankingQuery, setRankingQuery] = useState("");
   const graphRows = useMemo(
-    () => getGraphHistory(data.history, period).filter((row) => row.date !== "2026-03-11"),
-    [data.history, period],
+    () => getWindowHistory(data.history, selection).filter((row) => row.date !== "2026-03-11"),
+    [data.history, selection],
   );
   // The chart lags a keystroke behind the table via useDeferredValue so typing
   // stays smooth while recharts re-renders.
@@ -883,26 +1030,33 @@ function RegistryContentTab({
   );
   // Short cuts derive from the hourly series: site type totals when unfiltered,
   // a sum over the matched listings' per-listing hourly series when filtered.
-  const hourlyMode = HOURLY_CHART_PERIODS.has(period) && data.hourly.length > 0;
+  const hourlyMode = isHourlySelection(selection) && data.hourly.length > 0;
   const hourlyChartRows = useMemo(() => {
     if (!hourlyMode) return null;
     if (!isChartFiltered) {
-      return buildHourlyChartRows(data.hourly, period, (downloads) => ({
+      return buildWindowHourlyChartRows(data.hourly, selection, (downloads) => ({
         Downloads: downloads[assetTypeId],
       }));
     }
     const allowedIds = new Set(filteredListingSeries.entities.map((entity) => entity.id));
-    const { buckets: windowBuckets, align } = getHourlyWindowBuckets(
-      data.listings.hourlyDownloads.buckets,
-      period,
-    );
+    const { buckets: windowBuckets, align } =
+      selection.period === "custom"
+        ? getHourlyRangeBuckets(data.listings.hourlyDownloads.buckets, selection.range)
+        : getHourlyWindowBuckets(data.listings.hourlyDownloads.buckets, selection.period);
+    const labelPeriod =
+      selection.period === "custom" ? getRangeLabelPeriod(selection.range) : selection.period;
+    // Out-of-range buckets at the range's leading edge can align into the
+    // oldest window; keep only buckets of the range's own days.
+    const rangeStartKey = selection.period === "custom" ? `${selection.range.from}T00:00Z` : null;
+    const rangeEndKey = selection.period === "custom" ? `${selection.range.to}T23:00Z` : null;
     const labelByBucket = new Map(
-      windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, period)]),
+      windowBuckets.map((bucket) => [bucket, formatHourlyBucketLabel(bucket, labelPeriod)]),
     );
     const totals = new Map<string, number>();
     for (const entity of data.listings.hourlyDownloads.entities) {
       if (!allowedIds.has(entity.id)) continue;
       for (const [bucket, point] of entity.byBucket) {
+        if (rangeStartKey && (bucket < rangeStartKey || bucket > rangeEndKey!)) continue;
         const label = labelByBucket.get(align(bucket));
         if (!label) continue;
         const value = assetTypeId === "maps" ? point.maps : point.mods;
@@ -920,20 +1074,27 @@ function RegistryContentTab({
     filteredListingSeries,
     hourlyMode,
     isChartFiltered,
-    period,
+    selection,
   ]);
   const chartRows = hourlyChartRows ?? chartBucketed.data;
   const chartTicks =
-    period === "all-time"
+    selection.period === "all-time" || (selection.period === "custom" && !hourlyChartRows)
       ? undefined
       : hourlyChartRows
-        ? getHourlyChartTicks(
+        ? getWindowHourlyTicks(
             hourlyChartRows.map((row) => row.date),
-            period,
+            selection,
           )
         : chartBucketed.data.map((point) => String(point.date));
   const hasFilterMatches = !isChartFiltered || filteredListingSeries.entities.length > 0;
-  const baseRows = data.contentRankings[period][assetTypeId];
+  const customContentRankings = useMemo(
+    () =>
+      selection.period === "custom" ? buildCustomContentRankings(data, selection.range) : null,
+    [data, selection],
+  );
+  const baseRows = customContentRankings
+    ? customContentRankings[assetTypeId]
+    : data.contentRankings[selection.period as RegistryAnalyticsPeriodId][assetTypeId];
   const sortedRows = useMemo(
     () => [...baseRows].sort((left, right) => compareDownloads(left, right, sortDirection)),
     [baseRows, sortDirection],
@@ -1034,7 +1195,7 @@ function RegistryContentTab({
   useEffect(() => {
     setVisibleCount(CONTENT_ASSET_INCREMENT);
     setSortDirection("desc");
-  }, [assetTypeId, period]);
+  }, [assetTypeId, selection]);
 
   useEffect(() => {
     setVisibleCount(CONTENT_ASSET_INCREMENT);
@@ -1053,36 +1214,31 @@ function RegistryContentTab({
         } as CSSProperties
       }
     >
-      <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
-        <PeriodToggle
-          value={period}
-          onChange={(nextPeriod) =>
-            navigate(getContentPath(nextPeriod, assetTypeId), {
-              preserveScroll: true,
-            })
-          }
-          className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
-          style={
-            {
-              "--registry-type-accent": "var(--suite-accent-light)",
-            } as CSSProperties
-          }
-        />
-        <RegistryTypeToggle
-          activeTypeId={assetTypeId}
-          counts={{
-            maps: data.overview.maps.listings,
-            mods: data.overview.mods.listings,
-          }}
-          onChange={(nextType) =>
-            navigate(getContentPath(period, nextType as RegistryAnalyticsAssetTypeId), {
-              preserveScroll: true,
-            })
-          }
-          className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
-          ariaLabel="Content asset type"
-        />
-      </div>
+      <AnalyticsPeriodControls
+        selection={selection}
+        getPath={(nextPeriod, nextRange) => getContentPath(nextPeriod, assetTypeId, nextRange)}
+        rightSlot={
+          <RegistryTypeToggle
+            activeTypeId={assetTypeId}
+            counts={{
+              maps: data.overview.maps.listings,
+              mods: data.overview.mods.listings,
+            }}
+            onChange={(nextType) =>
+              navigate(
+                getContentPath(
+                  selection.period,
+                  nextType as RegistryAnalyticsAssetTypeId,
+                  selection.range,
+                ),
+                { preserveScroll: true },
+              )
+            }
+            className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
+            ariaLabel="Content asset type"
+          />
+        }
+      />
 
       {/* Filters everything below it: the aggregate chart, the Top chart, and the rankings. */}
       <RegistryToolbarSearch
@@ -1106,7 +1262,7 @@ function RegistryContentTab({
                 ? `${isChartFiltered ? "Filtered " : ""}Downloads · 4h Buckets (UTC)`
                 : `${isChartFiltered ? "Filtered " : ""}${getGrainLabel(chartBucketed.grain)} Downloads`
             }
-            chartKey={`registry-content-${assetTypeId}-${period}-${hourlyMode ? "hourly" : chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
+            chartKey={`registry-content-${assetTypeId}-${getSelectionKey(selection)}-${hourlyMode ? "hourly" : chartBucketed.grain}-${isChartFiltered ? "filtered" : "all"}`}
             data={chartRows}
             series={[
               {
@@ -1146,7 +1302,8 @@ function RegistryContentTab({
           series={filteredListingSeries}
           hourlySeries={matchHourlyToDaily(data.listings.hourlyDownloads, filteredListingSeries)}
           entityKey={assetTypeId}
-          period={period}
+          period={selection.period}
+          customRange={selection.range ?? undefined}
           assetType={assetTypeId}
           minShare={0}
           seriesCap={8}
@@ -1258,11 +1415,11 @@ function compareMapStatisticRankings(
 
 function RegistryAuthorsTab({
   data,
-  period,
+  selection,
   scope,
 }: {
   data: RegistryAnalyticsData;
-  period: RegistryAnalyticsPeriodId;
+  selection: AnalyticsPeriodSelection;
   scope: RegistryAnalyticsAssetScopeId;
 }) {
   const [sortKey, setSortKey] = useState<AuthorRankingSortKey>("downloads");
@@ -1275,21 +1432,27 @@ function RegistryAuthorsTab({
     date: point.date,
     Authors: point.authors,
   }));
-  const baseRows = data.authors.rankings[period];
+  const baseRows = useMemo(
+    () =>
+      selection.period === "custom"
+        ? buildCustomAuthorRankings(data, selection.range)
+        : data.authors.rankings[selection.period],
+    [data, selection],
+  );
   // Scope filter: all-time keeps anyone with ANY involvement in the scoped
   // type (a mods-only author disappears from the Maps cut); window periods
   // keep only authors with scoped downloads in the window.
   const scopedRows = useMemo(() => {
     if (scope === "total") return baseRows;
     return baseRows.filter((row) =>
-      period === "all-time"
+      selection.period === "all-time"
         ? row.downloads[scope] > 0 ||
           row.authored[scope] > 0 ||
           row.collaborator[scope] > 0 ||
           row.caretaker[scope] > 0
         : row.downloads[scope] > 0,
     );
-  }, [baseRows, period, scope]);
+  }, [baseRows, selection.period, scope]);
   const sortedRows = useMemo(
     () =>
       [...scopedRows].sort((left, right) =>
@@ -1383,7 +1546,7 @@ function RegistryAuthorsTab({
 
   useEffect(() => {
     setVisibleCount(AUTHOR_RANKING_INCREMENT);
-  }, [query, sortKey, direction, period, scope]);
+  }, [query, sortKey, direction, selection, scope]);
 
   const mapsConfig = getRegistryTypeConfigOrDefault("maps");
   const modsConfig = getRegistryTypeConfigOrDefault("mods");
@@ -1424,37 +1587,34 @@ function RegistryAuthorsTab({
           period and asset scope, mirroring the Overview tab's break. */}
       <section className="space-y-4">
         <SectionSeparator label="By Period" icon={CalendarRange} className="mb-4" />
-        <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
-          <PeriodToggle
-            value={period}
-            onChange={(nextPeriod) =>
-              navigate(getEntityScopePath("authors", nextPeriod, scope), {
-                preserveScroll: true,
-              })
-            }
-            className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
-            style={
-              {
-                "--registry-type-accent": "var(--suite-accent-light)",
-              } as CSSProperties
-            }
-          />
-          {data.authors.hasTypeSplitWindows ? (
-            <RegistryTypeToggle
-              activeTypeId={scope}
-              options={buildAnalyticsAssetScopeOptions()}
-              showCounts={false}
-              onChange={(nextScope) =>
-                navigate(
-                  getEntityScopePath("authors", period, nextScope as RegistryAnalyticsAssetScopeId),
-                  { preserveScroll: true },
-                )
-              }
-              className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
-              ariaLabel="Author asset type"
-            />
-          ) : null}
-        </div>
+        <AnalyticsPeriodControls
+          selection={selection}
+          getPath={(nextPeriod, nextRange) =>
+            getEntityScopePath("authors", nextPeriod, scope, nextRange)
+          }
+          rightSlot={
+            data.authors.hasTypeSplitWindows ? (
+              <RegistryTypeToggle
+                activeTypeId={scope}
+                options={buildAnalyticsAssetScopeOptions()}
+                showCounts={false}
+                onChange={(nextScope) =>
+                  navigate(
+                    getEntityScopePath(
+                      "authors",
+                      selection.period,
+                      nextScope as RegistryAnalyticsAssetScopeId,
+                      selection.range,
+                    ),
+                    { preserveScroll: true },
+                  )
+                }
+                className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
+                ariaLabel="Author asset type"
+              />
+            ) : undefined
+          }
+        />
       </section>
 
       {/* The search filters everything below it (Top chart, pie, rankings). */}
@@ -1472,7 +1632,8 @@ function RegistryAuthorsTab({
           series={filteredAuthorSeries}
           hourlySeries={matchHourlyToDaily(data.authors.hourlyDownloads, filteredAuthorSeries)}
           entityKey="authors"
-          period={period}
+          period={selection.period}
+          customRange={selection.range ?? undefined}
           assetType={scope}
           filtered={isChartFiltered}
           emptyLabel="No authors match the current filters."
@@ -1503,11 +1664,11 @@ function RegistryAuthorsTab({
 
 function RegistryProjectsTab({
   data,
-  period,
+  selection,
   scope,
 }: {
   data: RegistryAnalyticsData;
-  period: RegistryAnalyticsPeriodId;
+  selection: AnalyticsPeriodSelection;
   scope: RegistryAnalyticsAssetScopeId;
 }) {
   const [sortKey, setSortKey] = useState<ProjectRankingSortKey>("downloads");
@@ -1520,15 +1681,21 @@ function RegistryProjectsTab({
     date: point.date,
     Projects: point.projects,
   }));
-  const baseRows = data.projects.rankings[period];
+  const baseRows = useMemo(
+    () =>
+      selection.period === "custom"
+        ? buildCustomProjectRankings(data, selection.range)
+        : data.projects.rankings[selection.period],
+    [data, selection],
+  );
   // Scope filter: all-time keeps projects that CONTAIN the scoped type;
   // window periods keep projects with scoped downloads in the window.
   const scopedRows = useMemo(() => {
     if (scope === "total") return baseRows;
     return baseRows.filter((row) =>
-      period === "all-time" ? row[scope] > 0 : row.downloads[scope] > 0,
+      selection.period === "all-time" ? row[scope] > 0 : row.downloads[scope] > 0,
     );
-  }, [baseRows, period, scope]);
+  }, [baseRows, selection.period, scope]);
   const sortedRows = useMemo(
     () =>
       [...scopedRows].sort((left, right) =>
@@ -1697,7 +1864,7 @@ function RegistryProjectsTab({
 
   useEffect(() => {
     setVisibleCount(AUTHOR_RANKING_INCREMENT);
-  }, [query, sortKey, direction, period, scope]);
+  }, [query, sortKey, direction, selection, scope]);
 
   // A scoped cut can hide the active sort column; fall back to Downloads.
   useEffect(() => {
@@ -1744,41 +1911,34 @@ function RegistryProjectsTab({
           period and asset scope, mirroring the Authors tab's break. */}
       <section className="space-y-4">
         <SectionSeparator label="By Period" icon={CalendarRange} className="mb-4" />
-        <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
-          <PeriodToggle
-            value={period}
-            onChange={(nextPeriod) =>
-              navigate(getEntityScopePath("projects", nextPeriod, scope), {
-                preserveScroll: true,
-              })
-            }
-            className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
-            style={
-              {
-                "--registry-type-accent": "var(--suite-accent-light)",
-              } as CSSProperties
-            }
-          />
-          {data.projects.hasTypeSplitWindows ? (
-            <RegistryTypeToggle
-              activeTypeId={scope}
-              options={buildAnalyticsAssetScopeOptions()}
-              showCounts={false}
-              onChange={(nextScope) =>
-                navigate(
-                  getEntityScopePath(
-                    "projects",
-                    period,
-                    nextScope as RegistryAnalyticsAssetScopeId,
-                  ),
-                  { preserveScroll: true },
-                )
-              }
-              className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
-              ariaLabel="Project asset type"
-            />
-          ) : null}
-        </div>
+        <AnalyticsPeriodControls
+          selection={selection}
+          getPath={(nextPeriod, nextRange) =>
+            getEntityScopePath("projects", nextPeriod, scope, nextRange)
+          }
+          rightSlot={
+            data.projects.hasTypeSplitWindows ? (
+              <RegistryTypeToggle
+                activeTypeId={scope}
+                options={buildAnalyticsAssetScopeOptions()}
+                showCounts={false}
+                onChange={(nextScope) =>
+                  navigate(
+                    getEntityScopePath(
+                      "projects",
+                      selection.period,
+                      nextScope as RegistryAnalyticsAssetScopeId,
+                      selection.range,
+                    ),
+                    { preserveScroll: true },
+                  )
+                }
+                className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
+                ariaLabel="Project asset type"
+              />
+            ) : undefined
+          }
+        />
       </section>
 
       {/* Filters everything below it: the Top chart, the pie, and the rankings. */}
@@ -1798,7 +1958,8 @@ function RegistryProjectsTab({
           series={filteredProjectSeries}
           hourlySeries={matchHourlyToDaily(data.projects.hourlyDownloads, filteredProjectSeries)}
           entityKey="projects"
-          period={period}
+          period={selection.period}
+          customRange={selection.range ?? undefined}
           assetType={scope}
           minShare={0}
           filtered={isChartFiltered}
@@ -2056,10 +2217,20 @@ export function RegistryAnalyticsPage({
 }: RegistryAnalyticsPageProps) {
   const suite = getSuiteById("registry");
   const navItem = getSuiteAnalyticsNavItem("registry");
+  const location = useLocation();
   const [data, setData] = useState<RegistryAnalyticsData | null>(null);
   const [error, setError] = useState(false);
   const activeTab = TABS.some((tab) => tab.id === tabId) ? tabId : "overview";
   const HeadingIcon = (navItem?.icon ?? ChartLine) as LucideIcon;
+  const selection = useMemo<AnalyticsPeriodSelection>(() => {
+    if (periodId !== "custom") {
+      return { period: periodId, range: null, rawRange: null };
+    }
+    const params = new URLSearchParams(location.search);
+    const rawRange = { from: params.get("from") ?? "", to: params.get("to") ?? "" };
+    const range = validateCustomRange(rawRange) === null ? rawRange : getDefaultCustomRange();
+    return { period: "custom", range, rawRange };
+  }, [location.search, periodId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2109,13 +2280,17 @@ export function RegistryAnalyticsPage({
             Loading analytics...
           </div>
         ) : activeTab === "overview" ? (
-          <RegistryOverviewTab data={data} period={periodId} />
+          <RegistryOverviewTab data={data} selection={selection} />
         ) : activeTab === "content" ? (
-          <RegistryContentTab data={data} period={periodId} assetTypeId={assetTypeId ?? "maps"} />
+          <RegistryContentTab
+            data={data}
+            selection={selection}
+            assetTypeId={assetTypeId ?? "maps"}
+          />
         ) : activeTab === "authors" ? (
-          <RegistryAuthorsTab data={data} period={periodId} scope={assetTypeId ?? "total"} />
+          <RegistryAuthorsTab data={data} selection={selection} scope={assetTypeId ?? "total"} />
         ) : activeTab === "projects" ? (
-          <RegistryProjectsTab data={data} period={periodId} scope={assetTypeId ?? "total"} />
+          <RegistryProjectsTab data={data} selection={selection} scope={assetTypeId ?? "total"} />
         ) : (
           <RegistryMapStatisticsTab data={data} />
         )}
