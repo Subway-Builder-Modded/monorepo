@@ -7,6 +7,7 @@ import {
   resolveCreditedPersonIdForDate,
 } from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
+import { loadListingVersionCredits } from "@/features/registry/lib/load-listing-version-credits";
 import { getRegistryAuthorUrl } from "@/features/registry/lib/routing";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
@@ -370,6 +371,26 @@ export type RegistryAnalyticsData = {
   mapStatistics: {
     rankings: RegistryAnalyticsMapStatisticRanking[];
   };
+  versions: {
+    /** Daily new-version counts (integrity-complete releases only). */
+    history: RegistryAnalyticsVersionHistoryPoint[];
+    /**
+     * Version releases per CREDITED author by debut day (caretaker-aware,
+     * admin excluded); byDate values count versions, not downloads.
+     */
+    authorDailyReleases: RegistryAnalyticsEntityDailySeries;
+    /** False while asset_versions_by_day.csv predates the first_seen column. */
+    hasFirstSeen: boolean;
+  };
+};
+
+export type RegistryAnalyticsVersionHistoryPoint = {
+  date: string;
+  newVersions: {
+    total: number;
+    maps: number;
+    mods: number;
+  };
 };
 
 type CsvRow = Record<string, string>;
@@ -388,6 +409,8 @@ export type RegistryAnalyticsContentRanking = {
 };
 
 const AUTHORS_BY_DAY_URL = "/registry-cache/analytics/authors_by_day.csv";
+const ASSETS_BY_DAY_URL = "/registry-cache/analytics/assets_by_day.csv";
+const ASSET_VERSIONS_BY_DAY_URL = "/registry-cache/analytics/asset_versions_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
 /**
@@ -1452,6 +1475,63 @@ export function buildCustomProjectRankings(
   return rankings.sort((left, right) => right.downloads.total - left.downloads.total);
 }
 
+/** Daily new-version counts from assets_by_day.csv (bootstrap day included). */
+function buildVersionHistory(rows: CsvRow[]): RegistryAnalyticsVersionHistoryPoint[] {
+  return rows
+    .filter((row) => row.snapshot_date)
+    .map((row) => ({
+      date: normalizeDate(row.snapshot_date),
+      newVersions: {
+        total: getNumber(row.total_new_assets_versions),
+        maps: getNumber(row.new_maps_versions),
+        mods: getNumber(row.new_mods_versions),
+      },
+    }))
+    .sort((left, right) => left.date.localeCompare(right.date));
+}
+
+/**
+ * One daily series per credited author counting version RELEASES by debut day
+ * (first_seen). Credit follows listing_version_credits (a caretaker's releases
+ * credit the caretaker), falling back to the listing's author; the admin
+ * pseudo-author is excluded like every other author series.
+ */
+function buildAuthorDailyReleases(
+  versionRows: CsvRow[],
+  dates: string[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+  creditsByListing: Map<string, Map<string, string>> | undefined,
+  authorLabelById: Map<string, string>,
+): RegistryAnalyticsEntityDailySeries {
+  const adminPersonId = normalizeEntityId(ADMIN_AUTHOR_ID);
+  const entitiesById = new Map<string, RegistryAnalyticsEntityDailySeries["entities"][number]>();
+  for (const row of versionRows) {
+    const firstSeen = normalizeDate(row.first_seen);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(firstSeen)) continue;
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    const listingKey = `${row.listing_type}:${row.id}`;
+    const creditedId = normalizeEntityId(
+      creditsByListing?.get(listingKey)?.get(row.version ?? "") ??
+        item.authorId ??
+        item.author ??
+        "",
+    );
+    if (!creditedId || creditedId === adminPersonId) continue;
+    const entity = entitiesById.get(creditedId) ?? {
+      id: creditedId,
+      name: authorLabelById.get(creditedId) ?? creditedId,
+      byDate: new Map<string, { maps: number; mods: number }>(),
+    };
+    const current = entity.byDate.get(firstSeen) ?? { maps: 0, mods: 0 };
+    if (item.type === "maps") current.maps += 1;
+    else current.mods += 1;
+    entity.byDate.set(firstSeen, current);
+    entitiesById.set(creditedId, entity);
+  }
+  return { dates, entities: [...entitiesById.values()] };
+}
+
 export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData> {
   const [
     authorDayRaw,
@@ -1467,6 +1547,9 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     last30Raw,
     authorWindowRaws,
     projectWindowRaws,
+    assetsByDayRaw,
+    assetVersionsByDayRaw,
+    versionCredits,
   ] = await Promise.all([
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
@@ -1491,6 +1574,9 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     Promise.all(
       WINDOW_PERIODS.map((period) => optionalFetchText(PROJECT_WINDOW_RANKING_URLS[period])),
     ),
+    optionalFetchText(ASSETS_BY_DAY_URL),
+    optionalFetchText(ASSET_VERSIONS_BY_DAY_URL),
+    loadListingVersionCredits(),
   ]);
 
   const authorRows = parseCsv(authorDayRaw);
@@ -1617,6 +1703,10 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
   const mapDownloads = maps.reduce((sum, item) => sum + item.totalDownloads, 0);
   const modDownloads = mods.reduce((sum, item) => sum + item.totalDownloads, 0);
 
+  const versionHistory = buildVersionHistory(parseCsv(assetsByDayRaw));
+  const versionRows = parseCsv(assetVersionsByDayRaw);
+  const hasFirstSeen = versionRows.length === 0 || "first_seen" in versionRows[0];
+
   return {
     overview: {
       downloads: mapDownloads + modDownloads,
@@ -1662,6 +1752,17 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       hasTypeSplitWindows: projectRankings.hasTypeSplitWindows,
       dailyDownloads: buildProjectDailySeries(byDayRows, validItemsById, projectMetaById),
       hourlyDownloads: projectsHourly,
+    },
+    versions: {
+      history: versionHistory,
+      authorDailyReleases: buildAuthorDailyReleases(
+        versionRows,
+        versionHistory.map((row) => row.date),
+        validItemsById,
+        versionCredits?.creditsByListing,
+        authorLabelById,
+      ),
+      hasFirstSeen,
     },
     mapStatistics: {
       rankings: buildMapStatisticRankings(
