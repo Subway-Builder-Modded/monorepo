@@ -17,6 +17,7 @@ import {
   FileStack,
   FolderGit2,
   Globe,
+  History,
   LayoutDashboard,
   Map as MapAreaIcon,
   Plus,
@@ -641,6 +642,39 @@ function RegistryOverviewTab({
     limit: 8,
   });
   const breakdown = buildPeriodBreakdown(data, selection);
+  // New-version releases (integrity-complete only). The bootstrap snapshot day
+  // books the whole pre-history catalog as "new", so it is excluded like the
+  // download anomaly above; the pie decomposes the same measure by CREDITED
+  // author (caretaker-aware) over the same window.
+  const versionRows = useMemo(() => {
+    const rows = data.versions.history.filter((row) => row.date !== "2026-03-11");
+    if (selection.period === "custom") {
+      return rows.filter(
+        (row) => row.date >= selection.range.from && row.date <= selection.range.to,
+      );
+    }
+    const windowDates = new Set(
+      selectPresetDates(
+        rows.map((row) => row.date),
+        selection.period,
+      ),
+    );
+    return rows.filter((row) => windowDates.has(row.date));
+  }, [data.versions.history, selection]);
+  const versionsBucketed = bucketMultiSeriesData(
+    versionRows.map((row) => ({
+      date: row.date,
+      ...Object.fromEntries(
+        typeSeries.map((series) => [series.key, readTypeValue(row.newVersions, series.id)]),
+      ),
+    })),
+  );
+  const versionsGrainLabel = getGrainLabel(versionsBucketed.grain);
+  const versionReleaseSeries = {
+    dates: data.versions.authorDailyReleases.dates.filter((date) => date !== "2026-03-11"),
+    entities: data.versions.authorDailyReleases.entities,
+  };
+  const versionAuthorSlices = buildEntityPeriodSlices(versionReleaseSeries, { limit: 8 });
   const listingSlices: PieSlice[] = typeSeries.map((series) => ({
     key: series.id,
     name: series.name,
@@ -785,6 +819,33 @@ function RegistryOverviewTab({
             icon={FileStack}
             data={listingSlices}
           />
+        </div>
+      </section>
+
+      {/* Version releases measure creator activity the way New Listings does:
+          every bar is an integrity-complete version becoming downloadable. */}
+      <section className="space-y-3">
+        <SectionSeparator label="Releases" icon={History} className="mb-4" />
+        <div
+          className={
+            data.versions.hasFirstSeen
+              ? "grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+              : "grid gap-4"
+          }
+        >
+          <MultiSeriesChartCard
+            title={`${versionsGrainLabel} New Versions`}
+            chartKey={`registry-new-versions-${getSelectionKey(selection)}-${versionsBucketed.grain}`}
+            data={versionsBucketed.data}
+            series={typeSeries}
+            height={280}
+            stackId="new-versions"
+            defaultStyle="bar"
+            ariaLabelPrefix="New versions chart"
+          />
+          {data.versions.hasFirstSeen ? (
+            <PieChartCard title="New Versions by Author" icon={Users} data={versionAuthorSlices} />
+          ) : null}
         </div>
       </section>
     </section>
