@@ -542,9 +542,10 @@ describe("RegistryAnalyticsPage", () => {
         expect(screen.getByText("Author A")).toBeInTheDocument();
       });
 
-      // The picker renders with the applied range.
-      expect(screen.getByLabelText("Range start date (UTC)")).toHaveValue("2026-03-08");
-      expect(screen.getByLabelText("Range end date (UTC)")).toHaveValue("2026-03-14");
+      // The picker trigger shows the applied range.
+      expect(screen.getByRole("button", { name: "Change date range" })).toHaveTextContent(
+        "Mar 8, 2026 – Mar 14, 2026",
+      );
       // Custom rankings sum the credit-attributed daily series over the range:
       // Author A 5 + 4 = 9, Author B 2.
       expect(screen.getByText("9")).toBeInTheDocument();

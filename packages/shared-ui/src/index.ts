@@ -26,6 +26,7 @@ export {
   buttonVariants,
   type ButtonProps,
 } from './components/button';
+export { Calendar, type CalendarDateRange } from './components/calendar';
 export {
   Card,
   CardContent,
