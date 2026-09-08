@@ -153,6 +153,11 @@ export type RegistryAnalyticsAuthorHistoryPoint = {
   authors: number;
 };
 
+export type RegistryAnalyticsProjectHistoryPoint = {
+  date: string;
+  projects: number;
+};
+
 export type RegistryAnalyticsEntityDailySeries = {
   /** Ascending date universe (YYYY-MM-DD) of the daily analytics window. */
   dates: string[];
@@ -257,6 +262,7 @@ export type RegistryAnalyticsData = {
     hourlyDownloads: RegistryAnalyticsEntityHourlySeries;
   };
   projects: {
+    history: RegistryAnalyticsProjectHistoryPoint[];
     rankings: Record<RegistryAnalyticsPeriodId, RegistryAnalyticsProjectRanking[]>;
     /** False while the window CSVs predate the per-type download-change columns. */
     hasTypeSplitWindows: boolean;
@@ -559,6 +565,46 @@ function buildAuthorHistory(
       authors: [...firstPublishedDateByAuthor.values()].filter(
         (publishedDate) => publishedDate <= date,
       ).length,
+    };
+  });
+}
+
+/**
+ * Cumulative count of multi-asset projects by day — the project analogue of
+ * buildAuthorHistory. A project debuts at the earliest of its listings'
+ * published dates, falling back to a listing's first recorded download
+ * activity when the publish date is missing.
+ */
+function buildProjectHistory(
+  rows: CsvRow[],
+  validItemsById: Map<string, RegistryAnalyticsItem>,
+  projectIds: ReadonlySet<string>,
+): RegistryAnalyticsProjectHistoryPoint[] {
+  const dateHeaders = getDateHeaders(rows);
+  const firstDateByProject = new Map<string, string>();
+  const setEarliest = (projectId: string | undefined, date: string | null) => {
+    const normalizedId = projectId?.trim().toLowerCase();
+    if (!normalizedId || !date || !projectIds.has(normalizedId)) return;
+    const currentDate = firstDateByProject.get(normalizedId);
+    if (!currentDate || date < currentDate) {
+      firstDateByProject.set(normalizedId, date);
+    }
+  };
+
+  for (const item of validItemsById.values()) {
+    setEarliest(item.projectId ?? undefined, getPublishedDate(item));
+  }
+  for (const row of rows) {
+    const item = validItemsById.get(row.id ?? "");
+    if (!item) continue;
+    setEarliest(item.projectId ?? undefined, getFirstActivityDate(row, dateHeaders));
+  }
+
+  return dateHeaders.map((dateKey) => {
+    const date = normalizeDate(dateKey);
+    return {
+      date,
+      projects: [...firstDateByProject.values()].filter((firstDate) => firstDate <= date).length,
     };
   });
 }
@@ -1349,6 +1395,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
       hourlyDownloads: regionsHourly,
     },
     projects: {
+      history: buildProjectHistory(byDayRows, validItemsById, new Set(projectMetaById.keys())),
       rankings: projectRankings.rankings,
       hasTypeSplitWindows: projectRankings.hasTypeSplitWindows,
       dailyDownloads: buildProjectDailySeries(byDayRows, validItemsById, projectMetaById),

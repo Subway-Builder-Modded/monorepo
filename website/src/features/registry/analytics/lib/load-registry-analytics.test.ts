@@ -263,6 +263,12 @@ describe("loadRegistryAnalyticsData", () => {
       cumulativeDownloads: { total: 4, maps: 4, mods: 0 },
       listings: { total: 1, maps: 1, mods: 0 },
     });
+    // Project A debuts with map-a on 03-11; mod-a has no project.
+    expect(data.projects.history).toEqual([
+      { date: "2026-03-11", projects: 1 },
+      { date: "2026-03-12", projects: 1 },
+      { date: "2026-03-13", projects: 1 },
+    ]);
     expect(data.authors.history).toEqual([
       { date: "2026-03-11", authors: 1 },
       { date: "2026-03-12", authors: 2 },
