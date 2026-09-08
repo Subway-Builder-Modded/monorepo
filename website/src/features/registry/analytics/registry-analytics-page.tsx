@@ -1516,6 +1516,10 @@ function RegistryProjectsTab({
   const [visibleCount, setVisibleCount] = useState(AUTHOR_RANKING_INCREMENT);
   const [query, setQuery] = useState("");
   const direction = directions[sortKey];
+  const chartData = data.projects.history.map((point) => ({
+    date: point.date,
+    Projects: point.projects,
+  }));
   const baseRows = data.projects.rankings[period];
   // Scope filter: all-time keeps projects that CONTAIN the scoped type;
   // window periods keep projects with scoped downloads in the window.
@@ -1716,37 +1720,66 @@ function RegistryProjectsTab({
         } as CSSProperties
       }
     >
-      <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
-        <PeriodToggle
-          value={period}
-          onChange={(nextPeriod) =>
-            navigate(getEntityScopePath("projects", nextPeriod, scope), {
-              preserveScroll: true,
-            })
-          }
-          className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
-          style={
+      <section>
+        <SectionSeparator label="Timeline" icon={ChartLine} className="mb-4" />
+        {/* Cumulative level, so the shared bucketing never applies here. */}
+        <MultiSeriesChartCard
+          title="Cumulative Projects"
+          chartKey="registry-projects-timeline"
+          data={chartData}
+          series={[
             {
-              "--registry-type-accent": "var(--suite-accent-light)",
-            } as CSSProperties
-          }
+              key: "Projects",
+              name: "Projects",
+              color: "var(--suite-accent-light)",
+            },
+          ]}
+          height={280}
+          stackId="projects-timeline"
+          ariaLabelPrefix="Projects timeline chart"
         />
-        {data.projects.hasTypeSplitWindows ? (
-          <RegistryTypeToggle
-            activeTypeId={scope}
-            options={buildAnalyticsAssetScopeOptions()}
-            showCounts={false}
-            onChange={(nextScope) =>
-              navigate(
-                getEntityScopePath("projects", period, nextScope as RegistryAnalyticsAssetScopeId),
-                { preserveScroll: true },
-              )
+      </section>
+
+      {/* The Timeline above is all-time; everything below follows the selected
+          period and asset scope, mirroring the Authors tab's break. */}
+      <section className="space-y-4">
+        <SectionSeparator label="By Period" icon={CalendarRange} className="mb-4" />
+        <div className="flex flex-col items-center justify-between gap-3 lg:flex-row">
+          <PeriodToggle
+            value={period}
+            onChange={(nextPeriod) =>
+              navigate(getEntityScopePath("projects", nextPeriod, scope), {
+                preserveScroll: true,
+              })
             }
-            className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
-            ariaLabel="Project asset type"
+            className="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6"
+            style={
+              {
+                "--registry-type-accent": "var(--suite-accent-light)",
+              } as CSSProperties
+            }
           />
-        ) : null}
-      </div>
+          {data.projects.hasTypeSplitWindows ? (
+            <RegistryTypeToggle
+              activeTypeId={scope}
+              options={buildAnalyticsAssetScopeOptions()}
+              showCounts={false}
+              onChange={(nextScope) =>
+                navigate(
+                  getEntityScopePath(
+                    "projects",
+                    period,
+                    nextScope as RegistryAnalyticsAssetScopeId,
+                  ),
+                  { preserveScroll: true },
+                )
+              }
+              className="border-border/60 bg-card/70 shadow-sm ring-0 backdrop-blur-none"
+              ariaLabel="Project asset type"
+            />
+          ) : null}
+        </div>
+      </section>
 
       {/* Filters everything below it: the Top chart, the pie, and the rankings. */}
       <RegistryToolbarSearch

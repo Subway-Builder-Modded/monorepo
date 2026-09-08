@@ -232,6 +232,10 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
           },
         },
         projects: {
+          history: [
+            { date: "2026-03-11", projects: 1 },
+            { date: "2026-03-12", projects: 2 },
+          ],
           hasTypeSplitWindows: true,
           rankings: {
             "all-time": [
@@ -502,6 +506,10 @@ describe("RegistryAnalyticsPage", () => {
       expect(screen.getByText("Project A")).toBeInTheDocument();
     });
 
+    // Cumulative Projects timeline mirrors the Authors tab's.
+    expect(screen.getByText("Timeline")).toBeInTheDocument();
+    const projectLineCharts = screen.getAllByTestId("registry-download-chart");
+    expect(projectLineCharts[0]).toHaveTextContent("2 points · Projects");
     expect(screen.getByText("Top Projects")).toBeInTheDocument();
     expect(screen.getByText("Rankings")).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Author" })).toBeInTheDocument();
