@@ -8,6 +8,15 @@ import {
 } from "@/features/registry/lib/daily-credit-attribution";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { loadListingVersionCredits } from "@/features/registry/lib/load-listing-version-credits";
+import {
+  HOURLY_SERIES_FLOOR_DATE,
+  loadHourlyDownloadsCsvText,
+} from "@/features/registry/lib/load-hourly-downloads";
+
+export {
+  HOURLY_SERIES_FLOOR_DATE,
+  getHourlyShardUrls,
+} from "@/features/registry/lib/load-hourly-downloads";
 import { getRegistryAuthorUrl } from "@/features/registry/lib/routing";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 
@@ -22,13 +31,6 @@ export type RegistryAnalyticsScopedValue = Record<RegistryAnalyticsAssetScopeId,
 export type RegistryAnalyticsCustomRange = { from: string; to: string };
 /** The period URL/prop value: a preset id, or "custom" (range in ?from&to). */
 export type RegistryAnalyticsPeriodParam = RegistryAnalyticsPeriodId | "custom";
-
-/**
- * First day with hour-grain data. Before the registry's Cloudflare Worker
- * scheduler, hourly runs were too sparse to trust; the registry's monthly
- * shard series starts here and is never pruned.
- */
-export const HOURLY_SERIES_FLOOR_DATE = "2026-07-01";
 
 /** Periods whose downloads chart derives from the hourly series (4h buckets). */
 export const HOURLY_CHART_PERIODS: ReadonlySet<RegistryAnalyticsPeriodId> = new Set(["1d", "3d"]);
@@ -413,29 +415,6 @@ const ASSETS_BY_DAY_URL = "/registry-cache/analytics/assets_by_day.csv";
 const ASSET_VERSIONS_BY_DAY_URL = "/registry-cache/analytics/asset_versions_by_day.csv";
 const MAP_STATISTICS_URL = "/registry-cache/analytics/maps_statistics.csv";
 const MOST_POPULAR_BY_DAY_URL = "/registry-cache/analytics/most_popular_by_day.csv";
-/**
- * Monthly hourly shard URLs, floor month through the current UTC month. A
- * month with no cached shard yet (first hours of a new month) degrades to an
- * empty CSV via optionalFetchText.
- */
-export function getHourlyShardUrls(nowMs = Date.now()): string[] {
-  const urls: string[] = [];
-  let year = Number.parseInt(HOURLY_SERIES_FLOOR_DATE.slice(0, 4), 10);
-  let month = Number.parseInt(HOURLY_SERIES_FLOOR_DATE.slice(5, 7), 10);
-  const now = new Date(nowMs);
-  const endYear = now.getUTCFullYear();
-  const endMonth = now.getUTCMonth() + 1;
-  while (year < endYear || (year === endYear && month <= endMonth)) {
-    const key = `${year}-${String(month).padStart(2, "0")}`;
-    urls.push(`/registry-cache/analytics/hourly/downloads-${key}.csv`);
-    month += 1;
-    if (month > 12) {
-      month = 1;
-      year += 1;
-    }
-  }
-  return urls;
-}
 export type RegistryAnalyticsWindowPeriodId = Exclude<RegistryAnalyticsPeriodId, "all-time">;
 const WINDOW_PERIODS: RegistryAnalyticsWindowPeriodId[] = ["1d", "3d", "7d", "14d", "30d"];
 const AUTHOR_WINDOW_RANKING_URLS: Record<RegistryAnalyticsWindowPeriodId, string> = {
@@ -1554,9 +1533,7 @@ export async function loadRegistryAnalyticsData(): Promise<RegistryAnalyticsData
     safeFetchText(AUTHORS_BY_DAY_URL),
     safeFetchText(MAP_STATISTICS_URL),
     safeFetchText(MOST_POPULAR_BY_DAY_URL),
-    Promise.all(getHourlyShardUrls().map((url) => optionalFetchText(url))).then((raws) =>
-      raws.join("\n"),
-    ),
+    loadHourlyDownloadsCsvText().then((text) => text ?? ""),
     loadCreatorDatabaseData(),
     Promise.all(
       REGISTRY_TYPES.map((typeConfig) =>
