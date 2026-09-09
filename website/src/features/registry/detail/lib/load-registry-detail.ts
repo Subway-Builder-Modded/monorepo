@@ -5,6 +5,7 @@ import {
   getRegistryCollectionCachePath,
   getRegistryItemCachePath,
 } from "@/features/registry/lib/registry-asset-paths";
+import { loadHourlyDownloadsCsvText } from "@/features/registry/lib/load-hourly-downloads";
 import { REGISTRY_TYPES } from "@/features/registry/registry-type-config";
 import { getRegistryTypeUiRules } from "@/features/registry/registry-type-ui";
 import type {
@@ -696,7 +697,7 @@ export async function loadRegistryDetail(
     safeFetchText(getRegistryAuthorsIndexPath()),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/asset_versions_by_day.csv`),
-    safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/hourly/downloads.csv`),
+    loadHourlyDownloadsCsvText(),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_1d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_3d.csv`),
     safeFetchText(`${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_last_7d.csv`),
