@@ -196,6 +196,26 @@ const projectWindowCsv = [
   "2,maps:solo-map,Solo Map,author-b,Author B,https://github.com/author-b,1,6,6,6,6,0,0,snap.json,snap.json,6,6,0,0",
 ].join("\n");
 
+const assetsByDayCsv = [
+  "snapshot_date,total_downloads,maps,mods,total_new_assets_versions,new_maps_versions,new_mods_versions",
+  "2026_03_11,4,4,0,2,2,0",
+  "2026_03_12,11,11,0,1,1,0",
+  "2026_03_13,20,15,5,2,1,1",
+].join("\n");
+
+const assetVersionsByDayCsv = [
+  "listing_type,id,version,total_downloads,2026_03_11,2026_03_12,2026_03_13,first_seen",
+  "map,map-a,1.0.0,10,4,3,3,2026_03_11",
+  "map,map-b,1.0.0,8,0,8,0,2026_03_11",
+  "map,map-b,1.1.0,12,0,0,12,2026_03_12",
+  "mod,mod-a,1.0.0,5,0,0,5,2026_03_13",
+].join("\n");
+
+const versionCreditsCsv = [
+  "listing_type,listing_id,version,credited_author_id",
+  "map,map-b,1.1.0,author-b",
+].join("\n");
+
 const mapStatisticsCsv = [
   "rank,id,name,author,author_alias,attribution_link,city_code,country,population,population_count,points_count,playable_area_cells",
   "1,map-a,Map Alpha,author-a,Author A,/registry/authors/author-a,TYO,JP,1000000,2000,300,0",
@@ -211,6 +231,13 @@ describe("loadRegistryAnalyticsData", () => {
           ok: true,
           text: () => {
             if (url.includes("authors_by_day")) return Promise.resolve(authorsByDayCsv);
+            if (url.includes("assets_by_day")) return Promise.resolve(assetsByDayCsv);
+            if (url.includes("asset_versions_by_day")) {
+              return Promise.resolve(assetVersionsByDayCsv);
+            }
+            if (url.includes("listing_version_credits")) {
+              return Promise.resolve(versionCreditsCsv);
+            }
             if (url.includes("authors_last_")) return Promise.resolve(authorWindowCsv);
             if (url.includes("projects_most_popular_last_")) {
               return Promise.resolve(projectWindowCsv);
@@ -353,6 +380,27 @@ describe("loadRegistryAnalyticsData", () => {
       mods: 1,
       assets: 3,
     });
+  });
+
+  it("builds the version release history and credited author series", async () => {
+    const data = await loadRegistryAnalyticsData();
+
+    expect(data.versions.hasFirstSeen).toBe(true);
+    expect(data.versions.history).toEqual([
+      { date: "2026-03-11", newVersions: { total: 2, maps: 2, mods: 0 } },
+      { date: "2026-03-12", newVersions: { total: 1, maps: 1, mods: 0 } },
+      { date: "2026-03-13", newVersions: { total: 2, maps: 1, mods: 1 } },
+    ]);
+
+    // map-a/map-b 1.0.0 fall to the listing author; map-b 1.1.0 credits the
+    // caretaker via listing_version_credits; mod-a falls to its author.
+    const byId = new Map(
+      data.versions.authorDailyReleases.entities.map((entity) => [entity.id, entity]),
+    );
+    expect([...byId.keys()].sort()).toEqual(["author-a", "author-b"]);
+    expect(byId.get("author-a")?.byDate.get("2026-03-11")).toEqual({ maps: 2, mods: 0 });
+    expect(byId.get("author-b")?.byDate.get("2026-03-12")).toEqual({ maps: 1, mods: 0 });
+    expect(byId.get("author-b")?.byDate.get("2026-03-13")).toEqual({ maps: 0, mods: 1 });
   });
 
   it("charts one debut and only the listing's current retirement", async () => {

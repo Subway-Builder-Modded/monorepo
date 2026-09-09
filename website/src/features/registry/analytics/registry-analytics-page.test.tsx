@@ -293,6 +293,23 @@ vi.mock("./lib/load-registry-analytics", async (importOriginal) => {
             ],
           },
         },
+        versions: {
+          hasFirstSeen: true,
+          history: [
+            { date: "2026-03-11", newVersions: { total: 5, maps: 5, mods: 0 } },
+            { date: "2026-03-12", newVersions: { total: 3, maps: 2, mods: 1 } },
+          ],
+          authorDailyReleases: {
+            dates: ["2026-03-11", "2026-03-12"],
+            entities: [
+              {
+                id: "author-a",
+                name: "Author A",
+                byDate: new Map([["2026-03-12", { maps: 2, mods: 1 }]]),
+              },
+            ],
+          },
+        },
         mapStatistics: {
           rankings: [
             {
@@ -367,6 +384,10 @@ describe("RegistryAnalyticsPage", () => {
     expect(screen.getByText("Listings by Type")).toBeInTheDocument();
     // Deprecations join the New Listings chart as a negative series.
     expect(overviewStackedCharts[3]).toHaveTextContent("1 points · Maps, Mods, Deprecated");
+    // The Releases section: New Versions bar (bootstrap day excluded) plus the
+    // credited by-author pie.
+    expect(screen.getByText("Releases")).toBeInTheDocument();
+    expect(overviewStackedCharts[4]).toHaveTextContent("1 points · Maps, Mods");
     // Every pie sits beside its measure: Download Share, then the Maps
     // section's three pies, then Listings by Type.
     const pieCharts = screen.getAllByTestId("registry-pie-chart");
@@ -375,6 +396,7 @@ describe("RegistryAnalyticsPage", () => {
     expect(pieCharts[2]).toHaveTextContent("Asia: 6");
     expect(pieCharts[3]).toHaveTextContent("Author A: 8");
     expect(pieCharts[4]).toHaveTextContent("Maps: 8");
+    expect(pieCharts[5]).toHaveTextContent("Author A: 3");
   });
 
   it("renders content analytics for the selected asset type", async () => {
