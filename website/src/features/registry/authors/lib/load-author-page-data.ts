@@ -3,6 +3,7 @@ import {
   REGISTRY_CACHE_PUBLIC_BASE,
   getRegistryAuthorsIndexPath,
 } from "@/features/registry/lib/registry-asset-paths";
+import { loadHourlyDownloadsCsvText } from "@/features/registry/lib/load-hourly-downloads";
 import {
   ADMIN_AUTHOR_ID,
   computeCreditedTotalsByAuthor,
@@ -935,9 +936,7 @@ export async function loadAuthorPageData(authorId: string): Promise<RegistryAuth
   const dailyAnalyticsRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`,
   );
-  const hourlyAnalyticsRaw = await safeFetchText(
-    `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/hourly/downloads.csv`,
-  );
+  const hourlyAnalyticsRaw = await loadHourlyDownloadsCsvText();
   const releaseCacheRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/github-releases-cache.json`,
   );

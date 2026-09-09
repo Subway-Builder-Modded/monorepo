@@ -3,6 +3,7 @@ import {
   REGISTRY_CACHE_PUBLIC_BASE,
   getRegistryAuthorsIndexPath,
 } from "@/features/registry/lib/registry-asset-paths";
+import { loadHourlyDownloadsCsvText } from "@/features/registry/lib/load-hourly-downloads";
 import { loadRegistryItemsForType } from "@/features/registry/lib/load-registry-cache";
 import { buildAssetRankings } from "@/features/registry/authors/lib/build-asset-rankings";
 import type { RegistrySearchItem } from "@/features/registry/lib/registry-search-types";
@@ -554,9 +555,7 @@ export async function loadProjectPageData(
   const dailyAnalyticsRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/most_popular_by_day.csv`,
   );
-  const hourlyAnalyticsRaw = await safeFetchText(
-    `${REGISTRY_CACHE_PUBLIC_BASE}/analytics/hourly/downloads.csv`,
-  );
+  const hourlyAnalyticsRaw = await loadHourlyDownloadsCsvText();
   const releaseCacheRaw = await safeFetchText(
     `${REGISTRY_CACHE_PUBLIC_BASE}/github-releases-cache.json`,
   );
