@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "id": "delhi",
+  "name": "Delhi",
+  "author": "ryandicicco",
+  "github_id": 215120742,
+  "description": "<h1>Delhi</h1>\nHighly-detailed map of India's National Capital Region: Delhi, Gurgaon, Noida, and Faridabad sprawling across the Yamuna plain, where Mughal-era monuments stand a few kilometers from one of the world's largest metro networks.\n<h2>Coverage</h2>\n<table style=\"width: auto\">\n<tr><td><strong>Bounding box</strong></td><td>76.8892, 28.31, 77.574, 28.7746</td></tr>\n<tr><td><strong>Bounding Box Area</strong></td><td>3455 km²</td></tr>\n</table>\n\n<h2>Population Summary</h2>\n<table style=\"width: auto\">\n<tr><td><strong>Total Modeled Demand</strong></td><td align=\"right\">4,618,539</td></tr>\n<tr><td><strong>Modeled Normal Demand</strong></td><td align=\"right\">4,372,889</td></tr>\n<tr><td><strong>Modeled Special Demand</strong></td><td align=\"right\">245,650</td></tr>\n</table>\n\n<h2>Map Statistics</h2>\n<table style=\"width: auto\">\n<tr><td><strong>Demand Points</strong></td><td align=\"right\">10,068</td></tr>\n<tr><td><strong>Populations</strong></td><td align=\"right\">452,602</td></tr>\n<tr><td><strong>Median Point Size</strong></td><td align=\"right\">473</td></tr>\n<tr><td><strong>Mean Point Size</strong></td><td align=\"right\">917.5</td></tr>\n<tr><td><strong>Median Population Size</strong></td><td align=\"right\">5</td></tr>\n<tr><td><strong>Mean Population Size</strong></td><td align=\"right\">10.2</td></tr>\n<tr><td><strong>Median Commute Distance (km)</strong></td><td align=\"right\">31.26</td></tr>\n<tr><td><strong>Mean Commute Distance (km)</strong></td><td align=\"right\">32.24</td></tr>\n<tr><td><strong>Median Commute Time (min)</strong></td><td align=\"right\">34.8</td></tr>\n<tr><td><strong>Mean Commute Time (min)</strong></td><td align=\"right\">35.7</td></tr>\n</table>\n\n<details>\n<summary>Airports — 214,000</summary>\n\n<table style=\"width: auto\">\n<tr><th align=\"left\">Name</th><th align=\"right\">Modeled Demand</th></tr>\n<tr><td align=\"left\">&nbsp;&nbsp;Indira Gandhi International Airport&nbsp;&nbsp;</td><td align=\"right\">&nbsp;&nbsp;214,000&nbsp;&nbsp;</td></tr>\n</table>\n\n</details>\n\n<details>\n<summary>Universities — 31,650</summary>\n\n<table style=\"width: auto\">\n<tr><th align=\"left\">Name</th><th align=\"right\">Modeled Demand</th></tr>\n<tr><td align=\"left\">&nbsp;&nbsp;Indian Institute of Technology Delhi&nbsp;&nbsp;</td><td align=\"right\">&nbsp;&nbsp;13,000&nbsp;&nbsp;</td></tr>\n<tr><td align=\"left\">&nbsp;&nbsp;Jawaharlal Nehru University&nbsp;&nbsp;</td><td align=\"right\">&nbsp;&nbsp;7,950&nbsp;&nbsp;</td></tr>\n<tr><td align=\"left\">&nbsp;&nbsp;Jamia Millia Islamia&nbsp;&nbsp;</td><td align=\"right\">&nbsp;&nbsp;10,700&nbsp;&nbsp;</td></tr>\n</table>\n\n</details>\n<br>\n\n<h2>Additional Features</h2>\n<ul>\n<li><strong>Building Collision</strong>: A buildings index is included, providing in-game collision geometry for all non-filtered buildings. Buildings have foundations ranging from -10 m to -80 m, calculated based on the building's height and footprint; the in-game foundations map layer visualizes these.</li>\n<li><strong>Water Depths</strong>: A water depth index is included, preventing tracks from being placed within the water.  GEBCO bathymetric data are used where available, and a flat -5 m depth is assumed everywhere else; the in-game ocean foundations map layer visualizes these.</li>\n<li><strong>Place Labels</strong>: The map includes city, suburb, and neighborhood labels extracted from selected OSM place tags.</li>\n</ul>\n<h2>Methodology</h2>\n<p>Population: WorldPop 100m gridded raster.</p>\n<p>Employment: OSM landuse, scaled to SHRUG/Economic Census (2013) totals.</p>\n<p>Base commute pairs: doubly-constrained gravity model, decay exponent calibrated against Census 2011 Table B-28 distance-band data for NCT Delhi.</p>\n<p>Special demand: Indira Gandhi International Airport (capacity from 2025 annual passenger throughput), plus IIT Delhi, Jawaharlal Nehru University, and Jamia Millia Islamia, each using that institution's own officially reported enrollment.</p>\n<p>Consolidation: nearby low-volume commute flows spatially merged within a tiered distance threshold to keep total population count performant in-game, while preserving the variety of distinct commute destinations per origin point.</p>\n<p>Routing and consolidation tooling: <a href=\"https://github.com/Subway-Builder-Modded/depot\">Depot</a>.</p>\n</ul>\n<h2>Data Sources</h2>\n<ul>\n<p><a href=\"https://hub.worldpop.org/\">WorldPop</a></p>\n<p><a href=\"https://www.devdatalab.org/shrug\">SHRUG</a></p>\n<p><a href=\"https://censusindia.gov.in/nada/index.php/catalog/13954\">Census of India 2011, Table B-28</a></p>\n<p><a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> / <a href=\"https://overturemaps.org/\">Overture Maps</a></p>\n</ul>\n<h2>License</h2>\n<p>This map data is released under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU General Public License v3.0</a>.</p>\n<h2>Credits</h2>\n© OpenMapTiles © OpenStreetMap contributors\n<p>Map authored by rdicicco</p>",
+  "tags": [
+    "south-asia",
+    "airports",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/beda5ce9e7dc7ee762e29fb09489419d7b3b8f1e/maps/delhi/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/beda5ce9e7dc7ee762e29fb09489419d7b3b8f1e/maps/delhi/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/beda5ce9e7dc7ee762e29fb09489419d7b3b8f1e/maps/delhi/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/ryandicicco/Subway-Builder-Maps",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/ryandicicco/Subway-Builder-Maps/main/releases/DEL.json"
+  },
+  "city_code": "DEL",
+  "country": "IN",
+  "population": 4802431,
+  "residents_total": 4802431,
+  "points_count": 12313,
+  "population_count": 400425,
+  "initial_view_state": {
+    "latitude": 28.5423,
+    "longitude": 77.2316,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "WorldPop, SHRUG, Census 2011 B-28, OSM",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "very-low",
+    "raw_score": 0.09,
+    "weighted_score": 0.24,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  },
+  "location": "south-asia",
+  "special_demand": [
+    "airports",
+    "universities"
+  ],
+  "file_sizes": {
+    "DEL.pmtiles": 81.58,
+    "DEL_foundations.pmtiles": 77.09,
+    "buildings_index.bin": 240.19,
+    "buildings_index.json": 304.95,
+    "config.json": 0,
+    "demand_data.json": 57.33,
+    "ocean_depth_index.json": 3.69,
+    "roads.geojson": 68.01,
+    "runways_taxiways.geojson": 0.95
+  },
+  "included_cities": [
+    "Gurgaon",
+    "Noida",
+    "Faridabad"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.23161935212633183,
+      "p25": 0.2438319237109423,
+      "p50": 0.2440142174369213,
+      "p75": 0.24426943543964186,
+      "p90": 0.24464865492537538,
+      "mean": 0.24661753107323459
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.2033449141433424,
+      "p25": 0.23161935212633183,
+      "p50": 0.2439270056807385,
+      "p75": 0.24421923562978126,
+      "p90": 0.244610246346003,
+      "mean": 0.23959989440591536
+    },
+    "commuteDistanceKm": {
+      "p10": 11915,
+      "p25": 20059,
+      "p50": 31322,
+      "p75": 43323,
+      "p90": 53852,
+      "mean": 32271.004297933447
+    },
+    "residentCellDensity": {
+      "p10": 41,
+      "p25": 205,
+      "p50": 952,
+      "p75": 2752,
+      "p90": 5285,
+      "mean": 1961.5753593429158
+    },
+    "workerCellDensity": {
+      "p10": 69,
+      "p25": 663,
+      "p50": 2644,
+      "p75": 7655,
+      "p90": 14495,
+      "mean": 5715.183796856107
+    },
+    "detail": {
+      "radiusKm": 0.24397060766190026,
+      "expectedPointSpacingKm": 0.4540978134384451,
+      "normalizedRadius": 0.5372644404837496,
+      "activityPerPoint": 390.029318606351,
+      "playableAreaKm2": 3452,
+      "playableAreaPerPointKm2": 0.2803540972955413,
+      "playableCatchmentRadiusKm": 0.2987297788994313,
+      "localityScore": 0.5462417368961906,
+      "deaggregationScore": 1,
+      "score": 0.7390816848604697
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.963038550777548,
+        "continuousScore": 0.8411775127005718,
+        "detectedCenterCount": 3,
+        "effectiveCenterCount": 2.7934966321550228,
+        "largestCenterShare": 0.4176803373124986,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 77.08590219309548,
+            "latitude": 28.590551445373197,
+            "massShare": 0.4176803373124986,
+            "assignedMass": 4011762,
+            "assignedPointCount": 5108,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": 77.26994399487262,
+            "latitude": 28.555865847696854,
+            "massShare": 0.3747341710896002,
+            "assignedMass": 3599270,
+            "assignedPointCount": 4282,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": 77.4173796938406,
+            "latitude": 28.633467064622867,
+            "massShare": 0.20758549159790116,
+            "assignedMass": 1993830,
+            "assignedPointCount": 2923,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1789430400
+}

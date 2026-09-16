@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "id": "sejong-4",
+  "name": "Sejong",
+  "author": "budhakr",
+  "github_id": 242454095,
+  "description": "# Sejong\n\n## SEJ · v0.3.1\n\nCustom map of Sejong, Korea, built from official Korean government transport and demographic data.\n\n## Coverage\n\n<table style=\"width: auto\">\n<tr><td><strong>Region</strong></td><td>대전광역시, 충청북도, 세종특별자치시, 충청남도</td></tr>\n<tr><td><strong>Playable Area</strong></td><td>1,610 km²</td></tr>\n</table>\n\n<details>\n<summary>District list (13)</summary>\n\n<table style=\"width: auto\">\n<tr><th align=\"left\">시군구</th><th align=\"left\">District</th><th align=\"right\">Population</th></tr>\n<tr><td colspan=\"3\"><strong>대전광역시</strong></td></tr>\n<tr><td>대덕구</td><td>Daedeok-gu</td><td align=\"right\">233,379</td></tr>\n<tr><td>동구</td><td>Dong-gu</td><td align=\"right\">663,651</td></tr>\n<tr><td>서구</td><td>Seo-gu</td><td align=\"right\">400,006</td></tr>\n<tr><td>유성구</td><td>Yuseong-gu</td><td align=\"right\">409,697</td></tr>\n<tr><td>중구</td><td>Jung-gu</td><td align=\"right\">284,705</td></tr>\n<tr><td colspan=\"3\"><strong>충청북도</strong></td></tr>\n<tr><td>제천시</td><td>Jecheon-si</td><td align=\"right\">361,984</td></tr>\n<tr><td>청주시 상당구</td><td>Sangdang-gu Cheongju-si</td><td align=\"right\">85,452</td></tr>\n<tr><td>청주시 서원구</td><td>Seowon-gu Cheongju-si</td><td align=\"right\">158,480</td></tr>\n<tr><td>청주시 청원구</td><td>Cheongwon-gu Cheongju-si</td><td align=\"right\">48,188</td></tr>\n<tr><td>청주시 흥덕구</td><td>Heungdeok-gu Cheongju-si</td><td align=\"right\">227,467</td></tr>\n<tr><td colspan=\"3\"><strong>세종특별자치시</strong></td></tr>\n<tr><td>세종시</td><td>Sejong City</td><td align=\"right\">387,469</td></tr>\n<tr><td colspan=\"3\"><strong>충청남도</strong></td></tr>\n<tr><td>계룡시</td><td>Gyeryong-si</td><td align=\"right\">7,404</td></tr>\n<tr><td>공주시</td><td>Gongju-si</td><td align=\"right\">80,014</td></tr>\n</table>\n</details>\n\n## Population Summary\n\n<table style=\"width: auto\">\n<tr><td><strong>Total Modeled Demand</strong></td><td align=\"right\">667,264</td></tr>\n<tr><td><strong>Pops</strong></td><td align=\"right\">13,200</td></tr>\n</table>\n\n## Additional Features\n\n- **Neighborhood Labels** — The map includes municipal and neighborhood labels derived from administrative boundary data.\n\t- 시도 (Si, Do - Metropolitan / Provincial level)\n\t- 시군구 (Si, Gun, Gu - City / County / District level)\n\t- 읍면동 (Eup, Myeon, Dong - Neighborhood level)\n\n## Data Sources\n\n- Korean Transportation Database (Korea Transport Institute, KOTI) (ktdb.go.kr)\n- V-world (Ministry of Land, Infrastructure and Transport, MOLIT) (vworld.kr)\n- Statistical Geographic Information System (SGIS) plus (Ministry of Data and Statistics, MODS) (sgis.mods.go.kr)\n- Address-based Industry Support Service (Ministry of the Interior and Safety, MOIS) (business.juso.go.kr)\n- Aviation statistics 2025 (Korea Civil Aviation Association, KCAA) (airportal.go.kr)\n- Korean railroad statistics 2024 (Korea Railroad, KORAIL) (railstat.korail.com)\n- Korean Public Transportation Database (Korea Transportation Safety Authority, KTSA) (kotsa.or.kr)\n- Korean Hospital and Pharmacy Status (Health Insurance Review and Assessment Service, HIRA) (data.go.kr)\n- Health Insurance Medical Statistics (HIRA) (opendata.hira.or.kr)\n- Academy Information System (Ministry of Education, MOE) (academyinfo.go.kr)\n\n## Credits\n\nMap authored by budhakr",
+  "tags": [
+    "east-asia",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/beda5ce9e7dc7ee762e29fb09489419d7b3b8f1e/maps/sejong-4/gallery/screenshot1.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/budhakr/sb_korean_map_pack",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/budhakr/sb_korean_map_pack/refs/heads/main/map_json/SEJ.json"
+  },
+  "city_code": "SEJ",
+  "country": "KR",
+  "population": 667233,
+  "residents_total": 667233,
+  "points_count": 754,
+  "population_count": 13200,
+  "initial_view_state": {
+    "latitude": 36.4801,
+    "longitude": 127.289,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "KOTI, MOLIT, MODS, MOIS",
+  "source_quality": "high-quality",
+  "level_of_detail": "low-detail",
+  "location": "east-asia",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "SEJ4.pmtiles": 63.35,
+    "buildings_index.json": 104.46,
+    "config.json": 0,
+    "demand_data.json": 42.35,
+    "ocean_depth_index.json": 0.01,
+    "roads.geojson": 25.64,
+    "runways_taxiways.geojson": 1.19
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.3899192310849693,
+      "p25": 0.401555826685459,
+      "p50": 0.40225814859220044,
+      "p75": 0.4029815350881377,
+      "p90": 0.5003778610509171,
+      "mean": 0.43726306049750296
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.16371279495930918,
+      "p25": 0.4015323775401073,
+      "p50": 0.40225814859220044,
+      "p75": 0.40298153508686513,
+      "p90": 0.5003778610509171,
+      "mean": 0.4007938515333814
+    },
+    "commuteDistanceKm": {
+      "p10": 2932,
+      "p25": 4463,
+      "p50": 7973,
+      "p75": 13739,
+      "p90": 19645,
+      "mean": 10579.77765151515
+    },
+    "residentCellDensity": {
+      "p10": 90,
+      "p25": 200,
+      "p50": 571,
+      "p75": 1928,
+      "p90": 4606,
+      "mean": 1607.1105121293801
+    },
+    "workerCellDensity": {
+      "p10": 63,
+      "p25": 350,
+      "p50": 1251,
+      "p75": 5107,
+      "p90": 10285,
+      "mean": 3679.2668393782383
+    },
+    "detail": {
+      "radiusKm": 0.40225814859220044,
+      "expectedPointSpacingKm": 0.7154972673061347,
+      "normalizedRadius": 0.562207805638046,
+      "activityPerPoint": 1341.662948825983,
+      "playableAreaKm2": 932,
+      "playableAreaPerPointKm2": 1.2360742705570291,
+      "playableCatchmentRadiusKm": 0.6272596435095439,
+      "localityScore": 0.4981920031996122,
+      "deaggregationScore": 0.9130213871172953,
+      "score": 0.6744330610313035
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.9999635506813591,
+        "continuousScore": 0.8716887712564775,
+        "detectedCenterCount": 2,
+        "effectiveCenterCount": 1.999927104019727,
+        "largestCenterShare": 0.5030186635553169,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 127.41153003340797,
+            "latitude": 36.613460053130126,
+            "massShare": 0.5030186635553169,
+            "assignedMass": 1107131,
+            "assignedPointCount": 350,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": 127.35688233707111,
+            "latitude": 36.37707224528106,
+            "massShare": 0.4969813364446831,
+            "assignedMass": 1093843,
+            "assignedPointCount": 404,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1789171200,
+  "search_aliases": [
+    "Тэджон",
+    "Daejeon",
+    "대전광역시",
+    "Taejŏn",
+    "大田広域市",
+    "Taejon",
+    "대전",
+    "Daejeon-si",
+    "대전시",
+    "دايجيون",
+    "दाएजोन",
+    "ডেজিওন"
+  ],
+  "data_quality": {
+    "tier": "low",
+    "raw_score": 0.23,
+    "weighted_score": 0.4,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  }
+}

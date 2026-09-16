@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "demand-developer",
+  "name": "Demand Developer",
+  "author": "Zaschrona",
+  "github_id": 308953284,
+  "description": "Demand Developer lets you create new residential or workplace demand points, or expand existing ones, directly from the map. Adding Residents automatically creates matching workplace demand elsewhere; adding Workers creates matching residential demand, keeping the new demand balanced through commuter flows.\n\n**Features**\n* Expand existing demand points by +200, +400, +600, +800 or +1000 Residents or Workers.\n* Create new residential or workplace demand points.\n* New points are automatically named after the nearby street and district.\n* The mod automatically balances new Residents and Workers across the map.\n* The mod automatically connects new demand using nearby travel patterns.\n* Preview development costs before building.\n* Development costs scale with local demand and overall map growth.\n* View all developed points directly on the map.\n* Check stats on spending, added demand and map growth.\n* Easily remove development created by the mod.",
+  "tags": [
+    "gameplay"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/beda5ce9e7dc7ee762e29fb09489419d7b3b8f1e/mods/demand-developer/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/beda5ce9e7dc7ee762e29fb09489419d7b3b8f1e/mods/demand-developer/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/beda5ce9e7dc7ee762e29fb09489419d7b3b8f1e/mods/demand-developer/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/Zaschrona/demand-developer",
+  "update": {
+    "type": "github",
+    "repo": "Zaschrona/demand-developer"
+  },
+  "last_updated": 1789492749
+}
