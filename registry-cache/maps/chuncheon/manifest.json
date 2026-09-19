@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "id": "chuncheon",
+  "name": "Chuncheon",
+  "author": "budhakr",
+  "github_id": 242454095,
+  "description": "# Chuncheon",
+  "tags": [
+    "east-asia",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/maps/chuncheon/gallery/screenshot1.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/budhakr/sb_korean_map_pack/releases/download/v0.3.1/QCN.zip",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/budhakr/sb_korean_map_pack/refs/heads/main/map_json/QCN.json"
+  },
+  "city_code": "QCN",
+  "country": "KR",
+  "population": 440570,
+  "residents_total": 440570,
+  "points_count": 359,
+  "population_count": 4527,
+  "initial_view_state": {
+    "latitude": 37.8813,
+    "longitude": 127.7298,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "KOTI, MOLIT, MODS, MOIS",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "low",
+    "raw_score": 0.17,
+    "weighted_score": 0.31,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  },
+  "location": "east-asia",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    ".railyard_map/special_demand_points.json": 0.05,
+    ".railyard_map/special_demand_types.json": 0,
+    "QCN.pmtiles": 64.96,
+    "buildings_index.bin.gz": 4.41,
+    "buildings_index.json": 17.23,
+    "config.json": 0.01,
+    "demand_data.json": 0.7,
+    "driving_paths.json.gz": 0.33,
+    "roads.geojson": 12.31,
+    "runways_taxiways.geojson": 0.04
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.037188614447221505,
+      "p25": 0.08954349125441557,
+      "p50": 0.21673203463238133,
+      "p75": 0.37637442430539186,
+      "p90": 0.6376185155447801,
+      "mean": 0.3332688067386971
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.08109925272112531,
+      "p25": 0.10186588903330218,
+      "p50": 0.16863233272120304,
+      "p75": 0.314386981769209,
+      "p90": 0.6690931577895977,
+      "mean": 0.31575685136645054
+    },
+    "commuteDistanceKm": {
+      "p10": 2097,
+      "p25": 3042,
+      "p50": 4477,
+      "p75": 6600,
+      "p90": 9979,
+      "mean": 6001.960901259112
+    },
+    "residentCellDensity": {
+      "p10": 48,
+      "p25": 190,
+      "p50": 952,
+      "p75": 6303,
+      "p90": 15694,
+      "mean": 5712.402597402597
+    },
+    "workerCellDensity": {
+      "p10": 34,
+      "p25": 195,
+      "p50": 1089,
+      "p75": 4510,
+      "p90": 12500,
+      "mean": 4278.103703703704
+    },
+    "detail": {
+      "radiusKm": 0.19117538694997072,
+      "expectedPointSpacingKm": 0.6132247289902172,
+      "normalizedRadius": 0.3117542034953071,
+      "activityPerPoint": 1412.949044779193,
+      "playableAreaKm2": 380,
+      "playableAreaPerPointKm2": 1.0584958217270195,
+      "playableCatchmentRadiusKm": 0.5804564449981976,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.07107351674550888,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 127.7258426641171,
+            "latitude": 37.86807912836471,
+            "massShare": 1,
+            "assignedMass": 1024589,
+            "assignedPointCount": 359,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1789776000
+}

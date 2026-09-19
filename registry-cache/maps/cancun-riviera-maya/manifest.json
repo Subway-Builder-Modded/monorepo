@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "id": "cancun-riviera-maya",
+  "name": "Cancun / Riviera Maya",
+  "author": "Meszier83",
+  "github_id": 323052829,
+  "description": "# Cancun / Riviera Maya\n\nWhere world-class luxury meets brutal daily commutes. Thread the needle along Highway 307, bridge the Hotel Zone's fragile spit of land, and move hundreds of thousands of workers from the sprawling mainland colonias to paradise and back.\n\n## Coverage\n\n<Table>\n<Tr><Td><strong>Region</strong></Td><Td>Quintana Roo, Mexico</Td></Tr>\n<Tr><Td><strong>Districts / Municipalities</strong></Td><Td>8</Td></Tr>\n<Tr><Td><strong>Playable Area</strong></Td><Td>5,435 km²</Td></Tr>\n</Table>\n\n<Details>\n<Summary>District list</Summary>\n\n<Table>\n<Tr><Th>Code</Th><Th>District</Th><Th>Population</Th></Tr>\n<Tr><Td>23005</Td><Td>Benito Juárez (Cancún)</Td><Td>911,503</Td></Tr>\n<Tr><Td>23008</Td><Td>Solidaridad (Playa del Carmen)</Td><Td>333,800</Td></Tr>\n<Tr><Td>23001</Td><Td>Cozumel</Td><Td>88,626</Td></Tr>\n<Tr><Td>23002</Td><Td>Felipe Carrillo Puerto</Td><Td>83,990</Td></Tr>\n<Tr><Td>23009</Td><Td>Tulum</Td><Td>46,721</Td></Tr>\n<Tr><Td>23007</Td><Td>Lázaro Cárdenas</Td><Td>29,171</Td></Tr>\n<Tr><Td>23011</Td><Td>Puerto Morelos</Td><Td>26,921</Td></Tr>\n<Tr><Td>23003</Td><Td>Isla Mujeres</Td><Td>22,686</Td></Tr>\n</Table>\n\n</Details>\n\n## Population Summary\n\n<Table>\n<Tr><Td><strong>Total Population</strong></Td><Td>1,543,418</Td></Tr>\n<Tr><Td><strong>Working Age Population</strong></Td><Td>515,792</Td></Tr>\n<Tr><Td><strong>Total Modeled Demand</strong></Td><Td>775,627</Td></Tr>\n<Tr><Td><strong>Modeled Normal Demand</strong></Td><Td>742,641</Td></Tr>\n<Tr><Td><strong>Modeled Special Demand</strong></Td><Td>32,986</Td></Tr>\n</Table>\n\n## Map Statistics\n\n<Table>\n<Tr><Td><strong>Buildings Indexed</strong></Td><Td>352,985</Td></Tr>\n<Tr><Td><strong>Demand Points</strong></Td><Td>1,955</Td></Tr>\n<Tr><Td><strong>Populations</strong></Td><Td>6,287</Td></Tr>\n</Table>\n\n## Special Demand",
+  "tags": [
+    "north-america",
+    "airports",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/maps/cancun-riviera-maya/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/maps/cancun-riviera-maya/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/maps/cancun-riviera-maya/gallery/screenshot3.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/maps/cancun-riviera-maya/gallery/screenshot4.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/maps/cancun-riviera-maya/gallery/screenshot5.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/maps/cancun-riviera-maya/gallery/screenshot6.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/Meszier83/subway-builder-mexico-maps",
+  "update": {
+    "type": "github",
+    "repo": "Meszier83/subway-builder-mexico-maps"
+  },
+  "city_code": "CUR",
+  "country": "MX",
+  "population": 775627,
+  "residents_total": 775627,
+  "points_count": 2112,
+  "population_count": 22239,
+  "initial_view_state": {
+    "latitude": 21.12588,
+    "longitude": -86.90027,
+    "zoom": 11,
+    "bearing": 0
+  },
+  "data_source": "INEGI (CPV 2020, DENUE), CONAPO, SEP, OpenStreetMap",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.46,
+    "weighted_score": 0.59,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  },
+  "location": "north-america",
+  "special_demand": [
+    "airports",
+    "universities"
+  ],
+  "file_sizes": {
+    "CUR.pmtiles": 26.36,
+    "buildings_index.bin.gz": 14.66,
+    "config.json": 0,
+    "demand_data.json": 3.21,
+    "ocean_depth_index.json.gz": 14.1,
+    "roads.geojson": 9.07,
+    "runways_taxiways.geojson": 0.45,
+    "special_demand_points.json": 0.02
+  },
+  "included_cities": [
+    "Playa del Carmen",
+    "Cozumel",
+    "Puerto Morelos",
+    "Tulum",
+    "Isla Mujeres"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.18823007545762352,
+      "p25": 0.21563963060818495,
+      "p50": 0.25031299638304066,
+      "p75": 0.28010772797704414,
+      "p90": 0.31438260091647635,
+      "mean": 0.2527509263305255
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.17961026645107625,
+      "p25": 0.20276940648293365,
+      "p50": 0.24273036471628356,
+      "p75": 0.2873781560707826,
+      "p90": 0.3785869310695066,
+      "mean": 0.3152238618280618
+    },
+    "commuteDistanceKm": {
+      "p10": 2395,
+      "p25": 4396,
+      "p50": 7712,
+      "p75": 13258,
+      "p90": 22317,
+      "mean": 10510.587166689149
+    },
+    "residentCellDensity": {
+      "p10": 47,
+      "p25": 222,
+      "p50": 1272,
+      "p75": 3767,
+      "p90": 5863,
+      "mean": 2294.7544378698226
+    },
+    "workerCellDensity": {
+      "p10": 36,
+      "p25": 113,
+      "p50": 552,
+      "p75": 1708,
+      "p90": 3615,
+      "mean": 1439.82156133829
+    },
+    "detail": {
+      "radiusKm": 0.24649252504950575,
+      "expectedPointSpacingKm": 0.5135475251678862,
+      "normalizedRadius": 0.47997996868726756,
+      "activityPerPoint": 367.24763257575756,
+      "playableAreaKm2": 1076,
+      "playableAreaPerPointKm2": 0.509469696969697,
+      "playableCatchmentRadiusKm": 0.4027024227100137,
+      "localityScore": 0.665617730048604,
+      "deaggregationScore": 1,
+      "score": 0.8158539881918847
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.8564211801374924,
+        "continuousScore": 0.9232915335042183,
+        "detectedCenterCount": 2,
+        "effectiveCenterCount": 1.7488956294595066,
+        "largestCenterShare": 0.6894589796384086,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -86.87543374930571,
+            "latitude": 21.12084671008465,
+            "massShare": 0.6894589796384086,
+            "assignedMass": 1069526,
+            "assignedPointCount": 1392,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": -87.06044944232012,
+            "latitude": 20.622239732670728,
+            "massShare": 0.3105410203615913,
+            "assignedMass": 481728,
+            "assignedPointCount": 720,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1789647334
+}

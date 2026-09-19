@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "demand-developer",
+  "name": "Demand Developer",
+  "author": "Zaschrona",
+  "github_id": 308953284,
+  "description": "Demand Developer lets you create new residential or workplace demand points, or expand existing ones, directly from the map. New development automatically creates matching commuter demand elsewhere, keeping growth connected to the rest of the city.\n\n**Features**\n\n* Create and expand Residential, Work, University and Airport demand.\n* Develop demand in steps from +200 to +1000.\n* Preview planned commuter connections before building.\n* Show all commuter connections for a selected demand point.\n* New commuter flows follow the map's existing travel patterns and take the size of connected locations into account.\n* Larger developments naturally spread across more commuter connections.\n* University and Airport demand use broader regional connections where appropriate.\n* Preview development costs before building.\n* Development costs reflect local demand and rise as the map grows, keeping expansion a meaningful investment rather than a free demand boost.\n* Track spending, added demand and map growth.\n* Remove development created by the mod at any time.",
+  "tags": [
+    "gameplay",
+    "ui"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/mods/demand-developer/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/mods/demand-developer/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/mods/demand-developer/gallery/screenshot3.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/b4cba186e85d82c28f8ad3e5b176cef939818fce/mods/demand-developer/gallery/screenshot4.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/Zaschrona/demand-developer",
+  "update": {
+    "type": "github",
+    "repo": "Zaschrona/demand-developer"
+  },
+  "last_updated": 1789758390
+}
