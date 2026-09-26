@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "id": "amba",
+  "name": "Buenos Aires",
+  "author": "hernang87",
+  "github_id": 5214315,
+  "description": "This map uses INDEC Census 2022 data at census-radio level for geography and employed residents (Ocupado) as trip producers. Formal workplace capacity comes from CEP XXI/SIPA 2022 geocoded establishments, retained at their source coordinates rather than collapsed to output grid centroids. Total residential population is not used as demand. Census geometry is identified with cod_indec and represented by points inside each polygon.\n\nThe official 2022 geocoded establishment dataset is filtered to AMBA. Each establishment keeps its rounded WGS84 coordinate and its employment-band capacity (1–9: 5, 10–49: 29.5, 50–199: 124.5, 200–499: 349.5, 500+: 500). A 0.005-degree cell is used only as an internal balancing index; exported job points remain at establishment coordinates.\n\nFormal workplace capacity is balanced against scaled employed-resident origins with a 12 km doubly constrained gravity model. The formal layer contains 4,127,148 modeled jobs. The remaining 3,667,547 employed residents are represented as local residual employment at their residential origins because the available data does not locate those jobs. Every exported population and job point is capped at 200. These are modeled commuter flows, not observed individual commutes. The workplace source covers formal registered salaried employment and excludes informal, self-employed, domestic, and uncovered public employment.\n\nOSM is used only for roads, buildings, airports, and geographic context; it is not used to estimate population or employment.",
+  "tags": [
+    "south-america",
+    "airports",
+    "entertainment"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a2c6628c3bc5c7ca7a91ab5fd51a408b52b28251/maps/amba/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a2c6628c3bc5c7ca7a91ab5fd51a408b52b28251/maps/amba/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a2c6628c3bc5c7ca7a91ab5fd51a408b52b28251/maps/amba/gallery/screenshot3.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/a2c6628c3bc5c7ca7a91ab5fd51a408b52b28251/maps/amba/gallery/screenshot4.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/hernang87/AMBA-Buenos-Aires-Metropolitan-Area-for-Subway-Builder/releases/latest/download/amba.zip",
+  "update": {
+    "type": "github",
+    "repo": "hernang87/AMBA-Buenos-Aires-Metropolitan-Area-for-Subway-Builder"
+  },
+  "city_code": "BUE",
+  "country": "AR",
+  "population": 7794695,
+  "residents_total": 7794695,
+  "points_count": 6000,
+  "population_count": 92190,
+  "initial_view_state": {
+    "latitude": -34.65,
+    "longitude": -58.45,
+    "zoom": 10,
+    "bearing": 0
+  },
+  "data_source": "OSM",
+  "source_quality": "low-quality",
+  "level_of_detail": "medium-detail",
+  "data_quality": {
+    "tier": "unknown",
+    "rubric_version": 1
+  },
+  "location": "south-america",
+  "special_demand": [
+    "airports",
+    "entertainment"
+  ],
+  "file_sizes": {
+    "BUE.pmtiles": 188.79,
+    "buildings_index.bin": 539.72,
+    "config.json": 0,
+    "demand_data.json": 14.23,
+    "roads.geojson": 45.16,
+    "runways_taxiways.geojson": 0.36
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.2651895172545514,
+      "p25": 0.3875709060394641,
+      "p50": 0.49850270570620797,
+      "p75": 0.636521907346144,
+      "p90": 0.8438523436334362,
+      "mean": 0.5523271345557795
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.21734445043065773,
+      "p25": 0.3061901087173796,
+      "p50": 0.4527486599614583,
+      "p75": 0.594229086875071,
+      "p90": 0.7796349651889398,
+      "mean": 0.49824715097335587
+    },
+    "commuteDistanceKm": {
+      "p10": 0,
+      "p25": 1661,
+      "p50": 9693,
+      "p75": 18038,
+      "p90": 23821,
+      "mean": 10750.427953140254
+    },
+    "residentCellDensity": {
+      "p10": 110,
+      "p25": 817,
+      "p50": 1909,
+      "p75": 3279,
+      "p90": 4886,
+      "mean": 2402.7454489355137
+    },
+    "workerCellDensity": {
+      "p10": 77,
+      "p25": 535,
+      "p50": 1347,
+      "p75": 2592,
+      "p90": 4588,
+      "mean": 2403.786485652576
+    },
+    "detail": {
+      "radiusKm": 0.47507518562396717,
+      "expectedPointSpacingKm": 0.7349603163890325,
+      "normalizedRadius": 0.64639569651608,
+      "activityPerPoint": 1299.1158333333333,
+      "playableAreaKm2": 7068,
+      "playableAreaPerPointKm2": 1.178,
+      "playableCatchmentRadiusKm": 0.6123471612774125,
+      "localityScore": 0.350446127887884,
+      "deaggregationScore": 0.9601239199674142,
+      "score": 0.5800618157102887
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.9631970121387776,
+        "continuousScore": 0.8840704065429541,
+        "detectedCenterCount": 3,
+        "effectiveCenterCount": 2.7943212573693605,
+        "largestCenterShare": 0.4225254483979168,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -58.32837901882147,
+            "latitude": -34.725839323225266,
+            "massShare": 0.4225254483979168,
+            "assignedMass": 6586914,
+            "assignedPointCount": 2422,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": -58.678935573057565,
+            "latitude": -34.633921286045904,
+            "massShare": 0.3681176107596256,
+            "assignedMass": 5738729,
+            "assignedPointCount": 2515,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": -58.507556396351475,
+            "latitude": -34.54889547273705,
+            "massShare": 0.2093569408424576,
+            "assignedMass": 3263747,
+            "assignedPointCount": 1063,
+            "prominenceRatio": 0.9999997749057171
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1790296005
+}
