@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "japanese-trains",
+  "name": "Japanese Trains",
+  "author": "kaicardenas0618",
+  "github_id": 150625530,
+  "description": "Adds Japanese Trains\n[Readme available here](https://github.com/kaicardenas0618/japanese-trains)",
+  "tags": [
+    "stations",
+    "tracks",
+    "trains"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/mods/japanese-trains/gallery/screenshot1.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/kaicardenas0618/japanese-trains",
+  "update": {
+    "type": "github",
+    "repo": "kaicardenas0618/japanese-trains"
+  },
+  "last_updated": 1793369010,
+  "collaborators": [
+    28826346,
+    154323272
+  ],
+  "caretakers": [
+    {
+      "github_id": 154323272,
+      "since": "2026-09-04T14:30:43.776Z"
+    }
+  ]
+}

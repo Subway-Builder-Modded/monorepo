@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "conceptrains",
+  "name": "Conceptrains - Vietnamese Metro",
+  "author": "luu8358",
+  "github_id": 298755733,
+  "description": "Adds trains in service with Vietnamese metro networks:\nHo Chi MInh CIty Line 1\nHa Noi Line 2A\nHa Noi Line 3",
+  "tags": [
+    "tracks",
+    "trains"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/mods/conceptrains/gallery/screenshot1.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/luu8358/conceptrains",
+  "update": {
+    "type": "github",
+    "repo": "luu8358/conceptrains"
+  },
+  "last_updated": 1789611914
+}

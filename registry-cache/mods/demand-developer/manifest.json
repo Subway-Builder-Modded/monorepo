@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "demand-developer",
+  "name": "Demand Developer",
+  "author": "Zaschrona",
+  "github_id": 308953284,
+  "description": "Demand Developer lets you create new residential or workplace demand points, expand existing ones, or demolish demand directly from the map. New development automatically creates matching commuter demand elsewhere, keeping growth connected to the rest of the city.\n\n**Features**\n\n- Create and expand Residential, Work, University and Airport demand.\n- Develop demand in steps from +200 to +1000.\n- Demolish existing demand in steps or remove all remaining demand of a selected type.\n- Preview planned commuter connections before building or demolishing.\n- Show all commuter connections for a selected demand point.\n- New commuter flows follow the map's existing travel patterns, take the size of connected locations into account, and follow mapped roads where available.\n- Larger developments naturally spread across more commuter connections.\n- University and Airport demand use broader regional connections where appropriate.\n- Preview development and demolition costs before confirming.\n- Development costs reflect local demand and rise as the map grows, keeping expansion a meaningful investment rather than a free demand boost.\n- Track spending, demand changes and map growth.\n- Undo changes made by the mod through the development overview.\n- Preserve development changes across saved games, including Autosave.",
+  "tags": [
+    "gameplay",
+    "ui"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/mods/demand-developer/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/mods/demand-developer/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/mods/demand-developer/gallery/screenshot3.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/mods/demand-developer/gallery/screenshot4.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/Zaschrona/demand-developer",
+  "update": {
+    "type": "github",
+    "repo": "Zaschrona/demand-developer"
+  },
+  "last_updated": 1792722662
+}

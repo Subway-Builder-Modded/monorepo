@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "id": "mfn-madisonwi",
+  "name": "Madison",
+  "author": "crumpetime",
+  "github_id": 121749023,
+  "description": "A completely reworked map of the Madison, WI area. Now includes entertainment demand and neighbourhood labels.",
+  "tags": [
+    "north-america",
+    "airports",
+    "entertainment",
+    "parks",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/maps/mfn-madisonwi/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/maps/mfn-madisonwi/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/97468c3fe55fad3f3ab519ccfa887e54e5e501b4/maps/mfn-madisonwi/gallery/screenshot3.webp"
+  ],
+  "source": "https://github.com/crumpetime/sb-maps-msn",
+  "update": {
+    "type": "github",
+    "repo": "crumpetime/sb-maps-msn"
+  },
+  "city_code": "MSN",
+  "country": "US",
+  "population": 352372,
+  "residents_total": 352372,
+  "points_count": 2243,
+  "population_count": 52968,
+  "data_source": "LODES",
+  "source_quality": "high-quality",
+  "level_of_detail": "high-detail",
+  "location": "north-america",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "parks",
+    "universities"
+  ],
+  "initial_view_state": {
+    "latitude": 43.074834,
+    "longitude": -89.38368,
+    "zoom": 13,
+    "bearing": 0
+  },
+  "file_sizes": {
+    "MSN.pmtiles": 48.8,
+    "MSN_foundations.pmtiles": 22.38,
+    "buildings_index.bin": 59.76,
+    "config.json": 0,
+    "demand_data.json": 8.58,
+    "manifest.json": 0,
+    "ocean_foundations.geojson": 83.31,
+    "roads.geojson": 14.4,
+    "runways_taxiways.geojson": 0.32
+  },
+  "is_test": false,
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0.3405115679209276,
+      "p25": 0.47611592669267155,
+      "p50": 0.6484821143880957,
+      "p75": 0.8394440935441636,
+      "p90": 1.3192772648472806,
+      "mean": 0.735620437603269
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0.16502450969713237,
+      "p25": 0.3289155237894331,
+      "p50": 0.44567679171033087,
+      "p75": 0.6468783830945497,
+      "p90": 0.9715701799723501,
+      "mean": 0.5194771172344053
+    },
+    "commuteDistanceKm": {
+      "p10": 6505,
+      "p25": 13818,
+      "p50": 25587,
+      "p75": 42691,
+      "p90": 64160,
+      "mean": 30887.95674747017
+    },
+    "residentCellDensity": {
+      "p10": 4,
+      "p25": 11,
+      "p50": 30,
+      "p75": 158,
+      "p90": 565,
+      "mean": 181.89519876097057
+    },
+    "workerCellDensity": {
+      "p10": 2,
+      "p25": 5,
+      "p50": 30,
+      "p75": 183,
+      "p90": 469,
+      "mean": 243.2733564013841
+    },
+    "detail": {
+      "radiusKm": 0.5375996914266398,
+      "expectedPointSpacingKm": 0.9321617596445145,
+      "normalizedRadius": 0.5767236060312715,
+      "activityPerPoint": 157.09852875613018,
+      "playableAreaKm2": 7484,
+      "playableAreaPerPointKm2": 3.3366027641551494,
+      "playableCatchmentRadiusKm": 1.0305695736333123,
+      "localityScore": 0.4712013981580355,
+      "deaggregationScore": 0,
+      "score": 0
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.8068864908144494,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -89.33699384057395,
+            "latitude": 42.996865583192836,
+            "massShare": 1,
+            "assignedMass": 704744,
+            "assignedPointCount": 2243,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1792372122,
+  "search_aliases": [
+    "Мадисън",
+    "מדיסון",
+    "मैडिसन",
+    "マディソン",
+    "Madisonas",
+    "Медісон",
+    "მადისონი",
+    "ماديسون",
+    "Медисон",
+    "Medisona",
+    "매디슨",
+    "Мадисон",
+    "Մեդիսոն",
+    "麦迪逊",
+    "Μάντισον",
+    "Мадысан",
+    "ম্যাডিসন"
+  ],
+  "data_quality": {
+    "tier": "very-high",
+    "raw_score": 0.81,
+    "weighted_score": 0.87,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "deprecation_history": [
+    {
+      "since": "2026-09-06T09:50:50.292Z",
+      "by_github_id": 19807509,
+      "reason": "No longer maintained by the author; incompatible with current game versions since June 2026.",
+      "until": "2026-10-19T01:11:37.885Z",
+      "removed_by_github_id": 121749023
+    }
+  ]
+}
