@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "japanese-trains",
+  "name": "Japanese Trains",
+  "author": "kaicardenas0618",
+  "github_id": 150625530,
+  "description": "# Subway Builder Japanese Trains\n\nSubway Builder Japanese Trains is a mod for Subway Builder that adds trains from cities around Japan.\n\n## Track Types\n\nThis mod uses a proprietary track and train separation system that allows every compatible train to run on every compatible track, allowing for easy through running and track type management when building recreations of existing systems. Each line has its own track type, named `{gauge}{line code}-{speed}`.\nInitial builds should be done with a track option where applicable. Compatible tracks are listed at the end of the train name, e.g. both JP N700A Shinkansen 1435JP and JP E5 Shinkansen 1435JP are compatible with 1435JP-60, 1435JP-100, 1435JP-130, 1435JP-285, and 1435JP-320 tracks. Specific trains can be chosen afterwards in the route menu.\n\nFor further details on specific train stats please refer to the [Readme on the github](https://github.com/kaicardenas0618/japanese-trains)",
+  "tags": [
+    "stations",
+    "tracks",
+    "trains"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/9d44f8c001748ed6e997d99a915b9e2d828f868e/mods/japanese-trains/gallery/screenshot1.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/kaicardenas0618/japanese-trains",
+  "update": {
+    "type": "github",
+    "repo": "kaicardenas0618/japanese-trains"
+  },
+  "last_updated": 1793944933,
+  "collaborators": [
+    28826346,
+    154323272
+  ],
+  "caretakers": [
+    {
+      "github_id": 154323272,
+      "since": "2026-09-04T14:30:43.776Z"
+    }
+  ]
+}
