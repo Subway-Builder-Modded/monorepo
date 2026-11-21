@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "id": "pau",
+  "name": "Pau",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of Pau, France, with the Idelis network (Fébus BHNS), the Centre Hospitalier de Pau, an airport and the UPPA campus. Built from real INSEE Filosofi 2021 population grid and MOBPRO 2021 commute survey data.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/pau/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/pau/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/pau-update.json"
+  },
+  "city_code": "PAU",
+  "country": "FR",
+  "population": 76062,
+  "residents_total": 76062,
+  "points_count": 1393,
+  "population_count": 1369,
+  "initial_view_state": {
+    "latitude": 43.31,
+    "longitude": -0.37,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi/MOBPRO 2021",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "PAU.pmtiles": 5.85,
+    "buildings_index.bin.gz": 2.99,
+    "config.json": 0,
+    "demand_data.json.gz": 0.05,
+    "ocean_depth_index.json.gz": 0.16,
+    "ocean_depth_index_contours.json.gz": 0.12,
+    "roads.geojson.gz": 0.45,
+    "runways_taxiways.geojson.gz": 0.04
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.19923547419078108,
+      "p50": 0.199363546783516,
+      "p75": 0.19947998188016955,
+      "p90": 0.20071959731766115,
+      "mean": 0.1939415280785257
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.022094406778035355,
+      "p50": 0.19913476233581937,
+      "p75": 0.4416535834983234,
+      "p90": 0.5737040800372935,
+      "mean": 0.23540431663164227
+    },
+    "commuteDistanceKm": {
+      "p10": 11155,
+      "p25": 13007,
+      "p50": 14576,
+      "p75": 16660,
+      "p90": 18749,
+      "mean": 14327.469685902119
+    },
+    "residentCellDensity": {
+      "p10": 15,
+      "p25": 60,
+      "p50": 132,
+      "p75": 446,
+      "p90": 1073,
+      "mean": 360.0829268292683
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 85,
+      "p50": 180,
+      "p75": 552,
+      "p90": 891,
+      "mean": 472.59090909090907
+    },
+    "detail": {
+      "radiusKm": 0.19924912172243436,
+      "expectedPointSpacingKm": 0.41247593416713363,
+      "normalizedRadius": 0.483056356062944,
+      "activityPerPoint": 54.60301507537689,
+      "playableAreaKm2": 232,
+      "playableAreaPerPointKm2": 0.1665470208183776,
+      "playableCatchmentRadiusKm": 0.23024674425699745,
+      "localityScore": 0.6588530771754626,
+      "deaggregationScore": 1,
+      "score": 0.8116976513305078
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.8686935755688598,
+        "continuousScore": 0.6362502242752682,
+        "detectedCenterCount": 2,
+        "effectiveCenterCount": 1.7678676234917245,
+        "largestCenterShare": 0.681181141700192,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -0.36467447358912986,
+            "latitude": 43.30553119449452,
+            "massShare": 0.681181141700192,
+            "assignedMass": 103624,
+            "assignedPointCount": 930,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": -0.3767643989690733,
+            "latitude": 43.40061595278351,
+            "massShare": 0.31881885829980805,
+            "assignedMass": 48500,
+            "assignedPointCount": 463,
+            "prominenceRatio": 0.9999999999999717
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

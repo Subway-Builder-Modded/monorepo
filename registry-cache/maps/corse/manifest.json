@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "id": "corse",
+  "name": "Corse",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the whole island of Corsica, France, with all 4 airports, the Chemins de Fer de la Corse, and the Muvistrada/ViaBastia networks. Includes the Port de Bastia ferry terminal and the Réserve naturelle de Scandola. Built from real INSEE Filosofi 2021 population grid and MOBPRO 2021 commute survey data.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "ferries",
+    "hospitals",
+    "parks",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/corse/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/corse/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/corse/gallery/screenshot3.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/corse/gallery/screenshot4.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/cor-update.json"
+  },
+  "city_code": "COR",
+  "country": "FR",
+  "population": 163478,
+  "residents_total": 163478,
+  "points_count": 7385,
+  "population_count": 6783,
+  "initial_view_state": {
+    "latitude": 42.15,
+    "longitude": 9.1,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi/MOBPRO 2021",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "ferries",
+    "hospitals",
+    "parks",
+    "universities"
+  ],
+  "file_sizes": {
+    "COR.pmtiles": 53.09,
+    "buildings_index.bin.gz": 10.3,
+    "config.json": 0,
+    "demand_data.json.gz": 0.29,
+    "ocean_depth_index.json.gz": 12.37,
+    "ocean_depth_index_contours.json.gz": 4.29,
+    "roads.geojson.gz": 2.93,
+    "runways_taxiways.geojson.gz": 0.1
+  },
+  "included_cities": [
+    "Ajaccio",
+    "Bastia",
+    "Corte"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.03781018297908812,
+      "p50": 0.19837829576660673,
+      "p75": 0.19931716725934756,
+      "p90": 0.31703780713615165,
+      "mean": 0.1762234937275928
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.1982361600267282,
+      "p75": 0.41185034665213827,
+      "p90": 1.6871716474876213,
+      "mean": 0.4158815113097953
+    },
+    "commuteDistanceKm": {
+      "p10": 14971,
+      "p25": 19830,
+      "p50": 29550,
+      "p75": 50847,
+      "p90": 84858,
+      "mean": 41677.69290874244
+    },
+    "residentCellDensity": {
+      "p10": 1,
+      "p25": 4,
+      "p50": 21,
+      "p75": 68,
+      "p90": 212,
+      "mean": 91.21520402459474
+    },
+    "workerCellDensity": {
+      "p10": 4,
+      "p25": 8,
+      "p50": 58,
+      "p75": 101,
+      "p90": 237,
+      "mean": 136.53216374269005
+    },
+    "detail": {
+      "radiusKm": 0.19830721516227964,
+      "expectedPointSpacingKm": 0.5327462351975182,
+      "normalizedRadius": 0.37223578893759107,
+      "activityPerPoint": 22.13649289099526,
+      "playableAreaKm2": 5092,
+      "playableAreaPerPointKm2": 0.6895057549085986,
+      "playableCatchmentRadiusKm": 0.46848318899190466,
+      "localityScore": 0.9347836485351094,
+      "deaggregationScore": 1,
+      "score": 0.9668421011391205
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.9551079931124459,
+        "continuousScore": 0.9504101073714347,
+        "detectedCenterCount": 3,
+        "effectiveCenterCount": 2.7528390599231995,
+        "largestCenterShare": 0.471357002165429,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 8.85521697124836,
+            "latitude": 41.886835595374826,
+            "massShare": 0.471357002165429,
+            "assignedMass": 154113,
+            "assignedPointCount": 3192,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": 9.305597622283308,
+            "latitude": 42.46601990655588,
+            "massShare": 0.29032346860127967,
+            "assignedMass": 94923,
+            "assignedPointCount": 2874,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": 9.387954966632448,
+            "latitude": 42.59794013257187,
+            "massShare": 0.23831952923329133,
+            "assignedMass": 77920,
+            "assignedPointCount": 1319,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

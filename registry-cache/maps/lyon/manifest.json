@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "id": "lyon",
+  "name": "Lyon - Vallée du Rhône & Alpes",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Regional map covering Lyon, Grenoble, Saint-Étienne, Valence and Clermont-Ferrand, France, spanning the Rhône valley and the Alpine foothills. 2.7M+ simulated commuters from real INSEE Filosofi/MOBPRO 2021 data. 4 airports, universities, hospitals and rail stations across the whole region.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/lyon/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/lyon/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/lyon/gallery/screenshot3.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/lyon/gallery/screenshot4.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/lyon/gallery/screenshot5.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/lsy-update.json"
+  },
+  "city_code": "LSY",
+  "country": "FR",
+  "population": 2718153,
+  "residents_total": 2718153,
+  "points_count": 75065,
+  "population_count": 95013,
+  "initial_view_state": {
+    "latitude": 45.55,
+    "longitude": 4.55,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi/MOBPRO 2021",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "LSY.pmtiles": 293.82,
+    "buildings_index.bin.gz": 126.49,
+    "config.json": 0,
+    "demand_data.json.gz": 3.81,
+    "ocean_depth_index.json.gz": 13.78,
+    "ocean_depth_index_contours.json.gz": 9.33,
+    "roads.geojson.gz": 31.25,
+    "runways_taxiways.geojson.gz": 0.23
+  },
+  "included_cities": [
+    "Grenoble",
+    "Saint-Étienne",
+    "Valence",
+    "Clermont-Ferrand",
+    "Roanne"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.1314033896306242,
+      "p75": 0.19939412556736372,
+      "p90": 0.2825641532848725,
+      "mean": 0.1460427929824386
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.07785191739477546,
+      "p75": 0.20053903815132845,
+      "p90": 0.42522469594767875,
+      "mean": 0.1592257710691678
+    },
+    "commuteDistanceKm": {
+      "p10": 14966,
+      "p25": 18914,
+      "p50": 26523,
+      "p75": 37021,
+      "p90": 57818,
+      "mean": 32960.49095386947
+    },
+    "residentCellDensity": {
+      "p10": 10,
+      "p25": 20,
+      "p50": 60,
+      "p75": 136,
+      "p90": 382,
+      "mean": 186.58776577444436
+    },
+    "workerCellDensity": {
+      "p10": 20,
+      "p25": 49,
+      "p50": 79,
+      "p75": 206,
+      "p90": 567,
+      "mean": 259.62996941896023
+    },
+    "detail": {
+      "radiusKm": 0.10114349131267344,
+      "expectedPointSpacingKm": 0.48029165854339917,
+      "normalizedRadius": 0.2105876492200918,
+      "activityPerPoint": 36.21065743022714,
+      "playableAreaKm2": 29836,
+      "playableAreaPerPointKm2": 0.3974688603210551,
+      "playableCatchmentRadiusKm": 0.35569406473878085,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.6797554339742415,
+        "continuousScore": 0.9511822663207795,
+        "detectedCenterCount": 2,
+        "effectiveCenterCount": 1.5148708439834466,
+        "largestCenterShare": 0.7829507757657498,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 4.53201162819503,
+            "latitude": 45.64337256271702,
+            "massShare": 0.7829507757657498,
+            "assignedMass": 4256360,
+            "assignedPointCount": 59287,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": 5.66202185709972,
+            "latitude": 45.27417764418325,
+            "massShare": 0.21704922423425024,
+            "assignedMass": 1179946,
+            "assignedPointCount": 15778,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600,
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.29,
+    "weighted_score": 0.52,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  }
+}

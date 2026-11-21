@@ -1,0 +1,227 @@
+[
+  {
+    "browser": "Unknown",
+    "visits": {
+      "1d": 76,
+      "7d": 269,
+      "30d": 1413,
+      "all": 16777
+    }
+  },
+  {
+    "browser": "Chrome",
+    "visits": {
+      "1d": 12,
+      "7d": 61,
+      "30d": 514,
+      "all": 12685
+    }
+  },
+  {
+    "browser": "GoogleBot",
+    "visits": {
+      "1d": 18,
+      "7d": 109,
+      "30d": 469,
+      "all": 4949
+    }
+  },
+  {
+    "browser": "Firefox",
+    "visits": {
+      "1d": 1,
+      "7d": 3,
+      "30d": 87,
+      "all": 3209
+    }
+  },
+  {
+    "browser": "Safari",
+    "visits": {
+      "1d": 15,
+      "7d": 27,
+      "30d": 93,
+      "all": 2516
+    }
+  },
+  {
+    "browser": "MobileSafari",
+    "visits": {
+      "1d": 2,
+      "7d": 10,
+      "30d": 75,
+      "all": 2448
+    }
+  },
+  {
+    "browser": "BingBot",
+    "visits": {
+      "1d": 6,
+      "7d": 20,
+      "30d": 159,
+      "all": 2343
+    }
+  },
+  {
+    "browser": "ChromeMobile",
+    "visits": {
+      "1d": 4,
+      "7d": 17,
+      "30d": 94,
+      "all": 1674
+    }
+  },
+  {
+    "browser": "Edge",
+    "visits": {
+      "1d": 1,
+      "7d": 3,
+      "30d": 72,
+      "all": 1579
+    }
+  },
+  {
+    "browser": "Opera",
+    "visits": {
+      "1d": 0,
+      "7d": 1,
+      "30d": 15,
+      "all": 892
+    }
+  },
+  {
+    "browser": "YandexBot",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 377
+    }
+  },
+  {
+    "browser": "AppleBot",
+    "visits": {
+      "1d": 1,
+      "7d": 3,
+      "30d": 5,
+      "all": 186
+    }
+  },
+  {
+    "browser": "ChromeMobileWebview",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 100
+    }
+  },
+  {
+    "browser": "SamsungInternet",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 78
+    }
+  },
+  {
+    "browser": "ChromeHeadless",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 3,
+      "all": 46
+    }
+  },
+  {
+    "browser": "Curl",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 46
+    }
+  },
+  {
+    "browser": "ChromeDerivative",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 1,
+      "all": 37
+    }
+  },
+  {
+    "browser": "MobileSafariWebview",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 34
+    }
+  },
+  {
+    "browser": "FirefoxMobile",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 32
+    }
+  },
+  {
+    "browser": "TwitterBot",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 2,
+      "all": 17
+    }
+  },
+  {
+    "browser": "OperaMobile",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 12
+    }
+  },
+  {
+    "browser": "IE",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 3
+    }
+  },
+  {
+    "browser": "Chromium",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 2
+    }
+  },
+  {
+    "browser": "UCBrowserMobile",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 2
+    }
+  },
+  {
+    "browser": "Yandex",
+    "visits": {
+      "1d": 0,
+      "7d": 0,
+      "30d": 0,
+      "all": 1
+    }
+  }
+]

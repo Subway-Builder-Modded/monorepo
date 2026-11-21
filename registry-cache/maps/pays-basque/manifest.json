@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "id": "pays-basque",
+  "name": "Euskal Herria",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Cross-border map of the French and Spanish Basque Country, from Bayonne/Biarritz/Anglet/Hendaye to Donostia-San Sebastián/Irun/Hondarribia. Two airports (Biarritz, San Sebastián), rail stations on both sides, university campuses (UPPA, UPV/EHU), major hospitals. French side built from INSEE Filosofi/MOBPRO 2021; Spanish side from real INE/Eustat 2024 population with OSM-based job/commute estimation; real cross-border commuter totals from the Eurorégion Nouvelle-Aquitaine-Euskadi-Navarre employment diagnostic.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/pays-basque/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/pays-basque/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/pyb-update.json"
+  },
+  "city_code": "PYB",
+  "country": "FR",
+  "population": 318880,
+  "residents_total": 318880,
+  "points_count": 7565,
+  "population_count": 5998,
+  "initial_view_state": {
+    "latitude": 43.36,
+    "longitude": -1.75,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi/MOBPRO 2021, INE/Eustat 2024, OSM",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "absent",
+    "raw_score": 0.03,
+    "weighted_score": 0.15,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "PYB.pmtiles": 17.27,
+    "buildings_index.bin.gz": 7.12,
+    "config.json": 0,
+    "demand_data.json.gz": 0.23,
+    "ocean_depth_index.json.gz": 1.35,
+    "ocean_depth_index_contours.json.gz": 0.72,
+    "roads.geojson.gz": 1.91,
+    "runways_taxiways.geojson.gz": 0.03
+  },
+  "included_cities": [
+    "Bayonne",
+    "Biarritz",
+    "Anglet",
+    "Hendaye",
+    "Donostia-San Sebastián",
+    "Irun"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.030766631835764852,
+      "p50": 0.06376504063429843,
+      "p75": 0.19913533099845082,
+      "p90": 0.2000550520140226,
+      "mean": 0.10938127776223795
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.02438312301071647,
+      "p50": 0.05972574835327142,
+      "p75": 0.19966537229045295,
+      "p90": 0.4090315759467106,
+      "mean": 0.141461919291436
+    },
+    "commuteDistanceKm": {
+      "p10": 13980,
+      "p25": 16450,
+      "p50": 19400,
+      "p75": 23278,
+      "p90": 28658,
+      "mean": 20201.081527175724
+    },
+    "residentCellDensity": {
+      "p10": 40,
+      "p25": 60,
+      "p50": 150,
+      "p75": 480,
+      "p90": 1200,
+      "mean": 453.49855072463765
+    },
+    "workerCellDensity": {
+      "p10": 50,
+      "p25": 65,
+      "p50": 180,
+      "p75": 417,
+      "p90": 870,
+      "mean": 478.08761329305133
+    },
+    "detail": {
+      "radiusKm": 0.06171235508923829,
+      "expectedPointSpacingKm": 0.32963357653398356,
+      "normalizedRadius": 0.18721501534561075,
+      "activityPerPoint": 42.152015862524784,
+      "playableAreaKm2": 940,
+      "playableAreaPerPointKm2": 0.12425644415069398,
+      "playableCatchmentRadiusKm": 0.1988769835732882,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.9885659509129451,
+        "continuousScore": 0.878332492615728,
+        "detectedCenterCount": 3,
+        "effectiveCenterCount": 2.932929480697665,
+        "largestCenterShare": 0.403411941796287,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -1.9775003114894232,
+            "latitude": 43.29249992350754,
+            "massShare": 0.403411941796287,
+            "assignedMass": 257280,
+            "assignedPointCount": 3091,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": -1.76298046827933,
+            "latitude": 43.34742747134434,
+            "massShare": 0.3096117661816357,
+            "assignedMass": 197458,
+            "assignedPointCount": 2618,
+            "prominenceRatio": 1
+          },
+          {
+            "longitude": -1.4960307639819246,
+            "latitude": 43.46332597927737,
+            "massShare": 0.28697629202207725,
+            "assignedMass": 183022,
+            "assignedPointCount": 1856,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

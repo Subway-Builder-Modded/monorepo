@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "id": "brest",
+  "name": "Brest",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Brest metropolitan area, France, with real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Université de Bretagne Occidentale, CHRU Brest - Cavale Blanche, Gare de Brest, Aéroport Brest Bretagne, Océanopolis).",
+  "tags": [
+    "west-europe",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/brest/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/brest/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/bre-update.json"
+  },
+  "city_code": "BRE",
+  "country": "FR",
+  "population": 171425,
+  "residents_total": 171425,
+  "points_count": 3913,
+  "population_count": 3461,
+  "initial_view_state": {
+    "latitude": 48.3904,
+    "longitude": -4.486,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "BRE.pmtiles": 19.01,
+    "buildings_index.bin.gz": 8.75,
+    "config.json": 0,
+    "demand_data.json.gz": 0.14,
+    "ocean_depth_index.json.gz": 0.86,
+    "ocean_depth_index_contours.json.gz": 0.57,
+    "roads.geojson.gz": 2.01,
+    "runways_taxiways.geojson.gz": 0.04
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.06040972337088827,
+      "p50": 0.1992905137027712,
+      "p75": 0.1994341463403698,
+      "p90": 0.28325328281292206,
+      "mean": 0.17920071435781212
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.1930522466235276,
+      "p75": 0.4149423501165134,
+      "p90": 0.5065330078007674,
+      "mean": 0.21216365296802525
+    },
+    "commuteDistanceKm": {
+      "p10": 12669,
+      "p25": 15132,
+      "p50": 19365,
+      "p75": 24545,
+      "p90": 28781,
+      "mean": 19847.663392083214
+    },
+    "residentCellDensity": {
+      "p10": 9,
+      "p25": 29,
+      "p50": 65,
+      "p75": 201,
+      "p90": 499,
+      "mean": 218.5619295958279
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 61,
+      "p50": 120,
+      "p75": 263,
+      "p90": 527,
+      "mean": 287.4433164128596
+    },
+    "detail": {
+      "radiusKm": 0.1961465814157282,
+      "expectedPointSpacingKm": 0.48934468036589734,
+      "normalizedRadius": 0.40083521755884555,
+      "activityPerPoint": 43.80909787886532,
+      "playableAreaKm2": 1328,
+      "playableAreaPerPointKm2": 0.33938154868387427,
+      "playableCatchmentRadiusKm": 0.32867689625898966,
+      "localityScore": 0.8564078642071519,
+      "deaggregationScore": 1,
+      "score": 0.9254230730898987
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.7749226759837515,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -4.476342387487247,
+            "latitude": 48.414308562782686,
+            "massShare": 1,
+            "assignedMass": 342850,
+            "assignedPointCount": 3913,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

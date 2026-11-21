@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "id": "arc-mediterraneen",
+  "name": "L'Arc Méditerranéen",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the French Mediterranean coast, from Carcassonne to Avignon: Narbonne, Béziers, the étang de Thau (Sète, Agde), Perpignan, Montpellier, Nîmes and Arles. An airport, hospitals and universities across the whole region. Built from real INSEE Filosofi 2021 population grid and MOBPRO 2021 commute survey data. Supersedes our previous smaller Montpellier map (deprecated) with wider coverage and updated methodology.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/arc-mediterraneen/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/arc-mediterraneen/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/arc-mediterraneen/gallery/screenshot3.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/arc-mediterraneen/gallery/screenshot4.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/nar-update.json"
+  },
+  "city_code": "NAR",
+  "country": "FR",
+  "population": 1368864,
+  "residents_total": 1368864,
+  "points_count": 39894,
+  "population_count": 39219,
+  "initial_view_state": {
+    "latitude": 43.3,
+    "longitude": 3.6,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi/MOBPRO 2021",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.29,
+    "weighted_score": 0.52,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "NAR.pmtiles": 207.62,
+    "buildings_index.bin.gz": 100.52,
+    "config.json": 0,
+    "demand_data.json.gz": 1.67,
+    "ocean_depth_index.json.gz": 10.63,
+    "ocean_depth_index_contours.json.gz": 2.82,
+    "roads.geojson.gz": 17.97,
+    "runways_taxiways.geojson.gz": 0.39
+  },
+  "included_cities": [
+    "Narbonne",
+    "Béziers",
+    "Sète",
+    "Agde",
+    "Perpignan",
+    "Montpellier",
+    "Nîmes",
+    "Arles",
+    "Avignon"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.19579577460788206,
+      "p75": 0.19928022402962833,
+      "p90": 0.20094102551314955,
+      "mean": 0.15350960916777937
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.07591688605780933,
+      "p75": 0.21057771250696186,
+      "p90": 0.4470849162881181,
+      "mean": 0.1820460981935494
+    },
+    "commuteDistanceKm": {
+      "p10": 14256,
+      "p25": 17503,
+      "p50": 24432,
+      "p75": 34025,
+      "p90": 53935,
+      "mean": 31094.542645146485
+    },
+    "residentCellDensity": {
+      "p10": 5,
+      "p25": 19,
+      "p50": 65,
+      "p75": 205,
+      "p90": 490,
+      "mean": 195.2833598380801
+    },
+    "workerCellDensity": {
+      "p10": 21,
+      "p25": 60,
+      "p50": 94,
+      "p75": 238,
+      "p90": 532,
+      "mean": 261.6154880860876
+    },
+    "detail": {
+      "radiusKm": 0.12191884805684107,
+      "expectedPointSpacingKm": 0.4530385152779639,
+      "normalizedRadius": 0.26911364916079417,
+      "activityPerPoint": 34.312528199729286,
+      "playableAreaKm2": 17116,
+      "playableAreaPerPointKm2": 0.4290369479119667,
+      "playableCatchmentRadiusKm": 0.3695493229035862,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.9999801907294493,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 3.8935947755875238,
+            "latitude": 43.515887611062844,
+            "massShare": 1,
+            "assignedMass": 2737728,
+            "assignedPointCount": 39894,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

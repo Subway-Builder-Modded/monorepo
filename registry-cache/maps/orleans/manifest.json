@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "id": "orleans",
+  "name": "Orléans",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Orléans metropolitan area, France, with real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Université d'Orléans - La Source, CHR d'Orléans, Gare d'Orléans).",
+  "tags": [
+    "west-europe",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/orleans/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/4e85ef7860b8db6ca283099f3bec350c198a8477/maps/orleans/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/orl-update.json"
+  },
+  "city_code": "ORL",
+  "country": "FR",
+  "population": 171984,
+  "residents_total": 171984,
+  "points_count": 3182,
+  "population_count": 3389,
+  "initial_view_state": {
+    "latitude": 47.9029,
+    "longitude": 1.9039,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "ORL.pmtiles": 14.26,
+    "buildings_index.bin.gz": 6.69,
+    "config.json": 0,
+    "demand_data.json.gz": 0.13,
+    "ocean_depth_index.json.gz": 0.44,
+    "ocean_depth_index_contours.json.gz": 0.34,
+    "roads.geojson.gz": 1.04,
+    "runways_taxiways.geojson.gz": 0.05
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.07830451722891463,
+      "p50": 0.19910366455247408,
+      "p75": 0.1995663661061557,
+      "p90": 0.20021116068907563,
+      "mean": 0.1663131835850674
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.18969689751434202,
+      "p75": 0.40179143777551823,
+      "p90": 0.511524552314845,
+      "mean": 0.20827377584464346
+    },
+    "commuteDistanceKm": {
+      "p10": 12039,
+      "p25": 13683,
+      "p50": 17088,
+      "p75": 22628,
+      "p90": 28770,
+      "mean": 18447.55355562113
+    },
+    "residentCellDensity": {
+      "p10": 11,
+      "p25": 48,
+      "p50": 120,
+      "p75": 360,
+      "p90": 888,
+      "mean": 322.49333333333334
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 85,
+      "p50": 150,
+      "p75": 314,
+      "p90": 574,
+      "mean": 388.4510250569476
+    },
+    "detail": {
+      "radiusKm": 0.19434337511050026,
+      "expectedPointSpacingKm": 0.4371210309810757,
+      "normalizedRadius": 0.44459854670985616,
+      "activityPerPoint": 54.049025769956,
+      "playableAreaKm2": 940,
+      "playableAreaPerPointKm2": 0.295411690760528,
+      "playableCatchmentRadiusKm": 0.30664712890119294,
+      "localityScore": 0.7466931677867176,
+      "deaggregationScore": 1,
+      "score": 0.8641140941951575
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0.9282685696515214,
+        "continuousScore": 0.6675916576753269,
+        "detectedCenterCount": 2,
+        "effectiveCenterCount": 1.8661391682333048,
+        "largestCenterShare": 0.633913619871616,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 1.8960194171211604,
+            "latitude": 47.92115607655992,
+            "massShare": 0.633913619871616,
+            "assignedMass": 218046,
+            "assignedPointCount": 2349,
+            "prominenceRatio": 0.9999999977295186
+          },
+          {
+            "longitude": 1.9139170313360634,
+            "latitude": 47.83549485680576,
+            "massShare": 0.366086380128384,
+            "assignedMass": 125922,
+            "assignedPointCount": 833,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}
