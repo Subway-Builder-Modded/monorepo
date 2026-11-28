@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "dijon",
+  "name": "Dijon",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Dijon metropolitan area, France, with real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Université Bourgogne-Europe, CHU Dijon Bourgogne - François Mitterrand, Gare de Dijon-Ville).",
+  "tags": [
+    "west-europe",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/dijon/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/dijon/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/dij-update.json"
+  },
+  "city_code": "DIJ",
+  "country": "FR",
+  "population": 181380,
+  "residents_total": 181380,
+  "points_count": 3049,
+  "population_count": 3464,
+  "initial_view_state": {
+    "latitude": 47.322,
+    "longitude": 5.0415,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "DIJ.pmtiles": 8.46,
+    "buildings_index.bin.gz": 4.78,
+    "config.json": 0,
+    "demand_data.json.gz": 0.13,
+    "ocean_depth_index.json.gz": 0.37,
+    "ocean_depth_index_contours.json.gz": 0.27,
+    "roads.geojson.gz": 0.9,
+    "runways_taxiways.geojson.gz": 0.03
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.10588836419261256,
+      "p50": 0.19879017527715698,
+      "p75": 0.19945136359207782,
+      "p90": 0.19950217022905017,
+      "mean": 0.15887985637274057
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.19909930983885324,
+      "p75": 0.4013333026565271,
+      "p90": 0.5071661248644965,
+      "mean": 0.21304862195041058
+    },
+    "commuteDistanceKm": {
+      "p10": 5240,
+      "p25": 14321,
+      "p50": 17893,
+      "p75": 21954,
+      "p90": 26144,
+      "mean": 17636.92205542725
+    },
+    "residentCellDensity": {
+      "p10": 15,
+      "p25": 56,
+      "p50": 137,
+      "p75": 366,
+      "p90": 1500,
+      "mean": 465.7545219638243
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 98,
+      "p50": 200,
+      "p75": 420,
+      "p90": 718,
+      "mean": 457.8473282442748
+    },
+    "detail": {
+      "radiusKm": 0.19894468251357367,
+      "expectedPointSpacingKm": 0.3905240317196968,
+      "normalizedRadius": 0.5094300641051677,
+      "activityPerPoint": 59.488356838307645,
+      "playableAreaKm2": 808,
+      "playableAreaPerPointKm2": 0.2650049196457855,
+      "playableCatchmentRadiusKm": 0.2904370599813229,
+      "localityScore": 0.6025678318035778,
+      "deaggregationScore": 1,
+      "score": 0.7762524278890068
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.5024332648961337,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 5.081215442435221,
+            "latitude": 47.31051566827776,
+            "massShare": 1,
+            "assignedMass": 362760,
+            "assignedPointCount": 3049,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "id": "rennes",
+  "name": "Rennes",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the greater Rennes metropolitan area (France), from Rennes-Saint-Jacques airport to Cesson-Sevigne and Saint-Gregoire. 122k+ OSM buildings (binary format), 297k+ commuters with demand built from real INSEE census data. Rennes-Saint-Jacques airport with runways and taxiways. Protomaps basemap with water, parks and forests.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/rennes/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/rennes/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/rennes/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/rns-update.json"
+  },
+  "city_code": "RNS",
+  "country": "FR",
+  "population": 297940,
+  "residents_total": 297940,
+  "points_count": 3478,
+  "population_count": 4870,
+  "initial_view_state": {
+    "latitude": 48.1173,
+    "longitude": -1.6778,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi 2021 (donnees carroyees, revenus et population) - INSEE Recensement de la population 2021, mobilites professionnelles - OpenStreetMap contributors (ODbL) - Overture Maps Foundation (buildings)",
+  "source_quality": "high-quality",
+  "level_of_detail": "medium-detail",
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "RNS.pmtiles": 13.05,
+    "buildings_index.bin.gz": 6.6,
+    "config.json": 0,
+    "demand_data.json.gz": 0.17,
+    "ocean_depth_index.json.gz": 1.03,
+    "ocean_depth_index_contours.json.gz": 0.94,
+    "roads.geojson.gz": 1.45,
+    "runways_taxiways.geojson.gz": 0.03
+  },
+  "included_cities": [
+    "Cesson-Sévigné",
+    "Saint-Grégoire",
+    "Bruz",
+    "Saint-Jacques-de-la-Lande",
+    "Chantepie",
+    "Betton",
+    "Le Rheu",
+    "Vezin-le-Coquet",
+    "Pacé",
+    "Chartres-de-Bretagne"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.1634684835072456,
+      "p75": 0.19919951952991213,
+      "p90": 0.2812179903647568,
+      "mean": 0.14083512716980054
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.034629727053036935,
+      "p50": 0.19916399301482404,
+      "p75": 0.2735427242794694,
+      "p90": 0.49322390194677684,
+      "mean": 0.21292577026614182
+    },
+    "commuteDistanceKm": {
+      "p10": 11497,
+      "p25": 14918,
+      "p50": 17690,
+      "p75": 21165,
+      "p90": 25367,
+      "mean": 17665.874948665296
+    },
+    "residentCellDensity": {
+      "p10": 120,
+      "p25": 162,
+      "p50": 369,
+      "p75": 739,
+      "p90": 1860,
+      "mean": 716.9185750636133
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 82,
+      "p50": 202,
+      "p75": 543,
+      "p90": 1055,
+      "mean": 586.7256097560976
+    },
+    "detail": {
+      "radiusKm": 0.18043568357556367,
+      "expectedPointSpacingKm": 0.4051849122449938,
+      "normalizedRadius": 0.4453168864946871,
+      "activityPerPoint": 85.66417481311099,
+      "playableAreaKm2": 668,
+      "playableAreaPerPointKm2": 0.19206440483036227,
+      "playableCatchmentRadiusKm": 0.2472569490257253,
+      "localityScore": 0.7449838336629354,
+      "deaggregationScore": 1,
+      "score": 0.8631244601231826
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.6769013693113575,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -1.6789731329630113,
+            "latitude": 48.106851897345095,
+            "massShare": 1,
+            "assignedMass": 595880,
+            "assignedPointCount": 3478,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600,
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.29,
+    "weighted_score": 0.52,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "caen",
+  "name": "Caen",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Caen metropolitan area, France, with real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Université de Caen Normandie, CHU de Caen Normandie, Gare de Caen).",
+  "tags": [
+    "west-europe",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/caen/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/caen/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/cae-update.json"
+  },
+  "city_code": "CAE",
+  "country": "FR",
+  "population": 185820,
+  "residents_total": 185820,
+  "points_count": 4754,
+  "population_count": 5042,
+  "initial_view_state": {
+    "latitude": 49.1829,
+    "longitude": -0.3707,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "CAE.pmtiles": 12.07,
+    "buildings_index.bin.gz": 6.76,
+    "config.json": 0,
+    "demand_data.json.gz": 0.2,
+    "ocean_depth_index.json.gz": 0.27,
+    "ocean_depth_index_contours.json.gz": 0.19,
+    "roads.geojson.gz": 1.54,
+    "runways_taxiways.geojson.gz": 0.02
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.1693902039154944,
+      "p75": 0.19960650543302982,
+      "p90": 0.19984349204623525,
+      "mean": 0.12941442506516002
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.11286676201680293,
+      "p75": 0.40719037209170167,
+      "p90": 0.5057856883172571,
+      "mean": 0.18689915309184565
+    },
+    "commuteDistanceKm": {
+      "p10": 12980,
+      "p25": 15355,
+      "p50": 18453,
+      "p75": 22820,
+      "p90": 27426,
+      "mean": 18987.3464894883
+    },
+    "residentCellDensity": {
+      "p10": 6,
+      "p25": 26,
+      "p50": 92,
+      "p75": 254,
+      "p90": 564,
+      "mean": 261.16332378223495
+    },
+    "workerCellDensity": {
+      "p10": 43,
+      "p25": 61,
+      "p50": 125,
+      "p75": 251,
+      "p90": 460,
+      "mean": 290.4220472440945
+    },
+    "detail": {
+      "radiusKm": 0.13826975024678329,
+      "expectedPointSpacingKm": 0.4143005317215641,
+      "normalizedRadius": 0.33374263284728106,
+      "activityPerPoint": 39.087084560370215,
+      "playableAreaKm2": 948,
+      "playableAreaPerPointKm2": 0.19941102229701305,
+      "playableCatchmentRadiusKm": 0.2519414610800603,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.7393137657191409,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -0.3672555246534279,
+            "latitude": 49.19064148450376,
+            "massShare": 1,
+            "assignedMass": 371640,
+            "assignedPointCount": 4754,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

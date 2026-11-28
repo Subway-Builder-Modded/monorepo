@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "angers",
+  "name": "Angers",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Angers metropolitan area, France, with real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Université d'Angers, CHU d'Angers, Gare Angers-Saint-Laud).",
+  "tags": [
+    "west-europe",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/angers/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/angers/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/ang-update.json"
+  },
+  "city_code": "ANG",
+  "country": "FR",
+  "population": 210967,
+  "residents_total": 210967,
+  "points_count": 4230,
+  "population_count": 4012,
+  "initial_view_state": {
+    "latitude": 47.4712,
+    "longitude": -0.5636,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "OSMINSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "ANG.pmtiles": 16.91,
+    "buildings_index.bin.gz": 8.44,
+    "config.json": 0,
+    "demand_data.json.gz": 0.16,
+    "ocean_depth_index.json.gz": 0.62,
+    "ocean_depth_index_contours.json.gz": 0.46,
+    "roads.geojson.gz": 1.78,
+    "runways_taxiways.geojson.gz": 0.03
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.05998185196345378,
+      "p50": 0.19877994497888596,
+      "p75": 0.19976399354179886,
+      "p90": 0.2840176004158128,
+      "mean": 0.17694260969838238
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.19949991359656208,
+      "p75": 0.41452370475663836,
+      "p90": 0.5013482973385758,
+      "mean": 0.22994008817858286
+    },
+    "commuteDistanceKm": {
+      "p10": 12110,
+      "p25": 15359,
+      "p50": 19951,
+      "p75": 25605,
+      "p90": 30440,
+      "mean": 20222.715104685944
+    },
+    "residentCellDensity": {
+      "p10": 10,
+      "p25": 40,
+      "p50": 70,
+      "p75": 194,
+      "p90": 519,
+      "mean": 249.87725631768953
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 60,
+      "p50": 120,
+      "p75": 286,
+      "p90": 528,
+      "mean": 308.56387665198235
+    },
+    "detail": {
+      "radiusKm": 0.1991396039164915,
+      "expectedPointSpacingKm": 0.49345599395174344,
+      "normalizedRadius": 0.4035610193357302,
+      "activityPerPoint": 49.873995271867614,
+      "playableAreaKm2": 1472,
+      "playableAreaPerPointKm2": 0.3479905437352246,
+      "playableCatchmentRadiusKm": 0.3328195162087025,
+      "localityScore": 0.8492320433358106,
+      "deaggregationScore": 1,
+      "score": 0.9215378686390542
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.32865274265313504,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -0.5332810787217905,
+            "latitude": 47.477730346059154,
+            "massShare": 1,
+            "assignedMass": 421934,
+            "assignedPointCount": 4230,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

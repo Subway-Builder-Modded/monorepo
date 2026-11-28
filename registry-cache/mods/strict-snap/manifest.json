@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "strict-snap",
+  "name": "Strict Snap",
+  "author": "YellowAquarium",
+  "github_id": 154323272,
+  "description": "Increases node snap strength when drawing tracks.",
+  "tags": [
+    "qol",
+    "tracks"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/mods/strict-snap/gallery/screenshot1.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/YellowAquarium/strict-snap",
+  "update": {
+    "type": "github",
+    "repo": "YellowAquarium/strict-snap"
+  },
+  "last_updated": 1794832402
+}

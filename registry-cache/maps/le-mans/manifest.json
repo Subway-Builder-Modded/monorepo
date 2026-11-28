@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "le-mans",
+  "name": "Le Mans",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Le Mans metropolitan area, France, with real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Le Mans Université, Centre Hospitalier du Mans, Gare Le Mans).",
+  "tags": [
+    "west-europe",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/le-mans/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/le-mans/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/lem-update.json"
+  },
+  "city_code": "LEM",
+  "country": "FR",
+  "population": 124071,
+  "residents_total": 124071,
+  "points_count": 2502,
+  "population_count": 2448,
+  "initial_view_state": {
+    "latitude": 48.0061,
+    "longitude": 0.1996,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "LEM.pmtiles": 9.45,
+    "buildings_index.bin.gz": 4.84,
+    "config.json": 0,
+    "demand_data.json.gz": 0.09,
+    "ocean_depth_index.json.gz": 0.22,
+    "ocean_depth_index_contours.json.gz": 0.17,
+    "roads.geojson.gz": 0.82,
+    "runways_taxiways.geojson.gz": 0.01
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.15581992168819706,
+      "p50": 0.1995363456153467,
+      "p75": 0.19962816786997195,
+      "p90": 0.20064565962924627,
+      "mean": 0.18133686687407508
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.19943872454375858,
+      "p75": 0.40855297863658774,
+      "p90": 0.5023804617341523,
+      "mean": 0.2174671785490926
+    },
+    "commuteDistanceKm": {
+      "p10": 11866,
+      "p25": 13774,
+      "p50": 16159,
+      "p75": 19387,
+      "p90": 23241,
+      "mean": 16438.015114379086
+    },
+    "residentCellDensity": {
+      "p10": 10,
+      "p25": 35,
+      "p50": 85,
+      "p75": 270,
+      "p90": 911,
+      "mean": 293.3965936739659
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 70,
+      "p50": 130,
+      "p75": 273,
+      "p90": 565,
+      "mean": 336.7596685082873
+    },
+    "detail": {
+      "radiusKm": 0.19948752910808068,
+      "expectedPointSpacingKm": 0.4536907886816882,
+      "normalizedRadius": 0.43969931522687833,
+      "activityPerPoint": 49.58872901678657,
+      "playableAreaKm2": 572,
+      "playableAreaPerPointKm2": 0.22861710631494805,
+      "playableCatchmentRadiusKm": 0.2697611630512789,
+      "localityScore": 0.7584253693300199,
+      "deaggregationScore": 1,
+      "score": 0.8708762078102834
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.691723474656868,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 0.189824009429681,
+            "latitude": 48.00795138305164,
+            "massShare": 1,
+            "assignedMass": 248142,
+            "assignedPointCount": 2502,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

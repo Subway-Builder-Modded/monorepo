@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "id": "guadeloupe",
+  "name": "Guadeloupe",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the entire Guadeloupe archipelago, France, from Pointe-à-Pitre and Maryse Condé airport to Basse-Terre and Le Gosier. Real MOBPRO commute flows disaggregated over an OpenStreetMap building-density grid, with sourced special demand points (airport, university, hospital, cruise terminal, port, industrial/commercial zone).",
+  "tags": [
+    "west-europe",
+    "airports",
+    "ferries",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/guadeloupe/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/guadeloupe/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/guadeloupe/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/ptp-update.json"
+  },
+  "city_code": "PTP",
+  "country": "FR",
+  "population": 158440,
+  "residents_total": 158440,
+  "points_count": 3502,
+  "population_count": 2606,
+  "initial_view_state": {
+    "latitude": 16.2415,
+    "longitude": -61.5333,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE, OSM",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "low",
+    "raw_score": 0.17,
+    "weighted_score": 0.37,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "ferries",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "PTP.pmtiles": 25.4,
+    "buildings_index.bin.gz": 12.59,
+    "config.json": 0,
+    "demand_data.json.gz": 0.11,
+    "ocean_depth_index.json.gz": 8.9,
+    "ocean_depth_index_contours.json.gz": 6.17,
+    "roads.geojson.gz": 1.76,
+    "runways_taxiways.geojson.gz": 0.07
+  },
+  "included_cities": [
+    "Pointe-à-Pitre",
+    "Les Abymes",
+    "Basse-Terre",
+    "Le Gosier"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.1393322943736249,
+      "p50": 0.26688035430793144,
+      "p75": 0.2779877005839745,
+      "p90": 0.38563845988099127,
+      "mean": 0.25201182892090096
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.06302536781557658,
+      "p50": 0.26676123772334853,
+      "p75": 0.40918398951860496,
+      "p90": 0.8012354038779176,
+      "mean": 0.29621710414800057
+    },
+    "commuteDistanceKm": {
+      "p10": 13284,
+      "p25": 15992,
+      "p50": 22313,
+      "p75": 32241,
+      "p90": 48145,
+      "mean": 26477.08595548734
+    },
+    "residentCellDensity": {
+      "p10": 60,
+      "p25": 60,
+      "p50": 120,
+      "p75": 240,
+      "p90": 455,
+      "mean": 201.343949044586
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 60,
+      "p50": 120,
+      "p75": 239,
+      "p90": 431,
+      "mean": 256.37540453074433
+    },
+    "detail": {
+      "radiusKm": 0.2668207893685003,
+      "expectedPointSpacingKm": 0.5072292907532631,
+      "normalizedRadius": 0.5260358465739565,
+      "activityPerPoint": 45.24271844660194,
+      "playableAreaKm2": 1508,
+      "playableAreaPerPointKm2": 0.4306110793832096,
+      "playableCatchmentRadiusKm": 0.3702266382473696,
+      "localityScore": 0.5686047992862476,
+      "deaggregationScore": 1,
+      "score": 0.7540588831691114
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.810235371810385,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -61.540642375876004,
+            "latitude": 16.22046400817976,
+            "massShare": 1,
+            "assignedMass": 316880,
+            "assignedPointCount": 3502,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

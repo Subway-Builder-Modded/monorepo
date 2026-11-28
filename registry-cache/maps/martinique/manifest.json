@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "id": "martinique",
+  "name": "Martinique",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the entire island of Martinique, France, from Fort-de-France and Aimé Césaire airport to Le Robert, Rivière-Salée and Sainte-Luce. Real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Aimé Césaire airport, Université des Antilles, CHU Martinique, cruise terminal).",
+  "tags": [
+    "west-europe",
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/martinique/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/martinique/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/martinique/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/fdf-update.json"
+  },
+  "city_code": "FDF",
+  "country": "FR",
+  "population": 144201,
+  "residents_total": 144201,
+  "points_count": 3415,
+  "population_count": 2604,
+  "initial_view_state": {
+    "latitude": 14.6037,
+    "longitude": -61.0764,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.29,
+    "weighted_score": 0.52,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "FDF.pmtiles": 18.78,
+    "buildings_index.bin.gz": 10,
+    "config.json": 0,
+    "demand_data.json.gz": 0.11,
+    "ocean_depth_index.json.gz": 8.63,
+    "ocean_depth_index_contours.json.gz": 5.58,
+    "roads.geojson.gz": 1.75,
+    "runways_taxiways.geojson.gz": 0.05
+  },
+  "included_cities": [
+    "Fort-de-France",
+    "Le Robert",
+    "Rivière-Salée",
+    "Sainte-Luce"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.08323748521610445,
+      "p50": 0.199902829638458,
+      "p75": 0.20126597494119244,
+      "p90": 0.40004793438642233,
+      "mean": 0.19172216131153458
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.04412261865133603,
+      "p50": 0.19897348306425902,
+      "p75": 0.40661571042826405,
+      "p90": 1.0365842526122506,
+      "mean": 0.2924452837723643
+    },
+    "commuteDistanceKm": {
+      "p10": 15033,
+      "p25": 17709,
+      "p50": 23320,
+      "p75": 31754,
+      "p90": 40144,
+      "mean": 25750.610215053763
+    },
+    "residentCellDensity": {
+      "p10": 60,
+      "p25": 60,
+      "p50": 129,
+      "p75": 240,
+      "p90": 480,
+      "mean": 228.1608280254777
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 63,
+      "p50": 120,
+      "p75": 264,
+      "p90": 475,
+      "mean": 278.80970873786407
+    },
+    "detail": {
+      "radiusKm": 0.19943761502676766,
+      "expectedPointSpacingKm": 0.45725003972519995,
+      "normalizedRadius": 0.436167518206508,
+      "activityPerPoint": 42.225768667642754,
+      "playableAreaKm2": 1128,
+      "playableAreaPerPointKm2": 0.330307467057101,
+      "playableCatchmentRadiusKm": 0.32425319157195975,
+      "localityScore": 0.7669643434066344,
+      "deaggregationScore": 1,
+      "score": 0.8757650046711357
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.7792660914590437,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": -61.015084349813655,
+            "latitude": 14.628688032593365,
+            "massShare": 1,
+            "assignedMass": 288402,
+            "assignedPointCount": 3415,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

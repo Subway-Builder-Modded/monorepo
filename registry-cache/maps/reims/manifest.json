@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "id": "reims",
+  "name": "Reims",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Reims metropolitan area, France, with real INSEE commute data (Filosofi 2021 + MOBPRO 2021) and sourced special demand points (Université de Reims Champagne-Ardenne, CHU de Reims - Maison Blanche, Gare de Reims).",
+  "tags": [
+    "west-europe",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/reims/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/reims/gallery/screenshot2.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/rms-update.json"
+  },
+  "city_code": "RMS",
+  "country": "FR",
+  "population": 143103,
+  "residents_total": 143103,
+  "points_count": 2481,
+  "population_count": 2757,
+  "initial_view_state": {
+    "latitude": 49.2583,
+    "longitude": 4.0317,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE",
+  "source_quality": "low-quality",
+  "level_of_detail": "low-detail",
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  },
+  "location": "west-europe",
+  "special_demand": [
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "RMS.pmtiles": 7.97,
+    "buildings_index.bin.gz": 4.57,
+    "config.json": 0,
+    "demand_data.json.gz": 0.1,
+    "ocean_depth_index.json.gz": 0.14,
+    "ocean_depth_index_contours.json.gz": 0.11,
+    "roads.geojson.gz": 0.76,
+    "runways_taxiways.geojson.gz": 0.01
+  },
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.11976120259465675,
+      "p50": 0.19935158057720226,
+      "p75": 0.19954165241596605,
+      "p90": 0.19967846548033505,
+      "mean": 0.16602508171742125
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.19923732037437306,
+      "p75": 0.3849584612597799,
+      "p90": 0.4026138571785066,
+      "mean": 0.19404163679748843
+    },
+    "commuteDistanceKm": {
+      "p10": 5838,
+      "p25": 13853,
+      "p50": 16761,
+      "p75": 21151,
+      "p90": 25279,
+      "mean": 16981.803772216175
+    },
+    "residentCellDensity": {
+      "p10": 10,
+      "p25": 45,
+      "p50": 115,
+      "p75": 314,
+      "p90": 1320,
+      "mean": 418.198224852071
+    },
+    "workerCellDensity": {
+      "p10": 60,
+      "p25": 65,
+      "p50": 140,
+      "p75": 366,
+      "p90": 677,
+      "mean": 426.5274390243902
+    },
+    "detail": {
+      "radiusKm": 0.19929444228727927,
+      "expectedPointSpacingKm": 0.4005236395172856,
+      "normalizedRadius": 0.4975847181641278,
+      "activityPerPoint": 57.67956469165659,
+      "playableAreaKm2": 780,
+      "playableAreaPerPointKm2": 0.3143893591293833,
+      "playableCatchmentRadiusKm": 0.3163435492022382,
+      "localityScore": 0.6274780551252142,
+      "deaggregationScore": 1,
+      "score": 0.7921351242844962
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.5883206300840486,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 4.039284665157961,
+            "latitude": 49.24776944706223,
+            "massShare": 1,
+            "assignedMass": 286206,
+            "assignedPointCount": 2481,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600
+}

@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "id": "toulouse",
+  "name": "Toulouse - Occitanie",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Map of the Toulouse metropolitan area and its SERM commuter-rail catchment, from Toulouse-Blagnac airport to Montauban, Albi, Carcassonne, Auch and Montrejeau.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/toulouse/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/toulouse/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/toulouse/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/tls-update.json"
+  },
+  "city_code": "TLS",
+  "country": "FR",
+  "population": 1169247,
+  "residents_total": 1169247,
+  "points_count": 33117,
+  "population_count": 37041,
+  "initial_view_state": {
+    "latitude": 43.6045,
+    "longitude": 1.4442,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "NSEE Filosofi 2021 (population), INSEE RP2022 (commuting flows), INSEE SIRENE (establishment-level job placement), OpenStreetMap, Overture Maps (buildings)",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "TLS.pmtiles": 157.85,
+    "buildings_index.bin.gz": 73.15,
+    "config.json": 0,
+    "demand_data.json.gz": 1.54,
+    "ocean_depth_index.json.gz": 7.14,
+    "ocean_depth_index_contours.json.gz": 4.2,
+    "roads.geojson.gz": 14.92,
+    "runways_taxiways.geojson.gz": 0.29
+  },
+  "included_cities": [
+    "Montauban",
+    "Albi",
+    "Carcassonne",
+    "Auch",
+    "Montrejeau"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0.041824651204300636,
+      "p50": 0.19878613493711575,
+      "p75": 0.20002924367698394,
+      "p90": 0.4038202650801834,
+      "mean": 0.19926493954203192
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.09707149916736452,
+      "p75": 0.28336070983786255,
+      "p90": 0.5152850192593887,
+      "mean": 0.19321147367945996
+    },
+    "commuteDistanceKm": {
+      "p10": 14240,
+      "p25": 17517,
+      "p50": 24071,
+      "p75": 33637,
+      "p90": 52357,
+      "mean": 29480.06166140223
+    },
+    "residentCellDensity": {
+      "p10": 10,
+      "p25": 16,
+      "p50": 47,
+      "p75": 115,
+      "p90": 304,
+      "mean": 147.8007585335019
+    },
+    "workerCellDensity": {
+      "p10": 15,
+      "p25": 31,
+      "p50": 65,
+      "p75": 139,
+      "p90": 375,
+      "mean": 221.80596731280883
+    },
+    "detail": {
+      "radiusKm": 0.1389117278419351,
+      "expectedPointSpacingKm": 0.5418723376782695,
+      "normalizedRadius": 0.2563550825220614,
+      "activityPerPoint": 35.30654950629586,
+      "playableAreaKm2": 19356,
+      "playableAreaPerPointKm2": 0.5844732312709484,
+      "playableCatchmentRadiusKm": 0.43132772658771656,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.5258665501617558,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 1.4942990953237394,
+            "latitude": 43.590887469105915,
+            "massShare": 1,
+            "assignedMass": 2338494,
+            "assignedPointCount": 33117,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600,
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.4,
+    "weighted_score": 0.58,
+    "rubric_version": 1,
+    "provenance": "reviewed"
+  }
+}

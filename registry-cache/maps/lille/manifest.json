@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "id": "lille",
+  "name": "Lille - Flandre & Hainaut",
+  "author": "pierreggt",
+  "github_id": 301703453,
+  "description": "Regional map covering Lille, Béthune, Lens, Douai and Arras, France, plus the Belgian border town of Mouscron. 1.06M+ simulated commuters. French side built from real INSEE Filosofi/MOBPRO 2021 data; Belgian side (Mouscron) from OSM building-weighted population with real INSEE cross-border commuter totals.",
+  "tags": [
+    "west-europe",
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "gallery": [
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/lille/gallery/screenshot1.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/lille/gallery/screenshot2.webp",
+    "https://raw.githubusercontent.com/Subway-Builder-Modded/registry/1db99bc0afdec095f0fd339514131c9641072ad2/maps/lille/gallery/screenshot3.webp"
+  ],
+  "is_test": false,
+  "source": "https://github.com/pierreggt/subwaybuilder-maps-france",
+  "update": {
+    "type": "custom",
+    "url": "https://raw.githubusercontent.com/pierreggt/subwaybuilder-maps-france/main/updates/lil-update.json"
+  },
+  "city_code": "LIL",
+  "country": "FR",
+  "population": 1059527,
+  "residents_total": 1059527,
+  "points_count": 25516,
+  "population_count": 32209,
+  "initial_view_state": {
+    "latitude": 50.5,
+    "longitude": 2.95,
+    "zoom": 12,
+    "bearing": 0
+  },
+  "data_source": "INSEE Filosofi/MOBPRO 2021, OSM",
+  "source_quality": "medium-quality",
+  "level_of_detail": "high-detail",
+  "location": "west-europe",
+  "special_demand": [
+    "airports",
+    "entertainment",
+    "hospitals",
+    "universities"
+  ],
+  "file_sizes": {
+    "LIL.pmtiles": 68.36,
+    "buildings_index.bin.gz": 43.1,
+    "config.json": 0,
+    "demand_data.json.gz": 1.26,
+    "ocean_depth_index.json.gz": 0.75,
+    "ocean_depth_index_contours.json.gz": 0.51,
+    "roads.geojson.gz": 7.12,
+    "runways_taxiways.geojson.gz": 0.09
+  },
+  "included_cities": [
+    "Béthune",
+    "Lens",
+    "Douai",
+    "Arras",
+    "Mouscron"
+  ],
+  "grid_statistics": {
+    "residentWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.05541735799929883,
+      "p75": 0.1990455010919164,
+      "p90": 0.19966419364169277,
+      "mean": 0.09394750513055714
+    },
+    "workerWeightedNearestNeighborKm": {
+      "p10": 0,
+      "p25": 0,
+      "p50": 0.040129069945475423,
+      "p75": 0.19911206865432537,
+      "p90": 0.40059418772865063,
+      "mean": 0.11608650169131697
+    },
+    "commuteDistanceKm": {
+      "p10": 13967,
+      "p25": 17279,
+      "p50": 23761,
+      "p75": 31961,
+      "p90": 40595,
+      "mean": 25615.91729019839
+    },
+    "residentCellDensity": {
+      "p10": 10,
+      "p25": 42,
+      "p50": 139,
+      "p75": 417,
+      "p90": 938,
+      "mean": 368.5334757834758
+    },
+    "workerCellDensity": {
+      "p10": 45,
+      "p25": 73,
+      "p50": 184,
+      "p75": 437,
+      "p90": 892,
+      "mean": 455.73894189071984
+    },
+    "detail": {
+      "radiusKm": 0.04715768267575618,
+      "expectedPointSpacingKm": 0.34681042798356554,
+      "normalizedRadius": 0.13597538848512036,
+      "activityPerPoint": 41.524024141715,
+      "playableAreaKm2": 2828,
+      "playableAreaPerPointKm2": 0.11083241887443172,
+      "playableCatchmentRadiusKm": 0.18782719355139868,
+      "localityScore": 1,
+      "deaggregationScore": 1,
+      "score": 1
+    },
+    "polycentrism": {
+      "activity": {
+        "score": 0,
+        "continuousScore": 0.8618658102330157,
+        "detectedCenterCount": 1,
+        "effectiveCenterCount": 1,
+        "largestCenterShare": 1,
+        "bandwidthKm": 1.3,
+        "reliabilityScore": 1,
+        "supportLevel": "high",
+        "usedFallback": false,
+        "topCenters": [
+          {
+            "longitude": 3.008033927578989,
+            "latitude": 50.56627217852738,
+            "massShare": 1,
+            "assignedMass": 2119054,
+            "assignedPointCount": 25516,
+            "prominenceRatio": 1
+          }
+        ]
+      }
+    }
+  },
+  "last_updated": 1794873600,
+  "data_quality": {
+    "tier": "medium",
+    "raw_score": 0.29,
+    "weighted_score": 0.52,
+    "rubric_version": 1,
+    "provenance": "backfill"
+  }
+}
